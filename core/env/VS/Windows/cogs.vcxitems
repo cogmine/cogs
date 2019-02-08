@@ -1,0 +1,521 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{73fdac99-3896-4763-870c-9ef680d85e39}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\sync\atomic.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\mem\bit_scan.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\sync\atomic.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\sync\atomic_operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\mem\bit_scan.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\sync\atomic.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\sync\atomic_operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\semaphore.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\thread.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\timeout.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\datetime.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\address.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\endpoint.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\socket.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\tcp.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\collections\macos_strings.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\datetime.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\graphics_context.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsbitmap.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsimage.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\button.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\check_box.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\scroll_bar.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\text_editor.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\window.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\address.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\endpoint.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\socket.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\tcp.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\semaphore.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\thread.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\timeout.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\datetime.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gfx\bitmap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gfx\device_context.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\button.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\check_box.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\directx.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\hwnd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\opengl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\scroll_bar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\text_editor.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\window.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\WPF\window.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\handle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\completion_port.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\address.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\endpoint.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\init_token.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\socket.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\tcp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\mem\allocator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\atomic_operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\semaphore.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\thread.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\timeout.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\assert.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\cogs.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\abastack.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\array_view.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\avltree.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_string.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_deque.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_dlist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_skiplist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_stack.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\dlink.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\dlist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\map.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\multimap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\multiset.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\rbtree.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\set.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\simple_vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\slink.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\slist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\stack.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\string.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\tlink.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector_view.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\compatible.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\adler32.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\cipher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\crc.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\fletcher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\fnv.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hash.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hash_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\haval.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hmac.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\joaat.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md2.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md4.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md5.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\ripemd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\serial_hash.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha1.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha2.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha3.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\snefru.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\tiger.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\whirlpool.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\debug.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\function.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\alignment.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\bounds.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\cell.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\dimension.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\direction.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\size.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\flow.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\margin.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\point.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\proportion.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\range.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\sizing_groups.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\canvas.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\color.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\font.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\ansiterm.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\binding.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\background.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\check_box.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\editor.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\grid.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pixel_image_pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\label.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\labeled_list.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\list.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\mouse.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pane_bridge.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\native_container_pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\frame.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_bar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\subsystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\table.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\text_editor.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\window.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\wrap_list.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\auto_fd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\buffer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\composite_buffer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datasink.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datasource.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream_protocol.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_datasink.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_filter.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\file.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\filter.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\limiter.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\address.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\connection.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\endpoint.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\http.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\address.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\endpoint.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\tcp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\server.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\smtp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\telnet.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\permission.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\load.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\macro_concat.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\macro_stringify.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bits_to_bytes.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bits_to_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\boolean.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bytes_to_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\chars.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_gcd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_lcm.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_max_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_min_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_upow.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_uroot.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\datetime.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\dynamic_integer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extumul.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_extended.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_extended_const.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native_const.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fraction.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\int_types.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_const_type.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_negative_value.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_signed.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\least_multiple_of.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\measurement_types.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\negate_if_signed.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\next_exponent_of_two.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\next_multiple_of.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\measure.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\prev_exponent_of_two.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\random.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_bits.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_bytes.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_int.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\time.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\value_to_bits.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\vec.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator_container.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\auto_handle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bballoc.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_bit_rotate.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_bit_scan.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bypass_strict_aliasing.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_set_bits.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\default_allocator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\delayed_construction.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\endian.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist_allocator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\int_parts.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\object.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\placement.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\placement_header.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ptr.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcnew.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcptr.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcref.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcref_freelist.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_container_base.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj_base.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ref.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\storage_union.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\weak_rcptr.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\parser\escseq.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\parser\regexp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_alignment.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_compare_exchange.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_exchange.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_load.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_store.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\auto_reset_event.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\can_atomic.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\cleanup_queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\count_down_event.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\default_atomic_operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dguard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatcher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\hazard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_timer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\parallel_for_each.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_dispatcher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\pulse_timer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\quit_dispatcher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\refireable_timer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_event.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\rwlock.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\semaphore.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sguard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_timer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\thread.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\thread_pool.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\timer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\transactable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned_ptr.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned_ref.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_deque.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_priority_queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_queue.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_stack.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\ui\keyboard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\math\umul.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_rotate.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_scan.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\math\umul.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\alignment.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_count.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_rotate.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_scan.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\math\umul.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\alignment.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\allocator.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_count.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_rotate.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_scan.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\math\umul.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\alignment.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\allocator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_count.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_rotate.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_scan.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_operators.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\macos_sync.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\hwnd.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\completion_port.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\windows_sync.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\windows.cpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\core.cpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.cpp">
+      <ShowIncludes>false</ShowIncludes>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sync.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\timer.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\makefile">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\main.mm">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+</Project>

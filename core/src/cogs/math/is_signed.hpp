@@ -1,0 +1,95 @@
+//
+//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//
+
+
+// Status: Good
+
+#ifndef COGS_IS_SIGNED_TYPE
+#define COGS_IS_SIGNED_TYPE
+
+
+#include <type_traits>
+
+
+
+namespace cogs {
+
+
+/// @ingroup TypeTraits
+/// @ingroup Math
+/// @brief Template helpers to test if an integer type is signed
+/// @tparam int_t Int type
+template <typename T>
+class is_signed
+{
+public:
+	static const bool value = std::is_signed<T>::value;
+};
+template <typename T>
+constexpr bool is_signed_v = is_signed<T>::value;
+
+
+
+// By default, map const and/or volatile to the version with no CV qualifier
+template <typename T>
+class is_signed<const T>
+{
+public:
+	static const bool value = is_signed<T>::value;
+};
+
+template <typename T>
+class is_signed<volatile T>
+{
+public:
+	static const bool value = is_signed<T>::value;
+};
+
+template <typename T>
+class is_signed<const volatile T>
+{
+public:
+	static const bool value = is_signed<T>::value;
+};
+
+
+
+template <typename T>
+class is_unsigned
+{
+public:
+	static const bool value = std::is_unsigned<T>::value;
+};
+
+
+
+// By default, map const and/or volatile to the version with no CV qualifier
+template <typename T>
+class is_unsigned<const T>
+{
+public:
+	static const bool value = is_unsigned<T>::value;
+};
+
+template <typename T>
+class is_unsigned<volatile T>
+{
+public:
+	static const bool value = is_unsigned<T>::value;
+};
+
+template <typename T>
+class is_unsigned<const volatile T>
+{
+public:
+	static const bool value = is_unsigned<T>::value;
+};
+
+
+
+
+}
+
+
+#endif

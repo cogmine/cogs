@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28516.95
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cogs", "core\env\VS\Windows\cogs.vcxitems", "{73FDAC99-3896-4763-870C-9EF680D85E39}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UISample", "apps\UISample\VS\UISample.vcxproj", "{223BA6D3-8C22-4FF2-B292-8F60E007A05A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{585435BC-E626-49BA-8FBB-152328713197}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		core\env\VS\Windows\cogs.vcxitems*{223ba6d3-8c22-4ff2-b292-8f60e007a05a}*SharedItemsImports = 4
+		core\env\VS\Windows\cogs.vcxitems*{73fdac99-3896-4763-870c-9ef680d85e39}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		DebugCLR|ARM = DebugCLR|ARM
+		DebugCLR|x64 = DebugCLR|x64
+		DebugCLR|x86 = DebugCLR|x86
+		Release|ARM = Release|ARM
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+		ReleaseCLR|ARM = ReleaseCLR|ARM
+		ReleaseCLR|x64 = ReleaseCLR|x64
+		ReleaseCLR|x86 = ReleaseCLR|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|ARM.ActiveCfg = Debug|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|ARM.Build.0 = Debug|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|x64.ActiveCfg = Debug|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|x64.Build.0 = Debug|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|x86.ActiveCfg = Debug|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Debug|x86.Build.0 = Debug|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|ARM.ActiveCfg = DebugCLR|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|ARM.Build.0 = DebugCLR|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|x64.ActiveCfg = DebugCLR|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|x64.Build.0 = DebugCLR|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|x86.ActiveCfg = DebugCLR|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.DebugCLR|x86.Build.0 = DebugCLR|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|ARM.ActiveCfg = Release|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|ARM.Build.0 = Release|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|x64.ActiveCfg = Release|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|x64.Build.0 = Release|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|x86.ActiveCfg = Release|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.Release|x86.Build.0 = Release|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|ARM.ActiveCfg = ReleaseCLR|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|ARM.Build.0 = ReleaseCLR|ARM
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|x64.ActiveCfg = ReleaseCLR|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|x64.Build.0 = ReleaseCLR|x64
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|x86.ActiveCfg = ReleaseCLR|Win32
+		{223BA6D3-8C22-4FF2-B292-8F60E007A05A}.ReleaseCLR|x86.Build.0 = ReleaseCLR|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E6A75020-3556-4927-A734-E167735C502C}
+	EndGlobalSection
+EndGlobal

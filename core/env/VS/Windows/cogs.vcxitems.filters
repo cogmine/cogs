@@ -1,0 +1,1262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="core">
+      <UniqueIdentifier>{23a7ddd0-024b-4334-b46f-bb3706c3b054}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch">
+      <UniqueIdentifier>{a4e668f4-3383-414b-90cf-ac4fa2e0e139}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os">
+      <UniqueIdentifier>{29163046-361e-4ddb-9573-69839d5b9be9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env">
+      <UniqueIdentifier>{980f4fdf-7f9d-4d8b-be6e-3a678514e43d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\unknown">
+      <UniqueIdentifier>{425f3ac0-be08-4a5f-ba58-cfb51e24c3fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x64">
+      <UniqueIdentifier>{e54221a5-0e88-44f4-8dc7-9659e9217b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x86">
+      <UniqueIdentifier>{0f06ee28-5a42-4217-86f0-04d42ffcebe7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\unknown\mem">
+      <UniqueIdentifier>{16a0d1bb-2629-44f4-a539-236d4434ebec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\unknown\sync">
+      <UniqueIdentifier>{f5368511-66a8-4939-8a33-5baaa7ad11a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x86\mem">
+      <UniqueIdentifier>{4577a0aa-14f7-4f3d-a9b1-a8ab83fc26d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x86\sync">
+      <UniqueIdentifier>{5e55b117-32a0-406c-8b5f-610f3f4d473e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x64\mem">
+      <UniqueIdentifier>{849e81a0-9a1f-4571-9d3b-c4be87190893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch\x64\sync">
+      <UniqueIdentifier>{4f1f6360-103a-458d-b461-05191c9cf56a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\libs">
+      <UniqueIdentifier>{7b0d5f89-1f35-4475-ab6d-e0fbe8f8ff99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\linux">
+      <UniqueIdentifier>{c22afc8e-bca8-43f9-939f-667cc4203364}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS">
+      <UniqueIdentifier>{6bd00da0-f5b6-4dd1-9bee-0312b7827827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\std">
+      <UniqueIdentifier>{260e7ab3-60c6-4ac4-999c-12f944d09344}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows">
+      <UniqueIdentifier>{f3862858-dea6-4716-b2a1-f5318f1f01a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\libs\pthreads">
+      <UniqueIdentifier>{c0617328-536b-448b-ab7e-d904c329f77d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\linux\io">
+      <UniqueIdentifier>{e97ca068-8b55-4c73-94b8-4ea92737e42e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\linux\mem">
+      <UniqueIdentifier>{25aa071d-8534-4dc3-aeb8-0b041483ecc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\linux\io\net">
+      <UniqueIdentifier>{982dae8a-2c03-482e-8954-8e906526afa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\linux\io\net\ip">
+      <UniqueIdentifier>{5fffc220-38f8-442d-bff8-40d31fee3156}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\collections">
+      <UniqueIdentifier>{d44c9fc0-d183-4dd4-8cee-6eedfcc55ff9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\gfx">
+      <UniqueIdentifier>{1ed0d6ee-fae3-4dc8-96d6-98b32374b300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\gui">
+      <UniqueIdentifier>{36042d90-54fa-4f72-9277-36451d8844c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\io">
+      <UniqueIdentifier>{392c1c48-6032-4d93-97e3-7eb19a6b6c00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\mem">
+      <UniqueIdentifier>{89c8dd82-c5e2-41be-b030-c2194f0313c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\sync">
+      <UniqueIdentifier>{8094ed62-3372-48a7-88f2-8fd32f4bf4ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\io\net">
+      <UniqueIdentifier>{e1dffb1b-e8e3-479d-9dcf-44a5fc8e4b55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\MacOS\io\net\ip">
+      <UniqueIdentifier>{4c5196aa-6c22-4d59-ae6d-8f0a2bf1a698}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\std\mem">
+      <UniqueIdentifier>{2b9538d6-6369-4956-9981-61ba00625e83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\gfx">
+      <UniqueIdentifier>{568d207f-a9a8-4283-9e65-819b2fc08adf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\gui">
+      <UniqueIdentifier>{1bb0f445-27bf-4f44-b40f-dc2cd2366804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\io">
+      <UniqueIdentifier>{b9f75cbb-c0f7-48df-91b3-2fea4877962a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\mem">
+      <UniqueIdentifier>{22d6a61c-811b-40f9-9ebb-3e60dd3d6ff0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\sync">
+      <UniqueIdentifier>{bfa275d9-c439-4faa-a356-3d68e7486f7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\gui\GDI">
+      <UniqueIdentifier>{fbac1a4d-bf7a-4c3a-a90a-ce1930134f4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\gui\WPF">
+      <UniqueIdentifier>{fc09ab9b-1b84-4fee-9eca-5931c60f8ba5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\io\net">
+      <UniqueIdentifier>{0d04f7a4-de49-4863-ab2e-6882a1830916}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\windows\io\net\ip">
+      <UniqueIdentifier>{78b302f1-7df9-43a7-b269-642585c3be51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\default">
+      <UniqueIdentifier>{31af40ce-f6a7-4cac-8ea3-5316ee50772b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\gcc">
+      <UniqueIdentifier>{cc1d7524-8f90-4e22-96b4-b546cd306d79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\VS">
+      <UniqueIdentifier>{d71c2ed8-232d-4c1b-aa79-8bcffaba1355}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\XCode">
+      <UniqueIdentifier>{ee8e1a96-f73c-47ba-a2e0-d13ffb2429ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\default\math">
+      <UniqueIdentifier>{cc1be5f3-df6e-4288-ab74-e64c4e516d9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\default\mem">
+      <UniqueIdentifier>{e30f640c-645b-4792-8eb1-c7c344bea41d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\gcc\math">
+      <UniqueIdentifier>{6d687c21-354c-4e4c-a309-c5976c3eed4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\gcc\mem">
+      <UniqueIdentifier>{71c78ba9-1c37-4095-a970-38f807407384}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\XCode\math">
+      <UniqueIdentifier>{b1efdc30-ed90-414e-a193-2a0b16896597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\XCode\mem">
+      <UniqueIdentifier>{f972c424-1ca7-4561-841e-f1646d6b6bea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\VS\math">
+      <UniqueIdentifier>{8b31638a-2f72-45bd-a552-c1de8c2d6f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\VS\mem">
+      <UniqueIdentifier>{bc861fd6-be4d-4545-9543-1eb5df8adcbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\VS\sync">
+      <UniqueIdentifier>{94734423-4135-4985-b1b5-e33e4a087f47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\collections">
+      <UniqueIdentifier>{aa61ddb6-6373-4c43-aa0b-fe07c1dd6710}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\crypto">
+      <UniqueIdentifier>{bc04d4e8-0e96-4418-909c-7b3efe2fda85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\geometry">
+      <UniqueIdentifier>{f30d72a3-64ec-4d80-88fd-57eed17427cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\gfx">
+      <UniqueIdentifier>{909207ec-fb7d-46b9-9a5e-b22934a2ccf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\gui">
+      <UniqueIdentifier>{ec42b33c-94ee-4f5f-9219-f0e1397dbc63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\io">
+      <UniqueIdentifier>{9d77dfab-61f8-4a9e-92df-0692688b006e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\math">
+      <UniqueIdentifier>{cdf0856f-5624-4706-b878-4754b6887e5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\mem">
+      <UniqueIdentifier>{1a61470a-f9f0-496a-9554-446c777bad6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\parser">
+      <UniqueIdentifier>{95d66467-93bb-403d-ad6a-b99d2eb4c84e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\sync">
+      <UniqueIdentifier>{63e4e83c-573b-49fe-9984-57916710738f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\ui">
+      <UniqueIdentifier>{585a3b2a-d3ea-44d9-ba5a-b5229dd20442}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\io\net">
+      <UniqueIdentifier>{ae89d2f4-ca94-45b2-bd8d-d2620a38cd74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\io\net\ip">
+      <UniqueIdentifier>{658fc41b-dbc8-424d-8eae-e86f66752929}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp">
+      <Filter>arch\unknown\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\sync\atomic.hpp">
+      <Filter>arch\unknown\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch.hpp">
+      <Filter>arch\unknown</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch.hpp">
+      <Filter>arch\x86</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\mem\bit_scan.hpp">
+      <Filter>arch\x86\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\sync\atomic.hpp">
+      <Filter>arch\x86\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x86\src\cogs\arch\sync\atomic_operators.hpp">
+      <Filter>arch\x86\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch.hpp">
+      <Filter>arch\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\mem\bit_scan.hpp">
+      <Filter>arch\x64\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\sync\atomic.hpp">
+      <Filter>arch\x64\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\x64\src\cogs\arch\sync\atomic_operators.hpp">
+      <Filter>arch\x64\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\semaphore.hpp">
+      <Filter>os\libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\thread.hpp">
+      <Filter>os\libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\timeout.hpp">
+      <Filter>os\libs\pthreads</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os.hpp">
+      <Filter>os\linux</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\datetime.hpp">
+      <Filter>os\linux</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.hpp">
+      <Filter>os\linux\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\address.hpp">
+      <Filter>os\linux\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\endpoint.hpp">
+      <Filter>os\linux\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\socket.hpp">
+      <Filter>os\linux\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\tcp.hpp">
+      <Filter>os\linux\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\mem\allocator.hpp">
+      <Filter>os\linux\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os.hpp">
+      <Filter>os\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\datetime.hpp">
+      <Filter>os\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\collections\macos_strings.hpp">
+      <Filter>os\MacOS\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\graphics_context.hpp">
+      <Filter>os\MacOS\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsbitmap.hpp">
+      <Filter>os\MacOS\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsimage.hpp">
+      <Filter>os\MacOS\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\button.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\check_box.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\scroll_bar.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\text_editor.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\window.hpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.hpp">
+      <Filter>os\MacOS\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\address.hpp">
+      <Filter>os\MacOS\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\endpoint.hpp">
+      <Filter>os\MacOS\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\socket.hpp">
+      <Filter>os\MacOS\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\tcp.hpp">
+      <Filter>os\MacOS\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os.hpp">
+      <Filter>os\std</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os\mem\allocator.hpp">
+      <Filter>os\std\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os.hpp">
+      <Filter>os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\datetime.hpp">
+      <Filter>os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\handle.hpp">
+      <Filter>os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gfx\bitmap.hpp">
+      <Filter>os\windows\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gfx\device_context.hpp">
+      <Filter>os\windows\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\button.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\check_box.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\directx.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\opengl.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\scroll_bar.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\text_editor.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\window.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\WPF\window.hpp">
+      <Filter>os\windows\gui\WPF</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\completion_port.hpp">
+      <Filter>os\windows\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.hpp">
+      <Filter>os\windows\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\address.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\endpoint.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\init_token.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\socket.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\tcp.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\mem\allocator.hpp">
+      <Filter>os\windows\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\atomic_operators.hpp">
+      <Filter>os\windows\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\semaphore.hpp">
+      <Filter>os\windows\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\thread.hpp">
+      <Filter>os\windows\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\timeout.hpp">
+      <Filter>os\windows\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env.hpp">
+      <Filter>env\default</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\math\umul.hpp">
+      <Filter>env\default\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\allocator.hpp">
+      <Filter>env\default\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_rotate.hpp">
+      <Filter>env\default\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_scan.hpp">
+      <Filter>env\default\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env.hpp">
+      <Filter>env\gcc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\math\umul.hpp">
+      <Filter>env\gcc\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\alignment.hpp">
+      <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\allocator.hpp">
+      <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_count.hpp">
+      <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_rotate.hpp">
+      <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_scan.hpp">
+      <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
+      <Filter>env\XCode</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\math\umul.hpp">
+      <Filter>env\XCode\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\alignment.hpp">
+      <Filter>env\XCode\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\allocator.hpp">
+      <Filter>env\XCode\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_count.hpp">
+      <Filter>env\XCode\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_rotate.hpp">
+      <Filter>env\XCode\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_scan.hpp">
+      <Filter>env\XCode\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env.hpp">
+      <Filter>env\VS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\math\umul.hpp">
+      <Filter>env\VS\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\alignment.hpp">
+      <Filter>env\VS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\allocator.hpp">
+      <Filter>env\VS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_count.hpp">
+      <Filter>env\VS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_rotate.hpp">
+      <Filter>env\VS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_scan.hpp">
+      <Filter>env\VS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_operators.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\cogs.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\compatible.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\debug.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\load.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\macro_concat.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\macro_stringify.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\operators.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\abastack.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\array_view.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\avltree.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_string.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_vector.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_deque.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_dlist.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_queue.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_skiplist.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\container_stack.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\dlink.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\dlist.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\map.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\multimap.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\multiset.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\rbtree.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\set.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\simple_vector.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\slink.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\slist.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\stack.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\string.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\tlink.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector_view.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\adler32.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\cipher.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\crc.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\fletcher.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\fnv.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hash.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hash_int.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\haval.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hmac.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\joaat.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md2.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md4.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\md5.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\ripemd.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\serial_hash.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha1.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha2.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\sha3.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\snefru.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\tiger.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\whirlpool.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\alignment.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\bounds.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\cell.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\dimension.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\direction.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\flow.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\margin.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\point.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\proportion.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\range.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\sizing_groups.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\canvas.hpp">
+      <Filter>core\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\color.hpp">
+      <Filter>core\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\font.hpp">
+      <Filter>core\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\ansiterm.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\binding.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\check_box.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\editor.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\grid.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\label.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\labeled_list.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\list.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\mouse.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pane.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pane_bridge.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_bar.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_pane.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\subsystem.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\table.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\text_editor.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\wrap_list.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\address.hpp">
+      <Filter>core\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\endpoint.hpp">
+      <Filter>core\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip\tcp.hpp">
+      <Filter>core\io\net\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\address.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\connection.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\endpoint.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\http.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\ip.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\server.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\smtp.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\telnet.hpp">
+      <Filter>core\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\auto_fd.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\buffer.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\composite_buffer.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datasink.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datasource.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream_protocol.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_datasink.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_filter.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\file.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\filter.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\limiter.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\permission.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\queue.hpp">
+      <Filter>core\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bits_to_bytes.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bits_to_int.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\boolean.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bytes_to_int.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\chars.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_gcd.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_lcm.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_max_int.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_min_int.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_upow.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_uroot.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\datetime.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\dynamic_integer.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extumul.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_extended.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_extended_const.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native_const.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fraction.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\int_types.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_const_type.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_negative_value.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_signed.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\least_multiple_of.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\measurement_types.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\negate_if_signed.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\next_exponent_of_two.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\next_multiple_of.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\prev_exponent_of_two.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\random.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_bits.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_bytes.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\range_to_int.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\time.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\value_to_bits.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\vec.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator_container.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bballoc.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bypass_strict_aliasing.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_set_bits.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\default_allocator.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\delayed_construction.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\endian.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist_allocator.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\int_parts.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\object.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\placement.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\placement_header.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ptr.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_container_base.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj_base.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcnew.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcptr.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcref.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rcref_freelist.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ref.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\storage_union.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\weak_rcptr.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\parser\escseq.hpp">
+      <Filter>core\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\parser\regexp.hpp">
+      <Filter>core\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_alignment.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_compare_exchange.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_exchange.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_load.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_store.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\auto_reset_event.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\can_atomic.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\cleanup_queue.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\count_down_event.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\default_atomic_operators.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dguard.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatcher.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\hazard.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\parallel_for_each.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_dispatcher.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_queue.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\pulse_timer.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\quit_dispatcher.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\refireable_timer.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_event.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\rwlock.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\semaphore.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sguard.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_timer.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\thread.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\thread_pool.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\timer.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\transactable.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned_ptr.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\versioned_ref.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_deque.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_priority_queue.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_queue.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_stack.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\ui\keyboard.hpp">
+      <Filter>core\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\mem\allocator.hpp">
+      <Filter>os\MacOS\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\semaphore.hpp">
+      <Filter>os\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\thread.hpp">
+      <Filter>os\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\timeout.hpp">
+      <Filter>os\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\assert.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.cpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\function.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.cpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\completion_port.cpp">
+      <Filter>os\windows\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.cpp">
+      <Filter>os\windows\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\hwnd.cpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip.cpp">
+      <Filter>os\windows\io\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc.cpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sync.cpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\timer.cpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.cpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\windows_sync.cpp">
+      <Filter>os\windows\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_timer.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\geometry\size.hpp">
+      <Filter>core\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\measure.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_bit_scan.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\const_bit_rotate.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\frame.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\hwnd.hpp">
+      <Filter>os\windows\gui\GDI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\auto_handle.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\background.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\window.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\native_container_pane.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pixel_image_pane.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
+      <Filter>os\libs\pthreads</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.cpp">
+      <Filter>os\linux\io</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip.cpp">
+      <Filter>os\linux\io\net</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
+      <Filter>os\MacOS\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.cpp">
+      <Filter>os\MacOS\io</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip.cpp">
+      <Filter>os\MacOS\io\net</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\macos_sync.cpp">
+      <Filter>os\MacOS\sync</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\core.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\windows.cpp">
+      <Filter>os\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\makefile">
+      <Filter>env\gcc</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">
+      <Filter>env\gcc</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\main.mm">
+      <Filter>env\XCode</Filter>
+    </None>
+  </ItemGroup>
+</Project>

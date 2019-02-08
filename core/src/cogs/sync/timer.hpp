@@ -1,0 +1,306 @@
+//
+//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//
+
+
+// Status: Good
+
+#ifndef COGS_TIMER
+#define COGS_TIMER
+
+
+#include "cogs/env.hpp"
+#include "cogs/function.hpp"
+#include "cogs/mem/object.hpp"
+#include "cogs/mem/placement.hpp"
+#include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/resettable_event.hpp"
+#include "cogs/sync/thread.hpp"
+#include "cogs/sync/transactable.hpp"
+
+
+namespace cogs {
+
+
+/// @defgroup Timers Timers
+/// @{
+/// @ingroup Synchronization
+/// @brief Timer classes
+/// @}
+
+
+/// @ingroup Timers
+/// @brief Base class for timer classes
+class timer : public waitable, public object
+{
+public:
+	typedef timeout_t::period_t period_t;
+
+private:
+	timer() = delete;
+	timer(const timer&) = delete;
+	timer& operator=(const timer&) = delete;
+
+	class inner_timer : public object
+	{
+	private:
+		inner_timer() = delete;
+		inner_timer(const inner_timer&) = delete;
+		inner_timer& operator=(const inner_timer&) = delete;
+
+		class globals;
+		static placement<rcptr<globals> >	s_globals;
+		static rcptr<globals> init();
+		static void cleanup_globals();
+		static void thread_main();
+	
+		class timeout_info_t
+		{
+		public:
+			timeout_t	m_timeout;
+			bool		m_fired;
+			bool		m_aborted;
+
+			timeout_info_t()
+			{ }
+
+			timeout_info_t(const timeout_info_t& src)
+				:	m_timeout(src.m_timeout),
+					m_fired(src.m_fired),
+					m_aborted(src.m_aborted)
+			{ }
+			
+			timeout_info_t(const timeout_t& t, bool fired = false, bool aborted = false)
+				:	m_timeout(t),
+					m_fired(fired),
+					m_aborted(aborted)
+			{ }
+		};
+
+	public:
+		typedef transactable<timeout_info_t> transactable_t;
+		volatile transactable_t m_timeoutInfo;
+		const weak_rcptr<timer> m_outerTimer;
+
+		typedef transactable_t::read_token	read_token;
+		typedef transactable_t::write_token	write_token;
+
+		timeout_t get_timeout()		{ return m_timeoutInfo.begin_read()->m_timeout; }
+		period_t get_period()		{ return get_timeout().get_period(); }
+		period_t get_expiration()	{ return get_timeout().get_expiration(); }
+		period_t get_pending()		{ return get_timeout().get_pending(); }
+
+		bool abort()	// returns false if already fired
+		{
+			read_token rt;
+			bool result = true;
+			do {
+				m_timeoutInfo.begin_read(rt);
+				if (!!(rt->m_aborted))
+					break;
+				if (!!(rt->m_fired))
+				{
+					result = false;
+					break;
+				}
+			} while (!m_timeoutInfo.end_write(rt, timeout_info_t(rt->m_timeout, false, true)));
+			return result;
+		}
+
+		void defer();	// call only from most derived class to avoid having virtual trigger() called before vtable is set up.
+						// Not volatile, should be inherently serialized
+
+		bool refire()	// returns false if hasn't fired yet
+		{
+			read_token rt;
+			bool result = true;
+			for (;;)
+			{
+				m_timeoutInfo.begin_read(rt);
+				if (!(rt->m_fired))		// can't refire if not fired
+				{
+					result = false;
+					break;
+				}
+				COGS_ASSERT(!(rt->m_aborted));	// if it fired, it can't have been aborted.
+				timeout_t newTimeout = rt->m_timeout;
+				newTimeout.refire();
+				if (!!m_timeoutInfo.end_write(rt, timeout_info_t(newTimeout, false, false)))
+				{
+					defer();
+					break;
+				}
+				//continue;
+			}
+			return result;
+		}
+
+		bool refire(const timeout_t& t)
+		{
+			bool result = true;
+			for (;;)
+			{
+				read_token rt;
+				m_timeoutInfo.begin_read(rt);
+				if (!(rt->m_fired))		// can't refire if not fired
+				{
+					result = false;
+					break;
+				}
+				COGS_ASSERT(!(rt->m_aborted));	// if it fired, it can't have been aborted.
+				if (!!m_timeoutInfo.end_write(rt, timeout_info_t(t, false, false)))
+				{
+					defer();
+					break;
+				}
+				//continue;
+			}
+			return result;
+		}
+
+		bool try_extend(bool& wasAborted)	// returns true if able to be extended, false if already fired.
+		{
+			bool result = true;
+			read_token rt;
+			do {
+				m_timeoutInfo.begin_read(rt);
+				if (!!(rt->m_aborted))
+					break;
+				if (!!(rt->m_fired))
+				{
+					result = false;
+					break;
+				}
+			} while (!m_timeoutInfo.end_write(rt, timeout_info_t(timeout_t(rt->m_timeout.get_period()), false, false)));
+			return result;
+		}
+		
+		void extend()	// returns true if able to be extended, false if already fired.
+		{
+			read_token rt;
+			do {
+				m_timeoutInfo.begin_read(rt);
+				if (rt->m_fired || rt->m_aborted)
+					break;
+			} while (!m_timeoutInfo.end_write(rt, timeout_info_t(timeout_t(rt->m_timeout.get_period()), false, false)));
+		}
+
+		// Tries to extend timer to new timeout.  If sooner than original timeout, timer is aborted.
+		bool try_reschedule(const timeout_t& t, bool& wasAborted)	// returns false if already fired
+		{
+			bool result = true;
+			read_token rt;
+			do {
+				m_timeoutInfo.begin_read(rt);
+				wasAborted = !!(rt->m_aborted);
+				if (wasAborted)
+					break;
+				if (!!(rt->m_fired))
+				{
+					result = false;
+					break;
+				}
+				wasAborted = (t < rt->m_timeout);
+			}
+			while (!m_timeoutInfo.end_write(rt, timeout_info_t(t, false, wasAborted)));
+			return result;
+		}
+
+		inner_timer(const timeout_t& t, const rcref<timer>& tmr)
+			:	m_timeoutInfo(transactable_t::construct_embedded_t(), t),
+				m_outerTimer(tmr)
+		{ }
+	};
+
+	volatile rcptr<inner_timer>	m_innerTimer;
+
+	virtual void triggered() = 0;
+
+protected:
+	resettable_event	m_event;
+
+	timer(const timeout_t& t)
+	{
+		if (!t.is_infinite())
+			m_innerTimer = rcnew(inner_timer, t, this_rcref);
+	}
+
+	void defer()						{ m_innerTimer->defer(); }
+
+	bool refire()						{ m_event.reset(); return m_innerTimer->refire(); }		// Caller error to call if never before fired.
+	bool refire(const timeout_t& t)		{ m_event.reset(); return m_innerTimer->refire(t); }	// Caller error to call if never before fired, or to pass infinite timeout.
+
+	bool reschedule(const timeout_t& t)	// returns false if it has already gone off.
+	{
+		bool result = true;
+		if (t.is_infinite())
+			abort();
+		else
+		{
+			rcptr<inner_timer> newTimer;
+			rcptr<inner_timer> tmr = m_innerTimer;
+			for (;;)
+			{
+				if (!!tmr)
+				{
+					bool wasAborted = false;
+					result = tmr->try_reschedule(t, wasAborted);	// returns false if already fired.  wasAborted is true if new timeout is earlier, or was already aborted.
+					if (!wasAborted)
+						break;
+				}
+				// !tmr || !!wasAborted
+				if (!newTimer)
+					newTimer = rcnew(inner_timer, t, this_rcref);
+				if (!!m_innerTimer.compare_exchange(newTimer, tmr, tmr))
+					newTimer->defer();
+				// The only call that changes m_innerTimer is reschedule, so failure to swap it out means another reschedule succeeded.
+				// This reschedule attempt doesn't matter anymore. Go ahead and claim success.
+				break;
+			}
+		}
+		return result;
+	}
+
+	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
+	{
+		return dispatcher::dispatch_inner(m_event, t, priority);
+	}
+
+public:
+	~timer()
+	{
+		rcptr<inner_timer> innerTimer;
+		if (!!innerTimer)
+			innerTimer->abort();
+	}
+
+	timeout_t get_timeout()		{ rcptr<inner_timer> t = m_innerTimer; return (!t) ? timeout_t::infinite() : t->get_timeout(); }
+	period_t get_period()		{ return get_timeout().get_period(); }
+	period_t get_expiration()	{ return get_timeout().get_expiration(); }
+	period_t get_pending()		{ return get_timeout().get_pending(); }
+
+	bool try_extend(bool& wasAborted)	{ return m_innerTimer->try_extend(wasAborted); }		
+	void extend()						{ m_innerTimer->extend(); }
+
+	bool abort()	// returns false if it has already gone off
+	{
+		bool result = true;
+		for (;;)
+		{
+			rcptr<inner_timer> tmr = m_innerTimer;
+			if (!!tmr)
+				result = tmr->abort();
+		}
+		return result;
+	}
+
+	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_event.timed_wait(timeout, spinCount); }
+};
+
+
+
+}
+
+
+#endif
