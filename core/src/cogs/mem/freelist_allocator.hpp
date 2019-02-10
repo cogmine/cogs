@@ -52,7 +52,7 @@ private:
 public:
 	typedef ptr<void> ref_t;
 
-	static const bool is_static = true;
+	static constexpr bool is_static = true;
 
 	freelist_allocator()
 		: m_curPos(0)
@@ -155,7 +155,7 @@ private:
 public:
 	typedef ptr<void> ref_t;
 
-	static const bool is_static = true;
+	static constexpr bool is_static = true;
 
 	freelist_allocator()	{ }
 

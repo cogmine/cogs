@@ -130,7 +130,7 @@ protected:
 	void disown()	{ m_contents->m_desc = nullptr; }	// clear the desc ptr not the desc contents
 
 	rc_obj_base* get_desc() const { return m_contents->m_desc; }
-	const rc_obj_base* get_desc() const volatile { return begin_read()->m_desc; }
+	rc_obj_base* get_desc() const volatile { return begin_read()->m_desc; }
 
 	void clear()
 	{
@@ -810,7 +810,6 @@ protected:
 		swap(rtn);
 		return rtn;
 	}
-
 
 	template <typename type2, reference_strength_type refStrengthType2>
 	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn)

@@ -22,6 +22,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/thread_pool.hpp"
 #include "cogs/ui/keyboard.hpp"
 
 
@@ -97,8 +98,7 @@ class bridgeable_pane;
 
 /// @ingroup GUI
 /// @brief Base class for 2D visual UI elements
-class pane : public object, public dispatcher//, protected pane_base//, public cell//, public virtual pane_base
-, public cell, protected virtual gfx::canvas, protected virtual pane_container
+class pane : public object, public dispatcher, public cell, protected virtual gfx::canvas, protected virtual pane_container
 {
 public:
 	friend class bridgeable_pane;
@@ -162,7 +162,7 @@ private:
 		subSystem = m_parentUISubSystem;
 		if (!!subSystem)
 			return subSystem.dereference();
-		return dispatcher::get_default();
+		return thread_pool::get_default_or_immediate();
 	}
 
 	rcref<volatile dispatcher> get_next_dispatcher() const volatile
@@ -1145,6 +1145,19 @@ protected:
 		return parent->load_font(fnt);
 	}
 
+	virtual gfx::font get_default_font()
+	{
+		if (!!m_offScreenBuffer)
+			return m_offScreenBuffer->get_default_font();
+
+		if (!!m_bridgedCanvas)
+			return m_bridgedCanvas->get_default_font();
+
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		return parent->get_default_font();
+	}
+
 	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<font>& fnt = 0, const color& c = color::black, bool blendAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
@@ -1975,6 +1988,8 @@ public:
 				hiding();
 			uninstall();
 		}
+
+		m_frame.release();
 	}
 
 	const cell& get_const_cell() const
@@ -2359,6 +2374,8 @@ inline void gui::subsystem::install(pane& p, const rcptr<volatile gui::subsystem
 }
 }
 
+
+#include "cogs/gui/window.hpp"
 
 
 #endif

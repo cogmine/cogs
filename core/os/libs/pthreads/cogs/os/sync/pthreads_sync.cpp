@@ -19,30 +19,7 @@
 namespace cogs {
 
 
-static unsigned int s_num_processors = 0;
-
-
-unsigned int get_num_processors()
-{
-	if (!s_num_processors)
-		s_num_processors = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
-	return s_num_processors;
-}
-
-
-// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-bool os::thread::spin_once()
-{
-	if (get_num_processors() == 1)
-		return false;
-
-	_mm_pause();
-	return true;
-}
-
-
 int main();
-void run_cleanup();
 
 };
 
@@ -57,7 +34,7 @@ int main(int argc, const char **argv)
 			quitEvent->wait();
 	}
 
-	cogs::run_cleanup();
+	cogs::thread_pool::shutdown_default();
 	cogs::default_allocator::shutdown();
 
 	return result;

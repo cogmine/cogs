@@ -10,6 +10,7 @@
 
 
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/semaphore.hpp"
 
 
 namespace cogs {

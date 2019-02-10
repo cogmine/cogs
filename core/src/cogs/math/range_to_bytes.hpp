@@ -23,7 +23,7 @@ template <ulongest min_value, ulongest max_value>
 class range_to_bytes
 {
 public:
-	static const size_t value = bits_to_bytes< range_to_bits<min_value, max_value>::value >::value;
+	static constexpr size_t value = bits_to_bytes< range_to_bits<min_value, max_value>::value >::value;
 };
 
 template <ulongest min_value, ulongest max_value>
@@ -39,7 +39,7 @@ class range_to_int_bytes
 {
 public:
 	// rounded up to an exponent of 2.  I.e. 1 byte, 2 bytes, 4 bytes, 8 bytes.
-	static const size_t value = (min_value == max_value) ?
+	static constexpr size_t value = (min_value == max_value) ?
 		0 :
 		bits_to_bytes_v<
 			next_or_current_exponent_of_two_v<

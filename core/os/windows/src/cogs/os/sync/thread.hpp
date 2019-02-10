@@ -34,6 +34,8 @@ private:
 		return 0;
 	}
 
+	inline static unsigned int s_processorCount = 0;
+
 protected:
 	explicit thread(const function<void()>& d)
 	{
@@ -66,14 +68,32 @@ public:
 	bool is_current() const		{ return m_threadId == GetCurrentThreadId(); }
 
 	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once();
+	static bool spin_once()
+	{
+		if (get_processor_count() == 1)
+			return false;
+
+		_mm_pause();
+		return true;
+	}
+
+	static unsigned int get_processor_count()
+	{
+		if (!s_processorCount)
+		{
+			SYSTEM_INFO si;
+			GetSystemInfo(&si);
+			s_processorCount = (unsigned long)si.dwNumberOfProcessors;
+		}
+		return s_processorCount;
+	}
+
 };
 
 
 }
 
 
-unsigned int get_num_processors();
 
 
 }

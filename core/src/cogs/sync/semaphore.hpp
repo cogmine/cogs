@@ -12,13 +12,12 @@
 #include "cogs/env.hpp"
 #include "cogs/os/sync/semaphore.hpp"
 #include "cogs/os/sync/thread.hpp"
+#include "cogs/mem/rcref_freelist.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
 
-	
-rcref<os::semaphore> get_os_semaphore();
 
 // A properly implemented semaphore should allow the acquiring of more than
 // one reference at a time, without creating a potential deadlock.
@@ -78,7 +77,42 @@ private:
 	semaphore(const semaphore&);
 	semaphore& operator=(const semaphore&);
 
+	typedef rcref_freelist<os::semaphore, default_allocator, 10> os_semaphore_freelist_t;
+
+	inline static placement<rcptr<os_semaphore_freelist_t> > s_osSemaphoreFreeList;
+
+	static rcref<os_semaphore_freelist_t> get_os_semaphore_freelist()
+	{
+		volatile rcptr<os_semaphore_freelist_t>* freeList = &s_osSemaphoreFreeList.get();
+		rcptr<os_semaphore_freelist_t> myFreeList = *freeList;
+		if (!myFreeList)
+		{
+			rcptr<os_semaphore_freelist_t> newFreeList = rcnew(os_semaphore_freelist_t);
+			if (freeList->compare_exchange(newFreeList, myFreeList, myFreeList))
+				myFreeList = newFreeList;		// Return the one we just created.
+		}
+		return myFreeList.dereference();
+	}
+
+	// Called only when the default thread pool terminates, and there is no risk of future calls to get_os_semaphore_freelist()
+	static void shutdown_os_semaphore_freelist()
+	{
+		volatile rcptr<os_semaphore_freelist_t>* freeList = &s_osSemaphoreFreeList.get();
+		freeList->release();
+	}
+
+	friend class thread_pool;
+
 public:
+	// Convenient place to doll out os semaphores from a freelist.
+	// OS semaphores should not be acquired until they are actually needed to block a thread.
+	// This keeps this number of OS semaphores to approximately the maximum number of threads that needed
+	// to be blocked at the same time, on different synchronization objects.
+	static rcref<os::semaphore> get_os_semaphore()
+	{
+		return get_os_semaphore_freelist()->get();
+	}
+
 	semaphore()
 		:	m_maxResources(0)
 	{ }
@@ -91,7 +125,7 @@ public:
 	// Waits for at least 1 to be available, but will acquire as many as present, if multiple.
 	size_t acquire_any(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
-		unsigned int spinsLeft = (get_num_processors() == 1) ? 0 : spinCount;
+		unsigned int spinsLeft = (os::thread::get_processor_count() == 1) ? 0 : spinCount;
 		size_t result = 0;
 		rcptr<os::semaphore> osSemaphore = 0;
 		rcptr<os::semaphore> newOsSemaphore;
@@ -188,7 +222,7 @@ public:
 			return true;
 		}	// ensure n is positive
 
-		unsigned int spinsLeft = (get_num_processors() == 1) ? 0 : spinCount;
+		unsigned int spinsLeft = (os::thread::get_processor_count() == 1) ? 0 : spinCount;
 		bool result = false;
 		rcptr<os::semaphore> osSemaphore;
 		rcptr<os::semaphore> newOsSemaphore;

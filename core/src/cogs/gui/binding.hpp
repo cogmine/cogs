@@ -18,6 +18,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/thread_pool.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
@@ -230,7 +231,7 @@ private:
 	{
 		rcptr<volatile dispatcher> dsptch = m_dispatcher;
 		if (!dsptch)
-			dispatcher::get_default()->dispatch(d);
+			thread_pool::get_default_or_immediate()->dispatch(d);
 		else
 			dsptch->dispatch(d);
 	}

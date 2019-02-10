@@ -39,7 +39,7 @@ public:
 	typedef ref_type<void> ref_t;
 
 	/// @brief True if this allocator type is static.  False if instance-based.
-	static const bool is_static = false;
+	static constexpr bool is_static = false;
 
 	/// @brief Allocate data
 	/// @param n Size of allocation in bytes
@@ -77,7 +77,7 @@ class allocator_t<ptr>
 public:
 	typedef ptr<void> ref_t;
 
-	static const bool is_static = false;
+	static constexpr bool is_static = false;
 
 	virtual ref_t allocate(size_t n, size_t align) volatile = 0;
 	virtual void deallocate(const ref_t& p) volatile = 0;

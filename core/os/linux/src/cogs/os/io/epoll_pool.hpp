@@ -29,14 +29,6 @@ namespace io {
 class epoll_pool : public object
 {
 private:
-	static placement<rcptr<epoll_pool> >		s_defaultEPollPool;
-
-	static void cleanup_globals()
-	{
-		volatile rcptr<epoll_pool>& defaultEPollPool = s_defaultEPollPool.get();
-		defaultEPollPool = 0;
-	}
-
 	thread_pool		m_pool;
 	rcref<auto_fd>	m_fd;
 
@@ -105,8 +97,7 @@ private:
 	rcptr<task> m_func;
 
 	epoll_pool()
-		: m_fd(rcnew(auto_fd)),
-		m_pool(false)
+		: m_fd(rcnew(auto_fd))
 	{
 		int fd = epoll_create1(0);
 		m_fd->m_fd = fd;
@@ -140,19 +131,11 @@ public:
 
 	static rcref<epoll_pool> get()
 	{
-		volatile rcptr<epoll_pool>& defaultEPollPool = s_defaultEPollPool.get();
-		rcptr<epoll_pool> oldDefaultEPollPool = defaultEPollPool;
-		if (!oldDefaultEPollPool)
-		{
-			rcptr<epoll_pool> newDefaultEPollPool = rcnew(epoll_pool);
-			if (defaultEPollPool.compare_exchange(newDefaultEPollPool, oldDefaultEPollPool, oldDefaultEPollPool))
-			{
-				newDefaultEPollPool->start();
-				oldDefaultEPollPool = newDefaultEPollPool;		// Return the one we just created.
-				cleanup_queue::get_default()->dispatch(&cleanup_globals);
-			}
-		}
-		return oldDefaultEPollPool.dereference();
+		bool isNew;
+		rcref<epoll_poll> result = singleton<epoll_poll>::get(isNew);
+		if (isNew)
+			result->start();
+		return result;
 	}
 
 	void register_fd(int fd)

@@ -1122,7 +1122,7 @@ public:
 
 	const type* cstr() const
 	{
-		static const type empty_cstr = (const type)0;
+		static constexpr type empty_cstr = (type)0;
 		size_t length = get_length();
 		if (!length)
 			return &empty_cstr;	// rather than allocate a buffer just for a terminator
@@ -1569,7 +1569,7 @@ inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsi
 		if (minDigits <= 64)
 		{
 			// Avoiding an allocation is more efficient, but needs a fixed max # of digits
-			static const char_t zeros[] = {
+			static constexpr char_t zeros[] = {
 				(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 				(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 				(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
@@ -1587,9 +1587,9 @@ inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsi
 		radix = 36;
 
 	// Handle negative values using a 2-way table.
-	static const char digitsBuffer[] = "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static constexpr char digitsBuffer[] = "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	static const char* digits = digitsBuffer + 35;
-	static const size_t maxLength = (sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
+	static constexpr size_t maxLength = (sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
 
 	char tempBuffer[maxLength];
 

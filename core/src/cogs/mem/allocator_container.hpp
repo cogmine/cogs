@@ -34,7 +34,7 @@ private:
 	ptr<volatile allocator_type> m_allocator;
 
 public:
-	static const bool is_static = is_static_in;
+	static constexpr bool is_static = is_static_in;
 
 	typedef allocator_container<allocator_type, false, false>	this_t;
 
@@ -133,7 +133,7 @@ private:
 public:
 	typedef allocator_container<allocator_type, false, true>	this_t;
 
-	static const bool is_static = false;
+	static constexpr bool is_static = false;
 
 	typedef ptr<void> ref_t;
 
@@ -272,16 +272,16 @@ public:
 	template <typename header_t, size_t align>
 	ptr<header_t> allocate_with_header(size_t n) const
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
 	template <typename header_t, size_t align>
 	ptr<header_t> allocate_with_header(size_t n) const volatile
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
@@ -295,16 +295,16 @@ public:
 	template <typename header_t, size_t align>
 	bool try_reallocate_with_header(const ptr<header_t>& p, size_t n) const
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
 	template <typename header_t, size_t align>
 	bool try_reallocate_with_header(const ptr<header_t>& p, size_t n) const volatile
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
@@ -317,16 +317,16 @@ public:
 	template <typename header_t, size_t align>
 	size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize) const
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 	
 	template <typename header_t, size_t align>
 	size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize) const volatile
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 	
@@ -345,8 +345,8 @@ public:
 	template <typename header_t, size_t align>
 	static void* get_block_from_header(const ptr<const header_t>& p)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return (void*)(((unsigned char*)p.get_ptr()) + headerSize);
 	}
 
@@ -357,8 +357,8 @@ public:
 	template <typename header_t, size_t align>
 	static header_t* get_header_from_block(const ptr<void>& p)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - headerSize);
 	}
 
@@ -373,7 +373,7 @@ class allocator_container<allocator_type, true, false>
 public:
 	typedef allocator_container<allocator_type, true, false>	this_t;
 
-	static const bool is_static = true;
+	static constexpr bool is_static = true;
 
 	typedef typename allocator_type::ref_t ref_t;
 
@@ -428,7 +428,7 @@ class allocator_container<allocator_type, true, true>
 public:
 	typedef allocator_container<allocator_type, true, true>	this_t;
 
-	static const bool is_static = true;
+	static constexpr bool is_static = true;
 
 	typedef ptr<void> ref_t;
 
@@ -505,8 +505,8 @@ public:
 	template <typename header_t, size_t align>
 	static ptr<header_t> allocate_with_header(size_t n)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
@@ -516,8 +516,8 @@ public:
 	template <typename header_t, size_t align>
 	static bool try_reallocate_with_header(const ptr<header_t>& p, size_t n)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
@@ -527,8 +527,8 @@ public:
 	template <typename header_t, size_t align>
 	static size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 
@@ -541,8 +541,8 @@ public:
 	template <typename header_t, size_t align>
 	static void* get_block_from_header(const ptr<const header_t>& p)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return (void*)(((unsigned char*)p.get_ptr()) + headerSize);
 	}
 
@@ -553,8 +553,8 @@ public:
 	template <typename header_t, size_t align>
 	static header_t* get_header_from_block(const ptr<void>& p)
 	{
-		static const size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static const size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
+		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - headerSize);
 	}
 

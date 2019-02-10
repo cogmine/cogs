@@ -21,14 +21,9 @@ class refireable_timer : public timer
 private:
 	const bool m_wakeAll;
 
-	refireable_timer();
-	refireable_timer(const refireable_timer&);
-	refireable_timer& operator=(const refireable_timer&);
-
-	refireable_timer(const timeout_t& t, bool wakeAll)
-		: timer(t),
-			m_wakeAll(wakeAll)
-	{ }
+	refireable_timer() = delete;
+	refireable_timer(const refireable_timer&) = delete;
+	refireable_timer& operator=(const refireable_timer&) = delete;
 
 	virtual void triggered()
 	{
@@ -38,6 +33,12 @@ private:
 		else
 			m_event.pulse_one();
 	}
+
+protected:
+	refireable_timer(const timeout_t& t, bool wakeAll)
+		: timer(t),
+		m_wakeAll(wakeAll)
+	{ }
 
 public:
 	static rcref<refireable_timer> create(const timeout_t::period_t& p, bool wakeAll = true)

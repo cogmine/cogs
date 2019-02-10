@@ -32,17 +32,14 @@ int main(int argc, char *argv[])
 @end
 
 namespace cogs {
-
 	int main();
-
-	void run_cleanup();
 }
 
 
 void do_cleanup()
 {
 	cogs::ui::os::drain_ui_thread_deferals();
-	run_cleanup();
+	cogs::thread_pool::shutdown_default();
 	cogs::ui::os::drain_ui_thread_deferals();
 
 	cogs::allocator::shut_down();

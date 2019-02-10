@@ -39,25 +39,25 @@ template <class derived_t,
 class serial_hash : public hash
 {
 public:
-	static const size_t digest_bits = digest_bits_in;
-	static const size_t result_bits = result_bits_in;
-	static const size_t digit_bits = digit_bits_in;
-	static const endian_t digit_endian = digit_endian_in;
-	static const size_t stride_bits = stride_bits_in;
-	static const size_t result_contribution_bits = result_contribution_bits_in;
+	static constexpr size_t digest_bits = digest_bits_in;
+	static constexpr size_t result_bits = result_bits_in;
+	static constexpr size_t digit_bits = digit_bits_in;
+	static constexpr endian_t digit_endian = digit_endian_in;
+	static constexpr size_t stride_bits = stride_bits_in;
+	static constexpr size_t result_contribution_bits = result_contribution_bits_in;
 
 	typedef bits_to_uint_t<digit_bits> digit_t;
 
-	static const size_t digest_bytes = digest_bits / 8;
-	static const size_t result_bytes = result_bits / 8;
-	static const size_t digit_bytes = digit_bits / 8;
-	static const size_t stride_bytes = stride_bits / 8;
-	static const size_t result_contribution_bytes = result_contribution_bits / 8;
+	static constexpr size_t digest_bytes = digest_bits / 8;
+	static constexpr size_t result_bytes = result_bits / 8;
+	static constexpr size_t digit_bytes = digit_bits / 8;
+	static constexpr size_t stride_bytes = stride_bits / 8;
+	static constexpr size_t result_contribution_bytes = result_contribution_bits / 8;
 
-	static const size_t digest_digits = digest_bytes / digit_bytes;
-	static const size_t result_digits = result_bytes / digit_bytes;
-	static const size_t stride_digits = stride_bytes / digit_bytes;
-	static const size_t result_contribution_digits = result_contribution_bytes / digit_bytes;
+	static constexpr size_t digest_digits = digest_bytes / digit_bytes;
+	static constexpr size_t result_digits = result_bytes / digit_bytes;
+	static constexpr size_t stride_digits = stride_bytes / digit_bytes;
+	static constexpr size_t result_contribution_digits = result_contribution_bytes / digit_bytes;
 
 	typedef serial_hash<derived_t, result_bits, digest_bits, digit_bits, digit_endian, stride_bits, result_contribution_bits> this_t;
 	

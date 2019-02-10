@@ -99,20 +99,15 @@ void nsview_subsystem::update() volatile
 	}
 }
 
-rcptr<volatile gui::subsystem> gui::subsystem::get_default()
-{
-	return nsview_subsystem::get_default();
-}
-
-rcptr<console> gui::subsystem::get_default_console() volatile
-{
-	return rcptr<console>();	// TBD
-}
-
-rcptr<console> gui::subsystem::create_console() volatile
-{
-	return rcptr<console>();	// TBD
-}
+//rcptr<console> gui::subsystem::get_default_console() volatile
+//{
+//	return rcptr<console>();	// TBD
+//}
+//
+//rcptr<console> gui::subsystem::create_console() volatile
+//{
+//	return rcptr<console>();	// TBD
+//}
 
 void gui::subsystem::message(const composite_string& s) volatile
 {
@@ -124,7 +119,7 @@ void nsview_subsystem::message(const composite_string& s) volatile
 	// TBD
 }
 
-void nsview_subsystem::open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& rshpr, const function<void()>& closeDelegate) volatile
+void nsview_subsystem::open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& j, const function<void()>& closeDelegate) volatile
 {
 	int style = NSTitledWindowMask | NSClosableWindowMask;
 	//if (minimizable)
@@ -133,14 +128,14 @@ void nsview_subsystem::open_window(const composite_string& title, const rcref<pa
 		style |= NSResizableWindowMask;
 
 	rcref<window_bridge> w = rcnew(window_bridge, title, style, closeDelegate);
-	w->nest(p, rshpr);
+	w->nest(p, j);
 	w->install(this_rcref);
 }
 
-void nsview_subsystem::open_full_screen(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& rshpr, const function<void()>& closeDelegate) volatile
-{
-	// tbd 
-}
+//void nsview_subsystem::open_full_screen(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& j, const function<void()>& closeDelegate) volatile
+//{
+//	// tbd 
+//}
 
 
 rcref<button_interface> nsview_subsystem::create_button() volatile
@@ -209,16 +204,13 @@ int main(int argc, const char * argv[])
 
 
 namespace cogs {
-
 	int main();
-	
-	void run_cleanup();
 }
 
 
 static void do_cleanup()
 {
-	cogs::run_cleanup();
+	cogs::thread_pool::shutdown_default();
 
 	cogs::gui::os::nsview_subsystem::shutdown();
 

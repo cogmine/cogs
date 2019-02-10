@@ -12,6 +12,7 @@
 
 #include "cogs/collections/string.hpp"
 #include "cogs/collections/vector.hpp"
+#include "cogs/sync/hazard.hpp"
 
 
 #pragma warning(push)
@@ -1082,7 +1083,7 @@ public:
 	template <typename char_t>
 	string_t<char_t> to_string_t() const
 	{
-		static const char hex_table[] =
+		static constexpr char hex_table[] =
 			"000102030405060708090A0B0C0D0E0F"
 			"101112131415161718191A1B1C1D1E1F"
 			"202122232425262728292A2B2C2D2E2F"
@@ -1131,7 +1132,7 @@ template <bool has_sign, size_t n_bits>
 template <endian_t e>
 inline io::buffer fixed_integer_native<has_sign, n_bits>::to_buffer() const
 {
-	static const size_t width_bytes = bits_to_bytes<bits>::value;
+	static constexpr size_t width_bytes = bits_to_bytes<bits>::value;
 	io::buffer result(width_bytes);
 	uint8_t* resultPtr = (uint8_t*)result.get_ptr();
 	unsigned_int_t src = m_int;

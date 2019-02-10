@@ -37,23 +37,23 @@ namespace cogs
 
 
 // is_array		- matches T[n], or std::array<T, n>
-template <typename T, typename enable = void> struct is_array { static const bool value = std::is_array_v<T>; };
-template <size_t n, typename T> struct is_array<std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array<const std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array<volatile std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array<const volatile std::array<T, n> > : std::true_type {};
+template <typename T, typename enable = void> struct is_array { static constexpr bool value = std::is_array_v<T>; };
+template <typename T, size_t n> struct is_array<std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array<const std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array<volatile std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array<const volatile std::array<T, n> > : std::true_type {};
 template <typename T> constexpr bool is_array_v = is_array<T>::value;
 
 // is_array_type		- matches T[n], std::array<T, n>, or array_view<n, T>
-template <typename T, typename enable = void> struct is_array_type { static const bool value = is_array_v<T>; };
-template <size_t n, typename T> struct is_array_type<std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array_type<const std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array_type<volatile std::array<T, n> > : std::true_type {};
-template <size_t n, typename T> struct is_array_type<const volatile std::array<T, n> > : std::true_type {};
+template <typename T, typename enable = void> struct is_array_type { static constexpr bool value = is_array_v<T>; };
+template <typename T, size_t n> struct is_array_type<std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array_type<const std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array_type<volatile std::array<T, n> > : std::true_type {};
+template <typename T, size_t n> struct is_array_type<const volatile std::array<T, n> > : std::true_type {};
 template <typename T> constexpr bool is_array_type_v = is_array_type<T>::value;
 
 // is_reference_container - Indicates if a collection type will (or may) actually contain references to elements in another collection.
-template <typename T, typename enable = void> struct is_reference_container { static const bool value = false; };
+template <typename T, typename enable = void> struct is_reference_container { static constexpr bool value = false; };
 template <typename T> constexpr bool is_reference_container_v = is_reference_container<T>::value;
 
 // extent			- same as std::extent, but also supports std::array<T, n>, array_view<n, T>
@@ -62,21 +62,21 @@ template<class T> struct extent<T[], 0> : std::integral_constant<size_t, 0> {};
 template<class T, unsigned N> struct extent<T[], N> : extent<T, N - 1> {};
 template<class T, size_t I> struct extent<T[I], 0> : std::integral_constant<size_t, I> {};
 template<class T, size_t I, unsigned N> struct extent<T[I], N> : std::extent<T, N - 1> {};
-template <size_t n, typename T> struct extent<std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
-template <size_t n, typename T> struct extent<const std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
-template <size_t n, typename T> struct extent<volatile std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
-template <size_t n, typename T> struct extent<const volatile std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
-template <size_t n, typename T, unsigned N> struct extent<std::array<T, n>, N> : extent<T, N - 1> {};
-template <size_t n, typename T, unsigned N> struct extent<const std::array<T, n>, N> : extent<T, N - 1> {};
-template <size_t n, typename T, unsigned N> struct extent<volatile std::array<T, n>, N> : extent<T, N - 1> {};
-template <size_t n, typename T, unsigned N> struct extent<const volatile std::array<T, n>, N> : extent<T, N - 1> {};
+template <typename T, size_t n> struct extent<std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
+template <typename T, size_t n> struct extent<const std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
+template <typename T, size_t n> struct extent<volatile std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
+template <typename T, size_t n> struct extent<const volatile std::array<T, n>, 0> : std::integral_constant<size_t, n> {};
+template <typename T, size_t n, unsigned N> struct extent<std::array<T, n>, N> : extent<T, N - 1> {};
+template <typename T, size_t n, unsigned N> struct extent<const std::array<T, n>, N> : extent<T, N - 1> {};
+template <typename T, size_t n, unsigned N> struct extent<volatile std::array<T, n>, N> : extent<T, N - 1> {};
+template <typename T, size_t n, unsigned N> struct extent<const volatile std::array<T, n>, N> : extent<T, N - 1> {};
 template <typename T, unsigned N = 0> constexpr size_t extent_v = extent<T, N>::value;
 
 template <typename T, typename enable = void> struct remove_extent { typedef std::remove_extent_t<T> type; };
-template <size_t n, typename T> struct remove_extent<std::array<T, n> > { public: typedef T type; };
-template <size_t n, typename T> struct remove_extent<const std::array<T, n> > { public: typedef const T type; };
-template <size_t n, typename T> struct remove_extent<volatile std::array<T, n> > { public: typedef volatile T type; };
-template <size_t n, typename T> struct remove_extent<const volatile std::array<T, n> > { public: typedef const volatile T type; };
+template <typename T, size_t n> struct remove_extent<std::array<T, n> > { public: typedef T type; };
+template <typename T, size_t n> struct remove_extent<const std::array<T, n> > { public: typedef const T type; };
+template <typename T, size_t n> struct remove_extent<volatile std::array<T, n> > { public: typedef volatile T type; };
+template <typename T, size_t n> struct remove_extent<const volatile std::array<T, n> > { public: typedef const volatile T type; };
 template <typename T> using remove_extent_t = typename remove_extent<T>::type;
 
 template <typename T, typename enable = void> struct remove_all_extents { typedef T type; };
@@ -1953,7 +1953,7 @@ to_cstring(const T& t)
 	return s2;
 
 	// Restore once std::to_chars is implemented
-	//static const size_t max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
+	//static constexpr size_t max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
 	//cstring s;
 	//s.resize(max_digits);
 	//char* cptr = s.get_ptr();
@@ -1992,7 +1992,7 @@ struct is_any<T1, T2, Ts...>
 };
 
 template <typename T1, typename T2, typename... Ts>
-static const bool is_any_v = is_any<T1, T2, Ts...>::value;
+static constexpr bool is_any_v = is_any<T1, T2, Ts...>::value;
 
 
 template <typename T1, typename... Ts>
@@ -2011,7 +2011,7 @@ struct are_same<T1, T2, Ts...>
 };
 
 template <typename T1, typename... Ts>
-static const bool are_same_v = are_same<T1, Ts...>::value;
+static constexpr bool are_same_v = are_same<T1, Ts...>::value;
 
 
 template <typename T1, typename... Ts>
@@ -2120,7 +2120,7 @@ struct are_same_set<setType1<T1, Ts1...>, setType2<T2, Ts2...> >
 };
 
 template <class setType1, class setType2>
-static const bool are_same_set_v = are_same_set<Ts...>::value;
+static constexpr bool are_same_set_v = are_same_set<Ts...>::value;
 
 
 template <typename... Ts>
@@ -2133,7 +2133,7 @@ struct pack
 	};
 
 	template <typename T>
-	static const bool is_any_v = is_any<T>::value;
+	static constexpr bool is_any_v = is_any<T>::value;
 
 	template <typename T>
 	class are_same
@@ -2142,7 +2142,7 @@ struct pack
 	};
 
 	template <typename T>
-	static const bool are_same_v = are_same<T>::value;
+	static constexpr bool are_same_v = are_same<T>::value;
 
 	typedef typename cogs::first_type<Ts...> first_type;
 	typedef typename cogs::last_type<Ts...> last_type;

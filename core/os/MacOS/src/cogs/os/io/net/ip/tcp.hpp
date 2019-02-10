@@ -12,6 +12,7 @@
 #include "cogs/io/datastream.hpp"
 #include "cogs/io/net/connection.hpp"
 #include "cogs/os/io/net/ip/socket.hpp"
+#include "cogs/sync/thread_pool.hpp"
 
 
 namespace cogs {
@@ -543,7 +544,7 @@ public:
 										{
 											rcref<tcp> ds = rcnew(tcp, s, m_addressFamily, m_kqueuePool);
 											ds->m_socket->read_endpoints();
-											dispatcher::get_default()->dispatch([r{ this_rcref }, ds{ std::move(ds) }]()
+											thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, ds{ std::move(ds) }]()
 											{
 												r->m_acceptDelegate(ds);
 											});

@@ -45,16 +45,15 @@ template <typename numerator_t, typename denominator_t>
 class is_arithmetic<fraction<numerator_t, denominator_t> >
 {
 public:
-	static const bool value = true;
+	static constexpr bool value = true;
 };
 
 template <typename numerator_t, typename denominator_t>
 class is_signed<fraction<numerator_t, denominator_t> >
 {
 public:
-	static const bool value = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
+	static constexpr bool value = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
 };
-
 
 template <typename numerator_type, typename denominator_type = numerator_type>
 class fraction_content
@@ -466,13 +465,13 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator+(const fraction_content<numerator_t2, denominator_t2>& src)
+	auto operator+(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		return cogs::divide(cogs::add(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, src.m_numerator)), cogs::multiply(m_denominator, src.m_denominator))
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator+(fraction_content<numerator_t2, denominator_t2>&& src)
+	auto operator+(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		auto denom(cogs::multiply(m_denominator, src.m_denominator));
 		return cogs::divide(
@@ -531,7 +530,7 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator-(const fraction_content<numerator_t2, denominator_t2>& src)
+	auto operator-(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		return cogs::divide(
 			cogs::subtract(
@@ -541,7 +540,7 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator-(fraction_content<numerator_t2, denominator_t2>&& src)
+	auto operator-(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		auto denom(cogs::multiply(m_denominator, src.m_denominator));
 		return cogs::divide(
@@ -674,13 +673,13 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator*(const fraction_content<numerator_t2, denominator_t2>& src)
+	auto operator*(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		return cogs::divide(cogs::multiply(m_numerator, src.m_numerator), cogs::multiply(m_denominator, src.m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator*(fraction_content<numerator_t2, denominator_t2>&& src)
+	auto operator*(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		return cogs::divide(cogs::multiply(m_numerator, std::move(src.m_numerator)), cogs::multiply(m_denominator, std::move(src.m_denominator)));
 	}
@@ -746,13 +745,13 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator/(const fraction_content<numerator_t2, denominator_t2>& src)
+	auto operator/(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		return cogs::divide(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, src.m_numerator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator/(fraction_content<numerator_t2, denominator_t2>&& src)
+	auto operator/(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		return cogs::divide(cogs::multiply(m_numerator, std::move(src.m_denominator)), cogs::multiply(m_denominator, std::move(src.m_numerator)));
 	}
@@ -985,7 +984,7 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator%(const fraction_content<numerator_t2, denominator_t2>& src)
+	auto operator%(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		return cogs::divide(
 			cogs::modulo(
@@ -995,7 +994,7 @@ public:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	auto operator%(fraction_content<numerator_t2, denominator_t2>&& src)
+	auto operator%(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		auto denom(cogs::multiply(m_denominator, src.m_denominator));
 		return cogs::divide(
@@ -1554,7 +1553,7 @@ template <typename numerator_type, typename denominator_type>
 class is_const_type<fraction_content<numerator_type, denominator_type> >
 {
 public:
-	static const bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
+	static constexpr bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
 };
 
 
@@ -1575,7 +1574,7 @@ public:
 	friend class fraction;
 
 private:
-	const static bool has_sign = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
+	static constexpr bool has_sign = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
 
 	static_assert(!std::is_same_v<denominator_type, fixed_integer_native_const<false, 0, 0> >);
 	static_assert(!std::is_reference_v<numerator_type>);
@@ -1587,9 +1586,9 @@ private:
 	class simplification_helper
 	{
 	public:
-		typedef simplification_helper<numerator_t2, denominator_t2> type;
-		static const bool is_fraction = true;
-		static const bool is_simplifiable = false;
+		typedef fraction<numerator_t2, denominator_t2> type;
+		static constexpr bool is_fraction = true;
+		static constexpr bool is_simplifiable = false;
 	};
 	template <typename numerator_t2, typename denominator_t2>
 	using simplification_helper_t = typename simplification_helper<numerator_t2, denominator_t2>::type;
@@ -1601,8 +1600,8 @@ private:
 	{
 	public:
 		typedef numerator_t2 type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, typename denominator_t2>
@@ -1612,8 +1611,8 @@ private:
 	{
 	public:
 		typedef fixed_integer_native_const<false, 0, 0> type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, bool has_sign2, size_t bits2>
@@ -1623,8 +1622,8 @@ private:
 	{
 	public:
 		typedef fixed_integer_native_const<false, 0, 0> type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, size_t bits2>
@@ -1636,8 +1635,8 @@ private:
 	{
 	public:
 		typedef decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 	
 	template <bool has_sign, size_t bits, ulongest... values, size_t bits2>
@@ -1649,8 +1648,8 @@ private:
 	{
 	public:
 		typedef decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	// If the fraction is with consts, and there is no remainder
@@ -1671,8 +1670,8 @@ private:
 		typedef decltype(cogs::divide_whole(
 			std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 			std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -1692,8 +1691,8 @@ private:
 		typedef decltype(cogs::divide_whole(
 			std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 			std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1712,8 +1711,8 @@ private:
 		typedef decltype(cogs::divide_whole(
 			std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 			std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1732,8 +1731,8 @@ private:
 		typedef decltype(cogs::divide_whole(
 			std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 			std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())) type;
-		static const bool is_fraction = false;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = false;
+		static constexpr bool is_simplifiable = true;
 	};
 
 
@@ -1761,8 +1760,8 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -1788,8 +1787,8 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1814,8 +1813,8 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1840,8 +1839,8 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	// If the fraction is with consts, and it cannot be otherwise simplified, but both values are negative.  Make both positive.
@@ -1870,8 +1869,8 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -1899,8 +1898,8 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1927,8 +1926,8 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, ulongest... values2>
@@ -1955,14 +1954,14 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t inner_simplified_t;
 		typedef typename inner_simplified_t::type type;
-		static const bool is_fraction = inner_simplified_t::is_fraction;
-		static const bool is_simplifiable = true;
+		static constexpr bool is_fraction = inner_simplified_t::is_fraction;
+		static constexpr bool is_simplifiable = true;
 	};
 
 public:
 	typedef simplification_helper_t<numerator_t, denominator_t> simplified_t;
 
-	static const bool is_simplified_type = !simplification_helper<numerator_t, denominator_t>::is_simplifiable;
+	static constexpr bool is_simplified_type = !simplification_helper<numerator_t, denominator_t>::is_simplifiable;
 
 private:
 	typedef fraction_content<numerator_t, denominator_t> content_t;
@@ -2017,42 +2016,42 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		fraction<numerator_t2, denominator_t2>&&>
 	simplify_type(fraction<numerator_t2, denominator_t2>&& f) { return std::move(f); }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction<numerator_t2, denominator_t2>&>
 	simplify_type(fraction<numerator_t2, denominator_t2>& f) { return f; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction<numerator_t2, denominator_t2>&>
 	simplify_type(const fraction<numerator_t2, denominator_t2>& f) { return f; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const volatile fraction<numerator_t2, denominator_t2>&>
 	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const volatile fraction<numerator_t2, denominator_t2>&>
 	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		numerator_t2&&>
 	simplify_type(fraction<numerator_t2, denominator_t2>&& f) { return std::move(f.m_contents->m_numerator); }
@@ -2060,8 +2059,8 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_type(fraction<numerator_t2, denominator_t2>& f) { return f.m_contents->m_numerator; }
@@ -2069,8 +2068,8 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_type(const fraction<numerator_t2, denominator_t2>& f) { return f.m_contents->m_numerator; }
@@ -2078,8 +2077,8 @@ private:
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
@@ -2087,8 +2086,8 @@ private:
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
@@ -2096,7 +2095,7 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
@@ -2105,7 +2104,7 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
@@ -2113,7 +2112,7 @@ private:
 	
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
@@ -2121,7 +2120,7 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
@@ -2129,7 +2128,7 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
@@ -2138,91 +2137,97 @@ private:
 
 
 	template <typename T, typename = std::enable_if_t<!std::is_const_v<T> && !std::is_volatile_v<T> > >
-	T&& simplify_content_type(T&& f) { return std::forward<T>(f); }
+	static T&& simplify_content_type(T&& f) { return std::forward<T>(f); }
 
 	template <typename T>
-	T& simplify_content_type(T& f) { return f; }
+	static T& simplify_content_type(T& f) { return f; }
+
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		fraction_content<numerator_t2, denominator_t2>&&>
 	simplify_content_type(fraction<numerator_t2, denominator_t2>&& f) { return std::move(*(f.m_contents)); }
 
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
+		const fraction_content<numerator_t2, denominator_t2>&>
+	simplify_content_type(fraction<numerator_t2, denominator_t2>& f) { return *(f.m_contents); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
-		const fraction_content<numerator_t2, denominator_t2>&>
-	simplify_content_type(fraction<numerator_t2, denominator_t2>& f) { return *(f.m_contents); }
-	
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
 	simplify_content_type(const fraction<numerator_t2, denominator_t2>& f) { return *(f.m_contents); }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
-	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
+	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = begin_read()) { return *rt; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
-	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
+	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = begin_read()) { return *rt; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
-		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& !is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
 		numerator_t2&&>
 	simplify_content_type(fraction<numerator_t2, denominator_t2>&& f) { return std::move(f.m_contents->m_numerator); }
 
-
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
-		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& !is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(fraction<numerator_t2, denominator_t2>& f) { return f.m_contents->m_numerator; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
-		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& !is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(const fraction<numerator_t2, denominator_t2>& f) { return f.m_contents->m_numerator; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
-		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& !is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
 	
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
-		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& !is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
 
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2230,7 +2235,8 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2238,7 +2244,8 @@ private:
 	
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2246,7 +2253,8 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2254,7 +2262,8 @@ private:
 	
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2263,51 +2272,99 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
-		fraction_content<numerator_t2, denominator_t2>&&>
-	simplify_content_type(fraction_content<numerator_t2, denominator_t2>&& f) { return std::move(f); }
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(fraction<numerator_t2, denominator_t2>&& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(const fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
+		fraction_content<numerator_t2, denominator_t2>&&>
+	simplify_content_type(fraction_content<numerator_t2, denominator_t2>&& f) { return std::move(f); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
 	simplify_content_type(fraction_content<numerator_t2, denominator_t2>& f) { return f; }
 	
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable,
+		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
 	simplify_content_type(const fraction_content<numerator_t2, denominator_t2>& f) { return f; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		numerator_t2&&>
 	simplify_content_type(fraction_content<numerator_t2, denominator_t2>&& f) { return std::move(f.m_numerator); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(fraction_content<numerator_t2, denominator_t2>& f) { return f.m_numerator; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
-		&& !simplification_helper_t<numerator_t2, denominator_t2>::is_fraction
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(const fraction_content<numerator_t2, denominator_t2>& f) { return f.m_numerator; }
 
 
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2315,15 +2372,17 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
 	simplify_content_type(fraction_content<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t::content_t(); }
-	
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<numerator_t2, denominator_t2>::is_simplifiable
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
@@ -2332,49 +2391,81 @@ private:
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable,
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(fraction_content<numerator_t2, denominator_t2>&& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(fraction_content<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
+		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
+		&& is_const_type_v<numerator_t2>
+		&& is_const_type_v<denominator_t2>,
+		typename fraction<numerator_t2, denominator_t2>::simplified_t>
+	simplify_content_type(const fraction_content<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
+
+
+
+	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
+	static std::enable_if_t<
+		!simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable,
 		numerator_t2&&>
 	simplify_numerator_type(numerator_t2&& n, const denominator_t2& d) { return std::forward<numerator_t2>(n); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable
-		&& !simplification_helper_t<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_fraction
-		&& !is_const_type_v<std::remove_cv_t<std::remove_reference_t<numerator_t2> > > && is_const_type_v<std::remove_cv_t<denominator_t2> >,
+		simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable
+		&& !simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_fraction
+		&& !is_const_type_v<std::remove_cv_t<std::remove_reference_t<numerator_t2> > >
+		&& is_const_type_v<std::remove_cv_t<denominator_t2> >,
 		numerator_t2&&>
 	simplify_numerator_type(numerator_t2&& n, const denominator_t2& d) { return std::forward<numerator_t2>(n); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable
+		simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable
 		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<numerator_t2> > >
 		&& is_const_type_v<std::remove_cv_t<denominator_t2> >,
 		typename fraction<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::simplified_t::numerator_type>
 	simplify_numerator_type(numerator_t2&& n, const denominator_t2& d) { return typename fraction<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::simplified_t::numerator_type(); }
 
 
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		!simplification_helper_t<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable,
+		!simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable,
 		denominator_t2&&>
 	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return std::forward<denominator_t2>(d); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable
-		&& !simplification_helper_t<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_fraction
-		&& !is_const_type_v<std::remove_cv_t<numerator_t2> > && is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
+		simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable
+		&& !simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_fraction
+		&& !is_const_type_v<std::remove_cv_t<numerator_t2> >
+		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
 		one_t>
 	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return one_t(); }
 
-
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
-		simplification_helper_t<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable
+		simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable
 		&& is_const_type_v<std::remove_cv_t<numerator_t2> >
 		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
 		typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type>
 	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type(); }
+
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -3766,7 +3857,7 @@ template <typename numerator_type, typename denominator_type>
 class is_const_type<fraction<numerator_type, denominator_type> >
 {
 public:
-	static const bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
+	static constexpr bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
 };
 
 

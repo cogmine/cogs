@@ -65,7 +65,14 @@
 #define COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE	0x89
 #endif
 
-#define OVERFLOW_CHECK_SIZE (largest_alignment * 2 * 10)
+#define COGS_OVERFLOW_CHECK_SIZE (largest_alignment * 2 * 10)
+
+#if COGS_DEBUG_ALLOC_BUFFER_INIT || COGS_DEBUG_ALLOC_BUFFER_DEINIT || COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING  || COGS_DEBUG_ALLOC_LOGGING
+#define COGS_USE_DEBUG_DEFAULT_ALLOCATOR 1
+#else
+#define COGS_USE_DEBUG_DEFAULT_ALLOCATOR 0
+#endif
+
 
 // If DEBUG_RC_OBJ is set to 1, to easing data navigation in debugger,
 //		rc_obj<> will include a (redundant) pointer to it's content block.
@@ -80,6 +87,7 @@
 #ifndef COGS_DEBUG_TRANSACTABLE
 #define COGS_DEBUG_TRANSACTABLE	1
 #endif
+
 
 
 #endif

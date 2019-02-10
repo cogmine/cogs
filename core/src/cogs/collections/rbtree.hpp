@@ -61,8 +61,8 @@ public:
 		return *this;
 	}
 
-	static const bool red = true;
-	static const bool black = false;
+	static constexpr bool red = true;
+	static constexpr bool black = false;
 
 	bool get_color() const		{ return m_color; }
 	void set_color(bool color)	{ m_color = color; }	
@@ -109,8 +109,8 @@ public:
 		return *this;
 	}
 
-	static const bool red = true;
-	static const bool black = false;
+	static constexpr bool red = true;
+	static constexpr bool black = false;
 
 	bool get_color() const		{ return m_color; }
 	void set_color(bool color)	{ m_color = color; }	

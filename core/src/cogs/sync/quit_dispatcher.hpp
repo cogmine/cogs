@@ -18,12 +18,15 @@
 #include "cogs/operators.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
 #include "cogs/sync/dispatcher.hpp"
-//#include "cogs/sync/current_thread_dispatcher.hpp"
+#include "cogs/sync/immediate_task.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
+
+
+class thread_pool;
 
 
 /// @ingroup Synchronization
@@ -116,7 +119,6 @@ private:
 			if (rt->m_state == quit_accepted_state)
 			{
 				t->signal();
-				//dispatcher::dispatch_inner(*dispatcher::get_default(), t, priority);
 				break;
 			}
 
@@ -132,6 +134,8 @@ private:
 		}
 	}
 
+	friend class thread_pool;
+
 public:
 	quit_dispatcher()
 		: m_priorityDispatcher(rcnew(priority_dispatcher))
@@ -140,7 +144,10 @@ public:
 		m_contents->m_state = running_state;
 	}
 
-	static rcref<quit_dispatcher> get();
+	static rcptr<quit_dispatcher> get()
+	{
+		return singleton<quit_dispatcher, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>::get();
+	}
 
 	// Returns true if quit was request, false if a request is already in progress or quit has completed.
 	bool request() volatile
@@ -261,24 +268,43 @@ public:
 		}
 	}
 
-	rcref<const single_fire_event> get_event()		{ return this_rcref.member_cast_to(m_event); }
+	rcref<waitable> get_event()		{ return this_rcref.member_cast_to(m_event); }
 };
 
 
 // Requests that the application quit.
 // The application may not quit.  It must first run all quit handlers.
 // The user may yet abort a request to quit.
-inline void request_quit()									{ quit_dispatcher::get()->request(); }
+inline void request_quit()
+{
+	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
+	if (!!qd)
+		qd->request();
+}
 
 
 // force_quit() is called when the application is quiting whether we like it or not.
 // All quit_handler's are disposed of, and the quit is issued immediately.
-inline void force_quit()									{ quit_dispatcher::get()->force(); }
+inline void force_quit()
+{
+	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
+	if (!!qd)
+		qd->force();
+}
 
 
 // Called by outer main() glue to wait for all things blocking quit to complete.
 // Really not intended to be called from anywhere else.  So, probably a bug if you are calling it.
-inline rcref<const single_fire_event> get_quit_event()		{ return quit_dispatcher::get()->get_event(); }
+inline rcref<waitable> get_quit_event()
+{
+	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
+	if (!!qd)
+		return qd->get_event();
+	return get_immediate_task();
+}
+
+
+#include "cogs/sync/thread_pool.hpp"
 
 
 }

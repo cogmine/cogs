@@ -24,8 +24,6 @@ namespace ui {
 class subsystem : public dispatcher
 {
 public:
-	static rcptr<volatile subsystem> get_default();
-
 	// Presents a message to the user.
 	// For example:
 	// In a text console: Outputs the message text
@@ -79,7 +77,7 @@ class window_interface;
 
 /// @ingroup GUI
 /// @brief GUI subsystem
-class subsystem : public ui::subsystem
+class subsystem : public ui::subsystem, public object
 {
 protected:
 	friend class button;
@@ -102,8 +100,6 @@ protected:
 	static void install(pane& p, const rcptr<volatile subsystem>& subSystem);
 
 public:
-	static rcptr<volatile subsystem> get_default();
-
 	//virtual rcptr<ui::console> get_default_console() volatile;
 	//virtual rcptr<ui::console> create_console() volatile;
 
@@ -112,7 +108,7 @@ public:
 	virtual rcref<task<void> > open(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& rshpr = 0,
+		const rcptr<frame>& f = 0,
 		const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
 
 	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile	{ return rcptr<canvas3D_pane_interface>(); }	// 3D unsupported by default
@@ -136,25 +132,23 @@ protected:
 	virtual std::pair<rcref<bridgeable_pane>, rcref<window_interface> > create_window() volatile = 0;
 
 public:
-	static rcptr<volatile subsystem> get_default();
-
 	virtual rcref<task<void> > open(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& rshpr = 0,
+		const rcptr<frame>& f = 0,
 		const function<bool()>& closeDelegate = []() { return true; }) volatile;
 
 	virtual rcref<gui::window> open_window(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& rshpr = 0,
-		const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
+		const rcptr<frame>& f = 0,
+		const function<bool()>& closeDelegate = []() { return true; }) volatile;
 
-	virtual rcref<task<void> > open_full_screen(
-		const composite_string& title,
-		const rcref<pane>& p,
-		const rcptr<frame>& rshpr = 0,
-		const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
+	//virtual rcref<task<void> > open_full_screen(
+	//	const composite_string& title,
+	//	const rcref<pane>& p,
+	//	const rcptr<frame>& f = 0,
+	//	const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
 };
 
 

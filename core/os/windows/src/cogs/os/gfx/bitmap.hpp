@@ -316,6 +316,11 @@ public:
 		return device_context::load_font(guiFont);
 	}
 
+	virtual gfx::font get_default_font()
+	{
+		return device_context::get_default_font();
+	}
+
 	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<canvas::font>& f = 0, const color& c = color::black, bool blendAlpha = true)
 	{
 		device_context::draw_text(s, r, f, c, blendAlpha);

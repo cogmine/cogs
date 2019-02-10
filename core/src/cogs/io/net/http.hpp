@@ -124,8 +124,8 @@ public:
 	typedef nonvolatile_map<composite_cstring, composite_cstring, false>		trailer_map_t;
 
 private:
-	static const size_t max_chunk_size_line_length	= 4 * 1024;	// 4K should be more than enough
-	static const size_t max_trailer_items			= 500;		
+	static constexpr size_t max_chunk_size_line_length	= 4 * 1024;	// 4K should be more than enough
+	static constexpr size_t max_trailer_items			= 500;		
 
 	size_t				m_remainingChunk;	// 0 if not in a chunk.  Otherwise, number of bytes remaining to be read in the chunk
 	composite_cstring	m_curLine;
@@ -243,7 +243,7 @@ private:
 		composite_buffer result;
 		COGS_ASSERT(!!src);
 
-		static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+		static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 		buffer crlfBuf = buffer::contain(CRLF, 2);
 
 		size_type bufLength = src.get_length();
@@ -260,7 +260,7 @@ private:
 		// send empty chunk
 		composite_buffer compBuf;
 
-		static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+		static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 		buffer crlfBuf = buffer::contain(CRLF, 2);
 		buffer zeroBuf = buffer::contain("0", 1);
 
@@ -630,7 +630,7 @@ private:
 			rcptr<connection> c = get_connection().static_cast_to<connection>();
 			if (!!c)
 			{
-				static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+				static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 				buffer crlfBuf = buffer::contain(CRLF, 2);
 
 				// Start of HTTP Server Response.
@@ -686,7 +686,7 @@ private:
 					}
 				}
 
-				static const char colonSpace[2] = { ':', ' ' };
+				static constexpr char colonSpace[2] = { ':', ' ' };
 				buffer colonBuf = buffer::contain(colonSpace, 2);
 
 				// Write all headers to the stream.
@@ -734,11 +734,11 @@ private:
 		friend class connection;
 		friend class server;
 
-		static const size_t max_request_length = 64 * 1024;	// 64K
-		static const size_t max_header_item_length = 8 * 1024;	//  8K
+		static constexpr size_t max_request_length = 64 * 1024;	// 64K
+		static constexpr size_t max_header_item_length = 8 * 1024;	//  8K
 
 		// Max number of header option items
-		static const size_t max_header_items = 500;
+		static constexpr size_t max_header_items = 500;
 
 		composite_cstring		m_requestLine;
 		composite_cstring		m_method;
@@ -1083,7 +1083,7 @@ private:
 					snk->write(composite_buffer::from_composite_cstring(statusCodeString));
 					snk->write(composite_buffer::from_composite_cstring(statusPhrase));
 
-					static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+					static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 					buffer crlfBuf = buffer::contain(CRLF, 2);
 					snk->write(crlfBuf);
 				}
@@ -1268,7 +1268,7 @@ public:
 	~server()
 	{ }
 
-	//static const uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
+	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
 	// The inactivity timeout must be extended by a handler that does something appropriate to extend
 	// the lifetime of the connection.  Care should be taken to prevent denial-of-service attacks,
 	// such as clients establishing unnecessary connections and leaving them connected, to try to

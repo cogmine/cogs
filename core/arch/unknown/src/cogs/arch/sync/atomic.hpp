@@ -32,14 +32,14 @@ namespace atomic {
 
 
 
-static const size_t largest = 0;
+static constexpr size_t largest = 0;
 
 
 template <size_t n>
 class size_to_alignment
 {
 public:
-	static const size_t value = 0;
+	static constexpr size_t value = 0;
 };
 
 

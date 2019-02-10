@@ -1645,17 +1645,17 @@ public:
 
 
 // Making these available so storage size can be used without knowing the key type yet, since the sizes will be the same regardless of key type
-static const size_t container_dlist_iterator_size = sizeof(container_dlist<int>::iterator);
-static const size_t container_dlist_volatile_iterator_size = sizeof(container_dlist<int>::volatile_iterator);
-static const size_t container_dlist_remove_token_size = sizeof(container_dlist<int>::remove_token);
-static const size_t container_dlist_volatile_remove_token_size = sizeof(container_dlist<int>::volatile_remove_token);
-static const size_t container_dlist_preallocated_t_size = sizeof(container_dlist<int>::preallocated_t);
+static constexpr size_t container_dlist_iterator_size = sizeof(container_dlist<int>::iterator);
+static constexpr size_t container_dlist_volatile_iterator_size = sizeof(container_dlist<int>::volatile_iterator);
+static constexpr size_t container_dlist_remove_token_size = sizeof(container_dlist<int>::remove_token);
+static constexpr size_t container_dlist_volatile_remove_token_size = sizeof(container_dlist<int>::volatile_remove_token);
+static constexpr size_t container_dlist_preallocated_t_size = sizeof(container_dlist<int>::preallocated_t);
 
-static const size_t container_dlist_iterator_alignment = std::alignment_of<typename container_dlist<int>::iterator>::value;
-static const size_t container_dlist_volatile_iterator_alignment = std::alignment_of<typename container_dlist<int>::volatile_iterator>::value;
-static const size_t container_dlist_remove_token_alignment = std::alignment_of<typename container_dlist<int>::remove_token>::value;
-static const size_t container_dlist_volatile_remove_token_alignment = std::alignment_of<typename container_dlist<int>::volatile_remove_token>::value;
-static const size_t container_dlist_preallocated_t_alignment = std::alignment_of<typename container_dlist<int>::preallocated_t>::value;
+static constexpr size_t container_dlist_iterator_alignment = std::alignment_of<typename container_dlist<int>::iterator>::value;
+static constexpr size_t container_dlist_volatile_iterator_alignment = std::alignment_of<typename container_dlist<int>::volatile_iterator>::value;
+static constexpr size_t container_dlist_remove_token_alignment = std::alignment_of<typename container_dlist<int>::remove_token>::value;
+static constexpr size_t container_dlist_volatile_remove_token_alignment = std::alignment_of<typename container_dlist<int>::volatile_remove_token>::value;
+static constexpr size_t container_dlist_preallocated_t_alignment = std::alignment_of<typename container_dlist<int>::preallocated_t>::value;
 
 
 

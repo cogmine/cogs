@@ -27,20 +27,20 @@ template <ulongest x, ulongest y>
 class const_gcd
 {
 private:
-	static const ulongest greater = (x > y) ? x : y;
-	static const ulongest lesser = (x > y) ? y : x;
-	static const ulongest internal_gcd_remainder = (greater % lesser);
-	static const ulongest internal_gcd_greater = (!internal_gcd_remainder) ? 0 : lesser;
-	static const ulongest internal_gcd_lesser = (!internal_gcd_remainder) ? 0 : internal_gcd_remainder;
+	static constexpr ulongest greater = (x > y) ? x : y;
+	static constexpr ulongest lesser = (x > y) ? y : x;
+	static constexpr ulongest internal_gcd_remainder = (greater % lesser);
+	static constexpr ulongest internal_gcd_greater = (!internal_gcd_remainder) ? 0 : lesser;
+	static constexpr ulongest internal_gcd_lesser = (!internal_gcd_remainder) ? 0 : internal_gcd_remainder;
 
 public:
-	static const ulongest value = (!internal_gcd_remainder) ? lesser : const_gcd<internal_gcd_greater, internal_gcd_lesser>::value;
+	static constexpr ulongest value = (!internal_gcd_remainder) ? lesser : const_gcd<internal_gcd_greater, internal_gcd_lesser>::value;
 };
 
 
-template <ulongest x> class const_gcd<x, 0> { public: static const ulongest value = 0; };
-template <ulongest y> class const_gcd<0, y> { public: static const ulongest value = 0; };
-template <>           class const_gcd<0, 0> { public: static const ulongest value = 0; };
+template <ulongest x> class const_gcd<x, 0> { public: static constexpr ulongest value = 0; };
+template <ulongest y> class const_gcd<0, y> { public: static constexpr ulongest value = 0; };
+template <>           class const_gcd<0, 0> { public: static constexpr ulongest value = 0; };
 
 
 

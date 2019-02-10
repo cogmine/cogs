@@ -74,7 +74,7 @@ private:
 				dispatcher::dispatch_inner(*closeEvent, t, priority);
 			}
 			else
-				dispatcher::dispatch_inner(*dispatcher::get_default(), t, priority);	// already closed
+				dispatcher::dispatch_inner(*thread_pool::get_default_or_immediate(), t, priority);	// already closed
 		}
 
 		virtual bool cancel() volatile
@@ -186,6 +186,29 @@ public:
 };
 
 #pragma warning(pop)
+
+
+inline rcref<task<void> > windowing::subsystem::open(
+	const composite_string& title,
+	const rcref<pane>& p,
+	const rcptr<frame>& f,
+	const function<bool()>& closeDelegate) volatile
+{
+	return open_window(title, p, f, closeDelegate)->get_window_task();
+}
+
+inline rcref<gui::window> windowing::subsystem::open_window(
+	const composite_string& title,
+	const rcref<pane>& p,
+	const rcptr<frame>& f,
+	const function<bool()>& closeDelegate) volatile
+{
+	rcref<gui::window> w = rcnew(window, title, closeDelegate);
+	w->nest(p, f);
+	install(*w, this_rcref);
+	return w;
+}
+
 
 }
 }

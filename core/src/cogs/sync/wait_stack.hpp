@@ -27,7 +27,7 @@ class wait_container_stack
 {
 public:
 	typedef T type;
-	typedef wait_container_stack<type, allocator_type> this_t;
+	typedef wait_container_stack<type, coalesc_equal, allocator_type> this_t;
 
 private:
 	semaphore				m_semaphore;
@@ -68,7 +68,7 @@ class wait_container_stack<T, false, allocator_type>
 {
 public:
 	typedef T type;
-	typedef wait_container_stack<type, fasse, allocator_type> this_t;
+	typedef wait_container_stack<type, false, allocator_type> this_t;
 
 private:
 	semaphore												m_semaphore;
@@ -81,7 +81,7 @@ public:
 	wait_container_stack()
 	{ }
 
-	explicit wait_container_stack(volatile allocator_type& al) volatile
+	explicit wait_container_stack(volatile allocator_type& al)
 		: m_stack(al)
 	{ }
 

@@ -19,9 +19,10 @@
 #include "cogs/io/net/server.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/io/completion_port.hpp"
-#include "cogs/os/io/net/ip/init_token.hpp"
+#include "cogs/os/io/net/ip/network.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"
+#include "cogs/sync/singleton.hpp"
 
 
 namespace cogs {
@@ -48,62 +49,48 @@ private:
 	size_t				m_sockAddrSize;
 	SOCKADDR_STORAGE	m_sockAddr;
 
-	static placement<rcptr<thread_pool> > s_dnsThreadPool;
-
-	static void dns_thread_pool_cleanup()
-	{
-		volatile rcptr<thread_pool>& dnsThreadPool = s_dnsThreadPool.get();
-		dnsThreadPool = 0;
-	}
+	class dns_thread_pool : public thread_pool { };
 
 	static rcref<thread_pool> get_dns_thread_pool()
 	{
-		volatile rcptr<thread_pool>& dnsThreadPool = s_dnsThreadPool.get();
-		rcptr<thread_pool> myDnsThreadPool = dnsThreadPool;
-		if (!myDnsThreadPool)
-		{
-			rcptr<thread_pool> newDnsThreadPool = rcnew(thread_pool, false);
-			if (dnsThreadPool.compare_exchange(newDnsThreadPool, myDnsThreadPool))
-			{
-				myDnsThreadPool = newDnsThreadPool;
-				newDnsThreadPool->start();
-				cleanup_queue::get_default()->dispatch(&dns_thread_pool_cleanup);
-			}
-		}
-		return myDnsThreadPool.dereference();
+		bool isNew;
+		rcref<dns_thread_pool> result = singleton<dns_thread_pool>::get();
+		if (isNew)
+			result->start();
+		return result;
 	}
 
-	mutable rcptr<init_token>	m_initToken;
+	mutable rcptr<network>	m_network;
 
 protected:
 	friend class socket;
 	friend class tcp;
 	friend class endpoint;
 
-	address(SOCKADDR* sockAddr, size_t sockAddrSize, const rcptr<init_token>& initToken)
+	address(SOCKADDR* sockAddr, size_t sockAddrSize, const rcptr<network>& n)
 		: m_sockAddrSize(sockAddrSize),
-		m_initToken(initToken)
+		m_network(n)
 	{
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
 
-	address(sockaddr_in* sockAddr, size_t sockAddrSize, const rcptr<init_token>& initToken)
+	address(sockaddr_in* sockAddr, size_t sockAddrSize, const rcptr<network>& n)
 		: m_sockAddrSize(sockAddrSize),
-		m_initToken(initToken)
+		m_network(n)
 	{
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
 
-	address(sockaddr_in6* sockAddr, size_t sockAddrSize, const rcptr<init_token>& initToken)
+	address(sockaddr_in6* sockAddr, size_t sockAddrSize, const rcptr<network>& n)
 		: m_sockAddrSize(sockAddrSize),
-		m_initToken(initToken)
+		m_network(n)
 	{
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
 
-	address(SOCKADDR_STORAGE* sockAddr, size_t sockAddrSize, const rcptr<init_token>& initToken)
+	address(SOCKADDR_STORAGE* sockAddr, size_t sockAddrSize, const rcptr<network>& n)
 		: m_sockAddrSize(sockAddrSize),
-		m_initToken(initToken)
+		m_network(n)
 	{
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
@@ -166,7 +153,7 @@ public:
 	class lookup_result : public signallable_task<lookup_result>
 	{
 	private:
-		rcref<init_token>	m_initToken;
+		rcref<network>	m_network;
 		string				m_inputString;
 		vector<address>		m_addresses;
 		rcptr<task<void> >	m_poolTask;
@@ -174,9 +161,9 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(const composite_string& s, const rcref<init_token>& initToken = initialize())
+		lookup_result(const composite_string& s, const rcref<network>& n = network::get_default())
 			:	m_inputString(s.composite()),
-				m_initToken(initToken)
+				m_network(n)
 		{
 			rcref<thread_pool> pool = get_dns_thread_pool();
 			m_poolTask = pool->dispatch([r{ this_rcref }]()
@@ -208,7 +195,7 @@ public:
 				{
 					ADDRINFOW* cur = ai;
 					do {
-						m_addresses.append(1, address((SOCKADDR*)cur->ai_addr, cur->ai_addrlen, m_initToken));
+						m_addresses.append(1, address((SOCKADDR*)cur->ai_addr, cur->ai_addrlen, m_network));
 						cur = cur->ai_next;
 					} while (cur != 0);
 					FreeAddrInfoW(ai);
@@ -235,15 +222,15 @@ public:
 	class reverse_lookup_result : public net::address::reverse_lookup_result
 	{
 	private:
-		rcref<init_token>	m_initToken;
+		rcref<network>	m_network;
 		SOCKADDR_STORAGE	m_sockAddr;
 		size_t				m_sockAddrSize;
 
 	protected:
 		friend class address;
 
-		reverse_lookup_result(const address& addr, const rcref<init_token>& initToken = initialize())
-			:	m_initToken(initToken)
+		reverse_lookup_result(const address& addr, const rcref<network>& n = network::get_default())
+			:	m_network(n)
 		{
 			m_sockAddrSize = addr.m_sockAddrSize;
 			memcpy(&m_sockAddr, &addr.m_sockAddr, m_sockAddrSize);
@@ -286,9 +273,9 @@ public:
 		:	m_sockAddrSize(0)
 	{ }
 
-	explicit address(const rcptr<init_token>& initToken)
+	explicit address(const rcptr<network>& n)
 		:	m_sockAddrSize(0),
-			m_initToken(initToken)
+			m_network(n)
 	{ }
 
 //	address(address_family addressFamily)
@@ -299,15 +286,15 @@ public:
 	
 	address(const address& addr)
 		:	m_sockAddrSize(addr.m_sockAddrSize),
-			m_initToken(addr.m_initToken)
+			m_network(addr.m_network)
 	{
 		memcpy(&m_sockAddr, &addr.m_sockAddr, addr.m_sockAddrSize);
 	}
 
 	// Does NOT support host names and FQDN.  Supports only numeric ipv4, ipv6
 	// For host names and FQDN, use lookup() instead, as they may have multiple associated numeric addresses.
-	address(const composite_string& str, address_family addressFamily = inetv4, const rcref<init_token>& initToken = initialize() )	// AF_INET6 for ipv6
-		:	m_initToken(initToken)
+	address(const composite_string& str, address_family addressFamily = inetv4, const rcref<network>& n = network::get_default() )	// AF_INET6 for ipv6
+		:	m_network(n)
 	{
 		INT i = sizeof(m_sockAddr);
 		INT err = WSAStringToAddress((LPWSTR)str.composite().cstr(), addressFamily, 0, (SOCKADDR*)&m_sockAddr, &i);
@@ -323,7 +310,7 @@ public:
 	address& operator=(const address& addr)
 	{
 		m_sockAddrSize = addr.m_sockAddrSize;
-		m_initToken = addr.m_initToken;
+		m_network = addr.m_network;
 		memcpy(&m_sockAddr, &addr.m_sockAddr, addr.m_sockAddrSize);
 		return *this;
 	}
@@ -372,8 +359,8 @@ public:
 		cstring result;
 		if (m_sockAddrSize)
 		{
-			if (!m_initToken)
-				m_initToken = initialize();
+			if (!m_network)
+				m_network = network::get_default();
 			result.resize(NI_MAXHOST);	// slight waste of space, but safe
 			int err = getnameinfo((sockaddr*)&m_sockAddr, (DWORD)m_sockAddrSize, result.get_ptr(), NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 			if (!err)

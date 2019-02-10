@@ -196,9 +196,9 @@ private:
 public:
 	static fixed_integer<false, 128> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
-		static const size_t shiftBy = 88 % digit_bits;
-		static const size_t shiftIndex = 88 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
+		static constexpr size_t shiftBy = 88 % digit_bits;
+		static constexpr size_t shiftIndex = 88 / digit_bits;
 
 		fixed_integer<false, 128> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 128>::int_t)1 << shiftBy);
@@ -226,9 +226,9 @@ private:
 public:
 	static fixed_integer<false, 256> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 256>::int_t) * 8);
-		static const size_t shiftBy = 168 % digit_bits;
-		static const size_t shiftIndex = 168 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 256>::int_t) * 8);
+		static constexpr size_t shiftBy = 168 % digit_bits;
+		static constexpr size_t shiftIndex = 168 / digit_bits;
 
 		fixed_integer<false, 256> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 256>::int_t)1 << shiftBy);
@@ -260,9 +260,9 @@ private:
 public:
 	static fixed_integer<false, 512> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 512>::int_t) * 8);
-		static const size_t shiftBy = 344 % digit_bits;
-		static const size_t shiftIndex = 344 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 512>::int_t) * 8);
+		static constexpr size_t shiftBy = 344 % digit_bits;
+		static constexpr size_t shiftIndex = 344 / digit_bits;
 
 		fixed_integer<false, 512> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 512>::int_t)1 << shiftBy);
@@ -302,9 +302,9 @@ private:
 public:
 	static fixed_integer<false, 1024> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 1024>::int_t) * 8);
-		static const size_t shiftBy = 680 % digit_bits;
-		static const size_t shiftIndex = 680 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 1024>::int_t) * 8);
+		static constexpr size_t shiftBy = 680 % digit_bits;
+		static constexpr size_t shiftIndex = 680 / digit_bits;
 
 		fixed_integer<false, 1024> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 1024>::int_t)1 << shiftBy);
@@ -378,9 +378,9 @@ private:
 public:
 	static fixed_integer<false, 128> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
-		static const size_t shiftBy = 88 % digit_bits;
-		static const size_t shiftIndex = 88 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
+		static constexpr size_t shiftBy = 88 % digit_bits;
+		static constexpr size_t shiftIndex = 88 / digit_bits;
 
 		fixed_integer<false, 128> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 128>::int_t)1 << shiftBy);
@@ -408,9 +408,9 @@ private:
 public:
 	static fixed_integer<false, 256> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 256>::int_t) * 8);
-		static const size_t shiftBy = 168 % digit_bits;
-		static const size_t shiftIndex = 168 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 256>::int_t) * 8);
+		static constexpr size_t shiftBy = 168 % digit_bits;
+		static constexpr size_t shiftIndex = 168 / digit_bits;
 
 		fixed_integer<false, 256> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 256>::int_t)1 << shiftBy);
@@ -442,9 +442,9 @@ private:
 public:
 	static fixed_integer<false, 512> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 512>::int_t) * 8);
-		static const size_t shiftBy = 344 % digit_bits;
-		static const size_t shiftIndex = 344 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 512>::int_t) * 8);
+		static constexpr size_t shiftBy = 344 % digit_bits;
+		static constexpr size_t shiftIndex = 344 / digit_bits;
 
 		fixed_integer<false, 512> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 512>::int_t)1 << shiftBy);
@@ -484,9 +484,9 @@ private:
 public:
 	static fixed_integer<false, 1024> get_prime()
 	{
-		static const size_t digit_bits = (sizeof(fixed_integer<false, 1024>::int_t) * 8);
-		static const size_t shiftBy = 680 % digit_bits;
-		static const size_t shiftIndex = 680 / digit_bits;
+		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 1024>::int_t) * 8);
+		static constexpr size_t shiftBy = 680 % digit_bits;
+		static constexpr size_t shiftIndex = 680 / digit_bits;
 
 		fixed_integer<false, 1024> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 1024>::int_t)1 << shiftBy);

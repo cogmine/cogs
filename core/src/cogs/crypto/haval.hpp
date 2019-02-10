@@ -39,7 +39,7 @@ private:
 	typedef serial_hash<haval<bits, passes>, 256, bits, 32, endian_t::little, 1024> base_t;
 	typedef haval<bits, passes> this_t;
 
-	static const uint32_t version = 1;
+	static constexpr uint32_t version = 1;
 
 	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
 	friend class serial_hash;

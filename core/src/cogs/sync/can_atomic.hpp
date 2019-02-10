@@ -22,7 +22,7 @@ template <typename T>
 class can_atomic
 {
 public:
-	static const bool value = std::is_trivial_v<T> && (sizeof(T) <= arch::atomic::largest);
+	static constexpr bool value = std::is_trivial_v<T> && (sizeof(T) <= arch::atomic::largest);
 };
 
 template <> struct can_atomic<void> : std::false_type {};

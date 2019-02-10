@@ -266,8 +266,8 @@ private:
 	typedef freelist<list, env::allocator, 10> list_freelist_t;
 	typedef freelist<token, env::allocator, 10> token_freelist_t;
 
-	static placement<list_freelist_t> s_listFreeList;	// zero-initialize as bss, leaked
-	static placement<token_freelist_t> s_tokenFreeList;	// zero-initialize as bss, leaked
+	inline static placement<list_freelist_t> s_listFreeList;	// zero-initialize as bss, leaked
+	inline static placement<token_freelist_t> s_tokenFreeList;	// zero-initialize as bss, leaked
 
 	class content_t
 	{

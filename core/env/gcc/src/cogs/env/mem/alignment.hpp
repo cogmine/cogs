@@ -30,9 +30,9 @@ namespace cogs {
 
 #ifdef _M_X64
 //template <typename type_in> class get_aligned_type<type_in, 32>	{ public: typedef __declspec(align(32)) type_in type; };
-	static const size_t largest_alignment = 16;// 32;
+	static constexpr size_t largest_alignment = 16;// 32;
 #else
-	static const size_t largest_alignment = 32;// 16;
+	static constexpr size_t largest_alignment = 32;// 16;
 #endif
 
 

@@ -82,7 +82,7 @@ public:
 	public:
 		virtual void start()
 		{
-			static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 			cstring crlfStr = cstring::contain(CRLF, 2);
 			composite_cstring connectStr = cstring::literal("220 ");
 			connectStr += get_host_name_cstring();
@@ -157,7 +157,7 @@ public:
 		{
 			net::request_response_server::response::start();
 
-			static const char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 			cstring crlfStr = cstring::contain(CRLF, 2);
 			composite_cstring str = size_type((int)m_replyCode).to_cstring();
 			str += cstring::literal(" ");
@@ -174,7 +174,7 @@ public:
 		friend class connection;
 		friend class server;
 
-		static const size_t max_request_length = 64 * 1024;	// 64K
+		static constexpr size_t max_request_length = 64 * 1024;	// 64K
 
 		composite_buffer			m_bufferedWrite;
 		bool						gotCR;
@@ -429,7 +429,7 @@ public:
 	~server()
 	{ }
 
-	//static const uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
+	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
 	// The inactivity timeout must be extended by a handler that does something appropriate to extend
 	// the lifetime of the connection.  Care should be taken to prevent denial-of-service attacks,
 	// such as clients establishing unnecessary connections and leaving them connected, to try to
@@ -450,12 +450,12 @@ public:
 	{ }
 
 
-//	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+//	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get())
 //	{
 //		return rcnew(connecter, addresses, port, cp);
 //	}
 //
-//	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+//	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get())
 //	{
 //		vector<address> addresses;
 //		addresses.append(addr);

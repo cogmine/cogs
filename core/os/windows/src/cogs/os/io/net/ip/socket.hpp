@@ -24,16 +24,16 @@ class socket
 protected:
 	friend class tcp;
 
-	rcref<init_token>				m_initToken;
+	rcref<network>				m_network;
 	rcref<os::io::completion_port>	m_completionPort;
 	SOCKET							m_socket;
 	address_family					m_addressFamily;
 	endpoint						m_localEndpoint;
 	endpoint						m_remoteEndpoint;
 
-	socket(int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+	socket(int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		:	m_completionPort(cp),
-			m_initToken(initToken),
+			m_network(n),
 			m_addressFamily(addressFamily)
 	{
 		// Socket is both overlapped and non-blocking.

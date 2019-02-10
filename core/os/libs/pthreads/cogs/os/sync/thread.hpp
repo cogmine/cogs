@@ -13,6 +13,10 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <xmmintrin.h>
 
 #include "cogs/env.hpp"
 #include "cogs/function.hpp"
@@ -75,6 +79,8 @@ private:
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);
 		COGS_ASSERT(i == 0);
 	}
+
+	inline static unsigned int s_processorCount = 0;
 
 public:
 	static rcref<thread> create(const function<void()>& d)	{ return rcnew(bypass_constructor_permission<thread>, d); }
@@ -150,13 +156,27 @@ public:
 	}
 
 	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once();
+	static bool spin_once()
+	{
+		if (get_processor_count() == 1)
+			return false;
+
+		_mm_pause();
+		return true;
+	}
+
+	static unsigned int get_processor_count()
+	{
+		if (!s_processorCount)
+			s_processorCount = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+		return s_processorCount;
+	}
 };
 
 
 }
 
-unsigned int get_num_processors();
+unsigned int get_processor_count();
 
 
 }

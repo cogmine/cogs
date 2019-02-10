@@ -33,37 +33,37 @@ private:
 	class helper<answer, answer>
 	{
 	public:
-		static const ulongest value = answer;
+		static constexpr ulongest value = answer;
 	};
 
 	template <ulongest lower, ulongest higher>
 	class helper
 	{
 	private:
-		static const ulongest high_bit = (ulongest)1 << ((sizeof(ulongest) * 8) - 1);
-		static const ulongest mid = ((higher - lower) / 2) + lower;
+		static constexpr ulongest high_bit = (ulongest)1 << ((sizeof(ulongest) * 8) - 1);
+		static constexpr ulongest mid = ((higher - lower) / 2) + lower;
 
-		static const ulongest high_high_pow = const_upow<exponent, mid>::high_high_part;
-		static const ulongest low_high_pow = const_upow<exponent, mid>::low_high_part;
-		static const ulongest high_low_pow = const_upow<exponent, mid>::high_low_part;
-		static const ulongest low_low_pow = const_upow<exponent, mid>::low_low_part;
+		static constexpr ulongest high_high_pow = const_upow<exponent, mid>::high_high_part;
+		static constexpr ulongest low_high_pow = const_upow<exponent, mid>::low_high_part;
+		static constexpr ulongest high_low_pow = const_upow<exponent, mid>::high_low_part;
+		static constexpr ulongest low_low_pow = const_upow<exponent, mid>::low_low_part;
 
-		static const bool is_mid_less_than_or_equal_target = (!!high_high_pow || !!low_high_pow) ? false :
+		static constexpr bool is_mid_less_than_or_equal_target = (!!high_high_pow || !!low_high_pow) ? false :
 																(high_low_pow < high_part ? true :
 																	(high_low_pow > high_part ? false :
 																		(low_low_pow <= low_part)));
 
-		static const bool is_mid_greater_than_or_equal_target = (!!high_high_pow || !!low_high_pow) ? true :
+		static constexpr bool is_mid_greater_than_or_equal_target = (!!high_high_pow || !!low_high_pow) ? true :
 																	(high_low_pow < high_part ? false :
 																		(high_low_pow > high_part ? true :
 																			(low_low_pow >= low_part)));
 
 	public:
-		static const ulongest value = helper<(is_mid_less_than_or_equal_target ? mid : lower), (is_mid_greater_than_or_equal_target ? mid : (higher - 1))>::value;
+		static constexpr ulongest value = helper<(is_mid_less_than_or_equal_target ? mid : lower), (is_mid_greater_than_or_equal_target ? mid : (higher - 1))>::value;
 	};
 
 public:
-	static const ulongest value = helper<>::value;
+	static constexpr ulongest value = helper<>::value;
 };
 
 

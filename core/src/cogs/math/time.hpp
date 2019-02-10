@@ -47,7 +47,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n, unsigned int radix = 10, size_t minDigits = 1)
 	{
-		static const char_t part2[] = { (char_t)'n', (char_t)'s' };
+		static constexpr char_t part2[] = { (char_t)'n', (char_t)'s' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>(radix, minDigits));
 		result += string_t<char_t>::contain(part2, 2);
 		return result;
@@ -86,7 +86,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { special_characters<char_t>::MU, (char_t)'s' };
+		static constexpr char_t part2[2] = { special_characters<char_t>::MU, (char_t)'s' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 2);
 		return result;
@@ -107,7 +107,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { (char_t)'m', (char_t)'s' };
+		static constexpr char_t part2[2] = { (char_t)'m', (char_t)'s' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 2);
 		return result;
@@ -128,7 +128,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { (char_t)'s' };
+		static constexpr char_t part2[2] = { (char_t)'s' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 1);
 		return result;
@@ -149,7 +149,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[4] = { (char_t)'m', (char_t)'i', (char_t)'n' };
+		static constexpr char_t part2[4] = { (char_t)'m', (char_t)'i', (char_t)'n' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 1);
 		return result;
@@ -170,7 +170,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { (char_t)'h' };
+		static constexpr char_t part2[2] = { (char_t)'h' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 1);
 		return result;
@@ -191,7 +191,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { (char_t)'d' };
+		static constexpr char_t part2[2] = { (char_t)'d' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 1);
 		return result;
@@ -212,7 +212,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2[2] = { (char_t)'w' };
+		static constexpr char_t part2[2] = { (char_t)'w' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contain(part2, 1);
 		return result;
@@ -226,7 +226,7 @@ public:
 };
 
 
-
+// Always specialize unit_conversion with the primary unit type as the second template parameter
 template<>
 class unit_conversion<nanoseconds, seconds>
 {

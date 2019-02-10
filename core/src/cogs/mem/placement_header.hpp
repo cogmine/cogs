@@ -30,7 +30,7 @@ template <typename T1, typename T2>
 class get_common_alignment
 {
 public:
-	static const size_t value = const_lcm<std::alignment_of<T1>::value, std::alignment_of<T2>::value>::value;
+	static constexpr size_t value = const_lcm<std::alignment_of<T1>::value, std::alignment_of<T2>::value>::value;
 };
 
 
@@ -44,7 +44,7 @@ template <typename header_t, typename T>
 class get_type_and_header_size
 {
 public:
-	static const size_t value = least_multiple_of<sizeof(header_t), get_common_alignment<header_t, T>::value>::value +
+	static constexpr size_t value = least_multiple_of<sizeof(header_t), get_common_alignment<header_t, T>::value>::value +
 		least_multiple_of<sizeof(T), get_common_alignment<header_t, T>::value>::value;
 };
 

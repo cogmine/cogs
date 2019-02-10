@@ -485,6 +485,25 @@ public:
 #pragma warning(pop)
 
 
+inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsystem::create_window() volatile
+{
+	rcref<window> w = rcnew(window, this_rcref);
+	return std::make_pair(w, w);
+}
+
+
+inline rcref<gui::window> hwnd::subsystem::open_window(
+	const composite_string& title,
+	const rcref<pane>& p,
+	const rcptr<frame>& f,
+	const function<bool()>& closeDelegate) volatile
+{
+	rcref<gui::window> w = rcnew(gui::window, title, closeDelegate);
+	w->nest(p, f);
+	install(*w, rcnew(bypass_constructor_permission<hwnd::subsystem>));	// Give each window it's own subsystem instance, so it's own UI thread.
+	return w;
+}
+
 }
 }
 }

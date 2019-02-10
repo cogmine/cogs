@@ -376,10 +376,10 @@
 //		pane::nest(m_grid);
 //	}
 //
-//	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& rshpr = 0);
-//	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& rshpr = 0);
-//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& rshpr = 0);
-//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& rshpr = 0);
+//	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0);
+//	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0);
+//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0);
+//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0);
 //
 //	/*
 //	collection<rcref<cell_t> >	m_cells;

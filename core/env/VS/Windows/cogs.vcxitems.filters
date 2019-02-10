@@ -378,9 +378,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\endpoint.hpp">
       <Filter>os\windows\io\net\ip</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\init_token.hpp">
-      <Filter>os\windows\io\net\ip</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\socket.hpp">
       <Filter>os\windows\io\net\ip</Filter>
     </ClInclude>
@@ -1146,41 +1143,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\assert.hpp">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.cpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\function.hpp">
       <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.cpp">
-      <Filter>core\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\completion_port.cpp">
-      <Filter>os\windows\io</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.cpp">
-      <Filter>os\windows\io</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\gui\GDI\hwnd.cpp">
-      <Filter>os\windows\gui\GDI</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip.cpp">
-      <Filter>os\windows\io\net</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc.cpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sync.cpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\timer.cpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.cpp">
-      <Filter>core\collections</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\windows_sync.cpp">
-      <Filter>os\windows\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_timer.hpp">
       <Filter>core\sync</Filter>
@@ -1218,33 +1182,22 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pixel_image_pane.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\immediate_task.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\network.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\singleton.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
       <Filter>os\libs\pthreads</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.cpp">
-      <Filter>os\linux\io</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip.cpp">
-      <Filter>os\linux\io\net</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
       <Filter>os\MacOS\gui</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.cpp">
-      <Filter>os\MacOS\io</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip.cpp">
-      <Filter>os\MacOS\io\net</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\macos_sync.cpp">
-      <Filter>os\MacOS\sync</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\core.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\windows.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\main.cpp">
       <Filter>os\windows</Filter>
     </ClCompile>
   </ItemGroup>

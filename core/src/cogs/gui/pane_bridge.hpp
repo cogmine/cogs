@@ -634,6 +634,11 @@ inline const rcptr<bridgeable_pane>& bridgeable_pane::get_bridged(const pane_bri
 }
 
 
+inline rcref<bridgeable_pane> subsystem::create_native_pane() volatile
+{
+	return rcnew(bridgeable_pane);
+}
+
 }
 }
 

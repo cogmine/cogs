@@ -87,14 +87,6 @@ public:
 	};
 
 private:
-	static placement<rcptr<completion_port> >	s_defaultCompletionPort;
-
-	static void cleanup_globals()
-	{
-		volatile rcptr<completion_port>& defaultCompletionPort = s_defaultCompletionPort.get();
-		defaultCompletionPort = (completion_port*)nullptr;
-	}
-
 	thread_pool			m_pool;
 	rcref<auto_HANDLE>	m_handle;
 
@@ -139,8 +131,7 @@ private:
 
 protected:
 	completion_port()
-		: m_handle(rcnew(auto_HANDLE)),
-		m_pool(false)
+		: m_handle(rcnew(auto_HANDLE))
 	{
 		HANDLE h = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 		m_handle->set(h);
@@ -156,7 +147,14 @@ public:
 		m_pool.join();
 	}
 
-	static rcref<completion_port> get();
+	static rcref<completion_port> get()
+	{
+		bool isNew;
+		rcref<completion_port> result = singleton<completion_port>::get(isNew);
+		if (isNew)
+			result->start();
+		return result;
+	}
 
 	void register_handle(HANDLE h)
 	{

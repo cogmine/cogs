@@ -110,6 +110,8 @@ class mass : public quantity_type_base { public: typedef grams preferred_unit_t;
 class weight : public quantity_type_base { };
 
 
+// Always fully specialize unit_conversion with the primary unit type as the second template parameter
+
 template <class T1, class T2, typename enable = void>
 class unit_conversion
 {
@@ -133,12 +135,8 @@ class unit_conversion<
 	T2, 
 	std::enable_if_t<
 		!std::is_same_v<T1, T2>
-		&& (std::is_same_v<
-				typename T1::quantity_t::preferred_unit_t,
-				T1>
-			!= std::is_same_v<
-				typename T1::quantity_t::preferred_unit_t,
-				T2>)
+		&& !std::is_same_v<T2, typename T1::quantity_t::preferred_unit_t>
+		&& std::is_same_v<T1, typename T1::quantity_t::preferred_unit_t>
 	>
 >
 {
@@ -177,46 +175,23 @@ public:
 };
 
 
-// Automatically convert to/from any 2 time units that define conversion to/from the preferred unit base
+// Automatically convert to/from any 2 units that define conversion to/from the preferred unit base
 template <class T1, class T2>
 class unit_conversion<
 	T1,
 	T2,
 	std::enable_if_t<
 		!std::is_same_v<T1, T2>
-		&& std::is_same_v<
-			typename T1::quantity_t::preferred_unit_t,
-			typename T2::quantity_t::preferred_unit_t>
-	&& !(	std::is_same_v<
-			typename T1::quantity_t::preferred_unit_t,
-			T1>
-		!= std::is_same_v<
-			typename T1::quantity_t::preferred_unit_t,
-			T2>)
-	&& std::is_same_v<
-			decltype(
-				std::declval<
-					typename unit_conversion<T1, typename T1::quantity_t::preferred_unit_t>::numerator_const_t
-				>(),
-				std::declval<std::true_type>()
-			),
-			std::true_type>
-	&& std::is_same_v<
-			decltype(
-				std::declval<
-					typename unit_conversion<T2, typename T1::quantity_t::preferred_unit_t>::numerator_const_t
-				>(),
-				std::declval<std::true_type>()
-			),
-			std::true_type>
+		&& !std::is_same_v<T2, typename T1::quantity_t::preferred_unit_t>
+		&& !std::is_same_v<T1, typename T1::quantity_t::preferred_unit_t>
 	>
 >
 {
 public:
-	typedef typename unit_conversion_relative<T1, T2, time::preferred_unit_t>::numerator_const_t numerator_const_t;
-	typedef typename unit_conversion_relative<T1, T2, time::preferred_unit_t>::denominator_const_t denominator_const_t;
+	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::numerator_const_t numerator_const_t;
+	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::denominator_const_t denominator_const_t;
 
-	typedef typename unit_conversion_relative<T1, T2, time::preferred_unit_t>::ratio_const_t ratio_const_t;
+	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::ratio_const_t ratio_const_t;
 };
 
 
@@ -230,7 +205,7 @@ private:
 	typedef typename conversion_t::denominator_const_t denominator_const_t;
 
 public:
-	static const bool value = (const_compared<numerator_const_t, denominator_const_t>::value) > 0;
+	static constexpr bool value = (const_compared<numerator_const_t, denominator_const_t>::value) > 0;
 };
 template <typename T1, typename T2>
 constexpr bool is_finer_v = is_finer<T1, T2>::value;
@@ -240,7 +215,7 @@ template <typename T1, typename T2>
 class is_courser
 {
 public:
-	static const bool value = !is_finer_v<T1, T2>();
+	static constexpr bool value = !is_finer_v<T1, T2>();
 };
 template <typename T1, typename T2>
 constexpr bool is_courser_v = is_courser<T1, T2>::value;

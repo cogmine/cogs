@@ -19,6 +19,7 @@
 #include "cogs/io/queue.hpp"
 #include "cogs/math/dynamic_integer.hpp"
 #include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/thread_pool.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
@@ -733,7 +734,7 @@ private:
 			{
 				m_transactionAborted = true;
 				m_transactionIoQueue->close();
-				dispatcher::get_default()->dispatch([r{ this_rcref }]()
+				thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }]()
 				{
 					r->aborted();
 				});

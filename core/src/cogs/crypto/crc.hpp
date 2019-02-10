@@ -30,13 +30,13 @@ template <size_t bits, ulongest poly, bool is_input_reflected, bool is_output_re
 class crc : public hash_int<bits>
 {
 public:
-	static const size_t width_bits = bits;
-	static const size_t width_bytes = bits_to_bytes<width_bits>::value;
+	static constexpr size_t width_bits = bits;
+	static constexpr size_t width_bytes = bits_to_bytes<width_bits>::value;
 
 	typedef typename hash_int<bits>::uint_t	crc_t;
 
-	static const crc_t init_value = (crc_t)initial_value;
-	static const crc_t poly_value = (crc_t)poly;
+	static constexpr crc_t init_value = (crc_t)initial_value;
+	static constexpr crc_t poly_value = (crc_t)poly;
 
 	typedef crc<width_bits, poly, is_input_reflected, is_output_reflected, initial_value, xor_out>	this_t;
 
@@ -45,43 +45,43 @@ private:
 	class const_reflect
 	{
 	public:
-		static const crc_t value = (const_reflect<(x >> 1), bits2>::value >> 1) | ((x & 1) ? ((crc_t)1 << (bits2 - 1)) : 0);
+		static constexpr crc_t value = (const_reflect<(x >> 1), bits2>::value >> 1) | ((x & 1) ? ((crc_t)1 << (bits2 - 1)) : 0);
 	};
 
 	template <size_t bits2>
 	class const_reflect<0, bits2>
 	{
 	public:
-		static const crc_t value = 0;
+		static constexpr crc_t value = 0;
 	};
 
 	template <size_t bits2>
 	class const_reflect<1, bits2>
 	{
 	public:
-		static const crc_t value = ((crc_t)1 << (bits2 - 1));
+		static constexpr crc_t value = ((crc_t)1 << (bits2 - 1));
 	};
 
-	static const crc_t high_bit = (crc_t)1 << (width_bits - 1);
-	static const crc_t mask = ((high_bit - 1) << 1) | 1;
-	static const crc_t reflected_poly = const_reflect<poly, width_bits>::value;
-	static const crc_t reflected_init_value = const_reflect<init_value, width_bits>::value;
+	static constexpr crc_t high_bit = (crc_t)1 << (width_bits - 1);
+	static constexpr crc_t mask = ((high_bit - 1) << 1) | 1;
+	static constexpr crc_t reflected_poly = const_reflect<poly, width_bits>::value;
+	static constexpr crc_t reflected_init_value = const_reflect<init_value, width_bits>::value;
 
 	template <uint8_t index>
 	class calculate_crc_table_entry
 	{
 	private:
-		static const crc_t x = is_input_reflected ? index : const_reflect<index, 8>::value;
-		static const crc_t y1 = (x >> 1) ^ ((x & 1) ? reflected_poly : 0);
-		static const crc_t y2 = (y1 >> 1) ^ ((y1 & 1) ? reflected_poly : 0);
-		static const crc_t y3 = (y2 >> 1) ^ ((y2 & 1) ? reflected_poly : 0);
-		static const crc_t y4 = (y3 >> 1) ^ ((y3 & 1) ? reflected_poly : 0);
-		static const crc_t y5 = (y4 >> 1) ^ ((y4 & 1) ? reflected_poly : 0);
-		static const crc_t y6 = (y5 >> 1) ^ ((y5 & 1) ? reflected_poly : 0);
-		static const crc_t y7 = (y6 >> 1) ^ ((y6 & 1) ? reflected_poly : 0);
-		static const crc_t y8 = (y7 >> 1) ^ ((y7 & 1) ? reflected_poly : 0);
+		static constexpr crc_t x = is_input_reflected ? index : const_reflect<index, 8>::value;
+		static constexpr crc_t y1 = (x >> 1) ^ ((x & 1) ? reflected_poly : 0);
+		static constexpr crc_t y2 = (y1 >> 1) ^ ((y1 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y3 = (y2 >> 1) ^ ((y2 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y4 = (y3 >> 1) ^ ((y3 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y5 = (y4 >> 1) ^ ((y4 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y6 = (y5 >> 1) ^ ((y5 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y7 = (y6 >> 1) ^ ((y6 & 1) ? reflected_poly : 0);
+		static constexpr crc_t y8 = (y7 >> 1) ^ ((y7 & 1) ? reflected_poly : 0);
 	public:
-		static const crc_t value = (is_input_reflected ? y8 : const_reflect<y8, width_bits>::value) & mask;
+		static constexpr crc_t value = (is_input_reflected ? y8 : const_reflect<y8, width_bits>::value) & mask;
 	};
 
 	static crc_t reflect(const crc_t& c)
@@ -99,19 +99,19 @@ private:
 	}
 
 	crc_t	m_crc;
-	static const crc_t table[256];
+	static constexpr crc_t table[256];
 
 public:
 	template <crc_t old_value, uint8_t byte_in>
 	class const_update
 	{
 	private:
-		static const size_t shift1 = (width_bits <= 8) ? 0 : 8;
-		static const size_t shift2 = ((width_bits <= 8) || is_input_reflected) ? 0 : (width_bits - 8);
-		static const uint8_t table_index = (uint8_t)(old_value >> shift2) ^ byte_in;
-		static const crc_t table_entry = calculate_crc_table_entry<table_index>::value;
+		static constexpr size_t shift1 = (width_bits <= 8) ? 0 : 8;
+		static constexpr size_t shift2 = ((width_bits <= 8) || is_input_reflected) ? 0 : (width_bits - 8);
+		static constexpr uint8_t table_index = (uint8_t)(old_value >> shift2) ^ byte_in;
+		static constexpr crc_t table_entry = calculate_crc_table_entry<table_index>::value;
 	public:
-		static const crc_t value = ((width_bits <= 8)
+		static constexpr crc_t value = ((width_bits <= 8)
 			? table_entry
 			: (is_input_reflected
 			? (table_entry ^ (old_value >> shift1))
@@ -122,17 +122,17 @@ public:
 	class const_get
 	{
 	public:
-		static const crc_t value = (((is_input_reflected != is_output_reflected) ? const_reflect<crc_value, width_bits>::value : crc_value) ^ xor_out) & mask;
+		static constexpr crc_t value = (((is_input_reflected != is_output_reflected) ? const_reflect<crc_value, width_bits>::value : crc_value) ^ xor_out) & mask;
 	};
 
 	// A CRC of an empty block
-	static const crc_t null_result = const_get<init_value>::value;
+	static constexpr crc_t null_result = const_get<init_value>::value;
 
 private:
-	static const crc_t null_crc_adjusted = (init_value ^ xor_out) & mask;
+	static constexpr crc_t null_crc_adjusted = (init_value ^ xor_out) & mask;
 
-	static const size_t margin_bits = ((width_bytes * 8) > width_bits) ? ((width_bytes * 8) - width_bits) : 0;
-	static const size_t margin_shift = ((width_bits <= 8) || is_input_reflected) ? 0 : margin_bits;
+	static constexpr size_t margin_bits = ((width_bytes * 8) > width_bits) ? ((width_bytes * 8) - width_bits) : 0;
+	static constexpr size_t margin_shift = ((width_bits <= 8) || is_input_reflected) ? 0 : margin_bits;
 
 	template <size_t byte_index, crc_t old_value>
 	class helper
@@ -145,29 +145,28 @@ private:
 		class helper2<true, unused>
 		{
 		public:
-			static const crc_t value = old_value;
+			static constexpr crc_t value = old_value;
 		};
 
 		template <bool unused>
 		class helper2<false, unused>
 		{
 		private:
-			static const bool short_circuit_next = (byte_index <= 1);
-			static const size_t next_byte_index = byte_index - 1;
-			static const size_t dif = (width_bytes - byte_index);
-			static const size_t shift3 = (8 * (is_input_reflected ? dif : next_byte_index));
-			static const uint8_t byte_in = (uint8_t)((null_crc_adjusted << margin_shift) >> shift3);
-			static const crc_t new_value = const_update<old_value, byte_in>::value;
+			static constexpr bool short_circuit_next = (byte_index <= 1);
+			static constexpr size_t next_byte_index = byte_index - 1;
+			static constexpr size_t dif = (width_bytes - byte_index);
+			static constexpr size_t shift3 = (8 * (is_input_reflected ? dif : next_byte_index));
+			static constexpr uint8_t byte_in = (uint8_t)((null_crc_adjusted << margin_shift) >> shift3);
+			static constexpr crc_t new_value = const_update<old_value, byte_in>::value;
 		public:
-			static const crc_t value = helper<next_byte_index, new_value>::template helper2<short_circuit_next, false>::value;
+			static constexpr crc_t value = helper<next_byte_index, new_value>::template helper2<short_circuit_next, false>::value;
 		};
 	};
 
 public:
 
 	// If a CRC is parsed at the end of a block, it should result in a known constant CRC value
-	//static const crc_t success_result = helper<width_bytes, init_value, false>::value;
-	static const crc_t success_result = helper<width_bytes, init_value>::template helper2<false, false>::value;
+	static constexpr crc_t success_result = helper<width_bytes, init_value>::template helper2<false, false>::value;
 
 	crc()
 		:	m_crc(init_value)
@@ -246,12 +245,12 @@ public:
 			m_crc = table[(uint8_t)m_crc ^ c];
 		else
 		{
-			static const size_t shift1 = (width_bits <= 8) ? 0 : 8;
+			static constexpr size_t shift1 = (width_bits <= 8) ? 0 : 8;
 			if (is_input_reflected)
 				m_crc = table[(uint8_t)m_crc ^ c] ^ (m_crc >> shift1);
 			else
 			{
-				static const size_t shift2 = (width_bits <= 8) ? 0 : (width_bits - 8);
+				static constexpr size_t shift2 = (width_bits <= 8) ? 0 : (width_bits - 8);
 				m_crc = table[(uint8_t)(m_crc >> shift2) ^ c] ^ (crc_t)(m_crc << shift1);
 			}
 		}

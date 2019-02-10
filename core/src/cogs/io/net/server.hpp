@@ -15,7 +15,7 @@
 #include "cogs/io/delegated_datasink.hpp"
 #include "cogs/io/net/connection.hpp"
 #include "cogs/math/boolean.hpp"
-#include "cogs/math/measure.hpp" //
+#include "cogs/math/measure.hpp"
 #include "cogs/mem/object.hpp"
 #include "cogs/sync/single_fire_timer.hpp"
 

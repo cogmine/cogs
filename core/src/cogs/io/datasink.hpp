@@ -14,7 +14,7 @@
 #include "cogs/io/composite_buffer.hpp"
 #include "cogs/io/queue.hpp"
 #include "cogs/sync/dispatcher.hpp"
-
+#include "cogs/sync/thread_pool.hpp"
 
 namespace cogs {
 
@@ -507,7 +507,7 @@ private:
 			{
 				m_transactionAborted = true;
 				m_transactionIoQueue->close();
-				dispatcher::get_default()->dispatch([r{ this_rcref }]()
+				thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }]()
 				{
 					r->aborted();
 				});

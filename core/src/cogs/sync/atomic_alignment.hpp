@@ -25,7 +25,7 @@ template <typename T>
 class get_alignment
 {
 public:
-	static const size_t value = arch::atomic::size_to_alignment<sizeof(T)>::value;
+	static constexpr size_t value = arch::atomic::size_to_alignment<sizeof(T)>::value;
 };
 
 template <typename T>

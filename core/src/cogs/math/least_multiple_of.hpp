@@ -20,7 +20,7 @@ template <size_t n, size_t multiple_of>
 class least_multiple_of
 {
 public:
-	static const size_t value =	((n % multiple_of) == 0) ? n
+	static constexpr size_t value =	((n % multiple_of) == 0) ? n
 							:	((n < multiple_of) ? multiple_of
 							:	(n-1) + (multiple_of - ((n-1) % multiple_of)));
 };

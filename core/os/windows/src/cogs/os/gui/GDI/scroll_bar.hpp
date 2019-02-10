@@ -303,6 +303,13 @@ public:
 #pragma warning(pop)
 
 
+inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > hwnd::subsystem::create_scroll_bar() volatile
+{
+	rcref<scroll_bar> sb = rcnew(scroll_bar, this_rcref);
+	return std::make_pair(sb, sb);
+}
+
+
 }
 }
 }

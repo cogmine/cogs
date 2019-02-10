@@ -24,25 +24,25 @@ private:
 	class helper
 	{
 	public:
-		static const size_t value = prev_or_current_exponent_of_two<(n2 >> 1)>::value << 1;
+		static constexpr size_t value = prev_or_current_exponent_of_two<(n2 >> 1)>::value << 1;
 	};
 
 	template <bool unused>
 	class helper<1, unused>
 	{
 	public:
-		static const size_t value = 1;
+		static constexpr size_t value = 1;
 	};
 
 	template <bool unused>
 	class helper<0, unused>
 	{
 	public:
-		static const size_t value = 0;
+		static constexpr size_t value = 0;
 	};
 
 public:
-	static const size_t value = helper<n>::value;
+	static constexpr size_t value = helper<n>::value;
 };
 
 template <size_t n>
@@ -57,7 +57,7 @@ template <size_t n>
 class prev_exponent_of_two
 {
 public:
-	static const size_t value = prev_or_current_exponent_of_two<n-1>::value;
+	static constexpr size_t value = prev_or_current_exponent_of_two<n-1>::value;
 };
 
 
@@ -65,7 +65,7 @@ template <>
 class prev_exponent_of_two<0>
 {
 public:
-	static const size_t value = 0;
+	static constexpr size_t value = 0;
 };
 
 
@@ -73,7 +73,7 @@ template <>
 class prev_exponent_of_two<1>
 {
 public:
-	static const size_t value = 0;
+	static constexpr size_t value = 0;
 };
 
 

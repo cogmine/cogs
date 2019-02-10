@@ -60,8 +60,8 @@ template <>	class bytes_to_float<sizeof(float)>
 public:
 	typedef float	float_t;
 	
-	static const size_t exponent_bits = 8;
-	static const size_t mantisaa_bits = 23;
+	static constexpr size_t exponent_bits = 8;
+	static constexpr size_t mantisaa_bits = 23;
 };
 
 template <>	class bytes_to_float<sizeof(double)>
@@ -69,8 +69,8 @@ template <>	class bytes_to_float<sizeof(double)>
 public:
 	typedef double	float_t;
 
-	static const size_t exponent_bits = 11;
-	static const size_t mantisaa_bits = 52;
+	static constexpr size_t exponent_bits = 11;
+	static constexpr size_t mantisaa_bits = 52;
 };
 
 // Assumes IEEE 754 double precision format
@@ -82,10 +82,10 @@ template <size_t exponent_bits_in, size_t mantissa_bits_in>
 class detect_native_float_type
 {
 public:
-	static const bool is_valid = (exponent_bits_in <= COGS_LONGEST_FLOAT_EXPONENT) && (mantissa_bits_in <= COGS_LONGEST_FLOAT_MANTISSA);
+	static constexpr bool is_valid = (exponent_bits_in <= COGS_LONGEST_FLOAT_EXPONENT) && (mantissa_bits_in <= COGS_LONGEST_FLOAT_MANTISSA);
 
-	static const size_t next_exponent_bits = (!is_valid) ? 0 : (exponent_bits_in + 1);
-	static const size_t next_mantissa_bits = (!is_valid) ? 0 : (mantissa_bits_in + 1);
+	static constexpr size_t next_exponent_bits = (!is_valid) ? 0 : (exponent_bits_in + 1);
+	static constexpr size_t next_mantissa_bits = (!is_valid) ? 0 : (mantissa_bits_in + 1);
 
 	typedef typename detect_native_float_type<next_exponent_bits, next_mantissa_bits>::type type;
 };
@@ -93,21 +93,21 @@ public:
 template <>
 class detect_native_float_type<0, 0>
 {
-	static const bool is_valid = false;
+	static constexpr bool is_valid = false;
 	typedef void type;
 };
 
 template <>
 class detect_native_float_type<8, 23>
 {
-	static const bool is_valid = true;
+	static constexpr bool is_valid = true;
 	typedef float type;
 };
 
 template <>
 class detect_native_float_type<11, 52>
 {
-	static const bool is_valid = true;
+	static constexpr bool is_valid = true;
 	typedef double type;
 };
 

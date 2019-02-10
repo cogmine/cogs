@@ -25,20 +25,20 @@ private:
 protected:
 	friend class socket;
 
-	endpoint(SOCKADDR* sockAddr, size_t sockAddrSize, const rcref<init_token>& initToken = initialize())
-		: m_address(sockAddr, sockAddrSize, initToken)
+	endpoint(SOCKADDR* sockAddr, size_t sockAddrSize, const rcref<network>& n = network::get_default())
+		: m_address(sockAddr, sockAddrSize, n)
 	{ }
 
-	endpoint(sockaddr_in* sockAddr, size_t sockAddrSize, const rcref<init_token>& initToken = initialize())
-		: m_address(sockAddr, sockAddrSize, initToken)
+	endpoint(sockaddr_in* sockAddr, size_t sockAddrSize, const rcref<network>& n = network::get_default())
+		: m_address(sockAddr, sockAddrSize, n)
 	{ }
 
-	endpoint(sockaddr_in6* sockAddr, size_t sockAddrSize, const rcref<init_token>& initToken = initialize())
-		: m_address(sockAddr, sockAddrSize, initToken)
+	endpoint(sockaddr_in6* sockAddr, size_t sockAddrSize, const rcref<network>& n = network::get_default())
+		: m_address(sockAddr, sockAddrSize, n)
 	{ }
 
-	endpoint(SOCKADDR_STORAGE* sockAddr, size_t sockAddrSize, const rcref<init_token>& initToken = initialize())
-		: m_address(sockAddr, sockAddrSize, initToken)
+	endpoint(SOCKADDR_STORAGE* sockAddr, size_t sockAddrSize, const rcref<network>& n = network::get_default())
+		: m_address(sockAddr, sockAddrSize, n)
 	{ }
 
 	void set_address_and_port(SOCKADDR* sockAddr, size_t sockAddrSize)

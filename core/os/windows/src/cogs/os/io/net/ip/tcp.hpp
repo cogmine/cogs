@@ -13,6 +13,7 @@
 #include "cogs/io/net/connection.hpp"
 #include "cogs/mem/object.hpp"
 #include "cogs/os/io/net/ip/socket.hpp"
+#include "cogs/sync/thread_pool.hpp"
 
 
 namespace cogs {
@@ -374,8 +375,8 @@ private:
 	}
 
 protected:
-	tcp(address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
-		: m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, initToken))
+	tcp(address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+		: m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
 
 public:
@@ -387,7 +388,7 @@ public:
 	class connecter : public signallable_task<connecter>
 	{
 	protected:
-		rcref<init_token>						m_initToken;
+		rcref<network>						m_network;
 		rcref<os::io::completion_port>			m_completionPort;
 		os::io::completion_port::overlapped_t*	m_overlapped;
 
@@ -398,10 +399,10 @@ public:
 
 		friend class tcp;
 
-		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<init_token>& initToken = initialize())
+		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
 			:	m_overlapped(0),
 				m_addresses(addresses),
-				m_initToken(initToken),
+				m_network(n),
 				m_remotePort(port),
 				m_completionPort(cp)
 		{
@@ -438,7 +439,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(bypass_constructor_permission<tcp>, addr.get_address_family(), m_completionPort, m_initToken);
+				m_tcp = rcnew(bypass_constructor_permission<tcp>, addr.get_address_family(), m_completionPort, m_network);
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
@@ -515,12 +516,12 @@ public:
 		}
 	};
 
-	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
 		return rcnew(bypass_constructor_permission<connecter>, addresses, port, cp);
 	}
 
-	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
 		vector<address> addresses;
 		addresses.append(1, addr);
@@ -539,7 +540,7 @@ public:
 		class accept_helper : public object
 		{
 		public:
-			rcref<init_token>					m_initToken;
+			rcref<network>					m_network;
 			rcref<os::io::completion_port>			m_completionPort;
 			os::io::completion_port::overlapped_t*	m_overlapped;
 
@@ -553,14 +554,14 @@ public:
 			LPFN_GETACCEPTEXSOCKADDRS			m_lpfnGetAcceptExSockaddrs;
 			char								m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
-			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<init_token>& initToken = initialize())
+			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 				:	m_listener(l),
 					m_acceptDelegate(acceptDelegate),
-					m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, initToken)),
-					m_acceptSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, initToken)),
+					m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
+					m_acceptSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
 					m_addressFamily(addressFamily),
 					m_completionPort(cp),
-					m_initToken(initToken)
+					m_network(n)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -678,11 +679,11 @@ public:
 							memcpy(localEndpoint.get_sockaddr(), localAddr, localAddrLength);
 							memcpy(remoteEndpoint.get_sockaddr(), remoteAddr, remoteAddrLength);
 							
-							dispatcher::get_default()->dispatch([r{ this_rcref }, s{ m_acceptSocket.dereference() }]()
+							thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, s{ m_acceptSocket.dereference() }]()
 							{
 								r->m_acceptDelegate(s);
 							});
-							m_acceptSocket = rcnew(bypass_constructor_permission<tcp>, m_addressFamily, m_completionPort, m_initToken);	// replace accept-socket
+							m_acceptSocket = rcnew(bypass_constructor_permission<tcp>, m_addressFamily, m_completionPort, m_network);	// replace accept-socket
 							accept();	// accepted, start another
 							break;
 						}

@@ -64,7 +64,7 @@ template <bool has_sign, size_t bits> class is_arithmetic<fixed_integer_native<h
 
 template <bool has_sign, size_t n_bits> class is_integral<fixed_integer_native<has_sign, n_bits> > : public std::true_type { };
 
-template <bool has_sign, size_t n_bits> class is_signed<fixed_integer_native<has_sign, n_bits> > { public: static const bool value = has_sign; };
+template <bool has_sign, size_t n_bits> class is_signed<fixed_integer_native<has_sign, n_bits> > { public: static constexpr bool value = has_sign; };
 
 
 template <bool has_sign, size_t bits>
@@ -82,15 +82,15 @@ class fixed_integer_native
 public:
 	typedef fixed_integer_native<has_sign_in, n_bits_in> this_t;
 
-	static const bool has_sign		= has_sign_in;
-	static const size_t bits		= n_bits_in;
-	static const size_t n_digits	= 1;
+	static constexpr bool has_sign		= has_sign_in;
+	static constexpr size_t bits		= n_bits_in;
+	static constexpr size_t n_digits	= 1;
 
 	typedef bits_to_int_t<bits, true>		signed_int_t;
 	typedef bits_to_int_t<bits, false>		unsigned_int_t;
 	typedef bits_to_int_t<bits, has_sign>	int_t;
 
-	static const size_t bits_used = sizeof(int_t) * 8;
+	static constexpr size_t bits_used = sizeof(int_t) * 8;
 	typedef fixed_integer_native_const<false, const_bit_scan_reverse_v<bits_used> + 1, bits_used> bits_used_t;
 
 	int_t simplify_type() const				{ return m_int; }

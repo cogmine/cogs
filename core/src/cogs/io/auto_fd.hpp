@@ -34,13 +34,13 @@ public:
 	{
 		int fd = m_fd;
 		m_fd = -1;
-		::close(fd);
+		::_close(fd);
 	}
 
 	~auto_fd()
 	{
 		if (m_fd != -1)
-			::close(m_fd);
+			::_close(m_fd);
 	}
 };
 

@@ -10,7 +10,6 @@
 
 
 #include "cogs/env/mem/alignment.hpp"
-#include "cogs/math/gcd.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 
@@ -31,8 +30,8 @@ template <typename T1, typename T2>
 class storage_union
 {
 public:
-	static const size_t common_alignment = const_lcm<std::alignment_of<T1>::value, std::alignment_of<T2>::value>::value;
-	static const size_t greater_size = (sizeof(T1) > sizeof(T2)) ? sizeof(T1) : sizeof(T2);
+	static constexpr size_t common_alignment = const_lcm<std::alignment_of<T1>::value, std::alignment_of<T2>::value>::value;
+	static constexpr size_t greater_size = (sizeof(T1) > sizeof(T2)) ? sizeof(T1) : sizeof(T2);
 	
 	typedef typename placement_storage<greater_size, common_alignment>::placment_t placement_t;
 

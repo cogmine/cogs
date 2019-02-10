@@ -19,27 +19,27 @@ template <typename int_t>
 class const_max_int
 {
 private:
-	static const bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
+	static constexpr bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
 
 	template <size_t prev, size_t n>
 	class shift_and_inc
 	{
 	public:
-		static const int_t newPrev = ((prev << 1) | 1);
-		static const int_t value = shift_and_inc<newPrev, n - 1>::value;
+		static constexpr int_t newPrev = ((prev << 1) | 1);
+		static constexpr int_t value = shift_and_inc<newPrev, n - 1>::value;
 	};
 
 	template <size_t prev>
 	class shift_and_inc<prev, 0>
 	{
 	public:
-		static const int_t value = prev;
+		static constexpr int_t value = prev;
 	};
 
-	static const int_t num_positive_signed_bits = (sizeof(int_t)*8)-1;
+	static constexpr int_t num_positive_signed_bits = (sizeof(int_t)*8)-1;
 
 public:
-	static const int_t value = has_sign ? shift_and_inc<0, num_positive_signed_bits>::value : (int_t)~(int_t)0;
+	static constexpr int_t value = has_sign ? shift_and_inc<0, num_positive_signed_bits>::value : (int_t)~(int_t)0;
 };
 
 

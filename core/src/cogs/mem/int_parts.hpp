@@ -22,8 +22,8 @@ template <typename int_t>
 class get_part_mask
 {
 public:
-	static const int_t high_part_mask = (~(int_t)0 << sizeof(int_t)*4);
-	static const int_t low_part_mask  = ~high_part_mask;
+	static constexpr int_t high_part_mask = (~(int_t)0 << sizeof(int_t)*4);
+	static constexpr int_t low_part_mask  = ~high_part_mask;
 };
 
 
@@ -35,7 +35,7 @@ template <typename int_t, int_t v>
 class get_const_low_part
 {
 public:
-	static const int_t value  = v & get_part_mask<int_t>::low_part_mask;
+	static constexpr int_t value  = v & get_part_mask<int_t>::low_part_mask;
 };
 
 /// @ingroup Mem
@@ -49,7 +49,7 @@ private:
 	typedef typename bytes_to_uint_t<sizeof(int_t)> uint_t;
 
 public:
-	static const int_t value = ((uint_t)v >> (sizeof(int_t)*4)) & get_part_mask<int_t>::low_part_mask;
+	static constexpr int_t value = ((uint_t)v >> (sizeof(int_t)*4)) & get_part_mask<int_t>::low_part_mask;
 };
 
 
@@ -61,7 +61,7 @@ template <typename int_t, int_t high_part>
 class make_const_high_part
 {
 public:
-	static const int_t value = high_part << sizeof(int_t)*4;
+	static constexpr int_t value = high_part << sizeof(int_t)*4;
 };
 
 	
@@ -74,7 +74,7 @@ template <typename int_t, int_t high_part, int_t low_part>
 class make_const_int_from_parts
 {
 public:
-	static const int_t value = (make_const_high_part<int_t, high_part>::value) | (get_const_low_part<int_t, low_part>::value);
+	static constexpr int_t value = (make_const_high_part<int_t, high_part>::value) | (get_const_low_part<int_t, low_part>::value);
 };
 
 /// @ingroup Mem

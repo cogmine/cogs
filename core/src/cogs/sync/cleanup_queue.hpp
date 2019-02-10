@@ -15,10 +15,15 @@
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/thread.hpp"
+#include "cogs/sync/singleton.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
 
 
 namespace cogs {
+
+
+class thread_pool;
 
 
 /// @ingroup Mem
@@ -32,6 +37,8 @@ private:
 	{
 		return dispatcher::dispatch_inner(m_tasks.get(), t, priority);
 	}
+
+	friend class thread_pool;
 
 protected:
 	cleanup_queue()
@@ -48,10 +55,13 @@ public:
 	}
 
 	// Invokes all tasks and releases all objects, serially.  drain() is not intended to be called in parallel.
-	void drain() volatile
+	// Returns false if there was nothing to do.
+	bool drain() volatile
 	{
+		bool anyInvoked = false;
 		while (!!m_tasks->invoke())
-			;
+			anyInvoked = true;
+		return anyInvoked;
 	}
 
 	template <typename type>
@@ -61,13 +71,16 @@ public:
 		return m_tasks->dispatch([obj]() {}, priority);
 	}
 
-	static rcref<cleanup_queue> get_default();
+	static rcref<cleanup_queue> get_global()
+	{
+		return singleton<cleanup_queue, singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>::get();
+	}
 };
-
-
 
 
 }
 
+
+#include "cogs/sync/thread_pool.hpp"
 
 #endif

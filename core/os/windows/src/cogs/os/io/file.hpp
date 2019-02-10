@@ -84,7 +84,7 @@
 //		weak_rcptr<class file_info>	m_fileInfo;
 //	};
 //
-//	static placement<rcptr<file_globals> >	s_globals;
+//	inline static placement<rcptr<file_globals> >	s_globals;
 //
 //
 //	file_globals()

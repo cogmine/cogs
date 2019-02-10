@@ -93,7 +93,7 @@ typedef env::bytes_to_uint<COGS_LONGEST_INT>::type ulongest;
 
 /// @ingroup Math
 /// @brief The number of bits in the largested native integer type available
-static const size_t longest_bits = sizeof(longest) * 8;
+static constexpr size_t longest_bits = sizeof(longest) * 8;
 
 
 

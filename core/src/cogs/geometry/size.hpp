@@ -323,9 +323,9 @@ public:
 	{
 		composite_string_t<char_t> result;
 
-		static const char_t part1 = (char_t)'{';
-		static const char_t part2 = (char_t)',';
-		static const char_t part3 = (char_t)'}';
+		static constexpr char_t part1 = (char_t)'{';
+		static constexpr char_t part2 = (char_t)',';
+		static constexpr char_t part3 = (char_t)'}';
 
 		result = string_t<char_t>::contain(&part1, 1);
 		result += cogs::to_string_t<char_t>(m_contents[0]);

@@ -30,6 +30,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"
+#include "cogs/sync/singleton.hpp"
 
 
 namespace cogs {
@@ -55,29 +56,15 @@ private:
 	sockaddr_storage	m_sockAddr;
 	socklen_t			m_sockAddrSize;
 
-	static placement<rcptr<thread_pool> >	s_dnsThreadPool;
-
-	static void dns_thread_pool_cleanup()
-	{
-		volatile rcptr<thread_pool>& dnsThreadPool = s_dnsThreadPool.get();
-		dnsThreadPool = 0;
-	}
+	class dns_thread_pool : public thread_pool { };
 
 	static rcref<thread_pool> get_dns_thread_pool()
 	{
-		volatile rcptr<thread_pool>& dnsThreadPool = s_dnsThreadPool.get();
-		rcptr<thread_pool> myDnsThreadPool = dnsThreadPool;
-		if (!myDnsThreadPool)
-		{
-			rcptr<thread_pool> newDnsThreadPool = rcnew(thread_pool, false);
-			if (dnsThreadPool.compare_exchange(newDnsThreadPool, myDnsThreadPool))
-			{
-				myDnsThreadPool = newDnsThreadPool;
-				newDnsThreadPool->start();
-				cleanup_queue::get_default()->dispatch(&dns_thread_pool_cleanup);
-			}
-		}
-		return myDnsThreadPool.dereference();
+		bool isNew;
+		rcref<dns_thread_pool> result = singleton<dns_thread_pool>::get();
+		if (isNew)
+			result->start();
+		return result;
 	}
 
 protected:

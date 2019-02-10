@@ -73,47 +73,47 @@ public:
 	template <typename char_t>
 	composite_string_t<char_t> to_string_t(string_format strFormat = RFC1123DateTime) const
 	{
-		static const char_t space = (char_t)' ';
-		static const char_t colon = (char_t)':';
-		static const char_t dash = (char_t)'-';
-		static const char_t tee = (char_t)'T';
+		static constexpr char_t space = (char_t)' ';
+		static constexpr char_t colon = (char_t)':';
+		static constexpr char_t dash = (char_t)'-';
+		static constexpr char_t tee = (char_t)'T';
 
-		static const char_t gmt[] = { (char_t)' ', (char_t)'G', (char_t)'M', (char_t)'T' };
+		static constexpr char_t gmt[] = { (char_t)' ', (char_t)'G', (char_t)'M', (char_t)'T' };
 
-		static const char_t Jan[] = { (char_t)'J', (char_t)'a', (char_t)'n', (char_t)0 };
-		static const char_t Feb[] = { (char_t)'F', (char_t)'e', (char_t)'b', (char_t)0 };
-		static const char_t Mar[] = { (char_t)'M', (char_t)'a', (char_t)'r', (char_t)0 };
-		static const char_t Apr[] = { (char_t)'A', (char_t)'p', (char_t)'r', (char_t)0 };
-		static const char_t May[] = { (char_t)'M', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Jun[] = { (char_t)'J', (char_t)'u', (char_t)'n', (char_t)0 };
-		static const char_t Jul[] = { (char_t)'J', (char_t)'u', (char_t)'l', (char_t)0 };
-		static const char_t Aug[] = { (char_t)'A', (char_t)'u', (char_t)'g', (char_t)0 };
-		static const char_t Sep[] = { (char_t)'S', (char_t)'e', (char_t)'p', (char_t)0 };
-		static const char_t Oct[] = { (char_t)'O', (char_t)'c', (char_t)'t', (char_t)0 };
-		static const char_t Nov[] = { (char_t)'N', (char_t)'o', (char_t)'v', (char_t)0 };
-		static const char_t Dec[] = { (char_t)'D', (char_t)'e', (char_t)'c', (char_t)0 };
+		static constexpr char_t Jan[] = { (char_t)'J', (char_t)'a', (char_t)'n', (char_t)0 };
+		static constexpr char_t Feb[] = { (char_t)'F', (char_t)'e', (char_t)'b', (char_t)0 };
+		static constexpr char_t Mar[] = { (char_t)'M', (char_t)'a', (char_t)'r', (char_t)0 };
+		static constexpr char_t Apr[] = { (char_t)'A', (char_t)'p', (char_t)'r', (char_t)0 };
+		static constexpr char_t May[] = { (char_t)'M', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Jun[] = { (char_t)'J', (char_t)'u', (char_t)'n', (char_t)0 };
+		static constexpr char_t Jul[] = { (char_t)'J', (char_t)'u', (char_t)'l', (char_t)0 };
+		static constexpr char_t Aug[] = { (char_t)'A', (char_t)'u', (char_t)'g', (char_t)0 };
+		static constexpr char_t Sep[] = { (char_t)'S', (char_t)'e', (char_t)'p', (char_t)0 };
+		static constexpr char_t Oct[] = { (char_t)'O', (char_t)'c', (char_t)'t', (char_t)0 };
+		static constexpr char_t Nov[] = { (char_t)'N', (char_t)'o', (char_t)'v', (char_t)0 };
+		static constexpr char_t Dec[] = { (char_t)'D', (char_t)'e', (char_t)'c', (char_t)0 };
 
-		static const char_t Sunday[] = { (char_t)'S', (char_t)'u', (char_t)'n', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Monday[] = { (char_t)'M', (char_t)'o', (char_t)'n', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Tuesday[] = { (char_t)'T', (char_t)'u', (char_t)'e', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Wednesday[] = { (char_t)'W', (char_t)'e', (char_t)'d', (char_t)'n', (char_t)'e', (char_t)'s', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Thursday[] = { (char_t)'T', (char_t)'h', (char_t)'u', (char_t)'r', (char_t)'s', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Friday[] = { (char_t)'F', (char_t)'r', (char_t)'i', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
-		static const char_t Saturday[] = { (char_t)'S', (char_t)'a', (char_t)'t', (char_t)'u', (char_t)'r', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Sunday[] = { (char_t)'S', (char_t)'u', (char_t)'n', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Monday[] = { (char_t)'M', (char_t)'o', (char_t)'n', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Tuesday[] = { (char_t)'T', (char_t)'u', (char_t)'e', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Wednesday[] = { (char_t)'W', (char_t)'e', (char_t)'d', (char_t)'n', (char_t)'e', (char_t)'s', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Thursday[] = { (char_t)'T', (char_t)'h', (char_t)'u', (char_t)'r', (char_t)'s', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Friday[] = { (char_t)'F', (char_t)'r', (char_t)'i', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
+		static constexpr char_t Saturday[] = { (char_t)'S', (char_t)'a', (char_t)'t', (char_t)'u', (char_t)'r', (char_t)'d', (char_t)'a', (char_t)'y', (char_t)0 };
 
-		static const char_t Sun[] = { (char_t)'S', (char_t)'u', (char_t)'n', (char_t)0 };
-		static const char_t Mon[] = { (char_t)'M', (char_t)'o', (char_t)'n', (char_t)0 };
-		static const char_t Tue[] = { (char_t)'T', (char_t)'u', (char_t)'e', (char_t)0 };
-		static const char_t Wed[] = { (char_t)'W', (char_t)'e', (char_t)'d', (char_t)0 };
-		static const char_t Thu[] = { (char_t)'T', (char_t)'h', (char_t)'u', (char_t)0 };
-		static const char_t Fri[] = { (char_t)'F', (char_t)'r', (char_t)'i', (char_t)0 };
-		static const char_t Sat[] = { (char_t)'S', (char_t)'a', (char_t)'t', (char_t)0 };
+		static constexpr char_t Sun[] = { (char_t)'S', (char_t)'u', (char_t)'n', (char_t)0 };
+		static constexpr char_t Mon[] = { (char_t)'M', (char_t)'o', (char_t)'n', (char_t)0 };
+		static constexpr char_t Tue[] = { (char_t)'T', (char_t)'u', (char_t)'e', (char_t)0 };
+		static constexpr char_t Wed[] = { (char_t)'W', (char_t)'e', (char_t)'d', (char_t)0 };
+		static constexpr char_t Thu[] = { (char_t)'T', (char_t)'h', (char_t)'u', (char_t)0 };
+		static constexpr char_t Fri[] = { (char_t)'F', (char_t)'r', (char_t)'i', (char_t)0 };
+		static constexpr char_t Sat[] = { (char_t)'S', (char_t)'a', (char_t)'t', (char_t)0 };
 
-		static const char_t commaSpace[] = { (char_t)',', (char_t)' ', (char_t)0 };
+		static constexpr char_t commaSpace[] = { (char_t)',', (char_t)' ', (char_t)0 };
 
-		static const char_t* Month3[12] = { Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
-		static const char_t* WeekDay[7] = { Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday };
-		static const char_t* WeekDay3[7] = { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
+		static constexpr const char_t* Month3[12] = { Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
+		static constexpr const char_t* WeekDay[7] = { Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday };
+		static constexpr const char_t* WeekDay3[7] = { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
 
 		datetime_detail d;
 		get_detail(d);

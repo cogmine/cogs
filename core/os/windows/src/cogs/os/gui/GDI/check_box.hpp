@@ -176,6 +176,13 @@ public:
 #pragma warning(pop)
 
 
+inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > hwnd::subsystem::create_check_box() volatile
+{
+	rcref<check_box> cb = rcnew(check_box, this_rcref);
+	return std::make_pair(cb, cb);
+}
+
+
 }
 }
 }

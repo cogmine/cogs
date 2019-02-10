@@ -12,15 +12,14 @@
 ///
 /// @section MainPageWorkInProgress Work In Progress
 ///
-/// This documentation is work in progress.  Few classes (etc.) are yet completely documented, but I've
+/// This documentation is a work in progress.  Few classes (etc.) are yet completely documented, but I've
 /// added at least brief descriptions for most.  Check the
-/// 'Modules' section for classes organized into groups.  I'd like to do more clean up before I post
-/// to GitHub, but source code is viewable where linked.
+/// 'Modules' section for classes organized into groups.
 ///
 ///
 /// @section MainPageIntro Introduction
 ///
-/// Cogs is a highly-parallel, lock-free, cross-platform, C++ template class library and application framework.
+/// Cogs is a lock-free, cross-platform, C++ template class library and application framework.
 /// Cogs is an alternative to the standard C++ library.
 ///
 /// @section GettingStarted Getting Started
@@ -440,7 +439,7 @@
 #include "cogs/mem/unowned.hpp"
 #include "cogs/mem/weak_rcptr.hpp"
 #include "cogs/parser/escseq.hpp"
-#include "cogs/parser/regexp.hpp"
+//#include "cogs/parser/regexp.hpp"
 #include "cogs/sync/atomic_alignment.hpp"
 #include "cogs/sync/atomic_compare_exchange.hpp"
 #include "cogs/sync/atomic_exchange.hpp"

@@ -7,7 +7,7 @@
 
 
 #include "cogs/math/const_max_int.hpp"
-#include "cogs/math/measure.hpp" //
+#include "cogs/math/measure.hpp"
 #include "cogs/math/time.hpp"
 #include "cogs/mem/object.hpp"
 #include "cogs/os.hpp"

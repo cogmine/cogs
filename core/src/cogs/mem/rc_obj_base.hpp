@@ -9,6 +9,7 @@
 #define COGS_RC_OBJ_BASE
 
 
+#include "cogs/collections/abastack.hpp"
 #include "cogs/collections/slink.hpp"
 #include "cogs/collections/rbtree.hpp"
 #include "cogs/debug.hpp"
@@ -19,9 +20,6 @@
 #include "cogs/mem/ptr.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/hazard.hpp"
-
-
-
 
 
 namespace cogs {
@@ -73,11 +71,11 @@ void assert_no_overflow(const ptr<void>& p);
 #endif
 
 #if COGS_DEBUG_RC_LOGGING 
-extern volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_rcLogCount;
+inline volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_rcLogCount;
 #endif 
 
 #if COGS_DEBUG_ALLOC_LOGGING
-extern volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_allocLogCount;
+inline volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_allocLogCount;
 #endif 
 
 
@@ -148,7 +146,7 @@ private:
 		{ }
 	};
 
-	static placement<hazard> s_hazard;
+	inline static placement<hazard> s_hazard;
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION
 public:
@@ -195,8 +193,20 @@ public:
 private:
 	tracking_header* m_tracker;
 
+	inline static placement<aba_stack<rc_obj_base::tracking_header> > s_allocRecord;
+	inline static placement<size_type> s_totalTrackers;
 
-	void install_tracker();
+	void install_tracker()
+	{
+		m_tracker = (rc_obj_base::tracking_header*)malloc(sizeof(rc_obj_base::tracking_header));
+		new (m_tracker) tracking_header(this);	// placement new
+
+		volatile aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
+		allocRecord.push(m_tracker);
+
+		volatile size_type& totalTrackers = s_totalTrackers.get();
+		++totalTrackers;
+	}
 
 #if COGS_DEBUG_RC_LOGGING
 	const char* m_typeName;
@@ -206,7 +216,54 @@ private:
 
 public:
 
-	static void log_active_references();
+	static void log_active_references()
+	{
+		volatile aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
+		aba_stack<rc_obj_base::tracking_header> allocs;
+		allocRecord.swap(allocs);
+		size_t numStrongLeaks = 0;
+		size_t numWeakLeaks = 0;
+
+		ptr<rc_obj_base::tracking_header> tracker;
+
+		size_t numAllocations = allocs.count();
+		size_t index = numAllocations;
+
+		// strip out all blocks successfully deallocated.  Sort the rest
+		bool started = false;
+		for (;;)
+		{
+			tracker = allocs.pop();
+			if (!tracker)
+				break;
+			if (!tracker->m_destructed)
+			{
+				rc_obj_base* desc = tracker->m_desc;
+				size_t strongReferences = desc->m_counts.m_references[1];
+				if (strongReferences == 0)
+					++numWeakLeaks;
+				else
+				{
+					if (!started)
+					{
+						started = true;
+						printf("RC LEAKS:\n");
+						printf("Index|Strong|Weak|rc_obj_base*|ptr|Type|Location\n");
+					}
+					size_t weakReferences = desc->m_counts.m_references[0];
+					printf("%zd|%zd|%zd|%p|%p|\"%s\"|\"%s\"\n", index, strongReferences, weakReferences, desc, tracker->m_objPtr, tracker->m_typeName, tracker->m_debugStr);
+
+					++numStrongLeaks;
+				}
+			}
+			--index;
+		}
+
+		printf("RC LEAKS: %d of %d RC object(s) leaked.\n", (int)numStrongLeaks, (int)numAllocations);
+		if (numWeakLeaks > 0)
+			printf("RC LEAKS: %d lingering weak reference(s).\n", (int)numWeakLeaks);
+		COGS_ASSERT(numStrongLeaks == 0);
+	}
 
 	rc_obj_base()
 		: m_counts{ 1, 1 }
@@ -453,6 +510,355 @@ public:
 	virtual void released() = 0;
 	virtual void dispose() = 0;
 };
+
+
+
+
+
+#if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
+
+class debug_default_allocator : public default_allocator_t
+{
+public:
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+	volatile size_type m_numRecords;
+
+	debug_default_allocator() { m_numRecords = 0; }
+
+	~debug_default_allocator() { COGS_ASSERT(m_allocRecord.is_empty()); }
+#endif
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+	class footer
+	{
+	public:
+		unsigned char checker[COGS_OVERFLOW_CHECK_SIZE];
+
+		void check_overflow()
+		{
+			for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+				COGS_ASSERT(checker[i] == COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE);
+		}
+	};
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
+
+	class header : public slink_t<header>
+	{
+	public:
+#if COGS_DEBUG_ALLOC_BUFFER_DEINIT
+		size_t m_usableBlockSize;
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		volatile int_type m_deallocated;
+#endif
+
+#if COGS_DEBUG_ALLOC_LOGGING && COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		unsigned long m_allocIndex;
+#endif
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+
+
+		unsigned char checker[COGS_OVERFLOW_CHECK_SIZE];
+
+		void check_overflow()
+		{
+			for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+				COGS_ASSERT(checker[i] == COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE);
+		}
+
+		footer * m_footer;
+#endif
+	};
+
+	static constexpr size_t header_size = least_multiple_of<sizeof(header), largest_alignment>::value;
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+	static constexpr size_t overhead = header_size + least_multiple_of<sizeof(footer), largest_alignment>::value;
+#else
+	static constexpr size_t overhead = header_size;
+#endif
+
+	volatile aba_stack<header>	m_allocRecord;
+	volatile ptr<header>			m_firstAdded;
+	volatile ptr<header>			m_lastAdded;
+
+	virtual ptr<void> allocate(size_t n, size_t align) volatile
+	{
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+		// Pad request size to proper alignment for footer, before adding footer size.
+		// No additional usableSize is provided to the caller, to encourage overflow detection.
+		size_t n_minus_one = n - 1;
+		n = n_minus_one + (largest_alignment - (n_minus_one % largest_alignment));
+#endif
+		void* ptr = default_allocator_t::allocate(overhead + n, largest_alignment).get_ptr();
+		COGS_ASSERT(((size_t)ptr % largest_alignment) == 0);
+
+		header * hdr = (header*)ptr;
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+		footer * ftr = (footer*)((unsigned char*)ptr + header_size + n);
+		hdr->m_footer = ftr;
+		for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+		{
+			ftr->checker[i] = COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE;
+			hdr->checker[i] = COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE;
+		}
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		hdr->m_deallocated = 0;
+		if (m_allocRecord.push(hdr))
+			m_firstAdded = hdr;
+		m_lastAdded = hdr;
+		++m_numRecords;
+#endif
+
+		ptr = (unsigned char*)ptr + header_size;
+
+#if COGS_DEBUG_ALLOC_BUFFER_INIT || COGS_DEBUG_ALLOC_BUFFER_DEINIT
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+		size_t usableSize = n;
+#else
+		size_t usableSize = default_allocator_t::get_allocation_size(hdr, largest_alignment, overhead + n) - overhead;
+#endif
+
+#if COGS_DEBUG_ALLOC_BUFFER_DEINIT
+		hdr->m_usableBlockSize = usableSize;
+#endif
+
+#if COGS_DEBUG_ALLOC_BUFFER_INIT
+		memset(ptr, COGS_DEBUG_ALLOC_BUFFER_INIT_VALUE, usableSize);
+#endif
+
+#endif
+
+#if COGS_DEBUG_ALLOC_LOGGING
+		unsigned long allocCount = pre_assign_next(g_allocLogCount);
+		printf("(%lu) ALLOC: %p\n", allocCount, ptr);
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		hdr->m_allocIndex = allocCount;
+#endif
+
+#endif
+		return ptr;
+	}
+
+	virtual size_t get_allocation_size(const ptr<void> & p, size_t align, size_t knownSize) const volatile
+	{
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+		return knownSize;
+#else
+
+		header* hdr = (header*)((unsigned char*)p.get_ptr() - header_size);
+		return default_allocator_t::get_allocation_size(hdr, largest_alignment, overhead + knownSize) - overhead;
+#endif
+	}
+
+#elif COGS_DEBUG_ALLOC_BUFFER_INIT || COGS_DEBUG_ALLOC_LOGGING
+
+	virtual ptr<void> allocate(size_t n, size_t align) volatile
+	{
+		void* ptr = default_allocator_t::allocate(n, align).get_ptr();
+
+#if COGS_DEBUG_ALLOC_BUFFER_INIT
+		size_t usableSize = default_allocator_t::get_allocation_size(ptr, align, n);
+		memset(ptr, COGS_DEBUG_ALLOC_BUFFER_INIT_VALUE, usableSize);
+#endif
+
+#if COGS_DEBUG_ALLOC_LOGGING
+		unsigned long allocCount = pre_assign_next(g_allocLogCount);
+		printf("(%lu) ALLOC: %p\n", allocCount, ptr);
+#endif
+
+		return ptr;
+	}
+
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT || COGS_DEBUG_ALLOC_LOGGING
+
+	virtual void deallocate(const ptr<void> & p) volatile
+	{
+		void* ptr = p.get_ptr();
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
+		header * hdr = (header*)((unsigned char*)ptr - header_size);
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		bool b = hdr->m_deallocated.compare_exchange(int_type(1), 0);
+		COGS_ASSERT(b);	// double-delete detection
+#endif
+
+#if COGS_DEBUG_ALLOC_BUFFER_DEINIT
+		memset(ptr, COGS_DEBUG_ALLOC_BUFFER_DEINIT_VALUE, hdr->m_usableBlockSize);
+#endif
+		ptr = hdr;
+#endif
+
+#if COGS_DEBUG_ALLOC_LOGGING
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		printf("(%lu) DEALLOC: %p\n", hdr->m_allocIndex, p.get_ptr());
+#else
+		printf("DEALLOC: %p\n", p.get_ptr());
+#endif
+#endif
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+		hdr->check_overflow();
+		hdr->m_footer->check_overflow();
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+#else
+		default_allocator_t::deallocate(ptr);
+#endif
+	}
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
+	virtual bool try_reallocate(const ptr<void> & p, size_t newSize)	volatile
+	{
+		return false;//(newSize <= get_allocation_size(p));	// disable try_reallocate() to make things simpler for debugging.
+	}
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+	virtual void log_active_allocations() volatile
+	{
+		size_t numLeaks = 0;
+		size_t numTotal = 0;
+		for (ptr<header> tracker = m_allocRecord.peek(); !!tracker; tracker = (header*)tracker->get_next_link().get_ptr())
+		{
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+			tracker->check_overflow();
+#endif
+			++numTotal;
+			if (tracker->m_deallocated == 0)
+			{
+				++numLeaks;
+#if COGS_DEBUG_ALLOC_LOGGING
+				printf("(%lu) MEM LEAK: %p\n", tracker->m_allocIndex, (unsigned char*)tracker.get_ptr() + header_size);
+#else
+				printf("MEM LEAK: %p\n", (unsigned char*)tracker.get_ptr() + header_size);
+#endif
+
+			}
+		}
+		printf("MEM LEAKS: %d of %d memory allocations leaked.\n", (int)numLeaks, (int)numTotal);
+	}
+
+	virtual void shutdown()
+	{
+		// We had been hording all blocks.  Abandon m_allocRecord and release the released blocks.
+		printf("Attempting to deallocate all allocations...\n");
+		aba_stack<header> allocs;
+		allocs.swap(m_allocRecord);
+		for (;;)
+		{
+			ptr<header> tracker = allocs.pop();
+			if (!tracker)
+				break;
+			default_allocator_t::deallocate(tracker);
+			--m_numRecords;
+		}
+		COGS_ASSERT(m_numRecords == 0);
+		COGS_ASSERT(m_allocRecord.is_empty());
+		printf("All allocations deallocated.\n");
+	}
+#endif
+
+};
+
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+inline void assert_not_deallocated(const ptr<void> & p)
+{
+	if (!!p)
+	{
+		void* ptr = p.get_ptr();
+		debug_default_allocator::header* hdr = (debug_default_allocator::header*)((unsigned char*)ptr - debug_default_allocator::header_size);
+		COGS_ASSERT(hdr->m_deallocated != 0);
+	}
+}
+#endif
+
+#if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
+inline void assert_no_overflow(const ptr<void> & p)
+{
+	if (!!p)
+	{
+		void* ptr = p.get_ptr();
+		debug_default_allocator::header* hdr = (debug_default_allocator::header*)((unsigned char*)ptr - debug_default_allocator::header_size);
+		hdr->check_overflow();
+		hdr->m_footer->check_overflow();
+	}
+}
+#endif
+
+#endif
+
+
+
+inline allocator* default_allocator::create_default_allocator()
+{
+#if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
+	typedef debug_default_allocator default_allocator_type;
+#else
+	typedef default_allocator_t default_allocator_type;
+#endif
+
+	ptr<default_allocator_type> al = env::allocator::allocate(sizeof(default_allocator_type), std::alignment_of<default_allocator_type>::value).reinterpret_cast_to<default_allocator_type>();
+	new (al) default_allocator_type;
+	return al.get_ptr();
+}
+
+
+inline void default_allocator::dispose_default_allocator(allocator * al)
+{
+#if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
+	typedef debug_default_allocator default_allocator_type;
+#else
+	typedef default_allocator_t default_allocator_type;
+#endif
+
+	ptr<default_allocator_type> al2 = static_cast<default_allocator_type*>(al);
+	al2->~default_allocator_type();
+	env::allocator::deallocate(al);
+}
+
+
+inline void default_allocator::shutdown()
+{
+#if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
+	typedef debug_default_allocator default_allocator_type;
+#else
+	typedef default_allocator_t default_allocator_type;
+#endif
+
+	volatile ptr<allocator>& defaultAllocator = s_defaultAllocator.get();
+	default_allocator_type* al = (default_allocator_type*)defaultAllocator.get_ptr();
+	if (!!al)
+	{
+#if COGS_DEBUG_LEAKED_REF_DETECTION
+		rc_obj_base::log_active_references();
+#endif
+
+#if COGS_DEBUG_LEAKED_BLOCK_DETECTION
+		al->log_active_allocations();
+		al->shutdown();
+#endif
+		al->~default_allocator_type();
+		env::allocator::deallocate(al);
+	}
+}
+
 
 
 }

@@ -9,15 +9,16 @@
 #define COGS_IO_QUEUE
 
 
+#include "cogs/collections/container_queue.hpp"
 #include "cogs/env.hpp"
-#include "cogs/function.hpp"
 #include "cogs/env/mem/alignment.hpp"
+#include "cogs/function.hpp"
 #include "cogs/io/buffer.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/count_down_event.hpp"
-#include "cogs/collections/container_queue.hpp"
+#include "cogs/sync/thread_pool.hpp"
 
 
 namespace cogs {
@@ -169,7 +170,7 @@ public:
 					continue;
 				get_queue()->m_closeEvent->count_up();
 
-				dispatcher::get_default()->dispatch([r{ this_rcref }]()
+				thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }]()
 				{
 					r->executing_inner();
 				});

@@ -104,32 +104,32 @@ public:
 		return result;
 	}
 
-	void read_notify(const function<void()>& d) volatile
-	{
-		bool callNow = false;
-		for (;;)
-		{
-			transactable<content_t>::write_token wt;
-			m_contents.begin_write(wt);
-			if (!wt->m_blockReaders)
-			{
-				wt->m_readerOwners++;
-				if (!m_contents.end_write(wt))
-					continue;
-				callNow = true;
-				break;
-			}
-			// else blocking readers
-			wt->m_readersStalled++;
-			if (!m_contents.end_write(wt))
-				continue;
-			
-			m_readerGate.dispatch(d);
-			break;
-		}
-		if (callNow)
-			d();
-	}
+	//void read_notify(const function<void()>& d) volatile
+	//{
+	//	bool callNow = false;
+	//	for (;;)
+	//	{
+	//		transactable<content_t>::write_token wt;
+	//		m_contents.begin_write(wt);
+	//		if (!wt->m_blockReaders)
+	//		{
+	//			wt->m_readerOwners++;
+	//			if (!m_contents.end_write(wt))
+	//				continue;
+	//			callNow = true;
+	//			break;
+	//		}
+	//		// else blocking readers
+	//		wt->m_readersStalled++;
+	//		if (!m_contents.end_write(wt))
+	//			continue;
+	//		
+	//		m_readerGate.dispatch(d);
+	//		break;
+	//	}
+	//	if (callNow)
+	//		d();
+	//}
 
 	void read_release() volatile
 	{
@@ -214,34 +214,34 @@ public:
 		return result;
 	}
 
-	void write_notify(const function<void()>& d, bool writePriority = true) volatile
-	{
-		bool callNow = false;
-		for (;;)
-		{
-			transactable<content_t>::write_token wt;
-			m_contents.begin_write(wt);
-			if ((wt->m_readerOwners == 0) && (wt->m_blockReaders == false))
-			{
-				wt->m_blockReaders = true;
-				if (!m_contents.end_write(wt))
-					continue;
-				callNow = true;
-				break;
-			}
-			if (writePriority)
-				wt->m_blockReaders = true;
-			wt->m_writersStalled++;
-
-			if (!m_contents.end_write(wt))
-				continue;
-
-			m_writerGate.dispatch(d);
-			break;
-		}
-		if (callNow)
-			d();
-	}
+	//void write_notify(const function<void()>& d, bool writePriority = true) volatile
+	//{
+	//	bool callNow = false;
+	//	for (;;)
+	//	{
+	//		transactable<content_t>::write_token wt;
+	//		m_contents.begin_write(wt);
+	//		if ((wt->m_readerOwners == 0) && (wt->m_blockReaders == false))
+	//		{
+	//			wt->m_blockReaders = true;
+	//			if (!m_contents.end_write(wt))
+	//				continue;
+	//			callNow = true;
+	//			break;
+	//		}
+	//		if (writePriority)
+	//			wt->m_blockReaders = true;
+	//		wt->m_writersStalled++;
+	//
+	//		if (!m_contents.end_write(wt))
+	//			continue;
+	//
+	//		m_writerGate.dispatch(d);
+	//		break;
+	//	}
+	//	if (callNow)
+	//		d();
+	//}
 
 	void write_release(bool readPriority = false) volatile
 	{

@@ -23,8 +23,8 @@ template <size_t bits>
 class hash_int : public virtual hash
 {
 public:
-	static const size_t width_bits = bits;
-	static const size_t width_bytes = bits_to_bytes<width_bits>::value;
+	static constexpr size_t width_bits = bits;
+	static constexpr size_t width_bytes = bits_to_bytes<width_bits>::value;
 	typedef bits_to_uint_t<width_bits>	uint_t;
 
 	virtual bool is_hash_int()	{ return true; }

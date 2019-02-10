@@ -29,7 +29,7 @@
 //
 //
 //template <unsigned int majorVersion, unsigned int minorVersion>
-//class opengl : public hwnd_pane, public gui::subsystem
+//class opengl : public hwnd_pane
 //{
 //private:
 //	HGLRC	m_hGLRC;
@@ -39,7 +39,7 @@
 //	HDC		hOldDC;
 //
 //public:
-//	opengl(const rcref<volatile hwnd::subsystem>& uiSubsystem = hwnd::subsystem::get_default() )
+//	opengl()
 //		:	hwnd_pane(composite_string(), WS_EX_NOPARENTNOTIFY, uiSubsystem)
 //	{ }
 //
@@ -227,7 +227,7 @@
 //	{
 //	}
 //
-//	virtual void open(const composite_string& title, const rcref<pane>& f, const rcptr<frame>& rshpr = 0)
+//	virtual void open(const composite_string& title, const rcref<pane>& f, const rcptr<frame>& f = 0)
 //	{
 //	}
 //

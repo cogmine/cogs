@@ -25,6 +25,7 @@ template <class link_t = dlink, template <typename> class ref_type = ptr, class 
 class dlist_t
 {
 public:
+	typedef dlist_t<link_t, ref_type, link_iterator> this_t;
 	typedef ref_type<link_t>	ref_t;
 
 private:

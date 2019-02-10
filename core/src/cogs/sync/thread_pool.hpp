@@ -15,11 +15,15 @@
 #include "cogs/function.hpp"
 #include "cogs/math/const_max_int.hpp"
 #include "cogs/math/int_types.hpp"
-#include "cogs/math/measure.hpp" //
+#include "cogs/math/measure.hpp"
 #include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/cleanup_queue.hpp"
 #include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/immediate_task.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
+#include "cogs/sync/quit_dispatcher.hpp"
 #include "cogs/sync/thread.hpp"
+#include "cogs/sync/singleton.hpp"
 
 
 namespace cogs {
@@ -179,16 +183,78 @@ private:
 		m_mainLoop->m_semaphore.release();
 	}
 
+	typedef singleton<thread_pool, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown> 
+		default_thread_pool_singleton_t;
+
 public:
+	// Will return NULL if default thread pool has already been shut down
+	static rcptr<thread_pool> get_default()
+	{
+		bool isNew;
+		rcptr<thread_pool> result = default_thread_pool_singleton_t::get(isNew);
+		if (isNew)
+			result->start();
+		return result;
+	}
+
+	static rcref<volatile dispatcher> get_default_or_immediate()
+	{
+		rcptr<thread_pool> threadPool = get_default();
+		if (!threadPool)
+			return get_immediate_task().static_cast_to<volatile dispatcher>();
+		return threadPool.static_cast_to<volatile dispatcher>().dereference();
+	}
+
+
+	// Intended to be called only right before returning from main().
+	static void shutdown_default()
+	{
+		// Phase 1: Full service cleanup - cleanup queue and threading are still online.
+		//
+		//	First, try to drain the default global cleanup queue (without taking it offline).
+		//	This allows new cleanup requests to be chained after existing ones.
+		//	(Because threads are still running, new cleanup requests could still come in late).
+
+		rcref<cleanup_queue> cleanupQueue = cleanup_queue::get_global();
+		cleanupQueue->drain();
+
+		// Phase 2: Tear down default thread pool
+		//	
+		//	Cleanup phase has completed, take default thread pool offline for cleanup.
+		//	Threading system uses the same cleanup queue.
+		default_thread_pool_singleton_t::release();
+
+		do {
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_LEAKED_BLOCK_DETECTION
+			thread::join_all(timeout_t(measure<uint8_type, seconds>((uint8_t)10)));
+#else
+			thread::join_all();
+#endif
+
+			// Phase 3: Take the global cleanup queue offline and drain it again.
+			//	
+			//	Now that no other threads are running, once the queue is drained, we're done.
+			//
+		} while (cleanupQueue->drain());
+
+		// If stuck in the above loop, some cleanup is starting too much back up, preventing proper cleanup.
+		// Or, something in the cleaup queue keeps putting more in the cleanup queue, preventing proper cleanup.
+
+		singleton<cleanup_queue, singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>::shutdown();
+		singleton<quit_dispatcher, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>::shutdown();
+		semaphore::shutdown_os_semaphore_freelist();
+		default_thread_pool_singleton_t::shutdown();
+	}
+
 	static size_t get_default_size()
 	{
-		unsigned int n = get_num_processors();
+		unsigned int n = thread::get_processor_count();
 		if (n < 2)
 			n = 2;
 		return n;
 	}
 
-	explicit thread_pool(bool startNow = true, size_t numThreads = get_default_size())
+	explicit thread_pool(bool startNow = false, size_t numThreads = get_default_size())
 		: m_numThreads(numThreads),
 		m_mainLoop(rcnew(main_loop, numThreads)),
 		m_state(0)
@@ -315,8 +381,6 @@ public:
 			m_threads.remove(i);
 		}
 	}
-
-	static weak_rcptr<thread_pool>& get_default();
 };
 
 

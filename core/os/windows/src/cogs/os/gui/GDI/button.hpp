@@ -111,6 +111,21 @@ public:
 				}
 			}
 			break;
+		case WM_COMMAND:
+			{
+				switch (wParam)
+				{
+				case BN_CLICKED:
+					{
+						action();
+						return 0;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			break;
 		case WM_LBUTTONDBLCLK:	// Let Windows handle all types of clicks
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
@@ -160,7 +175,17 @@ public:
 	virtual bool is_focusable() const	{ return true; }
 };
 
+
 #pragma warning(pop)
+
+
+inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > hwnd::subsystem::create_button() volatile
+{
+	rcref<button> b = rcnew(button, this_rcref);
+	return std::make_pair(b, b);
+}
+
+
 
 }
 }

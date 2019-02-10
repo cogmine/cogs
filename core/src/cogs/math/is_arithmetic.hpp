@@ -21,10 +21,10 @@ template <typename T>
 class is_arithmetic
 {
 public:
-	static const bool value = std::is_arithmetic;
+	static constexpr bool value = std::is_arithmetic;
 };
 template <typename T>
-constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+static constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
 
 
 // By default, map const and/or volatile to the version with no CV qualifier
@@ -32,21 +32,21 @@ template <typename T>
 class is_arithmetic<const T>
 {
 public:
-	static const bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic<T>::value;
 };
 
 template <typename T>
 class is_arithmetic<volatile T>
 {
 public:
-	static const bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic<T>::value;
 };
 
 template <typename T>
 class is_arithmetic<const volatile T>
 {
 public:
-	static const bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic<T>::value;
 };
 
 

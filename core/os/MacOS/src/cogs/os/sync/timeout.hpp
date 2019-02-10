@@ -15,7 +15,7 @@
 #include <mach/task.h>
 #include <pthread.h>
 
-#include "cogs/math/measure.hpp" //
+#include "cogs/math/measure.hpp"
 #include "cogs/math/time.hpp"
 #include "cogs/mem/placement.hpp"
 

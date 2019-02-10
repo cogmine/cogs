@@ -29,14 +29,14 @@ namespace atomic {
 	
 
 
-static const size_t largest = 16;
+static constexpr size_t largest = 16;
 
 
 template <size_t n>
 class size_to_alignment
 {
 public:
-	static const size_t value =	(n ==  1) ?  1 : 
+	static constexpr size_t value =	(n ==  1) ?  1 : 
 								(n ==  2) ?  2 : 
 								(n ==  4) ?  4 : 
 								(n ==  8) ?  8 :

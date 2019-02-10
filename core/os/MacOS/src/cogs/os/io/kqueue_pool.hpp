@@ -31,14 +31,6 @@ namespace io {
 class kqueue_pool : public object
 {
 private:
-	static placement<rcptr<kqueue_pool> >		s_defaultKqueuePool;
-
-	static void cleanup_globals()
-	{
-		volatile rcptr<kqueue_pool>& defaultKqueuePool = s_defaultKqueuePool.get();
-		defaultKqueuePool = 0;
-	}
-
 	thread_pool		m_pool;
 	rcref<auto_fd>	m_fd;
 
@@ -110,8 +102,7 @@ private:
 	rcptr<task> m_func;
 
 	kqueue_pool()
-		: m_fd(rcnew(auto_fd)),
-		m_pool(false)
+		: m_fd(rcnew(auto_fd))
 	{
 		int fd = kqueue();
 		m_fd->m_fd = fd;
@@ -171,19 +162,11 @@ public:
 
 	static rcref<kqueue_pool> get()
 	{
-		volatile rcptr<kqueue_pool>& defaultKqueuePool = s_defaultKqueuePool.get();
-		rcptr<kqueue_pool> myDefaultKqueuePool = defaultKqueuePool;
-		if (!myDefaultKqueuePool)
-		{
-			rcptr<kqueue_pool> newKqueuePool = rcnew(kqueue_pool);
-			if (defaultKqueuePool.compare_exchange(newKqueuePool, myDefaultKqueuePool, myDefaultKqueuePool))
-			{
-				newKqueuePool->start();
-				myDefaultKqueuePool = newKqueuePool;
-				cleanup_queue::get_default()->dispatch(&cleanup_globals);
-			}
-		}
-		return myDefaultKqueuePool.dereference();
+		bool isNew;
+		rcref<kqueue_pool> result = singleton<kqueue_pool>::get(isNew);
+		if (isNew)
+			result->start();
+		return result;
 	}
 
 	// size_t passed to callback indicates available buffer.  Will be 0 on connection close.

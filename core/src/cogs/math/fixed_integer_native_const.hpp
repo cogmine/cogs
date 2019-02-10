@@ -77,7 +77,7 @@ template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value> class
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value> class is_integral<fixed_integer_native_const<has_sign, bits, value> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value> class is_signed<fixed_integer_native_const<has_sign, bits, value> > { public: static const bool value = has_sign; };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value> class is_signed<fixed_integer_native_const<has_sign, bits, value> > { public: static constexpr bool value = has_sign; };
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value> class is_const_type<fixed_integer_native_const<has_sign, bits, value> > : public std::true_type { };
 
@@ -95,30 +95,30 @@ class fixed_integer_native_const
 public:
 	typedef fixed_integer_native_const<has_sign_in, bits_in, value> this_t;
 
-	static const bool has_sign = has_sign_in;
-	static const size_t bits = bits_in;
+	static constexpr bool has_sign = has_sign_in;
+	static constexpr size_t bits = bits_in;
 	typedef bits_to_int_t<bits, has_sign> int_t;
-	static const size_t n_digits = 1;
+	static constexpr size_t n_digits = 1;
 
-	static const size_t bits_used = sizeof(int_t) * 8;
+	static constexpr size_t bits_used = sizeof(int_t) * 8;
 	typedef fixed_integer_native_const<false, const_bit_scan_reverse_v<bits_used> +1, bits_used> bits_used_t;
 
-	static const bool is_const_negative = !has_sign ? false : (value < 0);
-	static const bool is_const_exponent_of_two = is_const_negative
+	static constexpr bool is_const_negative = !has_sign ? false : (value < 0);
+	static constexpr bool is_const_exponent_of_two = is_const_negative
 		? ((-(std::make_signed_t<int_t>)value & (~-(std::make_signed_t<int_t>)value + 1)) == -(std::make_signed_t<int_t>)value)
 		: ((value & (~value + 1)) == value);
 
 	typedef fixed_integer_extended_const<is_const_negative, bits, (ulongest)value> as_extended_t;
 
-	static const bool is_const_zero = !value;
+	static constexpr bool is_const_zero = !value;
 
 
 private:
-	static const int_t low_digit = value;
-	static const bool is_negative_one = !has_sign ? false : (value == -1);
-	static const size_t reduced_bits = is_const_negative ? range_to_bits<(longest)value, 0>::value : range_to_bits<0, (ulongest)value>::value;
+	static constexpr int_t low_digit = value;
+	static constexpr bool is_negative_one = !has_sign ? false : (value == -1);
+	static constexpr size_t reduced_bits = is_const_negative ? range_to_bits<(longest)value, 0>::value : range_to_bits<0, (ulongest)value>::value;
 	typedef bits_to_int_t<reduced_bits, is_const_negative> reduced_int_t;
-	static const reduced_int_t reduced_value = (reduced_int_t)value;
+	static constexpr reduced_int_t reduced_value = (reduced_int_t)value;
 
 public:
 	typedef fixed_integer_native_const<is_const_negative, reduced_bits, reduced_value> reduced_t;
@@ -130,41 +130,41 @@ private:
 	class bit_scan_forward_helper
 	{
 	public:
-		static const size_t value = ((scan_value & 1) == 1) ? 0 : (1 + bit_scan_forward_helper<(scan_value >> 1)>::value);
+		static constexpr size_t value = ((scan_value & 1) == 1) ? 0 : (1 + bit_scan_forward_helper<(scan_value >> 1)>::value);
 	};
 
-	template <> class bit_scan_forward_helper<0> { public: static const size_t value = 0; };
-	template <> class bit_scan_forward_helper<1> { public: static const size_t value = 0; };
+	template <> class bit_scan_forward_helper<0> { public: static constexpr size_t value = 0; };
+	template <> class bit_scan_forward_helper<1> { public: static constexpr size_t value = 0; };
 
 	template <typename std::make_unsigned<int_t>::type scan_value>
 	class bit_scan_reverse_helper
 	{
 	public:
-		static const size_t value = 1 + bit_scan_reverse_helper<(scan_value >> 1)>::value;
+		static constexpr size_t value = 1 + bit_scan_reverse_helper<(scan_value >> 1)>::value;
 	};
 
-	template <> class bit_scan_reverse_helper<0> { public: static const size_t value = 0; };
-	template <> class bit_scan_reverse_helper<1> { public: static const size_t value = 0; };
+	template <> class bit_scan_reverse_helper<0> { public: static constexpr size_t value = 0; };
+	template <> class bit_scan_reverse_helper<1> { public: static constexpr size_t value = 0; };
 
 	template <typename std::make_unsigned<int_t>::type count_value>
 	class bit_count_helper
 	{
 	public:
-		static const size_t value = ((value & 1) ? 1 : 0) + bit_count_helper<(count_value >> 1)>::value;
+		static constexpr size_t value = ((value & 1) ? 1 : 0) + bit_count_helper<(count_value >> 1)>::value;
 	};
 
 	template <>
-	class bit_count_helper<0> { public: static const size_t value = 0; };
+	class bit_count_helper<0> { public: static constexpr size_t value = 0; };
 
 
 public:
-	static const reduced_int_t int_value = (reduced_int_t)value;
+	static constexpr reduced_int_t int_value = (reduced_int_t)value;
 
 	typedef fixed_integer_native<is_const_negative, (reduced_bits == 0 ? 1 : reduced_bits)> non_const_t;
 
-	static const size_t const_bit_scan_forward = bit_scan_forward_helper<(typename std::make_unsigned<int_t>::type)value>::value;
-	static const size_t const_bit_scan_reverse = bit_scan_reverse_helper<(typename std::make_unsigned<int_t>::type)value>::value;
-	static const size_t const_bit_count = bit_count_helper<(typename std::make_unsigned<int_t>::type)value>::value;
+	static constexpr size_t const_bit_scan_forward = bit_scan_forward_helper<(typename std::make_unsigned<int_t>::type)value>::value;
+	static constexpr size_t const_bit_scan_reverse = bit_scan_reverse_helper<(typename std::make_unsigned<int_t>::type)value>::value;
+	static constexpr size_t const_bit_count = bit_count_helper<(typename std::make_unsigned<int_t>::type)value>::value;
 
 	fixed_integer_native_const() { }
 	
@@ -369,10 +369,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator|(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
-		static const size_t bits3 = (bits > bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
+		static constexpr size_t bits3 = (bits > bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t3;
-		static const int_t3 value = (int_t3)value1 | (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value1 | (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -381,10 +381,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator|(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
-		static const size_t bits3 = (bits > bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
+		static constexpr size_t bits3 = (bits > bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t3;
-		static const int_t3 value = (int_t3)value1 | (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value1 | (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -416,10 +416,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator&(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = has_sign && has_sign2;
-		static const size_t bits3 = (bits < bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = has_sign && has_sign2;
+		static constexpr size_t bits3 = (bits < bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t3;
-		static const int_t3 value = (int_t3)value1 & (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value1 & (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -428,10 +428,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator&(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = has_sign && has_sign2;
-		static const size_t bits3 = (bits < bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = has_sign && has_sign2;
+		static constexpr size_t bits3 = (bits < bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t3;
-		static const int_t3 value = (int_t3)value1 & (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value1 & (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -463,10 +463,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator^(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
-		static const size_t bits3 = (bits > bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
+		static constexpr size_t bits3 = (bits > bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t;
-		static const int_t3 value = (int_t3)value ^ (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value ^ (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -475,10 +475,10 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator^(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
-		static const size_t bits3 = (bits > bits2) ? bits : bits2;
+		static constexpr bool has_sign3 = (bits == bits2) ? (has_sign && has_sign2) : ((bits > bits2) ? has_sign : has_sign2);
+		static constexpr size_t bits3 = (bits > bits2) ? bits : bits2;
 		typedef bits_to_int_t<bits3, has_sign3> int_t;
-		static const int_t3 value = (int_t3)value ^ (int_t3)value2;
+		static constexpr int_t3 value = (int_t3)value ^ (int_t3)value2;
 
 		typename fixed_integer_native_const<has_sign3, bits3, value3>::reduced_t tmp;
 		return tmp;
@@ -510,13 +510,13 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator+(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 
-		static const size_t new_bits = (bits > bits2 ? bits : bits2) + 1;
+		static constexpr size_t new_bits = (bits > bits2 ? bits : bits2) + 1;
 
-		static const ulongest lowDigit = (ulongest)((ulongest)value + (ulongest)value2);
-		static const bool overflow = ((ulongest)value + (ulongest)value2) < value;
-		static const ulongest highDigit = (is_const_negative == is_const_negative2) ?
+		static constexpr ulongest lowDigit = (ulongest)((ulongest)value + (ulongest)value2);
+		static constexpr bool overflow = ((ulongest)value + (ulongest)value2) < value;
+		static constexpr ulongest highDigit = (is_const_negative == is_const_negative2) ?
 			(is_const_negative2 ?
 			(overflow ? ~(ulongest)0 : (~(ulongest)0 - 1))
 				:
@@ -531,13 +531,13 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator+(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 
-		static const size_t new_bits = (bits > bits2 ? bits : bits2) + 1;
+		static constexpr size_t new_bits = (bits > bits2 ? bits : bits2) + 1;
 
-		static const ulongest lowDigit = (ulongest)((ulongest)value + (ulongest)value2);
-		static const bool overflow = ((ulongest)value + (ulongest)value2) < value;
-		static const ulongest highDigit = (is_const_negative == is_const_negative2) ?
+		static constexpr ulongest lowDigit = (ulongest)((ulongest)value + (ulongest)value2);
+		static constexpr bool overflow = ((ulongest)value + (ulongest)value2) < value;
+		static constexpr ulongest highDigit = (is_const_negative == is_const_negative2) ?
 			(is_const_negative2 ?
 			(overflow ? ~(ulongest)0 : (~(ulongest)0 - 1))
 				:
@@ -660,13 +660,13 @@ public:
 	{
 		typedef decltype(std::declval<this_t>().abs()) abs_t1;
 		typedef decltype(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >().abs()) abs_t2;
-		static const ulongest tmp1 = (ulongest)(abs_t1::int_value);
-		static const ulongest tmp2 = (ulongest)(abs_t2::int_value);
+		static constexpr ulongest tmp1 = (ulongest)(abs_t1::int_value);
+		static constexpr ulongest tmp2 = (ulongest)(abs_t2::int_value);
 
-		static const ulongest lowDigit = const_extumul<tmp1, tmp2>::low_part;
-		static const ulongest highDigit = const_extumul<tmp1, tmp2>::high_part;
+		static constexpr ulongest lowDigit = const_extumul<tmp1, tmp2>::low_part;
+		static constexpr ulongest highDigit = const_extumul<tmp1, tmp2>::high_part;
 		typedef typename fixed_integer_extended_const<false, bits + bits2, lowDigit, highDigit>::reduced_t tmp_t;
-		static const bool negate_result = is_const_negative != fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		static constexpr bool negate_result = is_const_negative != fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 
 		std::conditional_t<negate_result,
 			decltype(-std::declval<tmp_t>()),
@@ -680,13 +680,13 @@ public:
 	{
 		typedef decltype(std::declval<this_t>().abs()) abs_t1;
 		typedef decltype(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >().abs()) abs_t2;
-		static const ulongest tmp1 = (ulongest)(abs_t1::int_value);
-		static const ulongest tmp2 = (ulongest)(abs_t2::int_value);
+		static constexpr ulongest tmp1 = (ulongest)(abs_t1::int_value);
+		static constexpr ulongest tmp2 = (ulongest)(abs_t2::int_value);
 
-		static const ulongest lowDigit = const_extumul<tmp1, tmp2>::low_part;
-		static const ulongest highDigit = const_extumul<tmp1, tmp2>::high_part;
+		static constexpr ulongest lowDigit = const_extumul<tmp1, tmp2>::low_part;
+		static constexpr ulongest highDigit = const_extumul<tmp1, tmp2>::high_part;
 		typedef typename fixed_integer_extended_const<false, bits + bits2, lowDigit, highDigit>::reduced_t tmp_t;
-		static const bool negate_result = is_const_negative != fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		static constexpr bool negate_result = is_const_negative != fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 
 		std::conditional_t<negate_result,
 			decltype(-std::declval<tmp_t>()),
@@ -1443,9 +1443,9 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	constexpr int compare(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static const bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
-		static const bool is_same_sign = (is_const_negative == is_const_negative2);
-		static const int value = !is_same_sign ? (is_const_negative ? -1 : 1) : ((value < value2) ? -1 : ((value2 < value) ? 1 : 0));
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		static constexpr bool is_same_sign = (is_const_negative == is_const_negative2);
+		static constexpr int value = !is_same_sign ? (is_const_negative ? -1 : 1) : ((value < value2) ? -1 : ((value2 < value) ? 1 : 0));
 		return value;
 	}
 
@@ -1500,7 +1500,7 @@ template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, 
 class const_compared<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
 public:
-	static const int value = const_compared<fixed_integer_native_const<has_sign1, bits1, value1>::as_extended_t,
+	static constexpr int value = const_compared<fixed_integer_native_const<has_sign1, bits1, value1>::as_extended_t,
 		fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t>::value;
 };
 
@@ -1508,7 +1508,7 @@ template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, 
 class const_compared<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
 {
 public:
-	static const int value = const_compared<fixed_integer_native_const<has_sign1, bits1, value1>::as_extended_t,
+	static constexpr int value = const_compared<fixed_integer_native_const<has_sign1, bits1, value1>::as_extended_t,
 		fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 };
 

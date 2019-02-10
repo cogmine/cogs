@@ -52,7 +52,7 @@ protected:
 
 	void process_block()
 	{
-		static const uint32_t sboxes[4096] = {
+		static constexpr uint32_t sboxes[4096] = {
 			/* Start of S Box 0  */
 			/*   0*/ 0x64f9001bL, 0xfeddcdf6L, 0x7c8ff1e2L, 0x11d71514L, 0x8b8c18d3L,
 			/*   5*/ 0xdddf881eL, 0x6eab5056L, 0x88ced8e1L, 0x49148959L, 0x69c56fd5L,

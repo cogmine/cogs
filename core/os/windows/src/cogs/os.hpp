@@ -22,6 +22,10 @@
 #include <io.h>
 #include <Gdiplus.h>
 #include <richedit.h>
+#include <shellscalingapi.h>
+#include <cmath>
+#include <memory>
+#include <gdiplus.h>
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' " "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #pragma comment(lib, "uxtheme.lib") 
@@ -45,14 +49,14 @@ namespace os {
 class file_system
 {
 public:
-	static const size_t	size_bits = 64;
+	static constexpr size_t size_bits = 64;
 };
 
 }
 
 namespace gui {
 namespace os {
-	inline void beep()	{ MessageBeep(-1); }
+	inline void beep() { MessageBeep(-1); }
 }
 }
 

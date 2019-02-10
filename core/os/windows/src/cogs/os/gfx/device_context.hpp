@@ -9,16 +9,12 @@
 #define COGS_GDI_DEVICE_CONTEXT
 
 
-#include "cogs/os.hpp"
-#include <cmath>
-#include <memory>
-#include <gdiplus.h>
-
 #include "cogs/env.hpp"
 #include "cogs/collections/container_stack.hpp"
 #include "cogs/collections/set.hpp"
 #include "cogs/gfx/canvas.hpp"
 #include "cogs/gfx/color.hpp"
+#include "cogs/mem/auto_handle.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
@@ -83,7 +79,31 @@ struct BOUNDS
 
 class device_context : public object, public gfx::canvas
 {
+public:
+	class gdi_plus_scope
+	{
+	public:
+		ULONG_PTR m_gdiplusToken;
+
+		gdi_plus_scope()
+		{
+			Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+			Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+		}
+
+		~gdi_plus_scope()
+		{
+			Gdiplus::GdiplusShutdown(m_gdiplusToken);
+		}
+	};
+
+	static rcref<gdi_plus_scope> get_default_gdi_plus_scope()
+	{
+		return singleton<gdi_plus_scope>::get();
+	}
+
 private:
+	rcref<gdi_plus_scope> m_gdiPlusScope;
 	HDC m_hDC = NULL;
 	container_stack<HRGN> m_savedClips;
 	double m_dpi = canvas::dip_dpi;
@@ -153,6 +173,29 @@ protected:
 public:
 	class font : public gfx::canvas::font
 	{
+	public:
+		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
+		{
+		private:
+			static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD FontType, LPARAM lParam)
+			{
+				auto fontList = (fontlist*)lParam;
+				fontList->try_insert(lpelfe->lfFaceName);
+				return 1;
+			}
+
+		protected:
+			fontlist()
+			{
+				// Load fonts.  (Fonts added or removed will not be observed until relaunch)
+				LOGFONT logFont = {};
+				logFont.lfCharSet = DEFAULT_CHARSET;
+				HDC hdc = GetDC(NULL);
+				int i = EnumFontFamiliesEx(hdc, &logFont, &EnumFontFamExProc, (LPARAM)this, 0);
+				ReleaseDC(NULL, hdc);
+			}
+		};
+
 	private:
 		// Wrapper with own class to avoid use of GDI+ custom new operator
 		class gdiplus_font
@@ -198,7 +241,7 @@ public:
 			if (m_gfxFont.is_strike_out())
 				fontStyle |= (int)Gdiplus::FontStyleStrikeout;
 
-			gfx::font defaultFont = gfx::font::get_default();
+			gfx::font defaultFont = m_deviceContext->get_default_font();
 			double pt = m_gfxFont.get_point_size();
 			if (pt == 0)
 				pt = defaultFont.get_point_size();
@@ -236,7 +279,9 @@ public:
 			: m_deviceContext(dc),
 			m_gfxFont(gfxFont)
 		{
-			create_gdi_fonts(dc->get_dpi());
+			if (m_gfxFont.is_default())
+				m_gfxFont = m_deviceContext->get_default_font();
+			create_gdi_fonts(m_deviceContext->get_dpi());
 		}
 
 		HFONT get_HFONT() const { return *m_HFONT; }
@@ -251,6 +296,26 @@ public:
 		{
 			handle_dpi_change();
 			return m_deviceContext->calc_text_bounds(s, *this);
+		}
+	};
+
+	class default_font : public gfx::font
+	{
+	public:
+		default_font()
+		{
+			// Load default font
+			NONCLIENTMETRICS ncm;
+			ncm.cbSize = sizeof(NONCLIENTMETRICS);// -sizeof(ncm.iPaddedBorderWidth);?
+			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, gfx::canvas::dip_dpi);
+
+			get_font_names().clear();
+			append_font_name(ncm.lfMessageFont.lfFaceName);
+			set_italic(ncm.lfMessageFont.lfItalic != 0);
+			set_bold(ncm.lfMessageFont.lfWeight >= 700);
+			set_underlined(ncm.lfMessageFont.lfUnderline != 0);
+			set_strike_out(ncm.lfMessageFont.lfStrikeOut != 0);
+			set_point_size(-ncm.lfMessageFont.lfHeight);
 		}
 	};
 
@@ -335,9 +400,14 @@ private:
 	}
 
 public:
-	device_context() { }
+	explicit device_context(const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_gdiPlusScope(gdiPlusScope)
+	{ }
 
-	explicit device_context(HDC hDC) : m_hDC(hDC) { }
+	explicit device_context(HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_hDC(hDC),
+		m_gdiPlusScope(gdiPlusScope)
+	{ }
 
 	~device_context()	// Does not free the DC here!
 	{
@@ -420,6 +490,11 @@ public:
 		return rcnew(font, guiFont, this_rcref);
 	}
 
+	virtual gfx::font get_default_font()
+	{
+		return *singleton<default_font>::get();
+	}
+
 	virtual void draw_text(const composite_string& s, const canvas::bounds& r, const rcptr<canvas::font>& f, const color& c = color::black, bool blendAlpha = true)
 	{
 		COGS_ASSERT(!!m_hDC);
@@ -474,7 +549,7 @@ public:
 			};
 
 			if (!f)
-				inner(*load_font(gfx::font::get_default()).static_cast_to<font>());
+				inner(*load_font(gfx::font()).static_cast_to<font>());
 			else
 			{
 				font* f4 = static_cast<font*>(f.get_ptr());
@@ -707,6 +782,21 @@ public:
 		return RGB(c.get_red(), c.get_green(), c.get_blue());
 	}
 };
+
+
+inline const composite_string& device_context::font::resolve(const vector<composite_string>& fontNames)
+{
+	size_t numFontNames = fontNames.get_length();
+	composite_string fontName;
+	for (size_t i = 0; i < numFontNames; i++)
+	{
+		auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
+		if (!!itor)
+			return *itor;	// Use case from font list, just in case.  ha
+	}
+
+	return singleton<default_font>::get()->get_font_names()[0];
+}
 
 
 }

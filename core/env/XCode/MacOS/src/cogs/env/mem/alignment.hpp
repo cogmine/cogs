@@ -30,9 +30,9 @@ namespace cogs {
 
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
 //template <typename _type> class get_aligned_type<_type, 32>	{ public: typedef __declspec(align(32)) _type type; };
-	static const size_t largest_alignment = 16;// 32;
+	static constexpr size_t largest_alignment = 16;// 32;
 #else
-	static const size_t largest_alignment = 8;// 16;
+	static constexpr size_t largest_alignment = 8;// 16;
 #endif
 
 

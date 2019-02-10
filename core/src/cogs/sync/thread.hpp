@@ -15,10 +15,15 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/sync/thread.hpp"
-//#include "cogs/sync/current_thread_dispatcher.hpp"
+#include "cogs/sync/dispatcher.hpp"
 
 
 namespace cogs {
+
+
+class thread_pool;
+class cleanup_queue;
+class quit_dispatcher;
 
 
 /// @ingroup Synchronization
@@ -39,7 +44,8 @@ private:
 	// destruct) to ensure graceful application shutdown.  (READ: NO GLOBAL rcptr<>'s
 	// unless cleared to 0 at cleanup time, BEFORE global/static destruct time.)
 
-	static placement<container_dlist<rcref<thread> > > s_threadWaiters;
+	// s_threadWaiters is used to wait on all threads to terminate before quitting.
+	inline static placement<container_dlist<rcref<thread> > > s_threadWaiters;
 	container_dlist<rcref<thread> >::volatile_remove_token	m_removeToken;
 	mutable volatile boolean m_deregisteredWaiter;
 
@@ -67,6 +73,11 @@ protected:
 	}
 
 public:
+	static unsigned int get_processor_count()
+	{
+		return os::thread::get_processor_count();
+	}
+
 	static rcref<thread> spawn(const function<void()>& tsk)
 	{
 		rcref<thread> threadRef = rcnew(bypass_constructor_permission<thread>, tsk);
@@ -140,5 +151,9 @@ public:
 }
 
 
-#endif
+//#include "cogs/sync/thread_pool.hpp"
+//#include "cogs/sync/cleanup_queue.hpp"
+//#include "cogs/sync/quit_dispatcher.hpp"
 
+
+#endif

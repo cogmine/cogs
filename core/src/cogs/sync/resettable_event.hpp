@@ -15,6 +15,7 @@
 #include "cogs/os/sync/semaphore.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/thread.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
@@ -367,7 +368,7 @@ public:
 	{
 		bool result = false;
 		unsigned int spinsLeft = 0;
-		if ((spinCount > 0) && (get_num_processors() != 1))
+		if ((spinCount > 0) && (thread::get_processor_count() != 1))
 			spinsLeft = spinCount;
 		rcptr<os::semaphore> osSemaphore;
 		for (;;)
@@ -412,7 +413,7 @@ public:
 			else
 			{
 				if (!wt->m_stallCount)
-					wt->m_osSemaphore = get_os_semaphore();
+					wt->m_osSemaphore = semaphore::get_os_semaphore();
 				osSemaphore = wt->m_osSemaphore;
 				++(wt->m_stallCount);
 			}

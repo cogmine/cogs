@@ -19,7 +19,7 @@ template <typename int_t>
 class negate_if_signed
 {
 private:
-	static const bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
+	static constexpr bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
 
 	class unsigned_getter
 	{

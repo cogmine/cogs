@@ -16,16 +16,14 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcptr.hpp"
 #include "cogs/mem/rcref.hpp"
-#include "cogs/os/sync/semaphore.hpp"
-#include "cogs/os/sync/thread.hpp"
-#include "cogs/sync/priority_queue.hpp"
 #include "cogs/sync/semaphore.hpp"
+#include "cogs/sync/priority_queue.hpp"
+
 
 namespace cogs {
 
 
 // A dispatcher is something that can dispatch functions.
-// dispatcher::get_default() provides the main thread pool dispatcher.
 class dispatcher;
 
 // waitable is a base class for objects that can be waited on for a signal.
@@ -45,9 +43,6 @@ template <typename result_t, typename arg_t>
 class function_task;
 
 template <typename result_t>
-class immediate_task;
-
-template <typename result_t>
 class signallable_task;
 
 template <typename arg_t>
@@ -57,8 +52,6 @@ class task_arg_base;
 class dispatcher
 {
 public:
-	static rcref<volatile dispatcher> get_default(); // Gets the default dispatcher (main thread pool)
-
 	template <typename F>
 	std::enable_if_t<
 		std::is_invocable_v<F>
@@ -85,8 +78,6 @@ public:
 
 protected:
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile = 0;
-	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile { }
-	virtual bool cancel_inner(volatile dispatched& d) volatile { return false; }
 
 	static rcptr<volatile dispatched> get_dispatched(const task<void>& t);
 
@@ -114,6 +105,12 @@ protected:
 	{
 		return dr.cancel_inner(d);
 	}
+
+	// change_priority_inner() and cancel_inner() are called by tasks, on the dispatcher that created them.
+	// They do not need to be implemented by a derived dispatcher if it is a proxy of another dispatcher.
+	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile { }
+	virtual bool cancel_inner(volatile dispatched& d) volatile { return false; }
+
 };
 
 
@@ -392,85 +389,6 @@ public:
 inline rcptr<volatile dispatched> dispatcher::get_dispatched(const task<void>& t) { return t.get_dispatched(); }
 
 
-rcref<task<void> > get_immediate_task();
-
-
-template <typename T>
-rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t)
-{
-	return rcnew(immediate_task<std::remove_reference_t<T> >, std::forward<T>(t));
-}
-
-
-
-template <typename result_t>
-class immediate_task : public task<result_t>
-{
-private:
-	result_t m_result;
-
-	virtual rcref<task<void> > get_task() { return this_rcref; }
-
-	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
-	{
-		f();
-		return get_immediate_task().static_cast_to<immediate_task<void> >().static_cast_to<task_base>();
-	}
-
-	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
-	{
-		signal_continuation(*t);
-	}
-
-public:
-	immediate_task(const result_t& r)
-		: task<void>(true),
-		m_result(r)
-	{ }
-
-	immediate_task(result_t&& r)
-		: task<void>(true),
-		m_result(std::move(r))
-	{ }
-
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
-
-	virtual const result_t& get() const volatile { return m_result; }
-
-	virtual bool cancel() volatile { return false; }
-};
-
-
-template <>
-class immediate_task<void> : public task<void>, public task_arg_base<void>
-{
-private:
-	virtual rcref<task<void> > get_task() { return this_rcref; }
-
-	virtual bool signal() volatile { return false; }
-
-	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
-	{
-		f();
-		return get_immediate_task().static_cast_to<immediate_task<void> >().static_cast_to<task_base>();
-	}
-
-	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
-	{
-		signal_continuation(*t);
-	}
-
-public:
-	immediate_task()
-		: task<void>(true)
-	{ }
-
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
-
-	virtual bool cancel() volatile { return false; }
-};
-
-
 template <typename result_t>
 class signallable_task : public task<result_t>
 {
@@ -618,7 +536,7 @@ public:
 			{
 				useCachedOsSemaphore = true;
 				if (!osSemaphoreRc)
-					osSemaphoreRc = get_os_semaphore();
+					osSemaphoreRc = semaphore::get_os_semaphore();
 				osSemaphore = osSemaphoreRc.get_ptr();
 				newTaskState.m_osSemaphore = osSemaphore.get_marked(state);
 			}
@@ -1165,6 +1083,9 @@ public:
 
 
 }
+
+
+#include "cogs/sync/thread.hpp"
 
 
 #endif

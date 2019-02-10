@@ -33,7 +33,7 @@ namespace os {
 class allocator
 {
 public:
-	static const bool is_static = true;
+	static constexpr bool is_static = true;
 
 	typedef ptr<void> ref_t;
 

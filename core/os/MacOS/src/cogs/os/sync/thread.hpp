@@ -14,6 +14,7 @@
 #include <mach/mach.h>
 #include <mach/task.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "cogs/function.hpp"
 #include "cogs/env.hpp"
@@ -99,6 +100,8 @@ private:
 		COGS_ASSERT(i == 0);
 	}
 
+	inline static unsigned int s_processorCount = 0;
+
 public:
 	static rcref<thread> create(const function<void()>& d)	{ return rcnew(bypass_constructor_permission<thread>, d); }
 
@@ -116,7 +119,7 @@ public:
 
 	int join(const timeout_t& timeout = timeout_t::infinite() )
 	{
-		static const size_t terminatedState = const_max_int<size_t>::value;
+		static constexpr size_t terminatedState = const_max_int<size_t>::value;
 		int result = 0;
 		size_t joinState = atomic::load(m_joinState);
 		for (;;)
@@ -175,14 +178,29 @@ public:
 	}
 
 	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once();
+	static bool spin_once()
+	{
+		if (get_processor_count() == 1)
+			return false;
+
+		_mm_pause();
+		return true;
+	}
+
+	static unsigned int get_processor_count()
+	{
+		if (!s_processorCount)
+			s_processorCount = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+		return s_processorCount;
+	}
+
 };
 
 
 }
 
 
-unsigned int get_num_processors();
+unsigned int get_processor_count();
 
 
 }

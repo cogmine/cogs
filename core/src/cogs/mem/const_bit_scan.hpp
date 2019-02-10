@@ -20,7 +20,7 @@ template <ulongest x>
 class const_bit_scan_reverse
 {
 public:
-	static const ulongest value = const_bit_scan_reverse< (x >> 1) >::value + 1;
+	static constexpr ulongest value = const_bit_scan_reverse< (x >> 1) >::value + 1;
 };
 
 template <ulongest x>
@@ -31,7 +31,7 @@ template <>
 class const_bit_scan_reverse<1>
 {
 public:
-	static const ulongest value = 0;
+	static constexpr ulongest value = 0;
 };
 
 template <>
@@ -45,7 +45,7 @@ template <ulongest x>
 class const_bit_scan_forward
 {
 public:
-	static const ulongest value = ((x & 1) == 1) ? 0 : (const_bit_scan_forward< (x >> 1) >::value + 1);
+	static constexpr ulongest value = ((x & 1) == 1) ? 0 : (const_bit_scan_forward< (x >> 1) >::value + 1);
 };
 
 template <ulongest x>
@@ -55,7 +55,7 @@ template <>
 class const_bit_scan_forward<1>
 {
 public:
-	static const ulongest value = 0;
+	static constexpr ulongest value = 0;
 };
 
 template <>

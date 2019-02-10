@@ -20,7 +20,7 @@ template <typename int_t, size_t n = sizeof(int_t) * 8 >
 class const_set_bits
 {
 public:
-	static const int_t value = (const_set_bits<int_t, n - 1>::value << 1) | 1;
+	static constexpr int_t value = (const_set_bits<int_t, n - 1>::value << 1) | 1;
 };
 
 
@@ -28,7 +28,7 @@ template <typename int_t>
 class const_set_bits<int_t, 0>
 {
 public:
-	static const int_t value = 0;
+	static constexpr int_t value = 0;
 };
 
 
@@ -36,7 +36,7 @@ template <typename int_t>
 class const_set_bits<int_t, 1>
 {
 public:
-	static const int_t value = 1;
+	static constexpr int_t value = 1;
 };
 
 

@@ -22,6 +22,7 @@
 #include "cogs/math/is_signed.hpp"
 #include "cogs/math/is_arithmetic.hpp"
 #include "cogs/mem/const_bit_scan.hpp"
+#include "cogs/sync/hazard.hpp"
 
 
 #pragma warning(push)
@@ -1715,7 +1716,7 @@ public:
 
 			// We use half-digits, to handle carries and still fit the math in native ints
 			typedef typename bits_to_int<(sizeof(ulongest) * 8) / 2, false>::type half_unsigned_t;
-			static const ulongest highMask = (~(ulongest)0 ^ (half_unsigned_t)~(half_unsigned_t)0);
+			static constexpr ulongest highMask = (~(ulongest)0 ^ (half_unsigned_t)~(half_unsigned_t)0);
 
 			for (;;)
 			{
@@ -2379,7 +2380,7 @@ public:
 			if (minDigits <= 64)
 			{
 				// Avoiding an allocation is more efficient, but needs a fixed max # of digits
-				static const char_t zeros[] = {
+				static constexpr char_t zeros[] = {
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
@@ -2397,7 +2398,7 @@ public:
 			radix = 36;
 
 		// Handle negative values using a 2-way table.
-		static const char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		static constexpr char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		size_t maxLength = (m_digits.get_length() * sizeof(ulongest) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
 
 		char tempBufferStorage[512];

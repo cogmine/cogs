@@ -14,7 +14,6 @@
 
 namespace cogs {
 
-#error
 
 /// @ingroup Events
 /// @brief An auto-reset event
@@ -26,9 +25,9 @@ private:
 	auto_reset_event(const auto_reset_event&) = delete;
 	auto_reset_event& operator=(const auto_reset_event&) = delete;
 
-	virtual rcref<task<void> > dispatch_inner(const function<void()>& d, int priority) volatile
+	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		return m_resettableEvent.dispatch(d, priority);
+		dispatcher::dispatch_inner(m_resettableEvent, t, priority);
 	}
 
 public:

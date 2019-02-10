@@ -365,7 +365,7 @@ public:
 		int_to_fixed_integer_t<uint8_t> b = get_blue();
 		int_to_fixed_integer_t<uint8_t> a = get_alpha();
 
-		static const char_t part1 = (char_t)'#';
+		static constexpr char_t part1 = (char_t)'#';
 		result = string_t<char_t>::contain(&part1, 1);
 		if (!trimZeroAlpha || !!a)
 			result += a.template to_string_t<char_t>(16, 2);

@@ -43,7 +43,7 @@ private:
 
 	static uint64_t r(const uint64_t* a, uint8_t n)
 	{
-		static const uint64_t t[256] =
+		static constexpr uint64_t t[256] =
 		{
 			0x18186018C07830D8ULL, 0x23238C2305AF4626ULL, 0xC6C63FC67EF991B8ULL, 0xE8E887E8136FCDFBULL,
 			0x878726874CA113CBULL, 0xB8B8DAB8A9626D11ULL, 0x0101040108050209ULL, 0x4F4F214F426E9E0DULL,
@@ -139,7 +139,7 @@ protected:
 
 	void process_block()
 	{
-		static const uint64_t roundConstants[10] =
+		static constexpr uint64_t roundConstants[10] =
 		{
 			0x1823C6E887B8014FULL,
 			0x36A6D2F5796F9152ULL,

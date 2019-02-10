@@ -76,7 +76,7 @@ namespace gui {
 namespace os {
 
 
-class nsview_subsystem : public gui::window::subsystem, public object
+class nsview_subsystem : public gui::windowing::subsystem
 {
 public:
 	class window_bridge;
@@ -127,7 +127,7 @@ private:
 		m_controlQueue(rcnew(control_queue_t)),
 		m_cleanupInstalled(true)
 	{
-		m_cleanupRemoveToken = cleanup_queue::get_default()->dispatch([this]()
+		m_cleanupRemoveToken = cleanup_queue::get_global()->dispatch([this]()
 		{
 			cleanup();
 		});
@@ -138,7 +138,7 @@ private:
 		rcptr<volatile control_queue_t> controlQueue = m_controlQueue;
 		rcref<task<void> > result = controlQueue->dispatch(d, priority);
 		if (m_cleanupInstalled.compare_exchange(true, false))
-			m_cleanupRemoveToken = cleanup_queue::get_default()->dispatch([this]()
+			m_cleanupRemoveToken = cleanup_queue::get_global()->dispatch([this]()
 			{
 				cleanup();
 			});
@@ -176,8 +176,8 @@ public:
 	virtual rcref<bridgeable_pane> create_native_pane() volatile;
 
 	virtual rcref<task<void> > message(const composite_string& s) volatile;
-	virtual rcref<gui::window> open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& rshpr = 0, const function<void()>& closeDelegate = function<void()>()) volatile;
-	virtual rcref<task<void> > open_full_screen(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& rshpr = 0, const function<void()>& closeDelegate = function<void()>()) volatile;
+	virtual rcref<gui::window> open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& f = 0, const function<void()>& closeDelegate = function<void()>()) volatile;
+	//virtual rcref<task<void> > open_full_screen(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& f = 0, const function<void()>& closeDelegate = function<void()>()) volatile;
 
 	static rcref<volatile nsview_subsystem> get_default()
 	{

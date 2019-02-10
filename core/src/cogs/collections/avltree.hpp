@@ -11,7 +11,6 @@
 
 #include "cogs/collections/btree.hpp"
 #include "cogs/operators.hpp"
-#include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/ptr.hpp"
 
 

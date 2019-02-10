@@ -79,7 +79,7 @@ private:
 		removing_next = 3
 	};
 
-	static const size_t max_height = (sizeof(size_t) * 8) - 1;
+	static constexpr size_t max_height = (sizeof(size_t) * 8) - 1;
 	typedef typename range_to_int<0, max_height>::type height_t;
 
 	typedef container_skiplist<key_t, payload_t, comparator_t, allocator_type> this_t;

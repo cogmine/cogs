@@ -181,6 +181,14 @@ public:
 
 #pragma warning(pop)
 
+
+inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > hwnd::subsystem::create_text_editor() volatile
+{
+	rcref<text_editor> te = rcnew(text_editor, this_rcref);
+	return std::make_pair(te, te);
+}
+
+
 }
 }
 }

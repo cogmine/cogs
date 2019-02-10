@@ -11,11 +11,7 @@ includes= src			\
 #          arch/x86/src
 
 
-sources= src/cogs/mem/allocator.cpp                  \
-         src/cogs/mem/rc.cpp				\
-         src/cogs/sync/sync.cpp                    \
-         src/cogs/sync/timer.cpp                     \
-         src/cogs/gui/button_box.cpp		\
+sources= src/cogs/sync/sync.cpp                    \
          os/libs/pthreads/cogs/os/sync/pthreads_sync.cpp    \
          os/linux/src/cogs/os/io/epoll_pool.cpp    \
          os/linux/src/cogs/os/io/net/ip.cpp    \

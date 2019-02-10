@@ -563,7 +563,7 @@ inline string get_window_message_string(UINT msg)
 
 
 // hwnd is an RAII wrapper around an Win32 HWND object.
-// hwnd also serves as a namespace for other objects involved in the hwnd GUI subsystem.
+// hwnd also serves as a namespace for other classes involved in the hwnd GUI subsystem.
 class hwnd : public object
 {
 public:
@@ -575,14 +575,7 @@ public:
 	{
 	private:
 		ATOM m_atom;
-
-		static placement<rcptr<window_class> >	s_defaultWindowClass;
-
-		static void cleanup_default()
-		{
-			volatile rcptr<window_class>& defaultWindowClass = s_defaultWindowClass.get();
-			defaultWindowClass = 0;
-		}
+		HMODULE MsfteditDll;
 
 	protected:
 		window_class()
@@ -611,30 +604,27 @@ public:
 			m_atom = RegisterClassEx(&wcex);
 			DWORD err = GetLastError();
 			COGS_ASSERT(m_atom != NULL);
+
+			// XP requires an explicit loading of controls.  Load all the ones we have classes for.
+			INITCOMMONCONTROLSEX initCtrls;
+			initCtrls.dwSize = sizeof(initCtrls);
+			initCtrls.dwICC = ICC_STANDARD_CLASSES;
+			BOOL b = InitCommonControlsEx(&initCtrls);
+
+			// Load MSFTEDIT control
+			MsfteditDll = LoadLibrary(TEXT("Msftedit.dll"));
 		}
 
 	public:
-		~window_class()			{ UnregisterClass((LPCTSTR)m_atom, GetModuleHandle(0)); }
+		~window_class()
+		{
+			UnregisterClass((LPCTSTR)m_atom, GetModuleHandle(0));
+			//FreeLibrary(MsfteditDll);
+		}
 
 		ATOM get_ATOM() const	{ return m_atom; }
 
-		static rcref<window_class> get_default()
-		{
-			volatile rcptr<window_class>& defaultWindowClass = s_defaultWindowClass.get();
-			rcptr<window_class> oldDefaultWindowClass = defaultWindowClass;
-			if (!oldDefaultWindowClass)
-			{
-				rcref<window_class> newDefaultWindowClass = rcnew(bypass_constructor_permission<window_class>);
-				if (defaultWindowClass.compare_exchange(newDefaultWindowClass, oldDefaultWindowClass, oldDefaultWindowClass))
-				{
-					cleanup_queue::get_default()->dispatch(&cleanup_default);
-					COGS_ASSERT(!!newDefaultWindowClass);
-					return newDefaultWindowClass;
-				}
-			}
-			COGS_ASSERT(!!oldDefaultWindowClass);
-			return oldDefaultWindowClass.dereference();
-		}
+		static rcref<window_class> get_default() { return singleton<window_class>::get(); }
 	};
 
 	class ui_thread : public dispatcher, public object
@@ -805,7 +795,7 @@ public:
 		}
 	};
 
-	class subsystem : public gui::windowing::subsystem, public object
+	class subsystem : public gui::windowing::subsystem
 	{
 	public:
 		typedef container_dlist<rcref<gui::window> > visible_windows_list_t;
@@ -814,14 +804,7 @@ public:
 		delayed_construction<ui_thread> m_uiThread;
 		volatile rcptr<volatile visible_windows_list_t>	m_visibleWindows;
 		rcptr<task<void> >							m_cleanupRemoveToken;
-
-		static placement<rcptr<volatile subsystem> >	s_defaultSubsystem;
-
-		static void cleanup_default()
-		{
-			volatile rcptr<volatile subsystem>& defaultSubsystem = s_defaultSubsystem.get();
-			defaultSubsystem = 0;
-		}
+		rcref<window_class> m_windowClass;
 
 		void cleanup()
 		{
@@ -836,7 +819,8 @@ public:
 	protected:
 		subsystem()
 			: m_visibleWindows(rcnew(visible_windows_list_t)),
-			m_cleanupRemoveToken(cleanup_queue::get_default()->dispatch([r{ this_weak_rcptr }]()
+			m_windowClass(window_class::get_default()),
+			m_cleanupRemoveToken(cleanup_queue::get_global()->dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<subsystem> r2 = r;
 				if (!!r2)
@@ -884,36 +868,18 @@ public:
 		virtual rcref<bridgeable_pane> create_native_pane() volatile;
 		virtual std::pair<rcref<bridgeable_pane>, rcref<window_interface> > create_window() volatile;
 
-		virtual rcref<task<void> > message(const composite_string& s) volatile;
+		virtual rcref<task<void> > message(const composite_string& s) volatile
+		{
+			// TODO: Update to use button_box, allow async
+			MessageBox(NULL, s.composite().cstr(), L"", MB_OK);
+			return get_immediate_task();
+		}
 
 		virtual rcref<gui::window> open_window(
 			const composite_string& title,
 			const rcref<pane>& p,
-			const rcptr<frame>& rshpr = 0,
+			const rcptr<frame>& f = 0,
 			const function<bool()>& closeDelegate = []() { return true; }) volatile;
-
-		virtual rcref<task<void> > open_full_screen(
-			const composite_string& title,
-			const rcref<pane>& p,
-			const rcptr<frame>& rshpr = 0,
-			const function<bool()>& closeDelegate = []() { return true; }) volatile;
-
-		static rcref<volatile subsystem> get_default()
-		{
-			volatile rcptr<volatile subsystem>& defaultSubsystem = s_defaultSubsystem.get();
-			rcptr<volatile subsystem> oldDefaultSubsystem = defaultSubsystem;
-			if (!oldDefaultSubsystem)
-			{
-				rcref<volatile subsystem> newDefaultSubsystem = rcnew(bypass_constructor_permission<subsystem>);
-				if (defaultSubsystem.compare_exchange(newDefaultSubsystem, oldDefaultSubsystem, oldDefaultSubsystem))
-				{
-					cleanup_queue::get_default()->dispatch(&cleanup_default);
-					return newDefaultSubsystem;
-				}
-			}
-			return oldDefaultSubsystem.dereference();
-		}
-
 	};
 
 private:
@@ -922,11 +888,12 @@ private:
 	rcptr<hwnd::window_class>	m_windowClass;
 	rcref<volatile subsystem>	m_uiSubsystem;
 	rcptr<hwnd>					m_parentHWND;
-	map<HWND, hwnd*>::volatile_remove_token m_hWndMapRemoveToken;
+	nonvolatile_map<HWND, hwnd*>::remove_token m_hWndMapRemoveToken;
 
 	weak_rcptr<hwnd_pane>	m_owner;
 
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 public:
 	hwnd(const rcptr<hwnd>& parent,
@@ -964,10 +931,12 @@ public:
 		}
 		style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-		if (!windowClassName)
+		bool isUnownedClass = !!windowClassName;
+		if (!isUnownedClass)
 			m_windowClass = window_class::get_default();
 
-		HWND hWnd = CreateWindowEx(extendedStyle, !!windowClassName ? (LPCTSTR)(windowClassName.composite().cstr()) : (LPCTSTR)(m_windowClass->get_ATOM()),
+		HWND hWnd = CreateWindowEx(extendedStyle,
+			isUnownedClass ? (LPCTSTR)(windowClassName.composite().cstr()) : (LPCTSTR)(m_windowClass->get_ATOM()),
 			caption.composite().cstr(), style,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			parentHWND, 0, (HINSTANCE)(GetModuleHandle(0)), 0);
@@ -983,19 +952,28 @@ public:
 		m_hWnd = hWnd;
 
 		m_defaultWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
-		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)WndProc);
+		if (isUnownedClass)
+		{
+			m_hWndMapRemoveToken = get_hwnd_map().try_insert(hWnd, this);
+			COGS_ASSERT(!!m_hWndMapRemoveToken);
+			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)UnownedClassWndProc);
+		}
+		else
+		{
+			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)WndProc);
 
-		m_hWndMapRemoveToken = get_hwnd_map().try_insert(hWnd, this);
-		COGS_ASSERT(!!m_hWndMapRemoveToken);
+			// GWLP_USERDATA is owned by the window class, so can only be used if using our own window class.
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(this));
+		}
 	}
 
 	HWND get_HWND()									{ return m_hWnd; }
 	const weak_rcptr<hwnd_pane>& get_owner() const	{ return m_owner; }
 	const rcptr<hwnd>& get_parent_hwnd() const		{ return m_parentHWND; }
 
-	static volatile map<HWND, hwnd*>& get_hwnd_map()
+	static nonvolatile_map<HWND, hwnd*>& get_hwnd_map()
 	{
-		static placement<map<HWND, hwnd*> > storage;
+		thread_local static placement<nonvolatile_map<HWND, hwnd*> > storage;
 		return storage.get();
 	}
 
@@ -1004,7 +982,8 @@ public:
 		HWND hWnd = m_hWnd;
 		m_hWnd = NULL;
 		DestroyWindow(hWnd);
-		hwnd::get_hwnd_map().remove(m_hWndMapRemoveToken);
+		if (!m_windowClass)
+			hwnd::get_hwnd_map().remove(m_hWndMapRemoveToken);
 	}
 	
 	LRESULT call_default_window_proc(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1668,8 +1647,6 @@ public:
 		}
 	}
 
-	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam);
-
 	virtual LRESULT render_native_control(HDC dc)
 	{
 		return call_default_window_proc(WM_PAINT, (WPARAM)dc, (LPARAM)0);
@@ -1682,6 +1659,262 @@ public:
 			m_cachedBackgroundImage->set_dpi(newDpi);
 		bridgeable_pane::dpi_changing(oldDpi, newDpi);
 	}
+
+	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
+	{
+		rcptr<pane> owner = get_bridge();// m_owner;
+		if (!!owner)
+		{
+			switch (msg)		// messages common to all hwnd views
+			{
+			case WM_MOUSEMOVE:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					cursor_hover(*owner, pt2);
+					if (!m_mouseTracking)
+					{
+						TRACKMOUSEEVENT tme;
+						tme.cbSize = sizeof(TRACKMOUSEEVENT);
+						tme.dwFlags = TME_LEAVE;
+						tme.hwndTrack = get_HWND();
+		
+						if (TrackMouseEvent(&tme))
+							m_mouseTracking = true;
+					}
+				}
+				break;
+			case WM_MOUSELEAVE:
+				{
+					m_mouseTracking = false;
+					cursor_leave(*owner);
+				}
+				break;
+			case WM_SETFOCUS:
+				{
+					m_focusing = true;
+					owner->focus();
+					m_focusing = false;
+				}
+				break;
+			case WM_KILLFOCUS:
+				{
+				}
+				break;
+			case WM_CHAR:
+				{
+					character_type(*owner, (wchar_t)wParam);
+				}
+			case WM_KEYDOWN:
+				{
+					composite_string::char_t c = (string::char_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
+					bool doTranslate = true;
+					if (!c)
+						c = translate_special_key((wchar_t)wParam);
+					key_press(*owner, c);
+				}
+				break;
+			case WM_KEYUP:
+				{
+					string::char_t c = (string::char_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
+					if (!c)
+						c = translate_special_key((wchar_t)wParam);
+					key_release(*owner, c);
+				}
+				break;			
+		//	case WM_SYSKEYDOWN:
+		//	case WM_SYSKEYUP:
+		//		{
+		//			// TBD: convert these to key_down/key_up
+		//			TranslateMessage(&(m_uiSubsystem->get_msg()));
+		//			return 0;
+		//		}
+		//		break;
+			case WM_LBUTTONDBLCLK:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_double_click(*owner, left_mouse_button, pt2);
+				}
+				break;
+
+			case WM_LBUTTONDOWN:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_press(*owner, left_mouse_button, pt2);
+				}
+				break;
+
+			case WM_LBUTTONUP:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_release(*owner, left_mouse_button, pt2);
+				}
+				break;
+
+			case WM_MBUTTONDBLCLK:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_double_click(*owner, middle_mouse_button, pt2);
+				}
+				break;
+
+			case WM_MBUTTONDOWN:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_press(*owner, middle_mouse_button, pt2);
+				}
+				break;
+
+			case WM_MBUTTONUP:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_release(*owner, middle_mouse_button, pt2);
+				}
+				break;
+
+			case WM_RBUTTONDBLCLK:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_double_click(*owner, right_mouse_button, pt2);
+				}
+				break;
+
+			case WM_RBUTTONDOWN:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_press(*owner, right_mouse_button, pt2);
+				}
+				break;
+
+			case WM_RBUTTONUP:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					button_release(*owner, right_mouse_button, pt2);
+				}
+				break;
+
+			case WM_COMMAND:
+				{
+					if (lParam)
+					{
+						switch (wParam)
+						{
+						case BN_CLICKED:	// Win32 passes button clicks to the parent window.  :/
+							{
+								HWND childHWND = (HWND)lParam;
+								auto itor = hwnd::get_hwnd_map().find(childHWND);
+								if (!!itor)
+								{
+									hwnd* childPtr = *itor;
+									rcptr<hwnd_pane> child = childPtr->get_owner();			
+									return child->process_message(msg, wParam, 0);
+								}
+							}
+							break;
+						default:
+							break;
+						}
+					}
+				}
+				break;
+			case WM_VSCROLL:	// Windows sends these to the parent wind.  Pass it to child, where we will intercept it.
+			case WM_HSCROLL:
+			case WM_CTLCOLORSTATIC:	// Windows sends these to the parent wind.  Pass it to child, where we will intercept it.
+			case WM_CTLCOLOREDIT:
+			case WM_CTLCOLORBTN:
+				{
+					if (lParam)
+					{
+						HWND childHWND = (HWND)lParam;
+						auto itor = hwnd::get_hwnd_map().find(childHWND);
+						if (!!itor)
+						{
+							hwnd* childPtr = *itor;
+							rcptr<hwnd_pane> child = childPtr->get_owner();
+							return child->process_message(msg, wParam, 0);
+						}
+					}
+				}
+				break;
+			//case WM_NCCREATE:
+			//	//EnableNonClientDpiScaling(get_HWND());
+			//	break;
+			case WM_NCPAINT:
+				break;
+			case WM_ERASEBKGND:
+				return TRUE;	// prevent background erase
+			case WM_PAINT:
+				{
+					LRESULT lResult = 0;
+					if (!owner->is_visible())
+						return lResult;
+					if (m_drawMode == system_drawn_direct)
+						break;	// use default
+					PAINTSTRUCT ps;
+					HDC savedDC = get_HDC();	// in case owned.
+					size sz = owner->get_size();
+					allocate_temporary_background();
+					if (m_drawMode == system_drawn_offscreen)	// Handle as a Win32 Control
+					{
+						COGS_ASSERT(!!m_cachedBackgroundImage);	
+						HRGN updateRgn = CreateRectRgn(0, 0, 0, 0);
+						GetUpdateRgn(get_HWND(), updateRgn, FALSE);
+						HDC offscreenDC = m_cachedBackgroundImage->get_HDC();
+						SelectClipRgn(offscreenDC, updateRgn);	// selecting into offscreen buffer
+						paint_temporary_background();
+						lResult = render_native_control(offscreenDC);
+						get_HDC() = BeginPaint(get_HWND(), &ps);
+						get_device_context().composite_pixel_image(*m_cachedBackgroundImage, sz, point(0, 0), false);
+						SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
+						DeleteObject(updateRgn);
+						EndPaint(get_HWND(), &ps);
+					}
+					else
+					{
+						// offscreen buffer is fetched before getting the redrawRgn, since it will call invalidate() on first paint.
+						rcptr<gfx::os::gdi::bitmap> offScreenBuffer = get_offscreen_buffer().static_cast_to<gfx::os::gdi::bitmap>();
+						COGS_ASSERT(!!offScreenBuffer);
+						if (is_drawing_needed())
+						{
+							HDC offscreenDC = offScreenBuffer->get_HDC();
+							get_HDC() = offscreenDC;
+							HRGN updateRgn = m_redrawRgn;
+							m_redrawRgn = NULL;
+							SelectClipRgn(offscreenDC, updateRgn);	// selecting into offscreen buffer
+							draw();
+							SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
+							DeleteObject(updateRgn);
+						}
+						get_HDC() = BeginPaint(get_HWND(), &ps);
+						paint_temporary_background();	// Won't actually paint if background is opaque
+						if (!m_cachedBackgroundImage)
+							get_device_context().composite_pixel_image(*offScreenBuffer, sz, point(0, 0), false);
+						else
+						{
+							m_cachedBackgroundImage->composite_pixel_image(*offScreenBuffer, sz, point(0, 0), true);
+							get_device_context().composite_pixel_image(*m_cachedBackgroundImage, sz, point(0, 0), false);
+						}
+						EndPaint(get_HWND(), &ps);
+					}
+					get_HDC() = savedDC;
+					return lResult;
+				}
+			default:
+				break;
+			}
+		}
+		return call_default_window_proc(msg, wParam, lParam);
+	}
+
 };
 
 
@@ -1692,10 +1925,40 @@ inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 	//wprintf(s.cstr());
 	//printf("\n");
 
+	hwnd* hwndPtr = (hwnd*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
+		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
+
+	LRESULT result;
+	hwndPtr->self_acquire();
+
+	// Process our own queue here to ensure it has higher priority even above
+	// messages sent directly to our WndProc
+	hwndPtr->m_uiSubsystem->run_high_priority_tasks();
+
+	rcptr<hwnd_pane> owner = hwndPtr->m_owner;
+	if (!!owner)
+		result = owner->process_message(msg, wParam, lParam);
+	else
+		result = hwndPtr->call_default_window_proc(msg, wParam, lParam);
+
+	hwndPtr->self_release();
+	return result;
+}
+
+
+inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	//string s = get_window_message_string(msg);
+	//printf("hwnd::WndProc: ");
+	//wprintf(s.cstr());
+	//printf("\n");
+
 	auto itor = get_hwnd_map().find(hWnd);
 	if (!itor)
 		return 0;
-	
+
 	hwnd* hwndPtr = *itor;
 	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
 		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
@@ -1718,9 +1981,38 @@ inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 }
 
 
+
+inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
+{
+	class native_pane : public hwnd_pane
+	{
+	public:
+		native_pane(const rcref<volatile hwnd::subsystem>& subSystem)
+			: hwnd_pane(composite_string(), 0, 0, subSystem, user_drawn)
+		{ }
+
+		virtual void installing()
+		{
+			install_HWND();
+			hwnd_pane::installing();
+		}
+	};
+
+	rcref<hwnd_pane> p = rcnew(native_pane, this_rcref);
+	return p;
+}
+
+
 }
 }
 }
+
+
+#include "cogs/os/gui/GDI/button.hpp"
+#include "cogs/os/gui/GDI/check_box.hpp"
+#include "cogs/os/gui/GDI/text_editor.hpp"
+#include "cogs/os/gui/GDI/scroll_bar.hpp"
+#include "cogs/os/gui/GDI/window.hpp"
 
 
 #endif

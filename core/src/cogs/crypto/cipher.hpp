@@ -21,8 +21,8 @@ template <class derived_t, size_t key_bits, size_t stride_bits = key_bits>
 class block_cipher
 {
 public:
-	static const size_t key_bytes = bits_to_bytes<key_bits>::value;
-	static const size_t stride_bytes = bits_to_bytes<stride_bits>::value;
+	static constexpr size_t key_bytes = bits_to_bytes<key_bits>::value;
+	static constexpr size_t stride_bytes = bits_to_bytes<stride_bits>::value;
 
 	void set_key(const unsigned char(&key)[key_bytes])
 	{
@@ -40,8 +40,8 @@ template <class derived_t, class block_cipher_t>
 class cipher_mode
 {
 public:
-	static const size_t key_bytes = block_cipher_t::key_bytes;
-	static const size_t stride_bytes = block_cipher_t::stride_bytes;
+	static constexpr size_t key_bytes = block_cipher_t::key_bytes;
+	static constexpr size_t stride_bytes = block_cipher_t::stride_bytes;
 
 private:
 	block_cipher_t m_blockCipher;
@@ -182,7 +182,7 @@ private:
 public:
 	void set_key(const unsigned char(&key)[8])
 	{
-		static const uint32_t left_halves[16] =
+		static constexpr uint32_t left_halves[16] =
 		{
 			0x00000000, 0x00000001, 0x00000100, 0x00000101,
 			0x00010000, 0x00010001, 0x00010100, 0x00010101,
@@ -190,7 +190,7 @@ public:
 			0x01010000, 0x01010001, 0x01010100, 0x01010101
 		};
 
-		static const uint32_t right_halves[16] =
+		static constexpr uint32_t right_halves[16] =
 		{
 			0x00000000, 0x01000000, 0x00010000, 0x01010000,
 			0x00000100, 0x01000100, 0x00010100, 0x01010100,
@@ -262,7 +262,7 @@ public:
 
 	void process_block(const unsigned char(&input)[8], unsigned char(&output)[8])
 	{
-		static const uint32_t SB1[64] =
+		static constexpr uint32_t SB1[64] =
 		{
 			0x01010400, 0x00000000, 0x00010000, 0x01010404,
 			0x01010004, 0x00010404, 0x00000004, 0x00010000,
@@ -282,7 +282,7 @@ public:
 			0x00010004, 0x00010400, 0x00000000, 0x01010004
 		};
 
-		static const uint32_t SB2[64] =
+		static constexpr uint32_t SB2[64] =
 		{
 			0x80108020, 0x80008000, 0x00008000, 0x00108020,
 			0x00100000, 0x00000020, 0x80100020, 0x80008020,
@@ -302,7 +302,7 @@ public:
 			0x80000000, 0x80100020, 0x80108020, 0x00108000
 		};
 
-		static const uint32_t SB3[64] =
+		static constexpr uint32_t SB3[64] =
 		{
 			0x00000208, 0x08020200, 0x00000000, 0x08020008,
 			0x08000200, 0x00000000, 0x00020208, 0x08000200,
@@ -322,7 +322,7 @@ public:
 			0x00020208, 0x00000008, 0x08020008, 0x00020200
 		};
 
-		static const uint32_t SB4[64] =
+		static constexpr uint32_t SB4[64] =
 		{
 			0x00802001, 0x00002081, 0x00002081, 0x00000080,
 			0x00802080, 0x00800081, 0x00800001, 0x00002001,
@@ -342,7 +342,7 @@ public:
 			0x00000080, 0x00800000, 0x00002000, 0x00802080
 		};
 
-		static const uint32_t SB5[64] =
+		static constexpr uint32_t SB5[64] =
 		{
 			0x00000100, 0x02080100, 0x02080000, 0x42000100,
 			0x00080000, 0x00000100, 0x40000000, 0x02080000,
@@ -362,7 +362,7 @@ public:
 			0x00000000, 0x40080000, 0x02080100, 0x40000100
 		};
 
-		static const uint32_t SB6[64] =
+		static constexpr uint32_t SB6[64] =
 		{
 			0x20000010, 0x20400000, 0x00004000, 0x20404010,
 			0x20400000, 0x00000010, 0x20404010, 0x00400000,
@@ -382,7 +382,7 @@ public:
 			0x20404000, 0x20000000, 0x00400010, 0x20004010
 		};
 
-		static const uint32_t SB7[64] =
+		static constexpr uint32_t SB7[64] =
 		{
 			0x00200000, 0x04200002, 0x04000802, 0x00000000,
 			0x00000800, 0x04000802, 0x00200802, 0x04200800,
@@ -402,7 +402,7 @@ public:
 			0x04000002, 0x04000800, 0x00000800, 0x00200002
 		};
 
-		static const uint32_t SB8[64] =
+		static constexpr uint32_t SB8[64] =
 		{
 			0x10001040, 0x00001000, 0x00040000, 0x10041040,
 			0x10000000, 0x10001040, 0x00000040, 0x10000000,

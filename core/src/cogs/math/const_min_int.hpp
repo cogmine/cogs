@@ -19,11 +19,11 @@ template <typename int_t>
 class const_min_int
 {
 private:
-	static const bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
-	static const int_t num_positive_signed_bits = (sizeof(int_t) * 8) - 1;
+	static constexpr bool has_sign = ((int_t)~(int_t)0) < (int_t)0;
+	static constexpr int_t num_positive_signed_bits = (sizeof(int_t) * 8) - 1;
 
 public:
-	static const int_t value = has_sign ? ((int_t)1 << ((sizeof(int_t)*8)-1)) : (int_t)0;
+	static constexpr int_t value = has_sign ? ((int_t)1 << ((sizeof(int_t)*8)-1)) : (int_t)0;
 };
 
 

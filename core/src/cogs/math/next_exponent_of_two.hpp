@@ -22,14 +22,14 @@ template <size_t n>
 class next_exponent_of_two
 {
 public:
-	static const size_t value = prev_or_current_exponent_of_two< (n << 1) >::value;
+	static constexpr size_t value = prev_or_current_exponent_of_two< (n << 1) >::value;
 };
 
 template <>
 class next_exponent_of_two<0>
 {
 public:
-	static const size_t value = 1;
+	static constexpr size_t value = 1;
 };
 
 template <size_t n>
@@ -40,14 +40,14 @@ template <size_t n>
 class next_or_current_exponent_of_two
 {
 public:
-	static const size_t value = prev_or_current_exponent_of_two< (n << 1) - 1 >::value;
+	static constexpr size_t value = prev_or_current_exponent_of_two< (n << 1) - 1 >::value;
 };
 
 template <>
 class next_or_current_exponent_of_two<0>
 {
 public:
-	static const size_t value = 1;
+	static constexpr size_t value = 1;
 };
 
 template <size_t n>

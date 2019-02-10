@@ -21,7 +21,7 @@
 
 namespace cogs {
 
-
+class default_allocator;
 
 
 /// @ingroup Mem

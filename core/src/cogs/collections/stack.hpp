@@ -41,7 +41,7 @@ class stack
 {
 public:
 	/// @brief Alias to this type.
-	typedef stack<link_t, link_iterator>	this_t;
+	typedef stack<T, link_iterator>	this_t;
 
 	/// @brief Alias to the link type.
 	typedef T link_t;
@@ -61,7 +61,7 @@ private:
 	{ }
 	
 	stack(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete
+	this_t& operator=(const this_t&) = delete;
 
 public:
 	stack()

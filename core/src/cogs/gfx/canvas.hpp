@@ -56,7 +56,7 @@ public:
 	template <typename char_t, typename unit_t>
 	static composite_string_t<char_t> to_string_t(const unit_t& n)
 	{
-		static const char_t part2 = (char_t)'p';
+		static constexpr char_t part2 = (char_t)'p';
 		composite_string_t<char_t> result(n.template to_string_t<char_t>());
 		result += string_t<char_t>::contains(&part2, 1);
 		return result;
@@ -146,7 +146,8 @@ public:
 	virtual void scroll(const bounds& r, const point& pt = point(0,0)) = 0;
 
 	// text and font primatives
-	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font::get_default()) = 0;
+	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) = 0;
+	virtual gfx::font get_default_font() = 0;
 
 	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<font>& f = 0, const color& c = color::black, bool blendAlpha = true) = 0;
 
@@ -170,7 +171,7 @@ public:
 	virtual void clip_to(const bounds& r) = 0;
 	virtual bool is_unclipped(const bounds& r) const = 0;
 
-	static const int dip_dpi = 96;
+	static constexpr int dip_dpi = 96;
 
 	virtual double get_dpi() const = 0;
 	double get_dpi_scale() const { return get_dpi() / dip_dpi; }

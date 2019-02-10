@@ -24,7 +24,7 @@ template <typename T>
 class is_signed
 {
 public:
-	static const bool value = std::is_signed<T>::value;
+	static constexpr bool value = std::is_signed<T>::value;
 };
 template <typename T>
 constexpr bool is_signed_v = is_signed<T>::value;
@@ -36,21 +36,21 @@ template <typename T>
 class is_signed<const T>
 {
 public:
-	static const bool value = is_signed<T>::value;
+	static constexpr bool value = is_signed<T>::value;
 };
 
 template <typename T>
 class is_signed<volatile T>
 {
 public:
-	static const bool value = is_signed<T>::value;
+	static constexpr bool value = is_signed<T>::value;
 };
 
 template <typename T>
 class is_signed<const volatile T>
 {
 public:
-	static const bool value = is_signed<T>::value;
+	static constexpr bool value = is_signed<T>::value;
 };
 
 
@@ -59,7 +59,7 @@ template <typename T>
 class is_unsigned
 {
 public:
-	static const bool value = std::is_unsigned<T>::value;
+	static constexpr bool value = std::is_unsigned<T>::value;
 };
 
 
@@ -69,21 +69,21 @@ template <typename T>
 class is_unsigned<const T>
 {
 public:
-	static const bool value = is_unsigned<T>::value;
+	static constexpr bool value = is_unsigned<T>::value;
 };
 
 template <typename T>
 class is_unsigned<volatile T>
 {
 public:
-	static const bool value = is_unsigned<T>::value;
+	static constexpr bool value = is_unsigned<T>::value;
 };
 
 template <typename T>
 class is_unsigned<const volatile T>
 {
 public:
-	static const bool value = is_unsigned<T>::value;
+	static constexpr bool value = is_unsigned<T>::value;
 };
 
 

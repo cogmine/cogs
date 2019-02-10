@@ -19,7 +19,7 @@ template <ulongest x, size_t n>
 class const_bit_rotate_right
 {
 public:
-	static const ulongest value = ((x >> n) | (x << (sizeof(ulongest) - n)));
+	static constexpr ulongest value = ((x >> n) | (x << (sizeof(ulongest) - n)));
 };
 
 /// @ingroup ConstMath
@@ -30,7 +30,7 @@ template <ulongest x, size_t n>
 class const_bit_rotate_left
 {
 public:
-	static const ulongest value = ((x << n) | (x >> (sizeof(ulongest) - n)));
+	static constexpr ulongest value = ((x << n) | (x >> (sizeof(ulongest) - n)));
 };
 
 

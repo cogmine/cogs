@@ -26,14 +26,9 @@ class pulse_timer : public timer
 private:
 	const bool m_wakeAll;
 
-	pulse_timer();
-	pulse_timer(const pulse_timer&);
-	pulse_timer& operator=(const pulse_timer&);
-
-	pulse_timer(const timeout_t& t, bool wakeAll)
-		: timer(t),
-			m_wakeAll(wakeAll)
-	{ }
+	pulse_timer() = delete;
+	pulse_timer(const pulse_timer&) = delete;
+	pulse_timer& operator=(const pulse_timer&) = delete;
 
 	virtual void triggered()
 	{
@@ -44,6 +39,12 @@ private:
 			m_event.pulse_one();
 		refire();
 	}
+
+protected:
+	pulse_timer(const timeout_t& t, bool wakeAll)
+		: timer(t),
+		m_wakeAll(wakeAll)
+	{ }
 
 public:
 	static rcref<pulse_timer> create(const timeout_t::period_t& p, bool wakeAll = true)	// wakeAll false means only wake 1 waiter per timer expiration

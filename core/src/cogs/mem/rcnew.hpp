@@ -27,13 +27,13 @@ template<typename... args_t>
 constexpr size_t count_args(args_t&&...) { return sizeof...(args_t); }
 
 
-template <typename type>
-class bypass_constructor_permission : public type
+template <typename base_type>
+class bypass_constructor_permission : public base_type
 {
 public:
 	template <typename... args_t>
 	bypass_constructor_permission(args_t&&... args)
-		: type(std::forward<args_t>(args)...)
+		: base_type(std::forward<args_t>(args)...)
 	{
 	}
 };

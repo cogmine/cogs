@@ -46,7 +46,7 @@ template <bool has_sign, size_t bits> class is_arithmetic<fixed_integer_extended
 
 template <bool has_sign, size_t bits> class is_integral<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
 
-template <bool has_sign, size_t bits> class is_signed<fixed_integer_extended<has_sign, bits> > { public: static const bool value = has_sign; };
+template <bool has_sign, size_t bits> class is_signed<fixed_integer_extended<has_sign, bits> > { public: static constexpr bool value = has_sign; };
 
 
 template <bool has_sign, size_t bits>
@@ -64,11 +64,11 @@ class fixed_integer_extended_content
 public:
 	typedef fixed_integer_extended_content<has_sign_in, n_bits_in> this_t;
 
-	static const bool has_sign = has_sign_in;
-	static const size_t bits = n_bits_in;	// should never be <= sizeof(longest)
-	static const size_t n_digits = (bits / (sizeof(longest) * 8)) + ((bits % (sizeof(longest) * 8) == 0) ? 0 : 1);	// will be >0
+	static constexpr bool has_sign = has_sign_in;
+	static constexpr size_t bits = n_bits_in;	// should never be <= sizeof(longest)
+	static constexpr size_t n_digits = (bits / (sizeof(longest) * 8)) + ((bits % (sizeof(longest) * 8) == 0) ? 0 : 1);	// will be >0
 
-	static const size_t bits_used = (sizeof(ulongest) * 8) * n_digits;
+	static constexpr size_t bits_used = (sizeof(ulongest) * 8) * n_digits;
 	typedef fixed_integer_native_const<false, (const_bit_scan_reverse_v<bits_used>+1), (bits_to_int_t<(const_bit_scan_reverse_v<bits_used>+1), false>)bits_used> bits_used_t;
 
 private:
@@ -424,8 +424,8 @@ public:
 	template <bool has_sign2, size_t bits2>
 	void copy_from(const fixed_integer_extended_content<has_sign2, bits2>& src, size_t startIndex = 0)
 	{
-		static const bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
-		static const size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
+		static constexpr bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
+		static constexpr size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
 		size_t i = startIndex;
 		for (; i < lesserSize; i++)
 			m_digits[i] = src.m_digits[i];
@@ -452,8 +452,8 @@ public:
 	template <bool has_sign2, size_t bits2>
 	void increment_copy(const fixed_integer_extended_content<has_sign2, bits2>& src, size_t startIndex = 0, bool overflow = true)
 	{
-		static const bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
-		static const size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
+		static constexpr bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
+		static constexpr size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
 		COGS_ASSERT(startIndex <= lesserSize);
 		size_t i = startIndex;
 		if (overflow)
@@ -504,8 +504,8 @@ public:
 	template <bool has_sign2, size_t bits2>
 	void decrement_copy(const fixed_integer_extended_content<has_sign2, bits2>& src, size_t startIndex = 0, bool overflow = true)
 	{
-		static const bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
-		static const size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
+		static constexpr bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
+		static constexpr size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
 		COGS_ASSERT(startIndex <= lesserSize);
 		size_t i = startIndex;
 		if (overflow)
@@ -1155,7 +1155,7 @@ public:
 	{
 		// May have 1 more digit than src3
 		COGS_ASSERT((n_digits == fixed_integer_extended<has_sign3, bits3>::n_digits) || ((n_digits == fixed_integer_extended<has_sign3, bits3>::n_digits) + 1));
-		static const bool firstIsLonger = n_digits > fixed_integer_extended<has_sign3, bits3>::n_digits;
+		static constexpr bool firstIsLonger = n_digits > fixed_integer_extended<has_sign3, bits3>::n_digits;
 		ulongest digit1 = (ulongest)src1;
 		ulongest newDigit = digit1 - src2.m_digits[0];
 		bool overflow = newDigit > digit1;
@@ -1212,10 +1212,10 @@ public:
 	template <bool has_sign2, size_t bits2, bool has_sign3, size_t bits3>
 	void subtract(const fixed_integer_extended_content<has_sign2, bits2>& src1, const typename fixed_integer_extended_content<has_sign3, bits3>& src2)
 	{
-		static const bool firstIsLonger = fixed_integer_extended<has_sign2, bits2>::n_digits > fixed_integer_extended<has_sign3, bits3>::n_digits;
-		static const size_t lesserSize = firstIsLonger ? fixed_integer_extended<has_sign3, bits3>::n_digits : fixed_integer_extended<has_sign2, bits2>::n_digits;
-		static const size_t greaterSize = firstIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : fixed_integer_extended<has_sign3, bits3>::n_digits;
-		static const bool resultIsLonger = n_digits > greaterSize;
+		static constexpr bool firstIsLonger = fixed_integer_extended<has_sign2, bits2>::n_digits > fixed_integer_extended<has_sign3, bits3>::n_digits;
+		static constexpr size_t lesserSize = firstIsLonger ? fixed_integer_extended<has_sign3, bits3>::n_digits : fixed_integer_extended<has_sign2, bits2>::n_digits;
+		static constexpr size_t greaterSize = firstIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : fixed_integer_extended<has_sign3, bits3>::n_digits;
+		static constexpr bool resultIsLonger = n_digits > greaterSize;
 		bool overflow = false;
 		size_t i;
 		for (i = 0; i < lesserSize; i++)
@@ -1408,8 +1408,8 @@ public:
 	template <bool has_sign2, size_t bits2>
 	void subtract(const fixed_integer_extended_content<has_sign2, bits2>& src)
 	{
-		static const bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
-		static const size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
+		static constexpr bool thisIsLonger = n_digits > fixed_integer_extended<has_sign2, bits2>::n_digits;
+		static constexpr size_t lesserSize = thisIsLonger ? fixed_integer_extended<has_sign2, bits2>::n_digits : n_digits;
 		bool overflow = false;
 		size_t i = 0;
 		for (; i < lesserSize; i++)
@@ -1536,7 +1536,7 @@ public:
 		}
 
 		ulongest newDigit = (ulongest)src2.get_int();
-		multiply(src1.m_digits.get_ptr(), src1Length, &newDigit, 1);
+		multiply(src1.m_digits.data(), src1Length, &newDigit, 1);
 	}
 
 	// src1 digits will be >= src2 digits. - slightly more efficient
@@ -1948,7 +1948,7 @@ public:
 
 			// We use half-digits, to handle carries and still fit the math in native ints
 			typedef bits_to_int_t<(sizeof(ulongest) * 8) / 2, false> half_unsigned_t;
-			static const ulongest highMask = (~(ulongest)0 ^ (half_unsigned_t)~(half_unsigned_t)0);
+			static constexpr ulongest highMask = (~(ulongest)0 ^ (half_unsigned_t)~(half_unsigned_t)0);
 
 			// We special case a high divisor digit of max value, as +1 causes it to overflow into an additional digit.
 			if (denomHighDigitValue >= highMask)
@@ -2966,9 +2966,9 @@ class fixed_integer_extended
 public:	
 	typedef fixed_integer_extended<has_sign_in, n_bits_in> this_t;
 
-	static const bool   has_sign	= has_sign_in;
-	static const size_t bits		= n_bits_in;	// should never be <= sizeof(longest)
-	static const size_t n_digits	= (bits / (sizeof(longest)*8)) + ((bits % (sizeof(longest)*8) == 0) ? 0 : 1);	// will be >0
+	static constexpr bool   has_sign	= has_sign_in;
+	static constexpr size_t bits		= n_bits_in;	// should never be <= sizeof(longest)
+	static constexpr size_t n_digits	= (bits / (sizeof(longest)*8)) + ((bits % (sizeof(longest)*8) == 0) ? 0 : 1);	// will be >0
 
 	typedef longest		signed_int_t;
 	typedef ulongest	unsigned_int_t;
@@ -8214,7 +8214,7 @@ public:
 			if (minDigits <= 64)
 			{
 				// Avoiding an allocation is more efficient, but needs a fixed max # of digits
-				static const char_t zeros[] = {
+				static constexpr char_t zeros[] = {
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
 					(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0',
@@ -8231,8 +8231,8 @@ public:
 		if (radix > 36)
 			radix = 36;
 
-		static const char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		static const size_t maxLength = (n_digits * sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
+		static constexpr char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		static constexpr size_t maxLength = (n_digits * sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
 
 		char tempBufferStorage[512];
 		ptr<char> tempBuffer = tempBufferStorage;
@@ -8307,7 +8307,7 @@ public:
 	template <endian_t e>
 	io::buffer to_buffer() const
 	{
-		static const size_t width_bytes = n_digits * sizeof(int_t);
+		static constexpr size_t width_bytes = n_digits * sizeof(int_t);
 		io::buffer result(width_bytes);
 		uint8_t* resultPtr = (uint8_t*)result.get_ptr();
 		if (e == endian_t::little)

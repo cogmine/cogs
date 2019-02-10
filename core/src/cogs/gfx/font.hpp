@@ -260,7 +260,8 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	static const font& get_default();
+	bool is_default() const { return m_contents->m_fontNames.is_empty(); }
+	bool is_default() const volatile { return m_contents.begin_read()->m_fontNames.is_empty(); }
 };
 
 #pragma warning(pop)

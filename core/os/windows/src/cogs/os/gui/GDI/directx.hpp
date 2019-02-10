@@ -29,7 +29,7 @@ namespace os {
 
 	/*
 template <unsigned int version>
-class directx : public hwnd_pane, public gui::subsystem
+class directx : public hwnd_pane
 {
 private:
 	// DX9
@@ -48,11 +48,11 @@ private:
 
 
 public:
-	opengl(const rcref<frame>& owner, const rcref<volatile hwnd::subsystem>& uiSubsystem = hwnd::subsystem::get_default() )
+	directx(const rcref<frame>& owner)
 		:	hwnd_pane(owner, composite_string(), composite_string(), WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_NOPARENTNOTIFY, uiSubsystem)
 	{ }
 
-	~opengl()
+	~directx()
 	{
 		if (version == 9)
 		{
@@ -266,7 +266,7 @@ public:
 	{
 	}
 
-	virtual rcref<task<void> > open(const composite_string& title, const rcref<frame>& f, const rcref<frame::reshaper>& rshpr = rcnew(frame::default_reshaper)) volatile
+	virtual rcref<task<void> > open(const composite_string& title, const rcref<frame>& f, const rcref<frame::reshaper>& f = rcnew(frame::default_reshaper)) volatile
 	{
 	}
 
