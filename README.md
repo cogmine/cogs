@@ -1,9 +1,9 @@
 
-><em>"If you want to make an apple pie from scratch, you must first create the universe."</em>
+><em>"If you wish to make an apple pie from scratch, you must first invent the universe."</em>
 > -- Carl Sagan
 
 # cogs
-Cogs is a lock-free, cross-platform, C++ template class library and application framework, developed by Colen M. Garoutte-Carson.  This project is available under the MIT license.  Colen M Garoutte-Carson is granted full rights to any contributions directly to this branch.
+Cogs is a lock-free, cross-platform, C++ template class library and application framework, developed by Colen M. Garoutte-Carson.  This project is available under the MIT license.  Colen M Garoutte-Carson is granted full rights to any contributions directly to the master branch of this repo.
 
 (More doc pending)
 
