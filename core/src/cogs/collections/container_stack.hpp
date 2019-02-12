@@ -63,6 +63,9 @@ public:
 	bool is_empty() const { return !m_deque; }
 	bool is_empty() const volatile { return !m_deque; }
 
+	bool contains_one() const { return m_deque.contains_one(); }
+	bool contains_one() const volatile { return m_deque.contains_one(); }
+
 	bool peek(type& t) const { return m_deque.peek_first(t); }
 	bool peek(type& t) const volatile { return m_deque.peek_first(t); }
 
@@ -121,6 +124,9 @@ public:
 
 	bool is_empty() const { return !m_deque; }
 	bool is_empty() const volatile { return !m_deque; }
+
+	bool contains_one() const { return m_deque.contains_one(); }
+	bool contains_one() const volatile { return m_deque.contains_one(); }
 
 	bool peek(type& t) const { return m_deque.peek_first(t); }
 	bool peek(type& t) const volatile { return m_deque.peek_first(t); }

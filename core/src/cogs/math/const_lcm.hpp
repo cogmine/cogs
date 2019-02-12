@@ -10,8 +10,9 @@
 
 #include <type_traits>
 
+#include "cogs/math/const_extudiv.hpp"
+#include "cogs/math/const_extumul.hpp"
 #include "cogs/math/const_gcd.hpp"
-#include "cogs/math/extumul.hpp"
 
 
 namespace cogs {

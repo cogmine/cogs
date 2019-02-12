@@ -681,10 +681,10 @@ private:
 			{
 				m_state->process(&state::sink_aborted);
 			});
-		//}
-		//
-		//virtual void start_coupler()
-		//{
+		}
+		
+		virtual void start_coupler()
+		{
 			m_state->m_filter->source_enqueue(this_rcref);
 		}
 
@@ -780,7 +780,9 @@ private:
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 	{
-		return rcnew(coupler, m_state, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+		rcref<cogs::task<void> > result = rcnew(coupler, m_state, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+		result.static_cast_to<coupler>()->start_coupler();
+		return result;
 	}
 
 public:

@@ -429,9 +429,7 @@ public:
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 	{
-		rcref<cogs::task<void> > cplr = src->create_coupler(snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
-//		src->start_coupler(cplr);
-		return cplr;
+		return src->create_coupler(snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
 	}
 
 	/// @brief Cancels any pending I/O operations on the datasource and closes it immediately.
@@ -606,29 +604,14 @@ private:
 			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::task<plug>::complete;
-			//void complete(bool closeQueue = false) { io::queue::task<plug>::complete(closeQueue); }
 
 			virtual void executing()
 			{
 				if (!m_transactionRunning.compare_exchange(true, false))
-				{
-					//printf("(cogs::io::datasource::transaction::transaction_task::plug*)0x%p - executing 1\n", this);
 					io::queue::task<plug>::complete();
-				}
-				else
-				{
-					//printf("(cogs::io::datasource::transaction::transaction_task::plug*)0x%p - executing 2\n", this);
-				}
 			}
-
-			//virtual void canceling()	{ io::queue::task<plug>::canceling(); }
 
 			virtual void aborting()		{ io::queue::task<plug>::complete(true); }
-
-			plug()
-			{
-				// For some reason, without this constructor, MSVC thinks it's OK to zero-initialize (which it isn't)
-			}
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
@@ -644,25 +627,8 @@ private:
 			rcptr<plug> p;
 			p.set_mark(1);
 			m_plug.swap(p);
-
-			for (;;)
-			{
-				if (!!p)
-				{
-					if (!p->m_transactionRunning.compare_exchange(true, false))
-					{
-						//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - executing 1 (plug=0x%p)\n", this, p.get_ptr());
-						p->complete();
-						break;
-					}
-
-					//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - executing 2 (plug=0x%p)\n", this, p.get_ptr());
-					break;
-				}
-
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - executing 3 (plug=0x%p)\n", this, p.get_ptr());
-				break;
-			}
+			if (!!p && !p->m_transactionRunning.compare_exchange(true, false))
+				p->complete();
 		}
 
 		transaction_task(const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
@@ -678,18 +644,7 @@ private:
 			{
 				p = rcnew(plug);
 				if (m_plug.compare_exchange(p, rcptr<plug>()))
-				{
-					//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - queue_plug 1 (plug=0x%p)\n", this, p.get_ptr());
 					m_transactionIoQueue->enqueue(p.dereference());
-				}
-				else
-				{
-					//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - queue_plug 2 (plug=0x%p)\n", this, p.get_ptr());
-				}
-			}
-			else
-			{
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - queue_plug 3 (plug=0x%p) - no need\n", this, p.get_ptr());
 			}
 		}
 
@@ -699,11 +654,6 @@ private:
 			{
 				m_transactionIoQueue->close();
 				io::queue::task<transaction_task>::complete();
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - complete 1\n", this);
-			}
-			else
-			{
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - complete 2\n", this);
 			}
 		}
 
@@ -738,11 +688,6 @@ private:
 				{
 					r->aborted();
 				});
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - aborting 1\n", this);
-			}
-			else
-			{
-				//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - aborting 2\n", this);
 			}
 		}
 
@@ -816,8 +761,6 @@ private:
 
 	virtual void source_enqueue(const rcref<io::queue::task_base>& t)
 	{
-		//printf("(cogs::io::datasource::transaction*)0x%p - source_enqueue, task=0x%p\n", this, m_transactionTask.get_ptr());
-
 		m_transactionTask->queue_plug();
 		datasource::source_enqueue(t);
 	}
@@ -838,8 +781,6 @@ protected:
 			m_started(startImmediately),
 			m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
 	{
-		//printf("(cogs::io::datasource::transaction*)0x%p - constructor, startImmediately=%d, task=0x%p\n", this, (int)startImmediately, m_transactionTask.get_ptr());
-
 		if (startImmediately)
 			ds->source_enqueue(m_transactionTask);
 	}
@@ -922,7 +863,7 @@ private:
 	rcptr<cogs::task<void> >	m_sourceAbortDispatched;
 	rcptr<cogs::task<void> >	m_sinkAbortDispatched;
 	
-	typedef void (default_coupler::*task_f)();
+	typedef bool (default_coupler::*task_f)();
 
 	volatile container_queue<task_f>	m_completionSerializer;
 
@@ -930,20 +871,22 @@ private:
 	{
 		if (m_completionSerializer.append(t))
 		{
+			size_t releaseCount = 0;
 			for (;;)
 			{
-				(this->*t)();
-
+				if ((this->*t)())
+					++releaseCount;
 				bool wasLast;
 				m_completionSerializer.remove_first(wasLast);
 				if (wasLast)
 					break;
 				m_completionSerializer.peek_first(t);
 			}
+			get_desc()->release(strong, releaseCount);
 		}
 	}
 
-	void process_read()
+	bool process_read()
 	{
 		m_reading = false;
 		if (m_hasMaxLength)
@@ -968,8 +911,7 @@ private:
 				m_coupledWrite.release();
 				//m_closeEvent->signal();
 				signal();
-				self_release();
-				return;
+				return true;
 			}
 
 			m_writing = true;	// data was read, and no write was in progress.  Issue the write.
@@ -1000,9 +942,10 @@ private:
 				}
 			}
 		}
+		return false;
 	}
 
-	void process_write()
+	bool process_write()
 	{
 		m_writing = false;
 		composite_buffer unwrittenBufferList = m_currentWriter->get_unwritten_buffer();
@@ -1021,7 +964,7 @@ private:
 					m_coupledRead->close_source();
 				else
 					m_currentReader->abort();
-				return;
+				return false;
 			}
 		}
 		else // if (!m_reading)
@@ -1049,8 +992,7 @@ private:
 				m_coupledWrite.release();
 				//m_closeEvent->signal();
 				signal();
-				self_release();
-				return;
+				return true;
 			}
 		}
 
@@ -1088,8 +1030,7 @@ private:
 						m_coupledWrite.release();
 						//m_closeEvent->signal();
 						signal();
-						self_release();
-						return;
+						return true;
 					}
 				}
 			}
@@ -1103,23 +1044,26 @@ private:
 				});
 			}
 		}
+		return false;
 	}
 
-	void process_source_aborted()
+	bool process_source_aborted()
 	{
 		m_readClosed = true;
 		if (!!m_writing)	// Because the source was aborted, it's unnecessary to flush what was read to the writer.  Abort writer.
 			m_currentWriter->abort();
+		return false;
 	}
 
-	void process_sink_aborted()
+	bool process_sink_aborted()
 	{
 		m_writeClosed = true;
 		if (!!m_reading)	// Nothing to write to, must cancel read regardless of whether we will close the source because it's decoupling.
 			m_currentReader->abort();
+		return false;
 	}
 
-	void process_decouple()
+	bool process_decouple()
 	{
 		m_decoupling = true;
 		m_sinkAbortDispatched->cancel();
@@ -1128,17 +1072,16 @@ private:
 			m_currentReader->abort();
 		if (!!m_writing)
 			m_currentWriter->abort();
-		self_release();
+		return true;
 	}
 
-
-//public:
 	void decouple()
 	{
 		self_acquire();	// Ensure we don't go out of scope if decoupling() arrives at an inopportune time.
 		process(&default_coupler::process_decouple);
 	}
 
+public:
 	virtual bool cancel() volatile
 	{
 		if (signallable_task<void>::cancel())
@@ -1150,22 +1093,6 @@ private:
 
 		return false;
 	}
-
-//	virtual rcref<cogs::task<void> > dispatch_inner(const function<void()>& f, int priority) volatile
-//	{
-//		return m_closeEvent->dispatch(f, priority);
-//	}
-//
-//	//virtual rcref<cogs::task<void> > inner_forward_dispatch(const rcref<volatile dispatcher>& next, const function<void()>& f, int priority) volatile
-//	//{
-//	//	return m_closeEvent->forward_dispatch(next, f, priority);
-//	//}
-//
-//public:
-//	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile
-//	{
-//		return m_closeEvent->timed_wait(timeout, spinCount);
-//	}
 
 protected:
 	default_coupler(
@@ -1180,7 +1107,6 @@ protected:
 		m_readClosed(false),
 		m_writeClosed(false),
 		m_decoupling(false),
-		//m_closeEvent(rcnew(single_fire_event)),
 		m_coupledRead(datasource::transaction::create(src)),
 		m_coupledWrite(datasink::transaction::create(snk)),
 		m_bufferBlockSize((bufferBlockSize == 0) ? COGS_DEFAULT_BLOCK_SIZE : bufferBlockSize),
@@ -1190,21 +1116,17 @@ protected:
 		m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 		m_closeSourceOnSinkClose(closeSourceOnSinkClose)
 	{
-		//}
-		//
-		//virtual void start_coupler()
-		//{
-			// coupler keeps a ref to itself.  It will check the datasource's m_currentCoupler,
-			// to see if/when it needs to cancel.
+	}
+	
+	void start_coupler()
+	{
 		self_acquire();
-
 		m_reading = true;
 		m_currentReader = m_coupledRead->read(m_bufferBlockSize, datasource::read_some);
 		m_currentReader->dispatch([this]()
 		{
 			process(&default_coupler::process_read);
 		});
-
 
 		// Since we have transactions, so the source or sink will not close under us, only abort.
 		m_sourceAbortDispatched = m_coupledRead->get_source_close_event()->dispatch([this]()
@@ -1227,7 +1149,9 @@ inline rcref<cogs::task<void> > datasource::create_coupler(
 	const dynamic_integer& maxLength,
 	size_t bufferBlockSize)
 {
-	return rcnew(bypass_constructor_permission<default_coupler>, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+	rcref<cogs::task<void> > result = rcnew(bypass_constructor_permission<default_coupler>, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+	result.static_cast_to<default_coupler>()->start_coupler();
+	return result;
 }
 
 

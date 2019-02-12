@@ -104,6 +104,9 @@ public:
 
 	bool operator!() const				{ return m_deque.is_empty(); }
 	bool operator!() const volatile		{ return m_deque.is_empty(); }
+
+	bool contains_one() const { return m_deque.contains_one(); }
+	bool contains_one() const volatile { return m_deque.contains_one(); }
 };
 
 
@@ -191,6 +194,9 @@ public:
 
 	bool operator!() const				{ return m_deque.is_empty(); }
 	bool operator!() const volatile		{ return m_deque.is_empty(); }
+
+	bool contains_one() const { return m_deque.contains_one(); }
+	bool contains_one() const volatile { return m_deque.contains_one(); }
 };
 
 

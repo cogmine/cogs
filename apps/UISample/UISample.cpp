@@ -13,6 +13,9 @@ namespace cogs
 
 using namespace cogs;
 using namespace cogs::gui;
+using namespace cogs::io;
+using namespace cogs::io::net;
+using namespace cogs::io::net::ip;
 
 
 class box : public background
@@ -94,9 +97,19 @@ public:
 	}
 };
 
-
 int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 {
+	//{
+	//	rcptr<http::server> m_httpServer = rcnew(http::server);
+	//	rcptr<smtp::server> m_smtpServer = rcnew(smtp::server);
+	//	rcptr<tcp::listener> m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);
+	//	rcptr<tcp::listener> m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
+	//	cleanup_queue::get_global()->add(m_httpServer);
+	//	cleanup_queue::get_global()->add(m_smtpServer);
+	//	cleanup_queue::get_global()->add(m_httpListener);
+	//	cleanup_queue::get_global()->add(m_smtpListener);
+	//}
+
 	{
 		rcref<background> box1 = rcnew(background, color(0xFF, 0x00, 0x00, 0xFF));
 		guiSubsystem->open(string::literal(L"Single content test"), box1)

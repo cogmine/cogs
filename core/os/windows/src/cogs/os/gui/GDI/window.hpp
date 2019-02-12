@@ -21,9 +21,6 @@ namespace gui {
 namespace os {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
-
 class window : public hwnd_pane, public window_interface
 {
 private:
@@ -481,8 +478,6 @@ public:
 		return hwnd_pane::process_message(msg, wParam, lParam);
 	}
 };
-
-#pragma warning(pop)
 
 
 inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsystem::create_window() volatile

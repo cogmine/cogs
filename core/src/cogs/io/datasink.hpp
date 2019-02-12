@@ -320,7 +320,6 @@ protected:
 		w->m_unwrittenBufferList = compBuf;
 		w->m_requestedSize = compBuf.get_length();
 		sink_enqueue(w);
-//		printf("%p-S%zd datasink::write (should be 1?)\n", w.get_ptr(), w.get_ptr()->get_desc()->get_strong_count());
 	}
 	
 	/// @brief Create a datasink::flusher.  Used by derived datasinks to create derived flushers
@@ -377,29 +376,14 @@ private:
 			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::task<plug>::complete;
-			//void complete(bool closeQueue = false) { io::queue::task<plug>::complete(closeQueue); }
 
 			virtual void executing()
 			{
 				if (!m_transactionRunning.compare_exchange(true, false))
-				{
 					io::queue::task<plug>::complete();
-					//printf("(cogs::io::datasink::transaction::transaction_task::plug*)0x%p - executing 1\n", this);
-				}
-				else
-				{
-					//printf("(cogs::io::datasink::transaction::transaction_task::plug*)0x%p - executing 2\n", this);
-				}
 			}
-
-			//virtual void canceling()	{ io::queue::task<plug>::canceling(); }
 
 			virtual void aborting()		{ io::queue::task<plug>::complete(true); }
-
-			plug()
-			{
-				// For some reason, without this constructor, MSVC thinks it's OK to zero-initialize (which it isn't)
-			}
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
@@ -415,25 +399,8 @@ private:
 			rcptr<plug> p;
 			p.set_mark(1);
 			m_plug.swap(p);
-
-			for (;;)
-			{
-				if (!!p)
-				{
-					if (!p->m_transactionRunning.compare_exchange(true, false))
-					{
-						//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - executing 1 (plug=0x%p)\n", this, p.get_ptr());
-						p->complete();
-						break;
-					}
-
-					//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - executing 2 (plug=0x%p)\n", this, p.get_ptr());
-					break;
-				}
-
-				//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - executing 3 (plug=0x%p)\n", this, p.get_ptr());
-				break;
-			}
+			if (!!p && !p->m_transactionRunning.compare_exchange(true, false))
+				p->complete();
 		}
 
 		transaction_task(const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
@@ -449,20 +416,7 @@ private:
 			{
 				p = rcnew(plug);
 				if (m_plug.compare_exchange(p, rcptr<plug>()))
-				{
-					//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - queue_plug 1 (plug=0x%p)\n", this, p.get_ptr());
-
 					m_transactionIoQueue->enqueue(p.dereference());
-				}
-				else
-				{
-					//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - queue_plug 2 (plug=0x%p)\n", this, p.get_ptr());
-
-				}
-			}
-			else
-			{
-				;//printf("(cogs::io::datasource::transaction::transaction_task*)0x%p - queue_plug 3 (plug=0x%p) - no need\n", this, p.get_ptr());
 			}
 		}
 
@@ -472,11 +426,6 @@ private:
 			{
 				m_transactionIoQueue->close();
 				io::queue::task<transaction_task>::complete();
-				//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - complete 1\n", this);
-			}
-			else
-			{
-				//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - complete 2\n", this);
 			}
 		}
 
@@ -511,11 +460,6 @@ private:
 				{
 					r->aborted();
 				});
-				//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - aborting 1\n", this);
-			}
-			else
-			{
-				//printf("(cogs::io::datasink::transaction::transaction_task*)0x%p - aborting 1\n", this);
 			}
 		}
 
@@ -589,8 +533,6 @@ private:
 
 	virtual void sink_enqueue(const rcref<io::queue::task_base>& t)
 	{
-		//printf("(cogs::io::datasink::transaction*)0x%p - sink_enqueue, task=0x%p\n", this, m_transactionTask.get_ptr());
-
 		m_transactionTask->queue_plug();
 		datasink::sink_enqueue(t);
 	}
@@ -610,8 +552,6 @@ protected:
 			m_started(startImmediately),
 			m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
 	{
-		//printf("(cogs::io::datasink::transaction*)0x%p - constructor, startImmediately=%d, task=0x%p\n", this, (int)startImmediately, m_transactionTask.get_ptr());
-		
 		if (startImmediately)
 			ds->sink_enqueue(m_transactionTask);
 	}

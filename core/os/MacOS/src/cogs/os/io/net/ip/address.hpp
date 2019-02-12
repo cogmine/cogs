@@ -61,7 +61,7 @@ private:
 	static rcref<thread_pool> get_dns_thread_pool()
 	{
 		bool isNew;
-		rcref<dns_thread_pool> result = singleton<dns_thread_pool>::get();
+		rcref<dns_thread_pool> result = singleton<dns_thread_pool>::get(isNew);
 		if (isNew)
 			result->start();
 		return result;

@@ -500,13 +500,6 @@ public:
 		placement_construct_multiple(m_ptr, n);
 	}
 
-	//void allocate(size_t n, const type& src)
-	//{
-	//	allocate_inner(n);
-	//	m_length = n;
-	//	placement_construct_multiple(m_ptr, n, src);
-	//}
-
 	template <typename type2 = type>
 	void allocate(size_t n, const type2& src)
 	{

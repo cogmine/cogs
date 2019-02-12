@@ -23,8 +23,6 @@
 #include "cogs/os.hpp"
 #include "cogs/assert.hpp"
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
 
 namespace cogs {
 namespace env {
@@ -109,9 +107,6 @@ class detect_native_float_type<11, 52>
 
 }
 }
-
-#pragma warning(pop)
-
 
 
 #endif

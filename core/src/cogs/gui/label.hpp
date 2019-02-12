@@ -104,7 +104,6 @@ public:
 		m_useLineHeight(useLineHeight)
 	{
 		create_properties();
-		//set_completely_invalidate_on_reshape(true);
 	}
 
 	explicit label(const composite_string& text, const color& c = color::black, bool useLineHeight = true)
@@ -113,7 +112,6 @@ public:
 		m_useLineHeight(useLineHeight)
 	{
 		create_properties();
-		//set_completely_invalidate_on_reshape(true);
 	}
 
 	virtual void installing()
@@ -153,22 +151,14 @@ public:
 		}
 	}
 
-	//virtual void dpi_changing(double oldDpi, double newDpi)
-	//{
-	//	pane::dpi_changing(oldDpi, newDpi);
-	//	invalidate(get_size());
-	//}
-
 	virtual range	get_range() const			{ return range(m_textExtent); }
 	virtual size	get_default_size() const	{ return m_textExtent; }
-//	virtual margin	get_margin() const			{ return margin(1, 1, 1, 1); }
 
 	virtual void drawing()
 	{
 		composite_string txt(m_text);
 		rcptr<canvas::font> f = m_cachedFont;
 		color c = m_textColor;
-		//printf("label::drawing: %d, %d\n", (int)m_textExtent.get_width(), (int)m_textExtent.get_height());
 		draw_text(txt, m_textExtent, f.dereference(), c);
 	}
 		

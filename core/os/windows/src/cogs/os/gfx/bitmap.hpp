@@ -442,6 +442,7 @@ public:
 					if (newActualPixelSize.cy < m_actualPixelSize.cy)
 						newActualPixelSize.cy = m_actualPixelSize.cy;
 				}
+				HDC existingDC = get_HDC();
 				HDC newDC = CreateCompatibleDC(NULL);
 				BYTE* newBits;
 				BITMAPINFO bmi = { };
@@ -458,14 +459,12 @@ public:
 				BITMAP bm;
 				GetObject((HANDLE)newBitMap, sizeof(bm), &bm);
 				LONG newWidthBytes = bm.bmWidthBytes;
-				SetTextColor(newDC, make_COLORREF(color::black));
-				SetBkColor(newDC, make_COLORREF(color::white));
 				BOOL b = BitBlt(newDC,
 					0,
 					0,
 					m_logicalPixelSize.cx,
 					m_logicalPixelSize.cy,
-					get_HDC(),
+					existingDC,
 					0,
 					0,
 					SRCCOPY);
@@ -478,7 +477,7 @@ public:
 					m_brush = NULL;
 				}
 				DeleteObject(m_bitMap);
-				DeleteDC(get_HDC());
+				DeleteDC(existingDC);
 				m_bitMap = newBitMap;
 				get_HDC() = newDC;
 				m_bits = newBits;

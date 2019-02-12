@@ -270,7 +270,6 @@ private:
 				if (!m_links.is_current(rt))
 					break;
 
-				//COGS_ASSERT(rt_next->m_prev.get_ptr() == rt->m_prev.get_ptr());
 				COGS_ASSERT((rt_next->m_mode == link_mode::normal) || (rt_next->m_mode == link_mode::removing_next));
 					
 				if (nextPrev.get_ptr() == this)
@@ -309,8 +308,7 @@ private:
 				}
 				if (rt_next->m_mode == link_mode::removing_next)
 				{
-					// stack forward?
-					next->complete_remove_next(rt_next);	// TEMP
+					next->complete_remove_next(rt_next);
 					continue;
 				}
 				COGS_ASSERT(rt_next->m_mode == link_mode::normal);	// Wouldn't be inserting, no need to check link_mode::inserting

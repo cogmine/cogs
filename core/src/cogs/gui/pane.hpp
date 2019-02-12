@@ -691,9 +691,6 @@ protected:
 		});
 	}
 	
-	void nest(const rcref<pane>& child, const rcptr<frame>& f = 0)
-	{ return nest_last(child, f); }
-
 	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
 	{
 		child->m_parent = this_rcref;
@@ -2219,9 +2216,6 @@ public:
 };
 
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
-
 // By default a canvas_pane will invalidate whenever reshaped, allowing it to be repainted at the new size.
 // A container_pane does not invalidate on reshape, allowing contained panes to manage own invalidation.
 
@@ -2239,14 +2233,11 @@ public:
 		return rcnew(bypass_constructor_permission<container_pane>, a);
 	}
 
-	using pane::nest;
-	using pane::nest_last;
-	using pane::nest_first;
-	using pane::nest_before;
-	using pane::nest_after;
-
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
+	using pane_container::nest;
+	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
+	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
 };
 
 
@@ -2285,40 +2276,34 @@ public:
 		return rcnew(bypass_constructor_permission<canvas_pane>, d, invalidateOnReshape);
 	}
 
-	using pane::fill;
-	using pane::invert;
-	using pane::draw_line;
-	using pane::scroll;
-	using pane::load_font;
-	using pane::draw_text;
-	using pane::composite_pixel_mask;
-	using pane::composite_pixel_image;
-	using pane::composite_scaled_pixel_image;
-	using pane::create_pixel_image_canvas;
-	using pane::load_pixel_image;
-	using pane::load_pixel_mask;
-	using pane::save_clip;
-	using pane::restore_clip;
-	using pane::clip_out;
-	using pane::clip_to;
-	using pane::is_unclipped;
-	using pane::get_dpi;
+	virtual void fill(const bounds& r, const color& c = color::black, bool blendAlpha = true) { pane::fill(r, c, blendAlpha); }
+	virtual void invert(const bounds& r) { pane::invert(r); }
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
+	virtual void scroll(const bounds& r, const point& pt = point(0, 0)) { pane::scroll(r, pt); }
+	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) { return pane::load_font(guiFont); }
+	virtual gfx::font get_default_font() { return pane::get_default_font(); }
+	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<font>& f = 0, const color& c = color::black, bool blendAlpha = true) { pane::draw_text(s, r, f, c, blendAlpha); }
+	virtual void composite_pixel_mask(const pixel_mask& src, const bounds& srcBounds, const point& dstPt = point(0, 0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::composite_pixel_mask(src, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha); }
+	virtual void composite_pixel_image(const pixel_image& src, const bounds& srcBounds, const point& dstPt = point(0, 0), bool blendAlpha = true) { return pane::composite_pixel_image(src, srcBounds, dstPt, blendAlpha); }
+	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds) { pane::composite_scaled_pixel_image(src, srcBounds, dstBounds); }
+	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) { pane::composite_vector_image(src, dstBounds); }
+	virtual rcref<pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi) { return pane::create_pixel_image_canvas(sz, isOpaque, dpi); }
+	virtual rcref<pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi) { return load_pixel_image(location, dpi); }
+	virtual rcref<pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi) { return pane::load_pixel_mask(location, dpi); }
+	//virtual rcptr<vector_image> load_vector_image(const composite_string& location) { return pane::load_vector_image(location); }
+	virtual void save_clip() { pane::save_clip(); }
+	virtual void restore_clip() { pane::restore_clip(); }
+	virtual void clip_out(const bounds& r) { pane::clip_out(r); }
+	virtual void clip_to(const bounds& r) { pane::clip_to(r); }
+	virtual bool is_unclipped(const bounds& r) const { return pane::is_unclipped(r); }
+	virtual double get_dpi() const { return pane::get_dpi(); }
 
-	using pane::get_canvas;
-	using pane::get_canvas_ref;
-
-
-	using pane::nest;
-	using pane::nest_last;
-	using pane::nest_first;
-	using pane::nest_before;
-	using pane::nest_after;
-
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
+	using pane_container::nest;
+	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
+	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
 };
-
-#pragma warning(pop)
 
 
 class pane_orchestrator

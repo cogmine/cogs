@@ -1578,11 +1578,6 @@ public:
 			m_position(i.m_position)
 		{ }
 
-		//const_iterator(const iterator& i)
-		//	: m_array(i.m_array),
-		//	m_position(i.m_position)
-		//{ }
-
 		void release()	{ m_array = 0; }
 
 		const_iterator& operator++()

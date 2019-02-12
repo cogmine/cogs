@@ -278,6 +278,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\boolean.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\bytes_to_int.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\chars.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extuadd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extudiv.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extumul.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_gcd.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_lcm.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_max_int.hpp" />
@@ -286,6 +289,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_uroot.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\datetime.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\dynamic_integer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extudiv.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extumul.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_extended.hpp" />

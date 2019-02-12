@@ -21,8 +21,6 @@ namespace cogs {
 namespace gui {
 namespace os {
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
 
 class button : public hwnd_pane, public button_interface
 {
@@ -176,15 +174,11 @@ public:
 };
 
 
-#pragma warning(pop)
-
-
 inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > hwnd::subsystem::create_button() volatile
 {
 	rcref<button> b = rcnew(button, this_rcref);
 	return std::make_pair(b, b);
 }
-
 
 
 }

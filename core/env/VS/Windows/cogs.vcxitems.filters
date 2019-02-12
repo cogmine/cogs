@@ -1189,6 +1189,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\singleton.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extumul.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extuadd.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extudiv.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extudiv.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">

@@ -21,10 +21,6 @@ namespace gui {
 namespace os {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
-
-
 class text_editor : public hwnd_pane, public text_editor_interface
 {
 private:
@@ -177,9 +173,6 @@ public:
 	}
 
 };
-
-
-#pragma warning(pop)
 
 
 inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > hwnd::subsystem::create_text_editor() volatile

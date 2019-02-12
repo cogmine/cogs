@@ -21,8 +21,6 @@ namespace cogs {
 namespace gui {
 namespace os {
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
 
 class check_box : public hwnd_pane, public check_box_interface
 {
@@ -171,9 +169,6 @@ public:
 		invalidate(get_size());
 	}
 };
-
-
-#pragma warning(pop)
 
 
 inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > hwnd::subsystem::create_check_box() volatile

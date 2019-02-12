@@ -17,8 +17,6 @@
 namespace cogs {
 namespace gui {
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
 
 /// @ingroup GUI
 /// @brief A pane that fills with a given color
@@ -76,17 +74,13 @@ public:
 		m_colorProperty->set(c);
 	}
 
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
-
-	using pane::nest;
-	using pane::nest_last;
-	using pane::nest_first;
-	using pane::nest_before;
-	using pane::nest_after;
+	using pane_container::nest;
+	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
+	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
 };
 
-#pragma warning(pop)
 
 }
 }

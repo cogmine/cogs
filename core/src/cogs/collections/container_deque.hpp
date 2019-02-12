@@ -476,6 +476,9 @@ public:
 	bool operator!() const					{ return is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
 
+	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
+	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
+
 	bool pop_first(type& t, bool& wasLast)			{ return remove_inner<false>(&t, wasLast); }
 	bool pop_first(type& t, bool& wasLast) volatile	{ return remove_inner<false>(&t, wasLast); }
 	bool pop_last(type& t, bool& wasLast)			{ return remove_inner<true>(&t, wasLast); }
@@ -967,6 +970,9 @@ public:
 
 	bool operator!() const					{ return is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
+
+	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
+	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
 
 	bool pop_first(type& t, bool& wasLast)			{ return remove_inner<false>(&t, wasLast); }
 	bool pop_first(type& t, bool& wasLast) volatile	{ return remove_inner<false>(&t, wasLast); }

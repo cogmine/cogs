@@ -612,16 +612,11 @@ protected:
 			pane::reshape(r, oldOrigin);
 	}
 
-	using pane::nest;
-	using pane::nest_last;
-	using pane::nest_first;
-	using pane::nest_before;
-	using pane::nest_after;
-
-	using pane::get_canvas;
-	using pane::get_canvas_ref;
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
+	using pane_container::nest;
+	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
+	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
 
 public:
 	using pane::get_size;

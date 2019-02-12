@@ -405,11 +405,8 @@ public:
 		get_alignment(!d) = 0;
 	}
 
-	using pane::nest;
+	using pane_container::nest;
 
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
-	
 	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0)
 	{
 		rcptr<canvas::cell> c2 = f;

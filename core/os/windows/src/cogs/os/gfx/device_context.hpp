@@ -225,7 +225,18 @@ public:
 
 		// Uses prioritized list of font names to find best match font.
 		// If no match is found, name of default font is returned.
-		static const composite_string& resolve(const vector<composite_string>& fontNames);
+		static const composite_string& resolve(const vector<composite_string>& fontNames)
+		{
+			size_t numFontNames = fontNames.get_length();
+			composite_string fontName;
+			for (size_t i = 0; i < numFontNames; i++)
+			{
+				auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
+				if (!!itor)
+					return *itor;	// Use case from font list, just in case.  ha
+			}
+			return singleton<default_font>::get()->get_font_names()[0];
+		}
 
 		void create_gdi_fonts(double dpi) const
 		{
@@ -279,8 +290,6 @@ public:
 			: m_deviceContext(dc),
 			m_gfxFont(gfxFont)
 		{
-			if (m_gfxFont.is_default())
-				m_gfxFont = m_deviceContext->get_default_font();
 			create_gdi_fonts(m_deviceContext->get_dpi());
 		}
 
@@ -782,21 +791,6 @@ public:
 		return RGB(c.get_red(), c.get_green(), c.get_blue());
 	}
 };
-
-
-inline const composite_string& device_context::font::resolve(const vector<composite_string>& fontNames)
-{
-	size_t numFontNames = fontNames.get_length();
-	composite_string fontName;
-	for (size_t i = 0; i < numFontNames; i++)
-	{
-		auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
-		if (!!itor)
-			return *itor;	// Use case from font list, just in case.  ha
-	}
-
-	return singleton<default_font>::get()->get_font_names()[0];
-}
 
 
 }

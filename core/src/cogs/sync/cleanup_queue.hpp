@@ -67,8 +67,23 @@ public:
 	template <typename type>
 	rcref<task<void> > add(const rcref<type>& obj, int priority = 0) volatile
 	{
-		rcref<type> tmp(obj);
-		return m_tasks->dispatch([obj]() {}, priority);
+		return m_tasks->dispatch([r{ obj }]() {}, priority);
+	}
+
+	template <typename type>
+	rcref<task<void> > add(const rcptr<type>& obj, int priority = 0) volatile
+	{
+		if (obj.get_desc() == nullptr)
+			return get_immediate_task();
+		return m_tasks->dispatch([r{ obj }]() {}, priority);
+	}
+
+	template <typename type>
+	rcref<task<void> > add(const weak_rcptr<type>& obj, int priority = 0) volatile
+	{
+		if (obj.get_desc() == nullptr)
+			return get_immediate_task();
+		return m_tasks->dispatch([r{ obj }]() {}, priority);
 	}
 
 	static rcref<cleanup_queue> get_global()

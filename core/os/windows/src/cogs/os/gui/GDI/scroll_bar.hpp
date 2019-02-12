@@ -26,9 +26,6 @@ namespace gui {
 namespace os {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
-
 class scroll_bar : public hwnd_pane, public scroll_bar_interface
 {
 private:
@@ -299,8 +296,6 @@ public:
 		invalidate(get_size());
 	}
 };
-
-#pragma warning(pop)
 
 
 inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > hwnd::subsystem::create_scroll_bar() volatile

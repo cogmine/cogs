@@ -420,8 +420,7 @@ private:
 				}
 				if (rt_next->m_mode == link_mode::removing_next)
 				{
-					// stack forward?
-					next->complete_remove_next(level, rt_next);	// TEMP
+					next->complete_remove_next(level, rt_next);
 					continue;
 				}
 				if (rt_next->m_mode == link_mode::inserting)

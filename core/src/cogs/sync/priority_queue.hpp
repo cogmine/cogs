@@ -394,7 +394,6 @@ public:
 		value_token result;
 		for (;;)
 		{
-			// TEMP.  SHould be ok to bound count below 0
 			if (m_contents.is_empty())
 				break;
 			result.m_iterator = m_contents.pop_first();
@@ -409,7 +408,6 @@ public:
 		value_token result;
 		for (;;)
 		{
-			// TEMP.  SHould be ok to bound count below 0
 			if (m_contents.is_empty())
 				break;
 			result.m_iterator = m_contents.get_first();
@@ -442,7 +440,6 @@ public:
 			if (!b)
 			{
 				typename map_t::volatile_iterator itor;
-				//rcptr<payload> newRemoved;
 				rcptr<payload> oldRemoved = vt.m_iterator->m_removed;
 				for (;;)
 				{

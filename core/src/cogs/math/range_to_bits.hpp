@@ -9,6 +9,7 @@
 #define COGS_RANGE_TO_BITS
 
 
+#include "cogs/math/bytes_to_int.hpp"
 #include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 

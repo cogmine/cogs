@@ -25,8 +25,6 @@ public:
 	virtual void set_title(const composite_string& title) = 0;
 };
 
-#pragma warning(push)
-#pragma warning (disable: 4250)
 
 /// @ingroup GUI
 /// @brief A GUI window
@@ -178,14 +176,12 @@ public:
 			m_nativeWindow->set_title(title);
 	}
 
-	using pane::nest;
-	using pane::nest_last;
-	using pane::nest_first;
-	using pane::nest_before;
-	using pane::nest_after;
+	using pane_container::nest;
+	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
+	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
 };
-
-#pragma warning(pop)
 
 
 inline rcref<task<void> > windowing::subsystem::open(

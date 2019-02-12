@@ -212,10 +212,7 @@ public:
 
 	virtual size get_default_size() const { return m_calculatedDefaultSize; }
 
-	using pane::get_pane_container;
-	using pane::get_pane_container_ref;
-
-	using pane::nest;
+	using pane_container::nest;
 
 	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
 	{

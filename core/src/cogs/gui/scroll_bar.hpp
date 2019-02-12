@@ -122,23 +122,6 @@ public:
 	
 	virtual rcref<property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).static_cast_to<property<scroll_bar_state>>(); }
 	virtual rcref<property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).static_cast_to<property<double>>(); }
-
-
-	//// TEMP
-	//virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
-	//{
-	//	//printf("scroll_bar::reshape(r=(%d, %d, %d, %d), oldOrigin=(%d, %d))\n",
-	//	//	(int)r.get_position().get_x(),
-	//	//	(int)r.get_position().get_y(),
-	//	//	(int)r.get_size().get_width(),
-	//	//	(int)r.get_size().get_height(),
-	//	//	(int)oldOrigin.get_x(),
-	//	//	(int)oldOrigin.get_y()
-	//	//	);
-	//
-	//	pane_bridge::reshape(r, oldOrigin);
-	//}
-
 };
 
 
