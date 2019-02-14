@@ -709,7 +709,7 @@ inline std::enable_if_t<
 	fixed_integer<true, (sizeof(longest) * 8) + 1> >
 subtract(const T& t, const A1& a)
 {
-	fixed_integer<true, (sizeof(longest) * 8) + 1> > result;
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
 	result.subtract(
 		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
 		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of subtract
@@ -762,7 +762,7 @@ inline std::enable_if_t<
 	fixed_integer<true, (sizeof(longest) * 8) + 1> >
 inverse_subtract(const T& t, const A1& a)
 {
-	fixed_integer<true, (sizeof(longest) * 8) + 1> > result;
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
 	result.subtract(
 		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
 		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of subtract
@@ -1068,7 +1068,7 @@ inline std::enable_if_t<
 >
 divide_whole(const T& t, const A1& a)
 {
-	fixed_integer<true, (8 * sizeof(longest)) + 1> > result;
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
 	result.divide_whole(
 		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
 		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of divide_whole
@@ -1167,7 +1167,7 @@ inline std::enable_if_t<
 >
 inverse_divide_whole(const T& t, const A1& a)
 {
-	fixed_integer<true, (8 * sizeof(longest)) + 1> > result;
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
 	result.divide_whole(
 		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
 		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of divide_whole

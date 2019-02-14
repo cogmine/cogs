@@ -1198,8 +1198,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extudiv.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\extudiv.hpp">
-      <Filter>core\math</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_event.hpp">
+      <Filter>core\sync</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

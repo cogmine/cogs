@@ -17,9 +17,11 @@ namespace cogs {
 
 /// @ingroup Events
 /// @brief A count-down event
-class count_down_event : public event_base
+class count_down_event : public event_base, public object
 {
 private:
+	static constexpr size_t doneValue = (size_t)-1;
+
 	volatile size_type m_count;
 	volatile single_fire_event m_event;
 
@@ -28,20 +30,24 @@ private:
 		dispatcher::dispatch_inner(m_event, t, priority);
 	}
 
-public:
-	explicit count_down_event(const function<void()>& d, size_t n = 1)
-		:	m_count(n)
+protected:
+	explicit count_down_event(size_t n)
+		: m_count(n)
 	{
-		if (!n)
-			m_event.signal();
-		m_event.dispatch(d);
+		COGS_ASSERT(n != doneValue);	// max value is not supported (used internally to indicate fired, to allow init from 0)
 	}
 
-	explicit count_down_event(size_t n = 1)
-		:	m_count(n)
+public:
+	static rcref<count_down_event> create(size_t n)
 	{
-		if (!n)
-			m_event.signal();
+		return rcnew(bypass_constructor_permission<count_down_event>, n);
+	}
+
+	static rcref<count_down_event> create(size_t n, const function<void()>& d)
+	{
+		rcref<count_down_event> result = rcnew(bypass_constructor_permission<count_down_event>, n);
+		result->m_event.dispatch(d);
+		return result;
 	}
 
 	bool count_up(size_t n = 1) volatile	// Return false if already released/set, and did not count up.
@@ -49,8 +55,7 @@ public:
 		size_type oldValue = m_count;
 		size_type newValue;
 		do {
-			COGS_ASSERT(!!oldValue);
-			if (!oldValue)
+			if (oldValue == doneValue)
 				return false;
 			newValue = oldValue;
 			newValue += n;
@@ -63,23 +68,32 @@ public:
 		size_type oldValue = m_count;
 		size_type newValue;
 		do {
-			COGS_ASSERT(!!oldValue);
-			if (!oldValue)
+			if (oldValue == doneValue)
 				return false;
-			COGS_ASSERT(oldValue >= n);
-			newValue = 0;
-			if (oldValue > n)
-			{
-				newValue = oldValue;
-				newValue -= n;
-			}
+			newValue = (oldValue <= n) ? doneValue : (oldValue - n);
 		} while (!m_count.compare_exchange(newValue, oldValue, oldValue));
-		if (!newValue)
+		if (newValue == doneValue)
 		{
 			m_event.signal();
 			return true;
 		}
 		return false;
+	}
+
+	rcref<task<void> > count(const rcref<waitable>& waitFor)
+	{
+		if (!count_up())
+			return get_immediate_task();
+
+		return waitFor->dispatch([e{ this_rcptr }]()
+		{
+			--*e;
+		});
+	}
+
+	rcref<task<void> > operator+=(const rcref<waitable>& waitFor)
+	{
+		return count(waitFor);
 	}
 
 	bool operator--() volatile		{ return !count_down(); }
@@ -88,43 +102,19 @@ public:
 	class reference
 	{
 	private:
-		count_down_event&	m_countDownEvent;
-		bool				m_acquired;
-		function<void()>	m_delegate;
+		rcptr<count_down_event> m_countDownEvent;
 
 	public:
-		explicit reference(count_down_event& e)
-			:	m_countDownEvent(e),
-				m_acquired(++e)
+		explicit reference(const rcref<count_down_event>& e)
+			: m_countDownEvent(++*e ? rcptr<count_down_event>(e) : rcptr<count_down_event>())
 		{ }
 
-		explicit reference(const function<void()>& d, count_down_event& e)
-			:	m_countDownEvent(e),
-				m_acquired(++e),
-				m_delegate(d)
-		{ }
-
-		bool operator!() const	{ return m_acquired; }
-
-		bool release()
-		{
-			if (!m_acquired)
-				return false;
-
-			m_acquired = false;
-			bool released = !--m_countDownEvent;
-			if (released)
-				m_delegate();
-			return released;
-		}
+		bool operator!() const	{ return !!m_countDownEvent; }
 
 		~reference()
 		{
-			if (m_acquired)
-			{
-				if (!--m_countDownEvent)
-					m_delegate();
-			}
+			if (!!m_countDownEvent)
+				--* m_countDownEvent;
 		}
 	};
 

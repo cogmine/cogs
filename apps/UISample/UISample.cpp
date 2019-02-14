@@ -110,11 +110,12 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	//	cleanup_queue::get_global()->add(m_smtpListener);
 	//}
 
+	rcref<count_down_event> quitCountDown = count_down_event::create(0, []() { cogs::request_quit(); });
+
 	{
 		rcref<background> box1 = rcnew(background, color(0xFF, 0x00, 0x00, 0xFF));
-		guiSubsystem->open(string::literal(L"Single content test"), box1)
-			->dispatch([]() { cogs::request_quit(); })
-			;
+		auto w = guiSubsystem->open(string::literal(L"Single content test"), box1);
+		*quitCountDown += w;
 	}
 
 	{
@@ -124,7 +125,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<fixed_size_frame> fixedSizeFrame = rcnew(fixed_size_frame, box1, gfx::canvas::size(200, 200));
 
 		blackBackgrounPane->nest(box1, fixedSizeFrame);
-		guiSubsystem->open(string::literal(L"Fixed size window"), blackBackgrounPane);
+		auto w = guiSubsystem->open(string::literal(L"Fixed size window"), blackBackgrounPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -135,7 +137,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, fixedSizeFrame, geometry::planar::alignment::center());
 
 		blackBackgrounPane->nest(box1, unconstrainedFrame);
-		guiSubsystem->open(string::literal(L"Centering"), blackBackgrounPane);
+		auto w = guiSubsystem->open(string::literal(L"Centering"), blackBackgrounPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -156,7 +159,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		fourBoxPane->nest(box3, rcnew(unconstrained_frame, box3Frame, geometry::planar::alignment::bottom_left()));
 		fourBoxPane->nest(box4, rcnew(unconstrained_frame, box4Frame, geometry::planar::alignment::bottom_right()));
 
-		guiSubsystem->open(string::literal(L"Alpha blended and animated + resizing test (black background)"), fourBoxPane);
+		auto w = guiSubsystem->open(string::literal(L"Alpha blended and animated + resizing test (black background)"), fourBoxPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -177,7 +181,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		fourBoxPane->nest(box3, rcnew(unconstrained_frame, box3Frame, geometry::planar::alignment::bottom_left()));
 		fourBoxPane->nest(box4, rcnew(unconstrained_frame, box4Frame, geometry::planar::alignment::bottom_right()));
 
-		guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background)"), fourBoxPane);
+		auto w = guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background)"), fourBoxPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -203,7 +208,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		fourBoxPane->nest(box3p, rcnew(unconstrained_frame, box3Frame, geometry::planar::alignment::bottom_left()));
 		fourBoxPane->nest(box4p, rcnew(unconstrained_frame, box4Frame, geometry::planar::alignment::bottom_right()));
 
-		guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background, native_container_pane's)"), fourBoxPane);
+		auto w = guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background, native_container_pane's)"), fourBoxPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -229,7 +235,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		fourBoxPane->nest(box3p, rcnew(unconstrained_frame, box3Frame, geometry::planar::alignment::bottom_left()));
 		fourBoxPane->nest(box4p, rcnew(unconstrained_frame, box4Frame, geometry::planar::alignment::bottom_right()));
 
-		guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background, native_container_pane's)"), fourBoxPane);
+		auto w = guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background, native_container_pane's)"), fourBoxPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -250,21 +257,24 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		fourBoxPane->nest(box3, rcnew(unconstrained_frame, box3Frame, geometry::planar::alignment::bottom_left()));
 		fourBoxPane->nest(box4, rcnew(unconstrained_frame, box4Frame, geometry::planar::alignment::bottom_right()));
 
-		guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background)"), fourBoxPane);
+		auto w = guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background)"), fourBoxPane);
+		*quitCountDown += w;
 	}
 
 	{
 		rcref<pixel_image_pane> img4 = rcnew(pixel_image_pane, string::literal(L"guitar"));// , true, true);
 		rcref<propose_aspect_ratio_frame> aspectRatioFrame = rcnew(propose_aspect_ratio_frame, img4);
 		rcref<override_default_size_frame> defaultSizeFrame = rcnew(override_default_size_frame, aspectRatioFrame, gfx::canvas::size(200, 200));
-		guiSubsystem->open(string::literal(L"image aspect ratio test"), img4, defaultSizeFrame);
+		auto w = guiSubsystem->open(string::literal(L"image aspect ratio test"), img4, defaultSizeFrame);
+		*quitCountDown += w;
 	}
 
 	{
 		rcref<pixel_image_pane> img4 = rcnew(pixel_image_pane, string::literal(L"guitar"));// , true, true);
 		rcref<override_default_size_frame> defaultSizeFrame = rcnew(override_default_size_frame, img4, gfx::canvas::size(200, 200));
 		rcref<propose_aspect_ratio_frame> aspectRatioFrame = rcnew(propose_aspect_ratio_frame, defaultSizeFrame);
-		guiSubsystem->open(string::literal(L"image aspect ratio test w/size"), img4, aspectRatioFrame);
+		auto w = guiSubsystem->open(string::literal(L"image aspect ratio test w/size"), img4, aspectRatioFrame);
+		*quitCountDown += w;
 	}
 
 	{
@@ -274,7 +284,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, defaultSizeFrame);
 		rcref<background> parentPane = rcnew(background, color::beige);
 		parentPane->nest(img4, unconstrainedFrame);
-		guiSubsystem->open(string::literal(L"image aspect ratio test2"), parentPane);
+		auto w = guiSubsystem->open(string::literal(L"image aspect ratio test2"), parentPane);
+		*quitCountDown += w;
 	}
 
 	{
@@ -284,13 +295,15 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, aspectRatioFrame);
 		rcref<background> parentPane = rcnew(background, color::beige);
 		parentPane->nest(img4, unconstrainedFrame);
-		guiSubsystem->open(string::literal(L"image aspect ratio test2 w/size"), parentPane);
+		auto w = guiSubsystem->open(string::literal(L"image aspect ratio test2 w/size"), parentPane);
+		*quitCountDown += w;
 	}
 
 	{
 		rcref<pixel_image_pane> img4 = rcnew(pixel_image_pane, string::literal(L"guitar"));// , true);
 		rcref<override_default_size_frame> f2 = rcnew(override_default_size_frame, img4, gfx::canvas::size(200, 200));
-		guiSubsystem->open(string::literal(L"image stretch test"), img4, f2);
+		auto w = guiSubsystem->open(string::literal(L"image stretch test"), img4, f2);
+		*quitCountDown += w;
 	}
 
 
@@ -307,7 +320,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -323,7 +337,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test - 168 dpi"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test - 168 dpi"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -338,7 +353,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -351,7 +367,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -367,7 +384,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -380,7 +398,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -393,7 +412,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -409,7 +429,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -422,7 +443,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -435,7 +457,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 	
@@ -451,7 +474,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 	
 	{
@@ -464,7 +488,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 	
 	{
@@ -477,7 +502,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -493,7 +519,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 	
 	{
@@ -506,7 +533,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 	
 	{
@@ -519,7 +547,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 	
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -535,7 +564,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -548,7 +578,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), root);
+		*quitCountDown += w;
 	}
 
 	{
@@ -561,7 +592,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 
 		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
 		root->nest(scrollPane, f);
-		guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		auto w = guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		*quitCountDown += w;
 	}
 
 
@@ -589,9 +621,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		root->nest(cb1, rcnew(unshrinkable_frame, cb1));
 		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
 
-		guiSubsystem->open(string::literal(L"lines and nested checkbox"), box)
-			->dispatch([]() { cogs::request_quit(); })
-			;
+		auto w = guiSubsystem->open(string::literal(L"lines and nested checkbox"), box);
+		*quitCountDown += w;
 	}
 
 
@@ -611,7 +642,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		root->nest(te1);
 		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_size_frame, root, size(300, 300))));
 
-		guiSubsystem->open(string::literal(L"Lines and text_editor"), box);
+		auto w = guiSubsystem->open(string::literal(L"Lines and text_editor"), box);
+		*quitCountDown += w;
 	}
 
 
@@ -630,7 +662,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		root->nest(lbl);
 		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
 
-		guiSubsystem->open(string::literal(L"Lines and label"), box);
+		auto w = guiSubsystem->open(string::literal(L"Lines and label"), box);
+		*quitCountDown += w;
 	}
 
 	{
@@ -648,7 +681,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		root->nest(lbl);
 		box->nest(root, rcnew(fixed_default_size_frame, root));
 
-		guiSubsystem->open(string::literal(L"Lines and label"), box);
+		auto w = guiSubsystem->open(string::literal(L"Lines and label"), box);
+		*quitCountDown += w;
 	}
 
 
@@ -667,7 +701,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		root->nest(btn);
 		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
 
-		guiSubsystem->open(string::literal(L"Lines and button"), box);
+		auto w = guiSubsystem->open(string::literal(L"Lines and button"), box);
+		*quitCountDown += w;
 	}
 
 
@@ -722,15 +757,14 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		wrapperBkg->nest(box);
 		wrapperBkg->nest(wrapper);
 
-		guiSubsystem->open(string::literal(L"wrap_list + resizing test"), wrapperBkg)
-			->dispatch([]() { cogs::request_quit(); });
+		auto w = guiSubsystem->open(string::literal(L"wrap_list + resizing test"), wrapperBkg);
+		*quitCountDown += w;
 	}
 
 
 	{
 		typedef grid<> grid_t;
 		rcref<grid_t> g = rcnew(grid_t);
-
 
 		rcref<background> box00 = rcnew(background, color(0xFF, 0x00, 0x00, 0xFF));
 		rcref<background> box01 = rcnew(background, color(0x00, 0xFF, 0x00, 0xFF));
@@ -812,7 +846,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		g->nest(box32, 3, 2);
 		//g->nest(box33, 3, 3);
 
-		guiSubsystem->open(string::literal(L"Grid test"), g);
+		auto w = guiSubsystem->open(string::literal(L"Grid test"), g);
+		*quitCountDown += w;
 	}
 
 	return 0;

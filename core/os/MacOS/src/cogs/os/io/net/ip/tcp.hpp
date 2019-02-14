@@ -298,7 +298,6 @@ public:
 		rcptr<tcp>							m_tcp;
 		vector<address>						m_addresses;
 		unsigned short						m_remotePort;
-		//single_fire_event					m_event;
 
 		os::io::kqueue_pool::remove_token	m_waiterRemoveToken;
 		bool								m_aborted;

@@ -318,7 +318,7 @@ protected:
 
 	public:
 		content_t()
-			: m_closeEvent(rcnew(count_down_event))
+			: m_closeEvent(count_down_event::create(1))
 		{ }
 
 		~content_t()

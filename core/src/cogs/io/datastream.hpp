@@ -31,7 +31,7 @@ class datastream : public datasource,  public datasink
 public:
 	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(datastream, datasource, datasink);
 
-	class closer : public waitable
+	class closer : public waitable, public object
 	{
 	private:
 		closer() = delete;
@@ -40,25 +40,29 @@ public:
 		closer& operator=(closer&&) = delete;
 		closer& operator=(const closer&) = delete;
 
-		const weak_rcptr<datastream>	m_stream;
-		count_down_event				m_event;
+		const weak_rcptr<datastream> m_stream;
+		delayed_construction<count_down_event> m_event;
 
 	protected:
 		friend class datastream;
 
-		closer(const rcref<datastream>& ds) : m_stream(ds), m_event(2) { }
+		closer(const rcref<datastream>& ds)
+			: m_stream(ds)
+		{
+			placement_rcnew(this_desc, (bypass_constructor_permission<count_down_event>*)&m_event.get(), 2);
+		}
 
-		void closing()	{ m_event.count_down(); }
+		void closing()	{ m_event->count_down(); }
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
-			return dispatcher::dispatch_inner(m_event, t, priority);
+			return dispatcher::dispatch_inner(*m_event, t, priority);
 		}
 
 	public:
 		const weak_rcptr<datastream>& get_datastream() const				{ return m_stream; }
 
-		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile			{ return m_event.timed_wait(timeout, spinCount); }
+		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile			{ return m_event->timed_wait(timeout, spinCount); }
 	};
 
 	virtual void abort()
