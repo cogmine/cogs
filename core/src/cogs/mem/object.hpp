@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OBJECT
-#define COGS_OBJECT
+#ifndef COGS_HEADER_MEM_OBJECT
+#define COGS_HEADER_MEM_OBJECT
 
 
 #include "cogs/mem/ptr.hpp"

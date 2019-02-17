@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup, NeedsTesting
 
-#ifndef COGS_RWLOCK
-#define COGS_RWLOCK
+#ifndef COGS_HEADER_SYNC_RWLOCK
+#define COGS_HEADER_SYNC_RWLOCK
 
 
 #include "cogs/env.hpp"

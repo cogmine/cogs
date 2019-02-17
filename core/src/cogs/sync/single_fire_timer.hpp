@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SINGLE_FIRE_TIMER
-#define COGS_SINGLE_FIRE_TIMER
+#ifndef COGS_HEADER_SYNC_SINGLE_FIRE_TIMER
+#define COGS_HEADER_SYNC_SINGLE_FIRE_TIMER
 
 
 #include "cogs/sync/timer.hpp"

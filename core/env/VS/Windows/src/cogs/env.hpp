@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_VS_WINDOWS
-#define COGS_ENV_VS_WINDOWS
+#ifndef COGS_HEADER_ENV
+#define COGS_HEADER_ENV
 
 
 #include <intrin.h>

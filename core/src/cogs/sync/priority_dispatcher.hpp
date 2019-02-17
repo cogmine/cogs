@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PRIORITY_DISPATCHER
-#define COGS_PRIORITY_DISPATCHER
+#ifndef COGS_HEADER_SYNC_PRIORITY_DISPATCHER
+#define COGS_HEADER_SYNC_PRIORITY_DISPATCHER
 
 
 #include "cogs/function.hpp"
@@ -45,10 +45,11 @@ private:
 	priority_dispatcher& operator=(priority_dispatcher&&) = delete;
 	priority_dispatcher& operator=(const priority_dispatcher&) = delete;
 
-	virtual bool cancel_inner(volatile dispatched& t) volatile
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched& t) volatile
 	{
 		priority_dispatched& d = *(priority_dispatched*)&t;
-		return m_priorityQueue.remove(d.m_removeToken);
+		bool b = m_priorityQueue.remove(d.m_removeToken);
+		return get_immediate_task(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& t, int newPriority) volatile

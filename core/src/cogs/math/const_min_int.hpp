@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_MIN_INT
-#define COGS_CONST_MIN_INT
+#ifndef COGS_HEADER_MATH_CONST_MIN_INT
+#define COGS_HEADER_MATH_CONST_MIN_INT
 
 
 namespace cogs {

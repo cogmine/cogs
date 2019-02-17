@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_NEXT_EXPONENT_OF_TWO
-#define COGS_NEXT_EXPONENT_OF_TWO
+#ifndef COGS_HEADER_MATH_NEXT_EXPONENT_OF_TWO
+#define COGS_HEADER_MATH_NEXT_EXPONENT_OF_TWO
 
 
 #include "cogs/math/prev_exponent_of_two.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting, MayNeedCleanup
 
-#ifndef COGS_FIXED_INTEGER_NATIVE_CONST
-#define COGS_FIXED_INTEGER_NATIVE_CONST
+#ifndef COGS_HEADER_MATH_FIXED_INTEGER_NATIVE_CONST
+#define COGS_HEADER_MATH_FIXED_INTEGER_NATIVE_CONST
 
 #include <type_traits>
 

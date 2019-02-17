@@ -5,8 +5,8 @@
 
 // Status: WorkInProgress
 
-#ifndef COGS_CIPHER
-#define COGS_CIPHER
+#ifndef COGS_HEADER_CRYPTO_CIPHER
+#define COGS_HEADER_CRYPTO_CIPHER
 
 
 #include "cogs/io/buffer.hpp"

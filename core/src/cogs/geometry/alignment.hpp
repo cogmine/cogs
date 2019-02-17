@@ -6,8 +6,8 @@
 // Status: WorkInProgress
 
 
-#ifndef COGS_ALIGNMENT
-#define COGS_ALIGNMENT
+#ifndef COGS_HEADER_GEOMETRY_ALIGNMENT
+#define COGS_HEADER_GEOMETRY_ALIGNMENT
 
 #include <array>
 

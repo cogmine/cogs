@@ -5,14 +5,13 @@
 
 // Status: Good
 
-#ifndef COGS_NET_SERVER
-#define COGS_NET_SERVER
+#ifndef COGS_HEADER_IO_NET_SERVER
+#define COGS_HEADER_IO_NET_SERVER
 
 
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/function.hpp"
 #include "cogs/io/datastream.hpp"
-#include "cogs/io/delegated_datasink.hpp"
 #include "cogs/io/net/connection.hpp"
 #include "cogs/math/boolean.hpp"
 #include "cogs/math/measure.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SEMAPHORE
-#define COGS_SEMAPHORE
+#ifndef COGS_HEADER_SYNC_SEMAPHORE
+#define COGS_HEADER_SYNC_SEMAPHORE
 
 
 #include "cogs/env.hpp"

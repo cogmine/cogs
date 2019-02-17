@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_WINDOW
-#define COGS_GDI_WINDOW
+#ifndef COGS_HEADER_OS_GUI_GDI_WINDOW
+#define COGS_HEADER_OS_GUI_GDI_WINDOW
 
 
 #include "cogs/collections/container_dlist.hpp"

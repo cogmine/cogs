@@ -5,8 +5,8 @@
 
 // Status: Good, Placeholder
 
-#ifndef COGS_ARCH_BIT_SCAN
-#define COGS_ARCH_BIT_SCAN
+#ifndef COGS_HEADER_ARCH_MEM_BIT_SCAN
+#define COGS_HEADER_ARCH_MEM_BIT_SCAN
 
 #include <type_traits>
 

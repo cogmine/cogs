@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_WAIT_QUEUE
-#define COGS_WAIT_QUEUE
+#ifndef COGS_HEADER_SYNC_WAIT_QUEUE
+#define COGS_HEADER_SYNC_WAIT_QUEUE
 
 
 #include "cogs/env.hpp"

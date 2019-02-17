@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_BIT_SCAN
-#define COGS_ENV_BIT_SCAN
+#ifndef COGS_HEADER_ENV_MEM_BIT_SCAN
+#define COGS_HEADER_ENV_MEM_BIT_SCAN
 
 #include <type_traits>
 

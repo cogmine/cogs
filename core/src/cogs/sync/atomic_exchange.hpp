@@ -5,9 +5,9 @@
 
 // Status: Good
 
-#ifdef COGS_OPERATORS
-#ifndef COGS_ATOMIC_EXCHANGE
-#define COGS_ATOMIC_EXCHANGE
+#ifdef COGS_HEADER_OPERATORS
+#ifndef COGS_HEADER_SYNC_ATOMIC_EXCHANGE
+#define COGS_HEADER_SYNC_ATOMIC_EXCHANGE
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Placeholder
 
-#ifndef COGS_OS_DIRECTX
-#define COGS_OS_DIRECTX
+#ifndef COGS_HEADER_OS_GUI_OS_DIRECTX
+#define COGS_HEADER_OS_GUI_OS_DIRECTX
 
 #include "cogs/os.hpp"
 #include <d3d11.h>

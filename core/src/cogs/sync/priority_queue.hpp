@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PRIORITY_QUEUE
-#define COGS_PRIORITY_QUEUE
+#ifndef COGS_HEADER_SYNC_PRIORITY_QUEUE
+#define COGS_HEADER_SYNC_PRIORITY_QUEUE
 
 
 #include "cogs/collections/multimap.hpp"

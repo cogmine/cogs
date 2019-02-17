@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_IP_ENDPOINT
-#define COGS_OS_IP_ENDPOINT
+#ifndef COGS_HEADER_OS_IO_NET_IP_ENDPOINT
+#define COGS_HEADER_OS_IO_NET_IP_ENDPOINT
 
 
 #include "cogs/os/io/net/ip/address.hpp"

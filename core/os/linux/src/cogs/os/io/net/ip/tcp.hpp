@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_IP_TCP
-#define COGS_OS_IP_TCP
+#ifndef COGS_HEADER_OS_IO_NET_IP_TCP
+#define COGS_HEADER_OS_IO_NET_IP_TCP
 
 
 #include "cogs/io/datastream.hpp"
@@ -436,10 +436,12 @@ public:
 		const rcptr<tcp>& get_tcp()					{ return m_tcp; }
 		unsigned short get_remote_port() const		{ return m_remotePort; }
 	
-		virtual bool cancel() volatile
+		virtual rcref<task<bool> > cancel() volatile
 		{
-			if (signallable_task<connecter>::cancel())
+			auto t = signallable_task<connecter>::cancel();
+			if (t.get())
 				complete_or_abort(abort_task);
+			return t;
 		}
 	};
 

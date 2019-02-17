@@ -5,8 +5,8 @@
 //
 //// Status: Placeholder, WorkInProgress
 //
-//#ifndef COGS_GUI_BUTTONBOX
-//#define COGS_GUI_BUTTONBOX
+//#ifndef COGS_HEADER_GUI_BUTTONBOX
+//#define COGS_HEADER_GUI_BUTTONBOX
 //
 //
 //#include "cogs/collections/container_dlist.hpp"

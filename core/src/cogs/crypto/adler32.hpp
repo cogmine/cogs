@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ADLER32
-#define COGS_ADLER32
+#ifndef COGS_HEADER_CRYPTO_ADLER32
+#define COGS_HEADER_CRYPTO_ADLER32
 
 
 #include "cogs/crypto/hash_int.hpp"

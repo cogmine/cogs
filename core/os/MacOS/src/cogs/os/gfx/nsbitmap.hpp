@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_NSBITMAP
-#define COGS_OS_NSBITMAP
+#ifndef COGS_HEADER_OS_GFX_NSBITMAP
+#define COGS_HEADER_OS_GFX_NSBITMAP
 
 
 #include "cogs/collections/composite_string.hpp"

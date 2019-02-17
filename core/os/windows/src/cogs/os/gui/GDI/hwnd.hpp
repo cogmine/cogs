@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_HWND
-#define COGS_GDI_HWND
+#ifndef COGS_HEADER_OS_GUI_GDI_HWND
+#define COGS_HEADER_OS_GUI_GDI_HWND
 
 #include "cogs/os.hpp"
 #include <CommCtrl.h>

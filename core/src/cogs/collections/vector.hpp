@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RESIZABLE_ARRAY
-#define COGS_RESIZABLE_ARRAY
+#ifndef COGS_HEADER_COLLECTION_VECTOR
+#define COGS_HEADER_COLLECTION_VECTOR
 
 #include <type_traits>
 

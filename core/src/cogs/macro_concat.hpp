@@ -8,8 +8,8 @@
 #include "cogs/macro_stringify.hpp"
 
 
-#ifndef COGS_COGS_MACRO_CONCAT
-#define COGS_COGS_MACRO_CONCAT
+#ifndef COGS_HEADER_MACRO_CONCAT
+#define COGS_HEADER_MACRO_CONCAT
 
 
 #define COGS_MACRO_CONCAT_INNER(x, y) x ## y

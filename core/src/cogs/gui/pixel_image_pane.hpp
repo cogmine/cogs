@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_IMAGE_PANE
-#define COGS_GUI_IMAGE_PANE
+#ifndef COGS_HEADER_GUI_PIXEL_IMAGE_PANE
+#define COGS_HEADER_GUI_PIXEL_IMAGE_PANE
 
 
 #include "cogs/gfx/color.hpp"

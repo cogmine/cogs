@@ -5,8 +5,8 @@
 
 // Status: Placeholder
 
-#ifndef COGS_REGEXP
-#define COGS_REGEXP
+#ifndef COGS_HEADER_PARSER_REGEXP
+#define COGS_HEADER_PARSER_REGEXP
 
 
 #include "cogs/math/range_to_int.hpp"

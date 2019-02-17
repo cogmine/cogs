@@ -4,8 +4,8 @@
 //
 //// Status: WorkInProgress
 //
-//#ifndef COGS_GUI_LIST
-//#define COGS_GUI_LIST
+//#ifndef COGS_HEADER_GUI_LIST
+//#define COGS_HEADER_GUI_LIST
 //
 //
 //#include "cogs/collections/multimap.hpp"

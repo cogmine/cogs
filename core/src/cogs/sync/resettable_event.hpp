@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RESETTABLE_EVENT
-#define COGS_RESETTABLE_EVENT
+#ifndef COGS_HEADER_SYNC_RESETTABLE_EVENT
+#define COGS_HEADER_SYNC_RESETTABLE_EVENT
 
 
 #include "cogs/function.hpp"

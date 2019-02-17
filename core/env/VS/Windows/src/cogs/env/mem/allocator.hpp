@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_ALLOCATOR
-#define COGS_ENV_ALLOCATOR
+#ifndef COGS_HEADER_ENV_MEM_ALLOCATOR
+#define COGS_HEADER_ENV_MEM_ALLOCATOR
 
 
 #include <malloc.h>

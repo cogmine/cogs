@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SNEFRU
-#define COGS_SNEFRU
+#ifndef COGS_HEADER_CRYPTO_SNEFRU
+#define COGS_HEADER_CRYPTO_SNEFRU
 
 
 #include "cogs/crypto/serial_hash.hpp"

@@ -5,8 +5,8 @@
 
 // Status: WorkInProgress
 
-#ifndef COGS_MEASUREMENT_TYPES
-#define COGS_MEASUREMENT_TYPES
+#ifndef COGS_HEADER_MATH_MEASUREMENT_TYPES
+#define COGS_HEADER_MATH_MEASUREMENT_TYPES
 
 #include <type_traits>
 

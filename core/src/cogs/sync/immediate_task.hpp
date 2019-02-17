@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IMMEDIATE_TASK
-#define COGS_IMMEDIATE_TASK
+#ifndef COGS_HEADER_SYNC_IMMEDIATE_TASK
+#define COGS_HEADER_SYNC_IMMEDIATE_TASK
 
 
 #include "cogs/sync/dispatcher.hpp"
@@ -14,12 +14,6 @@
 
 
 namespace cogs {
-
-
-rcref<task<void> > get_immediate_task();
-
-template <typename T>
-rcref<task<std::remove_reference_t<T> > > create_immediate_task(T&& t);
 
 
 
@@ -52,12 +46,12 @@ private:
 
 protected:
 	immediate_task(const result_t& r)
-		: task<void>(true),
+		: task<result_t>(true),
 		m_result(r)
 	{ }
 
 	immediate_task(result_t&& r)
-		: task<void>(true),
+		: task<result_t>(true),
 		m_result(std::move(r))
 	{ }
 
@@ -65,21 +59,43 @@ public:
 	template <typename T>
 	static rcref<task<std::remove_reference_t<T> > > create(T&& t)
 	{
-		return rcnew(this_t, std::forward<T>(t));
+		return rcnew(bypass_constructor_permission<this_t>, std::forward<T>(t));
 	}
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
 
-	virtual const result_t& get() const volatile { return m_result; }
+	virtual const result_t& get() const volatile { return *const_cast<const result_t*>(&m_result); }
 
-	virtual bool cancel() volatile { return false; }
+	virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
 };
 
 
 template <typename T>
-inline rcref<task<std::remove_reference_t<T> > > create_immediate_task(T&& t)
+inline rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t)
 {
 	return immediate_task<std::remove_reference_t<T> >::create(std::forward<T>(t));
+}
+
+
+// Use singletons for true and false
+
+inline rcref<task<bool> > get_immediate_task(bool b)
+{
+	class immediate_task_true : public immediate_task<bool>
+	{
+	public:
+		immediate_task_true() : immediate_task<bool>(true) { }
+	};
+
+	class immediate_task_false : public immediate_task<bool>
+	{
+	public:
+		immediate_task_false() : immediate_task<bool>(false) { }
+	};
+
+	if (b)
+		return singleton<immediate_task_true>::get();
+	return singleton<immediate_task_false>::get();
 }
 
 
@@ -115,17 +131,17 @@ protected:
 	{ }
 
 public:
-	static rcref<task<void> > get_default() { return singleton<immediate_task<void> >::get(); }
+	static rcref<task<void> > create() { return singleton<immediate_task<void> >::get(); }
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
 
-	virtual bool cancel() volatile { return false; }
+	virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
 };
 
 
 inline rcref<task<void> > get_immediate_task()
 {
-	return immediate_task<void>::get_default();
+	return immediate_task<void>::create();
 }
 
 

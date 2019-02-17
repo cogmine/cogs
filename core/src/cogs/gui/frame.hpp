@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_RESHAPER
-#define COGS_RESHAPER
+#ifndef COGS_HEADER_GUI_FRAME
+#define COGS_HEADER_GUI_FRAME
 
 
 #include "cogs/geometry/cell.hpp"

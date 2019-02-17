@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_TLINK
-#define COGS_TLINK
+#ifndef COGS_HEADER_COLLECTION_TLINK
+#define COGS_HEADER_COLLECTION_TLINK
 
 #include <type_traits>
 

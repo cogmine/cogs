@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_VERSIONED_REF
-#define COGS_VERSIONED_REF
+#ifndef COGS_HEADER_SYNC_VERSIONED_REF
+#define COGS_HEADER_SYNC_VERSIONED_REF
 
 
 #include "cogs/env.hpp"

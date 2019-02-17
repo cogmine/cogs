@@ -2,8 +2,8 @@
 //  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-#ifndef COGS_OS_TIMEOUT
-#define COGS_OS_TIMEOUT
+#ifndef COGS_HEADER_OS_SYNC_TIMEOUT
+#define COGS_HEADER_OS_SYNC_TIMEOUT
 
 
 #include "cogs/math/const_max_int.hpp"

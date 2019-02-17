@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SGUARD
-#define COGS_SGUARD
+#ifndef COGS_HEADER_SYNC_SERIAL_DEFER_GUARD
+#define COGS_HEADER_SYNC_SERIAL_DEFER_GUARD
 
 
 #include "cogs/env.hpp"
@@ -14,7 +14,7 @@
 #include "cogs/collections/slink.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/operators.hpp"
-#include "cogs/sync/dguard.hpp"
+#include "cogs/sync/defer_guard.hpp"
 #include "cogs/sync/versioned_ptr.hpp"
 
 

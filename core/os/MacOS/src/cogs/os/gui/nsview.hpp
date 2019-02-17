@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_NSVIEW
-#define COGS_OS_NSVIEW
+#ifndef COGS_HEADER_OS_GUI_NSVIEW
+#define COGS_HEADER_OS_GUI_NSVIEW
 
 
 #import <Cocoa/Cocoa.h>

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_LCM
-#define COGS_CONST_LCM
+#ifndef COGS_HEADER_MATH_CONST_LCM
+#define COGS_HEADER_MATH_CONST_LCM
 
 #include <type_traits>
 

@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_ARCH
-#define COGS_ARCH
+#ifndef COGS_HEADER_ARCH
+#define COGS_HEADER_ARCH
 
 
 #include "cogs/mem/endian.hpp"

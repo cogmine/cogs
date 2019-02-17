@@ -5,13 +5,13 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_BACKGROUND
-#define COGS_GUI_BACKGROUND
+#ifndef COGS_HEADER_GUI_BACKGROUND
+#define COGS_HEADER_GUI_BACKGROUND
 
 
 #include "cogs/gfx/color.hpp"
 #include "cogs/gui/pane.hpp"
-#include "cogs/gui/binding.hpp"
+#include "cogs/bindable_property.hpp"
 
 
 namespace cogs {
@@ -25,7 +25,7 @@ class background : public pane, public virtual pane_container
 private:
 	volatile color m_color;
 
-	delayed_construction<delegated_property<color> > m_colorProperty;
+	delayed_construction<delegated_bindable_property<color> > m_colorProperty;
 
 	void create_properties()
 	{
@@ -62,7 +62,7 @@ public:
 		fill(get_size(), c);
 	}
 		
-	rcref<property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<property<color> >(); }
+	rcref<bindable_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<bindable_property<color> >(); }
 
 	color get_color() const
 	{

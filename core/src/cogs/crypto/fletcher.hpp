@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_FLETCHER
-#define COGS_FLETCHER
+#ifndef COGS_HEADER_CRYPTO_FLETCHER
+#define COGS_HEADER_CRYPTO_FLETCHER
 
 
 #include "cogs/crypto/hash_int.hpp"

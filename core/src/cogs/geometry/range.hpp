@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_RANGE
-#define COGS_RANGE
+#ifndef COGS_HEADER_GEOMETRY_RANGE
+#define COGS_HEADER_GEOMETRY_RANGE
 
 
 #include "cogs/collections/composite_string.hpp"

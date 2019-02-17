@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_TIGER
-#define COGS_TIGER
+#ifndef COGS_HEADER_CRYPTO_TIGER
+#define COGS_HEADER_CRYPTO_TIGER
 
 
 #include "cogs/crypto/serial_hash.hpp"

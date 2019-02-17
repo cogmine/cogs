@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_GRAPHICS_CONTEXT
-#define COGS_OS_GRAPHICS_CONTEXT
+#ifndef COGS_HEADER_OS_GFX_GRAPHICS_CONTEXT
+#define COGS_HEADER_OS_GFX_GRAPHICS_CONTEXT
 
 
 #include "cogs/env.hpp"

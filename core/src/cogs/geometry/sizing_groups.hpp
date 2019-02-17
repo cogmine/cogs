@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_SIZING_GROUPS
-#define COGS_SIZING_GROUPS
+#ifndef COGS_HEADER_GEOMETRY_SIZING_GROUPS
+#define COGS_HEADER_GEOMETRY_SIZING_GROUPS
 
 
 #include "cogs/collections/multimap.hpp"

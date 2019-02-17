@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_THREAD
-#define COGS_THREAD
+#ifndef COGS_HEADER_SYNC_THREAD
+#define COGS_HEADER_SYNC_THREAD
 
 
 #include "cogs/env.hpp"
@@ -45,21 +45,13 @@ private:
 	// unless cleared to 0 at cleanup time, BEFORE global/static destruct time.)
 
 	// s_threadWaiters is used to wait on all threads to terminate before quitting.
-	inline static placement<container_dlist<rcref<thread> > > s_threadWaiters;
+	class thread_waiters_t : public container_dlist<rcref<thread> > { };
+
 	container_dlist<rcref<thread> >::volatile_remove_token	m_removeToken;
 	mutable volatile boolean m_deregisteredWaiter;
 
-	static void register_waiter(const rcref<thread>& t)
-	{
-		volatile container_dlist<rcref<thread> >& threadWaiters = s_threadWaiters.get();
-		t->m_removeToken = threadWaiters.prepend(t);
-	}
-
-	void deregister_waiter() const
-	{
-		volatile container_dlist<rcref<thread> >& threadWaiters = s_threadWaiters.get();
-		threadWaiters.remove(m_removeToken);
-	}
+	static void register_waiter(const rcref<thread>& t);
+	void deregister_waiter() const;
 
 	thread() = delete;
 	thread(const thread&) = delete;
@@ -85,33 +77,7 @@ public:
 		return threadRef;
 	}
 
-	static void join_all(const timeout_t& timeout = timeout_t::infinite() )	// To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
-	{
-		volatile container_dlist<rcref<thread> >& threadWaiters = s_threadWaiters.get();
-
-		bool anySinceLastLoop = false;
-		container_dlist<rcref<thread> >::volatile_iterator itor = threadWaiters.get_first();
-		for (;;)
-		{
-			if (!itor)
-			{
-				s_threadWaiters.destruct();
-				break;
-			}
-			int i = (*itor)->join(timeout);
-			COGS_ASSERT(i != 0);	// should only be called by main thread
-			if (i == 1)
-				anySinceLastLoop = true;
-			++itor;
-			if (!itor)
-			{
-				if (!anySinceLastLoop)
-					break;
-				anySinceLastLoop = false;
-				itor = threadWaiters.get_first();
-			}
-		}
-	}
+	static void join_all(const timeout_t& timeout = timeout_t::infinite());	// To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
 
 	// returns -1 indicating a timeout
 	// returns 0 indicating this is the current thread
@@ -149,11 +115,6 @@ public:
 
 
 }
-
-
-//#include "cogs/sync/thread_pool.hpp"
-//#include "cogs/sync/cleanup_queue.hpp"
-//#include "cogs/sync/quit_dispatcher.hpp"
 
 
 #endif

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_WINDOWS
-#define COGS_OS_WINDOWS
+#ifndef COGS_HEADER_OS
+#define COGS_HEADER_OS
 
 
 //#define WINVER 0x0600

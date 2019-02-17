@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MACOS_STRINGS
-#define COGS_MACOS_STRINGS
+#ifndef COGS_HEADER_OS_MACOS_STRINGS
+#define COGS_HEADER_OS_MACOS_STRINGS
 
 
 #import <Cocoa/Cocoa.h>

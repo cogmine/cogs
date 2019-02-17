@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_ALIGNMENT
-#define COGS_ENV_ALIGNMENT
+#ifndef COGS_HEADER_ENV_MEM_ALIGNMENT
+#define COGS_HEADER_ENV_MEM_ALIGNMENT
 
 
 #include <stdlib.h>

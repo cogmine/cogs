@@ -5,8 +5,8 @@
 
 // Status: Placeholder, WorkInProgress
 
-#ifndef COGS_COMPOSITE_STRING
-#define COGS_COMPOSITE_STRING
+#ifndef COGS_HEADER_COLLECTION_COMPOSITE_STRING
+#define COGS_HEADER_COLLECTION_COMPOSITE_STRING
 
 
 #include "cogs/collections/composite_vector.hpp"

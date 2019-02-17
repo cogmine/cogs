@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_STRING
-#define COGS_STRING
+#ifndef COGS_HEADER_COLLECTION_STRING
+#define COGS_HEADER_COLLECTION_STRING
 
 
 #include "cogs/operators.hpp"

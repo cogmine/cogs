@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ABASTACK
-#define COGS_ABASTACK
+#ifndef COGS_HEADER_COLLECTION_ABASTACK
+#define COGS_HEADER_COLLECTION_ABASTACK
 
 
 #include "cogs/collections/slink.hpp"

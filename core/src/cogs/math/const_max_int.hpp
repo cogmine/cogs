@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_MAX_INT
-#define COGS_CONST_MAX_INT
+#ifndef COGS_HEADER_MATH_CONST_MAX_INT
+#define COGS_HEADER_MATH_CONST_MAX_INT
 
 
 namespace cogs {

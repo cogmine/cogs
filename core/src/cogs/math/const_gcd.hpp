@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_GCD
-#define COGS_CONST_GCD
+#ifndef COGS_HEADER_MATH_CONST_GCD
+#define COGS_HEADER_MATH_CONST_GCD
 
 #include <type_traits>
 

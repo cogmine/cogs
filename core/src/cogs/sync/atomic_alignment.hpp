@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ATOMIC_ALIGNMENT
-#define COGS_ATOMIC_ALIGNMENT
+#ifndef COGS_HEADER_SYNC_ATOMIC_ALIGNMENT
+#define COGS_HEADER_SYNC_ATOMIC_ALIGNMENT
 
 #include <type_traits>
 

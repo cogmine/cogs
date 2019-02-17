@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RC_OBJ_BASE
-#define COGS_RC_OBJ_BASE
+#ifndef COGS_HEADER_MEM_RC_OBJ_BASE
+#define COGS_HEADER_MEM_RC_OBJ_BASE
 
 
 #include "cogs/collections/abastack.hpp"

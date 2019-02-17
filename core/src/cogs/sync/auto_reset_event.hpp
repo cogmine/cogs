@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_AUTO_RESET_EVENT
-#define COGS_AUTO_RESET_EVENT
+#ifndef COGS_HEADER_SYNC_AUTO_RESET_EVENT
+#define COGS_HEADER_SYNC_AUTO_RESET_EVENT
 
 
 #include "cogs/sync/resettable_event.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SINGLE_FIRE_EVENT
-#define COGS_SINGLE_FIRE_EVENT
+#ifndef COGS_HEADER_SYNC_SINGLE_FIRE_EVENT
+#define COGS_HEADER_SYNC_SINGLE_FIRE_EVENT
 
 
 #include "cogs/sync/dispatcher.hpp"
@@ -27,7 +27,7 @@ private:
 
 		virtual bool signal() volatile { return signallable_task<void>::signal(); }
 
-		virtual bool cancel() volatile { return false; }
+		virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
 	};
 
 	rcref<single_fire_signallable_task> m_singleFireSignallableTask;

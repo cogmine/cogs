@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_DEFAULT
-#define COGS_ENV_DEFAULT
+#ifndef COGS_HEADER_ENV
+#define COGS_HEADER_ENV
 
 
 #include <stdio.h>

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PARALLEL_FOR_EACH
-#define COGS_PARALLEL_FOR_EACH
+#ifndef COGS_HEADER_SYNC_DISPATCH_PARALLEL
+#define COGS_HEADER_SYNC_DISPATCH_PARALLEL
 
 
 #include "cogs/function.hpp"

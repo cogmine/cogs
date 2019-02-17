@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IS_NEGATIVE_VALUE
-#define COGS_IS_NEGATIVE_VALUE
+#ifndef COGS_HEADER_MATH_IS_NEGATIVE_VALUE
+#define COGS_HEADER_MATH_IS_NEGATIVE_VALUE
 
 
 #include "cogs/math/is_signed.hpp"

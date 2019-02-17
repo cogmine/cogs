@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_DATETIME
-#define COGS_OS_DATETIME
+#ifndef COGS_HEADER_OS_DATETIME
+#define COGS_HEADER_OS_DATETIME
 
 #include <time.h>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_COGS_ASSERT
-#define COGS_COGS_ASSERT
+#ifndef COGS_HEADER_ASSERT
+#define COGS_HEADER_ASSERT
 
 
 #include <assert.h>

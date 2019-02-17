@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IS_CONST_TYPE
-#define COGS_IS_CONST_TYPE
+#ifndef COGS_HEADER_MATH_IS_CONST_TYPE
+#define COGS_HEADER_MATH_IS_CONST_TYPE
 
 #include <type_traits>
 

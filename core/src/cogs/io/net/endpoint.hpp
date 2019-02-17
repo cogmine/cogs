@@ -5,8 +5,8 @@
 	
 // Status: Good
 
-#ifndef COGS_IO_NET_ENDPOINT
-#define COGS_IO_NET_ENDPOINT
+#ifndef COGS_HEADER_IO_NET_ENDPOINT
+#define COGS_HEADER_IO_NET_ENDPOINT
 
 
 #include "cogs/collections/string.hpp"

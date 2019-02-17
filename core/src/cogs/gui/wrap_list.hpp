@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_GUI_WRAP_LIST
-#define COGS_GUI_WRAP_LIST
+#ifndef COGS_HEADER_GUI_WRAP_LIST
+#define COGS_HEADER_GUI_WRAP_LIST
 
 
 #include "cogs/collections/container_dlist.hpp"

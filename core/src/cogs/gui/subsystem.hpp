@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_SUBSYSTEM
-#define COGS_GUI_SUBSYSTEM
+#ifndef COGS_HEADER_GUI_SUBSYSTEM
+#define COGS_HEADER_GUI_SUBSYSTEM
 
 
 #include "cogs/collections/composite_string.hpp"

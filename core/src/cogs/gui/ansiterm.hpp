@@ -5,19 +5,18 @@
 //
 //// Status: Obsolete, WorkInProgress
 //
-//#ifndef COGS_ANSITERM
-//#define COGS_ANSITERM
+//#ifndef COGS_HEADER_GUI_ANSITERM
+//#define COGS_HEADER_GUI_ANSITERM
 //
 //
 //#include "cogs/env.hpp"
 //#include "cogs/collections/simple_vector.hpp"
 //#include "cogs/collections/string.hpp"
-//#include "cogs/gui/binding.hpp"
+//#include "cogs/bindable_property.hpp"
 //#include "cogs/gui/pane.hpp"
 //#include "cogs/io/buffer.hpp"
 //#include "cogs/io/composite_buffer.hpp"
 //#include "cogs/io/datastream.hpp"
-//#include "cogs/io/delegated_datasink.hpp"
 //#include "cogs/io/net/telnet.hpp"
 //#include "cogs/math/int_types.hpp"
 //#include "cogs/math/measure.hpp"
@@ -33,17 +32,14 @@
 //class ansiterm :
 //	public pane,
 //	public io::net::telnet::terminal, // provide telnet class with access to terminal info and controls
-//	public io::delegated_datasink,
 //	public io::datasource_facade
 //{
 //private:
-//	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(ansiterm, io::delegated_datasink, io::datasource_facade);
-//
 //	volatile transactable<scroll_bar_state>	m_vScrollBarState;
 //	volatile alignas (atomic::get_alignment_v<double>) double	m_vScrollBarPosition;
 //
-//	delayed_construction<delegated_property<scroll_bar_state, io::read_only> >	m_vScrollBarStateProperty;
-//	delayed_construction<delegated_property<double> >	m_vScrollBarPositionProperty;
+//	delayed_construction<delegated_bindable_property<scroll_bar_state, io::read_only> >	m_vScrollBarStateProperty;
+//	delayed_construction<delegated_bindable_property<double> >	m_vScrollBarPositionProperty;
 //
 //	// "Screen" refers to the (bottom) terminal emulation portion of the buffer
 //	// "View" refers to the currently visible portion, which may have been scrolled up to
@@ -1823,11 +1819,11 @@
 //		return rcnew(bypass_constructor_permission<ansiterm>, fontSize, bufHeight, bufWidth, whiteBackground);
 //	}
 //
-//	virtual rcref<property<scroll_bar_state, io::read_only> > get_state_property()
-//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).static_cast_to<property<scroll_bar_state, io::read_only>>(); }
+//	virtual rcref<bindable_property<scroll_bar_state, io::read_only> > get_state_property()
+//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).static_cast_to<bindable_property<scroll_bar_state, io::read_only>>(); }
 //
-//	virtual rcref<property<double> > get_position_property()
-//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).static_cast_to<property<double>>(); }
+//	virtual rcref<bindable_property<double> > get_position_property()
+//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).static_cast_to<bindable_property<double>>(); }
 //
 //	static int get_char_width(unsigned int fontSize)	// Only 0, 1, 2 supported
 //	{

@@ -6,8 +6,8 @@
 // Status: WorkInProgress
 
 
-#ifndef COGS_COMPATIBLE
-#define COGS_COMPATIBLE
+#ifndef COGS_HEADER_COMPATIBLE
+#define COGS_HEADER_COMPATIBLE
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_BOOLEAN
-#define COGS_BOOLEAN
+#ifndef COGS_HEADER_MATH_BOOLEAN
+#define COGS_HEADER_MATH_BOOLEAN
 
 #include <type_traits>
 

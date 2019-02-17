@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_CELL
-#define COGS_CELL
+#ifndef COGS_HEADER_GEOMETRY_CELL
+#define COGS_HEADER_GEOMETRY_CELL
 
 
 #include "cogs/collections/composite_string.hpp"

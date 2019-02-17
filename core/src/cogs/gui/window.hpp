@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_WINDOW
-#define COGS_GUI_WINDOW
+#ifndef COGS_HEADER_GUI_WINDOW
+#define COGS_HEADER_GUI_WINDOW
 
 
 #include "cogs/gui/pane.hpp"
@@ -75,12 +75,13 @@ private:
 				dispatcher::dispatch_inner(*thread_pool::get_default_or_immediate(), t, priority);	// already closed
 		}
 
-		virtual bool cancel() volatile
+		virtual rcref<task<bool> > cancel() volatile
 		{
 			rcptr<window> w = m_window;
+			bool b = false;
 			if (!!w)
-				return w->close();
-			return false;
+				b = w->close();
+			return get_immediate_task(b);
 		}
 	};
 

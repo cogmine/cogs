@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_BOUNDS
-#define COGS_BOUNDS
+#ifndef COGS_HEADER_GEOMETRY_BOUNDS
+#define COGS_HEADER_GEOMETRY_BOUNDS
 
 
 #include "cogs/operators.hpp"

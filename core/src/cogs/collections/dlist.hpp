@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_DLIST
-#define COGS_DLIST
+#ifndef COGS_HEADER_COLLECTION_DLIST
+#define COGS_HEADER_COLLECTION_DLIST
 
 
 #include "cogs/collections/dlink.hpp"

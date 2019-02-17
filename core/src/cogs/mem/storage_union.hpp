@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_STORAGE_UNION
-#define COGS_STORAGE_UNION
+#ifndef COGS_HEADER_MEM_STORAGE_UNION
+#define COGS_HEADER_MEM_STORAGE_UNION
 
 
 #include "cogs/env/mem/alignment.hpp"

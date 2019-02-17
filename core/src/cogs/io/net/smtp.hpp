@@ -5,8 +5,8 @@
 
 // Status: WorkInProgress
 
-#ifndef COGS_SMTP
-#define COGS_SMTP
+#ifndef COGS_HEADER_IO_NET_SMTP
+#define COGS_HEADER_IO_NET_SMTP
 
 
 #include "cogs/collections/map.hpp"
@@ -180,11 +180,11 @@ public:
 		bool						gotCR;
 		composite_cstring			m_currentCommand;
 		composite_cstring			m_commandParams;
-		rcref<delegated_datasink>	m_delegatedSink;
+		rcref<datasink> m_sink;
 		rcptr<task<void> >	m_coupler;
 
 	private:
-		bool process_write(composite_buffer& compBuf)
+		rcref<task<bool> > process_write(composite_buffer& compBuf)
 		{
 			bool completeRequest = false;
 			bool closing = false;
@@ -260,7 +260,7 @@ public:
 				m_currentCommand.clear();
 			}
 
-			return !closing;
+			return get_immediate_task(closing);
 		}
 
 	public:
@@ -275,12 +275,12 @@ public:
 		request(const rcref<connection>& c)
 			: net::request_response_server::request(c),
 			gotCR(false),
-			m_delegatedSink(rcnew(delegated_datasink, [r{ this_weak_rcptr }](composite_buffer& b)
+			m_sink(datasink::create([r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
-				if (!!r2)
-					return r2->process_write(b);
-				return false;
+				if (!r2)
+					return get_immediate_task(true);
+				return r2->process_write(b);
 			}))
 		{ }
 
@@ -288,8 +288,8 @@ public:
 		{
 			net::request_response_server::request::start();
 
-			m_coupler = couple(get_datasource(), m_delegatedSink, true, true);
-			m_delegatedSink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
+			m_coupler = couple(get_datasource(), m_sink, true, true);
+			m_sink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<request> r2 = r;
 				if (!!r2)

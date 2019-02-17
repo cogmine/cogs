@@ -5,11 +5,13 @@
 
 // Status: Good
 
-#ifndef COGS_IO_FILTER
-#define COGS_IO_FILTER
+#ifndef COGS_HEADER_IO_FILTER
+#define COGS_HEADER_IO_FILTER
 
 
 #include "cogs/env.hpp"
+#include "cogs/function.hpp"
+#include "cogs/io/composite_buffer.hpp"
 #include "cogs/io/datasink.hpp"
 #include "cogs/io/datasource.hpp"
 #include "cogs/mem/object.hpp"
@@ -33,13 +35,18 @@ class filter : public datasink, public datasource
 public:
 	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(filter, datasink, datasource);
 
+	typedef function<rcref<cogs::task<composite_buffer> >(composite_buffer&)> filter_func_t;
+	typedef function<rcref<cogs::task<composite_buffer> >()> finalize_func_t;
+
+	filter_func_t m_filterFunc;
+	finalize_func_t m_finalizeFunc;
+
 private:
 	class reader;
 	class writer_base;
 	class writer;
 	class closer;
 	class coupler;
-	class state;
 
 	class state : public object
 	{
@@ -50,30 +57,42 @@ private:
 		rcptr<reader>				m_nextReader;
 		rcptr<reader>				m_reader;
 		rcptr<closer>				m_nextCloser;
-		rcptr<closer>				m_closer;
 		rcptr<coupler>				m_nextCoupler;
 		rcptr<coupler>				m_coupler;
+		rcptr<coupler>				m_sinkCloseCoupler;
+		rcptr<coupler>				m_abortCoupler;
+		rcptr<reader>				m_abortReader;
+		rcptr<writer>				m_abortWriter;
 		rcptr<datasink::writer>		m_coupledWriter;
 		composite_buffer			m_filteredBuffer;
-		bool						m_sinkClosing;
-		bool						m_decoupling;
-		bool						m_finalized;
+		bool						m_finalized = false;	// Once finalizing, filter sink should be already closed
+		bool						m_asyncInProgress = false;
+		bool						m_writeAborting = false;
+		bool						m_closing = false;
+		bool						m_couplerAborted = false;
+		bool						m_coupledSinkClosed = false;
 
-		int releaseLocation = 0;
+		size_t preFilteringSize;
+		rcptr<cogs::task<composite_buffer> > m_filteringTask;
+		rcptr<cogs::task<composite_buffer> > m_finalizeTask;
 
-		typedef void (state::*task_f)();
+		typedef void (state::* task_f)();
 
 		volatile container_queue<task_f>	m_completionSerializer;
+
+		state(const rcref<filter>& f)
+			: m_filter(f)
+		{
+		}
 
 		void process(task_f t)
 		{
 			if (m_completionSerializer.append(t))
 			{
+				bool wasLast;
 				for (;;)
 				{
 					(this->*t)();
-
-					bool wasLast;
 					m_completionSerializer.remove_first(wasLast);
 					if (wasLast)
 						break;
@@ -82,9 +101,19 @@ private:
 			}
 		}
 
-		void read_abort()
+		void processing()
 		{
-			m_reader->read_abort();
+			if (!m_asyncInProgress)
+			{
+				rcptr<filter> f = m_filter;	// filter will be in scope for duration of coupler_process/read_and_write
+				if (!!f)
+				{
+					if (!!m_coupler)
+						coupler_process();
+					else if (!!m_reader)
+						read_and_write();
+				}
+			}
 		}
 
 		void read()
@@ -94,9 +123,11 @@ private:
 			nextReader->read();
 		}
 
-		void write_abort()
+		void read_abort()
 		{
-			m_writer->write_abort();
+			rcptr<reader> abortReader = m_nextReader;
+			m_abortReader.release();
+			abortReader->read_abort();
 		}
 
 		void write()
@@ -106,9 +137,15 @@ private:
 			nextWriter->write();
 		}
 
-		void close_abort()
+		void write_abort()
 		{
-			m_closer->close_abort();
+			rcptr<writer> abortWriter = m_abortWriter;
+			m_abortWriter.release();
+			abortWriter->write_abort();
+			if (!m_filteringTask || (abortWriter != m_writer))
+				abortWriter->write_abort();
+			else
+				m_writeAborting = true;
 		}
 
 		void close()
@@ -118,10 +155,11 @@ private:
 			nextCloser->close();
 		}
 
-		void sink_aborted()
+		void sink_closed()
 		{
-			if (!!m_coupler)
-				m_coupler->sink_aborted();
+			rcptr<coupler> sinkCloseCoupler = m_sinkCloseCoupler;
+			m_sinkCloseCoupler.release();
+			sinkCloseCoupler->sink_closed();
 		}
 
 		void start()
@@ -131,308 +169,243 @@ private:
 			m_coupler->start();
 		}
 
-		void decouple_inner()
+		void coupler_abort()
 		{
-			m_coupler->decouple();
+			rcptr<coupler> abortCoupler = m_abortCoupler;
+			m_abortCoupler.release();
+			abortCoupler->sink_closed();
 		}
 
-		state(const rcref<filter>& f) : m_filter(f), m_sinkClosing(false), m_finalized(false)
+		void filtering_done()
 		{
-		}
+			if (m_writeAborting)
+			{
+				m_writer->write_abort();
+				m_writeAborting = false;
+			}
+			
+			m_asyncInProgress = false;
 
-		// Called when a reader executes on the datasource queue, or from a writer or closer on the datasink queue while there is a reader
-		void read_and_write()
-		{
-			//COGS_ASSERT(!!m_reader);
-			//COGS_ASSERT(!m_writer || !m_closer);	// Zero or one of them, as datasink is a queue, so serial
-			bool closing = false;
-			bool completeWrite = false;
-			bool completeRead = false;
-			do {
-				if (!m_filteredBuffer)	
+			rcptr<filter> f = m_filter;
+			if (!!f)
+			{
+				bool madeProgress = false;
+				const composite_buffer& newBuf = m_filteringTask->get();
+				if (!newBuf)
+					madeProgress = (preFilteringSize != m_writer->get_buffer().get_length());
+				else
 				{
-					for (;;)	// this loop never executes twice
-					{
-						if (!m_closer)
-						{
-							if (!m_writer)	// No closer or write, do nothing 
-							{
-								completeRead = (m_reader->get_read_mode() == datasource::read_now);
-								break;	// all the way out? - !m_filteredBuffer
-							}
-
-							if (!m_writer->get_unwritten_buffer())
-							{
-								completeWrite = true;
-								break;	// All the way out? - !m_filteredBuffer
-							}
-
-							if (m_writer->fill_buffer())
-								break;	// inner - !!m_filteredBuffer
-							//...
-						}
-
-						if (!m_finalized)
-						{
-							m_filteredBuffer = m_filter->finalize();
-							m_finalized = true;
-						}
-
-						if (!m_filteredBuffer)
-						{
-							closing = true;
-							completeRead = true;
-							completeWrite = true;
-							break; // All the way out? - !m_filteredBuffer
-						}
-
-						break;	// inner - !!m_filteredBuffer
-					}
-
-					if (!m_filteredBuffer)
-						break;
+					madeProgress = true;
+					m_filteredBuffer.append(newBuf);
 				}
 
-				composite_buffer& readBufferList = m_reader->get_buffer();
+				m_filteringTask.release();
+
+				if (!madeProgress)
+				{
+					f->abort_sink();	// If there is a read or write in progress, it will complete/abort with current progress
+					start_finalize();
+				}
+				else
+					processing();
+			}
+		}
+
+		void start_finalize()
+		{
+			m_finalizeTask = m_filter->finalize();
+			m_asyncInProgress = true;
+			m_finalized = true;
+			m_finalizeTask->dispatch([r{ this_rcref }]()
+			{
+				r->process(&state::finalize_done);
+			});
+		}
+
+		void finalize_done()
+		{
+			m_asyncInProgress = false;
+			rcptr<filter> f = m_filter;
+			if (!!f)
+			{
+				m_filteredBuffer.append(m_finalizeTask->get());
+				m_finalizeTask.release();
+				processing();
+			}
+		}
+
+		void read_and_write()
+		{
+			bool completeRead = false;
+			do {
+				if (!m_filteredBuffer)
+				{
+					if (!m_writer)	// No closer or write, do nothing
+					{
+						completeRead = (m_reader->get_read_mode() == datasource::read_now);
+						break;
+					}
+					for (;;)	// this loop never executes twice
+					{
+						if (!m_writer->get_unwritten_buffer())
+						{
+							m_writer->complete();
+							m_writer.release();
+							return;
+						}
+						int i = m_writer->fill_buffer();
+						if (i == 1)
+						{
+							if (!m_filteredBuffer)
+								continue;
+							break;
+						}
+						if (i == -1)
+							return;
+						if (!!m_finalized)
+							m_filter->abort_source();
+						else
+						{
+							m_filter->abort_sink();	// If there is a read or write in progress, it will complete/abort with current progress
+							start_finalize();
+						}
+						return;
+					}
+				}
+
+				composite_buffer & readBufferList = m_reader->get_buffer();
 				composite_buffer curBufferList = m_filteredBuffer.split_off_before(m_reader->get_unread_size());
 				readBufferList.append(curBufferList);
 
 				completeRead = (readBufferList.get_length() == m_reader->get_requested_size())
 					|| (m_reader->get_read_mode() == datasource::read_now)
 					|| ((m_reader->get_read_mode() == datasource::read_some) && (m_reader->get_read_size() != 0));
-			} while (!completeWrite && !completeRead);	// one, the other, or both, will complete.
-			
-			if (completeWrite)
-			{
-				if (!!m_closer)
-				{
-					m_closer->complete();
-					m_closer.release();
-				}
-				else
-				{
-					if (closing)
-						m_filter->close_sink();
-					if (!!m_writer)
-					{
-						m_writer->complete();
-						m_writer.release();
-					}
-				}
-			}
-			
+
+
+			} while (!completeRead);	// one, the other, or both, will complete.
+
 			if (completeRead)
 			{
-				if (closing)
-					m_filter->close_source();
 				m_reader->complete();
 				m_reader.release();
-			}
-		}
-
-		// Called when coupler executes, or from a completing coupled write, or from a writer or closer on the datasink queue while there is a coupler
-		void coupler_process(bool completingCoupledWrite = false)
-		{
-			if (!m_coupler)
-				return;
-
-			//COGS_ASSERT(!!m_reader);
-			//COGS_ASSERT(!m_writer || !m_closer);	// Zero or one of them, as datasink is a queue, so serial
-			bool closing = false;
-			if (!!m_coupledWriter)
-			{
-				if (!completingCoupledWrite)
-					return;	// Ignore situation where writer or closer is aborted then another is added.
-
-				COGS_ASSERT(!!m_writer);
-				size_t n = m_coupledWriter->get_write_size();
-				if (!!n)
-				{
-					m_filteredBuffer.advance(n);
-					if (m_coupler->m_hasMaxLength)
-					{
-						m_coupler->m_remainingLength -= n;
-						if (!m_coupler->m_remainingLength)
-							m_decoupling = true;
-					}
-				}
-				
-				if (m_coupledWriter->was_closed())
-				{
-					m_decoupling = true;
-					closing = m_coupler->m_closeSourceOnSinkClose;
-				}
-				m_coupledWriter.release();
-			}
-
-			bool completeWrite = false;
-			if (!m_decoupling)
-			{
-				for (;;)
-				{
-					if (!m_filteredBuffer)
-					{
-						for (;;)	// this loop never executes twice
-						{
-							if (!m_closer)
-							{
-								if (!m_writer)	// No closer or write, do nothing 
-									break;	// all the way out? - !m_filteredBuffer
-
-								if (!m_writer->get_unwritten_buffer())
-								{
-									completeWrite = true;
-									break;	// All the way out? - !m_filteredBuffer
-								}
-
-								if (m_writer->fill_buffer())
-									break;	// inner - !!m_filteredBuffer
-								//...
-							}
-
-							if (!m_finalized)
-							{
-								m_filteredBuffer = m_filter->finalize();
-								m_finalized = true;
-							}
-
-							if (!m_filteredBuffer)
-							{
-								closing = true;
-								m_decoupling = true;
-								completeWrite = true;
-								if (m_coupler->m_closeSinkOnSourceClose)
-									m_coupler->m_sink->close_sink();
-								break; // All the way out? - !m_filteredBuffer
-							}
-
-							break;	// inner - !!m_filteredBuffer
-						}
-
-						if (!m_filteredBuffer)
-							break;
-					}
-
-					composite_buffer* bufPtr = &m_filteredBuffer;
-					composite_buffer tmpBuf;
-					if (m_coupler->m_hasMaxLength && (m_coupler->m_remainingLength < m_filteredBuffer.get_length()))
-					{
-						tmpBuf = m_filteredBuffer.subrange(0, m_coupler->m_remainingLength.get_int<size_t>());
-						bufPtr = &tmpBuf;
-					}
-					m_coupledWriter = m_coupler->m_sink->write(*bufPtr);
-					m_coupledWriter->dispatch([this]()
-					{
-						process(&state::complete_coupled_write);
-					});
-					return;
-				}
-			}
-
-			if (completeWrite)
-			{
-				if (!!m_closer)
-				{
-					m_closer->complete();
-					m_closer.release();
-				}
-				else
-				{
-					if (closing)
-						m_filter->close_sink();
-					if (!!m_writer)
-					{
-						m_writer->complete();
-						m_writer.release();
-					}
-				}
-			}
-
-			if (m_decoupling)
-			{
-				m_coupler->m_sinkAbortDispatched->cancel();
-				if (closing)
-					m_filter->close_source();
-				m_coupler->complete();
-				m_coupler.release();
-				releaseLocation = 1;
-				if (!!m_coupledWriter)
-					m_coupledWriter->abort();
 			}
 		}
 
 		void complete_coupled_write()
 		{
-			rcptr<filter> f = m_filter;
-			if (!!f)
-				coupler_process(true);
-		}
+			m_asyncInProgress = false;
 
-		void coupled_sink_aborted()
-		{
-			rcptr<filter> f = m_filter;
-			if (!!f)
+			bool completeCoupler = m_couplerAborted || m_coupledSinkClosed;
+			size_t n = m_coupledWriter->get_write_size();
+			if (!!n)
 			{
-				m_decoupling = true;
-				if (!m_coupledWriter)	// Otherwise, it will clean up itself
+				m_filteredBuffer.advance(n);
+				if (m_coupler->m_hasMaxLength)
 				{
-					if (!!m_coupler)
+					m_coupler->m_remainingLength -= n;
+					if (!m_coupler->m_remainingLength)
 					{
-						if (m_coupler->m_closeSourceOnSinkClose)
-							m_filter->close_source();
-						m_coupler->complete();
-						m_coupler.release();
-						releaseLocation = 2;
+						m_coupler->m_onSinkAbortTask->cancel();
+						completeCoupler = true;
 					}
 				}
 			}
+
+			if (completeCoupler)
+			{
+				m_coupler->complete();	// Needed to wait to complete the coupler until the write completed
+				m_coupler.release();
+			}
+
+			// If m_couplerAborted, we don't care if sink closed, as the user explicitly removed this coupler already.
+			if (m_coupledSinkClosed)	// source queue was aborted
+			{
+				if (m_coupler->m_closeSinkOnSourceClose)
+					m_coupler->m_sink->close_sink();
+				m_coupledSinkClosed = false;
+			}
+			else if (!m_couplerAborted && m_coupledWriter->was_closed())
+			{
+				if (m_coupler->m_closeSourceOnSinkClose)
+				{
+					rcptr<filter> f = m_filter;
+					if (!!f)
+						f->abort_source();
+				}
+			}
+
+			m_couplerAborted = false;
+			m_coupledWriter.release();
+
+			processing();
+		}
+
+		// Called when coupler executes, or from a completing coupled write, or from a writer or closer on the datasink queue while there is a coupler
+		void coupler_process()
+	{
+			if (!m_filteredBuffer && !!m_writer)	// No closer or write, do nothing 
+			{
+				for (;;)	// this loop never executes twice
+				{
+					if (!m_writer->get_unwritten_buffer())
+					{
+						m_writer->complete();
+						m_writer.release();
+						return;
+					}
+					int i = m_writer->fill_buffer();
+					if (i == 1)
+					{
+						if (!m_filteredBuffer)
+							continue;
+						break;
+					}
+					if (i == -1)
+						return;
+					if (!!m_finalized)
+						m_filter->abort_source();
+					else
+					{
+						m_filter->abort_sink();	// If there is a read or write in progress, it will complete/abort with current progress
+						start_finalize();
+					}
+					return;
+				}
+			}
+
+			composite_buffer * bufPtr = &m_filteredBuffer;
+			composite_buffer tmpBuf;
+			if (m_coupler->m_hasMaxLength && (m_coupler->m_remainingLength < m_filteredBuffer.get_length()))
+			{
+				tmpBuf = m_filteredBuffer.subrange(0, m_coupler->m_remainingLength.get_int<size_t>());
+				bufPtr = &tmpBuf;
+			}
+			m_coupledWriter = m_coupler->m_sink->write(*bufPtr);
+			m_asyncInProgress = true;
+			m_coupledWriter->dispatch([this]()
+			{
+				process(&state::complete_coupled_write);
+			});
 		}
 
 		void shutdown()
 		{
-			// The filter is gone.  No subsequent events will be processed
-			if (!!m_coupledWriter)			// Since the filter is gone, abort.
-			{
-				m_coupledWriter->abort();	// If it needed to finish, it should have been kept in scope.
-				m_coupledWriter.release();
-			}
+			if (!!m_coupledWriter)
+				m_coupledWriter->abort();
 
-			if (!!m_coupler)
+			if (!!m_finalizeTask)
+				m_finalizeTask->cancel();
+			else if (!!m_filteringTask)
 			{
-				m_coupler->m_sinkAbortDispatched->cancel();
-				m_coupler->complete();
-				m_coupler.release();
-				releaseLocation = 3;
-			}
-			else if (!!m_reader)			// A reader would not be present if there were a coupler
-			{
-				m_reader->complete();
-				m_reader.release();
-			}
-			else
-				return;		// A writer would not be present if there were a reader
-
-			if (!!m_writer)
-			{
-				m_writer->complete();
-				m_writer.release();
-			}
-		}
-
-		void decouple()
-		{
-			if (!!m_coupler)
-			{
-				m_decoupling = true;
-				m_coupler->m_sinkAbortDispatched->cancel();
-				if (!!m_coupledWriter)
-					m_coupledWriter->abort();
-				else
+				// If filtering, a write would fail to complete aborting.
+				// Cancel filtering, and if successful, pass along to allow cleanup
+				m_filteringTask->cancel()->dispatch([r{ this_rcref }](bool isCancelled)
 				{
-					m_coupler->complete();
-					m_coupler.release();
-					releaseLocation = 4;
-				}
+					if (isCancelled)
+					{
+						r->process(&state::filtering_done);
+					}
+				});
 			}
 		}
 	};
@@ -452,28 +425,17 @@ private:
 		{ }
 
 		composite_buffer& get_buffer() { return datasource::reader::get_buffer(); }
-
-		virtual void aborting()
-		{ 
-			m_state->process(&state::read_abort);
-		}
-
+		
 		virtual void reading()
 		{
 			m_state->m_nextReader = this_rcref;
 			m_state->process(&state::read);
 		}
 
-		void read_abort()
-		{
-			if (!is_complete())
-			{
-				// There is never both a reader and writer pending at the same time.  If there was a writer,
-				// a reader wouldn't need to be waiting.
-				// Just complete the reader.
-				complete();
-				m_state->m_reader.release();
-			}
+		virtual void aborting()
+		{ 
+			m_state->m_abortReader = this_rcref;
+			m_state->process(&state::read_abort);
 		}
 
 		void read()
@@ -486,8 +448,17 @@ private:
 				else
 				{
 					m_state->m_reader = this_rcref;
-					m_state->read_and_write();
+					m_state->processing();
 				}
+			}
+		}
+
+		void read_abort()
+		{
+			if (!is_complete())
+			{
+				complete();
+				m_state->m_reader.release();
 			}
 		}
 	};
@@ -504,12 +475,8 @@ private:
 			m_state(s)
 		{ }
 
-		virtual bool fill_buffer() = 0;
-
-		virtual void aborting()
-		{
-			m_state->process(&state::write_abort);
-		}
+		// Returns 1 if progress is made, 0 if not, -1 if asynchronous
+		virtual int fill_buffer() = 0;
 
 		virtual void writing()
 		{
@@ -517,13 +484,9 @@ private:
 			m_state->process(&state::write);
 		}
 
-		void write_abort()
+		virtual void aborting()
 		{
-			if (!is_complete())
-			{
-				complete();
-				m_state->m_writer.release();
-			}
+			m_state->process(&state::write_abort);
 		}
 
 		void write()
@@ -536,11 +499,17 @@ private:
 				else
 				{
 					m_state->m_writer = this_rcref;
-					if (!!m_state->m_reader)
-						m_state->read_and_write();
-					else if (!!m_state->m_coupler)
-						m_state->coupler_process();
+					m_state->processing();
 				}
+			}
+		}
+
+		void write_abort()
+		{
+			if (!is_complete())
+			{
+				complete();
+				m_state->m_writer.release();
 			}
 		}
 	};
@@ -552,23 +521,25 @@ private:
 			: writer_base(proxy, s)
 		{ }
 
-		virtual bool fill_buffer()
+		virtual int fill_buffer()
 		{
-			bool anyWriteProgress = false;
 			rcptr<filter> f = m_state->m_filter;
 			if (!!f)
 			{
 				composite_buffer& writeBuf = get_buffer();
-				while (!!writeBuf)
+				if (!!writeBuf)
 				{
-					size_t preSize = writeBuf.get_length();
-					m_state->m_filteredBuffer.append(f->filtering(writeBuf));
-					anyWriteProgress = (!!m_state->m_filteredBuffer);
-					if (anyWriteProgress || (preSize == writeBuf.get_length()))
-						break;
+					m_state->preFilteringSize = writeBuf.get_length();
+					m_state->m_filteringTask = f->filtering(writeBuf);
+					m_state->m_asyncInProgress = true;
+					m_state->m_filteringTask->dispatch([r{ this_rcref }]()
+					{
+						r->m_state->process(&state::filtering_done);
+					});
+					return -1;
 				}
 			}
-			return anyWriteProgress;
+			return 0;
 		}
 	};
 
@@ -580,12 +551,21 @@ private:
 		{ }
 
 		/// Empty writes complete without calling writing(), so we know this will add to m_filteredBuffer
-		virtual bool fill_buffer()
+		virtual int fill_buffer()
 		{
-			composite_buffer& writeBuf = get_buffer();
-			m_state->m_filteredBuffer.append(writeBuf);
-			writeBuf.clear();
-			return true;
+			rcptr<filter> f = m_state->m_filter;
+			if (!!f)
+			{
+				composite_buffer& writeBuf = get_buffer();
+				if (!!writeBuf)
+				{
+					m_state->m_filteredBuffer.append(writeBuf);
+					writeBuf.clear();
+					return 1;
+				}
+			}
+
+			return 0;
 		}
 	};
 
@@ -595,18 +575,11 @@ private:
 		friend class state;
 
 		const rcref<filter::state>	m_state;
-		bool						m_finalized;
 
 		closer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
 			: datasink::closer(proxy),
-			m_state(s),
-			m_finalized(false)
+			m_state(s)
 		{ }
-
-		virtual void aborting()
-		{
-			m_state->process(&state::close_abort);
-		}
 
 		virtual void closing()
 		{
@@ -614,34 +587,15 @@ private:
 			m_state->process(&state::close);
 		}
 
-		void close_abort()
-		{
-			if (!is_complete())
-			{
-				complete();
-				m_state->m_closer.release();
-			}
-		}
-
 		void close()
 		{
-			if (!is_complete())
+			rcptr<filter> f = m_state->m_filter;
+			if (!!f)
 			{
-				rcptr<filter> f = m_state->m_filter;
-				if (!f)
-				{
-					complete();	
-					m_state->m_closer.release();
-				}
-				else
-				{
-					m_state->m_closer = this_rcref;
-					if (!!m_state->m_reader)
-						m_state->read_and_write();
-					else if (!!m_state->m_coupler)
-						m_state->coupler_process();
-				}
+				if (!m_state->m_finalized)
+					m_state->start_finalize();
 			}
+			complete(true);	// close filter sink queue
 		}
 	};
 
@@ -655,12 +609,13 @@ private:
 
 		const rcref<datasink::transaction>	m_sink;
 		const rcref<filter::state> m_state;
-		const bool m_closeSinkOnSourceClose;
-		const bool m_closeSourceOnSinkClose;
+		const bool m_closeSinkOnSourceClose;	// If the filter's source queue closes, close the coupled sink.
+		const bool m_closeSourceOnSinkClose;	// If the coupled sink closes, close the filter.
 		const bool m_hasMaxLength;
 
 		dynamic_integer m_remainingLength;
-		rcptr<cogs::task<void> > m_sinkAbortDispatched;
+		rcptr<cogs::task<void> > m_onSinkAbortTask;
+		bool isCompleting = true;
 
 		coupler(
 			const rcref<filter::state>& s,
@@ -677,15 +632,53 @@ private:
 				m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 				m_closeSourceOnSinkClose(closeSourceOnSinkClose)
 		{
-			m_sinkAbortDispatched = m_sink->get_sink_close_event()->dispatch([this]()
+			m_onSinkAbortTask = m_sink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
 			{
-				m_state->process(&state::sink_aborted);
+				rcptr<coupler> r2 = r;
+				if (!!r2)
+				{
+					r2->m_state->m_sinkCloseCoupler = r2;
+					r2->m_state->process(&state::sink_closed);
+				}
 			});
+		}
+
+		void sink_closed()
+		{
+			if (!is_complete())
+			{
+				COGS_ASSERT(!m_state->m_coupledSinkClosed);
+				if (!m_state->m_couplerAborted)
+				{
+					if (m_state->m_coupler == this)
+					{
+						if (!!m_state->m_coupledWriter) // If there is a write in progress, it will handle sink close
+							m_state->m_coupledSinkClosed = true;	// The sink closed, so no need to abort.
+						else
+						{
+							complete(m_closeSourceOnSinkClose);
+							m_state->m_coupler.release();
+						}
+					}
+				}
+			}
 		}
 		
 		virtual void start_coupler()
 		{
 			m_state->m_filter->source_enqueue(this_rcref);
+		}
+
+		virtual void executing()
+		{
+			m_state->m_nextCoupler = this_rcref;
+			m_state->process(&state::start);
+		}
+
+		virtual void aborting()
+		{
+			m_state->m_abortCoupler = this_rcref;
+			m_state->process(&state::coupler_abort);
 		}
 
 		void start()
@@ -697,71 +690,37 @@ private:
 					complete();
 				else
 				{
-					m_state->m_decoupling = false;
 					m_state->m_coupler = this_rcref;
-					m_state->coupler_process();
+					m_state->processing();
 				}
 			}
 		}
 
-		void decouple_inner()
+		void coupler_abort()
 		{
 			if (!is_complete())
 			{
-				rcptr<filter> f = m_state->m_filter;
-				if (!f)
+				m_onSinkAbortTask->cancel();
+
+				// If wasClosed, then the whole source filter got closed unexpectedly.  (We would have completed coupler, if we closed it)
+				// If !wasClosed, then the caller is cancelling the coupler.  DONT PROP
+				bool wasClosed = was_closed();
+				if (!m_state->m_coupledWriter)
 				{
+					if (wasClosed && m_closeSinkOnSourceClose)
+						m_sink->close_sink();
 					complete();
 					m_state->m_coupler.release();
-					m_state->releaseLocation = 5;
 				}
 				else
-					m_state->decouple();
-			}
-		}
-
-		void sink_aborted()
-		{
-			if (!is_complete())
-			{
-				rcptr<filter> f = m_state->m_filter;
-				if (!f)
 				{
-					complete();
-					m_state->m_coupler.release();
-					m_state->releaseLocation = 6;
+					if (wasClosed)	// Needed to wait to complete the coupler until the write completes
+						m_state->m_coupledSinkClosed = true;
+					else
+						m_state->m_couplerAborted = true;
+					m_state->m_coupledWriter->abort();
 				}
-				else
-					m_state->coupled_sink_aborted();
 			}
-		}
-
-		virtual void aborting()
-		{
-			m_state->process(&state::decouple_inner);
-		}
-
-		virtual void executing()
-		{
-			m_state->m_nextCoupler = this_rcref;
-			m_state->process(&state::start);
-		}
-
-		void decouple()
-		{
-			m_state->process(&state::decouple_inner);
-		}
-
-		virtual bool cancel() volatile
-		{
-			if (signallable_task<void>::cancel())
-			{
-				// we manage thread safety, so cast away volatility
-				((coupler*)this)->decouple();
-				return true;
-			}
-
-			return false;
 		}
 	};
 
@@ -786,13 +745,10 @@ private:
 	}
 
 public:
-	/// @brief Constructor
-	filter()
-		: m_state(rcnew(state, this_rcref))
-	{ }
-
 	~filter()
 	{
+		// Maybe we don't need shutdown, as coupler will do the right thing?
+		// Any pending reads and write will also get cancelled, as queues are gone
 		m_state->process(&state::shutdown);
 	}
 
@@ -804,7 +760,55 @@ public:
 		return w;
 	}
 
+	rcref<filter> create(const filter_func_t& f) { return rcnew(bypass_constructor_permission<filter>, f); }
+	rcref<filter> create(filter_func_t&& f) { return rcnew(bypass_constructor_permission<filter>, std::move(f)); }
+
+	rcref<filter> create(const filter_func_t& f, const finalize_func_t& fn) { return rcnew(bypass_constructor_permission<filter>, f, fn); }
+	rcref<filter> create(filter_func_t&& f, const finalize_func_t& fn) { return rcnew(bypass_constructor_permission<filter>, std::move(f), fn); }
+
+	rcref<filter> create(const filter_func_t& f, finalize_func_t&& fn) { return rcnew(bypass_constructor_permission<filter>, f, std::move(fn)); }
+	rcref<filter> create(filter_func_t&& f, finalize_func_t&& fn) { return rcnew(bypass_constructor_permission<filter>, std::move(f), std::move(fn)); }
+
 protected:
+	/// @brief Constructor
+	filter()
+		: m_state(rcnew(state, this_rcref))
+	{ }
+
+	filter(const filter_func_t& f)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(f)
+	{ }
+
+	filter(filter_func_t&& f)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(std::move(f))
+	{ }
+
+	filter(const filter_func_t& f, const finalize_func_t& fn)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(f),
+		m_finalizeFunc(fn)
+	{ }
+
+	filter(filter_func_t&& f, const finalize_func_t& fn)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(std::move(f)),
+		m_finalizeFunc(fn)
+	{ }
+
+	filter(const filter_func_t& f, finalize_func_t&& fn)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(f),
+		m_finalizeFunc(fn)
+	{ }
+
+	filter(filter_func_t&& f, finalize_func_t&& fn)
+		: m_state(rcnew(state, this_rcref)),
+		m_filterFunc(std::move(f)),
+		m_finalizeFunc(fn)
+	{ }
+
 	/// @brief Derived class must override filtering() to filter input data
 	/// 
 	/// If filtering() returns without reading the entire buffer,
@@ -814,16 +818,24 @@ protected:
 	/// 
 	/// @param src Input data to filter.  Data should be removed from this buffer to indicate progress.
 	/// @return A buffer containing filtered data
-	virtual composite_buffer filtering(composite_buffer& src) = 0;
+	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+	{
+		if (!!m_filterFunc)
+			return m_filterFunc(src);
+		return get_immediate_task(src);
+	}
 
 	/// @brief Derived class may override finalize() to return a final buffer to terminate the filtered stream with.
 	/// 
 	/// The default implemention returns an empty buffer.
 	/// @return A final buffer to terminate the filtered stream with.
-	virtual composite_buffer finalize()
+	virtual rcref<cogs::task<composite_buffer> > finalize()
 	{
+		if (!!m_finalizeFunc)
+			return m_finalizeFunc();
+
 		composite_buffer emptyBuffer;
-		return emptyBuffer;
+		return get_immediate_task(emptyBuffer);
 	}
 };
 
@@ -971,8 +983,6 @@ protected:
 			process();
 	}
 };
-
-
 
 
 }

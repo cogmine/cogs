@@ -6,8 +6,8 @@
 // Status: WorkInProgress
 
 
-#ifndef COGS_POINT
-#define COGS_POINT
+#ifndef COGS_HEADER_GEOMETRY_POINT
+#define COGS_HEADER_GEOMETRY_POINT
 
 #include <algorithm>
 #include <array>

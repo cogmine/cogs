@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_GCC
-#define COGS_ENV_GCC
+#ifndef COGS_HEADER_ENV
+#define COGS_HEADER_ENV
 
 #include <stdint.h>
 #include <new>

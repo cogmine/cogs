@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IP
-#define COGS_IP
+#ifndef COGS_HEADER_IO_NET_IP
+#define COGS_HEADER_IO_NET_IP
 
 
 #include "cogs/os/io/net/ip/tcp.hpp"

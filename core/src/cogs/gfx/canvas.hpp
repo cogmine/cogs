@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CANVAS
-#define COGS_CANVAS
+#ifndef COGS_HEADER_GFX_CANVAS
+#define COGS_HEADER_GFX_CANVAS
 
 #include "cogs/collections/string.hpp"
 #include "cogs/geometry/alignment.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PANE_BRIDGE
-#define COGS_PANE_BRIDGE
+#ifndef COGS_HEADER_GUI_PANE_BRIDGE
+#define COGS_HEADER_GUI_PANE_BRIDGE
 
 
 #include "cogs/gui/pane.hpp"

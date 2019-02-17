@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_VERSIONED
-#define COGS_VERSIONED
+#ifndef COGS_HEADER_SYNC_VERSIONED
+#define COGS_HEADER_SYNC_VERSIONED
 
 
 #include "cogs/env/mem/alignment.hpp"

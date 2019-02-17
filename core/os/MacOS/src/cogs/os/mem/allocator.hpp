@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_ALLOCATOR
-#define COGS_OS_ALLOCATOR
+#ifndef COGS_HEADER_OS_MEM_ALLOCATOR
+#define COGS_HEADER_OS_MEM_ALLOCATOR
 
 #include "cogs/mem/ptr.hpp"
 #include "cogs/os.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_BYPASS_STRICT_ALIASING
-#define COGS_BYPASS_STRICT_ALIASING
+#ifndef COGS_HEADER_MEM_BYPASS_STRICT_ALIASING
+#define COGS_HEADER_MEM_BYPASS_STRICT_ALIASING
 
 #include <type_traits>
 #include <cstring>

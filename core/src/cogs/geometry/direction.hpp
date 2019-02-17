@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_DIRECTION
-#define COGS_DIRECTION
+#ifndef COGS_HEADER_GEOMETRY_DIRECTION
+#define COGS_HEADER_GEOMETRY_DIRECTION
 
 
 namespace cogs {

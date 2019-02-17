@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_DISPATCHER
-#define COGS_DISPATCHER
+#ifndef COGS_HEADER_SYNC_DISPATCHER
+#define COGS_HEADER_SYNC_DISPATCHER
 
 
 #include "cogs/function.hpp"
@@ -47,6 +47,12 @@ class signallable_task;
 
 template <typename arg_t>
 class task_arg_base;
+
+
+rcref<task<void> > get_immediate_task();
+
+template <typename T>
+rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t);
 
 
 class dispatcher
@@ -101,7 +107,7 @@ protected:
 		return dr.change_priority_inner(d, newPriority);
 	}
 
-	static bool cancel_inner(volatile dispatcher& dr, volatile dispatched& d)
+	static rcref<task<bool> > cancel_inner(volatile dispatcher& dr, volatile dispatched& d)
 	{
 		return dr.cancel_inner(d);
 	}
@@ -109,8 +115,7 @@ protected:
 	// change_priority_inner() and cancel_inner() are called by tasks, on the dispatcher that created them.
 	// They do not need to be implemented by a derived dispatcher if it is a proxy of another dispatcher.
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile { }
-	virtual bool cancel_inner(volatile dispatched& d) volatile { return false; }
-
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile { return get_immediate_task(false); }
 };
 
 
@@ -126,7 +131,7 @@ private:
 
 public:
 	virtual bool signal() volatile = 0;
-	virtual bool cancel() volatile = 0;
+	virtual rcref<task<bool> > cancel() volatile = 0;
 	virtual rcref<task<void> > get_task() = 0;
 
 	void set_dispatched(const rcref<volatile dispatched>& d) { m_dispatched = d; }
@@ -268,10 +273,10 @@ public:
 	template <typename F, typename... args_t>
 	std::enable_if_t<
 		std::is_invocable_v<F, const result_t&>,
-		rcref<task<std::invoke_result_t<F> > > >
+		rcref<task<std::invoke_result_t<F, const result_t&> > > >
 	dispatch(F&& f, int priority = 0, const rcref<volatile args_t>&... next) const volatile
 	{
-		typedef std::invoke_result_t<F> result_t2;
+		typedef std::invoke_result_t<F, const result_t&> result_t2;
 		typedef forwarding_function_task<result_t2, result_t, args_t...> task_t;
 		rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority).static_cast_to<task<result_t2> >();
 		((volatile task<result_t>*)this)->dispatch_inner(t.static_cast_to<task_t>().static_cast_to<task_base>(), priority);
@@ -300,11 +305,12 @@ protected:
 
 	virtual rcptr<volatile dispatched> get_dispatched() const volatile { return rcptr<volatile dispatched>(); }
 
-	virtual bool cancel_inner(volatile dispatched& d) volatile
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile
 	{
 		volatile continuation_dispatched& d2 = *(volatile continuation_dispatched*)&d;
 		priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt = d2.get_remove_token();
-		return m_continuationSubTasks.remove(rt);
+		bool b = m_continuationSubTasks.remove(rt);
+		return get_immediate_task(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
@@ -380,7 +386,7 @@ public:
 		}
 	}
 
-	virtual bool cancel() volatile = 0;
+	virtual rcref<task<bool> > cancel() volatile = 0;
 
 	virtual void change_priority(int newPriority) volatile { }	// default is no-op
 };
@@ -483,10 +489,11 @@ protected:
 		return true;
 	}
 
-	virtual bool cancel() volatile
+	virtual rcref<task<bool> > cancel() volatile
 	{
 		TaskState oldTaskState;
-		return try_cancel(oldTaskState);
+		bool b = try_cancel(oldTaskState);
+		return get_immediate_task(b);
 	}
 
 public:
@@ -695,10 +702,11 @@ public:
 		return true;
 	}
 
-	virtual bool cancel() volatile
+	virtual rcref<task<bool> > cancel() volatile
 	{
 		typename signallable_task<result_t>::TaskState oldTaskState;
-		return try_cancel(oldTaskState);
+		bool b = try_cancel(oldTaskState);
+		return get_immediate_task(b);
 	}
 
 	virtual void change_priority(int newPriority) volatile
@@ -1047,6 +1055,7 @@ inline rcref<task_base> dispatcher::dispatch_default_task(const void_function& f
 
 
 #include "cogs/sync/single_fire_event.hpp"
+#include "cogs/sync/immediate_task.hpp"
 
 
 #endif

@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting
 
-#ifndef COGS_DYNAMIC_INTEGER
-#define COGS_DYNAMIC_INTEGER
+#ifndef COGS_HEADER_MATH_DYNAMIC_INTEGER
+#define COGS_HEADER_MATH_DYNAMIC_INTEGER
 
 #include <type_traits>
 

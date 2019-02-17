@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_FNV
-#define COGS_FNV
+#ifndef COGS_HEADER_CRYPTO_FNV
+#define COGS_HEADER_CRYPTO_FNV
 
 
 #include "cogs/crypto/hash_int.hpp"

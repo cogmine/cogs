@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_GUI_SCROLL_PANE
-#define COGS_GUI_SCROLL_PANE
+#ifndef COGS_HEADER_GUI_SCROLL_PANE
+#define COGS_HEADER_GUI_SCROLL_PANE
 
 #include "cogs/gui/pane.hpp"
 #include "cogs/gui/label.hpp"
@@ -38,8 +38,8 @@ private:
 		rcptr<scroll_bar> m_scrollBar;
 		volatile transactable<scroll_bar_state>	m_scrollBarState;
 		volatile double m_scrollBarPosition;
-		delayed_construction<delegated_property<scroll_bar_state, io::read_only> > m_scrollBarStateProperty;
-		delayed_construction<delegated_property<double> > m_scrollBarPositionProperty;
+		delayed_construction<delegated_bindable_property<scroll_bar_state, io::read_only> > m_scrollBarStateProperty;
+		delayed_construction<delegated_bindable_property<double> > m_scrollBarPositionProperty;
 
 		scroll_bar_info()
 			: m_scrollBarPosition(0)

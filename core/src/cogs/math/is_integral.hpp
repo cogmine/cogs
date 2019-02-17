@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IS_INTEGRAL
-#define COGS_IS_INTEGRAL
+#ifndef COGS_HEADER_MATH_IS_INTEGRAL
+#define COGS_HEADER_MATH_IS_INTEGRAL
 
 
 #include <type_traits>

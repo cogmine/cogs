@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_DEFAULT_ALLOCATOR
-#define COGS_DEFAULT_ALLOCATOR
+#ifndef COGS_HEADER_MEM_DEFAULT_ALLOCATOR
+#define COGS_HEADER_MEM_DEFAULT_ALLOCATOR
 
 
 #include "cogs/env.hpp"

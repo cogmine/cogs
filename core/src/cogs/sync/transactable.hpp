@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_TRANSACT
-#define COGS_TRANSACT
+#ifndef COGS_HEADER_SYNC_TRANSACTABLE
+#define COGS_HEADER_SYNC_TRANSACTABLE
 
 #include <type_traits>
 

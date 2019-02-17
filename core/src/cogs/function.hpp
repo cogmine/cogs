@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_FUNCTION
-#define COGS_FUNCTION
+#ifndef COGS_HEADER_FUNCTION
+#define COGS_HEADER_FUNCTION
 
 #include "cogs/env.hpp"
 #include "cogs/debug.hpp"
@@ -98,7 +98,7 @@ private:
 	class reverse1	// 0 arg version
 	{
 	public:
-		static void invoke();	// Here to satisfy using.  Failure to match args would manigest as an error here.
+		static void invoke();	// Here to satisfy using.  Failure to match args would manifest as an error here.
 	};
 
 	template <typename... A>
@@ -140,7 +140,7 @@ private:
 
 	// FIRST
 	template <typename... A>
-	class reverse : reverse1<A...>
+	class reverse : public reverse1<A...>
 	{
 	public:
 		using reverse1<A...>::invoke;
@@ -465,7 +465,7 @@ private:
 	class reverse1	// 0 arg version
 	{
 	public:
-		static void invoke();	// Here to satisfy using.  Failure to match args would manigest as an error here.
+		static void invoke();	// Here to satisfy using.  Failure to match args would manifest as an error here.
 	};
 
 	template <typename... A>
@@ -507,7 +507,7 @@ private:
 
 	// FIRST
 	template <typename... A>
-	class reverse : reverse1<A...>
+	class reverse : public reverse1<A...>
 	{
 	public:
 		using reverse1<A...>::invoke;

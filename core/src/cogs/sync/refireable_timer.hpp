@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_REFIRABLE_TIMER
-#define COGS_REFIRABLE_TIMER
+#ifndef COGS_HEADER_SYNC_REFIRABLE_TIMER
+#define COGS_HEADER_SYNC_REFIRABLE_TIMER
 
 
 #include "cogs/sync/timer.hpp"

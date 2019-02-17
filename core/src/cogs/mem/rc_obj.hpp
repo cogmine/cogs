@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RC_OBJ
-#define COGS_RC_OBJ
+#ifndef COGS_HEADER_MEM_RC_OBJ
+#define COGS_HEADER_MEM_RC_OBJ
 
 
 #include "cogs/mem/allocator_container.hpp"

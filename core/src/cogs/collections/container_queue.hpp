@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONTAINER_QUEUE
-#define COGS_CONTAINER_QUEUE
+#ifndef COGS_HEADER_COLLECTION_CONTAINER_QUEUE
+#define COGS_HEADER_COLLECTION_CONTAINER_QUEUE
 
 
 #include "cogs/collections/container_deque.hpp"

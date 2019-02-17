@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_NET_ADDRESS
-#define COGS_IO_NET_ADDRESS
+#ifndef COGS_HEADER_IO_NET_ADDRESS
+#define COGS_HEADER_IO_NET_ADDRESS
 
 
 #include "cogs/collections/composite_string.hpp"

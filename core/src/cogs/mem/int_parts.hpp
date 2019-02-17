@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_INT_PARTS
-#define COGS_INT_PARTS
+#ifndef COGS_HEADER_MEM_INT_PARTS
+#define COGS_HEADER_MEM_INT_PARTS
 
 
 #include <type_traits> 

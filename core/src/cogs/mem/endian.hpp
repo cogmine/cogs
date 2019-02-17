@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENDIAN
-#define COGS_ENDIAN
+#ifndef COGS_HEADER_MEM_ENDIAN
+#define COGS_HEADER_MEM_ENDIAN
 
 
 #include <memory.h>

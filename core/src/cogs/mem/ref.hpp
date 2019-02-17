@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_REF
-#define COGS_REF
+#ifndef COGS_HEADER_MEM_REF
+#define COGS_HEADER_MEM_REF
 
 #include <type_traits>
 

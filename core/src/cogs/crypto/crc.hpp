@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CRC
-#define COGS_CRC
+#ifndef COGS_HEADER_CRYPTO_CRC
+#define COGS_HEADER_CRYPTO_CRC
 
 
 #include "cogs/crypto/hash_int.hpp"

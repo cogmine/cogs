@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_COUNT_DOWN_EVENT
-#define COGS_COUNT_DOWN_EVENT
+#ifndef COGS_HEADER_SYNC_COUNT_DOWN_EVENT
+#define COGS_HEADER_SYNC_COUNT_DOWN_EVENT
 
 
 #include "cogs/sync/dispatcher.hpp"

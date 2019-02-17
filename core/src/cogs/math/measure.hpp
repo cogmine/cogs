@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_MEASURE
-#define COGS_MEASURE
+#ifndef COGS_HEADER_MATH_MEASURE
+#define COGS_HEADER_MATH_MEASURE
 
 #include <type_traits>
 

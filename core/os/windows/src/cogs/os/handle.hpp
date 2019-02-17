@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_HANDLE
-#define COGS_OS_HANDLE
+#ifndef COGS_HEADER_OS_HANDLE
+#define COGS_HEADER_OS_HANDLE
 
 
 #include "cogs/env/mem/alignment.hpp"

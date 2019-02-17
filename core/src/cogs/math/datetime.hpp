@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress
 // Note: string formats need work.  Dependent on composite_string type.
 
-#ifndef COGS_DATETIME
-#define COGS_DATETIME
+#ifndef COGS_HEADER_MATH_DATETIME
+#define COGS_HEADER_MATH_DATETIME
 
 
 #include "cogs/env.hpp"

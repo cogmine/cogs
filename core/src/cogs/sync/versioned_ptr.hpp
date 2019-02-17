@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_VERSIONED_PTR
-#define COGS_VERSIONED_PTR
+#ifndef COGS_HEADER_SYNC_VERSIONED_PTR
+#define COGS_HEADER_SYNC_VERSIONED_PTR
 
 
 #include "cogs/sync/versioned_ref.hpp"

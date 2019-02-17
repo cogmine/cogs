@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_NEXT_MULTIPLE_OF
-#define COGS_NEXT_MULTIPLE_OF
+#ifndef COGS_HEADER_MATH_NEXT_MULTIPLE_OF
+#define COGS_HEADER_MATH_NEXT_MULTIPLE_OF
 
 
 namespace cogs {

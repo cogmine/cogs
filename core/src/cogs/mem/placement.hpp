@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PLACEMENT
-#define COGS_PLACEMENT
+#ifndef COGS_HEADER_MEM_PLACEMENT
+#define COGS_HEADER_MEM_PLACEMENT
 
 #include <type_traits>
 #include <cstring>

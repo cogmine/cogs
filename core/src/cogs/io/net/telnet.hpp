@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting
 
-#ifndef COGS_TELNET
-#define COGS_TELNET
+#ifndef COGS_HEADER_IO_NET_TELNET
+#define COGS_HEADER_IO_NET_TELNET
 
 
 #include "cogs/collections/container_queue.hpp"

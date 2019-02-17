@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting
 
-#ifndef COGS_BBALLOC
-#define COGS_BBALLOC
+#ifndef COGS_HEADER_MEM_BBALLOC
+#define COGS_HEADER_MEM_BBALLOC
 
 #include <cstdlib> 
 
@@ -18,7 +18,7 @@
 #include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/const_bit_scan.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/sync/sguard.hpp"
+#include "cogs/sync/serial_defer_guard.hpp"
 #include "cogs/sync/versioned_ptr.hpp"
 
 

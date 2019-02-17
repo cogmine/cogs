@@ -4,8 +4,8 @@
 //
 //// Status: Placeholder
 //
-//#ifndef COGS_OS_FILE
-//#define COGS_OS_FILE
+//#ifndef COGS_HEADER_OS_IO_FILE
+//#define COGS_HEADER_OS_IO_FILE
 //
 //
 //#include "cogs/env.hpp"

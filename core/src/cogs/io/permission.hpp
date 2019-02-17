@@ -5,8 +5,8 @@
 	
 // Status: Good
 
-#ifndef COGS_IO_PERMISSION
-#define COGS_IO_PERMISSION
+#ifndef COGS_HEADER_IO_PERMISSION
+#define COGS_HEADER_IO_PERMISSION
 
 
 namespace cogs {

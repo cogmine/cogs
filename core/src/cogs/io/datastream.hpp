@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_DATASTREAM
-#define COGS_IO_DATASTREAM
+#ifndef COGS_HEADER_IO_DATASTREAM
+#define COGS_HEADER_IO_DATASTREAM
 
 
 #include "cogs/io/datasource.hpp"

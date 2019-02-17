@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CHARS
-#define COGS_CHARS
+#ifndef COGS_HEADER_MATH_CHARS
+#define COGS_HEADER_MATH_CHARS
 
 
 namespace cogs {

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_DATASOURCE
-#define COGS_IO_DATASOURCE
+#ifndef COGS_HEADER_IO_DATASOURCE
+#define COGS_HEADER_IO_DATASOURCE
 
 
 #include "cogs/env.hpp"
@@ -439,6 +439,13 @@ public:
 	/// @return A rcref to a waitable that will become signaled when the datasource is closed.
 	rcref<waitable> get_source_close_event() const	{ return m_ioQueue->get_close_event(); }
 
+	bool is_source_closed() const
+	{
+		if (!!m_ioQueue)
+			m_ioQueue->is_closed();
+		return true;
+	}
+
 	~datasource()
 	{
 		if (!!m_ioQueue)
@@ -479,10 +486,14 @@ protected:
 	/// @brief Create a datasink::flusher.  Can be used by derived datasources to create customize couplers.
 	///
 	/// @param snk The datasink to couple this datasource to.  The datasink must remain in scope.  Scope is not extended by the coupler.
-	/// @param closeSinkOnSourceClose If true, the datasink will be closed if the datasource closes.  If false, the coupler
-	/// will be decoupled if the datasink closes.  Default: false
-	/// @param closeSourceOnSinkClose If true, the datasource will be closed if the datasink closes.  If false, the coupler
-	/// will be decoupled if the datasource closes.  Default: false
+	/// @param closeSinkOnSourceClose If false, the coupler will be decoupled if the datasource closes.  If true, the datasink
+	/// will be closed if the datasource closes.  Default: false
+	/// @param closeSourceOnSinkClose If false, the coupler will be decoupled if the datasink closes.  If true, the datasource
+	/// will be closed if the datasink closes.  This option is useful to chain cleanup if a datasink may close unexpectedly and any
+	/// data in transit may be abandoned, or to close gracefully without losing data if the datasink is known only to close after 
+	/// all available data has been read from the datasource.  Otherwise, it's possible that this option may result in data loss.
+	/// i.e. If the datasource is a filter and the datasink has closed before all filtered data was processed.  The filtered data
+	/// cannot be restored to the original (unfiltered) datasource, so is lost.  Default: false
 	/// @param maxLength A value indicating the maximum number of bytes to process until automatically decoupled.
 	/// If zero, the coupler does not automatically decouple.  Default: 0
 	/// @param bufferBlockSize The maximum size of the buffer used to read from the datasource and write to the datasink.  Default: COGS_DEFAULT_BLOCK_SIZE
@@ -860,8 +871,8 @@ private:
 	bool						m_writeClosed;
 	volatile boolean			m_decoupling;
 
-	rcptr<cogs::task<void> >	m_sourceAbortDispatched;
-	rcptr<cogs::task<void> >	m_sinkAbortDispatched;
+	rcptr<cogs::task<void> >	m_onSourceAbortTask;
+	rcptr<cogs::task<void> >	m_onSinkAbortTask;
 	
 	typedef bool (default_coupler::*task_f)();
 
@@ -895,7 +906,7 @@ private:
 		if (!m_readClosed && m_currentReader->was_closed())
 		{
 			m_readClosed = true;
-			m_sinkAbortDispatched->cancel();
+			m_onSinkAbortTask->cancel();
 		}
 		m_currentReader.release();
 		if (!m_writing)
@@ -952,7 +963,7 @@ private:
 		if (!m_writeClosed && m_currentWriter->was_closed())
 		{
 			m_writeClosed = true;
-			m_sourceAbortDispatched->cancel();
+			m_onSourceAbortTask->cancel();
 		}
 		m_currentWriter.release();
 		if (!!m_reading)
@@ -1066,8 +1077,8 @@ private:
 	bool process_decouple()
 	{
 		m_decoupling = true;
-		m_sinkAbortDispatched->cancel();
-		m_sourceAbortDispatched->cancel();
+		m_onSinkAbortTask->cancel();
+		m_onSourceAbortTask->cancel();
 		if (!!m_reading)
 			m_currentReader->abort();
 		if (!!m_writing)
@@ -1082,16 +1093,12 @@ private:
 	}
 
 public:
-	virtual bool cancel() volatile
+	virtual rcref<cogs::task<bool> > cancel() volatile
 	{
-		if (signallable_task<void>::cancel())
-		{
-			// we manage thread safety, so cast away volatility
-			((default_coupler*)this)->decouple();
-			return true;
-		}
-
-		return false;
+		auto t = signallable_task<void>::cancel();
+		if (t->get())
+			((default_coupler*)this)->decouple(); // we manage thread safety, so cast away volatility
+		return t;
 	}
 
 protected:
@@ -1129,11 +1136,11 @@ protected:
 		});
 
 		// Since we have transactions, so the source or sink will not close under us, only abort.
-		m_sourceAbortDispatched = m_coupledRead->get_source_close_event()->dispatch([this]()
+		m_onSourceAbortTask = m_coupledRead->get_source_close_event()->dispatch([this]()
 		{
 			process(&default_coupler::process_source_aborted);
 		});
-		m_sinkAbortDispatched = m_coupledWrite->get_sink_close_event()->dispatch([this]()
+		m_onSinkAbortTask = m_coupledWrite->get_sink_close_event()->dispatch([this]()
 		{
 			process(&default_coupler::process_sink_aborted);
 		});

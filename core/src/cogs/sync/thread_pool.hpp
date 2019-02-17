@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_THREAD_POOL
-#define COGS_THREAD_POOL
+#ifndef COGS_HEADER_SYNC_THREAD_POOL
+#define COGS_HEADER_SYNC_THREAD_POOL
 
 
 #include "cogs/env.hpp"
@@ -383,6 +383,52 @@ public:
 	}
 };
 
+
+inline void thread::register_waiter(const rcref<thread>& t)
+{
+	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
+		thread_waiters_singleton_t;
+	rcref<volatile container_dlist<rcref<thread> > > threadWaiters = thread_waiters_singleton_t::get();
+	t->m_removeToken = threadWaiters->prepend(t);
+}
+
+inline void thread::deregister_waiter() const
+{
+	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
+		thread_waiters_singleton_t;
+	rcref<volatile container_dlist<rcref<thread> > > threadWaiters = thread_waiters_singleton_t::get();
+	threadWaiters->remove(m_removeToken);
+}
+
+inline void thread::join_all(const timeout_t& timeout)	// To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
+{
+	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
+		thread_waiters_singleton_t;
+	rcref<volatile container_dlist<rcref<thread> > > threadWaiters = thread_waiters_singleton_t::get();
+
+	bool anySinceLastLoop = false;
+	container_dlist<rcref<thread> >::volatile_iterator itor = threadWaiters->get_first();
+	for (;;)
+	{
+		if (!itor)
+		{
+			thread_waiters_singleton_t::shutdown();
+			break;
+		}
+		int i = (*itor)->join(timeout);
+		COGS_ASSERT(i != 0);	// should only be called by main thread
+		if (i == 1)
+			anySinceLastLoop = true;
+		++itor;
+		if (!itor)
+		{
+			if (!anySinceLastLoop)
+				break;
+			anySinceLastLoop = false;
+			itor = threadWaiters->get_first();
+		}
+	}
+}
 
 
 }

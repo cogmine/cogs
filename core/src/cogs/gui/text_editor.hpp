@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_TEXTEDITOR
-#define COGS_GUI_TEXTEDITOR
+#ifndef COGS_HEADER_GUI_TEXTEDITOR
+#define COGS_HEADER_GUI_TEXTEDITOR
 
 
 #include "cogs/gfx/color.hpp"

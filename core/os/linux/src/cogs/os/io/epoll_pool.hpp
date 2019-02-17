@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_EPOLL_POOL
-#define COGS_EPOLL_POOL
+#ifndef COGS_HEADER_IO_EPOLL_POOL
+#define COGS_HEADER_IO_EPOLL_POOL
 
 
 #include <sys/epoll.h>

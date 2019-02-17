@@ -5,9 +5,9 @@
 
 // Status: Good
 
-#ifdef COGS_OPERATORS
-#ifndef COGS_ENV_ATOMIC_OPERATORS
-#define COGS_ENV_ATOMIC_OPERATORS
+#ifdef COGS_HEADER_OPERATORS
+#ifndef COGS_HEADER_ENV_SYNC_ATOMIC_OPERATORS
+#define COGS_HEADER_ENV_SYNC_ATOMIC_OPERATORS
 
 
 #include "cogs/math/bytes_to_int.hpp"

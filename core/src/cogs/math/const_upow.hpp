@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_UPOW
-#define COGS_CONST_UPOW
+#ifndef COGS_HEADER_MATH_CONST_UPOW
+#define COGS_HEADER_MATH_CONST_UPOW
 
 
 #include "cogs/math/extumul.hpp"

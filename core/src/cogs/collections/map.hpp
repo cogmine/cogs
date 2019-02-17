@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MAP
-#define COGS_MAP
+#ifndef COGS_HEADER_COLLECTION_MAP
+#define COGS_HEADER_COLLECTION_MAP
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_CHECK_BOX
-#define COGS_GUI_CHECK_BOX
+#ifndef COGS_HEADER_GUI_CHECK_BOX
+#define COGS_HEADER_GUI_CHECK_BOX
 
 
 #include "cogs/gfx/color.hpp"

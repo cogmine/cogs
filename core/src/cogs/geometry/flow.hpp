@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_FLOW
-#define COGS_FLOW
+#ifndef COGS_HEADER_GEOMETRY_FLOW
+#define COGS_HEADER_GEOMETRY_FLOW
 
 
 #pragma warning(push)

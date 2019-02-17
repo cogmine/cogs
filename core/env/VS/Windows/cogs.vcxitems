@@ -154,6 +154,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\thread.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\timeout.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\assert.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\bindable_property.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\cogs.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\abastack.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\array_view.hpp" />
@@ -222,7 +223,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\color.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\font.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\ansiterm.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\binding.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\background.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button_box.hpp" />
@@ -252,8 +252,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datasource.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream_protocol.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_datasink.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_filter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\file.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\filter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\limiter.hpp" />
@@ -358,12 +356,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\cleanup_queue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\count_down_event.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\default_atomic_operators.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dguard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\defer_guard.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatcher.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\hazard.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\immediate_task.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_timer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\parallel_for_each.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatch_parallel.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_dispatcher.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_queue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\pulse_timer.hpp" />
@@ -372,7 +370,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_event.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\rwlock.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\semaphore.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sguard.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\serial_defer_guard.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\singleton.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_event.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_timer.hpp" />

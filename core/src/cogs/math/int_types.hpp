@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_INT_TYPES
-#define COGS_INT_TYPES
+#ifndef COGS_HEADER_MATH_INT_TYPES
+#define COGS_HEADER_MATH_INT_TYPES
 
 
 #include <cstdint>

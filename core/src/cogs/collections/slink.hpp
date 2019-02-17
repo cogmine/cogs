@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SLINK
-#define COGS_SLINK
+#ifndef COGS_HEADER_COLLECTION_SLINK
+#define COGS_HEADER_COLLECTION_SLINK
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_DATASTREAM_PROTOCOL
-#define COGS_DATASTREAM_PROTOCOL
+#ifndef COGS_HEADER_IO_DATASTREAM_PROTOCOL
+#define COGS_HEADER_IO_DATASTREAM_PROTOCOL
 
 
 #include "cogs/env.hpp"
@@ -34,13 +34,13 @@ private:
 			:	m_datastreamProtocol(dsp)
 		{ }
 
-		virtual composite_buffer filtering(composite_buffer& src)
+		virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
-				return dsp->filtering_source(src);
+				return get_immediate_task(dsp->filtering_source(src));
 			composite_buffer empty;
-			return empty;
+			return get_immediate_task(empty);
 		}
 	};
 
@@ -54,13 +54,13 @@ private:
 			:	m_datastreamProtocol(dsp)
 		{ }
 
-		virtual composite_buffer filtering(composite_buffer& src)
+		virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
-				return dsp->filtering_sink(src);
+				return get_immediate_task(dsp->filtering_sink(src));
 			composite_buffer empty;
-			return empty;
+			return get_immediate_task(empty);
 		}
 	};
 

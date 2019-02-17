@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_BITS_TO_INT
-#define COGS_BITS_TO_INT
+#ifndef COGS_HEADER_MATH_BITS_TO_INT
+#define COGS_HEADER_MATH_BITS_TO_INT
 
 
 #include "cogs/math/bits_to_bytes.hpp"

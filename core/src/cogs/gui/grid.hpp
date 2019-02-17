@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting, MayNeedCleanup
 
-#ifndef COGS_GUI_GRID
-#define COGS_GUI_GRID
+#ifndef COGS_HEADER_GUI_GRID
+#define COGS_HEADER_GUI_GRID
 
 
 #include "cogs/collections/container_dlist.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_AUTO_HANDLE
-#define COGS_AUTO_HANDLE
+#ifndef COGS_HEADER_MEM_AUTO_HANDLE
+#define COGS_HEADER_MEM_AUTO_HANDLE
 
 
 #include <utility>

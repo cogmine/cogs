@@ -5,8 +5,8 @@
 //
 //// Status: Placeholder
 //
-//#ifndef COGS_GUI_TABLE
-//#define COGS_GUI_TABLE
+//#ifndef COGS_HEADER_GUI_TABLE
+//#define COGS_HEADER_GUI_TABLE
 //
 //
 //#include "cogs/collections/vector.hpp"

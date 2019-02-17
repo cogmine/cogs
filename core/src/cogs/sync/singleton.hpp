@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_SYNC_SINGLETON
-#define COGS_SYNC_SINGLETON
+#ifndef COGS_HEADER_SYNC_SINGLETON
+#define COGS_HEADER_SYNC_SINGLETON
 
 #include "cogs/env.hpp"
 #include "cogs/mem/default_allocator.hpp"
@@ -27,8 +27,8 @@ enum class singleton_posthumous_behavior
 
 enum class singleton_cleanup_behavior
 {
-	must_call_shutdown,
-	use_cleanup_queue
+	use_cleanup_queue,
+	must_call_shutdown
 };
 
 
@@ -41,7 +41,7 @@ class singleton;
 template <typename T>
 class singleton_base
 {
-private:
+protected:
 	template <typename, singleton_posthumous_behavior, singleton_cleanup_behavior>
 	friend class singleton;
 
@@ -102,14 +102,10 @@ private:
 		volatile weak_rcptr<T>* g = &s_global.get();
 		if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
 		{
-			weak_rcptr<T> oldValue = *g;
-			if (oldValue.get_desc() != nullptr)
-			{
-				volatile boolean* b = &s_isReleased.get();
-				if (b->compare_exchange(true, false))
-					oldValue.get_desc()->release(strong);
-				g->release();
-			}
+			weak_rcptr<T> tmp;
+			g->swap(tmp);
+			if (tmp.get_desc() != nullptr)
+				tmp.get_desc()->release(strong);
 		}
 		else
 		{
@@ -124,7 +120,7 @@ private:
 
 
 	// Returns null if never allocated or was already shut down.
-	// Safe to call 0 or N time - will be released on the first release.
+	// Safe to call 0 or N times - will be released on the first release.
 	static rcptr<T> release()
 	{
 		volatile weak_rcptr<T>* g = &s_global.get();
@@ -169,7 +165,7 @@ class singleton<T, singleton_posthumous_behavior::create_new_singleton, singleto
 {
 public:
 	static rcref<T> get() { bool isNew; return get(isNew); }
-	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>(isNew).deference(); }
+	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>(isNew).dereference(); }
 
 	static void shutdown() { singleton_base<T>::shutdown<singleton_posthumous_behavior::create_new_singleton>(); }
 };

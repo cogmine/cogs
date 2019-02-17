@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_BUTTON
-#define COGS_GUI_BUTTON
+#ifndef COGS_HEADER_GUI_BUTTON
+#define COGS_HEADER_GUI_BUTTON
 
 
 #include "cogs/gui/pane.hpp"

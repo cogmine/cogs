@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SET
-#define COGS_SET
+#ifndef COGS_HEADER_COLLECTION_SET
+#define COGS_HEADER_COLLECTION_SET
 
 #include <type_traits>
 

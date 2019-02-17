@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONTAINER_DEQUE
-#define COGS_CONTAINER_DEQUE
+#ifndef COGS_HEADER_COLLECTION_CONTAINER_DEQUE
+#define COGS_HEADER_COLLECTION_CONTAINER_DEQUE
 
 
 #include "cogs/collections/dlink.hpp"

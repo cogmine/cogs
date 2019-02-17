@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CAN_ATOMIC
-#define COGS_CAN_ATOMIC
+#ifndef COGS_HEADER_SYNC_CAN_ATOMIC
+#define COGS_HEADER_SYNC_CAN_ATOMIC
 
 #include <type_traits>
 

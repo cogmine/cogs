@@ -5,8 +5,8 @@
 //
 //// Status: WorkInProgress
 //
-//#ifndef COGS_ARRAY_VIEW
-//#define COGS_ARRAY_VIEW
+//#ifndef COGS_HEADER_COLLECTION_ARRAY_VIEW
+//#define COGS_HEADER_COLLECTION_ARRAY_VIEW
 //
 //
 //#pragma warning(push)

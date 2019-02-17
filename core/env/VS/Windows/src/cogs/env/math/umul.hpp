@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_UMUL
-#define COGS_ENV_UMUL
+#ifndef COGS_HEADER_ENV_MATH_UMUL
+#define COGS_HEADER_ENV_MATH_UMUL
 
 
 #include "cogs/env.hpp"

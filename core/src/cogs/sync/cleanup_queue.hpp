@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CLEANUP_QUEUE
-#define COGS_CLEANUP_QUEUE
+#ifndef COGS_HEADER_SYNC_CLEANUP_QUEUE
+#define COGS_HEADER_SYNC_CLEANUP_QUEUE
 
 
 #include "cogs/collections/container_dlist.hpp"

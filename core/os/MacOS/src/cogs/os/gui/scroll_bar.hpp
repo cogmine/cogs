@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_SCROLL_BAR
-#define COGS_OS_SCROLL_BAR
+#ifndef COGS_HEADER_OS_GUI_SCROLL_BAR
+#define COGS_HEADER_OS_GUI_SCROLL_BAR
 
 
 #include "cogs/sync/transactable.hpp"
@@ -55,8 +55,8 @@ private:
 	volatile transactable<scroll_bar_state>			m_state;
 	volatile double								m_pos;
 
-	delayed_construction<delegated_property<scroll_bar_state> >	m_stateProperty;
-	delayed_construction<delegated_property<double> >			m_positionProperty;
+	delayed_construction<delegated_bindable_property<scroll_bar_state> >	m_stateProperty;
+	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
 
 	bool m_isHiddenWhenInactive;
 	bool m_isHidden;

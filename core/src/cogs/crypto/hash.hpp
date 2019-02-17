@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HASH
-#define COGS_HASH
+#ifndef COGS_HEADER_CRYPTO_HASH
+#define COGS_HEADER_CRYPTO_HASH
 
 
 #include "cogs/io/composite_buffer.hpp"

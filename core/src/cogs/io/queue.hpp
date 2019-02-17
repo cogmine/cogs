@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_QUEUE
-#define COGS_IO_QUEUE
+#ifndef COGS_HEADER_IO_QUEUE
+#define COGS_HEADER_IO_QUEUE
 
 
 #include "cogs/collections/container_queue.hpp"
@@ -214,7 +214,7 @@ public:
 		///
 		/// aborting() is only called if execute() was called and returned without having completed synchronously.
 		/// If the derived task executes synchronously, it does not need to override aborting(). 
-		virtual void aborting()		{ COGS_ASSERT(false); }
+		virtual void aborting() { }
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
 		/// @param closeQueue If true the io::queue is also closed and all subsequent tasks are canceled.  Default: false
@@ -257,7 +257,7 @@ public:
 
 		/// @brief Tests if the queue was closed before or as a result of this task.  May only be called on a complete task.
 		/// @return True if the queue was closed before or as a result of this task.
-		bool was_closed() const volatile { return get_was_closed(); }
+		bool was_closed() const { return get_was_closed(); }
 
 		/// @brief Aborts a task.  If queued, dequeues and cancels it.  If executing, aborts it.
 		int abort() volatile { return ((task_base*)this)->abort_inner(false); }
@@ -273,7 +273,14 @@ public:
 	public:
 		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(task<result_t>, task_base, signallable_task<result_t>);
 
-		virtual bool cancel() volatile { return abort() != 0; }
+		virtual rcref<cogs::task<bool> > cancel() volatile
+		{
+			abort();
+
+			// IO operations will always return false from cancel, as they support partial completion,
+			// and because a task can become cancelled due to the queue being closes, not by direct task cancallation.
+			return get_immediate_task(false);
+		}
 	};
 
 protected:

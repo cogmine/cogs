@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HAVAL
-#define COGS_HAVAL
+#ifndef COGS_HEADER_CRYPTO_HAVAL
+#define COGS_HEADER_CRYPTO_HAVAL
 
 
 #include "cogs/crypto/serial_hash.hpp"

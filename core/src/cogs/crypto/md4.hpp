@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_MD4
-#define COGS_MD4
+#ifndef COGS_HEADER_CRYPTO_MD4
+#define COGS_HEADER_CRYPTO_MD4
 
 
 #include "cogs/crypto/serial_hash.hpp"

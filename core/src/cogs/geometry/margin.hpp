@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_MARGIN
-#define COGS_MARGIN
+#ifndef COGS_HEADER_GEOMETRY_MARGIN
+#define COGS_HEADER_GEOMETRY_MARGIN
 
 
 #include "cogs/operators.hpp"

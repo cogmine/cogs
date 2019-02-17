@@ -6,8 +6,8 @@
 // Status: WorkInProgress, Placeholder
 
 
-#ifndef COGS_UNICODE
-#define COGS_UNICODE
+#ifndef COGS_HEADER_COLLECTION_UNICODE
+#define COGS_HEADER_COLLECTION_UNICODE
 
 
 #include "cogs/env.hpp"

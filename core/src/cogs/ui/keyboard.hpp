@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_KEYBOARD
-#define COGS_KEYBOARD
+#ifndef COGS_HEADER_UI_KEYBOARD
+#define COGS_HEADER_UI_KEYBOARD
 
 
 namespace cogs {

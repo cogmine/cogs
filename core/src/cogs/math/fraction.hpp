@@ -6,8 +6,8 @@
 // Status: Good
 
 
-#ifndef COGS_FRACTION
-#define COGS_FRACTION
+#ifndef COGS_HEADER_MATH_FRACTION
+#define COGS_HEADER_MATH_FRACTION
 
 #include <type_traits>
 

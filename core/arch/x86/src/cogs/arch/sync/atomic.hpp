@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ARCH_ATOMIC
-#define COGS_ARCH_ATOMIC
+#ifndef COGS_HEADER_ARCH_SYNC_ATOMIC
+#define COGS_HEADER_ARCH_SYNC_ATOMIC
 
 
 #include <stddef.h>

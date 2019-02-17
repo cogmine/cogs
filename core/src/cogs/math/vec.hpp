@@ -5,8 +5,8 @@
 
 // Status: WorkInProgress, Placeholder
 
-#ifndef COGS_VEC
-#define COGS_VEC
+#ifndef COGS_HEADER_MATH_VEC
+#define COGS_HEADER_MATH_VEC
 
 
 #include "cogs/collections/vector.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RANGE_TO_BYTES
-#define COGS_RANGE_TO_BYTES
+#ifndef COGS_HEADER_MATH_RANGE_TO_BYTES
+#define COGS_HEADER_MATH_RANGE_TO_BYTES
 
 
 #include "cogs/math/bits_to_bytes.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_BITS_TO_BYTES
-#define COGS_BITS_TO_BYTES
+#ifndef COGS_HEADER_MATH_BITS_TO_BYTES
+#define COGS_HEADER_MATH_BITS_TO_BYTES
 
 
 #include "cogs/env.hpp"

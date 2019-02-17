@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_KQUEUE_POOL
-#define COGS_KQUEUE_POOL
+#ifndef COGS_HEADER_IO_KQUEUE_POOL
+#define COGS_HEADER_IO_KQUEUE_POOL
 
 
 #include <sys/types.h>

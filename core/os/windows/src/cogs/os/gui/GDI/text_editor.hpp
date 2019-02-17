@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_TEXT_EDITOR
-#define COGS_GDI_TEXT_EDITOR
+#ifndef COGS_HEADER_OS_GUI_GDI_TEXT_EDITOR
+#define COGS_HEADER_OS_GUI_GDI_TEXT_EDITOR
 
 
 #include "cogs/os.hpp"

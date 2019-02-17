@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_AVLTREE
-#define COGS_AVLTREE
+#ifndef COGS_HEADER_COLLECTION_AVLTREE
+#define COGS_HEADER_COLLECTION_AVLTREE
 
 
 #include "cogs/collections/btree.hpp"

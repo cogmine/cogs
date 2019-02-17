@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MOUSE
-#define COGS_MOUSE
+#ifndef COGS_HEADER_GUI_MOUSE
+#define COGS_HEADER_GUI_MOUSE
 
 
 namespace cogs {

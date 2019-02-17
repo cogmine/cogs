@@ -5,15 +5,15 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_SCROLL_BAR
-#define COGS_GDI_SCROLL_BAR
+#ifndef COGS_HEADER_OS_GUI_GDI_SCROLL_BAR
+#define COGS_HEADER_OS_GUI_GDI_SCROLL_BAR
 
 
 #include "cogs/os.hpp"
 #include <commctrl.h>
 
 
-#include "cogs/gui/binding.hpp"
+#include "cogs/bindable_property.hpp"
 #include "cogs/gui/scroll_bar.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/gui/GDI/hwnd.hpp"
@@ -32,8 +32,8 @@ private:
 	volatile transactable<scroll_bar_state>	m_state;
 	volatile double						m_pos;
 
-	delayed_construction<delegated_property<scroll_bar_state> >	m_stateProperty;
-	delayed_construction<delegated_property<double> >			m_positionProperty;
+	delayed_construction<delegated_bindable_property<scroll_bar_state> >	m_stateProperty;
+	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
 
 	dimension	m_dimension;
 	bool		m_isHiddenWhenInactive;

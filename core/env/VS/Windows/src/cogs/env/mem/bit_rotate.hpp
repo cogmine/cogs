@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_BIT_ROTATE
-#define COGS_ENV_BIT_ROTATE
+#ifndef COGS_HEADER_ENV_MEM_BIT_ROTATE
+#define COGS_HEADER_ENV_MEM_BIT_ROTATE
 
 
 #include "cogs/math/int_types.hpp"

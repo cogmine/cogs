@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_FONT
-#define COGS_FONT
+#ifndef COGS_HEADER_GFX_FONT
+#define COGS_HEADER_GFX_FONT
 
 
 #include "cogs/collections/composite_string.hpp"

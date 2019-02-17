@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RIPEMD
-#define COGS_RIPEMD
+#ifndef COGS_HEADER_CRYPTO_RIPEMD
+#define COGS_HEADER_CRYPTO_RIPEMD
 
 
 #include "cogs/crypto/serial_hash.hpp"

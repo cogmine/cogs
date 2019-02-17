@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_SEMAPHORE
-#define COGS_OS_SEMAPHORE
+#ifndef COGS_HEADER_OS_SYNC_SEMAPHORE
+#define COGS_HEADER_OS_SYNC_SEMAPHORE
 
 
 #include <errno.h>

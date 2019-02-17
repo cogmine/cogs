@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_AUTOFD
-#define COGS_AUTOFD
+#ifndef COGS_HEADER_IO_AUTOFD
+#define COGS_HEADER_IO_AUTOFD
 
 
 #include "cogs/os.hpp"

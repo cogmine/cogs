@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_SET_BITS
-#define COGS_CONST_SET_BITS
+#ifndef COGS_HEADER_MEM_CONST_SET_BITS
+#define COGS_HEADER_MEM_CONST_SET_BITS
 
 
 namespace cogs {

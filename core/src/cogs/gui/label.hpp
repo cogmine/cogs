@@ -5,14 +5,14 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_LABEL
-#define COGS_GUI_LABEL
+#ifndef COGS_HEADER_GUI_LABEL
+#define COGS_HEADER_GUI_LABEL
 
 
 #include "cogs/gfx/color.hpp"
 #include "cogs/gfx/font.hpp"
 #include "cogs/gui/pane.hpp"
-#include "cogs/gui/binding.hpp"
+#include "cogs/bindable_property.hpp"
 
 
 namespace cogs {
@@ -35,9 +35,9 @@ private:
 	volatile color		m_textColor;
 	bool m_useLineHeight;
 
-	delayed_construction<delegated_property<composite_string> >		m_textProperty;
-	delayed_construction<delegated_property<gfx::font> >	m_fontProperty;
-	delayed_construction<delegated_property<color> >		m_colorProperty;
+	delayed_construction<delegated_bindable_property<composite_string> >		m_textProperty;
+	delayed_construction<delegated_bindable_property<gfx::font> >	m_fontProperty;
+	delayed_construction<delegated_bindable_property<color> >		m_colorProperty;
 
 	rcptr<canvas::font> m_cachedFont;
 	size m_textExtent;
@@ -162,9 +162,9 @@ public:
 		draw_text(txt, m_textExtent, f.dereference(), c);
 	}
 		
-	rcref<property<composite_string> >	get_text_property() { return get_self_rcref(&m_textProperty.get()).static_cast_to<property<composite_string>>(); }
-	rcref<property<gfx::font> >	get_font_property() { return get_self_rcref(&m_fontProperty.get()).static_cast_to<property<gfx::font> >(); }
-	rcref<property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<property<color> >(); }
+	rcref<bindable_property<composite_string> >	get_text_property() { return get_self_rcref(&m_textProperty.get()).static_cast_to<bindable_property<composite_string>>(); }
+	rcref<bindable_property<gfx::font> >	get_font_property() { return get_self_rcref(&m_fontProperty.get()).static_cast_to<bindable_property<gfx::font> >(); }
+	rcref<bindable_property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<bindable_property<color> >(); }
 
 	color get_text_color() const
 	{

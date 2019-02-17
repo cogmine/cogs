@@ -6,8 +6,8 @@
 
 // Status: Placeholder
 
-#ifndef COGS_UIEDITOR
-#define COGS_UIEDITOR
+#ifndef COGS_HEADER_GUI_UIEDITOR
+#define COGS_HEADER_GUI_UIEDITOR
 
 
 #include "cogs/gui/pane.hpp"

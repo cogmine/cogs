@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_NET_CONNECTION
-#define COGS_NET_CONNECTION
+#ifndef COGS_HEADER_IO_NET_CONNECTION
+#define COGS_HEADER_IO_NET_CONNECTION
 
 
 #include "cogs/io/datastream.hpp"

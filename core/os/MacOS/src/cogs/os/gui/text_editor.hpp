@@ -5,8 +5,8 @@
 
 // Status: Good, WorkInProgress
 
-#ifndef COGS_OS_TEXT_EDITOR
-#define COGS_OS_TEXT_EDITOR
+#ifndef COGS_HEADER_OS_GUI_TEXT_EDITOR
+#define COGS_HEADER_OS_GUI_TEXT_EDITOR
 
 
 

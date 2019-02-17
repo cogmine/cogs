@@ -5,8 +5,8 @@
 
 // Status: Good, WorkInProgress
 
-#ifndef COGS_COMPOSITE_ARRAY
-#define COGS_COMPOSITE_ARRAY
+#ifndef COGS_HEADER_COLLECTION_COMPOSITE_ARRAY
+#define COGS_HEADER_COLLECTION_COMPOSITE_ARRAY
 
 #include <type_traits>
 

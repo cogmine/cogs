@@ -5,8 +5,8 @@
 
 // Status: Good, MayNeedCleanup
 
-#ifndef COGS_PANE
-#define COGS_PANE
+#ifndef COGS_HEADER_GUI_PANE
+#define COGS_HEADER_GUI_PANE
 
 
 #include "cogs/env.hpp"
@@ -190,14 +190,14 @@ private:
 		bool get_async() const volatile { return ((const serial_dispatched*)this)->m_async; }
 	};
 
-	virtual bool cancel_inner(volatile dispatched& d) volatile
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile
 	{
 		volatile serial_dispatched& d2 = *(volatile serial_dispatched*)&d;
 		const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt = d2.get_remove_token();
 		bool b = m_priorityQueue.remove(rt);
 		if (b)
 			serial_dispatch();
-		return b;
+		return get_immediate_task(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile

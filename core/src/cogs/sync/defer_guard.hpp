@@ -4,8 +4,8 @@
 
 // Status: Obsolete
 
-#ifndef COGS_DGUARD
-#define COGS_DGUARD
+#ifndef COGS_HEADER_SYNC_DEFER_GUARD
+#define COGS_HEADER_SYNC_DEFER_GUARD
 
 
 #include "cogs/collections/abastack.hpp"

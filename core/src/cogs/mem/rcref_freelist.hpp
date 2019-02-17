@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RCREF_FREELIST
-#define COGS_RCREF_FREELIST
+#ifndef COGS_HEADER_MEM_RCREF_FREELIST
+#define COGS_HEADER_MEM_RCREF_FREELIST
 
 
 #include "cogs/env/mem/alignment.hpp"

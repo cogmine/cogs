@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_DATASINK
-#define COGS_IO_DATASINK
+#ifndef COGS_HEADER_IO_DATASINK
+#define COGS_HEADER_IO_DATASINK
 
 
 #include "cogs/function.hpp"
@@ -54,6 +54,9 @@ private:
 	datasink& operator=(const datasink&) = delete;
 
 	rcptr<io::queue>	m_ioQueue;	// OK that the rcptr is not volatile, since it's set on construction, and cleared in destructor
+	
+	typedef function<rcref<task<bool> >(composite_buffer&)> write_func_t;
+	write_func_t m_writeFunc;
 
 public:
 	class transaction;
@@ -291,11 +294,46 @@ public:
 	/// @return A rcref to a waitable that will become signaled when the datasink is closed.
 	rcref<waitable> get_sink_close_event() const	{ return m_ioQueue->get_close_event(); }
 
+	bool is_sink_closed() const
+	{
+		if (!!m_ioQueue)
+			m_ioQueue->is_closed();
+		return true;
+	}
+
 	~datasink()
 	{
 		if (!!m_ioQueue)
 			m_ioQueue->close();
 	}
+
+private:
+	class callback_writer : public datasink::writer
+	{
+	public:
+		const weak_rcptr<datasink> m_sink;
+
+		callback_writer(const rcref<datasink>& proxy, const rcref<datasink>& ds)
+			: writer(proxy),
+			m_sink(ds)
+		{
+		}
+
+		virtual void writing()
+		{
+			rcptr<datasink> ds = m_sink;
+			if (!ds)
+				complete(true);
+			else
+			{
+				rcref<cogs::task<bool> > t = ds->m_writeFunc(get_buffer());
+				t->dispatch([r{ this_rcref }](bool isClosing)
+				{
+					r->complete(isClosing);
+				});
+			}
+		}
+	};
 
 protected:
 	datasink()
@@ -306,6 +344,16 @@ protected:
 	/// @param ioQueue The io::queue to use.  Default: creates a new one
 	explicit datasink(const rcref<io::queue>& ioQueue)
 		: m_ioQueue(ioQueue)
+	{ }
+
+	datasink(const write_func_t& writeFunc)
+		: m_ioQueue(queue::create()),
+		m_writeFunc(writeFunc)
+	{ }
+
+	datasink(write_func_t&& writeFunc)
+		: m_ioQueue(queue::create()),
+		m_writeFunc(std::move(writeFunc))
 	{ }
 
 	/// @brief Arbitrarily enqueues an io::queue::task in the datasink's IO queue
@@ -338,7 +386,17 @@ protected:
 	/// @param ds A datasink reference to encapsulate in the writer.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new writer
-	virtual rcref<writer> create_writer(const rcref<datasink>& ds)			{ return rcnew(bypass_constructor_permission<writer>, ds); }
+	virtual rcref<writer> create_writer(const rcref<datasink>& ds)
+	{
+		if (!!m_writeFunc)
+			return rcnew(callback_writer, ds, this_rcref);
+		return rcnew(bypass_constructor_permission<writer>, ds);
+	}
+
+public:
+	static rcref<datasink> create(const write_func_t& writeFunc) { return rcnew(bypass_constructor_permission<datasink>, writeFunc); }
+
+	static rcref<datasink> create(write_func_t&& writeFunc) { return rcnew(bypass_constructor_permission<datasink>, std::move(writeFunc)); }
 };
 
 

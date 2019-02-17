@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_UNOWNED
-#define COGS_UNOWNED
+#ifndef COGS_HEADER_MEM_UNOWNED
+#define COGS_HEADER_MEM_UNOWNED
 
 
 namespace cogs {

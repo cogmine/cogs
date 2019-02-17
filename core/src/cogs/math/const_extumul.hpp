@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_EXTUMUL
-#define COGS_CONST_EXTUMUL
+#ifndef COGS_HEADER_MATH_CONST_EXTUMUL
+#define COGS_HEADER_MATH_CONST_EXTUMUL
 
 
 #include "cogs/env.hpp"

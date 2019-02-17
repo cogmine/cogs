@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_IP_TCP
-#define COGS_OS_IP_TCP
+#ifndef COGS_HEADER_OS_IO_NET_IP_TCP
+#define COGS_HEADER_OS_IO_NET_IP_TCP
 
 
 #include "cogs/io/datastream.hpp"
@@ -509,7 +509,7 @@ public:
 		unsigned short get_remote_port() const			{ return m_remotePort; }
 
 		// TODO: cancel does not yet abort the connection operation, just prevent it from completing successfully
-		virtual bool cancel() volatile
+		virtual rcref<task<bool> > cancel() volatile
 		{
 			return signallable_task<connecter>::cancel();
 		}

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IS_SIGNED_TYPE
-#define COGS_IS_SIGNED_TYPE
+#ifndef COGS_HEADER_MATH_IS_SIGNED_TYPE
+#define COGS_HEADER_MATH_IS_SIGNED_TYPE
 
 
 #include <type_traits>

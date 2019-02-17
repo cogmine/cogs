@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_WHIRLPOOL
-#define COGS_WHIRLPOOL
+#ifndef COGS_HEADER_CRYPTO_WHIRLPOOL
+#define COGS_HEADER_CRYPTO_WHIRLPOOL
 
 
 #include "cogs/crypto/serial_hash.hpp"

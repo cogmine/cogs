@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_SHA3
-#define COGS_SHA3
+#ifndef COGS_HEADER_CRYPTO_SHA3
+#define COGS_HEADER_CRYPTO_SHA3
 
 
 #include "cogs/crypto/serial_hash.hpp"

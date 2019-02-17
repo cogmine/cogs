@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_BTREE
-#define COGS_BTREE
+#ifndef COGS_HEADER_COLLECTION_BTREE
+#define COGS_HEADER_COLLECTION_BTREE
 
 
 #include "cogs/collections/tlink.hpp"

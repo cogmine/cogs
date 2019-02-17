@@ -6,8 +6,8 @@
 // Status: WorkInProgress
 
 
-#ifndef COGS_EXTENT
-#define COGS_EXTENT
+#ifndef COGS_HEADER_GEOMETRY_SIZE
+#define COGS_HEADER_GEOMETRY_SIZE
 
 
 #include "cogs/geometry/proportion.hpp"

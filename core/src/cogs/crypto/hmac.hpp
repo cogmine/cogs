@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HMAC
-#define COGS_HMAC
+#ifndef COGS_HEADER_CRYPTO_HMAC
+#define COGS_HEADER_CRYPTO_HMAC
 
 
 #include "cogs/crypto/hash.hpp"

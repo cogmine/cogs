@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_WAIT_PRIORITY_QUEUE
-#define COGS_WAIT_PRIORITY_QUEUE
+#ifndef COGS_HEADER_SYNC_WAIT_PRIORITY_QUEUE
+#define COGS_HEADER_SYNC_WAIT_PRIORITY_QUEUE
 
 
 #include "cogs/sync/priority_queue.hpp"

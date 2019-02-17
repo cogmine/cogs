@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_SLIST
-#define COGS_SLIST
+#ifndef COGS_HEADER_COLLECTION_SLIST
+#define COGS_HEADER_COLLECTION_SLIST
 
 
 #include "cogs/collections/slink.hpp"

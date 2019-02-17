@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_NSIMAGE
-#define COGS_OS_NSIMAGE
+#ifndef COGS_HEADER_OS_GFX_NSIMAGE
+#define COGS_HEADER_OS_GFX_NSIMAGE
 
 
 #include "cogs/collections/composite_string.hpp"

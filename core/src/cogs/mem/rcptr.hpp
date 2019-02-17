@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RCPTR
-#define COGS_RCPTR
+#ifndef COGS_HEADER_MEM_RCPTR
+#define COGS_HEADER_MEM_RCPTR
 
 
 #include "cogs/env.hpp"

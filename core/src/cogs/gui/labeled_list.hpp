@@ -5,8 +5,8 @@
 //
 //// Status: WorkInProgress
 //
-//#ifndef COGS_UI_LABELED_LIST
-//#define COGS_UI_LABELED_LIST
+//#ifndef COGS_HEADER_GUI_LABELED_LIST
+//#define COGS_HEADER_GUI_LABELED_LIST
 //
 //
 //#include "cogs/collections/multimap.hpp"

@@ -3,8 +3,8 @@
 //
 
 
-#ifndef COGS_CONST_BIT_SCAN
-#define COGS_CONST_BIT_SCAN
+#ifndef COGS_HEADER_MEM_CONST_BIT_SCAN
+#define COGS_HEADER_MEM_CONST_BIT_SCAN
 
 
 #include <type_traits>

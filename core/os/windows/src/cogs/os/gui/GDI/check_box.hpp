@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_CHECK_BOX
-#define COGS_GDI_CHECK_BOX
+#ifndef COGS_HEADER_OS_GUI_GDI_CHECK_BOX
+#define COGS_HEADER_OS_GUI_GDI_CHECK_BOX
 
 
 #include "cogs/os.hpp"

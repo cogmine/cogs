@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_FREELIST_ALLOCATOR
-#define COGS_FREELIST_ALLOCATOR
+#ifndef COGS_HEADER_MEM_FREELIST_ALLOCATOR
+#define COGS_HEADER_MEM_FREELIST_ALLOCATOR
 
 
 #include "cogs/env/mem/alignment.hpp"

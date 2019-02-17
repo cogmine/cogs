@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_TIMEOUT
-#define COGS_OS_TIMEOUT
+#ifndef COGS_HEADER_OS_SYNC_TIMEOUT
+#define COGS_HEADER_OS_SYNC_TIMEOUT
 
 
 #include <mach/semaphore.h>

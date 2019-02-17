@@ -5,8 +5,8 @@
 //
 //// Status: Placeholder, WorkInProgress, Ancient
 //
-//#ifndef COGS_FILE
-//#define COGS_FILE
+//#ifndef COGS_HEADER_IO_FILE
+//#define COGS_HEADER_IO_FILE
 //
 //#include <type_traits>
 //

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_TIMER
-#define COGS_TIMER
+#ifndef COGS_HEADER_SYNC_TIMER
+#define COGS_HEADER_SYNC_TIMER
 
 
 #include "cogs/collections/multimap.hpp"
@@ -81,7 +81,11 @@ private:
 			
 		static rcptr<globals> init()
 		{
-			return singleton<globals, singleton_posthumous_behavior::return_null>::get();
+			bool isNew;
+			rcptr<globals> g = singleton<globals, singleton_posthumous_behavior::return_null>::get(isNew);
+			if (isNew)
+				g->m_timerThread = thread::spawn(&thread_main);
+			return g;
 		}
 
 		static void thread_main()

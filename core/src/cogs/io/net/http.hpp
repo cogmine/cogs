@@ -5,8 +5,8 @@
 
 // Status: WorkInProgress
 
-#ifndef COGS_HTTP
-#define COGS_HTTP
+#ifndef COGS_HEADER_IO_NET_HTTP
+#define COGS_HEADER_IO_NET_HTTP
 
 
 #include "cogs/env.hpp"
@@ -116,6 +116,9 @@ class server;
 // chunk_source is a helper class used by both the client and server http components,
 // to parse a datastream with a Transfer-Encoding of 'chunked'.
 
+// chunk_source and chuck_sink are not combined into a single chunk_protocol
+// as chunking only occurs in one direction or the other, genernally not in both directions simultaneously.
+
 /// @ingroup Net
 /// @brief A datasource filter that decodes the 'chunked' Transfer-Encoding.
 class chunk_source : public filter
@@ -142,7 +145,7 @@ public:
 
 	const trailer_map_t& get_trailers() const	{ return m_trailers; }
 
-	virtual composite_buffer filtering(composite_buffer& src)
+	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		composite_buffer result;
 		COGS_ASSERT(!!src);
@@ -224,7 +227,7 @@ public:
 			// Only continue if there is more data, and m_remainingChunk changed to non-zero
 		} while (!!src && !!m_remainingChunk);
 
-		return result;
+		return get_immediate_task(result);
 	}
 };
 
@@ -236,45 +239,36 @@ public:
 /// @brief A datasink filter that encodes the 'chunked' Transfer-Encoding.
 class chunk_sink : public filter
 {
-//public: //typedef nonvolatile_map<composite_cstring, composite_cstring, false>		trailer_map_t;	// TBD?
-private:
-	virtual composite_buffer filtering(composite_buffer& src)
-	{
-		composite_buffer result;
-		COGS_ASSERT(!!src);
-
-		static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
-		buffer crlfBuf = buffer::contain(CRLF, 2);
-
-		size_type bufLength = src.get_length();
-		result.append(composite_buffer::from_composite_cstring(bufLength.to_cstring(16)));	// Chunk length
-		result.append(crlfBuf);			// CRLF
-		result.append(src);				// DATA
-		result.append(crlfBuf);			// CRLF
-		src.clear();
-		return result;
-	}
-
-	virtual composite_buffer finalize()
-	{
-		// send empty chunk
-		composite_buffer compBuf;
-
-		static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
-		buffer crlfBuf = buffer::contain(CRLF, 2);
-		buffer zeroBuf = buffer::contain("0", 1);
-
-		compBuf.append(zeroBuf);
-		compBuf.append(crlfBuf);
-		compBuf.append(crlfBuf);
-
-		// TBD: Send trailers
-
-		return compBuf;
-	}
-
 public:
 	chunk_sink()
+		: filter([](composite_buffer & src)
+		{
+			composite_buffer result;
+			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+			buffer crlfBuf = buffer::contain(CRLF, 2);
+			size_type bufLength = src.get_length();
+			result.append(composite_buffer::from_composite_cstring(bufLength.to_cstring(16)));	// Chunk length
+			result.append(crlfBuf);			// CRLF
+			result.append(src);				// DATA
+			result.append(crlfBuf);			// CRLF
+			src.clear();
+			return get_immediate_task(result);
+		},
+		[]()
+		{
+			// send empty chunk
+			composite_buffer compBuf;
+			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
+			buffer crlfBuf = buffer::contain(CRLF, 2);
+			buffer zeroBuf = buffer::contain("0", 1);
+			compBuf.append(zeroBuf);
+			compBuf.append(crlfBuf);
+			compBuf.append(crlfBuf);
+
+			// TBD: Send trailers?
+
+			return get_immediate_task(compBuf);
+		})
 	{ }
 };
 
@@ -604,7 +598,7 @@ private:
 
 		rcptr<chunk_sink>		m_chunkSink;
 		rcptr<io::limiter>		m_sinkContentLengthLimiter;
-		rcptr<datasink>			m_sink;
+		rcptr<datasink>			m_sink;	// Will vary depending on whether chunking filter is used
 		const status_code		m_statusCode;
 		const composite_cstring m_statusPhrase;
 		const bool				m_reuseConnection;
@@ -755,9 +749,8 @@ private:
 
 		composite_buffer		m_bufferedWrite;
 		int						m_CRLFs;	// 0 = none found, 1 = CR, 2 = CRLF, 3 = CRLFCR, (until CRLFCRLF)
-		//bool					m_expectContinue;
 
-		rcref<delegated_datasink>	m_delegatedSink;
+		rcref<datasink>			m_sink;
 
 		rcptr<chunk_source>		m_chunkSource;
 		rcptr<io::limiter>		m_sourceContentLengthLimiter;
@@ -766,7 +759,7 @@ private:
 		rcptr<task<void> >	m_coupler;
 
 	private:
-		bool process_write(composite_buffer& compBuf)
+		rcref<task<bool> > process_write(composite_buffer& compBuf)
 		{
 			bool closing = false;
 
@@ -1017,14 +1010,14 @@ private:
 				}
 			}
 
-			return !closing;
+			return get_immediate_task(closing);
 		}
 
 		virtual void start()
 		{
 			net::request_response_server::request::start();
-			m_coupler = couple(get_datasource(), m_delegatedSink, true);
-			m_delegatedSink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
+			m_coupler = couple(get_datasource(), m_sink, true);
+			m_sink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<request> r2 = r;
 				if (!!r2)
@@ -1040,12 +1033,12 @@ private:
 			m_responseHeaders(rcnew(header_map_t)),
 			m_contentLength(0),
 			m_CRLFs(0),
-			m_delegatedSink(rcnew(delegated_datasink, [r{ this_weak_rcptr }](composite_buffer& b)
+			m_sink(datasink::create([r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
-				if (!!r2)
-					return r2->process_write(b);
-				return false;
+				if (!r2)
+					return get_immediate_task(true);
+				return r2->process_write(b);
 			}))
 		{
 			// setup default response headers 

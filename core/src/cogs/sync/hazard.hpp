@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HAZARD
-#define COGS_HAZARD
+#ifndef COGS_HEADER_SYNC_HAZARD
+#define COGS_HEADER_SYNC_HAZARD
 
 
 #include "cogs/debug.hpp"

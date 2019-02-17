@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HASH_INT
-#define COGS_HASH_INT
+#ifndef COGS_HEADER_CRYPTO_HASH_INT
+#define COGS_HEADER_CRYPTO_HASH_INT
 
 
 #include "cogs/crypto/hash.hpp"

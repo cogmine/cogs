@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_MANUAL_RESET_TIMER
-#define COGS_MANUAL_RESET_TIMER
+#ifndef COGS_HEADER_SYNC_MANUAL_RESET_TIMER
+#define COGS_HEADER_SYNC_MANUAL_RESET_TIMER
 
 
 #include "cogs/sync/timer.hpp"

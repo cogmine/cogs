@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RC_NEW
-#define COGS_RC_NEW
+#ifndef COGS_HEADER_MEM_RCNEW
+#define COGS_HEADER_MEM_RCNEW
 
 
 #include "cogs/env.hpp"

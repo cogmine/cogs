@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONTAINER_DLIST
-#define COGS_CONTAINER_DLIST
+#ifndef COGS_HEADER_COLLECTION_CONTAINER_DLIST
+#define COGS_HEADER_COLLECTION_CONTAINER_DLIST
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_LIMITER
-#define COGS_IO_LIMITER
+#ifndef COGS_HEADER_IO_LIMITER
+#define COGS_HEADER_IO_LIMITER
 
 
 #include "cogs/io/buffer.hpp"
@@ -34,7 +34,7 @@ public:
 		:	m_remaining(n)
 	{ }
 
-	virtual composite_buffer filtering(composite_buffer& src)
+	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		composite_buffer result;
 		size_t n = m_remaining;
@@ -46,7 +46,7 @@ public:
 			result = src.split_off_before(n);
 			m_remaining -= n;
 		}
-		return result;
+		return get_immediate_task(result);
 	}
 };
 

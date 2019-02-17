@@ -5,8 +5,8 @@
 
 // Status: Good, WorkInProgress
 
-#ifndef COGS_OS_WINDOW
-#define COGS_OS_WINDOW
+#ifndef COGS_HEADER_OS_GUI_WINDOW
+#define COGS_HEADER_OS_GUI_WINDOW
 
 
 #import <Cocoa/Cocoa.h>

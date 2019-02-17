@@ -5,8 +5,8 @@
 //
 //// Status: Placeholder
 //
-//#ifndef COGS_OS_OPENGL
-//#define COGS_OS_OPENGL
+//#ifndef COGS_HEADER_OS_GUI_GDI_OPENGL
+//#define COGS_HEADER_OS_GUI_GDI_OPENGL
 //
 //#pragma comment(lib, "opengl32.lib") 
 //#pragma comment(lib, "glu32.lib") 

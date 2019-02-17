@@ -5,8 +5,8 @@
 
 // Status: Good
 	
-#ifndef COGS_IO_COMPOSITE_BUFFER
-#define COGS_IO_COMPOSITE_BUFFER
+#ifndef COGS_HEADER_IO_COMPOSITE_BUFFER
+#define COGS_HEADER_IO_COMPOSITE_BUFFER
 
 
 #include "cogs/collections/composite_vector.hpp"

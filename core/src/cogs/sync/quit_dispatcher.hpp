@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_QUIT
-#define COGS_QUIT
+#ifndef COGS_HEADER_SYNC_QUIT_DISPATCHER
+#define COGS_HEADER_SYNC_QUIT_DISPATCHER
 
 
 #include "cogs/env.hpp"

@@ -6,8 +6,8 @@
 // Status: Obsolete
 
 
-#ifndef COGS_PROPORTION
-#define COGS_PROPORTION
+#ifndef COGS_HEADER_GEOMETRY_PROPORTION
+#define COGS_HEADER_GEOMETRY_PROPORTION
 
 #include <type_traits>
 #include <array>

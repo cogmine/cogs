@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MULTIMAP
-#define COGS_MULTIMAP
+#ifndef COGS_HEADER_COLLECTION_MULTIMAP
+#define COGS_HEADER_COLLECTION_MULTIMAP
 
 #include <type_traits>
 

@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_COMPLETION_PORT
-#define COGS_COMPLETION_PORT
+#ifndef COGS_HEADER_IO_COMPLETION_PORT
+#define COGS_HEADER_IO_COMPLETION_PORT
 
 
 #include "cogs/function.hpp"

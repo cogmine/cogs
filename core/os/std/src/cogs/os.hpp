@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_STD
-#define COGS_OS_STD
+#ifndef COGS_HEADER_OS
+#define COGS_HEADER_OS
 
 
 #include "cogs/arch.hpp"

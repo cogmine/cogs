@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_JOAAT
-#define COGS_JOAAT
+#ifndef COGS_HEADER_CRYPTO_JOAAT
+#define COGS_HEADER_CRYPTO_JOAAT
 
 
 #include "cogs/crypto/hash_int.hpp"

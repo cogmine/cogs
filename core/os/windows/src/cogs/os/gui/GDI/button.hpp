@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_BUTTON
-#define COGS_GDI_BUTTON
+#ifndef COGS_HEADER_OS_GUI_GDI_BUTTON
+#define COGS_HEADER_OS_GUI_GDI_BUTTON
 
 
 #include "cogs/os.hpp"

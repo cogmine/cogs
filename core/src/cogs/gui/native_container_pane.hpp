@@ -4,8 +4,8 @@
 
 // Status: Good
 
-#ifndef COGS_GUI_NATIVE_CONTAINER_PANE
-#define COGS_GUI_NATIVE_CONTAINER_PANE
+#ifndef COGS_HEADER_GUI_NATIVE_CONTAINER_PANE
+#define COGS_HEADER_GUI_NATIVE_CONTAINER_PANE
 
 
 #include "cogs/gui/pane.hpp"

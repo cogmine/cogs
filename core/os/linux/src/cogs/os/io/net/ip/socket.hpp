@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_IP_SOCKET
-#define COGS_OS_IP_SOCKET
+#ifndef COGS_HEADER_OS_IO_NET_IP_SOCKET
+#define COGS_HEADER_OS_IO_NET_IP_SOCKET
 
 
 #include "cogs/os/io/epoll_pool.hpp"

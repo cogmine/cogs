@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OPERATORS
-#define COGS_OPERATORS
+#ifndef COGS_HEADER_OPERATORS
+#define COGS_HEADER_OPERATORS
 
 
 #include <numeric>

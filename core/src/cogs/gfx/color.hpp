@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_COLOR
-#define COGS_COLOR
+#ifndef COGS_HEADER_GFX_COLOR
+#define COGS_HEADER_GFX_COLOR
 
 #include <type_traits>
 

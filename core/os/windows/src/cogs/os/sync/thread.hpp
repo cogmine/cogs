@@ -2,8 +2,8 @@
 //  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-#ifndef COGS_OS_THREAD
-#define COGS_OS_THREAD
+#ifndef COGS_HEADER_OS_SYNC_THREAD
+#define COGS_HEADER_OS_SYNC_THREAD
 
 
 #include "cogs/function.hpp"

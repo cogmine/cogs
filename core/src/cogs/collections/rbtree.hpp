@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RBTREE
-#define COGS_RBTREE
+#ifndef COGS_HEADER_COLLECTION_RBTREE
+#define COGS_HEADER_COLLECTION_RBTREE
 
 
 #include "cogs/operators.hpp"

@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting, MayNeedCleanup
 
-#ifndef COGS_UI_BINDING
-#define COGS_UI_BINDING
+#ifndef COGS_HEADER_BINDABLE_PROPERTY
+#define COGS_HEADER_BINDABLE_PROPERTY
 
 
 #include "cogs/collections/container_dlist.hpp"
@@ -23,103 +23,102 @@
 
 
 namespace cogs {
-namespace gui {
 
 
-// gui::property combines the concept of a property (supporting get() and set() functions that can be 
+// bindable_property combines the concept of a property (supporting get() and set() functions that can be 
 // customized) with the concept of databinding (automatically notifying dependent properties when a property
 // changes).
 //
-// property<> is the interface class, however all instantiated properties are derived from virtual_property<>,
+// bindable_property<> is the interface class, however all instantiated properties are derived from virtual_bindable_property<>,
 //	which handles processing of change notifications.
 //
 // Certain constraints exist to handle parallelism issues.
 //	- A call to get() always occurs synchronously, in the invoking thread.
-//		- If an asychronous get is required, consider binding a property, as its set() will be invoked asynchronously.
+//		- If an asychronous get is required, consider binding a bindable_property, as its set() will be invoked asynchronously.
 //	- Parallel calls to set(), and changed() will be serialized.
 //		All direct calls to set() will be queued/processed.  Updates resulting from a changed() will be coalesced, or omitted
 //		entirely if a subsequent direct call to set() occurs.
 
 
-// Interface class for property.
-//	Most references should be to rcptr<property<type, readWriteType> >
+// Interface class for bindable_property.
+//	Most references should be to rcptr<bindable_property<type, readWriteType> >
 template <typename type, io::permission readWriteType = io::read_write>
-class property;
+class bindable_property;
 
-// Base class to use when deriving property types (implementing virtual setting() and/or getting()
+// Base class to use when deriving bindable_property types (implementing virtual setting() and/or getting()
 //	Calls to set() are asynchronous and serialized.  User implementation of setting() must call set_complete() to indicate completion.
 template <typename type, io::permission readWriteType = io::read_write>
-class virtual_property;
+class virtual_bindable_property;
 
 // A concrete class for delegate-based properties.
 template <typename type, io::permission readWriteType = io::read_write>
-class delegated_property;
+class delegated_bindable_property;
 
-// A concrete class for a backed property.
-//	Simply wraps a variable in a property.
+// A concrete class for a backed bindable_property.
+//	Simply wraps a variable in a bindable_property.
 template <typename type, io::permission readWriteType = io::read_write>
-class backed_property;
+class backed_bindable_property;
 
 template <typename type>
-class virtual_property_base;
+class virtual_bindable_property_base;
 
-// property<> is used as an interface only.
-// Derived properties should be derived from virtual_property.
+// bindable_property<> is used as an interface only.
+// Derived properties should be derived from virtual_bindable_property.
 template <typename type, io::permission readWriteType>		// read_write
-class property : public property<type, io::read_only>, public property<type, io::write_only>
+class bindable_property : public bindable_property<type, io::read_only>, public bindable_property<type, io::write_only>
 {
 public:
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() = 0;
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() = 0;
 
-	virtual void bind(const rcref<property<type, io::read_write> >& src) = 0;
-	virtual void bind_to(const rcref<property<type, io::write_only> >& snk) = 0;
-	virtual void bind_from(const rcref<property<type, io::read_only> >& src) = 0;
+	virtual void bind(const rcref<bindable_property<type, io::read_write> >& src) = 0;
+	virtual void bind_to(const rcref<bindable_property<type, io::write_only> >& snk) = 0;
+	virtual void bind_from(const rcref<bindable_property<type, io::read_only> >& src) = 0;
 
 	type get() const	{ return getting(); }	// inline for API symmetry with set/setting
 
-	virtual type getting() const = 0;			// User override, if virtual property
+	virtual type getting() const = 0;			// User override, if virtual bindable_property
 
 	virtual void changed() = 0;
 
-	virtual void set(const type& t) = 0;		// Overloaded by virtual_property to defer setting() to appropriate thread
+	virtual void set(const type& t) = 0;		// Overloaded by virtual_bindable_property to defer setting() to appropriate thread
 
-	virtual void setting(const type& t) = 0;	// User override, if virtual_property
+	virtual void setting(const type& t) = 0;	// User override, if virtual_bindable_property
 };
 
 template <typename type>
-class property<type, io::read_only>
+class bindable_property<type, io::read_only>
 {
 public:
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() = 0;
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() = 0;
 
-	virtual void bind_to(const rcref<property<type, io::write_only> >& snk) = 0;
+	virtual void bind_to(const rcref<bindable_property<type, io::write_only> >& snk) = 0;
 
 	type get() const { return getting(); }	// inline for API symmetry with set/setting
 
-	virtual type getting() const = 0;			// User override, if virtual property
+	virtual type getting() const = 0;			// User override, if virtual bindable_property
 
 	virtual void changed() = 0;
 };
 
 template <typename type>
-class property<type, io::write_only>
+class bindable_property<type, io::write_only>
 {
 public:	
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() = 0;
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() = 0;
 
-	virtual void bind_from(const rcref<property<type, io::read_only> >& src) = 0;
+	virtual void bind_from(const rcref<bindable_property<type, io::read_only> >& src) = 0;
 
-	virtual void set(const type& t) = 0;		// Overloaded by virtual_property to defer setting() to appropriate thread
+	virtual void set(const type& t) = 0;		// Overloaded by virtual_bindable_property to defer setting() to appropriate thread
 
-	virtual void setting(const type& t) = 0;	// User override, if virtual_property
+	virtual void setting(const type& t) = 0;	// User override, if virtual_bindable_property
 };
 
 
 template <typename type>
-class virtual_property_base : public object
+class virtual_bindable_property_base : public object
 {
 private:
-	typedef virtual_property_base<type> this_t;
+	typedef virtual_bindable_property_base<type> this_t;
 
 	class binding
 	{
@@ -237,12 +236,12 @@ private:
 	}
 
 protected:
-	virtual_property_base()
+	virtual_bindable_property_base()
 		:	m_pendingChange(false),
 			m_pumpSerializer(0)
 	{ }
 
-	virtual_property_base(const rcref<volatile dispatcher>& d)
+	virtual_bindable_property_base(const rcref<volatile dispatcher>& d)
 		:	m_dispatcher(d),
 			m_pendingChange(false),
 			m_pumpSerializer(0)
@@ -308,35 +307,35 @@ protected:
 
 
 template <typename type, io::permission readWriteType>
-class virtual_property : public property<type, readWriteType>, public virtual_property_base<type>
+class virtual_bindable_property : public bindable_property<type, readWriteType>, public virtual_bindable_property_base<type>
 {
 private:
-	typedef virtual_property<type, readWriteType> this_t;
-	typedef virtual_property_base<type> base_t;
+	typedef virtual_bindable_property<type, readWriteType> this_t;
+	typedef virtual_bindable_property_base<type> base_t;
 
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() { return this_rcref; }
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() { return this_rcref; }
 
 public:
-	virtual_property()
+	virtual_bindable_property()
 	{ }
 
-	virtual_property(const rcref<volatile dispatcher>& d)
+	virtual_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	virtual void bind(const rcref<property<type, io::read_write> >& srcSnk)
+	virtual void bind(const rcref<bindable_property<type, io::read_write> >& srcSnk)
 	{
-		base_t::bind(srcSnk->get_virtual_property_base());
+		base_t::bind(srcSnk->get_virtual_bindable_property_base());
 	}
 
-	virtual void bind_to(const rcref<property<type, io::write_only> >& snk)
+	virtual void bind_to(const rcref<bindable_property<type, io::write_only> >& snk)
 	{
-		base_t::bind_to(snk->get_virtual_property_base());
+		base_t::bind_to(snk->get_virtual_bindable_property_base());
 	}
 
-	virtual void bind_from(const rcref<property<type, io::read_only> >& src)
+	virtual void bind_from(const rcref<bindable_property<type, io::read_only> >& src)
 	{
-		base_t::bind_from(src->get_virtual_property_base());
+		base_t::bind_from(src->get_virtual_bindable_property_base());
 	}
 
 	virtual type getting() const = 0;
@@ -352,27 +351,27 @@ public:
 };
 
 template <typename type>
-class virtual_property<type, io::read_only> : public property<type, io::read_only>, public virtual_property_base<type>
+class virtual_bindable_property<type, io::read_only> : public bindable_property<type, io::read_only>, public virtual_bindable_property_base<type>
 {
 private:
-	typedef virtual_property<type, io::read_only> this_t;
-	typedef virtual_property_base<type> base_t;
+	typedef virtual_bindable_property<type, io::read_only> this_t;
+	typedef virtual_bindable_property_base<type> base_t;
 
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() { return this_rcref; }
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() { return this_rcref; }
 
 	virtual void setting(const type& t) { }
 
 public:
-	virtual_property()
+	virtual_bindable_property()
 	{ }
 
-	virtual_property(const rcref<volatile dispatcher>& d)
+	virtual_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	virtual void bind_to(const rcref<property<type, io::write_only> >& snk)
+	virtual void bind_to(const rcref<bindable_property<type, io::write_only> >& snk)
 	{
-		base_t::bind_to(snk->get_virtual_property_base());
+		base_t::bind_to(snk->get_virtual_bindable_property_base());
 	}
 
 	virtual type getting() const = 0;
@@ -381,27 +380,27 @@ public:
 };
 
 template <typename type>
-class virtual_property<type, io::write_only> : public property<type, io::write_only>, public virtual_property_base<type>
+class virtual_bindable_property<type, io::write_only> : public bindable_property<type, io::write_only>, public virtual_bindable_property_base<type>
 {
 private:
-	typedef virtual_property<type, io::write_only> this_t;
-	typedef virtual_property_base<type> base_t;
+	typedef virtual_bindable_property<type, io::write_only> this_t;
+	typedef virtual_bindable_property_base<type> base_t;
 
-	virtual rcref<virtual_property_base<type> > get_virtual_property_base() { return this_rcref; }
+	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() { return this_rcref; }
 
 	virtual type getting() const = 0; // { type unused; return unused; }
 
 public:
-	virtual_property()
+	virtual_bindable_property()
 	{ }
 
-	virtual_property(const rcref<volatile dispatcher>& d)
+	virtual_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	virtual void bind_from(const rcref<property<type, io::read_only> >& src)
+	virtual void bind_from(const rcref<bindable_property<type, io::read_only> >& src)
 	{
-		base_t::bind_from(src->get_virtual_property_base());
+		base_t::bind_from(src->get_virtual_bindable_property_base());
 	}
 
 	virtual void set(const type& t)		{ base_t::set(t); }
@@ -414,14 +413,14 @@ public:
 
 
 template <typename type>
-class delegated_property<type, io::read_write> : public virtual_property<type, io::read_write>
+class delegated_bindable_property<type, io::read_write> : public virtual_bindable_property<type, io::read_write>
 {
 private:
-	typedef delegated_property<type, io::read_write> this_t;
-	typedef virtual_property<type, io::read_write> base_t;
+	typedef delegated_bindable_property<type, io::read_write> this_t;
+	typedef virtual_bindable_property<type, io::read_write> base_t;
 
 public:
-	typedef function<void(const type&,const rcref<property<type, io::write_only> >&)> set_delegate_type;
+	typedef function<void(const type&,const rcref<bindable_property<type, io::write_only> >&)> set_delegate_type;
 	typedef function<type()> get_delegate_type;
 
 private:
@@ -429,12 +428,12 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_property(const get_delegate_type& g, const set_delegate_type& s)
+	delegated_bindable_property(const get_delegate_type& g, const set_delegate_type& s)
 		:	m_getDelegate(g),
 			m_setDelegate(s)
 	{ }
 
-	delegated_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
+	delegated_bindable_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
 		:	base_t(d),
 			m_getDelegate(g),
 			m_setDelegate(s)
@@ -449,11 +448,11 @@ public:
 };
 
 template <typename type>
-class delegated_property<type, io::read_only> : public virtual_property<type, io::read_only>
+class delegated_bindable_property<type, io::read_only> : public virtual_bindable_property<type, io::read_only>
 {
 private:
-	typedef delegated_property<type, io::read_only> this_t;
-	typedef virtual_property<type, io::read_only> base_t;
+	typedef delegated_bindable_property<type, io::read_only> this_t;
+	typedef virtual_bindable_property<type, io::read_only> base_t;
 
 public:
 	typedef function<type()> get_delegate_type;
@@ -462,11 +461,11 @@ private:
 	get_delegate_type m_getDelegate;
 
 public:
-	delegated_property(const get_delegate_type& g)
+	delegated_bindable_property(const get_delegate_type& g)
 		:	m_getDelegate(g)
 	{ }
 
-	delegated_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g)
+	delegated_bindable_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g)
 		:	base_t(d),
 			m_getDelegate(g)
 	{ }
@@ -475,24 +474,24 @@ public:
 };
 
 template <typename type>
-class delegated_property<type, io::write_only> : public virtual_property<type, io::write_only>
+class delegated_bindable_property<type, io::write_only> : public virtual_bindable_property<type, io::write_only>
 {
 private:
-	typedef delegated_property<type, io::write_only> this_t;
-	typedef virtual_property<type, io::write_only> base_t;
+	typedef delegated_bindable_property<type, io::write_only> this_t;
+	typedef virtual_bindable_property<type, io::write_only> base_t;
 
 public:
-	typedef function<void(const type&, const rcref<property<type, io::write_only> >&)> set_delegate_type;
+	typedef function<void(const type&, const rcref<bindable_property<type, io::write_only> >&)> set_delegate_type;
 
 private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_property(const set_delegate_type& s)
+	delegated_bindable_property(const set_delegate_type& s)
 		:	m_setDelegate(s)
 	{ }
 
-	delegated_property(const rcref<volatile dispatcher>& d, const set_delegate_type& s)
+	delegated_bindable_property(const rcref<volatile dispatcher>& d, const set_delegate_type& s)
 		:	base_t(d),
 			m_setDelegate(s)
 	{ }
@@ -504,27 +503,27 @@ public:
 };
 
 template <typename type>
-class backed_property<type, io::read_write> : public virtual_property<type, io::read_write>
+class backed_bindable_property<type, io::read_write> : public virtual_bindable_property<type, io::read_write>
 {
 private:
-	typedef backed_property<type, io::read_write> this_t;
-	typedef virtual_property<type, io::read_write> base_t;
+	typedef backed_bindable_property<type, io::read_write> this_t;
+	typedef virtual_bindable_property<type, io::read_write> base_t;
 
 	volatile transactable<type> m_contents;
 
 public:
-	backed_property()
+	backed_bindable_property()
 	{ }
 
-	backed_property(const type& t)
+	backed_bindable_property(const type& t)
 		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d)
+	backed_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d, const type& t)
+	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
 		:	base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
@@ -534,32 +533,32 @@ public:
 	virtual void setting(const type& t)
 	{
 		m_contents.set(t);
-		virtual_property<type, io::read_write>::set_complete(true);
+		virtual_bindable_property<type, io::read_write>::set_complete(true);
 	}
 };
 
 template <typename type>
-class backed_property<type, io::read_only> : public virtual_property<type, io::read_only>
+class backed_bindable_property<type, io::read_only> : public virtual_bindable_property<type, io::read_only>
 {
 private:
-	typedef backed_property<type, io::read_only> this_t;
-	typedef virtual_property<type, io::read_only> base_t;
+	typedef backed_bindable_property<type, io::read_only> this_t;
+	typedef virtual_bindable_property<type, io::read_only> base_t;
 
 	volatile transactable<type> m_contents;
 
 public:
-	backed_property()
+	backed_bindable_property()
 	{ }
 
-	backed_property(const type& t)
+	backed_bindable_property(const type& t)
 		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d)
+	backed_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d, const type& t)
+	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
 		:	base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
@@ -568,27 +567,27 @@ public:
 };
 
 template <typename type>
-class backed_property<type, io::write_only> : public virtual_property<type, io::write_only>
+class backed_bindable_property<type, io::write_only> : public virtual_bindable_property<type, io::write_only>
 {
 private:
-	typedef backed_property<type, io::write_only> this_t;
-	typedef virtual_property<type, io::write_only> base_t;
+	typedef backed_bindable_property<type, io::write_only> this_t;
+	typedef virtual_bindable_property<type, io::write_only> base_t;
 
 	volatile transactable<type> m_contents;
 
 public:
-	backed_property()
+	backed_bindable_property()
 	{ }
 
-	backed_property(const type& t)
+	backed_bindable_property(const type& t)
 		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d)
+	backed_bindable_property(const rcref<volatile dispatcher>& d)
 		:	base_t(d)
 	{ }
 
-	backed_property(const rcref<volatile dispatcher>& d, const type& t)
+	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
 		:	base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
@@ -596,12 +595,11 @@ public:
 	virtual void setting(const type& t)
 	{
 		m_contents.set(t);
-		virtual_property<type, io::write_only>::set_complete(true);
+		virtual_bindable_property<type, io::write_only>::set_complete(true);
 	}
 };
 
 
-}
 }
 
 

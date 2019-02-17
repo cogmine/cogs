@@ -372,6 +372,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\file.hpp">
       <Filter>os\windows\io</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\network.hpp">
+      <Filter>os\windows\io\net\ip</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\address.hpp">
       <Filter>os\windows\io\net\ip</Filter>
     </ClInclude>
@@ -690,9 +693,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\ansiterm.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\binding.hpp">
-      <Filter>core\gui</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\button.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
@@ -796,12 +796,6 @@
       <Filter>core\io</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\datastream_protocol.hpp">
-      <Filter>core\io</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_datasink.hpp">
-      <Filter>core\io</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\delegated_filter.hpp">
       <Filter>core\io</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\file.hpp">
@@ -1050,16 +1044,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\default_atomic_operators.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dguard.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\defer_guard.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatcher.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\hazard.hpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\parallel_for_each.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\priority_dispatcher.hpp">
@@ -1086,7 +1077,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\semaphore.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\sguard.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\serial_defer_guard.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_timer.hpp">
@@ -1185,7 +1176,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\immediate_task.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\network.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\singleton.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
@@ -1200,6 +1190,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_event.hpp">
       <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatch_parallel.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\bindable_property.hpp">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

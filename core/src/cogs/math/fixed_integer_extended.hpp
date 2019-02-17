@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting, MayNeedCleanup
 
-#ifndef COGS_FIXEDINT_EXTENDED
-#define COGS_FIXEDINT_EXTENDED
+#ifndef COGS_HEADER_MATH_FIXEDINT_EXTENDED
+#define COGS_HEADER_MATH_FIXEDINT_EXTENDED
 
 #include <type_traits>
 #include <array>

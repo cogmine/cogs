@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IS_ARITHMETIC
-#define COGS_IS_ARITHMETIC
+#ifndef COGS_HEADER_MATH_IS_ARITHMETIC
+#define COGS_HEADER_MATH_IS_ARITHMETIC
 
 
 #include <type_traits>

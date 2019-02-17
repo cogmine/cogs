@@ -5,8 +5,8 @@
 
 // Status: Good, WorkInProgress
 
-#ifndef COGS_OS_BUTTON
-#define COGS_OS_BUTTON
+#ifndef COGS_HEADER_OS_GUI_BUTTON
+#define COGS_HEADER_OS_GUI_BUTTON
 
 
 #include "cogs/os/gui/nsview.hpp"

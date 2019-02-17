@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PULSE_TIMER
-#define COGS_PULSE_TIMER
+#ifndef COGS_HEADER_SYNC_PULSE_TIMER
+#define COGS_HEADER_SYNC_PULSE_TIMER
 
 
 #include "cogs/sync/timer.hpp"

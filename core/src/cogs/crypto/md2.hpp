@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MD2
-#define COGS_MD2
+#ifndef COGS_HEADER_CRYPTO_MD2
+#define COGS_HEADER_CRYPTO_MD2
 
 
 #include "cogs/crypto/serial_hash.hpp"

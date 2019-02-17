@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_EXTUDIV
-#define COGS_CONST_EXTUDIV
+#ifndef COGS_HEADER_MATH_CONST_EXTUDIV
+#define COGS_HEADER_MATH_CONST_EXTUDIV
 
 
 #include "cogs/env.hpp"

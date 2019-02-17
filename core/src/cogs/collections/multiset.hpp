@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_MULTISET
-#define COGS_MULTISET
+#ifndef COGS_HEADER_COLLECTION_MULTISET
+#define COGS_HEADER_COLLECTION_MULTISET
 
 #include <type_traits>
 

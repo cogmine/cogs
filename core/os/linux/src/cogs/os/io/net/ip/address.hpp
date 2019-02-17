@@ -6,8 +6,8 @@
 // Status: Good, NeedsEnhancement
 // Notes: DNS Thread Pool needs to be replaced with implementation of async DNS client
 
-#ifndef COGS_OS_IP_ADDRESS
-#define COGS_OS_IP_ADDRESS
+#ifndef COGS_HEADER_OS_IO_NET_IP_ADDRESS
+#define COGS_HEADER_OS_IO_NET_IP_ADDRESS
 
 
 #include <sys/types.h>
@@ -198,7 +198,7 @@ public:
 	public:
 		const vector<address> & get_hosts() const		{ return m_addresses; }
 
-		virtual bool cancel() volatile
+		virtual rcref<task<bool> > cancel() volatile
 		{
 			m_poolTask->cancel();
 			return signallable_task<lookup_result>::cancel();

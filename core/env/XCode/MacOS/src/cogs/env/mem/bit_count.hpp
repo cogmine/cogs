@@ -3,8 +3,8 @@
 //
 
 
-#ifndef COGS_ENV_BIT_COUNT
-#define COGS_ENV_BIT_COUNT
+#ifndef COGS_HEADER_ENV_MEM_BIT_COUNT
+#define COGS_HEADER_ENV_MEM_BIT_COUNT
 
 
 #include "cogs/math/bytes_to_int.hpp"

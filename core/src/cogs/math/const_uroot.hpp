@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_CONST_UROOT
-#define COGS_CONST_UROOT
+#ifndef COGS_HEADER_MATH_CONST_UROOT
+#define COGS_HEADER_MATH_CONST_UROOT
 
 
 #include "cogs/math/const_upow.hpp"

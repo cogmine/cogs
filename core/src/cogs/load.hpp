@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_LOAD
-#define COGS_LOAD
+#ifndef COGS_HEADER_LOAD
+#define COGS_HEADER_LOAD
 
 
 #include <numeric>

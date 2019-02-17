@@ -6,8 +6,8 @@
 // Status: Good, WorkInProgress, NeedsToBeSplitUp
 
 
-#ifndef COGS_DIMENSION
-#define COGS_DIMENSION
+#ifndef COGS_HEADER_GEOMETRY_DIMENSION
+#define COGS_HEADER_GEOMETRY_DIMENSION
 
 
 namespace cogs {

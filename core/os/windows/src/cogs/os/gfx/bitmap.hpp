@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_BITMAP
-#define COGS_GDI_BITMAP
+#ifndef COGS_HEADER_OS_GFX_BITMAP
+#define COGS_HEADER_OS_GFX_BITMAP
 
 
 #include "cogs/env.hpp"

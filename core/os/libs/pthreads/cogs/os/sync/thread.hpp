@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_OS_THREAD
-#define COGS_OS_THREAD
+#ifndef COGS_HEADER_OS_SYNC_THREAD
+#define COGS_HEADER_OS_SYNC_THREAD
 
 
 #include <errno.h>

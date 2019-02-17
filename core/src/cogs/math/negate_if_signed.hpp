@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_NEGATE_IF_SIGNED
-#define COGS_NEGATE_IF_SIGNED
+#ifndef COGS_HEADER_MATH_NEGATE_IF_SIGNED
+#define COGS_HEADER_MATH_NEGATE_IF_SIGNED
 
 
 namespace cogs {

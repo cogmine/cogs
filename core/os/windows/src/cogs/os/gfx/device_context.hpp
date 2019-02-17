@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_GDI_DEVICE_CONTEXT
-#define COGS_GDI_DEVICE_CONTEXT
+#ifndef COGS_HEADER_OS_GFX_DEVICE_CONTEXT
+#define COGS_HEADER_OS_GFX_DEVICE_CONTEXT
 
 
 #include "cogs/env.hpp"

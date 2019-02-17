@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_TIME
-#define COGS_TIME
+#ifndef COGS_HEADER_MATH_TIME
+#define COGS_HEADER_MATH_TIME
 
 #include <type_traits>
 

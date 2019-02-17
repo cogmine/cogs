@@ -5,8 +5,8 @@
 //
 //// Status: WorkInProgress
 //
-//#ifndef COGS_VECTOR_VIEW
-//#define COGS_VECTOR_VIEW
+//#ifndef COGS_HEADER_COLLECTION_VECTOR_VIEW
+//#define COGS_HEADER_COLLECTION_VECTOR_VIEW
 //
 //
 //#include "cogs/collections/array_view.hpp"

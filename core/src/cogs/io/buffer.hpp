@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_IO_BUFFER
-#define COGS_IO_BUFFER
+#ifndef COGS_HEADER_IO_BUFFER
+#define COGS_HEADER_IO_BUFFER
 
 
 

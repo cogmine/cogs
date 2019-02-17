@@ -5,8 +5,8 @@
 
 // Status: Good, NeedsTesting
 
-#ifndef COGS_RANDOM
-#define COGS_RANDOM
+#ifndef COGS_HEADER_MATH_RANDOM
+#define COGS_HEADER_MATH_RANDOM
 
 
 #include "cogs/env.hpp"

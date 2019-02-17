@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_RC_PTR
-#define COGS_RC_PTR
+#ifndef COGS_HEADER_MEM_RC_CONTAINER_BASE
+#define COGS_HEADER_MEM_RC_CONTAINER_BASE
 
 #include <type_traits>
 

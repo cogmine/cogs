@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_PLACEMENT_HEADER
-#define COGS_PLACEMENT_HEADER
+#ifndef COGS_HEADER_MEM_PLACEMENT_HEADER
+#define COGS_HEADER_MEM_PLACEMENT_HEADER
 
 
 #include "cogs/env.hpp"

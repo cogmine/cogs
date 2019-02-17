@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_ENV_XCODE_MACOS
-#define COGS_ENV_XCODE_MACOS
+#ifndef COGS_HEADER_ENV
+#define COGS_HEADER_ENV
 
 
 #include <new>
