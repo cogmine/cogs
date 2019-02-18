@@ -32,16 +32,11 @@ load(const volatile T& src, T& rtn)
 {
 }
 
-static_assert(can_atomic_v<bool>);
-static_assert(std::is_scalar_v<bool>);
-static_assert(sizeof(bool) == 1);
-
-
 template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	&& std::is_integral_v<T>,
+	&& std::is_scalar_v<T>,
 	void
 >
 load(const volatile T& src, T& rtn)
@@ -61,7 +56,7 @@ template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	&& !std::is_integral_v<T>
+	&& !std::is_scalar_v<T>
 	&& !std::is_same_v<void, bytes_to_int_t<sizeof(T)> >,
 	void
 >

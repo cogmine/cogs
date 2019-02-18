@@ -12,7 +12,7 @@
 #include <numeric>
 #include <type_traits>
 #include <algorithm>
-#include <charconv>
+//#include <charconv>
 #include <string>
 
 #include "cogs/mem/bypass_strict_aliasing.hpp"

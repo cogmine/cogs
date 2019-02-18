@@ -22,7 +22,7 @@ FLAGS= -std=c++11 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wst
 DEBUGFLAGS=-g
 RELEASEFLAGS=
 
-CC=g++ -v
+CC=g++ -v -std=c++17
 
 all: $(target)
 

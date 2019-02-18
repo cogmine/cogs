@@ -19,7 +19,7 @@
 namespace cogs {
 
 template <typename T>
-class can_atomic
+struct can_atomic
 {
 public:
 	static constexpr bool value = std::is_trivial_v<T> && (sizeof(T) <= arch::atomic::largest);

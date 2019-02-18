@@ -65,8 +65,6 @@ exchange(volatile T& t, const T& src, T& rtn)
 
 
 
-
-
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -109,7 +107,6 @@ exchange(volatile T& t, const T& src)
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	return (T)_InterlockedExchange((long*)(unsigned char*)&t, (long)src);
 }
-
 
 
 
@@ -406,6 +403,9 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 
 #else
 
+// _InterlockedExchange64 is not available on x86.  The platform (non-intrinsic?) version is linkable.
+// Using our own workaround seems more efficient.  There is no 32-bit XCHG64 instruction.  Use CMPXCHG64
+
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -584,11 +584,11 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
+	std::remove_volatile_t<T>
 >
-assign_next(T& t)
+post_assign_next(T& t)
 {
-	pre_assign_next(t);
+	return pre_assign_next(t) - 1;
 }
 
 template <typename T>
@@ -597,11 +597,11 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	std::remove_volatile_t<T>
+	void
 >
-post_assign_next(T& t)
+assign_next(T& t)
 {
-	return pre_assign_next(t) - 1;
+	pre_assign_next(t);
 }
 
 
@@ -693,11 +693,11 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
+	std::remove_volatile_t<T>
 >
-assign_prev(T& t)
+post_assign_prev(T& t)
 {
-	pre_assign_prev(t);
+	return pre_assign_prev(t) + 1;
 }
 
 template <typename T>
@@ -706,12 +706,13 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	std::remove_volatile_t<T>
+	void
 >
-post_assign_prev(T& t)
+assign_prev(T& t)
 {
-	return pre_assign_prev(t) + 1;
+	pre_assign_prev(t);
 }
+
 
 
 
@@ -726,7 +727,8 @@ inline std::enable_if_t<
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_and(T& t, const A1& a)
 {
 	T tmp;
@@ -742,7 +744,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_and(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -759,7 +762,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_and(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -776,7 +780,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_and(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -784,22 +789,6 @@ post_assign_bit_and(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)_InterlockedAnd64((__int64*)(unsigned char*)&t, (__int64)tmp);
 }
-
-
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_integral_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>,
-	void
->
-assign_bit_and(T& t, const A1& a)
-{
-	post_assign_bit_and(t, a);
-}
-
 
 
 template <typename T, typename A1>
@@ -818,6 +807,22 @@ pre_assign_bit_and(T& t, const A1& a)
 }
 
 
+template <typename T, typename A1>
+inline std::enable_if_t<
+	can_atomic_v<T>
+	&& std::is_integral_v<T>
+	&& std::is_volatile_v<T>
+	&& !std::is_const_v<T>,
+	void
+>
+assign_bit_and(T& t, const A1& a)
+{
+	post_assign_bit_and(t, a);
+}
+
+
+
+
 // bit_or
 
 
@@ -828,7 +833,8 @@ inline std::enable_if_t<
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_or(T& t, const A1& a)
 {
 	T tmp;
@@ -844,7 +850,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_or(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -861,7 +868,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_or(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -878,7 +886,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_bit_or(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
@@ -932,8 +941,9 @@ inline std::enable_if_t<
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
@@ -948,8 +958,9 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T tmp;
@@ -965,8 +976,9 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T tmp;
@@ -982,8 +994,9 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T tmp;
@@ -1089,7 +1102,8 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
+	std::remove_volatile_t<T>
+>
 post_assign_add(T& t, const A1& a)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);

@@ -15,119 +15,122 @@ namespace os {
 namespace atomic {
 
 
+// Note: We do not need to worry about strict aliasing when dealing only with scalar types.
+
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	void>
-exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
+exchange(volatile T& t, const T& src, T& rtn)
 {
-	rtn = (std::remove_volatile_t<T>)InterlockedExchange8((char*)(unsigned char*)&t, (char)src);
+	rtn = (T)InterlockedExchange8((char*)(unsigned char*)&t, (char)src);
 }
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
 	void>
-exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
+exchange(volatile T& t, const T& src, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	rtn = (std::remove_volatile_t<T>)InterlockedExchange16((short*)(unsigned char*)&t, (short)src);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
+	rtn = (T)InterlockedExchange16((short*)(unsigned char*)&t, (short)src);
 }
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
 	void>
-exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
+exchange(volatile T& t, const T& src, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	rtn = (std::remove_volatile_t<T>)InterlockedExchange((long*)(unsigned char*)&t, (long)src);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
+	rtn = (T)InterlockedExchange((long*)(unsigned char*)&t, (long)src);
 }
-
-
-
-
 
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
+	&& !std::is_const_v<T>
+	&& (sizeof(T) > sizeof(long))
+	&& (sizeof(T) <= sizeof(__int64)),
+	void>
+exchange(T& t, const T& src, T& rtn)
+{
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
+	rtn = (T)InterlockedExchange64((__int64*)(unsigned char*)& t, (__int64)src);
+}
+
+template <typename T>
+inline std::enable_if_t<
+	can_atomic_v<T>
+	&& std::is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T>
+	T
 >
-exchange(T& t, const std::remove_volatile_t<T>& src)
+exchange(volatile T& t, const T& src)
 {
-	return (std::remove_volatile_t<T>)InterlockedExchange8((char*)(unsigned char*)&t, (char)src);
+	return (T)InterlockedExchange8((char*)(unsigned char*)& t, (char)src);
 }
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T>
+	T
 >
-exchange(T& t, const std::remove_volatile_t<T>& src)
+exchange(volatile T& t, const T& src)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	return (std::remove_volatile_t<T>)InterlockedExchange16((short*)(unsigned char*)&t, (short)src);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
+	return (T)InterlockedExchange16((short*)(unsigned char*)& t, (short)src);
 }
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T>
+	T
 >
-exchange(T& t, const std::remove_volatile_t<T>& src)
+exchange(volatile T& t, const T& src)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	return (std::remove_volatile_t<T>)InterlockedExchange((long*)(unsigned char*)&t, (long)src);
+	COGS_ASSERT((size_t)& t % cogs::atomic::get_alignment_v<T> == 0);
+	return (T)InterlockedExchange((long*)(unsigned char*)&t, (long)src);
 }
+
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
 	std::remove_volatile_t<T>
 >
-exchange(T& t, const std::remove_volatile_t<T>& src)
+exchange(T& t, const T& src)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	return (std::remove_volatile_t<T>)InterlockedExchange64((__int64*)(unsigned char*)&t, (__int64)src);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
+	return (T)InterlockedExchange64((__int64*)(unsigned char*)&t, (__int64)src);
 }
-
-
-
 
 
 
@@ -135,16 +138,15 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp, std::remove_volatile_t<T>& rtn)
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
 	char tmp = InterlockedCompareExchange8((char*)(unsigned char*)&t, (char)src, (char)cmp);
 	bool b = tmp == (char)cmp;
-	rtn = (std::remove_volatile_t<T>)tmp;
+	rtn = (T)tmp;
 	return b;
 }
 
@@ -153,18 +155,17 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp, std::remove_volatile_t<T>& rtn)
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	short tmp = InterlockedCompareExchange16((short*)(unsigned char*)&t, (short)src, (short)cmp);
 	bool b = tmp == (short)cmp;
-	rtn = (std::remove_volatile_t<T>)tmp;
+	rtn = (T)tmp;
 	return b;
 }
 
@@ -173,18 +174,17 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp, std::remove_volatile_t<T>& rtn)
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	long tmp = InterlockedCompareExchange((long*)(unsigned char*)&t, (long)src, (long)cmp);
 	bool b = tmp == (long)cmp;
-	rtn = (std::remove_volatile_t<T>)tmp;
+	rtn = (T)tmp;
 	return b;
 }
 
@@ -193,18 +193,17 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp, std::remove_volatile_t<T>& rtn)
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	__int64 tmp = InterlockedCompareExchange64((__int64*)(unsigned char*)&t, (__int64)src, (__int64)cmp);
 	bool b = tmp == (__int64)cmp;
-	rtn = (std::remove_volatile_t<T>)tmp;
+	rtn = (T)tmp;
 	return b;
 }
 
@@ -213,12 +212,11 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp)
+compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
 	return InterlockedCompareExchange8((char*)(unsigned char*)&t, (char)src, (char)cmp) == (char)cmp;
 }
@@ -228,15 +226,14 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp)
+compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return InterlockedCompareExchange16((short*)(unsigned char*)&t, (short)src, (short)cmp) == (short)cmp;
 }
 
@@ -245,15 +242,14 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp)
+compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return InterlockedCompareExchange((long*)(unsigned char*)&t, (long)src, (long)cmp) == (long)cmp;
 }
 
@@ -262,15 +258,14 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp)
+compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return InterlockedCompareExchange64((__int64*)(unsigned char*)&t, (__int64)src, (__int64)cmp) == (__int64)cmp;
 }
 
@@ -289,7 +284,7 @@ inline std::enable_if_t<
 >
 load(const volatile T& t, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	// Note: CMPXCHG/CMPXCHG8B/CMPXCHG16B all issue an implicit write, even if not modified.
 	volatile T* srcPtr = const_cast<volatile T*>(&t);
 	__int64 tmpCmp[2] = {};
@@ -307,7 +302,7 @@ inline std::enable_if_t<
 >
 load(const volatile T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	// Note: CMPXCHG/CMPXCHG8B/CMPXCHG16B all issue an implicit write, even if not modified.
 	volatile T* srcPtr = const_cast<volatile T*>(&t);
 	__int64 tmpCmp[2] = {};
@@ -328,7 +323,7 @@ inline std::enable_if_t<
 >
 store(volatile T& t, const T& src)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	__int64 tmpSrc[2];
 	bypass_strict_aliasing(src, tmpSrc);
 	__int64 tmpCmp[2] = {};
@@ -339,15 +334,14 @@ store(volatile T& t, const T& src)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(__int64))
 	&& (sizeof(T) <= (sizeof(__int64) * 2)),
 	void
 >
-exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
+exchange(volatile T& t, const T& src, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	__int64 tmpSrc[2];
 	bypass_strict_aliasing(src, tmpSrc);
 	__int64 tmpCmp[2] = {};
@@ -355,19 +349,17 @@ exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& 
 	bypass_strict_aliasing(tmpCmp, rtn);
 }
 
-
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(__int64))
 	&& (sizeof(T) <= (sizeof(__int64) * 2)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp, std::remove_volatile_t<T>& rtn)
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	__int64 tmpSrc[2];
 	bypass_strict_aliasing(src, tmpSrc);
 	__int64 tmpCmp[2];
@@ -380,62 +372,19 @@ compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_v
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(__int64))
 	&& (sizeof(T) <= (sizeof(__int64) * 2)),
 	bool
 >
-compare_exchange(T& t, const std::remove_volatile_t<T>& src, const std::remove_volatile_t<T>& cmp)
+compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	__int64 tmpSrc[2];
 	bypass_strict_aliasing(src, tmpSrc);
 	__int64 tmpCmp[2];
 	bypass_strict_aliasing(cmp, tmpCmp);
 	return InterlockedCompareExchange128((__int64*)(unsigned char*)&t, tmpSrc[1], tmpSrc[0], tmpCmp) != 0;
-}
-
-template <typename T>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>
-	&& (sizeof(T) > sizeof(long))
-	&& (sizeof(T) <= sizeof(__int64)),
-	void>
-exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
-{
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	rtn = (std::remove_volatile_t<T>)InterlockedExchange64((__int64*)(unsigned char*)&t, (__int64)src);
-}
-
-#else
-
-template <typename T>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>
-	&& (sizeof(T) > sizeof(long))
-	&& (sizeof(T) <= sizeof(__int64)),
-	void>
-	exchange(T& t, const std::remove_volatile_t<T>& src, std::remove_volatile_t<T>& rtn)
-{
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	__int64 tmpSrc;
-	bypass_strict_aliasing(src, tmpSrc);
-	__int64 tmpCmp = {};
-	for (;;)
-	{
-		__int64 oldValue = InterlockedCompareExchange64((__int64*)(unsigned char*)&t, tmpSrc, tmpCmp);
-		if (oldValue == tmpCmp)
-			break;
-		tmpCmp = oldValue;
-	}
-	bypass_strict_aliasing(tmpCmp, rtn);
 }
 
 
@@ -474,7 +423,7 @@ inline std::enable_if_t<
 >
 pre_assign_next(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedIncrement16((short*)(unsigned char*)&t);
 }
 
@@ -489,7 +438,7 @@ inline std::enable_if_t<
 >
 pre_assign_next(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedIncrement((long*)(unsigned char*)&t);
 }
 
@@ -504,7 +453,7 @@ inline std::enable_if_t<
 >
 pre_assign_next(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedIncrement64((__int64*)(unsigned char*)&t);
 }
 
@@ -513,11 +462,11 @@ inline std::enable_if_t<
 	std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	T
+	std::remove_volatile_t<T>
 >
 pre_assign_next(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 #ifdef _M_X64
 	return (std::remove_volatile_t<T>)InterlockedAdd64((__int64*)(unsigned char*)&t, sizeof(std::remove_pointer_t<T>));
 #else
@@ -531,7 +480,7 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	std::remove_volatile_t<T>
+	void
 >
 assign_next(T& t)
 {
@@ -583,7 +532,7 @@ inline std::enable_if_t<
 >
 pre_assign_prev(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedDecrement16((short*)(unsigned char*)&t);
 }
 
@@ -598,7 +547,7 @@ inline std::enable_if_t<
 >
 pre_assign_prev(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedDecrement((long*)(unsigned char*)&t);
 }
 
@@ -613,7 +562,7 @@ inline std::enable_if_t<
 >
 pre_assign_prev(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (std::remove_volatile_t<T>)InterlockedDecrement64((__int64*)(unsigned char*)&t);
 }
 
@@ -626,7 +575,7 @@ inline std::enable_if_t<
 >
 pre_assign_prev(T& t)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 #ifdef _M_X64
 	return (std::remove_volatile_t<T>)InterlockedAdd64((__int64*)(unsigned char*)&t, -sizeof(std::remove_pointer_t<T>));
 #else
@@ -640,7 +589,7 @@ inline std::enable_if_t<
 	&& std::is_scalar_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	std::remove_volatile_t<T>
+	void
 >
 assign_prev(T& t)
 {
@@ -695,7 +644,7 @@ inline std::enable_if_t<
 >
 post_assign_bit_and(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedAnd16((short*)(unsigned char*)&t, (short)tmp)
@@ -713,7 +662,7 @@ inline std::enable_if_t<
 >
 post_assign_bit_and(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedAnd((long*)(unsigned char*)&t, (long)tmp)
@@ -731,7 +680,7 @@ inline std::enable_if_t<
 >
 post_assign_bit_and(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedAnd64((__int64*)(unsigned char*)&t, (__int64)tmp)
@@ -760,7 +709,7 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
+	std::remove_volatile_t<T>
 >
 pre_assign_bit_and(T& t, const A1& a)
 {
@@ -780,8 +729,9 @@ inline std::enable_if_t<
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_or(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_or(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
@@ -796,10 +746,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_or(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_or(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedOr16((short*)(unsigned char*)&t, (short)tmp)
@@ -813,10 +764,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_or(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_or(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedOr((long*)(unsigned char*)&t, (long)tmp)
@@ -830,10 +782,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_or(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_or(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedOr64((__int64*)(unsigned char*)&t, (__int64)tmp)
@@ -862,7 +815,7 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
+	std::remove_volatile_t<T>
 >
 pre_assign_bit_or(T& t, const A1& a)
 {
@@ -884,8 +837,9 @@ inline std::enable_if_t<
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
@@ -900,10 +854,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedXor16((short*)(unsigned char*)&t, (short)tmp)
@@ -917,10 +872,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedXor((long*)(unsigned char*)&t, (long)tmp)
@@ -934,10 +890,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
-	post_assign_bit_xor(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_bit_xor(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedXor64((__int64*)(unsigned char*)&t, (__int64)tmp)
@@ -966,7 +923,7 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
+	std::remove_volatile_t<T>
 >
 pre_assign_bit_xor(T& t, const A1& a)
 {
@@ -1008,7 +965,7 @@ inline std::enable_if_t<
 >
 post_assign_add(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd16((short*)(unsigned char*)&t, (short)tmp)
@@ -1026,7 +983,7 @@ inline std::enable_if_t<
 >
 post_assign_add(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd((long*)(unsigned char*)&t, (long)tmp)
@@ -1040,10 +997,11 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
-	std::remove_volatile_t<T> >
-	post_assign_add(T& t, const A1& a)
+	std::remove_volatile_t<T>
+>
+post_assign_add(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd64((__int64*)(unsigned char*)&t, (__int64)tmp)
@@ -1061,7 +1019,7 @@ inline std::enable_if_t<
 >
 post_assign_add(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	ptrdiff_t tmp;
 	cogs::assign(tmp, a);
 #ifdef _M_X64
@@ -1188,7 +1146,7 @@ inline std::enable_if_t<
 >
 post_assign_subtract(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd16((short*)(unsigned char*)&t, -(short)tmp)
@@ -1206,7 +1164,7 @@ inline std::enable_if_t<
 >
 post_assign_subtract(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd((long*)(unsigned char*)&t, -(long)tmp)
@@ -1222,7 +1180,7 @@ inline std::enable_if_t<
 >
 post_assign_subtract(T& t, const A1& a)
 {
-	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	ptrdiff_t tmp;
 	cogs::assign(tmp, a);
 #ifdef _M_X64

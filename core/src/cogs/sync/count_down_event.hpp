@@ -70,7 +70,13 @@ public:
 		do {
 			if (oldValue == doneValue)
 				return false;
-			newValue = (oldValue <= n) ? doneValue : (oldValue - n);
+			if (oldValue <= n)
+				newValue = doneValue;
+			else
+			{
+				newValue = oldValue;
+				newValue -= n;
+			}
 		} while (!m_count.compare_exchange(newValue, oldValue, oldValue));
 		if (newValue == doneValue)
 		{

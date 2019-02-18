@@ -25,7 +25,7 @@ inline std::enable_if_t<
 	std::is_scalar_v<T>
 	&& std::is_scalar_v<S>,
 	void>
-bypass_strict_aliasing(const S &src, T& dst)
+bypass_strict_aliasing(const S& src, T& dst)
 {
 	dst = (T)src;
 }
@@ -34,7 +34,7 @@ template <typename S, typename T>
 inline std::enable_if_t<
 	std::is_empty_v<T> || std::is_empty_v<S>,
 	void>
-bypass_strict_aliasing(const S&src, T& dst)
+bypass_strict_aliasing(const S& src, T& dst)
 {
 }
 
@@ -44,11 +44,12 @@ inline std::enable_if_t<
 	&& !std::is_empty_v<S>
 	&& (!std::is_scalar_v<T> || !std::is_scalar_v<S>),
 	void>
-bypass_strict_aliasing(const S &src, T& dst)
+bypass_strict_aliasing(const S& src, T& dst)
 {
 	static_assert(sizeof(T) == sizeof(S));
 	std::memcpy(&dst, &src, sizeof(T));
 }
+
 
 
 }

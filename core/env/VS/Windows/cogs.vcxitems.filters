@@ -202,6 +202,9 @@
     <Filter Include="core\io\net\ip">
       <UniqueIdentifier>{658fc41b-dbc8-424d-8eae-e86f66752929}</UniqueIdentifier>
     </Filter>
+    <Filter Include="env\gcc\sync">
+      <UniqueIdentifier>{b4020d8b-4a95-4d8d-84d2-1ae1aa701f1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp">
@@ -437,6 +440,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_scan.hpp">
       <Filter>env\gcc\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_operators.hpp">
+      <Filter>env\gcc\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
       <Filter>env\XCode</Filter>

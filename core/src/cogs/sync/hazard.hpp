@@ -17,6 +17,7 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/operators.hpp"
+#include "cogs/sync/atomic_load.hpp"
 #include "cogs/sync/versioned_ptr.hpp"
 
 
