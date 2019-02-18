@@ -205,6 +205,9 @@
     <Filter Include="env\gcc\sync">
       <UniqueIdentifier>{b4020d8b-4a95-4d8d-84d2-1ae1aa701f1c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="os\libs\pthreads\sync">
+      <UniqueIdentifier>{0c9e08e6-3643-4533-a821-2d1d56845eb7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp">
@@ -241,13 +244,13 @@
       <Filter>arch\x64\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\semaphore.hpp">
-      <Filter>os\libs\pthreads</Filter>
+      <Filter>os\libs\pthreads\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\thread.hpp">
-      <Filter>os\libs\pthreads</Filter>
+      <Filter>os\libs\pthreads\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\timeout.hpp">
-      <Filter>os\libs\pthreads</Filter>
+      <Filter>os\libs\pthreads\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os.hpp">
       <Filter>os\linux</Filter>
@@ -1206,7 +1209,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
-      <Filter>os\libs\pthreads</Filter>
+      <Filter>os\libs\pthreads\sync</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">
+      <Filter>os\libs\pthreads\sync</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
       <Filter>os\MacOS\gui</Filter>

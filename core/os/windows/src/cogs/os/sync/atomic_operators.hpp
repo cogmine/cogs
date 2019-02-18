@@ -15,9 +15,6 @@ namespace os {
 namespace atomic {
 
 
-// Note: We do not need to worry about strict aliasing when dealing only with scalar types.
-
-
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
