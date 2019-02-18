@@ -24,6 +24,8 @@ public:
 							:	((n < multiple_of) ? multiple_of
 							:	(n-1) + (multiple_of - ((n-1) % multiple_of)));
 };
+template <size_t n, size_t multiple_of>
+inline constexpr size_t least_multiple_of_v = least_multiple_of<n, multiple_of>::value;
 
 
 }

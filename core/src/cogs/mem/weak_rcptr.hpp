@@ -62,12 +62,14 @@ public:
 	/// @brief Provides a weak_rcptr with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A weak_rcptr with a different referenced type.
 		typedef weak_rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	/// @{
 	/// @brief Constructor.  Initializes weak_rcptr to NULL.
@@ -948,11 +950,13 @@ private:
 public:
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef weak_rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	weak_rcptr()																						{ }
 	weak_rcptr(const this_t& src)												:	base_t(src)			{ }
@@ -1502,11 +1506,13 @@ private:
 public:
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef weak_rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	weak_rcptr() { }
 
@@ -2056,11 +2062,13 @@ private:
 public:
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef weak_rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	weak_rcptr() { }
 	weak_rcptr(this_t&& src) : base_t(std::move(src)) { }
@@ -2609,11 +2617,13 @@ private:
 public:
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef weak_rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	weak_rcptr() { }
 	weak_rcptr(this_t&& src) : base_t(std::move(src)) { }

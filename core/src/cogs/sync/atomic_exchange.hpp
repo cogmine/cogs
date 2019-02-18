@@ -35,7 +35,7 @@ inline std::enable_if_t<
 	can_atomic_v<T>
 	&& !std::is_scalar_v<T>
 	&& !std::is_const_v<T>
-	&& !std::is_same_v<void, bytes_to_int_t<sizeof(T)> >,
+	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	void>
 exchange(volatile T& t, const T& src, T& rtn)
 {
@@ -53,7 +53,7 @@ inline std::enable_if_t<
 	can_atomic_v<T>
 	&& !std::is_scalar_v<T>
 	&& !std::is_const_v<T>
-	&& !std::is_same_v<void, bytes_to_int_t<sizeof(T)> >,
+	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	T>
 exchange(volatile T& t, const T& src)
 {

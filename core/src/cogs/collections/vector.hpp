@@ -1018,13 +1018,13 @@ public:
 	template <typename type2, class comparator_t>
 	bool equals(const type2* cmp, size_t n) const
 	{
-		if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return (n == m_length) && (memcmp(m_ptr, cmp, n) == 0);
 
 		if (n != m_length)
 			return false;
 
-		if (!std::is_same<type, type2>::value || ((void*)cmp != (void*)m_ptr))
+		if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
 		{
 			for (size_t i = 0; i < n; i++)
 			{
@@ -1053,13 +1053,13 @@ public:
 	template <typename type2, class comparator_t>
 	bool starts_with(const type2* cmp, size_t n) const
 	{
-		if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return (n <= m_length) && (memcmp(m_ptr, cmp, n) == 0);
 
 		if (!n || n > m_length)
 			return false;
 
-		if (!std::is_same<type, type2>::value || ((void*)cmp != (void*)m_ptr))
+		if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
 		{
 			for (size_t i = 0; i < n; i++)
 			{
@@ -1090,14 +1090,14 @@ public:
 	template <typename type2, class comparator_t>
 	bool ends_with(const type2* cmp, size_t n) const
 	{
-		if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return(n <= m_length) && (memcmp(m_ptr + (m_length - n), cmp, n * sizeof(type)) == 0);
 
 		size_t length = m_length;
 		if (!n || n > length)
 			return false;
 
-		if (!std::is_same<type, type2>::value || ((void*)(m_ptr + length) != (void*)(cmp + n)))
+		if (!std::is_same_v<type, type2> || ((void*)(m_ptr + length) != (void*)(cmp + n)))
 		{
 			for (size_t i = length - n; i < length; i++)
 			{
@@ -1135,10 +1135,10 @@ public:
 		if (!n)
 			return 1;
 		bool cmpIsLonger = (n > m_length);
-		if (!std::is_same<type, type2>::value || ((void*)cmp != (void*)m_ptr))
+		if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
 		{
 			size_t shorterLength = cmpIsLonger ? m_length : n;
-			if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+			if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			{
 				int i = memcmp(m_ptr, cmp, shorterLength);
 				if (i != 0)
@@ -1170,12 +1170,12 @@ public:
 		else if (!!n)
 		{
 			bool cmpIsLonger = (n > m_length);
-			if (std::is_same<type, type2>::value && ((void*)cmp == (void*)m_ptr))
+			if (std::is_same_v<type, type2> && ((void*)cmp == (void*)m_ptr))
 				result = cmpIsLonger;
 			else
 			{
 				size_t shorterLength = cmpIsLonger ? m_length : n;
-				if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+				if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 				{
 					int i = memcmp(m_ptr, cmp, shorterLength);
 					result = (i == 0) ? cmpIsLonger : (i < 0);
@@ -1216,12 +1216,12 @@ public:
 		else if (!!n)
 		{
 			bool cmpIsShorter = (n < m_length);
-			if (std::is_same<type, type2>::value && ((void*)cmp == (void*)m_ptr))
+			if (std::is_same_v<type, type2> && ((void*)cmp == (void*)m_ptr))
 				result = cmpIsShorter;
 			else
 			{
 				size_t shorterLength = cmpIsShorter ? n : m_length;
-				if (std::is_same<type, type2>::value && std::is_same<comparator_t, default_comparator>::value && (std::is_same<type, char>::value || std::is_same<type, unsigned char>::value || std::is_same<type, signed char>::value))
+				if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 				{
 					int i = memcmp(m_ptr, cmp, shorterLength);
 					result = (i == 0) ? cmpIsShorter : (i > 0);
@@ -1260,7 +1260,7 @@ public:
 		for (size_t i2 = i; i2 < length; i2++)
 			if (comparator_t::equals(m_ptr[i2], cmp))
 				return i2;
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 	template <typename type2, class comparator_t>
@@ -1281,7 +1281,7 @@ public:
 				}
 			}
 		}
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 	template <typename type2, class comparator_t>
@@ -1313,7 +1313,7 @@ public:
 				}
 			}
 		}
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 	void reverse()
@@ -1391,9 +1391,9 @@ template <typename T>
 class vector
 {
 private:
-	static_assert(!std::is_const<T>::value);
+	static_assert(!std::is_const_v<T>);
 	static_assert(!std::is_volatile_v<T>);
-	static_assert(!std::is_void<T>::value);
+	static_assert(!std::is_void_v<T>);
 
 public:
 	typedef T type;
@@ -1771,7 +1771,7 @@ public:
 	const type& get_last_const() const { return get_const_ptr()[get_length() - 1]; }
 
 
-	const this_t& subrange(size_t i, size_t n = const_max_int<size_t>::value, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
+	const this_t& subrange(size_t i, size_t n = const_max_int_v<size_t>, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
 	{
 		size_t length = get_length();
 		if (i < length)
@@ -1784,7 +1784,7 @@ public:
 		return storage;
 	}
 
-	this_t subrange(size_t i, size_t n = const_max_int<size_t>::value) const volatile
+	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile
 	{
 		this_t result(*this);
 		result.set_to_subrange(i, n);
@@ -2042,36 +2042,36 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const type2& cmp) const { return index_of<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains(const type2& cmp) const { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const type2& cmp) const volatile { return index_of<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains(const type2& cmp) const volatile { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
-
-
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_any(const type2* cmp, size_t cmpLength) const { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_any(const type2* cmp, size_t cmpLength) const volatile { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
+	bool contains_any(const type2* cmp, size_t cmpLength) const { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
+	bool contains_any(const type2* cmp, size_t cmpLength) const volatile { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
+
+
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const vector<type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const volatile vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	bool contains_segment(const vector<type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	bool contains_segment(const volatile vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 
 
@@ -2205,7 +2205,7 @@ public:
 	template <typename type2>
 	void assign(const volatile vector<type2>& src)
 	{
-		vector<typename std::remove_const<type2>::type> tmp(src);
+		vector<std::remove_const_t<type2> > tmp(src);
 		assign(tmp);
 	}
 
@@ -2436,13 +2436,13 @@ public:
 	}
 
 	template <typename type2>
-	void insert(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert(i, src.subrange(srcIndex, n))
 	}
 
 	template <typename type2>
-	void insert(size_t i, const volatile vector<type2> & src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const volatile vector<type2> & src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert(i, src.subrange(srcIndex, n))
 	}
@@ -2475,13 +2475,13 @@ public:
 	}
 
 	template <typename type2>
-	void replace(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		replace(i, src.subrange(srcIndex, n))
 	}
 
 	template <typename type2>
-	void replace(size_t i, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		replace(i, src.subrange(srcIndex, n))
 	}
@@ -2514,13 +2514,13 @@ public:
 	}
 
 	template <typename type2>
-	void insert_replace(size_t i, size_t replaceLength, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
 	}
 
 	template <typename type2>
-	void insert_replace(size_t i, size_t replaceLength, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
 	}
@@ -2836,11 +2836,11 @@ protected:
 		for (;;)
 		{
 			i = src.index_of_any(i, splitOn, n);
-			size_t segmentLength = (i != const_max_int<size_t>::value) ? i : src.get_length();
+			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : src.get_length();
 			segmentLength -= lastStart;
 			if (!!segmentLength || (opt == split_includes_empty_segments))
 				result.append(1, src.subrange(lastStart, segmentLength));
-			if (i == const_max_int<size_t>::value)
+			if (i == const_max_int_v<size_t>)
 				break;
 			lastStart = ++i;
 		}
@@ -2856,11 +2856,11 @@ protected:
 		for (;;)
 		{
 			i = src.index_of(i, splitOn, n);
-			size_t segmentLength = (i != const_max_int<size_t>::value) ? i : src.get_length();
+			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : src.get_length();
 			segmentLength -= lastStart;
 			if (!!segmentLength || (opt == split_includes_empty_segments))
 				result.append(1, src.subrange(lastStart, segmentLength));
-			if (i == const_max_int<size_t>::value)
+			if (i == const_max_int_v<size_t>)
 				break;
 			i += n;
 			lastStart = i;

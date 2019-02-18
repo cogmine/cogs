@@ -9,7 +9,7 @@
 #define COGS_HEADER_ENV_MEM_BIT_ROTATE
 
 
-#include "cogs/math/int_types.hpp"
+#include "cogs/env.hpp"
 
 
 namespace cogs {
@@ -22,8 +22,8 @@ namespace env {
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral<int_t>::value
-	&& !std::is_volatile<int_t>::value,
+	std::is_integral_v<int_t>
+	&& !std::is_volatile_v<int_t>,
 	int_t
 >
 bit_rotate_right(const int_t& bits, size_t n)
@@ -38,8 +38,8 @@ bit_rotate_right(const int_t& bits, size_t n)
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral<int_t>::value
-	&& !std::is_volatile<int_t>::value,
+	std::is_integral_v<int_t>
+	&& !std::is_volatile_v<int_t>,
 	int_t
 >
 bit_rotate_left(const int_t& bits, size_t n)

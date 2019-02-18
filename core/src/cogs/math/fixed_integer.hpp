@@ -12,7 +12,6 @@
 
 #include "cogs/env.hpp"
 #include "cogs/math/bits_to_int.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/load.hpp"
 
 
@@ -35,13 +34,13 @@ template <bool has_sign, size_t n_bits>
 class fixed_integer_extended_content;
 
 template <bool has_sign, size_t bits>
-using fixed_integer =	typename std::conditional<!bits,
+using fixed_integer =	std::conditional_t<!bits,
 							fixed_integer_native_const<false, 0, 0>,
-							typename std::conditional<(!!bits && (bits <= (sizeof(longest) * 8))),
+							std::conditional_t<(!!bits && (bits <= (sizeof(longest) * 8))),
 								fixed_integer_native<has_sign, ((!!bits && (bits <= (sizeof(longest) * 8))) ? bits : 1)>,
 								fixed_integer_extended<has_sign, ((!!bits && (bits > (sizeof(longest) * 8))) ? bits : ((sizeof(longest) * 8) + 1))>
-							>::type
-						>::type;
+							>
+						>;
 
 template <typename T, typename = std::enable_if_t<std::is_integral_v<T> > >
 class int_to_fixed_integer
@@ -56,21 +55,21 @@ template <typename T>
 class int_to_fixed_integer<const T>
 {
 public:
-	typedef const typename int_to_fixed_integer<typename std::remove_const<T>::type>::type type;
+	typedef const int_to_fixed_integer_t<std::remove_const_t<T> > type;
 };
 
 template <typename T>
 class int_to_fixed_integer<volatile T>
 {
 public:
-	typedef volatile typename int_to_fixed_integer<typename std::remove_volatile<T>::type>::type type;
+	typedef volatile int_to_fixed_integer_t<std::remove_volatile_t<T> > type;
 };
 
 template <typename T>
 class int_to_fixed_integer<const volatile T>
 {
 public:
-	typedef const volatile typename int_to_fixed_integer<typename std::remove_cv<T>::type>::type type;
+	typedef const volatile int_to_fixed_integer_t<std::remove_cv_t<T> > type;
 };
 
 template <>

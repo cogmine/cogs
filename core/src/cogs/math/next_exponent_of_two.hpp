@@ -24,6 +24,9 @@ class next_exponent_of_two
 public:
 	static constexpr size_t value = prev_or_current_exponent_of_two< (n << 1) >::value;
 };
+template <size_t n>
+constexpr size_t next_exponent_of_two_v = next_exponent_of_two<n>::value;
+
 
 template <>
 class next_exponent_of_two<0>
@@ -32,9 +35,6 @@ public:
 	static constexpr size_t value = 1;
 };
 
-template <size_t n>
-constexpr size_t next_exponent_of_two_v = next_exponent_of_two<n>::value;
-
 
 template <size_t n>
 class next_or_current_exponent_of_two
@@ -42,6 +42,8 @@ class next_or_current_exponent_of_two
 public:
 	static constexpr size_t value = prev_or_current_exponent_of_two< (n << 1) - 1 >::value;
 };
+template <size_t n>
+constexpr size_t next_or_current_exponent_of_two_v = next_or_current_exponent_of_two<n>::value;
 
 template <>
 class next_or_current_exponent_of_two<0>
@@ -50,8 +52,6 @@ public:
 	static constexpr size_t value = 1;
 };
 
-template <size_t n>
-constexpr size_t next_or_current_exponent_of_two_v = next_or_current_exponent_of_two<n>::value;
 
 
 

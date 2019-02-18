@@ -30,8 +30,10 @@ template <typename T1, typename T2>
 class get_common_alignment
 {
 public:
-	static constexpr size_t value = const_lcm<std::alignment_of<T1>::value, std::alignment_of<T2>::value>::value;
+	static constexpr size_t value = const_lcm_v<std::alignment_of_v<T1>, std::alignment_of_v<T2> >;
 };
+template <class T1, class T2>
+inline constexpr size_t get_common_alignment_v = get_common_alignment<T1, T2>::value;
 
 
 /// @ingroup Mem
@@ -44,8 +46,8 @@ template <typename header_t, typename T>
 class get_type_and_header_size
 {
 public:
-	static constexpr size_t value = least_multiple_of<sizeof(header_t), get_common_alignment<header_t, T>::value>::value +
-		least_multiple_of<sizeof(T), get_common_alignment<header_t, T>::value>::value;
+	static constexpr size_t value = least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> > +
+		least_multiple_of_v<sizeof(T), get_common_alignment_v<header_t, T> >;
 };
 
 /// @ingroup Mem
@@ -54,7 +56,7 @@ public:
 /// @tparam header_t Header type
 /// @tparam T Data type
 template <typename header_t, typename T>
-class placement_type_header_storage : public placement_storage<get_type_and_header_size<header_t, T>::value, get_common_alignment<header_t, T>::value>
+class placement_type_header_storage : public placement_storage<get_type_and_header_size<header_t, T>::value, get_common_alignment_v<header_t, T> >
 {
 public:
 	header_t& get_header() { return get<header_t>(); }
@@ -68,14 +70,14 @@ public:
 template <typename header_t, typename T>
 inline T* get_type_block_from_header(const ptr<const header_t>& p)
 {
-	return (T*)(((unsigned char*)p.get_ptr()) + least_multiple_of<sizeof(header_t), get_common_alignment<header_t, T>::value>::value);
+	return (T*)(((unsigned char*)p.get_ptr()) + least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> >);
 }
 
 
 template <typename header_t, typename T>
 inline header_t* get_header_from_type_block(const ptr<T>& p)
 {
-	return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - least_multiple_of<sizeof(header_t), get_common_alignment<header_t, T>::value>::value);
+	return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> >);
 }
 
 

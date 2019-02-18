@@ -26,7 +26,7 @@ template <size_t num_tokens = 256>
 class expression
 {
 public:
-	typedef typename range_to_int<0, num_tokens - 1>::type token_t;
+	typedef typename range_to_int_t<0, num_tokens - 1> token_t;
 
 	typedef expression<num_tokens> this_t;
 
@@ -59,7 +59,7 @@ private:
 		e.m_tokenClassCounts.append(n);
 		e.m_stateTables.grow(1);
 		e.m_stateTables[0].m_table.grow(2);
-		e.m_stateTables[0].m_table[exclude ? 1 : 0] = const_max_int<size_t>::value;	// default char class (0) is fail
+		e.m_stateTables[0].m_table[exclude ? 1 : 0] = const_max_int_v<size_t>;	// default char class (0) is fail
 		e.m_stateTables[0].m_table[exclude ? 0 : 1] = 1;			// literal char class (1) is success
 		return e;
 	}
@@ -90,11 +90,11 @@ private:
 		array<size_t>& curTable = m_tables[curState].m_table;
 
 		size_t matched_transition = get_num_states();
-		size_t unmatched_transition = const_max_int<size_t>::value;
+		size_t unmatched_transition = const_max_int_v<size_t>;
 		if (exclude)
 		{
 			unmatched_transition  = matched_transition;
-			matched_transition = const_max_int<size_t>::value;
+			matched_transition = const_max_int_v<size_t>;
 		}
 
 		// Default all transitions to fail state (-1)

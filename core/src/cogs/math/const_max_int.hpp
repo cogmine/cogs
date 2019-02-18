@@ -42,6 +42,8 @@ public:
 	static constexpr int_t value = has_sign ? shift_and_inc<0, num_positive_signed_bits>::value : (int_t)~(int_t)0;
 };
 
+template <typename int_t> inline constexpr int_t const_max_int_v = const_max_int<int_t>::value;
+
 
 }
 

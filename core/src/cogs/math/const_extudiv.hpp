@@ -12,7 +12,6 @@
 #include "cogs/env.hpp"
 #include "cogs/math/const_extumul.hpp"
 #include "cogs/math/const_extuadd.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 
 

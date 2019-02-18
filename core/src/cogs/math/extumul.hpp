@@ -11,7 +11,6 @@
 
 
 #include "cogs/env.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 
 
@@ -67,7 +66,7 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 
 	uint_t mid = lh + hl;	// might overflow
 	if (mid < lh)			// if overflow
-		hh += make_const_high_part<uint_t, 1>::value;
+		hh += make_const_high_part_v<<uint_t, 1>;
 
 	uint_t mh = get_high_part(mid);
 	uint_t ml_shifted = make_high_part(mid);

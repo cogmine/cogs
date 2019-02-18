@@ -25,6 +25,7 @@ private:
 public:
 	static constexpr int_t value = has_sign ? ((int_t)1 << ((sizeof(int_t)*8)-1)) : (int_t)0;
 };
+template <typename int_t> inline constexpr int_t const_min_int_v = const_min_int<int_t>::value;
 
 
 }

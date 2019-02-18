@@ -638,7 +638,7 @@ public:
 private:
 	typedef nonvolatile_multiset<type, favor_lookup, comparator_t, allocator_type>	this_t;
 
-	class node : public std::conditional<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >::type
+	class node : public std::conditional_t<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >
 	{
 	public:
 		type m_contents;
@@ -653,7 +653,7 @@ private:
 		}
 	};
 
-	typedef typename std::conditional<favor_lookup, avltree<type, node, comparator_t>, rbtree<type, node, comparator_t> >::type tree_t;
+	typedef std::conditional_t<favor_lookup, avltree<type, node, comparator_t>, rbtree<type, node, comparator_t> > tree_t;
 
 	typedef typename tree_t::ref_t ref_t;
 

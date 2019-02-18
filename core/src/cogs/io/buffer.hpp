@@ -387,7 +387,7 @@ public:
 	const char& get_last_const() const		{ return get_const_ptr()[get_length() - 1]; }
 
 
-	const buffer& subrange(size_t i, size_t n = const_max_int<size_t>::value, unowned_t<buffer>& storage = unowned_t<buffer>().get_unowned()) const
+	const buffer& subrange(size_t i, size_t n = const_max_int_v<size_t>, unowned_t<buffer>& storage = unowned_t<buffer>().get_unowned()) const
 	{
 		size_t length = get_length();
 		if (i <= length)
@@ -400,7 +400,7 @@ public:
 		return storage;
 	}
 
-	buffer subrange(size_t i, size_t n = const_max_int<size_t>::value) const volatile
+	buffer subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile
 	{
 		buffer result(*this);
 		result.set_to_subrange(i, n);
@@ -577,33 +577,33 @@ public:
 
 
 
-	bool contains(const char& cmp) const					{ return index_of(cmp) != const_max_int<size_t>::value; }
+	bool contains(const char& cmp) const					{ return index_of(cmp) != const_max_int_v<size_t>; }
 
-	bool contains(const char& cmp) const volatile			{ return index_of(cmp) != const_max_int<size_t>::value; }
+	bool contains(const char& cmp) const volatile			{ return index_of(cmp) != const_max_int_v<size_t>; }
 
-	//bool contains(size_t i, const char& cmp) const			{ return index_of(i, cmp) != const_max_int<size_t>::value; }
+	//bool contains(size_t i, const char& cmp) const			{ return index_of(i, cmp) != const_max_int_v<size_t>; }
 
-	//bool contains(size_t i, const char& cmp) const volatile	{ return index_of(i, cmp) != const_max_int<size_t>::value; }
-
-
-	bool contains_any(const char* cmp, size_t n) const						{ return index_of_any(cmp, n) != const_max_int<size_t>::value; }
-
-	bool contains_any(const char* cmp, size_t n) const volatile				{ return index_of_any(cmp, n) != const_max_int<size_t>::value; }
-
-	//bool contains_any(size_t i, const char* cmp, size_t n) const			{ return index_of_any(i, cmp, n) != const_max_int<size_t>::value; }
-
-	//bool contains_any(size_t i, const char* cmp, size_t n) const volatile	{ return index_of_any(i, cmp, n) != const_max_int<size_t>::value; }
+	//bool contains(size_t i, const char& cmp) const volatile	{ return index_of(i, cmp) != const_max_int_v<size_t>; }
 
 
-	bool contains_segment(const char* cmp, size_t n) const			{ return index_of_segment(cmp, n) != const_max_int<size_t>::value; }
+	bool contains_any(const char* cmp, size_t n) const						{ return index_of_any(cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const char* cmp, size_t n) const volatile	{ return index_of_segment(cmp, n) != const_max_int<size_t>::value; }
+	bool contains_any(const char* cmp, size_t n) const volatile				{ return index_of_any(cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const buffer& cmp) const					{ return index_of_segment(cmp) != const_max_int<size_t>::value; }
+	//bool contains_any(size_t i, const char* cmp, size_t n) const			{ return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const buffer& cmp) const volatile			{ return index_of_segment(cmp) != const_max_int<size_t>::value; }
+	//bool contains_any(size_t i, const char* cmp, size_t n) const volatile	{ return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const volatile buffer& cmp) const			{ return index_of_segment(cmp) != const_max_int<size_t>::value; }
+
+	bool contains_segment(const char* cmp, size_t n) const			{ return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
+
+	bool contains_segment(const char* cmp, size_t n) const volatile	{ return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
+
+	bool contains_segment(const buffer& cmp) const					{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
+
+	bool contains_segment(const buffer& cmp) const volatile			{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
+
+	bool contains_segment(const volatile buffer& cmp) const			{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
 
 	char* get_ptr() 						{ return m_contents->m_ptr; }
@@ -1025,11 +1025,11 @@ protected:
 		for (;;)
 		{
 			i = index_of_any(i, splitOn, n);
-			size_t segmentLength = (i != const_max_int<size_t>::value) ? i : get_length();
+			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : get_length();
 			segmentLength -= lastStart;
 			if (!!segmentLength || (opt == split_includes_empty_segments))
 				result.append(1, subrange(lastStart, segmentLength));
-			if (i == const_max_int<size_t>::value)
+			if (i == const_max_int_v<size_t>)
 				break;
 			lastStart = ++i;
 		}
@@ -1044,11 +1044,11 @@ protected:
 		for (;;)
 		{
 			i = index_of_segment(i, splitOn, n);
-			size_t segmentLength = (i != const_max_int<size_t>::value) ? i : get_length();
+			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : get_length();
 			segmentLength -= lastStart;
 			if (!!segmentLength || (opt == split_includes_empty_segments))
 				result.append(1, subrange(lastStart, segmentLength));
-			if (i == const_max_int<size_t>::value)
+			if (i == const_max_int_v<size_t>)
 				break;
 			i += n;
 			lastStart = i;
@@ -1132,7 +1132,7 @@ template <bool has_sign, size_t n_bits>
 template <endian_t e>
 inline io::buffer fixed_integer_native<has_sign, n_bits>::to_buffer() const
 {
-	static constexpr size_t width_bytes = bits_to_bytes<bits>::value;
+	static constexpr size_t width_bytes = bits_to_bytes_v<bits>;
 	io::buffer result(width_bytes);
 	uint8_t* resultPtr = (uint8_t*)result.get_ptr();
 	unsigned_int_t src = m_int;

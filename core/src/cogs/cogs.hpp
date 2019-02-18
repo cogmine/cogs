@@ -390,7 +390,6 @@
 #include "cogs/math/fixed_integer_native.hpp"
 #include "cogs/math/fixed_integer_native_const.hpp"
 #include "cogs/math/fraction.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/math/is_arithmetic.hpp"
 #include "cogs/math/is_const_type.hpp"
 #include "cogs/math/is_integral.hpp"

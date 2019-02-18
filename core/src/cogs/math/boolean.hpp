@@ -11,7 +11,6 @@
 #include <type_traits>
 
 #include "cogs/env/mem/alignment.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/operators.hpp"
 
 

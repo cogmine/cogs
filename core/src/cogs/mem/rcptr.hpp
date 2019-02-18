@@ -62,12 +62,14 @@ public:
 	/// @brief Provides a rcptr with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A rcptr with a different referenced type.
 		typedef rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	/// @{
 	/// @brief Constructor.  Initializes rcptr to NULL
@@ -995,11 +997,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcptr()																					{ }
 	rcptr(this_t&& src) : m_ref(std::move(src.m_ref)) { }
@@ -1570,11 +1574,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcptr() { }
 	rcptr(this_t&& src) : m_ref(std::move(src.m_ref)) { }
@@ -2141,11 +2147,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcptr() { }
 	rcptr(this_t&& src) : m_ref(std::move(src.m_ref)) { }
@@ -2710,11 +2718,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcptr() { }
 	rcptr(this_t&& src) : m_ref(std::move(src.m_ref)) { }

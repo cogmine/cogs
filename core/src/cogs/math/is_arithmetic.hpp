@@ -32,21 +32,21 @@ template <typename T>
 class is_arithmetic<const T>
 {
 public:
-	static constexpr bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic_v<T>;
 };
 
 template <typename T>
 class is_arithmetic<volatile T>
 {
 public:
-	static constexpr bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic_v<T>;
 };
 
 template <typename T>
 class is_arithmetic<const volatile T>
 {
 public:
-	static constexpr bool value = is_arithmetic<T>::value;
+	static constexpr bool value = is_arithmetic_v<T>;
 };
 
 

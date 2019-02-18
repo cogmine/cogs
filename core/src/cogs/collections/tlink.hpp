@@ -78,7 +78,7 @@ class tlink_base
 {
 public:
 	typedef tlink_base<derived_t, ref_type, link_iterator>						this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 	typedef tlink_methods<link_t, ref_type, link_iterator>						dlink_methods_t;
 
@@ -105,11 +105,11 @@ public:
 /// @tparam ref_type Type used to reference elements.  Default: ptr
 /// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_tlink_iterator
 template <class derived_t = void, template <typename> class ref_type = ptr, class link_iterator = default_tlink_iterator<derived_t, ref_type> >
-class tlink_t : public tlink_base<derived_t, ref_type, link_iterator>//default_tlink_iterator<typename std::conditional<std::is_void<derived_t>::value, tlink_t<derived_t, ref_type>, derived_t>::type, ref_type> >
+class tlink_t : public tlink_base<derived_t, ref_type, link_iterator>//default_tlink_iterator<std::conditional_t<std::is_void_v<derived_t>, tlink_t<derived_t, ref_type>, derived_t>, ref_type> >
 {
 public:
 	typedef tlink_t<derived_t, ref_type>										this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 
 private:

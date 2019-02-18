@@ -47,12 +47,14 @@ public:
 	/// @brief Provides a versioned_ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A versioned_ref with a different referenced type.
 		typedef versioned_ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	versioned_t<type*> m_versioned;
@@ -365,7 +367,7 @@ public:
 	bool unversioned_compare_exchange(const ref<type>& src, const ref<type>& cmp, type2*& rtn)		{ type* tmp; bool result = m_versioned.unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
 
 
-	static size_t mark_bits() { return range_to_bits<0, std::alignment_of<type>::value - 1>::value; }
+	static size_t mark_bits() { return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
 	static size_t mark_mask() { return (1 << mark_bits()) - 1; }
 
 	size_t get_mark() const { return ((size_t)(get_ptr()) & mark_mask()); }
@@ -432,12 +434,14 @@ public:
 	/// @brief Provides a versioned_ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A versioned_ref with a different referenced type.
 		typedef versioned_ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	versioned_t<type*> m_versioned;
@@ -732,12 +736,14 @@ public:
 	/// @brief Provides a versioned_ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A versioned_ref with a different referenced type.
 		typedef versioned_ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	versioned_t<type*> m_versioned;
@@ -1032,12 +1038,14 @@ public:
 	/// @brief Provides a versioned_ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A versioned_ref with a different referenced type.
 		typedef versioned_ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	versioned_t<type*> m_versioned;
@@ -1332,12 +1340,14 @@ public:
 	/// @brief Provides a versioned_ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A versioned_ref with a different referenced type.
 		typedef versioned_ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	versioned_t<type*> m_versioned;

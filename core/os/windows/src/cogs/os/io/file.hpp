@@ -429,7 +429,7 @@
 //	rcref<auto_HANDLE>				m_writeHandle;
 //	rcref<file_globals::file_info>	m_fileInfo;
 //
-//	volatile number<int_to_fixed_integer<file_size_t>::type>	m_eof;
+//	volatile number<int_to_fixed_integer_t<file_size_t> >	m_eof;
 //
 //	class writer : public io::file<io::write_access, file_size_t>::writer
 //	{

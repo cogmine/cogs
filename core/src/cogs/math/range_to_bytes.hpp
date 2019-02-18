@@ -23,15 +23,10 @@ template <ulongest min_value, ulongest max_value>
 class range_to_bytes
 {
 public:
-	static constexpr size_t value = bits_to_bytes< range_to_bits<min_value, max_value>::value >::value;
+	static constexpr size_t value = bits_to_bytes_v<range_to_bits_v<min_value, max_value> >;
 };
-
 template <ulongest min_value, ulongest max_value>
 constexpr size_t range_to_bytes_v = range_to_bytes<min_value, max_value>::value;
-
-
-
-
 
 
 template <ulongest min_value, ulongest max_value>
@@ -43,16 +38,12 @@ public:
 		0 :
 		bits_to_bytes_v<
 			next_or_current_exponent_of_two_v<
-				range_to_bits<min_value, max_value>::value>
+				range_to_bits_v<min_value, max_value>
+			>
 		>;
 };
-
-
-
 template <ulongest min_value, ulongest max_value>
 constexpr size_t range_to_int_bytes_v = range_to_int_bytes<min_value, max_value>::value;
-
-
 
 
 }

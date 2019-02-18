@@ -9,7 +9,7 @@
 #define COGS_HEADER_ENV_MEM_BIT_ROTATE
 
 
-#include "cogs/math/int_types.hpp"
+#include "cogs/env.hpp"
 #include "cogs/math/fixed_integer.hpp"
 #include "cogs/math/fixed_integer_native.hpp"
 #include "cogs/math/fixed_integer_extended.hpp"

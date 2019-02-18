@@ -268,7 +268,7 @@ private:
 			get_next_dispatcher()->dispatch([r{ this_rcref }]()
 			{
 				r->serial_update();
-			}, const_min_int<int>::value);	// best possible priority
+			}, const_min_int_v<int>);	// best possible priority
 			break;
 		}
 	}
@@ -448,7 +448,7 @@ private:
 			get_next_dispatcher()->dispatch([r{ this_rcref }]()
 			{
 				r->serial_update();
-			}, const_min_int<int>::value);	// highest possible priority
+			}, const_min_int_v<int>);	// highest possible priority
 			break;
 		}
 	}

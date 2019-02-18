@@ -16,7 +16,6 @@
 #include "cogs/env/math/umul.hpp"
 #include "cogs/math/fixed_integer.hpp"
 #include "cogs/math/bits_to_int.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/math/is_arithmetic.hpp"
 #include "cogs/math/is_integral.hpp"
 #include "cogs/math/is_signed.hpp"
@@ -5582,14 +5581,14 @@ public:
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2>
-class compatible<fixed_integer_native<has_sign2, bits2>, int_t2, typename std::enable_if_t<std::is_integral_v<int_t2> > >
+class compatible<fixed_integer_native<has_sign2, bits2>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
 public:
 	typedef typename compatible<fixed_integer_native<has_sign2, bits2>, int_to_fixed_integer_t<int_t2> >::type type;
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2>
-class compatible<int_t2, fixed_integer_native<has_sign2, bits2>, typename std::enable_if_t<std::is_integral_v<int_t2> > >
+class compatible<int_t2, fixed_integer_native<has_sign2, bits2>, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
 public:
 	typedef typename compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_native<has_sign2, bits2> >::type type;
@@ -5605,7 +5604,7 @@ public:
 
 
 template <typename int_t2, typename int_t3>
-class compatible<int_t2, int_t3, typename std::enable_if_t<std::is_integral_v<int_t2> && std::is_integral_v<int_t3> > >
+class compatible<int_t2, int_t3, std::enable_if_t<std::is_integral_v<int_t2> && std::is_integral_v<int_t3> > >
 {
 public:
 	typedef decltype(

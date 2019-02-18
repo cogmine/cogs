@@ -33,21 +33,21 @@ template <typename T>
 class is_integral<const T>
 {
 public:
-	static constexpr bool value = is_integral<T>::value;
+	static constexpr bool value = is_integral_v<T>;
 };
 
 template <typename T>
 class is_integral<volatile T>
 {
 public:
-	static constexpr bool value = is_integral<T>::value;
+	static constexpr bool value = is_integral_v<T>;
 };
 
 template <typename T>
 class is_integral<const volatile T>
 {
 public:
-	static constexpr bool value = is_integral<T>::value;
+	static constexpr bool value = is_integral_v<T>;
 };
 
 

@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include "cogs/load.hpp"
-#include "cogs/math/int_types.hpp"
+#include "cogs/env.hpp"
 
 
 namespace cogs {

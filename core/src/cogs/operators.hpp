@@ -1411,7 +1411,7 @@ equals(const T& t, const A1& a)
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return false;
-	return (std::make_unsigned<T>)t2 == load(a);
+	return (std::make_unsigned_t<T>)t2 == load(a);
 }
 
 template <typename T, typename A1>
@@ -1462,7 +1462,7 @@ is_less_than(const T& t, const A1& a)
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return true;
-	return (std::make_unsigned<T>)t2 < load(a);
+	return (std::make_unsigned_t<T>)t2 < load(a);
 }
 
 template <typename T, typename A1>
@@ -1474,7 +1474,7 @@ is_less_than(const T& t, const A1& a)
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
 		return false;
-	return load(t) < (std::make_unsigned<T>)a2;
+	return load(t) < (std::make_unsigned_t<T>)a2;
 }
 
 template <typename T, typename A1>
@@ -1505,7 +1505,7 @@ is_greater_than(const T& t, const A1& a)
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return false;
-	return (std::make_unsigned<T>)t2 > load(a);
+	return (std::make_unsigned_t<T>)t2 > load(a);
 }
 
 template <typename T, typename A1>
@@ -1517,7 +1517,7 @@ is_greater_than(const T& t, const A1& a)
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
 		return true;
-	return load(t) > (std::make_unsigned<T>)a2;
+	return load(t) > (std::make_unsigned_t<T>)a2;
 }
 
 template <typename T, typename A1>
@@ -2028,6 +2028,8 @@ struct last_type
 {
 	typedef typename last_type<T1, Ts...>::type type;
 };
+template <typename T1, typename... Ts>
+using last_type_t = typename last_type<T1, Ts...>::type;
 
 template <typename T1>
 struct last_type<T1>
@@ -2035,8 +2037,6 @@ struct last_type<T1>
 	typedef T1 type;
 };
 
-template <typename T1, typename... Ts>
-using last_type_t = typename last_type<T1, Ts...>::type;
 
 // For set types - types that contain (only) a set of other types
 

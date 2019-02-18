@@ -32,21 +32,21 @@ template <typename T>
 class is_const_type<const T>
 {
 public:
-	static constexpr bool value = is_const_type<T>::value;
+	static constexpr bool value = is_const_type_v<T>;
 };
 
 template <typename T>
 class is_const_type<volatile T>
 {
 public:
-	static constexpr bool value = is_const_type<T>::value;
+	static constexpr bool value = is_const_type_v<T>;
 };
 
 template <typename T>
 class is_const_type<const volatile T>
 {
 public:
-	static constexpr bool value = is_const_type<T>::value;
+	static constexpr bool value = is_const_type_v<T>;
 };
 
 

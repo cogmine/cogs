@@ -14,7 +14,6 @@
 #include "cogs/collections/map.hpp"
 #include "cogs/function.hpp"
 #include "cogs/math/const_max_int.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/math/measure.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/cleanup_queue.hpp"

@@ -70,12 +70,14 @@ public:
 	/// @brief Provides a ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A ref with a different referenced type.
 		typedef ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	alignas (atomic::get_alignment_v<type*>) type* m_value;
@@ -714,7 +716,7 @@ public:
 	/// - Alignment of 4 indicates there is 2.
 	/// - Alignment of 8 indicates there is 3.
 	/// @return The number of bits available to be marked on the pointer.
-	static size_t mark_bits()					{ return range_to_bits<0, std::alignment_of<type>::value - 1>::value; }
+	static size_t mark_bits()					{ return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
 
 	/// @brief Gets a mask with all available mark bits sets.
 	/// @return A mask containing all available mark bits set.
@@ -837,11 +839,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	alignas (atomic::get_alignment_v<type*>) type* m_value;
@@ -1288,11 +1292,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	alignas (atomic::get_alignment_v<type*>) type* m_value;
@@ -1750,11 +1756,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	alignas (atomic::get_alignment_v<type*>) type* m_value;
@@ -2214,11 +2222,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 private:
 	alignas (atomic::get_alignment_v<type*>) type* m_value;

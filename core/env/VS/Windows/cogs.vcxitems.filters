@@ -906,9 +906,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fraction.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\int_types.hpp">
-      <Filter>core\math</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic.hpp">
       <Filter>core\math</Filter>
     </ClInclude>

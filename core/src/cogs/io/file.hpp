@@ -17,7 +17,6 @@
 //#include "cogs/function.hpp"
 //#include "cogs/env.hpp"
 //#include "cogs/io/datastream.hpp"
-//#include "cogs/math/int_types.hpp"
 //#include "cogs/mem/object.hpp"
 //#include "cogs/mem/ptr.hpp"
 //#include "cogs/operators.hpp"
@@ -4891,7 +4890,7 @@
 //			void advance(file_size_t n)					{ m_length -= n; }
 //		};
 //
-//		typedef typename std::conditional<std::is_same<aux_t, file_size_t>::value, length_aux_t, aux_t>::type	internal_t;
+//		typedef std::conditional_t<std::is_same_v<aux_t, file_size_t>, length_aux_t, aux_t>	internal_t;
 //
 //	public:
 //		file_size_t	m_start;

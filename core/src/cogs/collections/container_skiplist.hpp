@@ -80,7 +80,7 @@ private:
 	};
 
 	static constexpr size_t max_height = (sizeof(size_t) * 8) - 1;
-	typedef typename range_to_int<0, max_height>::type height_t;
+	typedef range_to_int_t<0, max_height> height_t;
 
 	typedef container_skiplist<key_t, payload_t, comparator_t, allocator_type> this_t;
 
@@ -1054,7 +1054,7 @@ private:
 	class aux_payload_link_t : public payload_link_t
 	{
 	public:
-		typedef typename std::remove_cv<T>::type T2;
+		typedef std::remove_cv_t<T> T2;
 
 		delayed_construction<T2> m_aux;
 

@@ -575,10 +575,10 @@ public:
 #endif
 	};
 
-	static constexpr size_t header_size = least_multiple_of<sizeof(header), largest_alignment>::value;
+	static constexpr size_t header_size = least_multiple_of_v<sizeof(header), largest_alignment>;
 
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
-	static constexpr size_t overhead = header_size + least_multiple_of<sizeof(footer), largest_alignment>::value;
+	static constexpr size_t overhead = header_size + least_multiple_of_v<sizeof(footer), largest_alignment>;
 #else
 	static constexpr size_t overhead = header_size;
 #endif
@@ -814,7 +814,7 @@ inline allocator* default_allocator::create_default_allocator()
 	typedef default_allocator_t default_allocator_type;
 #endif
 
-	ptr<default_allocator_type> al = env::allocator::allocate(sizeof(default_allocator_type), std::alignment_of<default_allocator_type>::value).reinterpret_cast_to<default_allocator_type>();
+	ptr<default_allocator_type> al = env::allocator::allocate(sizeof(default_allocator_type), std::alignment_of_v<default_allocator_type>).reinterpret_cast_to<default_allocator_type>();
 	new (al) default_allocator_type;
 	return al.get_ptr();
 }

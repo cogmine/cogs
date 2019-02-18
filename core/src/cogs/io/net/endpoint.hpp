@@ -38,11 +38,11 @@ public:
 	template <typename char_t>
 	composite_string_t<char_t> to_string_t() const
 	{
-		if (std::is_same<char_t, char>::value)
+		if (std::is_same_v<char_t, char>)
 		{
 			return to_cstring();
 		}
-		if (std::is_same<char_t, wchar_t>::value)
+		if (std::is_same_v<char_t, wchar_t>)
 		{
 			to_string();
 		}

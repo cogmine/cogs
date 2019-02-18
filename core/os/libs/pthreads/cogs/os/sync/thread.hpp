@@ -105,7 +105,7 @@ public:
 		{
 			if (joinState == (size_t)-2)	// A joiner needs to release a reference
 			{
-				size_t allBitsSet = const_max_int<size_t>::value;
+				size_t allBitsSet = const_max_int_v<size_t>;
 				if (!atomic::compare_exchange(m_joinState, allBitsSet, joinState, joinState))
 					continue;
 				result = 1;
@@ -113,7 +113,7 @@ public:
 				break;
 			}
 
-			if (joinState == const_max_int<size_t>::value)	// Terminated, nothing more to do.
+			if (joinState == const_max_int_v<size_t>)	// Terminated, nothing more to do.
 			{
 				result = 1;
 				break;
@@ -130,7 +130,7 @@ public:
 				joinState = atomic::load(m_joinState);
 				for (;;)
 				{
-					if (joinState == const_max_int<size_t>::value)		// Terminated, nothing more to do.
+					if (joinState == const_max_int_v<size_t>)		// Terminated, nothing more to do.
 					{
 						result = 1;
 						break;

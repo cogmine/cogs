@@ -53,7 +53,7 @@ private:
 	// optimize the inner loop by making the mod necesssary less frequently.
 	//
 	// In order for the inner loop to be efficient, the sum accumulator should not be
-	// larger a native int, as emulation of a larger int could incur significantly more
+	// larger than a native int, as emulation of a larger int could incur significantly more
 	// overhead than calling mod more frequently.
 
 	template <bool too_large = (width > (sizeof(unsigned int) * 8)), bool unused = true>
@@ -85,7 +85,7 @@ private:
 		static constexpr ulongest high_ab = const_extumul2<high_b, low_b, 0, a>::high_part;
 		static constexpr ulongest low_ab = const_extumul2<high_b, low_b, 0, a>::low_part;
 
-		static constexpr ulongest root = const_uroot<2, low_ab, high_ab>::value;
+		static constexpr ulongest root = const_uroot_v<2, low_ab, high_ab>;
 
 		static constexpr ulongest loop_max = ((sum_width >= (sizeof(accumulator_t) * 8)) ? 0 : ((root - (a * 5)) >> register_width)) / (accumulator_width / register_width);
 	};

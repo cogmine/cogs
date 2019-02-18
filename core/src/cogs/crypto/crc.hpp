@@ -31,7 +31,7 @@ class crc : public hash_int<bits>
 {
 public:
 	static constexpr size_t width_bits = bits;
-	static constexpr size_t width_bytes = bits_to_bytes<width_bits>::value;
+	static constexpr size_t width_bytes = bits_to_bytes_v<width_bits>;
 
 	typedef typename hash_int<bits>::uint_t	crc_t;
 
@@ -99,7 +99,75 @@ private:
 	}
 
 	crc_t	m_crc;
-	static constexpr crc_t table[256];
+
+	// Constant CRC table, generated at compile time.
+	static constexpr crc_t table[256] =
+	{
+		calculate_crc_table_entry<0>::value, calculate_crc_table_entry<1>::value, calculate_crc_table_entry<2>::value, calculate_crc_table_entry<3>::value,
+		calculate_crc_table_entry<4>::value, calculate_crc_table_entry<5>::value, calculate_crc_table_entry<6>::value, calculate_crc_table_entry<7>::value,
+		calculate_crc_table_entry<8>::value, calculate_crc_table_entry<9>::value, calculate_crc_table_entry<10>::value, calculate_crc_table_entry<11>::value,
+		calculate_crc_table_entry<12>::value, calculate_crc_table_entry<13>::value, calculate_crc_table_entry<14>::value, calculate_crc_table_entry<15>::value,
+		calculate_crc_table_entry<16>::value, calculate_crc_table_entry<17>::value, calculate_crc_table_entry<18>::value, calculate_crc_table_entry<19>::value,
+		calculate_crc_table_entry<20>::value, calculate_crc_table_entry<21>::value, calculate_crc_table_entry<22>::value, calculate_crc_table_entry<23>::value,
+		calculate_crc_table_entry<24>::value, calculate_crc_table_entry<25>::value, calculate_crc_table_entry<26>::value, calculate_crc_table_entry<27>::value,
+		calculate_crc_table_entry<28>::value, calculate_crc_table_entry<29>::value, calculate_crc_table_entry<30>::value, calculate_crc_table_entry<31>::value,
+		calculate_crc_table_entry<32>::value, calculate_crc_table_entry<33>::value, calculate_crc_table_entry<34>::value, calculate_crc_table_entry<35>::value,
+		calculate_crc_table_entry<36>::value, calculate_crc_table_entry<37>::value, calculate_crc_table_entry<38>::value, calculate_crc_table_entry<39>::value,
+		calculate_crc_table_entry<40>::value, calculate_crc_table_entry<41>::value, calculate_crc_table_entry<42>::value, calculate_crc_table_entry<43>::value,
+		calculate_crc_table_entry<44>::value, calculate_crc_table_entry<45>::value, calculate_crc_table_entry<46>::value, calculate_crc_table_entry<47>::value,
+		calculate_crc_table_entry<48>::value, calculate_crc_table_entry<49>::value, calculate_crc_table_entry<50>::value, calculate_crc_table_entry<51>::value,
+		calculate_crc_table_entry<52>::value, calculate_crc_table_entry<53>::value, calculate_crc_table_entry<54>::value, calculate_crc_table_entry<55>::value,
+		calculate_crc_table_entry<56>::value, calculate_crc_table_entry<57>::value, calculate_crc_table_entry<58>::value, calculate_crc_table_entry<59>::value,
+		calculate_crc_table_entry<60>::value, calculate_crc_table_entry<61>::value, calculate_crc_table_entry<62>::value, calculate_crc_table_entry<63>::value,
+		calculate_crc_table_entry<64>::value, calculate_crc_table_entry<65>::value, calculate_crc_table_entry<66>::value, calculate_crc_table_entry<67>::value,
+		calculate_crc_table_entry<68>::value, calculate_crc_table_entry<69>::value, calculate_crc_table_entry<70>::value, calculate_crc_table_entry<71>::value,
+		calculate_crc_table_entry<72>::value, calculate_crc_table_entry<73>::value, calculate_crc_table_entry<74>::value, calculate_crc_table_entry<75>::value,
+		calculate_crc_table_entry<76>::value, calculate_crc_table_entry<77>::value, calculate_crc_table_entry<78>::value, calculate_crc_table_entry<79>::value,
+		calculate_crc_table_entry<80>::value, calculate_crc_table_entry<81>::value, calculate_crc_table_entry<82>::value, calculate_crc_table_entry<83>::value,
+		calculate_crc_table_entry<84>::value, calculate_crc_table_entry<85>::value, calculate_crc_table_entry<86>::value, calculate_crc_table_entry<87>::value,
+		calculate_crc_table_entry<88>::value, calculate_crc_table_entry<89>::value, calculate_crc_table_entry<90>::value, calculate_crc_table_entry<91>::value,
+		calculate_crc_table_entry<92>::value, calculate_crc_table_entry<93>::value, calculate_crc_table_entry<94>::value, calculate_crc_table_entry<95>::value,
+		calculate_crc_table_entry<96>::value, calculate_crc_table_entry<97>::value, calculate_crc_table_entry<98>::value, calculate_crc_table_entry<99>::value,
+		calculate_crc_table_entry<100>::value, calculate_crc_table_entry<101>::value, calculate_crc_table_entry<102>::value, calculate_crc_table_entry<103>::value,
+		calculate_crc_table_entry<104>::value, calculate_crc_table_entry<105>::value, calculate_crc_table_entry<106>::value, calculate_crc_table_entry<107>::value,
+		calculate_crc_table_entry<108>::value, calculate_crc_table_entry<109>::value, calculate_crc_table_entry<110>::value, calculate_crc_table_entry<111>::value,
+		calculate_crc_table_entry<112>::value, calculate_crc_table_entry<113>::value, calculate_crc_table_entry<114>::value, calculate_crc_table_entry<115>::value,
+		calculate_crc_table_entry<116>::value, calculate_crc_table_entry<117>::value, calculate_crc_table_entry<118>::value, calculate_crc_table_entry<119>::value,
+		calculate_crc_table_entry<120>::value, calculate_crc_table_entry<121>::value, calculate_crc_table_entry<122>::value, calculate_crc_table_entry<123>::value,
+		calculate_crc_table_entry<124>::value, calculate_crc_table_entry<125>::value, calculate_crc_table_entry<126>::value, calculate_crc_table_entry<127>::value,
+		calculate_crc_table_entry<128>::value, calculate_crc_table_entry<129>::value, calculate_crc_table_entry<130>::value, calculate_crc_table_entry<131>::value,
+		calculate_crc_table_entry<132>::value, calculate_crc_table_entry<133>::value, calculate_crc_table_entry<134>::value, calculate_crc_table_entry<135>::value,
+		calculate_crc_table_entry<136>::value, calculate_crc_table_entry<137>::value, calculate_crc_table_entry<138>::value, calculate_crc_table_entry<139>::value,
+		calculate_crc_table_entry<140>::value, calculate_crc_table_entry<141>::value, calculate_crc_table_entry<142>::value, calculate_crc_table_entry<143>::value,
+		calculate_crc_table_entry<144>::value, calculate_crc_table_entry<145>::value, calculate_crc_table_entry<146>::value, calculate_crc_table_entry<147>::value,
+		calculate_crc_table_entry<148>::value, calculate_crc_table_entry<149>::value, calculate_crc_table_entry<150>::value, calculate_crc_table_entry<151>::value,
+		calculate_crc_table_entry<152>::value, calculate_crc_table_entry<153>::value, calculate_crc_table_entry<154>::value, calculate_crc_table_entry<155>::value,
+		calculate_crc_table_entry<156>::value, calculate_crc_table_entry<157>::value, calculate_crc_table_entry<158>::value, calculate_crc_table_entry<159>::value,
+		calculate_crc_table_entry<160>::value, calculate_crc_table_entry<161>::value, calculate_crc_table_entry<162>::value, calculate_crc_table_entry<163>::value,
+		calculate_crc_table_entry<164>::value, calculate_crc_table_entry<165>::value, calculate_crc_table_entry<166>::value, calculate_crc_table_entry<167>::value,
+		calculate_crc_table_entry<168>::value, calculate_crc_table_entry<169>::value, calculate_crc_table_entry<170>::value, calculate_crc_table_entry<171>::value,
+		calculate_crc_table_entry<172>::value, calculate_crc_table_entry<173>::value, calculate_crc_table_entry<174>::value, calculate_crc_table_entry<175>::value,
+		calculate_crc_table_entry<176>::value, calculate_crc_table_entry<177>::value, calculate_crc_table_entry<178>::value, calculate_crc_table_entry<179>::value,
+		calculate_crc_table_entry<180>::value, calculate_crc_table_entry<181>::value, calculate_crc_table_entry<182>::value, calculate_crc_table_entry<183>::value,
+		calculate_crc_table_entry<184>::value, calculate_crc_table_entry<185>::value, calculate_crc_table_entry<186>::value, calculate_crc_table_entry<187>::value,
+		calculate_crc_table_entry<188>::value, calculate_crc_table_entry<189>::value, calculate_crc_table_entry<190>::value, calculate_crc_table_entry<191>::value,
+		calculate_crc_table_entry<192>::value, calculate_crc_table_entry<193>::value, calculate_crc_table_entry<194>::value, calculate_crc_table_entry<195>::value,
+		calculate_crc_table_entry<196>::value, calculate_crc_table_entry<197>::value, calculate_crc_table_entry<198>::value, calculate_crc_table_entry<199>::value,
+		calculate_crc_table_entry<200>::value, calculate_crc_table_entry<201>::value, calculate_crc_table_entry<202>::value, calculate_crc_table_entry<203>::value,
+		calculate_crc_table_entry<204>::value, calculate_crc_table_entry<205>::value, calculate_crc_table_entry<206>::value, calculate_crc_table_entry<207>::value,
+		calculate_crc_table_entry<208>::value, calculate_crc_table_entry<209>::value, calculate_crc_table_entry<210>::value, calculate_crc_table_entry<211>::value,
+		calculate_crc_table_entry<212>::value, calculate_crc_table_entry<213>::value, calculate_crc_table_entry<214>::value, calculate_crc_table_entry<215>::value,
+		calculate_crc_table_entry<216>::value, calculate_crc_table_entry<217>::value, calculate_crc_table_entry<218>::value, calculate_crc_table_entry<219>::value,
+		calculate_crc_table_entry<220>::value, calculate_crc_table_entry<221>::value, calculate_crc_table_entry<222>::value, calculate_crc_table_entry<223>::value,
+		calculate_crc_table_entry<224>::value, calculate_crc_table_entry<225>::value, calculate_crc_table_entry<226>::value, calculate_crc_table_entry<227>::value,
+		calculate_crc_table_entry<228>::value, calculate_crc_table_entry<229>::value, calculate_crc_table_entry<230>::value, calculate_crc_table_entry<231>::value,
+		calculate_crc_table_entry<232>::value, calculate_crc_table_entry<233>::value, calculate_crc_table_entry<234>::value, calculate_crc_table_entry<235>::value,
+		calculate_crc_table_entry<236>::value, calculate_crc_table_entry<237>::value, calculate_crc_table_entry<238>::value, calculate_crc_table_entry<239>::value,
+		calculate_crc_table_entry<240>::value, calculate_crc_table_entry<241>::value, calculate_crc_table_entry<242>::value, calculate_crc_table_entry<243>::value,
+		calculate_crc_table_entry<244>::value, calculate_crc_table_entry<245>::value, calculate_crc_table_entry<246>::value, calculate_crc_table_entry<247>::value,
+		calculate_crc_table_entry<248>::value, calculate_crc_table_entry<249>::value, calculate_crc_table_entry<250>::value, calculate_crc_table_entry<251>::value,
+		calculate_crc_table_entry<252>::value, calculate_crc_table_entry<253>::value, calculate_crc_table_entry<254>::value, calculate_crc_table_entry<255>::value
+	};
 
 public:
 	template <crc_t old_value, uint8_t byte_in>
@@ -258,77 +326,6 @@ public:
 		if ((8 * sizeof(crc_t)) > width_bits)
 			m_crc &= mask;
 	}
-};
-
-
-// Constant CRC table, generated at compile time.
-template <size_t bits, ulongest poly, bool is_input_reflected, bool is_output_reflected, ulongest initial_value, ulongest xor_out>
-const typename crc<bits, poly, is_input_reflected, is_output_reflected, initial_value, xor_out>::crc_t crc<bits, poly, is_input_reflected, is_output_reflected, initial_value, xor_out>::table[256] =
-{
-	calculate_crc_table_entry<0>::value, calculate_crc_table_entry<1>::value, calculate_crc_table_entry<2>::value, calculate_crc_table_entry<3>::value,
-	calculate_crc_table_entry<4>::value, calculate_crc_table_entry<5>::value, calculate_crc_table_entry<6>::value, calculate_crc_table_entry<7>::value,
-	calculate_crc_table_entry<8>::value, calculate_crc_table_entry<9>::value, calculate_crc_table_entry<10>::value, calculate_crc_table_entry<11>::value,
-	calculate_crc_table_entry<12>::value, calculate_crc_table_entry<13>::value, calculate_crc_table_entry<14>::value, calculate_crc_table_entry<15>::value,
-	calculate_crc_table_entry<16>::value, calculate_crc_table_entry<17>::value, calculate_crc_table_entry<18>::value, calculate_crc_table_entry<19>::value,
-	calculate_crc_table_entry<20>::value, calculate_crc_table_entry<21>::value, calculate_crc_table_entry<22>::value, calculate_crc_table_entry<23>::value,
-	calculate_crc_table_entry<24>::value, calculate_crc_table_entry<25>::value, calculate_crc_table_entry<26>::value, calculate_crc_table_entry<27>::value,
-	calculate_crc_table_entry<28>::value, calculate_crc_table_entry<29>::value, calculate_crc_table_entry<30>::value, calculate_crc_table_entry<31>::value,
-	calculate_crc_table_entry<32>::value, calculate_crc_table_entry<33>::value, calculate_crc_table_entry<34>::value, calculate_crc_table_entry<35>::value,
-	calculate_crc_table_entry<36>::value, calculate_crc_table_entry<37>::value, calculate_crc_table_entry<38>::value, calculate_crc_table_entry<39>::value,
-	calculate_crc_table_entry<40>::value, calculate_crc_table_entry<41>::value, calculate_crc_table_entry<42>::value, calculate_crc_table_entry<43>::value,
-	calculate_crc_table_entry<44>::value, calculate_crc_table_entry<45>::value, calculate_crc_table_entry<46>::value, calculate_crc_table_entry<47>::value,
-	calculate_crc_table_entry<48>::value, calculate_crc_table_entry<49>::value, calculate_crc_table_entry<50>::value, calculate_crc_table_entry<51>::value,
-	calculate_crc_table_entry<52>::value, calculate_crc_table_entry<53>::value, calculate_crc_table_entry<54>::value, calculate_crc_table_entry<55>::value,
-	calculate_crc_table_entry<56>::value, calculate_crc_table_entry<57>::value, calculate_crc_table_entry<58>::value, calculate_crc_table_entry<59>::value,
-	calculate_crc_table_entry<60>::value, calculate_crc_table_entry<61>::value, calculate_crc_table_entry<62>::value, calculate_crc_table_entry<63>::value,
-	calculate_crc_table_entry<64>::value, calculate_crc_table_entry<65>::value, calculate_crc_table_entry<66>::value, calculate_crc_table_entry<67>::value,
-	calculate_crc_table_entry<68>::value, calculate_crc_table_entry<69>::value, calculate_crc_table_entry<70>::value, calculate_crc_table_entry<71>::value,
-	calculate_crc_table_entry<72>::value, calculate_crc_table_entry<73>::value, calculate_crc_table_entry<74>::value, calculate_crc_table_entry<75>::value,
-	calculate_crc_table_entry<76>::value, calculate_crc_table_entry<77>::value, calculate_crc_table_entry<78>::value, calculate_crc_table_entry<79>::value,
-	calculate_crc_table_entry<80>::value, calculate_crc_table_entry<81>::value, calculate_crc_table_entry<82>::value, calculate_crc_table_entry<83>::value,
-	calculate_crc_table_entry<84>::value, calculate_crc_table_entry<85>::value, calculate_crc_table_entry<86>::value, calculate_crc_table_entry<87>::value,
-	calculate_crc_table_entry<88>::value, calculate_crc_table_entry<89>::value, calculate_crc_table_entry<90>::value, calculate_crc_table_entry<91>::value,
-	calculate_crc_table_entry<92>::value, calculate_crc_table_entry<93>::value, calculate_crc_table_entry<94>::value, calculate_crc_table_entry<95>::value,
-	calculate_crc_table_entry<96>::value, calculate_crc_table_entry<97>::value, calculate_crc_table_entry<98>::value, calculate_crc_table_entry<99>::value,
-	calculate_crc_table_entry<100>::value, calculate_crc_table_entry<101>::value, calculate_crc_table_entry<102>::value, calculate_crc_table_entry<103>::value,
-	calculate_crc_table_entry<104>::value, calculate_crc_table_entry<105>::value, calculate_crc_table_entry<106>::value, calculate_crc_table_entry<107>::value,
-	calculate_crc_table_entry<108>::value, calculate_crc_table_entry<109>::value, calculate_crc_table_entry<110>::value, calculate_crc_table_entry<111>::value,
-	calculate_crc_table_entry<112>::value, calculate_crc_table_entry<113>::value, calculate_crc_table_entry<114>::value, calculate_crc_table_entry<115>::value,
-	calculate_crc_table_entry<116>::value, calculate_crc_table_entry<117>::value, calculate_crc_table_entry<118>::value, calculate_crc_table_entry<119>::value,
-	calculate_crc_table_entry<120>::value, calculate_crc_table_entry<121>::value, calculate_crc_table_entry<122>::value, calculate_crc_table_entry<123>::value,
-	calculate_crc_table_entry<124>::value, calculate_crc_table_entry<125>::value, calculate_crc_table_entry<126>::value, calculate_crc_table_entry<127>::value,
-	calculate_crc_table_entry<128>::value, calculate_crc_table_entry<129>::value, calculate_crc_table_entry<130>::value, calculate_crc_table_entry<131>::value,
-	calculate_crc_table_entry<132>::value, calculate_crc_table_entry<133>::value, calculate_crc_table_entry<134>::value, calculate_crc_table_entry<135>::value,
-	calculate_crc_table_entry<136>::value, calculate_crc_table_entry<137>::value, calculate_crc_table_entry<138>::value, calculate_crc_table_entry<139>::value,
-	calculate_crc_table_entry<140>::value, calculate_crc_table_entry<141>::value, calculate_crc_table_entry<142>::value, calculate_crc_table_entry<143>::value,
-	calculate_crc_table_entry<144>::value, calculate_crc_table_entry<145>::value, calculate_crc_table_entry<146>::value, calculate_crc_table_entry<147>::value,
-	calculate_crc_table_entry<148>::value, calculate_crc_table_entry<149>::value, calculate_crc_table_entry<150>::value, calculate_crc_table_entry<151>::value,
-	calculate_crc_table_entry<152>::value, calculate_crc_table_entry<153>::value, calculate_crc_table_entry<154>::value, calculate_crc_table_entry<155>::value,
-	calculate_crc_table_entry<156>::value, calculate_crc_table_entry<157>::value, calculate_crc_table_entry<158>::value, calculate_crc_table_entry<159>::value,
-	calculate_crc_table_entry<160>::value, calculate_crc_table_entry<161>::value, calculate_crc_table_entry<162>::value, calculate_crc_table_entry<163>::value,
-	calculate_crc_table_entry<164>::value, calculate_crc_table_entry<165>::value, calculate_crc_table_entry<166>::value, calculate_crc_table_entry<167>::value,
-	calculate_crc_table_entry<168>::value, calculate_crc_table_entry<169>::value, calculate_crc_table_entry<170>::value, calculate_crc_table_entry<171>::value,
-	calculate_crc_table_entry<172>::value, calculate_crc_table_entry<173>::value, calculate_crc_table_entry<174>::value, calculate_crc_table_entry<175>::value,
-	calculate_crc_table_entry<176>::value, calculate_crc_table_entry<177>::value, calculate_crc_table_entry<178>::value, calculate_crc_table_entry<179>::value,
-	calculate_crc_table_entry<180>::value, calculate_crc_table_entry<181>::value, calculate_crc_table_entry<182>::value, calculate_crc_table_entry<183>::value,
-	calculate_crc_table_entry<184>::value, calculate_crc_table_entry<185>::value, calculate_crc_table_entry<186>::value, calculate_crc_table_entry<187>::value,
-	calculate_crc_table_entry<188>::value, calculate_crc_table_entry<189>::value, calculate_crc_table_entry<190>::value, calculate_crc_table_entry<191>::value,
-	calculate_crc_table_entry<192>::value, calculate_crc_table_entry<193>::value, calculate_crc_table_entry<194>::value, calculate_crc_table_entry<195>::value,
-	calculate_crc_table_entry<196>::value, calculate_crc_table_entry<197>::value, calculate_crc_table_entry<198>::value, calculate_crc_table_entry<199>::value,
-	calculate_crc_table_entry<200>::value, calculate_crc_table_entry<201>::value, calculate_crc_table_entry<202>::value, calculate_crc_table_entry<203>::value,
-	calculate_crc_table_entry<204>::value, calculate_crc_table_entry<205>::value, calculate_crc_table_entry<206>::value, calculate_crc_table_entry<207>::value,
-	calculate_crc_table_entry<208>::value, calculate_crc_table_entry<209>::value, calculate_crc_table_entry<210>::value, calculate_crc_table_entry<211>::value,
-	calculate_crc_table_entry<212>::value, calculate_crc_table_entry<213>::value, calculate_crc_table_entry<214>::value, calculate_crc_table_entry<215>::value,
-	calculate_crc_table_entry<216>::value, calculate_crc_table_entry<217>::value, calculate_crc_table_entry<218>::value, calculate_crc_table_entry<219>::value,
-	calculate_crc_table_entry<220>::value, calculate_crc_table_entry<221>::value, calculate_crc_table_entry<222>::value, calculate_crc_table_entry<223>::value,
-	calculate_crc_table_entry<224>::value, calculate_crc_table_entry<225>::value, calculate_crc_table_entry<226>::value, calculate_crc_table_entry<227>::value,
-	calculate_crc_table_entry<228>::value, calculate_crc_table_entry<229>::value, calculate_crc_table_entry<230>::value, calculate_crc_table_entry<231>::value,
-	calculate_crc_table_entry<232>::value, calculate_crc_table_entry<233>::value, calculate_crc_table_entry<234>::value, calculate_crc_table_entry<235>::value,
-	calculate_crc_table_entry<236>::value, calculate_crc_table_entry<237>::value, calculate_crc_table_entry<238>::value, calculate_crc_table_entry<239>::value,
-	calculate_crc_table_entry<240>::value, calculate_crc_table_entry<241>::value, calculate_crc_table_entry<242>::value, calculate_crc_table_entry<243>::value,
-	calculate_crc_table_entry<244>::value, calculate_crc_table_entry<245>::value, calculate_crc_table_entry<246>::value, calculate_crc_table_entry<247>::value,
-	calculate_crc_table_entry<248>::value, calculate_crc_table_entry<249>::value, calculate_crc_table_entry<250>::value, calculate_crc_table_entry<251>::value,
-	calculate_crc_table_entry<252>::value, calculate_crc_table_entry<253>::value, calculate_crc_table_entry<254>::value, calculate_crc_table_entry<255>::value
 };
 
 

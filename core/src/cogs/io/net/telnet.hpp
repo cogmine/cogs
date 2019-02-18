@@ -13,7 +13,6 @@
 #include "cogs/collections/string.hpp"
 #include "cogs/env.hpp"
 #include "cogs/io/datastream_protocol.hpp"
-#include "cogs/math/int_types.hpp"
 
 
 namespace cogs {

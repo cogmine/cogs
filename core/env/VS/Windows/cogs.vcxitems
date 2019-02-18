@@ -294,7 +294,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fixed_integer_native_const.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fraction.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\int_types.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_const_type.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp" />

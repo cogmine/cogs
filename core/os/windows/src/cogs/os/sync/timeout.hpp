@@ -32,7 +32,7 @@ namespace cogs {
 class timeout_t
 {
 public:
-	typedef int_to_fixed_integer<ULONGLONG>::type period_unit_storage_t;
+	typedef int_to_fixed_integer_t<ULONGLONG> period_unit_storage_t;
 	typedef milliseconds period_unitbase;
 	typedef measure<period_unit_storage_t, period_unitbase> period_t;
 
@@ -142,7 +142,7 @@ public:
 	{
 		return timeout_t(
 			make_measure<period_unitbase>(0),
-			make_measure<period_unitbase>(const_max_int<ULONGLONG>::value),
+			make_measure<period_unitbase>(const_max_int_v<ULONGLONG>),
 			make_measure<period_unitbase>(0));
 	}
 
@@ -153,11 +153,11 @@ public:
 	period_t get_period() const		{ return m_period; }
 	period_t get_expiration() const	{ return m_expireTime; }
 
-	bool is_infinite() const	{ return make_measure<period_unitbase>(const_max_int<ULONGLONG>::value) == m_period; }
+	bool is_infinite() const	{ return make_measure<period_unitbase>(const_max_int_v<ULONGLONG>) == m_period; }
 
 	period_t get_pending() const
 	{
-		if (!m_period || m_period == make_measure<period_unitbase>(const_max_int<ULONGLONG>::value))
+		if (!m_period || m_period == make_measure<period_unitbase>(const_max_int_v<ULONGLONG>))
 			return m_period;
 
 		period_t n = now();
@@ -171,7 +171,7 @@ public:
 
 	bool expired() const
 	{
-		if (m_period == const_max_int<ULONGLONG>::value)
+		if (m_period == const_max_int_v<ULONGLONG>)
 			return false;
 		//if (!m_period)
 		//	return true;
@@ -180,7 +180,7 @@ public:
 
 	void refire()
 	{
-		if (!m_period || m_period == const_max_int<ULONGLONG>::value)
+		if (!m_period || m_period == const_max_int_v<ULONGLONG>)
 			return;
 
 		// This facilitates periodic-timers.
@@ -238,7 +238,7 @@ public:
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
 	timeout_t& operator+=(const measure<unit_storage_t, unitbase_t>& n)	// extends the period
 	{
-		if (m_period != const_max_int<ULONGLONG>::value)
+		if (m_period != const_max_int_v<ULONGLONG>)
 		{
 			m_period += n;
 			m_expireTime = m_startTime;
@@ -250,7 +250,7 @@ public:
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
 	timeout_t& operator+=(const volatile measure<unit_storage_t, unitbase_t>& n)	// extends the period
 	{
-		if (m_period != const_max_int<ULONGLONG>::value)
+		if (m_period != const_max_int_v<ULONGLONG>)
 		{
 			m_period += n;
 			m_expireTime = m_startTime;

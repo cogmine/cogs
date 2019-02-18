@@ -704,7 +704,7 @@ class nonvolatile_map
 private:
 	typedef nonvolatile_map<key_t, value_t, favor_lookup, comparator_t, allocator_type> this_t;
 
-	class node : public std::conditional<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >::type
+	class node : public std::conditional_t<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >
 	{
 	public:
 		key_t	m_key;
@@ -725,7 +725,7 @@ private:
 		}
 	};
 	
-	typedef typename std::conditional<favor_lookup, avltree<key_t, node, comparator_t>, rbtree<key_t, node, comparator_t> >::type tree_t;
+	typedef std::conditional_t<favor_lookup, avltree<key_t, node, comparator_t>, rbtree<key_t, node, comparator_t> > tree_t;
 
 	typedef typename tree_t::ref_t ref_t;
 

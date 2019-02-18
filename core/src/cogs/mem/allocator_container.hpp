@@ -27,7 +27,7 @@ namespace cogs {
 
 template <class allocator_type,
 	bool is_static_in = allocator_type::is_static,
-	bool is_ptr_based = std::is_same<typename allocator_type::ref_t, ptr<void> >::value>
+	bool is_ptr_based = std::is_same_v<typename allocator_type::ref_t, ptr<void> > >
 class allocator_container
 {
 private:
@@ -67,19 +67,19 @@ public:
 	ref_t allocate(size_t n, size_t align) const volatile								{ return m_allocator->allocate(n, align); }
 
 	template <typename type>
-	typename ref_t::template cast_type<type>::type allocate_type(size_t n = 1) const			{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>(); }
+	typename ref_t::template cast_t<type> allocate_type(size_t n = 1) const			{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>(); }
 
 	template <typename type>
-	typename ref_t::template cast_type<type>::type allocate_type(size_t n = 1) const volatile	{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>(); }
+	typename ref_t::template cast_t<type> allocate_type(size_t n = 1) const volatile	{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>(); }
 
 	void deallocate(const ref_t& p) const			{ m_allocator->deallocate(p); }
 	void deallocate(const ref_t& p) const volatile	{ m_allocator->deallocate(p); }
 
-	template <typename type> void deallocate(const typename ref_t::template cast_type<type>::type& p) const				{ m_allocator->deallocate(p.template reinterpret_cast_to<void>()); }
-	template <typename type> void deallocate(const typename ref_t::template cast_type<type>::type& p) const volatile	{ m_allocator->deallocate(p.template reinterpret_cast_to<void>()); }
+	template <typename type> void deallocate(const typename ref_t::template cast_t<type>& p) const				{ m_allocator->deallocate(p.template reinterpret_cast_to<void>()); }
+	template <typename type> void deallocate(const typename ref_t::template cast_t<type>& p) const volatile	{ m_allocator->deallocate(p.template reinterpret_cast_to<void>()); }
 	
 	template <typename type>
-	void destruct_deallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n = 1) const
+	void destruct_deallocate_type(const typename ref_t::template cast_t<type>& p, size_t n = 1) const
 	{
 		if (!!p)
 		{
@@ -89,7 +89,7 @@ public:
 	}
 
 	template <typename type>
-	void destruct_deallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n = 1) const volatile
+	void destruct_deallocate_type(const typename ref_t::template cast_t<type>& p, size_t n = 1) const volatile
 	{
 		if (!!p)
 		{
@@ -98,29 +98,29 @@ public:
 		}
 	}
 
-	template <typename type> bool try_reallocate(const typename ref_t::template cast_type<type>::type& p, size_t n) const	
+	template <typename type> bool try_reallocate(const typename ref_t::template cast_t<type>& p, size_t n) const	
 	{ return m_allocator->try_reallocate(p.template reinterpret_cast_to<void>(), n);  }
 
-	template <typename type> bool try_reallocate(const typename ref_t::template cast_type<type>::type& p, size_t n) const volatile	
+	template <typename type> bool try_reallocate(const typename ref_t::template cast_t<type>& p, size_t n) const volatile	
 	{ return m_allocator->try_reallocate(p.template reinterpret_cast_to<void>(), n);  }
 
-	template <typename type> bool try_reallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n) const
+	template <typename type> bool try_reallocate_type(const typename ref_t::template cast_t<type>& p, size_t n) const
 	{ return m_allocator->try_reallocate(p.template reinterpret_cast_to<void>(), n * sizeof(type)); }
 
-	template <typename type> bool try_reallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n) const volatile
+	template <typename type> bool try_reallocate_type(const typename ref_t::template cast_t<type>& p, size_t n) const volatile
 	{ return m_allocator->try_reallocate(p.template reinterpret_cast_to<void>(), n * sizeof(type)); }
 	
-	template <typename type> size_t get_allocation_size(const typename ref_t::template cast_type<type>::type& p, size_t align, size_t knownSize) const
+	template <typename type> size_t get_allocation_size(const typename ref_t::template cast_t<type>& p, size_t align, size_t knownSize) const
 	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), align, knownSize);  }
 
-	template <typename type> size_t get_allocation_size(const typename ref_t::template cast_type<type>::type& p, size_t align, size_t knownSize) const volatile
+	template <typename type> size_t get_allocation_size(const typename ref_t::template cast_t<type>& p, size_t align, size_t knownSize) const volatile
 	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize) const	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename type> size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize) const volatile	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 };
 
 
@@ -162,10 +162,10 @@ public:
 	ref_t allocate(size_t n, size_t align) const volatile								{ return m_allocator->allocate(n, align); }
 
 	template <typename type>
-	type* allocate_type(size_t n = 1) const			{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>(); }
+	type* allocate_type(size_t n = 1) const			{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>(); }
 
 	template <typename type>
-	type* allocate_type(size_t n = 1) const volatile	{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>(); }
+	type* allocate_type(size_t n = 1) const volatile	{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>(); }
 
 	void deallocate(const ref_t& p) const			{ m_allocator->deallocate(p); }
 	void deallocate(const ref_t& p) const volatile	{ m_allocator->deallocate(p); }
@@ -212,10 +212,10 @@ public:
 	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize) const	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename type> size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize) const volatile	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	// helpers with raw pointers
 	
@@ -264,106 +264,106 @@ public:
 	{ return m_allocator->get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> size_t get_allocation_size_type(type* p, size_t knownSize) const	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename type> size_t get_allocation_size_type(type* p, size_t knownSize) const volatile	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename header_t, size_t align>
 	ptr<header_t> allocate_with_header(size_t n) const
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
 	template <typename header_t, size_t align>
 	ptr<header_t> allocate_with_header(size_t n) const volatile
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
 	template <typename header_t, typename type>
-	ptr<header_t> allocate_type_with_header(size_t n = 1) const					{ return allocate_with_header<header_t, std::alignment_of<type>::value>(n * sizeof(type)); }
+	ptr<header_t> allocate_type_with_header(size_t n = 1) const					{ return allocate_with_header<header_t, std::alignment_of_v<type> >(n * sizeof(type)); }
 
 	template <typename header_t, typename type>
-	ptr<header_t> allocate_type_with_header(size_t n = 1) const volatile		{ return allocate_with_header<header_t, std::alignment_of<type>::value>(n * sizeof(type)); }
+	ptr<header_t> allocate_type_with_header(size_t n = 1) const volatile		{ return allocate_with_header<header_t, std::alignment_of_v<type> >(n * sizeof(type)); }
 
 
 	template <typename header_t, size_t align>
 	bool try_reallocate_with_header(const ptr<header_t>& p, size_t n) const
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
 	template <typename header_t, size_t align>
 	bool try_reallocate_with_header(const ptr<header_t>& p, size_t n) const volatile
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
 	template <typename header_t, typename type>
-	bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n) const			{ return try_reallocate_with_header<header_t, std::alignment_of<type>::value>(p, n * sizeof(type)); }
+	bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n) const			{ return try_reallocate_with_header<header_t, std::alignment_of_v<type> >(p, n * sizeof(type)); }
 	
 	template <typename header_t, typename type>
-	bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n) const volatile	{ return try_reallocate_with_header<header_t, std::alignment_of<type>::value>(p, n * sizeof(type)); }
+	bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n) const volatile	{ return try_reallocate_with_header<header_t, std::alignment_of_v<type> >(p, n * sizeof(type)); }
 	
 	template <typename header_t, size_t align>
 	size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize) const
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 	
 	template <typename header_t, size_t align>
 	size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize) const volatile
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 	
 	template <typename header_t, typename type>
 	size_t get_allocation_size_type_without_header(const ptr<header_t>& p, size_t knownSize) const
 	{
-		return get_allocation_size_without_header<header_t, std::alignment_of<type>::value>(p, knownSize * sizeof(type)) / sizeof(type);
+		return get_allocation_size_without_header<header_t, std::alignment_of_v<type> >(p, knownSize * sizeof(type)) / sizeof(type);
 	}
 
 	template <typename header_t, typename type>
 	size_t get_allocation_size_type_without_header(const ptr<header_t>& p, size_t knownSize) const volatile
 	{
-		return get_allocation_size_without_header<header_t, std::alignment_of<type>::value>(p, knownSize * sizeof(type)) / sizeof(type);
+		return get_allocation_size_without_header<header_t, std::alignment_of_v<type> >(p, knownSize * sizeof(type)) / sizeof(type);
 	}
 	
 	template <typename header_t, size_t align>
 	static void* get_block_from_header(const ptr<const header_t>& p)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return (void*)(((unsigned char*)p.get_ptr()) + headerSize);
 	}
 
 	template <typename header_t, typename type>
-	static type* get_type_block_from_header(const ptr<const header_t>& p)	{ return (type*)get_block_from_header<header_t, std::alignment_of<type>::value>(p); }
+	static type* get_type_block_from_header(const ptr<const header_t>& p)	{ return (type*)get_block_from_header<header_t, std::alignment_of_v<type> >(p); }
 
 
 	template <typename header_t, size_t align>
 	static header_t* get_header_from_block(const ptr<void>& p)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - headerSize);
 	}
 
 	template <typename header_t, typename type>
-	static header_t* get_header_from_type_block(const ptr<type>& p)	{ return get_header_from_block<header_t, std::alignment_of<type>::value>(p); }
+	static header_t* get_header_from_type_block(const ptr<type>& p)	{ return get_header_from_block<header_t, std::alignment_of_v<type> >(p); }
 };
 
 
@@ -391,15 +391,15 @@ public:
 	static ref_t allocate(size_t n, size_t align)								{ return allocator_type::allocate(n, align); }
 
 	template <typename type>
-	static typename ref_t::template cast_type<type>::type allocate_type(size_t n = 1)
-	{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>(); }
+	static typename ref_t::template cast_t<type> allocate_type(size_t n = 1)
+	{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>(); }
 
 	static void deallocate(const ref_t& p)	{ allocator_type::deallocate(p); }
 
-	template <typename type> static void deallocate(const typename ref_t::template cast_type<type>::type& p)	{ allocator_type::deallocate(p.template reinterpret_cast_to<void>()); }
+	template <typename type> static void deallocate(const typename ref_t::template cast_t<type>& p)	{ allocator_type::deallocate(p.template reinterpret_cast_to<void>()); }
 	
 	template <typename type>
-	static void destruct_deallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n = 1)
+	static void destruct_deallocate_type(const typename ref_t::template cast_t<type>& p, size_t n = 1)
 	{
 		if (!!p)
 		{
@@ -408,17 +408,17 @@ public:
 		}
 	}
 
-	template <typename type> static bool try_reallocate(const typename ref_t::template cast_type<type>::type& p, size_t n)	
+	template <typename type> static bool try_reallocate(const typename ref_t::template cast_t<type>& p, size_t n)	
 	{ return allocator_type::try_reallocate(p.template reinterpret_cast_to<void>(), n);  }
 
-	template <typename type> static bool try_reallocate_type(const typename ref_t::template cast_type<type>::type& p, size_t n)
+	template <typename type> static bool try_reallocate_type(const typename ref_t::template cast_t<type>& p, size_t n)
 	{ return allocator_type::try_reallocate(p.template reinterpret_cast_to<void>(), n * sizeof(type)); }
 
-	template <typename type> static size_t get_allocation_size(const typename ref_t::template cast_type<type>::type& p, size_t align, size_t knownSize)
+	template <typename type> static size_t get_allocation_size(const typename ref_t::template cast_t<type>& p, size_t align, size_t knownSize)
 	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> static size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize)	
-	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 };
 
 
@@ -446,7 +446,7 @@ public:
 	static ref_t allocate(size_t n, size_t align)								{ return allocator_type::allocate(n, align); }
 
 	template <typename type>
-	static type* allocate_type(size_t n = 1)	{ return allocate(sizeof(type) * n, std::alignment_of<type>::value).template reinterpret_cast_to<type>().get_ptr(); }
+	static type* allocate_type(size_t n = 1)	{ return allocate(sizeof(type) * n, std::alignment_of_v<type>).template reinterpret_cast_to<type>().get_ptr(); }
 
 	static void deallocate(const ref_t& p)	{ allocator_type::deallocate(p); }
 
@@ -472,7 +472,7 @@ public:
 	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> static size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize)	
-	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	// helpers with raw pointers
 
@@ -500,66 +500,66 @@ public:
 	{ return allocator_type::get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> static size_t get_allocation_size_type(type* p, size_t knownSize)	
-	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of<type>::value, knownSize * sizeof(type)) / sizeof(type); }
+	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename header_t, size_t align>
 	static ptr<header_t> allocate_with_header(size_t n)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return allocate(n + headerSize, commonAlignment).template reinterpret_cast_to<header_t>();
 	}
 
 	template <typename header_t, typename type>
-	static ptr<header_t> allocate_type_with_header(size_t n = 1)		{ return allocate_with_header<header_t, std::alignment_of<type>::value>(n * sizeof(type)); }
+	static ptr<header_t> allocate_type_with_header(size_t n = 1)		{ return allocate_with_header<header_t, std::alignment_of_v<type> >(n * sizeof(type)); }
 
 	template <typename header_t, size_t align>
 	static bool try_reallocate_with_header(const ptr<header_t>& p, size_t n)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return try_reallocate(p, n + headerSize);
 	}
 
 	template <typename header_t, typename type>
-	static bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n)	{ return try_reallocate_with_header<header_t, std::alignment_of<type>::value>(p, n * sizeof(type)); }
+	static bool try_reallocate_type_with_header(const ptr<header_t>& p, size_t n)	{ return try_reallocate_with_header<header_t, std::alignment_of_v<type> >(p, n * sizeof(type)); }
 	
 	template <typename header_t, size_t align>
 	static size_t get_allocation_size_without_header(const ptr<header_t>& p, size_t knownSize)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return get_allocation_size(p, commonAlignment, knownSize + headerSize) - headerSize;
 	}
 
 	template <typename header_t, typename type>
 	static size_t get_allocation_size_type_without_header(const ptr<header_t>& p, size_t knownSize)
 	{
-		return get_allocation_size_without_header<header_t, std::alignment_of<type>::value>(p, knownSize * sizeof(type)) / sizeof(type);
+		return get_allocation_size_without_header<header_t, std::alignment_of_v<type> >(p, knownSize * sizeof(type)) / sizeof(type);
 	}
 	
 	template <typename header_t, size_t align>
 	static void* get_block_from_header(const ptr<const header_t>& p)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return (void*)(((unsigned char*)p.get_ptr()) + headerSize);
 	}
 
 	template <typename header_t, typename type>
-	static type* get_type_block_from_header(const ptr<const header_t>& p)	{ return (type*)get_block_from_header<header_t, std::alignment_of<type>::value>(p); }
+	static type* get_type_block_from_header(const ptr<const header_t>& p)	{ return (type*)get_block_from_header<header_t, std::alignment_of_v<type> >(p); }
 
 
 	template <typename header_t, size_t align>
 	static header_t* get_header_from_block(const ptr<void>& p)
 	{
-		static constexpr size_t commonAlignment = const_lcm<std::alignment_of<header_t>::value, align>::value;
-		static constexpr size_t headerSize = least_multiple_of<sizeof(header_t), commonAlignment>::value;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
+		static constexpr size_t commonAlignment = const_lcm_v<std::alignment_of_v<header_t>, align>;
+		static constexpr size_t headerSize = least_multiple_of_v<sizeof(header_t), commonAlignment>;	// header_t must be padded out to next multiple of commonAlignment that is greater than or equal to sizeof(header_t)
 		return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - headerSize);
 	}
 
 	template <typename header_t, typename type>
-	static header_t* get_header_from_type_block(const ptr<type>& p)	{ return get_header_from_block<header_t, std::alignment_of<type>::value>(p); }
+	static header_t* get_header_from_type_block(const ptr<type>& p)	{ return get_header_from_block<header_t, std::alignment_of_v<type> >(p); }
 };
 
 

@@ -11,6 +11,7 @@
 #include <type_traits>
 
 
+#include "cogs/assert.hpp"
 #include "cogs/mem/ref.hpp"
 
 
@@ -50,12 +51,15 @@ public:
 	/// @brief Provides a ref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A ref with a different referenced type.
 		typedef ptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
+
 
 	/// @{
 	/// @brief Constructor.  Initializes pointer to 0.
@@ -850,11 +854,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	ptr() : m_ref(nullptr) { }
 	ptr(std::nullptr_t) : m_ref(nullptr) { }
@@ -1261,11 +1267,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	ptr() : m_ref(nullptr) { }
 	ptr(std::nullptr_t) : m_ref(nullptr) { }
@@ -1668,11 +1676,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	ptr() : m_ref(nullptr) { }
 	ptr(std::nullptr_t) : m_ref(nullptr) { }
@@ -2076,11 +2086,13 @@ public:
 	typedef ptr<type> nullable;
 
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef ptr<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	ptr() : m_ref(nullptr) { }
 	ptr(std::nullptr_t) : m_ref(nullptr) { }

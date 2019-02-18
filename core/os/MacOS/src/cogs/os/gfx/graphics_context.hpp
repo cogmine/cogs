@@ -13,7 +13,6 @@
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/gfx/canvas.hpp"
 #include "cogs/gfx/color.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/collections/macos_strings.hpp"

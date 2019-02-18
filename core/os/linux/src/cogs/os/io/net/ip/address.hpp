@@ -28,7 +28,6 @@
 #include "cogs/io/datastream.hpp"
 #include "cogs/io/net/address.hpp"
 #include "cogs/io/net/server.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"

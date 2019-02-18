@@ -349,7 +349,7 @@ public:
 	// caller error to pass index >= length
 	const type& operator[](size_t i) const		{ return m_contents[i]; }
 
-	const this_t& subrange(size_t i, size_t n = const_max_int<size_t>::value, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
+	const this_t& subrange(size_t i, size_t n = const_max_int_v<size_t>, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
 	{
 		size_t length = get_length();
 		if (i <= length)
@@ -362,7 +362,7 @@ public:
 		return storage;
 	}
 
-	this_t subrange(size_t i, size_t n = const_max_int<size_t>::value) const volatile	{ this_t s(*this, i, n); return s; }
+	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ this_t s(*this, i, n); return s; }
 
 
 	bool equals(const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
@@ -795,15 +795,15 @@ public:
 	bool contains_any(const char& cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
-			return m_contents.index_of_any(cmp, n) != const_max_int<size_t>::value;
-		return m_contents.template index_of_any<type, case_insensitive_comparator<type> >(cmp, n) != const_max_int<size_t>::value;
+			return m_contents.index_of_any(cmp, n) != const_max_int_v<size_t>;
+		return m_contents.template index_of_any<type, case_insensitive_comparator<type> >(cmp, n) != const_max_int_v<size_t>;
 	}
 
 	bool contains_any(const char& cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
-			return m_contents.index_of_any(cmp, n) != const_max_int<size_t>::value;
-		return m_contents.template index_of_any<type, case_insensitive_comparator<type> >(cmp, n) != const_max_int<size_t>::value;
+			return m_contents.index_of_any(cmp, n) != const_max_int_v<size_t>;
+		return m_contents.template index_of_any<type, case_insensitive_comparator<type> >(cmp, n) != const_max_int_v<size_t>;
 	}
 
 	bool contains_segment(const type* cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
@@ -934,12 +934,12 @@ public:
 	void insert(size_t i, const this_t& src)	{ m_contents.insert(i, src.m_contents); }
 	void insert(size_t i, const volatile this_t& src)		{ m_contents.insert(i, src.m_contents); }
 
-	void insert(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert(i, src.subrange(srcIndex, n))
 	}
 
-	void insert(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert(i, src.subrange(srcIndex, n))
 	}
@@ -955,12 +955,12 @@ public:
 	void replace(size_t i, const volatile this_t& src)			{ m_contents.replace(i, src.m_contents); }
 
 
-	void replace(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		replace(i, src.subrange(srcIndex, n))
 	}
 
-	void replace(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		replace(i, src.subrange(srcIndex, n))
 	}
@@ -977,12 +977,12 @@ public:
 	{ m_contents.insert_replace(i, replaceLength, src.m_contents); }
 
 
-	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
 	}
 
-	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
 	}

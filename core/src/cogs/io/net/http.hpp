@@ -22,7 +22,6 @@
 #include "cogs/math/chars.hpp"
 #include "cogs/math/const_max_int.hpp"
 #include "cogs/math/datetime.hpp"
-#include "cogs/math/int_types.hpp"
 
 
 namespace cogs {

@@ -10,7 +10,6 @@
 
 
 #include "cogs/math/bytes_to_int.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 
 
@@ -24,8 +23,8 @@ template <longest min_value, ulongest max_value>
 class range_to_bits
 {
 public:
-	static constexpr size_t bitsRequiredForMin = range_to_bits<0, (ulongest)~min_value >::value + 1;	// if signed
-	static constexpr size_t bitsRequiredForMax = range_to_bits<0, max_value>::value;
+	static constexpr size_t bitsRequiredForMin = range_to_bits_v<0, (ulongest)~min_value > + 1;	// if signed
+	static constexpr size_t bitsRequiredForMax = range_to_bits_v<0, max_value>;
 
 public:
 	static constexpr size_t value = (min_value >= 0) ?
@@ -36,6 +35,7 @@ public:
 										:	bitsRequiredForMax
 									);
 };
+template <longest min_value, ulongest max_value> inline constexpr size_t range_to_bits_v = range_to_bits<min_value, max_value>::value;
 
 
 template <ulongest max_value>
@@ -65,8 +65,8 @@ private:
 	public:
 		typedef bytes_to_uint_t<sizeof(int_t) / 2> half_t;
 
-		static constexpr half_t highPart = helper<half_t, (half_t)get_const_high_part<int_t, x>::value>::value;
-		static constexpr half_t lowPart = helper<half_t, (half_t)get_const_low_part<int_t, x>::value>::value;
+		static constexpr half_t highPart = helper<half_t, (half_t)get_const_high_part_v<int_t, x> >::value;
+		static constexpr half_t lowPart = helper<half_t, (half_t)get_const_low_part_v<int_t, x> >::value;
 
 		static constexpr int_t value = (!highPart) ? lowPart : (highPart + (sizeof(half_t)*8));
 	};

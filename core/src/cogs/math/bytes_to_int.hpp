@@ -9,7 +9,6 @@
 #define COGS_HEADER_MATH_BYTES_TO_INT
 
 
-#include "cogs/env.hpp"
 #include "cogs/math/next_exponent_of_two.hpp"
 
 
@@ -24,12 +23,8 @@ template <size_t bytes, bool has_sign = true, typename enable = void>
 class bytes_to_int
 {
 public:
-	typedef std::conditional_t<has_sign,
-		typename env::bytes_to_int<bytes>::type,
-		typename env::bytes_to_uint<bytes>::type
-	> type;
+	typedef void type;
 };
-
 template <size_t num_bytes, bool has_sign = true>
 using bytes_to_int_t = typename bytes_to_int<num_bytes, has_sign>::type;
 
@@ -46,13 +41,14 @@ template <size_t bits>
 class bytes_to_uint : public bytes_to_int<bits, false>
 {
 };
-
 template <size_t bits>
 using bytes_to_uint_t = typename bytes_to_uint<bits>::type;
 
 
 }
 
+
+#include "cogs/env.hpp"
 
 #endif
 

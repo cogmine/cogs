@@ -673,7 +673,7 @@ public:
 							break;
 
 						strongRef->m_reentrancyGuard = true;
-						priority = const_max_int<int>::value;
+						priority = const_max_int_v<int>;
 						continue;
 					}
 
@@ -725,7 +725,7 @@ public:
 						break;
 
 					runNextIdleTask = false;
-					priority = const_max_int<int>::value;
+					priority = const_max_int_v<int>;
 					continue;
 				}
 
@@ -757,7 +757,7 @@ public:
 						return;
 
 					volatile priority_dispatcher& controlQueue = m_controlQueue.get();
-					if (!controlQueue.try_invoke(const_max_int<int>::value))
+					if (!controlQueue.try_invoke(const_max_int_v<int>))
 						break;
 				}
 			}

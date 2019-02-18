@@ -42,7 +42,7 @@ public:
 	typedef T type;
 
 	/// @brief Alias to the reference type
-	typedef typename allocator_type::ref_t::template cast_type<this_t>::type ref_t;
+	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 	/// @{
 	/// @brief Allocate an object
@@ -83,13 +83,13 @@ public:
 template <typename T,
 	class allocator_type = default_allocator,
 	bool is_static = allocator_type::is_static,
-	bool is_ptr_based = std::is_same<typename allocator_type::ref_t, ptr<void> >::value>
+	bool is_ptr_based = std::is_same_v<typename allocator_type::ref_t, ptr<void> > >
 class rc_obj : public rc_obj_base	// default is: rc_obj<type, allocator_type, true, false>
 {
 public:
 	typedef rc_obj<T, allocator_type, true, false>	this_t;
 	typedef T type;
-	typedef typename allocator_type::ref_t::template cast_type<this_t>::type ref_t;
+	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
 	typename placement<type>	m_contents;
@@ -163,7 +163,7 @@ class rc_obj<T, allocator_type, false, false> : public rc_obj_base
 public:
 	typedef rc_obj<T, allocator_type, false, false>	this_t;
 	typedef T type;
-	typedef typename allocator_type::ref_t::template cast_type<this_t>::type ref_t;
+	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
 	typename placement<type>	m_contents;

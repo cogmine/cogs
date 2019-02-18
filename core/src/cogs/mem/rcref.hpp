@@ -89,12 +89,14 @@ public:
 	/// @brief Provides a rcref with a different referenced type.
 	/// @tparam type Data type referenced
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		/// @brief A rcref with a different referenced type.
 		typedef rcref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcref(this_t&& src) : base_t(std::move(src)) { }
 
@@ -838,11 +840,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcref(this_t&& src) : base_t(std::move(src)) { }
 	rcref(const          this_t& src) : base_t(src) { }
@@ -1311,11 +1315,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcref(this_t&& src) : base_t(std::move(src)) { }
 	rcref(const          this_t& src) : base_t(src) { }
@@ -1778,11 +1784,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcref(this_t&& src) : base_t(std::move(src)) { }
 	rcref(const          this_t& src) : base_t(src) { }
@@ -2249,11 +2257,13 @@ private:
 
 public:
 	template <typename type2>
-	class cast_type
+	class cast
 	{
 	public:
 		typedef rcref<type2> type;
 	};
+	template <typename type2>
+	using cast_t = typename cast<type2>::type;
 
 	rcref(this_t&& src) : base_t(std::move(src)) { }
 	rcref(const          this_t& src) : base_t(src) { }

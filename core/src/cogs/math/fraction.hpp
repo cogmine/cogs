@@ -3838,7 +3838,7 @@ template <typename type2, typename numerator_type1, typename denominator_type1>
 class compatible<type2, fraction<numerator_type1, denominator_type1> >
 {
 public:
-	typedef typename compatible<fraction<numerator_type1, denominator_type1>, type2>::type type;
+	typedef compatible_t<fraction<numerator_type1, denominator_type1>, type2> type;
 };
 
 template <typename numerator_type1, typename denominator_type1, typename numerator_type2, typename denominator_type2>

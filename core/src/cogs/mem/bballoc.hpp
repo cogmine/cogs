@@ -119,10 +119,10 @@ private:
 	};
 
 	// All blocks are prefixed by a link, padded to end at the largest supported alignment.
-	static constexpr size_t overhead = least_multiple_of<sizeof(link), largest_alignment>::value;
+	static constexpr size_t overhead = least_multiple_of_v<sizeof(link), largest_alignment>;
 
 	// Pad smallestBlockSize to end on largest supported alignment.
-	static constexpr size_t smallest_block_size = least_multiple_of<min_block_size, largest_alignment>::value;
+	static constexpr size_t smallest_block_size = least_multiple_of_v<min_block_size, largest_alignment>;
 
 	static constexpr size_t last_index_div = ((max_block_size + (overhead * 2)) - 1) / (smallest_block_size + (overhead * 2));
 	static constexpr size_t last_index = !last_index_div ? 0 : (const_bit_scan_reverse<last_index_div>::value + 1);

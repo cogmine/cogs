@@ -273,11 +273,11 @@ public:
 	string_t<type> composite() const					{ return string_t<type>::from_vector(m_contents.composite()); }
 	string_t<type> composite() const volatile			{ return string_t<type>::from_vector(m_contents.composite()); }
 
-	string_t<type> composite(size_t i, size_t n = const_max_int<size_t>::value) const				{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
-	string_t<type> composite(size_t i, size_t n = const_max_int<size_t>::value) const volatile	{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
+	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const				{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
+	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
 
-	string_t<type> composite(const position_t& pos, size_t n = const_max_int<size_t>::value) const			{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
-	string_t<type> composite(const position_t& pos, size_t n = const_max_int<size_t>::value) const volatile	{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
+	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const			{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
+	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile	{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
 
 	size_t get_length() const					{ return m_contents.get_length(); }
 	size_t get_length() const volatile			{ return m_contents.get_length(); }
@@ -476,49 +476,49 @@ public:
 
 
 
-	bool equals(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool equals(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool equals(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -526,21 +526,21 @@ public:
 	}
 
 
-	bool equals(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool equals(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool equals(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool equals(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -548,35 +548,35 @@ public:
 	}
 
 
-	bool equals(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template equals<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool equals(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool equals(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template equals<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -801,104 +801,104 @@ public:
 
 
 
-	int compare(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
-	int compare(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	int compare(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	int compare(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	int compare(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	int compare(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	int compare(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	int compare(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	int compare(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1097,35 +1097,35 @@ public:
 	}
 
 
-	bool is_less_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1133,35 +1133,35 @@ public:
 	}
 
 
-	bool is_less_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_less_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_less_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_less_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_less_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_less_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1169,32 +1169,32 @@ public:
 	}
 
 
-	bool is_less_than(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_less_than(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
-	bool is_less_than(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
-	bool is_less_than(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
-	bool is_less_than(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_less_than(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_less_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1388,35 +1388,35 @@ public:
 
 
 
-	bool is_greater_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1424,21 +1424,21 @@ public:
 	}
 
 
-	bool is_greater_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_greater_than(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_greater_than(size_t i, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_greater_than(size_t i, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1446,14 +1446,14 @@ public:
 	}
 
 
-	bool is_greater_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_greater_than(const position_t& pos, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool is_greater_than(const position_t& pos, size_t n, const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1461,34 +1461,34 @@ public:
 	}
 
 
-	bool is_greater_than(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(size_t i, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(i, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
-	bool is_greater_than(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(size_t i, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(i, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const position_t& pos, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(pos.m_pos, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool is_greater_than(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool is_greater_than(const position_t& pos, size_t n, const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template is_greater_than<type, default_comparator>(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1562,21 +1562,21 @@ public:
 	}
 
 
-	bool starts_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool starts_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template starts_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template starts_with<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool starts_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool starts_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template starts_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template starts_with<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool starts_with(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool starts_with(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template starts_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1621,21 +1621,21 @@ public:
 	}
 
 
-	bool ends_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool ends_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template ends_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template ends_with<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool ends_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool ends_with(const this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template ends_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template ends_with<type, case_insensitive_comparator<type> >(buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool ends_with(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool ends_with(const volatile this_t& buf, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template ends_with<type, default_comparator>(buf.get_composite_vector(), cmpIndex, cmpLength);
@@ -1885,21 +1885,21 @@ public:
 	}
 
 
-	size_t index_of_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	size_t index_of_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -1928,21 +1928,21 @@ public:
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, cmp.get_vector());
 	}
 
-	size_t index_of_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	size_t index_of_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(size_t i, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(size_t i, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -1973,21 +1973,21 @@ public:
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_vector());
 	}
 
-	size_t index_of_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	size_t index_of_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	size_t index_of_segment(size_t i, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(size_t i, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -1996,21 +1996,21 @@ public:
 
 
 
-	size_t index_of_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	size_t index_of_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	size_t index_of_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template index_of_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	size_t index_of_segment(const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	size_t index_of_segment(const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template index_of_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2044,21 +2044,21 @@ public:
 
 
 
-	position_t position_of_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	position_t position_of_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2067,21 +2067,21 @@ public:
 
 
 
-	position_t position_of_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	position_t position_of_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2113,21 +2113,21 @@ public:
 
 
 
-	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2136,21 +2136,21 @@ public:
 
 
 
-	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	position_t position_of_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template position_of_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	position_t position_of_segment(const position_t& pos, size_t n, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	position_t position_of_segment(const position_t& pos, size_t n, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template position_of_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2324,21 +2324,21 @@ public:
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp.get_vector());
 	}
 
-	bool contains_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2366,21 +2366,21 @@ public:
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, cmp.get_vector());
 	}
 
-	bool contains_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(size_t i, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(size_t i, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(size_t i, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2409,21 +2409,21 @@ public:
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_vector());
 	}
 
-	bool contains_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(size_t i, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(size_t i, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(size_t i, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(i, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2432,21 +2432,21 @@ public:
 
 
 
-	bool contains_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2477,21 +2477,21 @@ public:
 
 
 
-	bool contains_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const position_t& pos, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2500,21 +2500,21 @@ public:
 
 
 
-	bool contains_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const position_t& pos, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2546,21 +2546,21 @@ public:
 
 
 
-	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, size_t n, const volatile this_t& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpIndex, cmpLength);
@@ -2569,21 +2569,21 @@ public:
 
 
 
-	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
+	bool contains_segment(const position_t& pos, size_t n, const this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	bool contains_segment(const position_t& pos, size_t n, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int<size_t>::value, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
+	bool contains_segment(const position_t& pos, size_t n, const volatile this_t& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template contains_segment<type, default_comparator>(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
@@ -2644,12 +2644,12 @@ public:
 	const type& operator[](const position_t& pos) const			{ return get_inner_string(pos)[pos.get_inner_index()]; }
 
 
-	this_t subrange(size_t i, size_t n = const_max_int<size_t>::value) const
+	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const
 	{
 		return m_contents.subrange(i, n);
 	}
 
-	this_t subrange(size_t i, size_t n = const_max_int<size_t>::value) const volatile
+	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile
 	{
 		return m_contents.subrange(i, n);
 	}
@@ -2664,12 +2664,12 @@ public:
 		return m_contents.subrange(start.m_pos, n);
 	}
 
-	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int<size_t>::value, const_max_int<size_t>::value)) const
+	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int_v<size_t>, const_max_int_v<size_t>)) const
 	{
 		return m_contents.subrange(start.m_pos, end.m_pos);
 	}
 
-	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int<size_t>::value, const_max_int<size_t>::value)) const volatile
+	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int_v<size_t>, const_max_int_v<size_t>)) const volatile
 	{
 		return m_contents.subrange(start.m_pos, end.m_pos);
 	}
@@ -2853,22 +2853,22 @@ public:
 		m_contents.insert(i, src.get_vector());
 	}
 
-	void insert(size_t i, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(i, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert(size_t i, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(i, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert(size_t i, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(i, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void insert(size_t i, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert(size_t i, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(i, src.get_composite_vector(), srcPos.m_pos, n);
 	}
@@ -2885,22 +2885,22 @@ public:
 		m_contents.insert(pos.m_pos, src.get_vector());
 	}
 
-	void insert(const position_t& pos, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert(const position_t& pos, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(pos.m_pos, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert(const position_t& pos, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert(const position_t& pos, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(pos.m_pos, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert(const position_t& pos, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert(const position_t& pos, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(pos.m_pos, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void insert(const position_t& pos, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert(const position_t& pos, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert(pos.m_pos, src.get_composite_vector(), srcPos.m_pos, n);
 	}
@@ -2942,22 +2942,22 @@ public:
 		m_contents.replace(i, src.get_vector());
 	}
 
-	void replace(size_t i, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(i, src, srcIndex, n);
 	}
 
-	void replace(size_t i, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(i, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void replace(size_t i, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(i, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void replace(size_t i, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void replace(size_t i, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(i, src.get_composite_vector(), srcPos.m_pos, n);
 	}
@@ -2973,22 +2973,22 @@ public:
 		m_contents.replace(pos.m_pos, src.get_vector());
 	}
 
-	void replace(const position_t& pos, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void replace(const position_t& pos, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(pos.m_pos, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void replace(const position_t& pos, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void replace(const position_t& pos, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(pos.m_pos, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void replace(const position_t& pos, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void replace(const position_t& pos, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(pos.m_pos, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void replace(const position_t& pos, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void replace(const position_t& pos, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.replace(pos.m_pos, src.get_composite_vector(), srcPos.m_pos, n);
 	}
@@ -3027,22 +3027,22 @@ public:
 		m_contents.insert_replace(i, replaceLength, src.get_vector());
 	}
 
-	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(i, replaceLength, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(i, replaceLength, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert_replace(size_t i, size_t replaceLength, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(i, replaceLength, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(i, replaceLength, src.get_composite_vector(), srcPos.m_pos, n);
 	}
@@ -3058,22 +3058,22 @@ public:
 		m_contents.insert_replace(pos.m_pos, replaceLength, src.get_vector());
 	}
 
-	void insert_replace(const position_t& pos, size_t replaceLength, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert_replace(const position_t& pos, size_t replaceLength, const this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(pos.m_pos, replaceLength, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert_replace(const position_t& pos, size_t replaceLength, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int<size_t>::value)
+	void insert_replace(const position_t& pos, size_t replaceLength, const volatile this_t& src, size_t srcIndex = 0, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(pos.m_pos, replaceLength, src.get_composite_vector(), srcIndex, n);
 	}
 
-	void insert_replace(const position_t& pos, size_t replaceLength, const this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert_replace(const position_t& pos, size_t replaceLength, const this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(pos.m_pos, replaceLength, src.get_composite_vector(), srcPos.m_pos, n);
 	}
 
-	void insert_replace(const position_t& pos, size_t replaceLength, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int<size_t>::value)
+	void insert_replace(const position_t& pos, size_t replaceLength, const volatile this_t& src, const position_t& srcPos, size_t n = const_max_int_v<size_t>)
 	{
 		m_contents.insert_replace(pos.m_pos, replaceLength, src.get_composite_vector(), srcPos.m_pos, n);
 	}

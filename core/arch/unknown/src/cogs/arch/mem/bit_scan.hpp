@@ -24,16 +24,16 @@ namespace arch {
 
 // bits must not be zero
 template <typename int_t>
-inline typename std::enable_if_t<
-	std::is_integral<int_t>::value
-	&& !std::is_volatile<int_t>::value,
+inline std::enable_if_t<
+	std::is_integral_v<int_t>
+	&& !std::is_volatile_v<int_t>,
 	size_t
 >
 bit_scan_reverse(const int_t& bits)
 {
 	size_t result = 0;
 	COGS_ASSERT(!bits);
-	typename std::make_unsigned<int_t>::type bits2 = bits;
+	std::make_unsigned_t<int_t> bits2 = bits;
 	for (;;)
 	{
 		bits2 >>= 1;
@@ -47,16 +47,16 @@ bit_scan_reverse(const int_t& bits)
 
 // bits must not be zero
 template <typename int_t>
-inline typename std::enable_if_t<
-	std::is_integral<int_t>::value
-	&& !std::is_volatile<int_t>::value,
+inline std::enable_if_t<
+	std::is_integral_v<int_t>
+	&& !std::is_volatile_v<int_t>,
 	size_t
 >
 bit_scan_forward(const int_t& bits)
 {
 	size_t result = 0;
 	COGS_ASSERT(!bits);
-	typename std::make_unsigned<int_t>::type bits2 = bits;
+	std::make_unsigned_t<int_t> bits2 = bits;
 	while ((bits2 & 1) != 1)
 	{
 		result++;

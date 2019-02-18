@@ -21,8 +21,8 @@ template <class derived_t, size_t key_bits, size_t stride_bits = key_bits>
 class block_cipher
 {
 public:
-	static constexpr size_t key_bytes = bits_to_bytes<key_bits>::value;
-	static constexpr size_t stride_bytes = bits_to_bytes<stride_bits>::value;
+	static constexpr size_t key_bytes = bits_to_bytes_v<key_bits>;
+	static constexpr size_t stride_bytes = bits_to_bytes_v<stride_bits>;
 
 	void set_key(const unsigned char(&key)[key_bytes])
 	{

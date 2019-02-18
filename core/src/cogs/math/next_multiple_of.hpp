@@ -24,6 +24,8 @@ public:
 							:	((n < multiple_of) ? multiple_of
 							:	n + (multiple_of - (n % multiple_of)));
 };
+template <size_t n, size_t multiple_of>
+inline constexpr size_t next_multiple_of_v = next_multiple_of<x, y>::value;
 
 
 }

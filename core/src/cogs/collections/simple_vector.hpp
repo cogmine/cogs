@@ -43,9 +43,9 @@ template <typename T, class allocator_type = default_allocator>
 class simple_vector
 {
 public:
-	static_assert(!std::is_const<T>::value);
+	static_assert(!std::is_const_v<T>);
 	static_assert(!std::is_volatile_v<T>);
-	static_assert(!std::is_void<T>::value);
+	static_assert(!std::is_void_v<T>);
 
 	typedef T type;
 	typedef simple_vector<type, allocator_type> this_t;
@@ -918,7 +918,7 @@ public:
 		for (; (i < length); i++)
 			if (m_ptr[i] == cmp)
 				return i;
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 	template <typename type2>
@@ -940,7 +940,7 @@ public:
 					return i2;
 			}
 		}
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 	template <typename type2>
@@ -984,7 +984,7 @@ public:
 				}
 			}
 		}
-		return const_max_int<size_t>::value;
+		return const_max_int_v<size_t>;
 	}
 
 
@@ -999,7 +999,7 @@ public:
 	{
 		size_t cmpLength = cmp.get_length();
 		if (i2 >= cmpLength)
-			return const_max_int<size_t>::value;
+			return const_max_int_v<size_t>;
 		return index_of_segment(i, cmp.get_const_ptr() + i2, cmpLength - i2);
 	}
 
@@ -1008,7 +1008,7 @@ public:
 	{
 		size_t cmpLength = cmp.get_length();
 		if (i2 >= cmpLength)
-			return const_max_int<size_t>::value;
+			return const_max_int_v<size_t>;
 		size_t remainingLength = cmpLength - i2;
 		if (n > remainingLength)
 			n = remainingLength;
@@ -1016,22 +1016,22 @@ public:
 	}
 
 	template <typename type2>
-	bool contains(type2& cmp) const	{ return index_of_segment(cmp) != const_max_int<size_t>::value; }
+	bool contains(type2& cmp) const	{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
 	template <typename type2>
-	bool contains_any(type2* cmp, size_t n) const			{ return index_of_any(cmp, n) != const_max_int<size_t>::value; }
+	bool contains_any(type2* cmp, size_t n) const			{ return index_of_any(cmp, n) != const_max_int_v<size_t>; }
 
 	template <typename type2>
-	bool contains_segment(type2* cmp, size_t n) const		{ return index_of_segment(cmp, n) != const_max_int<size_t>::value; }
+	bool contains_segment(type2* cmp, size_t n) const		{ return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
 
 	template <typename type2, class allocator_type2>
-	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp) const	{ return index_of_segment(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp) const	{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
 	template <typename type2, class allocator_type2>
-	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp, size_t i) const	{ return index_of_segment(cmp, i) != const_max_int<size_t>::value; }
+	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp, size_t i) const	{ return index_of_segment(cmp, i) != const_max_int_v<size_t>; }
 
 	template <typename type2, class allocator_type2>
-	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp, size_t i, size_t n) const	{ return index_of_segment(cmp, i, n) != const_max_int<size_t>::value; }
+	bool contains_segment(const simple_vector<type2, allocator_type2>& cmp, size_t i, size_t n) const	{ return index_of_segment(cmp, i, n) != const_max_int_v<size_t>; }
 
 	type* get_ptr()		{ return m_ptr.get_ptr(); }
 	type& get_first()	{ return m_ptr.get_ptr()[0]; }

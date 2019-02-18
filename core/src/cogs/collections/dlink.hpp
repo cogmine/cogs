@@ -283,7 +283,7 @@ class dlink_base
 {
 public:
 	typedef dlink_base<derived_t, ref_type, link_iterator>						this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 	typedef dlink_methods<link_t, ref_type, link_iterator>						dlink_methods_t;
 
@@ -348,7 +348,7 @@ class dlink_t : public dlink_base<derived_t, ref_type, link_iterator>
 {
 public:
 	typedef dlink_t<derived_t, ref_type, link_iterator>							this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 
 private:

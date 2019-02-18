@@ -34,6 +34,8 @@ private:
 public:
 	static constexpr ulongest value = const_extudiv<multiplied_high_part, multiplied_low_part, gcd>::low_part;
 };
+template <ulongest x, ulongest y>
+inline constexpr ulongest const_lcm_v = const_lcm<x, y>::value;
 
 template <ulongest y> class const_lcm<0, y>	{ public: static constexpr ulongest value = 0; };
 template <ulongest x> class const_lcm<x, 0>	{ public: static constexpr ulongest value = 0; };

@@ -61,7 +61,7 @@ public:
 	template <typename F>
 	std::enable_if_t<
 		std::is_invocable_v<F>
-		&& std::is_same_v<void, std::invoke_result_t<F> >,
+		&& std::is_void_v<std::invoke_result_t<F> >,
 		rcref<task<void> > >
 	dispatch(F&& f, int priority = 0) volatile
 	{
@@ -200,7 +200,7 @@ public:
 	template <typename F>
 	std::enable_if_t<
 		std::is_invocable_v<F>
-		&& std::is_same_v<void, std::invoke_result_t<F> >,
+		&& std::is_void_v<std::invoke_result_t<F> >,
 		rcref<task<void> > >
 	dispatch(F&& f, int priority = 0) volatile
 	{

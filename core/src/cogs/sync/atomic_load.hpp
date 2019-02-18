@@ -37,7 +37,7 @@ inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
 	&& !std::is_scalar_v<T>
-	&& !std::is_same_v<void, bytes_to_int_t<sizeof(T)> >,
+	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	void
 >
 load(const volatile T& src, T& rtn)
@@ -54,7 +54,7 @@ inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
 	//&& std::is_scalar_v<T>
-	&& !std::is_same_v<void, bytes_to_int_t<sizeof(T)> >,
+	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	T
 >
 load(const volatile T& src)

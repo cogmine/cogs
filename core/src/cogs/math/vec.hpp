@@ -248,7 +248,7 @@ public:
 	const array_t& get_last_const() const { return m_contents.get_last_const(); }
 
 
-	const this_t& subrange(size_t i, size_t n2 = const_max_int<size_t>::value, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
+	const this_t& subrange(size_t i, size_t n2 = const_max_int_v<size_t>, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
 	{
 		size_t length = get_length();
 		if (i <= length)
@@ -261,7 +261,7 @@ public:
 		return storage;
 	}
 
-	this_t subrange(size_t i, size_t n2 = const_max_int<size_t>::value) const volatile
+	this_t subrange(size_t i, size_t n2 = const_max_int_v<size_t>) const volatile
 	{
 		this_t result(*this);
 		result.set_to_subrange(i, n2);
@@ -505,34 +505,34 @@ public:
 
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains(const array_t2& cmp) const { return index_of<array_t2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains(const array_t2& cmp) const { return index_of<array_t2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains(const array_t2& cmp) const volatile { return index_of<array_t2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains(const array_t2& cmp) const volatile { return index_of<array_t2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
-
-
-	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains_any(const array_t2* cmp, size_t cmpLength) const { return index_of_any<array_t2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
-
-	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains_any(const array_t2* cmp, size_t cmpLength) const volatile { return index_of_any<array_t2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
 
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains_segment(const array_t2* cmp, size_t cmpLength) const { return index_of_segment<array_t2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
+	bool contains_any(const array_t2* cmp, size_t cmpLength) const { return index_of_any<array_t2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
-	bool contains_segment(const array_t2* cmp, size_t cmpLength) const volatile { return index_of_segment<array_t2, comparator_t>(cmp, cmpLength) != const_max_int<size_t>::value; }
+	bool contains_any(const array_t2* cmp, size_t cmpLength) const volatile { return index_of_any<array_t2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
+
+
+	template <typename array_t2 = array_t, class comparator_t = default_comparator>
+	bool contains_segment(const array_t2* cmp, size_t cmpLength) const { return index_of_segment<array_t2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
+
+	template <typename array_t2 = array_t, class comparator_t = default_comparator>
+	bool contains_segment(const array_t2* cmp, size_t cmpLength) const volatile { return index_of_segment<array_t2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator>
-	bool contains_segment(const vec<n, type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const vec<n, type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator>
-	bool contains_segment(const vec<n, type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const vec<n, type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator>
-	bool contains_segment(const volatile vec<n, type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int<size_t>::value; }
+	bool contains_segment(const volatile vec<n, type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 
 	array_t* get_ptr() { return m_contents.get_ptr(); }

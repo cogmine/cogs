@@ -143,7 +143,7 @@ inline void set_random_bits(uint_t* dst, size_t n)
 /// @param maxCount The maximum number of count flips we are interested in.  Default: max value of uint_t
 /// @return The number of coin flips (bits) randomly generated until heads (1) was found.
 template <typename uint_t>
-inline uint_t random_coin_flips(uint_t maxCount = const_max_int<uint_t>::value)
+inline uint_t random_coin_flips(uint_t maxCount = const_max_int_v<uint_t>)
 {
 	const bool has_sign = ((uint_t)~(uint_t)0) < (uint_t)0;
 	static_assert(!has_sign);

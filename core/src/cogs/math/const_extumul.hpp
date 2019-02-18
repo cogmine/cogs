@@ -10,7 +10,6 @@
 
 
 #include "cogs/env.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 
 
@@ -25,22 +24,22 @@ template <ulongest x, ulongest y>
 class const_extumul
 {
 private:
-	static constexpr ulongest low_x = get_const_low_part<ulongest, x>::value;
-	static constexpr ulongest low_y = get_const_low_part<ulongest, y>::value;
-	static constexpr ulongest high_x = get_const_high_part<ulongest, x>::value;
-	static constexpr ulongest high_y = get_const_high_part<ulongest, y>::value;
+	static constexpr ulongest low_x = get_const_low_part_v<ulongest, x>;
+	static constexpr ulongest low_y = get_const_low_part_v<ulongest, y>;
+	static constexpr ulongest high_x = get_const_high_part_v<ulongest, x>;
+	static constexpr ulongest high_y = get_const_high_part_v<ulongest, y>;
 	static constexpr ulongest ll = low_x * low_y;
 	static constexpr ulongest lh = low_x * high_y;
 	static constexpr ulongest hl = high_x * low_y;
 	static constexpr ulongest hh = high_x * high_y;
-	static constexpr ulongest llh = get_const_high_part<ulongest, ll>::value;
+	static constexpr ulongest llh = get_const_high_part_v<ulongest, ll>;
 	static constexpr ulongest lh2 = lh + llh;				// will not overflow
 	static constexpr ulongest mid = lh2 + hl;				// might overflow
 	static constexpr ulongest carry = (mid < lh2) ? 1 : 0;
-	static constexpr ulongest hh2 = hh + make_const_high_part<ulongest, carry>::value;
-	static constexpr ulongest mh = get_const_high_part<ulongest, mid>::value;
-	static constexpr ulongest ml_shifted = make_const_high_part<ulongest, mid>::value;
-	static constexpr ulongest lll = get_const_low_part<ulongest, ll>::value;
+	static constexpr ulongest hh2 = hh + make_const_high_part_v<ulongest, carry>;
+	static constexpr ulongest mh = get_const_high_part_v<ulongest, mid>;
+	static constexpr ulongest ml_shifted = make_const_high_part_v<ulongest, mid>;
+	static constexpr ulongest lll = get_const_low_part_v<ulongest, ll>;
 
 public:
 	static constexpr ulongest high_part = hh2 + mh;			// will not overflow

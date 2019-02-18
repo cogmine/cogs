@@ -12,7 +12,6 @@
 
 #include "cogs/collections/string.hpp"
 #include "cogs/collections/composite_string.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/sync/transactable.hpp"
 
 

@@ -251,7 +251,7 @@ class slink_base
 {
 public:
 	typedef slink_base<derived_t, ref_type, link_iterator>						this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 	typedef slink_methods<link_t, ref_type, link_iterator>						slink_methods_t;
 
@@ -285,7 +285,7 @@ class slink_t : public slink_base<derived_t, ref_type, link_iterator>
 {
 public:
 	typedef slink_t<derived_t, ref_type, link_iterator>							this_t;
-	typedef typename std::conditional<std::is_void<derived_t>::value, this_t, derived_t>::type	link_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
 	typedef ref_type<link_t>													ref_t;
 
 	typedef default_slink_iterator<this_t, ref_type> default_link_iterator;

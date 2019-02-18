@@ -11,7 +11,6 @@
 #include <time.h>
 
 #include "cogs/env.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/math/measure.hpp"
 #include "cogs/math/time.hpp"
 

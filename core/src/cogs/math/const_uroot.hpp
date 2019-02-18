@@ -16,7 +16,6 @@
 namespace cogs {
 
 
-
 /// @ingroup ConstMath
 /// @brief Meta template to calculate a constant root of a constant value.
 /// @tparam exponent Constant exponent value
@@ -26,7 +25,7 @@ template <ulongest exponent, ulongest low_part, ulongest high_part = 0>
 class const_uroot
 {
 private:
-	template <ulongest lower = 0, ulongest higher = const_max_int<ulongest>::value >
+	template <ulongest lower = 0, ulongest higher = const_max_int_v<ulongest> >
 	class helper;
 
 	template <ulongest answer>
@@ -65,7 +64,8 @@ private:
 public:
 	static constexpr ulongest value = helper<>::value;
 };
-
+template <ulongest exponent, ulongest low_part, ulongest high_part = 0>
+inline constexpr ulongest const_uroot_v = const_uroot<exponent, low_part, high_part>::value;
 
 
 }

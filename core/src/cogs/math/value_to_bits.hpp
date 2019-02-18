@@ -21,8 +21,10 @@ template <longest v>
 class value_to_bits
 {
 public:
-	static constexpr size_t value = (v >= 0) ? range_to_bits<0, v>::value : range_to_bits<v, 0>::value;
+	static constexpr size_t value = (v >= 0) ? range_to_bits_v<0, v> : range_to_bits_v<v, 0>;
 };
+template <ulongest v>
+inline constexpr size_t value_to_bits_v = value_to_bits<v>::value;
 
 
 }

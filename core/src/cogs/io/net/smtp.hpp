@@ -19,7 +19,6 @@
 #include "cogs/io/net/server.hpp"
 #include "cogs/math/chars.hpp"
 #include "cogs/math/datetime.hpp"
-#include "cogs/math/int_types.hpp"
 
 
 namespace cogs {

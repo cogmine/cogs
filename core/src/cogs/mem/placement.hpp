@@ -48,7 +48,7 @@ public:
 
 
 
-template <typename T, size_t alignment = std::alignment_of<T>::value>
+template <typename T, size_t alignment = std::alignment_of_v<T> >
 struct alignas (alignment) placement : public placement_storage<sizeof(T), alignment>
 {
 public:

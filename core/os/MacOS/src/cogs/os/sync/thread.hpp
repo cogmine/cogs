@@ -119,7 +119,7 @@ public:
 
 	int join(const timeout_t& timeout = timeout_t::infinite() )
 	{
-		static constexpr size_t terminatedState = const_max_int<size_t>::value;
+		static constexpr size_t terminatedState = const_max_int_v<size_t>;
 		int result = 0;
 		size_t joinState = atomic::load(m_joinState);
 		for (;;)

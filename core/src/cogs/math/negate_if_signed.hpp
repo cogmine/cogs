@@ -42,7 +42,7 @@ private:
 	};
 
 public:
-	static int_t get(const int_t& i)	{ return std::conditional<has_sign, signed_getter, unsigned_getter>::type::get(i); }
+	static int_t get(const int_t& i)	{ return std::conditional_t<has_sign, signed_getter, unsigned_getter>::get(i); }
 };
 
 

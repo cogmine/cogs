@@ -16,7 +16,6 @@
 #include "cogs/math/extumul.hpp"
 #include "cogs/math/bits_to_int.hpp"
 #include "cogs/math/range_to_bits.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/math/is_integral.hpp"
 #include "cogs/math/is_arithmetic.hpp"
 #include "cogs/math/is_signed.hpp"
@@ -116,7 +115,7 @@ public:
 private:
 	static constexpr int_t low_digit = value;
 	static constexpr bool is_negative_one = !has_sign ? false : (value == -1);
-	static constexpr size_t reduced_bits = is_const_negative ? range_to_bits<(longest)value, 0>::value : range_to_bits<0, (ulongest)value>::value;
+	static constexpr size_t reduced_bits = is_const_negative ? range_to_bits_v<(longest)value, 0> : range_to_bits_v<0, (ulongest)value>;
 	typedef bits_to_int_t<reduced_bits, is_const_negative> reduced_int_t;
 	static constexpr reduced_int_t reduced_value = (reduced_int_t)value;
 
@@ -126,7 +125,7 @@ public:
 private:
 
 
-	template <typename std::make_unsigned<int_t>::type scan_value>
+	template <std::make_unsigned_t<int_t> scan_value>
 	class bit_scan_forward_helper
 	{
 	public:
@@ -136,7 +135,7 @@ private:
 	template <> class bit_scan_forward_helper<0> { public: static constexpr size_t value = 0; };
 	template <> class bit_scan_forward_helper<1> { public: static constexpr size_t value = 0; };
 
-	template <typename std::make_unsigned<int_t>::type scan_value>
+	template <std::make_unsigned_t<int_t> scan_value>
 	class bit_scan_reverse_helper
 	{
 	public:
@@ -146,7 +145,7 @@ private:
 	template <> class bit_scan_reverse_helper<0> { public: static constexpr size_t value = 0; };
 	template <> class bit_scan_reverse_helper<1> { public: static constexpr size_t value = 0; };
 
-	template <typename std::make_unsigned<int_t>::type count_value>
+	template <std::make_unsigned_t<int_t> count_value>
 	class bit_count_helper
 	{
 	public:
@@ -162,9 +161,9 @@ public:
 
 	typedef fixed_integer_native<is_const_negative, (reduced_bits == 0 ? 1 : reduced_bits)> non_const_t;
 
-	static constexpr size_t const_bit_scan_forward = bit_scan_forward_helper<(typename std::make_unsigned<int_t>::type)value>::value;
-	static constexpr size_t const_bit_scan_reverse = bit_scan_reverse_helper<(typename std::make_unsigned<int_t>::type)value>::value;
-	static constexpr size_t const_bit_count = bit_count_helper<(typename std::make_unsigned<int_t>::type)value>::value;
+	static constexpr size_t const_bit_scan_forward = bit_scan_forward_helper<(std::make_unsigned_t<int_t>)value>::value;
+	static constexpr size_t const_bit_scan_reverse = bit_scan_reverse_helper<(std::make_unsigned_t<int_t>)value>::value;
+	static constexpr size_t const_bit_count = bit_count_helper<(std::make_unsigned_t<int_t>)value>::value;
 
 	fixed_integer_native_const() { }
 	

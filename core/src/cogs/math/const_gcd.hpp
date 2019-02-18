@@ -12,7 +12,6 @@
 
 #include "cogs/compatible.hpp"
 #include "cogs/env.hpp"
-#include "cogs/math/int_types.hpp"
 #include "cogs/mem/int_parts.hpp"
 
 
@@ -36,6 +35,8 @@ private:
 public:
 	static constexpr ulongest value = (!internal_gcd_remainder) ? lesser : const_gcd<internal_gcd_greater, internal_gcd_lesser>::value;
 };
+template <ulongest x, ulongest y>
+inline constexpr ulongest const_gcd_v = const_gcd<x, y>::value;
 
 
 template <ulongest x> class const_gcd<x, 0> { public: static constexpr ulongest value = 0; };

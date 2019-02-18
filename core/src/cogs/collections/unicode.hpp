@@ -11,7 +11,6 @@
 
 
 #include "cogs/env.hpp"
-#include "cogs/math/int_types.hpp"
 
 
 namespace cogs {

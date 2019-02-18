@@ -37,6 +37,8 @@ class get_const_low_part
 public:
 	static constexpr int_t value  = v & get_part_mask<int_t>::low_part_mask;
 };
+template <typename int_t, int_t v>
+inline constexpr int_t get_const_low_part_v = get_const_low_part<int_t, v>::value;
 
 /// @ingroup Mem
 /// @brief Helper template to get the high part of a constant integer
@@ -51,6 +53,8 @@ private:
 public:
 	static constexpr int_t value = ((uint_t)v >> (sizeof(int_t)*4)) & get_part_mask<int_t>::low_part_mask;
 };
+template <typename int_t, int_t v>
+inline constexpr int_t get_const_high_part_v = get_const_high_part<int_t, v>::value;
 
 
 /// @ingroup Mem
@@ -63,6 +67,8 @@ class make_const_high_part
 public:
 	static constexpr int_t value = high_part << sizeof(int_t)*4;
 };
+template <typename int_t, int_t high_part>
+inline constexpr int_t make_const_high_part_v = make_const_high_part<int_t, high_part>::value;
 
 	
 /// @ingroup Mem
@@ -74,8 +80,10 @@ template <typename int_t, int_t high_part, int_t low_part>
 class make_const_int_from_parts
 {
 public:
-	static constexpr int_t value = (make_const_high_part<int_t, high_part>::value) | (get_const_low_part<int_t, low_part>::value);
+	static constexpr int_t value = (make_const_high_part_v<int_t, high_part>) | (get_const_low_part_v<int_t, low_part>);
 };
+template <typename int_t, int_t high_part, int_t low_part>
+inline constexpr int_t make_const_int_from_parts_v = make_const_int_from_parts<int_t, high_part, low_part>::value;
 
 /// @ingroup Mem
 /// @brief Helper function to get the high part of an integer

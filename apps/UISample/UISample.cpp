@@ -17,6 +17,7 @@ using namespace cogs::io;
 using namespace cogs::io::net;
 using namespace cogs::io::net::ip;
 
+cogs::crypto::crc5_epc sdf;
 
 class box : public background
 {
@@ -60,7 +61,7 @@ public:
 
 	void box_timer_expired()
 	{
-		pane::dispatch(m_expireInUiThreadDelegate, const_max_int<int>::value);
+		pane::dispatch(m_expireInUiThreadDelegate, const_max_int_v<int>);
 	}
 
 	void box_timer_expired_in_ui_thread()

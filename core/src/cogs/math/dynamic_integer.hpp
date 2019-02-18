@@ -396,9 +396,9 @@ public:
 
 
 	template <typename int_t2>
-	typename std::enable_if_t<
+	std::enable_if_t<
 		std::is_integral_v<int_t2>
-		&& !std::is_signed<int_t2>::value,
+		&& !std::is_signed_v<int_t2>,
 		int
 	>
 	compare(const int_t2& cmp) const
@@ -420,9 +420,9 @@ public:
 
 
 	template <typename int_t2>
-	typename std::enable_if_t<
+	std::enable_if_t<
 		std::is_integral_v<int_t2>
-		&& std::is_signed<int_t2>::value,
+		&& std::is_signed_v<int_t2>,
 		int
 	>
 	compare(const int_t2& cmp) const
@@ -1715,7 +1715,7 @@ public:
 			// Division algorithm is guess and check (divide and conquer), using the denominator's high digit (+ 1)
 
 			// We use half-digits, to handle carries and still fit the math in native ints
-			typedef typename bits_to_int<(sizeof(ulongest) * 8) / 2, false>::type half_unsigned_t;
+			typedef typename bits_to_int_t<(sizeof(ulongest) * 8) / 2, false> half_unsigned_t;
 			static constexpr ulongest highMask = (~(ulongest)0 ^ (half_unsigned_t)~(half_unsigned_t)0);
 
 			for (;;)
@@ -7158,14 +7158,14 @@ public:
 };
 
 template <typename int_t2>
-class compatible<dynamic_integer, int_t2, typename std::enable_if_t<std::is_integral_v<int_t2> > >
+class compatible<dynamic_integer, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
 public:
 	typedef dynamic_integer type;
 };
 
 template <typename int_t2>
-class compatible<int_t2, dynamic_integer, typename std::enable_if_t<std::is_integral_v<int_t2> > >
+class compatible<int_t2, dynamic_integer, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
 public:
 	typedef dynamic_integer type;
