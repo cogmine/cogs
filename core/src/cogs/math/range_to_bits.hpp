@@ -52,8 +52,8 @@ private:
 		static constexpr size_t value = 0;
 	};
 
-	template <unsigned char x>
-	class helper<unsigned char, x>
+	template <unsigned char x, bool unused>
+	class helper<unsigned char, x, unused>
 	{
 	public:
 		static constexpr size_t value = helper<unsigned char, (x >> 1) >::value + 1;

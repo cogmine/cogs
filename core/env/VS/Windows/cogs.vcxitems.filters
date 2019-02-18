@@ -447,6 +447,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_operators.hpp">
       <Filter>env\gcc\sync</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_load.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_store.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_exchange.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_compare_exchange.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
       <Filter>env\XCode</Filter>
     </ClInclude>
@@ -490,6 +502,18 @@
       <Filter>env\VS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_operators.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_load.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_store.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_exchange.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_compare_exchange.hpp">
       <Filter>env\VS\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\cogs.hpp">

@@ -425,6 +425,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_operators.hpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_load.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_store.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_exchange.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_compare_exchange.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
@@ -454,6 +466,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_rotate.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_scan.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_operators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_load.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_store.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_exchange.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_compare_exchange.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">

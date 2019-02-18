@@ -5,7 +5,6 @@
 
 // Status: Good
 
-#ifdef COGS_HEADER_OPERATORS
 #ifndef COGS_HEADER_SYNC_ATOMIC_LOAD
 #define COGS_HEADER_SYNC_ATOMIC_LOAD
 
@@ -17,6 +16,7 @@
 #include "cogs/arch/sync/atomic.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/sync/atomic_alignment.hpp"
+#include "cogs/env/sync/atomic_load.hpp"
 #include "cogs/mem/bypass_strict_aliasing.hpp"
 
 namespace cogs {
@@ -30,26 +30,6 @@ inline std::enable_if_t<
 >
 load(const volatile T& src, T& rtn)
 {
-}
-
-template <typename T>
-inline std::enable_if_t<
-	!std::is_empty_v<T>
-	&& can_atomic_v<T>
-	&& std::is_scalar_v<T>,
-	void
->
-load(const volatile T& src, T& rtn)
-{
-	typedef bytes_to_int_t<sizeof(T)> int_t;
-	int_t tmpRtn;
-	cogs::atomic::compare_exchange(*(volatile int_t*)(unsigned char*)&src, (int_t)0, (int_t)0, tmpRtn);
-	bypass_strict_aliasing(tmpRtn, rtn);
-	
-	// Full barrier doesn't seem to be enough...
-	//full_barrier();
-	//rtn = src;
-	//full_barrier();
 }
 
 template <typename T>
@@ -91,9 +71,5 @@ load(const volatile T& src)
 }
 }
 
-
-#endif
-
-#include "cogs/operators.hpp"
 
 #endif

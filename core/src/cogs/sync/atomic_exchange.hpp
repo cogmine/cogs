@@ -5,7 +5,6 @@
 
 // Status: Good
 
-#ifdef COGS_HEADER_OPERATORS
 #ifndef COGS_HEADER_SYNC_ATOMIC_EXCHANGE
 #define COGS_HEADER_SYNC_ATOMIC_EXCHANGE
 
@@ -17,6 +16,7 @@
 #include "cogs/arch/sync/atomic.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/sync/atomic_alignment.hpp"
+#include "cogs/env/sync/atomic_exchange.hpp"
 #include "cogs/mem/bypass_strict_aliasing.hpp"
 
 namespace cogs {
@@ -73,8 +73,5 @@ exchange(volatile T& t, const T& src)
 }
 }
 
-#endif
-
-#include "cogs/operators.hpp"
 
 #endif
