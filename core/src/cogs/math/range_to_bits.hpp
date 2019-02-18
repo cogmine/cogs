@@ -42,11 +42,11 @@ template <ulongest max_value>
 class range_to_bits<0, max_value>
 {
 private:
-	template <typename int_t, int_t x>
+	template <typename int_t, int_t x, bool unused = true>
 	class helper;
 
-	template <>
-	class helper<unsigned char, 0>
+	template <bool unused>
+	class helper<unsigned char, 0, unused>
 	{
 	public:
 		static constexpr size_t value = 0;
@@ -59,11 +59,11 @@ private:
 		static constexpr size_t value = helper<unsigned char, (x >> 1) >::value + 1;
 	};
 	
-	template <typename int_t, int_t x>
+	template <typename int_t, int_t x, bool unused>
 	class helper
 	{
 	public:
-		typedef typename bytes_to_uint_t<sizeof(int_t) / 2> half_t;
+		typedef bytes_to_uint_t<sizeof(int_t) / 2> half_t;
 
 		static constexpr half_t highPart = helper<half_t, (half_t)get_const_high_part<int_t, x>::value>::value;
 		static constexpr half_t lowPart = helper<half_t, (half_t)get_const_low_part<int_t, x>::value>::value;

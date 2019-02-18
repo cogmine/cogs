@@ -21,7 +21,7 @@ class compatible
 };
 
 template <typename T1, typename T2 = T1, typename enable = void>
-using compatible_t = typename compatible<T1, T2, typename enable>::type;
+using compatible_t = typename compatible<T1, T2, enable>::type;
 
 
 template <typename T> class compatible<T, T> { public: typedef T type; };
