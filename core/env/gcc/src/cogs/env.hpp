@@ -66,6 +66,7 @@ namespace std
 template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 template <typename T> using make_signed_t = typename make_signed<T>::type;
 template <typename T> using remove_reference_t = typename remove_reference<T>::type;
+template <typename T> using remove_pointer_t = typename remove_pointer<T>::type;
 template <typename T> using remove_extent_t = typename remove_extent<T>::type;
 template <typename T> using remove_volatile_t = typename remove_volatile<T>::type;
 template <typename T> using remove_const_t = typename remove_const<T>::type;
@@ -86,6 +87,7 @@ template <typename T> inline constexpr bool is_reference_v = is_reference<T>::va
 template <typename T> inline constexpr bool is_pointer_v = is_pointer<T>::value;
 template <typename T> inline constexpr bool is_class_v = is_class<T>::value;
 template <typename T> inline constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+template <typename T> inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
 
 template <class T, class... Args> inline constexpr bool is_constructible_v = is_constructible<T, Args...>::value;
 

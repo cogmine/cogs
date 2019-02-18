@@ -190,19 +190,6 @@ pre_assign_prev(T& t)
 	return (std::remove_volatile_t<T>)__atomic_sub_fetch((uint_t*)(unsigned char*)&t, sizeof(std::remove_pointer_t<T>), __ATOMIC_SEQ_CST);
 }
 
-template <typename T>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_scalar_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>,
-	void
->
-assign_prev(T& t)
-{
-	pre_assign_prev(t);
-}
-
 
 
 template <typename T>
@@ -255,7 +242,7 @@ inline std::enable_if_t<
 >
 assign_prev(T& t)
 {
-	post_assign_prev(t);
+	pre_assign_prev(t);
 }
 
 
@@ -288,20 +275,6 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
->
-assign_bit_and(T& t, const A1& a)
-{
-	pre_assign_bit_and(t, a);
-}
-
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_integral_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
 >
 post_assign_bit_and(T& t, const A1& a)
@@ -324,7 +297,7 @@ inline std::enable_if_t<
 >
 assign_bit_and(T& t, const A1 & a)
 {
-	post_assign_bit_and(t, a);
+	pre_assign_bit_and(t, a);
 }
 
 
@@ -358,20 +331,6 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
->
-assign_bit_or(T& t, const A1& a)
-{
-	pre_assign_bit_or(t, a);
-}
-
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_integral_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
 >
 post_assign_bit_or(T& t, const A1& a)
@@ -394,7 +353,7 @@ inline std::enable_if_t<
 >
 assign_bit_or(T& t, const A1 & a)
 {
-	post_assign_bit_or(t, a);
+	pre_assign_bit_or(t, a);
 }
 
 
@@ -429,20 +388,6 @@ inline std::enable_if_t<
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
-	void
->
-assign_bit_xor(T& t, const A1& a)
-{
-	pre_assign_bit_xor(t, a);
-}
-
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	can_atomic_v<T>
-	&& std::is_integral_v<T>
-	&& std::is_volatile_v<T>
-	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
 >
 post_assign_bit_xor(T& t, const A1& a)
@@ -465,7 +410,7 @@ inline std::enable_if_t<
 >
 assign_bit_xor(T& t, const A1 & a)
 {
-	post_assign_bit_xor(t, a);
+	pre_assign_bit_xor(t, a);
 }
 
 
