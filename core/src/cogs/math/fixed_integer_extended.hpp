@@ -8390,7 +8390,100 @@ public:
 
 
 
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& ((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest),
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > >
+add(const T& t, const A1& a)
+{
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > result;
+	result.add(
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of add
+	return result;
+}
 
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
+	fixed_integer<true, (sizeof(longest) * 8) + 1> >
+subtract(const T& t, const A1& a)
+{
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
+	result.subtract(
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of subtract
+	return result;
+}
+
+
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
+	fixed_integer<true, (sizeof(longest) * 8) + 1> >
+inverse_subtract(const T& t, const A1& a)
+{
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
+	result.subtract(
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of subtract
+	return result;
+}
+
+
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& ((sizeof(T) + sizeof(A1)) > sizeof(longest)),
+	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1))> >
+multiply(const T& t, const A1& a)
+{
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, sizeof(T) + sizeof(A1)> result;
+	result.multiply(
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of multiply
+	return result;
+}
+
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T>
+	&& std::is_integral_v<A1>
+	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3)))
+	&& (sizeof(T) == sizeof(longest)),
+	fixed_integer<true, (8 * sizeof(longest)) + 1>
+>
+divide_whole(const T& t, const A1& a)
+{
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
+	result.divide_whole(
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of divide_whole
+	return result;
+}
+
+
+
+// if (unsigned / signed), or (signed / signed), it may grow a bit
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T>
+	&& std::is_integral_v<A1>
+	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<A1> && std::is_signed_v<T> && (((std::remove_volatile_t<A1>)10 / (std::remove_volatile_t<T>) - 3) == -3)))
+	&& (sizeof(A1) == sizeof(longest)),
+	fixed_integer<true, (8 * sizeof(longest)) + 1>
+>
+inverse_divide_whole(const T& t, const A1& a)
+{
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
+	result.divide_whole(
+		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
+		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of divide_whole
+	return result;
+}
 
 #pragma warning(pop)
 
