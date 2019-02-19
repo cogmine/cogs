@@ -10,6 +10,7 @@
 
 
 #include <array>
+#include <cmath>
 #include <numeric>
 #include <type_traits>
 #include <algorithm>
@@ -183,7 +184,7 @@ struct array_to_args_helper<i, T, std::enable_if_t<!is_reference_container_v<std
 {
 	template <typename F, typename... args_t>
 	static decltype(auto) expand(F&& f, T&& t, args_t&&... a)
-	{ return array_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<T>(t), forward_member<T>(t[i - 1]), std::forward<args_t>(a)...); }
+	{ return array_to_args_helper<i - 1, T>::expand(std::forward<F>(f), std::forward<T>(t), forward_member<T>(t[i - 1]), std::forward<args_t>(a)...); }
 };
 
 template <size_t i, typename T>
@@ -191,7 +192,7 @@ struct array_to_args_helper<i, T, std::enable_if_t<is_reference_container_v<std:
 {
 	template <typename F, typename... args_t>
 	static decltype(auto) expand(F&& f, T&& t, args_t&&... a)
-	{ return array_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<T>(t), t[i - 1], std::forward<args_t>(a)...); }
+	{ return array_to_args_helper<i - 1, T>::expand(std::forward<F>(f), std::forward<T>(t), t[i - 1], std::forward<args_t>(a)...); }
 };
 
 template <typename T>
@@ -218,7 +219,7 @@ struct unary_array_operation_to_args_helper<i, T, std::enable_if_t<!is_reference
 {
 	template <typename F, typename U, typename... args_t>
 	static decltype(auto) expand(F&& f, U&& u, T&& t, args_t&&... a)
-	{ return unary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), u(forward_member<T>(t[i - 1])), std::forward<args_t>(a)...); }
+	{ return unary_array_operation_to_args_helper<i - 1, T>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), u(forward_member<T>(t[i - 1])), std::forward<args_t>(a)...); }
 };
 
 template <size_t i, typename T>
@@ -226,7 +227,7 @@ struct unary_array_operation_to_args_helper<i, T, std::enable_if_t<is_reference_
 {
 	template <typename F, typename U, typename... args_t>
 	static decltype(auto) expand(F&& f, U&& u, T&& t, args_t&&... a)
-	{ return unary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), u(t[i - 1]), std::forward<args_t>(a)...); }
+	{ return unary_array_operation_to_args_helper<i - 1, T>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), u(t[i - 1]), std::forward<args_t>(a)...); }
 };
 
 template <typename T>
@@ -253,7 +254,7 @@ struct binary_array_operation_to_args_helper<i, T, T2, std::enable_if_t<!is_refe
 {
 	template <typename F, typename B, typename... args_t>
 	static decltype(auto) expand(F&& f, B&& b, T&& t, T2&& t2, args_t&&... a)
-	{ return binary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), b(forward_member<T>(t[i - 1]), forward_member<T2>(t2[i - 1])), std::forward<args_t>(a)...); }
+	{ return binary_array_operation_to_args_helper<i - 1, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), b(forward_member<T>(t[i - 1]), forward_member<T2>(t2[i - 1])), std::forward<args_t>(a)...); }
 };
 
 template <size_t i, typename T, typename T2>
@@ -261,7 +262,7 @@ struct binary_array_operation_to_args_helper<i, T, T2, std::enable_if_t<is_refer
 {
 	template <typename F, typename B, typename... args_t>
 	static decltype(auto) expand(F&& f, B&& b, T&& t, T2&& t2, args_t&&... a)
-	{ return binary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), b(t[i - 1], forward_member<T2>(t2[i - 1])), std::forward<args_t>(a)...); }
+	{ return binary_array_operation_to_args_helper<i - 1, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), b(t[i - 1], forward_member<T2>(t2[i - 1])), std::forward<args_t>(a)...); }
 };
 
 template <size_t i, typename T, typename T2>
@@ -269,7 +270,7 @@ struct binary_array_operation_to_args_helper<i, T, T2, std::enable_if_t<!is_refe
 {
 	template <typename F, typename B, typename... args_t>
 	static decltype(auto) expand(F&& f, B&& b, T&& t, T2&& t2, args_t&&... a)
-	{ return binary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), b(forward_member<T>(t[i - 1]), t2[i - 1]), std::forward<args_t>(a)...); }
+	{ return binary_array_operation_to_args_helper<i - 1, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), b(forward_member<T>(t[i - 1]), t2[i - 1]), std::forward<args_t>(a)...); }
 };
 
 template <size_t i, typename T, typename T2>
@@ -277,7 +278,7 @@ struct binary_array_operation_to_args_helper<i, T, T2, std::enable_if_t<is_refer
 {
 	template <typename F, typename B, typename... args_t>
 	static decltype(auto) expand(F&& f, B&& b, T&& t, T2&& t2, args_t&&... a)
-	{ return binary_array_operation_to_args_helper<i - 1>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t), b(t[i - 1], t2[i - 1]), std::forward<args_t>(a)...); }
+	{ return binary_array_operation_to_args_helper<i - 1, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), b(t[i - 1], t2[i - 1]), std::forward<args_t>(a)...); }
 };
 
 
@@ -291,7 +292,7 @@ struct binary_array_operation_to_args_helper<0, T, T2, void>
 
 template <typename F, typename B, typename T, typename T2>
 inline decltype(auto) binary_array_operation_to_args(F&& f, B&& b, T&& t, T2&& t2, std::enable_if_t<(extent_v<T> == extent_v<T2>), int> = 0)
-{ return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t)); }
+{ return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t)); }
 
 
 
@@ -330,7 +331,15 @@ void do_for_each_arg(F&& f2, args_t&&... a)
 
 
 // not
-COGS_DEFINE_UNARY_OPERATOR(not, !)
+
+COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(lnot, !, )
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(assign_not)
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(pre_assign_not)
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(post_assign_not)
+COGS_DEFINE_UNARY_ASSIGN_OPERATORS(not)
+template <typename T> inline std::enable_if_t<!std::is_class_v<T>, decltype(!(std::declval<T&>()))> lnot(T& t) { return !(load(t)); }
+
+
 
 COGS_DEFINE_UNARY_OPERATOR(bit_not, ~)
 
@@ -444,7 +453,7 @@ inline std::enable_if_t<
 	std::remove_volatile_t<T> >
 endian_swap(const T& t)
 {
-	audecltype(auto)to tmp(load(t));
+	decltype(auto) tmp(load(t));
 	return (tmp << 56)
 		| (tmp >> 56)
 		| ((tmp & ((unsigned long long)0xFF << 8)) << 40)
@@ -461,27 +470,27 @@ template <typename T>
 inline std::enable_if_t<
 	std::is_integral_v<T>
 	&& (sizeof(T) > sizeof(long long))
-	&& (sizeof(T) <= sizeof(uint128_t)),
+	&& (sizeof(T) <= sizeof(bits_to_uint_t<128>)),
 	std::remove_volatile_t<T> >
 endian_swap(const T& t)
 {
 	decltype(auto) tmp(load(t));
 	return (tmp << 120)
 		| (tmp >> 120)
-		| ((tmp & ((uint128_t)0xFF << 8)) << 104)
-		| ((tmp & ((uint128_t)0xFF << 16)) << 88)
-		| ((tmp & ((uint128_t)0xFF << 24)) << 72)
-		| ((tmp & ((uint128_t)0xFF << 32)) << 56)
-		| ((tmp & ((uint128_t)0xFF << 40)) << 40)
-		| ((tmp & ((uint128_t)0xFF << 48)) << 24)
-		| ((tmp & ((uint128_t)0xFF << 56)) << 8)
-		| ((tmp & ((uint128_t)0xFF << 64)) >> 8)
-		| ((tmp & ((uint128_t)0xFF << 72)) >> 24)
-		| ((tmp & ((uint128_t)0xFF << 80)) >> 40)
-		| ((tmp & ((uint128_t)0xFF << 88)) >> 56)
-		| ((tmp & ((uint128_t)0xFF << 96)) >> 72)
-		| ((tmp & ((uint128_t)0xFF << 104)) >> 88)
-		| ((tmp & ((uint128_t)0xFF << 112)) >> 104);
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 8)) << 104)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 16)) << 88)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 24)) << 72)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 32)) << 56)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 40)) << 40)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 48)) << 24)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 56)) << 8)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 64)) >> 8)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 72)) >> 24)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 80)) >> 40)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 88)) >> 56)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 96)) >> 72)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 104)) >> 88)
+		| ((tmp & ((bits_to_uint_t<128>)0xFF << 112)) >> 104);
 }
 
 #endif
