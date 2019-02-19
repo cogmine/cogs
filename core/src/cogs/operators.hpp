@@ -975,7 +975,7 @@ inline std::enable_if_t<
 >
 divide_whole(const T& t, const A1& a)
 {
-	return (bits_to_int_t<(8 * sizeof(T)) + 1, true> >)load(t) / load(a);
+	return (bits_to_int_t<(8 * sizeof(T)) + 1, true>)load(t) / load(a);
 }
 
 // if (unsigned / signed), or (signed / signed), it may grow a bit
@@ -1074,7 +1074,7 @@ inline std::enable_if_t<
 	>
 inverse_divide_whole(const T& t, const A1& a)
 {
-	return (bits_to_int_t<(8 * sizeof(A1)) + 1, true> >)load(a) / load(t);
+	return (bits_to_int_t<(8 * sizeof(A1)) + 1, true>)load(a) / load(t);
 }
 
 // if (unsigned / signed), or (signed / signed), it may grow a bit
@@ -1137,7 +1137,7 @@ inline std::enable_if_t<
 divide_whole_and_modulo(const T& t, const A1& a)
 {
 	auto divided = divide(t, a);
-	decltype(divide) wholePart;
+	decltype(divided) wholePart;
 	auto fractionalPart = std::modf(divided, &wholePart);
 	return std::make_pair(wholePart, fractionalPart);
 }
@@ -1183,7 +1183,7 @@ inline std::enable_if_t<
 inverse_divide_whole_and_inverse_modulo(const T& t, const A1& a)
 {
 	auto divided = divide(a, t);
-	decltype(divide) wholePart;
+	decltype(divided) wholePart;
 	auto fractionalPart = std::modf(divided, &wholePart);
 	return std::make_pair(wholePart, fractionalPart);
 }
