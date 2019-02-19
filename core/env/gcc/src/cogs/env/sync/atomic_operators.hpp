@@ -420,7 +420,7 @@ assign_bit_xor(T& t, const A1 & a)
 // add
 
 
-template <typename T>
+template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_floating_point_v<T>
 	&& std::is_volatile_v<T>
@@ -469,7 +469,7 @@ pre_assign_add(T& t, const A1& a)
 
 
 
-template <typename T>
+template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_floating_point_v<T>
 	&& std::is_volatile_v<T>
@@ -535,7 +535,7 @@ assign_add(T& t, const A1& a)
 // subtract
 
 
-template <typename T>
+template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_floating_point_v<T>
 	&& std::is_volatile_v<T>
@@ -584,7 +584,7 @@ pre_assign_subtract(T& t, const A1& a)
 
 
 
-template <typename T>
+template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_floating_point_v<T>
 	&& std::is_volatile_v<T>

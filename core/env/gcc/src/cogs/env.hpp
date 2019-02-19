@@ -97,7 +97,7 @@ template <typename T> inline constexpr bool is_trivially_copy_constructible_v = 
 
 template <class T, class U> inline constexpr bool is_same_v = is_same<T, U>::value;
 template <class T, class U> inline constexpr bool is_convertible_v = is_convertible<T, U>::value;
-
+template <class T, class U> inline constexpr bool is_assignable_v = is_assignable<T, U>::value;
 
 };
 
