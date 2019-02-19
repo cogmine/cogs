@@ -525,6 +525,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\debug.hpp">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\assign.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\load.hpp">
       <Filter>core</Filter>
     </ClInclude>

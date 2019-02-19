@@ -16,6 +16,7 @@
 #include <string>
 
 #include "cogs/mem/bypass_strict_aliasing.hpp"
+#include "cogs/assign.hpp"
 #include "cogs/load.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/env/sync/atomic_operators.hpp"
@@ -349,69 +350,6 @@ void do_for_each_arg(F&& f2, args_t&&... a)
 }
 
 
-
-// assign
-
-template <typename T, typename S>
-inline std::enable_if_t<
-	std::is_assignable_v<T&, decltype(load(std::declval<S>()))>
-	&& (std::is_class_v<T> || !std::is_volatile_v<T>),
-	void
->
-assign(T& t, S&& src)
-{
-	t = load(std::forward<S>(src));
-}
-
-// Provide assignment to scalar volatile, as otherwise the compiler would perform the assignment unsafely.
-template <typename T, typename S>
-inline std::enable_if_t<
-	std::is_assignable_v<std::remove_volatile_t<T>&, std::remove_volatile_t<std::remove_reference_t<S> > >
-	&& !std::is_class_v<T>
-	&& std::is_volatile_v<T>,
-	void
->
-assign(T& t, S&& src)
-{
-	std::remove_volatile_t<T> tmp(load(std::forward<S>(src)));
-	atomic::store(t, tmp);
-}
-
-// Don't need to support built-in array type, because they are not assignable?
-
-
-// pre_assign
-// (exchange is the equivilent of post_assign)
-
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(pre_assign)
-
-template <typename T, typename S>
-inline std::enable_if_t<
-	!std::is_class_v<T>
-	&& !std::is_volatile_v<T>,
-	T&
->
-pre_assign(T& t, S&& src)
-{
-	assign(t, std::forward<S>(src));
-	return t;
-}
-
-template <typename T, typename S>
-inline std::enable_if_t<
-	!std::is_class_v<T>
-	&& std::is_volatile_v<T>,
-	std::remove_volatile_t<T>
->
-pre_assign(T& t, S&& src)
-{
-	std::remove_volatile_t<T> tmp;
-	assign(tmp, std::forward<S>(src));
-	assign(t, tmp);
-	return tmp;
-}
-
-// Don't need to support built-in array type, because they are not assignable?
 
 
 // not
