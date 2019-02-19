@@ -1246,78 +1246,6 @@ modulo_and_assign_divide_whole(T& t, const A1& a)
 	return fractionalPart;
 }
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(gcd)
-
-template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().gcd(std::declval<T&>()))>
-gcd(const T& t, const A1& a) { return a.gcd(t); }
-
-
-template <typename T, typename A1>
-inline std::enable_if_t<std::is_integral_v<T> && std::is_integral_v<A1>,
-	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), false> >
-gcd(const T& t, const A1& a)
-{
-	decltype(auto) t2(abs(t));
-	decltype(auto) a2(abs(a));
-
-	if (cogs::is_less_than(t2, a2))
-	{
-		for (;;)
-		{
-			decltype(auto) r = modulo(a2, t2);
-			if (!r)
-				return t2;
-			a2 = t2;
-			t2 = r;
-		}
-	}
-	else
-	{
-		for (;;)
-		{
-			decltype(auto) r = modulo(t2, a2);
-			if (!r)
-				return a2;
-			t2 = a2;
-			a2 = r;
-		}
-	}
-}
-
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(lcm)
-
-template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().lcm(std::declval<T&>()))>
-lcm(const T& t, const A1& a) { return a.lcm(t); }
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& (sizeof(T) + sizeof(A1) <= sizeof(longest)),
-	bytes_to_int_t<(sizeof(T) + sizeof(A1)), false>
->
-lcm(const T& t, const A1& a)
-{
-	decltype(auto) t2(abs(t));
-	decltype(auto) a2(abs(a));
-	return divide_whole(multiply(t2, a2), gcd(t2, a2));
-}
-
-template <typename T, typename A1>
-inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& (sizeof(T) + sizeof(A1) > sizeof(longest)),
-	fixed_integer<false, (sizeof(T) + sizeof(A1)) * 8>
->
-lcm(const T& t, const A1& a)
-{
-	decltype(auto) t2(abs(t));
-	decltype(auto) a2(abs(a));
-	return divide_whole(multiply(t2, a2), gcd(t2, a2));
-}
-
-
 COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(equals, == )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
@@ -1687,6 +1615,79 @@ lesser(const T& t, const A1& a)
 	if (cogs::is_less_than(t, a))
 		return t;
 	return a;
+}
+
+
+
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(gcd)
+
+template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().gcd(std::declval<T&>()))>
+gcd(const T& t, const A1& a) { return a.gcd(t); }
+
+
+template <typename T, typename A1>
+inline std::enable_if_t<std::is_integral_v<T> && std::is_integral_v<A1>,
+	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), false> >
+gcd(const T& t, const A1& a)
+{
+	decltype(auto) t2(abs(t));
+	decltype(auto) a2(abs(a));
+
+	if (cogs::is_less_than(t2, a2))
+	{
+		for (;;)
+		{
+			decltype(auto) r = modulo(a2, t2);
+			if (!r)
+				return t2;
+			a2 = t2;
+			t2 = r;
+		}
+	}
+	else
+	{
+		for (;;)
+		{
+			decltype(auto) r = modulo(t2, a2);
+			if (!r)
+				return a2;
+			t2 = a2;
+			a2 = r;
+		}
+	}
+}
+
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(lcm)
+
+template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().lcm(std::declval<T&>()))>
+lcm(const T& t, const A1& a) { return a.lcm(t); }
+
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T>
+	&& std::is_integral_v<A1>
+	&& (sizeof(T) + sizeof(A1) <= sizeof(longest)),
+	bytes_to_int_t<(sizeof(T) + sizeof(A1)), false>
+>
+lcm(const T& t, const A1& a)
+{
+	decltype(auto) t2(abs(t));
+	decltype(auto) a2(abs(a));
+	return divide_whole(multiply(t2, a2), gcd(t2, a2));
+}
+
+template <typename T, typename A1>
+inline std::enable_if_t<
+	std::is_integral_v<T>
+	&& std::is_integral_v<A1>
+	&& (sizeof(T) + sizeof(A1) > sizeof(longest)),
+	fixed_integer<false, (sizeof(T) + sizeof(A1)) * 8>
+>
+lcm(const T& t, const A1& a)
+{
+	decltype(auto) t2(abs(t));
+	decltype(auto) a2(abs(a));
+	return divide_whole(multiply(t2, a2), gcd(t2, a2));
 }
 
 
