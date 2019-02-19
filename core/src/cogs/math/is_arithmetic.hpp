@@ -21,7 +21,7 @@ template <typename T>
 class is_arithmetic
 {
 public:
-	static constexpr bool value = std::is_arithmetic;
+	static constexpr bool value = std::is_arithmetic_v<T>;
 };
 template <typename T>
 static constexpr bool is_arithmetic_v = is_arithmetic<T>::value;

@@ -1438,7 +1438,7 @@ public:
 	template <typename T1, typename T2 = T1>
 	static bool is_less_than_or_equal(T1&& t1, T2&& t2)
 	{
-		return cogs::is_less_than_equal(std::forward<T1>(t1), std::forward<T2>(t2));
+		return cogs::is_less_than_or_equal(std::forward<T1>(t1), std::forward<T2>(t2));
 	}
 
 	/// @brief Tests if greater than
@@ -1454,7 +1454,7 @@ public:
 	template <typename T1, typename T2 = T1>
 	static bool is_greater_than_or_equal(T1&& t1, T2&& t2)
 	{
-		return cogs::is_greater_than_equal(std::forward<T1>(t1), std::forward<T2>(t2));
+		return cogs::is_greater_than_or_equal(std::forward<T1>(t1), std::forward<T2>(t2));
 	}
 
 	/// @brief Tests if equal
@@ -1900,15 +1900,8 @@ struct infinite_t { };
 
 // TODO: Move there somewhere appropriate
 
-
 template <typename T1, typename T2, typename... Ts>
-struct is_any;
-
-template <typename T1, typename T2>
-struct is_any<T1, T2> : std::is_same<T1, T2> { };
-
-template <typename T1, typename T2, typename... Ts>
-struct is_any<T1, T2, Ts...>
+struct is_any
 {
 	static constexpr bool value = std::is_same_v<T1, T2> || is_any<T1, Ts...>::value;
 };
@@ -1916,15 +1909,18 @@ struct is_any<T1, T2, Ts...>
 template <typename T1, typename T2, typename... Ts>
 static constexpr bool is_any_v = is_any<T1, T2, Ts...>::value;
 
+template <typename T1, typename T2>
+struct is_any<T1, T2> : public std::is_same<T1, T2> { };
+
 
 template <typename T1, typename... Ts>
 struct are_same;
 
 template <typename T1>
-struct are_same<T1> : std::true_type { };
+struct are_same<T1> : public std::true_type { };
 
 template <typename T1, typename T2>
-struct are_same<T1, T2> : std::is_same<T1, T2> { };
+struct are_same<T1, T2> : public std::is_same<T1, T2> { };
 
 template <typename T1, typename T2, typename... Ts>
 struct are_same<T1, T2, Ts...>
@@ -2042,7 +2038,7 @@ struct are_same_set<setType1<T1, Ts1...>, setType2<T2, Ts2...> >
 };
 
 template <class setType1, class setType2>
-static constexpr bool are_same_set_v = are_same_set<Ts...>::value;
+static constexpr bool are_same_set_v = are_same_set<setType1, setType2>::value;
 
 
 template <typename... Ts>

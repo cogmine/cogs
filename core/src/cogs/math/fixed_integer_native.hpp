@@ -1605,12 +1605,12 @@ public:
 	fixed_integer_native(const volatile int_t2& src)
 	{ operator=(src); }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	fixed_integer_native(const fraction<numerator_t2, denominator_t2>& src)
+	template <typename numerator_t, typename denominator_t>
+	fixed_integer_native(const fraction<numerator_t, denominator_t>& src)
 	{ operator=(src); }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	fixed_integer_native(const volatile fraction<numerator_t2, denominator_t2>& src)
+	template <typename numerator_t, typename denominator_t>
+	fixed_integer_native(const volatile fraction<numerator_t, denominator_t>& src)
 	{ operator=(src); }
 
 
@@ -1707,20 +1707,20 @@ public:
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	volatile this_t& operator=(const volatile int_t2& src) volatile { cogs::assign(m_int, src); return *this; }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	this_t& operator=(const fraction<numerator_t2, denominator_t2>& src)
+	template <typename numerator_t, typename denominator_t>
+	this_t& operator=(const fraction<numerator_t, denominator_t>& src)
 	{ return operator=(src.floor()); }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	this_t& operator=(const volatile fraction<numerator_t2, denominator_t2>& src)
+	template <typename numerator_t, typename denominator_t>
+	this_t& operator=(const volatile fraction<numerator_t, denominator_t>& src)
 	{ return operator=(src.floor()); }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(const fraction<numerator_t2, denominator_t2>& src) volatile
+	template <typename numerator_t, typename denominator_t>
+	volatile this_t& operator=(const fraction<numerator_t, denominator_t>& src) volatile
 	{ return operator=(src.floor()); }
 
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(const volatile fraction<numerator_t2, denominator_t2>& src) volatile
+	template <typename numerator_t, typename denominator_t>
+	volatile this_t& operator=(const volatile fraction<numerator_t, denominator_t>& src) volatile
 	{ return operator=(src.floor()); }
 
 
