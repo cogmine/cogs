@@ -313,8 +313,8 @@ public:
 		return *this;
 	}
 
-	bool operator!() const { return cogs::not(m_contents); }
-	bool operator!() const volatile { return cogs::not(m_contents); }
+	bool operator!() const { return cogs::lnot(m_contents); }
+	bool operator!() const volatile { return cogs::lnot(m_contents); }
 
 	bool is_negative() const { return cogs::is_negative(m_contents); }
 	bool is_negative() const volatile { return cogs::is_negative(m_contents); }

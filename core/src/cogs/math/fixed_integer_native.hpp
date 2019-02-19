@@ -1735,8 +1735,8 @@ public:
 	void clear()							{ cogs::clear(m_int); }
 	void clear() volatile					{ cogs::clear(m_int); }
 
-	bool operator!() const					{ return cogs::not(m_int); }
-	bool operator!() const volatile			{ return cogs::not(m_int); }
+	bool operator!() const					{ return cogs::lnot(m_int); }
+	bool operator!() const volatile			{ return cogs::lnot(m_int); }
 
 	this_t operator~() const				{ return cogs::bit_not(m_int); }
 	this_t operator~() const volatile		{ return cogs::bit_not(m_int); }
