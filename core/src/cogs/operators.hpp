@@ -9,6 +9,7 @@
 #define COGS_HEADER_OPERATORS
 
 
+#include <array>
 #include <numeric>
 #include <type_traits>
 #include <algorithm>
@@ -94,20 +95,20 @@ template <typename numerator_t, typename denominator_t>
 class fraction;
 
 
-template <typename numerator_t2 = numerator_t>
-inline auto make_reciprocal(numerator_t2&& n) { return fraction<one_t, numerator_t2>(one_t(), std::forward<numerator_t2>(n)); }
+template <typename numerator_t>
+inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
 
-template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-inline auto make_reciprocal(fraction<numerator_t2, denominator_t2>& src) { return src.reciprocal() }
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
 
-template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-inline auto make_reciprocal(const fraction<numerator_t2, denominator_t2>& src) { return src.reciprocal() }
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
 
-template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-inline auto make_reciprocal(volatile fraction<numerator_t2, denominator_t2>& src) { return src.reciprocal() }
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
 
-template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-inline auto make_reciprocal(const volatile fraction<numerator_t2, denominator_t2>& src) { return src.reciprocal() }
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
 
 
 

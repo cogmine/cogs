@@ -23,8 +23,8 @@ template <longest min_value, ulongest max_value>
 class range_to_bits
 {
 public:
-	static constexpr size_t bitsRequiredForMin = range_to_bits_v<0, (ulongest)~min_value > + 1;	// if signed
-	static constexpr size_t bitsRequiredForMax = range_to_bits_v<0, max_value>;
+	static constexpr size_t bitsRequiredForMin = range_to_bits<0, (ulongest)~min_value >::value + 1;	// if signed
+	static constexpr size_t bitsRequiredForMax = range_to_bits<0, max_value>::value;
 
 public:
 	static constexpr size_t value = (min_value >= 0) ?
