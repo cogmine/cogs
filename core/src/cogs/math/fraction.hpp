@@ -3080,8 +3080,8 @@ public:
 	}
 
 	// reciprocal
-	auto reciprocal() const						{ return cogs::reciprocal(simplify_content_type(*this)); }
-	auto reciprocal() const volatile			{ return cogs::reciprocal(simplify_content_type(*this)); }
+	auto reciprocal() const;
+	auto reciprocal() const volatile;
 	void assign_reciprocal()					{ m_contents->assign_reciprocal(); }
 	void assign_reciprocal() volatile			{ write_retry_loop([&](content_t& c) { c.assign_reciprocal(); }); }
 	const this_t& pre_assign_reciprocal()		{ m_contents->assign_reciprocal(); return *this; }
@@ -3230,58 +3230,58 @@ public:
 
 
 
-	// reciprocal_multiple_whole
+	// inverse_divide_whole
 	template <typename T>
-	auto reciprocal_multiple_whole(T&& t) const
+	auto inverse_divide_whole(T&& t) const
 	{
-		return simplify_type(cogs::reciprocal_multiple_whole(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
+		return simplify_type(cogs::inverse_divide_whole(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
 	}
 
 	template <typename T>
-	auto reciprocal_multiple_whole(T&& t) const volatile
+	auto inverse_divide_whole(T&& t) const volatile
 	{
-		return simplify_type(cogs::reciprocal_multiple_whole(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
+		return simplify_type(cogs::inverse_divide_whole(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
 	}
 
 	template <typename T>
-	this_t& assign_reciprocal_multiple_whole(T&& t)
+	this_t& assign_inverse_divide_whole(T&& t)
 	{
-		m_contents->assign_reciprocal_multiple_whole(simplify_content_type(std::forward<T>(t)));
+		m_contents->assign_inverse_divide_whole(simplify_content_type(std::forward<T>(t)));
 		return *this;
 	}
 
 	template <typename T>
-	volatile this_t& assign_reciprocal_multiple_whole(const T& t) volatile
+	volatile this_t& assign_inverse_divide_whole(const T& t) volatile
 	{
-		write_retry_loop([&](content_t& c) { c.assign_reciprocal_multiple_whole(simplify_content_type(t)); });
+		write_retry_loop([&](content_t& c) { c.assign_inverse_divide_whole(simplify_content_type(t)); });
 		return *this;
 	}
 
 	template <typename T>
-	const this_t& pre_assign_reciprocal_multiple_whole(T&& t)
+	const this_t& pre_assign_inverse_divide_whole(T&& t)
 	{
-		m_contents->assign_reciprocal_multiple_whole(simplify_content_type(std::forward<T>(t)));
+		m_contents->assign_inverse_divide_whole(simplify_content_type(std::forward<T>(t)));
 		return *this;
 	}
 
 	template <typename T>
-	this_t pre_assign_reciprocal_multiple_whole(const T& t) volatile
+	this_t pre_assign_inverse_divide_whole(const T& t) volatile
 	{
-		return write_retry_loop_pre([&](content_t& c) { c.assign_reciprocal_multiple_whole(simplify_content_type(t)); });
+		return write_retry_loop_pre([&](content_t& c) { c.assign_inverse_divide_whole(simplify_content_type(t)); });
 	}
 
 	template <typename T>
-	this_t post_assign_reciprocal_multiple_whole(T&& t)
+	this_t post_assign_inverse_divide_whole(T&& t)
 	{
 		this_t result(*this);
-		m_contents->assign_reciprocal_multiple_whole(simplify_content_type(std::forward<T>(t)));
+		m_contents->assign_inverse_divide_whole(simplify_content_type(std::forward<T>(t)));
 		return result;
 	}
 
 	template <typename T>
-	this_t post_assign_reciprocal_multiple_whole(const T& t) volatile
+	this_t post_assign_inverse_divide_whole(const T& t) volatile
 	{
-		return write_retry_loop_post([&](content_t& c) { c.assign_reciprocal_multiple_whole(simplify_content_type(t)); });
+		return write_retry_loop_post([&](content_t& c) { c.assign_inverse_divide_whole(simplify_content_type(t)); });
 	}
 
 
@@ -3861,8 +3861,35 @@ public:
 };
 
 
+template <typename numerator_t>
+inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
+
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+
+template <typename numerator_t, typename denominator_t>
+inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
 
 
+template <typename T>
+inline std::enable_if_t<!std::is_class_v<std::remove_reference_t<T> >, decltype(make_reciprocal(std::declval<T>())) >
+reciprocal(T&& t) { return make_reciprocal(std::forward<T>(t)); }
+
+
+template <typename numerator_type, typename denominator_type>
+auto fraction<numerator_type, denominator_type>::reciprocal() const
+{ return cogs::reciprocal(simplify_content_type(*this)); }
+
+	
+template <typename numerator_type, typename denominator_type>
+auto fraction<numerator_type, denominator_type>::reciprocal() const volatile
+{ return cogs::reciprocal(simplify_content_type(*this)); }
 
 
 #pragma warning(pop)

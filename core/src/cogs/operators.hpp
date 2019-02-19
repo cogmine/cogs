@@ -88,30 +88,6 @@ template<class T> struct remove_all_extents<T[]> { typedef remove_all_extents_t<
 template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all_extents_t<T> type; };
 
 
-
-// forward declares
-
-template <typename numerator_t, typename denominator_t>
-class fraction;
-
-
-template <typename numerator_t>
-inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
-
-template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
-
-template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
-
-template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
-
-template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
-
-
-
 #define COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(name, pre, post)	\
 	template <typename T> inline std::enable_if_t<std::is_class_v<T>, decltype(pre(std::declval<T&>())post)> name(T& t) { return pre(t)post; }
 
@@ -876,9 +852,6 @@ inverse_divide(const T& t, const A1& a) { return a / t; }
 
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(reciprocal)
-
-template <typename T> inline std::enable_if_t<!std::is_class_v<std::remove_reference_t<T> >, decltype(make_reciprocal(std::declval<T>())) >
-reciprocal(T&& t) { return make_reciprocal(std::forward<T>(t)); }
 
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(floor)

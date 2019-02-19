@@ -47,7 +47,6 @@ static constexpr size_t longest_bits = sizeof(longest) * 8;
 
 }
 
-#include "cogs/math/bytes_to_int.hpp"
 
 #endif
 
