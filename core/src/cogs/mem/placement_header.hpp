@@ -49,6 +49,8 @@ public:
 	static constexpr size_t value = least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> > +
 		least_multiple_of_v<sizeof(T), get_common_alignment_v<header_t, T> >;
 };
+template <class header_t, class T>
+inline constexpr size_t get_type_and_header_size_v = get_type_and_header_size<header_t, T>::value;
 
 /// @ingroup Mem
 /// @brief A helper class that facilitates placement storage access to a header and a data type 
@@ -56,13 +58,15 @@ public:
 /// @tparam header_t Header type
 /// @tparam T Data type
 template <typename header_t, typename T>
-class placement_type_header_storage : public placement_storage<get_type_and_header_size<header_t, T>::value, get_common_alignment_v<header_t, T> >
+class placement_type_header_storage : public placement_storage<get_type_and_header_size_v<header_t, T>, get_common_alignment_v<header_t, T> >
 {
+private:
+	typedef placement_storage<get_type_and_header_size_v<header_t, T>, get_common_alignment_v<header_t, T> > base_t;
 public:
-	header_t& get_header() { return get<header_t>(); }
-	const header_t& get_header() const { return get<header_t>(); }
-	volatile header_t& get_header() volatile { return get<header_t>(); }
-	const volatile header_t& get_header() const volatile { return get<header_t>(); }
+	header_t& get_header() { return base_t::template get<header_t>(); }
+	const header_t& get_header() const { return base_t::template get<header_t>(); }
+	volatile header_t& get_header() volatile { return base_t::template get<header_t>(); }
+	const volatile header_t& get_header() const volatile { return base_t::template get<header_t>(); }
 };
 
 

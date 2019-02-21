@@ -92,7 +92,7 @@ public:
 	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
-	typename placement<type>	m_contents;
+	placement<type>	m_contents;
 	ref_t									m_selfReference;
 #if COGS_DEBUG_RC_OBJ
 	type*									m_contentsPtrDebug;
@@ -166,7 +166,7 @@ public:
 	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
-	typename placement<type>	m_contents;
+	placement<type>	m_contents;
 	ref_t									m_selfReference;
 #if COGS_DEBUG_RC_OBJ
 	type*									m_contentsPtrDebug;

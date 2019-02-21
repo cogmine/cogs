@@ -53,7 +53,7 @@ private:
 	typedef rc_obj<type> descriptor_t;
 
 	ptr<descriptor_t>			m_desc;
-	typename placement<type>	m_embedded;
+	placement<type>	m_embedded;
 
 #if COGS_DEBUG_TRANSACTABLE
 	type*						m_embeddedPtrDebug;
@@ -1675,8 +1675,8 @@ public:
 	class write_token
 	{
 	protected:
-		typename placement<type>	m_old;
-		typename placement<type>	m_new;
+		placement<type>	m_old;
+		placement<type>	m_new;
 
 		friend class cas_transactable;
 
@@ -1732,7 +1732,7 @@ public:
 	class read_token
 	{	
 	protected:
-		typename placement<type>	m_obj;
+		placement<type>	m_obj;
 
 		friend class cas_transactable;
 		

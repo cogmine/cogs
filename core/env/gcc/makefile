@@ -18,7 +18,7 @@ objects=$(patsubst %.cpp,%.o,$(patsubst %.a,%.o,$(relativesources)))
 #FLAGS= -fzero-initialized-in-bss -march=amdfam10 -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2
 #FLAGS= -fzero-initialized-in-bss -march=i686 -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -O3
 # -g -O0 -fno-inline
-FLAGS=-fmax-errors=1 -std=c++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -O3
+FLAGS=-fmax-errors=1 -std=gnu++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -O3
 DEBUGFLAGS=-g
 RELEASEFLAGS=
 

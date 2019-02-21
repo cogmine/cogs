@@ -134,7 +134,7 @@ private:
 		bool operator>=(const counts_t& c) const { return !operator<(c); }
 	};
 
-	volatile alignas (atomic::get_alignment_v<counts_t>) counts_t m_counts;
+	volatile counts_t m_counts alignas (atomic::get_alignment_v<counts_t>);
 
 	class link : public slink
 	{

@@ -203,7 +203,7 @@ placement_reconstruct_multiple(T* t, size_t n, args_t&&... args)
 {
 	for (size_t i = 0; i < n; i++)
 	{
-		type* t2 = t + i;
+		T* t2 = t + i;
 		placement_destruct(t2);
 		placement_construct(t2, std::forward<args_t>(args)...);
 	}

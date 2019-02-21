@@ -137,11 +137,11 @@ public:
 	boolean& operator&=(bool b)											{ cogs::assign_bit_and(m_bool, b); return *this; }
 	volatile boolean& operator&=(bool b) volatile						{ cogs::assign_bit_and(m_bool, b); return *this; }
 
-	const boolean& pre_bit_and(const          boolean& b)				{ return cogs::pre_assign_bit_and(m_bool, b.get()); }
-	const boolean& pre_bit_and(const volatile boolean& b)				{ return cogs::pre_assign_bit_and(m_bool, b.get()); }
+	const boolean& pre_bit_and(const          boolean& b)				{ cogs::pre_assign_bit_and(m_bool, b.get()); return *this; }
+	const boolean& pre_bit_and(const volatile boolean& b)				{ cogs::pre_assign_bit_and(m_bool, b.get()); return *this; }
 	boolean pre_bit_and(const          boolean& b) volatile				{ return cogs::pre_assign_bit_and(m_bool, b.get()); }
 	boolean pre_bit_and(const volatile boolean& b) volatile				{ return cogs::pre_assign_bit_and(m_bool, b.get()); }
-	const boolean& pre_bit_and(bool b)									{ return cogs::pre_assign_bit_and(m_bool, b); }
+	const boolean& pre_bit_and(bool b)									{ cogs::pre_assign_bit_and(m_bool, b); return *this; }
 	boolean pre_bit_and(bool b) volatile								{ return cogs::pre_assign_bit_and(m_bool, b); }
 
 	boolean post_bit_and(const          boolean& b)						{ return cogs::post_assign_bit_and(m_bool, b.get()); }
@@ -159,11 +159,11 @@ public:
 	boolean& operator|=(bool b)											{ cogs::assign_bit_or(m_bool, b); return *this; }
 	volatile boolean& operator|=(bool b) volatile						{ cogs::assign_bit_or(m_bool, b); return *this; }
 
-	const boolean& pre_bit_or(const          boolean& b)				{ return cogs::pre_assign_bit_or(m_bool, b.get()); }
-	const boolean& pre_bit_or(const volatile boolean& b)				{ return cogs::pre_assign_bit_or(m_bool, b.get()); }
+	const boolean& pre_bit_or(const          boolean& b)				{ cogs::pre_assign_bit_or(m_bool, b.get()); return *this; }
+	const boolean& pre_bit_or(const volatile boolean& b)				{ cogs::pre_assign_bit_or(m_bool, b.get()); return *this; }
 	boolean pre_bit_or(const          boolean& b) volatile				{ return cogs::pre_assign_bit_or(m_bool, b.get()); }
 	boolean pre_bit_or(const volatile boolean& b) volatile				{ return cogs::pre_assign_bit_or(m_bool, b.get()); }
-	const boolean& pre_bit_or(bool b)									{ return cogs::pre_assign_bit_or(m_bool, b); }
+	const boolean& pre_bit_or(bool b)									{ cogs::pre_assign_bit_or(m_bool, b); return *this; }
 	boolean pre_bit_or(bool b) volatile									{ return cogs::pre_assign_bit_or(m_bool, b); }
 
 	boolean post_bit_or(const          boolean& b)						{ return cogs::post_assign_bit_or(m_bool, b.get()); }
@@ -183,11 +183,11 @@ public:
 	volatile boolean& operator^=(bool b) volatile						{ cogs::assign_bit_xor(m_bool, b); return *this; }
 
 	
-	const boolean& pre_bit_xor(const          boolean& b)				{ return cogs::pre_assign_bit_xor(m_bool, b.get()); }
-	const boolean& pre_bit_xor(const volatile boolean& b)				{ return cogs::pre_assign_bit_xor(m_bool, b.get()); }
+	const boolean& pre_bit_xor(const          boolean& b)				{ cogs::pre_assign_bit_xor(m_bool, b.get()); return *this; }
+	const boolean& pre_bit_xor(const volatile boolean& b)				{ cogs::pre_assign_bit_xor(m_bool, b.get()); return *this; }
 	boolean pre_bit_xor(const          boolean& b) volatile				{ return cogs::pre_assign_bit_xor(m_bool, b.get()); }
 	boolean pre_bit_xor(const volatile boolean& b) volatile				{ return cogs::pre_assign_bit_xor(m_bool, b.get()); }
-	const boolean& pre_bit_xor(bool b)									{ return cogs::pre_assign_bit_xor(m_bool, b); }
+	const boolean& pre_bit_xor(bool b)									{ cogs::pre_assign_bit_xor(m_bool, b); return *this; }
 	boolean pre_bit_xor(bool b) volatile								{ return cogs::pre_assign_bit_xor(m_bool, b); }
 
 	boolean post_bit_xor(const          boolean& b)						{ return cogs::post_assign_bit_xor(m_bool, b.get()); }

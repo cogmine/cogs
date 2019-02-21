@@ -41,7 +41,7 @@ public:
 	{
 		void* buf;
 		if (posix_memalign(&buf, align, n) != 0)
-			return 0;
+			return nullptr;
 		return buf;
 	}
 

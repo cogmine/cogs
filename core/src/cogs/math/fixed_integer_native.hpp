@@ -40,6 +40,10 @@ class fixed_integer_extended;
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 class fixed_integer_native_const;
 
+typedef fixed_integer_native_const<false, 0, 0> zero_t;
+typedef fixed_integer_native_const<false, 1, 1> one_t;
+typedef fixed_integer_native_const<true, 1, -1> minus_one_t;
+
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
@@ -3710,8 +3714,8 @@ public:
 	template <size_t bits2> auto operator/(const volatile fixed_integer_native_const<true, bits2, -1>&) const volatile { return operator-(); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src); }
-	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src) }
-	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src) }
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src); }
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto operator/(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<this_t, fixed_integer_native_const<has_sign2, bits2, value2> >(*this, src); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
@@ -3886,21 +3890,21 @@ public:
 	template <bool has_sign2, size_t bits2> auto inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const volatile { return zero_t(); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this); }
-	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this) }
-	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this) }
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this); }
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const volatile { return fraction<fixed_integer_native_const<has_sign2, bits2, value2>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this); }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	auto inverse_divide(const int_t2& i) const { return fraction<int_t2, this_t>(src, *this); }
+	auto inverse_divide(const int_t2& i) const { return fraction<int_t2, this_t>(i, *this); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	auto inverse_divide(const int_t2& i) const volatile { return fraction<int_t2, this_t>(src, *this); }
+	auto inverse_divide(const int_t2& i) const volatile { return fraction<int_t2, this_t>(i, *this); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	auto inverse_divide(const volatile int_t2& i) const { return fraction<int_t2, this_t>(src, *this); }
+	auto inverse_divide(const volatile int_t2& i) const { return fraction<int_t2, this_t>(i, *this); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	auto inverse_divide(const volatile int_t2& i) const volatile { return fraction<int_t2, this_t>(src, *this); }
+	auto inverse_divide(const volatile int_t2& i) const volatile { return fraction<int_t2, this_t>(i, *this); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const fixed_integer_native<has_sign2, bits2>& src) { cogs::assign_inverse_divide(m_int, src.m_int); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const volatile fixed_integer_native<has_sign2, bits2>& src) { cogs::assign_inverse_divide(m_int, src.m_int); }
@@ -5646,8 +5650,8 @@ typedef int_to_fixed_integer_t<uint64_t> uint64_type;
 
 #if COGS_LONGEST_INT >= 16
 
-typedef int_to_fixed_integer_t<int128_t> int128_type;
-typedef int_to_fixed_integer_t<uint128_t> uint128_type;
+typedef int_to_fixed_integer_t<bytes_to_int_t<16> > int128_type;
+typedef int_to_fixed_integer_t<bytes_to_uint_t<16> > uint128_type;
 
 #endif
 #endif

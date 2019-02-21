@@ -52,7 +52,7 @@ private:
 		static node_t* get_header(type& t)	{ return get_header_from_type_block<node_t, type>(&t); }
 	};
 
-	typedef typename placement_type_header_storage<node_t, type> node_placement_t;
+	typedef placement_type_header_storage<node_t, type> node_placement_t;
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
@@ -97,7 +97,7 @@ public:
 				result = m_allocator.template allocate_type_with_header<node_t, T>();
 			else
 			{
-				result = &(m_preallocated[m_curPos].get<type>());
+				result = &(m_preallocated[m_curPos].template get<type>());
 				++m_curPos;
 			}
 
@@ -212,7 +212,7 @@ public:
 		}
 		else
 		{
-			result = m_allocator.template allocate_type_with_header<node_t, T>();
+			result = m_allocator.template allocate_type_with_header<node_t, type>();
 			new (result->get_contents()) type;
 		}
 
@@ -236,7 +236,7 @@ public:
 				break;
 			}
 
-			result = m_allocator.template allocate_type_with_header<node_t, T>();
+			result = m_allocator.template allocate_type_with_header<node_t, type>();
 			new (result->get_contents()) type;
 			break;
 		}

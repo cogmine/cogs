@@ -25,7 +25,7 @@ class versioned_t
 {
 public:
 	typedef T type;
-	typedef typename bytes_to_int_t< sizeof(type) > version_t;
+	typedef bytes_to_int_t< sizeof(type) > version_t;
 
 protected:
 	struct content_t
