@@ -174,56 +174,56 @@ private:
 		return result;
 	}
 
-	auto divide_whole(const dynamic_integer_content& src) const
-	{
-		fixed_integer<true, bits + 1> result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt != 0)	// 00 = -256 
-						{
-							if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							{
-								result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-								break;
-							}
-
-							// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-							result = cogs::negative(cogs::divide_whole(m_int, (ulongest)-srcInt)); // unsigned/unsigned divide, wont grow
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (src.get_length() <= 1)
-				{
-					result = cogs::divide_whole(m_int, src.get_int());
-					break;
-				}
-			}
-
-			result.clear();
-			break;
-		}
-
-		return result;
-	}
+	auto divide_whole(const dynamic_integer_content& src) const;
+	//{
+	//	fixed_integer<true, bits + 1> result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt != 0)	// 00 = -256 
+	//					{
+	//						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						{
+	//							result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//							break;
+	//						}
+	//
+	//						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//						result = cogs::negative(cogs::divide_whole(m_int, (ulongest)-srcInt)); // unsigned/unsigned divide, wont grow
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.get_length() <= 1)
+	//			{
+	//				result = cogs::divide_whole(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result.clear();
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	void assign_divide_whole(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -280,60 +280,58 @@ private:
 		clear();
 	}
 
-	template <bool has_sign2, size_t bits2>
-	void assign_divide_whole(const dynamic_integer_content& src)
-	{
-		*this = divide_whole(src);
-	}
+	void assign_divide_whole(const dynamic_integer_content& src);
+	//{
+	//	*this = divide_whole(src);
+	//}
 
-	template <bool has_sign2, size_t bits2>
-	void assign_divide_whole(const dynamic_integer_content& src) volatile
-	{
-		if (src.is_negative())
-		{
-			if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-			{
-				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-				{
-					if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-					{
-						cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-						return;
-					}
-				}
-				else	// this range will be 0..255 == 00..FF
-				{
-					if (srcInt != 0)	// 00 = -256 
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							return;
-						}
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t)
-						{
-							return cogs::negative(divide_whole(t, srcInt2));
-						});
-						return;
-					}
-				}
-			}
-		}
-		else
-		{
-			if (src.get_length() <= 1)
-			{
-				cogs::assign_divide_whole(m_int, src.get_int());
-				return;
-			}
-		}
-
-		clear();
-	}
+	void assign_divide_whole(const dynamic_integer_content& src) volatile;
+	//{
+	//	if (src.is_negative())
+	//	{
+	//		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//		{
+	//			longest srcInt = (longest)src.get_int();
+	//			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//			{
+	//				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+	//				{
+	//					cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//					return;
+	//				}
+	//			}
+	//			else	// this range will be 0..255 == 00..FF
+	//			{
+	//				if (srcInt != 0)	// 00 = -256 
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						return;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t)
+	//					{
+	//						return cogs::negative(divide_whole(t, srcInt2));
+	//					});
+	//					return;
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (src.get_length() <= 1)
+	//		{
+	//			cogs::assign_divide_whole(m_int, src.get_int());
+	//			return;
+	//		}
+	//	}
+	//
+	//	clear();
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	const this_t& pre_assign_divide_whole(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -382,52 +380,50 @@ private:
 		return 0;
 	}
 
-	template <bool has_sign2, size_t bits2>
-	const this_t& pre_assign_divide_whole(const dynamic_integer_content& src)
-	{
-		*this = divide_whole(src);
-		return *this;
-	}
+	const this_t& pre_assign_divide_whole(const dynamic_integer_content& src);
+	//{
+	//	*this = divide_whole(src);
+	//	return *this;
+	//}
 
-	template <bool has_sign2, size_t bits2>
-	this_t pre_assign_divide_whole(const dynamic_integer_content& src) volatile
-	{
-		if (src.is_negative())
-		{
-			if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-			{
-				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-				{
-					if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-						return cogs::pre_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-				}
-				else	// this range will be 0..255 == 00..FF
-				{
-					if (srcInt != 0)	// 00 = -256 
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							return cogs::pre_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t)
-						{
-							return cogs::negative(divide_whole(t, srcInt2));
-						});
-					}
-				}
-			}
-		}
-		else
-		{
-			if (src.get_length() <= 1)
-				return cogs::pre_assign_divide_whole(m_int, src.get_int());
-		}
-
-		cogs::clear(m_int);
-		return 0;
-	}
+	this_t pre_assign_divide_whole(const dynamic_integer_content& src) volatile;
+	//{
+	//	if (src.is_negative())
+	//	{
+	//		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//		{
+	//			longest srcInt = (longest)src.get_int();
+	//			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//			{
+	//				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					return cogs::pre_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//			}
+	//			else	// this range will be 0..255 == 00..FF
+	//			{
+	//				if (srcInt != 0)	// 00 = -256 
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						return cogs::pre_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t)
+	//					{
+	//						return cogs::negative(divide_whole(t, srcInt2));
+	//					});
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (src.get_length() <= 1)
+	//			return cogs::pre_assign_divide_whole(m_int, src.get_int());
+	//	}
+	//
+	//	cogs::clear(m_int);
+	//	return 0;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	this_t post_assign_divide_whole(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -476,52 +472,50 @@ private:
 		return cogs::exchange(m_int, 0);
 	}
 
-	template <bool has_sign2, size_t bits2>
-	this_t post_assign_divide_whole(const dynamic_integer_content& src)
-	{
-		this_t tmp(*this);
-		assign_divide_whole(src);
-		return tmp;
-	}
+	this_t post_assign_divide_whole(const dynamic_integer_content& src);
+	//{
+	//	this_t tmp(*this);
+	//	assign_divide_whole(src);
+	//	return tmp;
+	//}
 
-	template <bool has_sign2, size_t bits2>
-	this_t post_assign_divide_whole(const dynamic_integer_content& src) volatile
-	{
-		if (src.is_negative())
-		{
-			if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-			{
-				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-				{
-					if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-						return cogs::post_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-				}
-				else	// this range will be 0..255 == 00..FF
-				{
-					if (srcInt != 0)	// 00 = -256 
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							return cogs::post_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t)
-						{
-							return cogs::negative(divide_whole(t, srcInt2));
-						});
-					}
-				}
-			}
-		}
-		else
-		{
-			if (src.get_length() <= 1)
-				return cogs::post_assign_divide_whole(m_int, src.get_int());
-		}
-
-		return cogs::exchange(m_int, 0);
-	}
+	this_t post_assign_divide_whole(const dynamic_integer_content& src) volatile;
+	//{
+	//	if (src.is_negative())
+	//	{
+	//		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//		{
+	//			longest srcInt = (longest)src.get_int();
+	//			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//			{
+	//				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					return cogs::post_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//			}
+	//			else	// this range will be 0..255 == 00..FF
+	//			{
+	//				if (srcInt != 0)	// 00 = -256 
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						return cogs::post_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t)
+	//					{
+	//						return cogs::negative(divide_whole(t, srcInt2));
+	//					});
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (src.get_length() <= 1)
+	//			return cogs::post_assign_divide_whole(m_int, src.get_int());
+	//	}
+	//
+	//	return cogs::exchange(m_int, 0);
+	//}
 
 	template <bool has_sign2, size_t bits2>	// bits < bits2
 	this_t operator%(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src) const
@@ -575,56 +569,56 @@ private:
 		return result;
 	}
 	
-	this_t operator%(const dynamic_integer_content& src) const
-	{
-		this_t result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::modulo(m_int, srcInt);
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt != 0)	// 00 = -256 
-						{
-							if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							{
-								result = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-								break;
-							}
-	
-							// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-							result = cogs::modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (src.get_length() <= 1)
-				{
-					result = cogs::modulo(m_int, src.get_int());
-					break;
-				}
-			}
-	
-			result = m_int;
-			break;
-		}
-	
-		return result;
-	}
+	this_t operator%(const dynamic_integer_content& src) const;
+	//{
+	//	this_t result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::modulo(m_int, srcInt);
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt != 0)	// 00 = -256 
+	//					{
+	//						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						{
+	//							result = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//							break;
+	//						}
+	//
+	//						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//						result = cogs::modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.get_length() <= 1)
+	//			{
+	//				result = cogs::modulo(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result = m_int;
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	this_t& operator%=(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -726,103 +720,103 @@ private:
 		return *this;
 	}
 
-	this_t& operator%=(const dynamic_integer_content& src)
-	{
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							cogs::assign_modulo(m_int, srcInt);
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt != 0)	// 00 = -256 
-						{
-							if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							{
-								cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-								break;
-							}
+	this_t& operator%=(const dynamic_integer_content& src);
+	//{
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						cogs::assign_modulo(m_int, srcInt);
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt != 0)	// 00 = -256 
+	//					{
+	//						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						{
+	//							cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//							break;
+	//						}
+	//
+	//						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//						cogs::assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				cogs::assign_modulo(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		break;
+	//	}
+	//
+	//	return *this;
+	//}
 
-							// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-							cogs::assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					cogs::assign_modulo(m_int, src.get_int());
-					break;
-				}
-			}
-
-			break;
-		}
-
-		return *this;
-	}
-
-	volatile this_t& operator%=(const dynamic_integer_content& src) volatile
-	{
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							cogs::assign_modulo(m_int, srcInt);
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt != 0)	// 00 = -256 
-						{
-							if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							{
-								cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-								break;
-							}
-
-							// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-							cogs::assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					cogs::assign_modulo(m_int, src.get_int());
-					break;
-				}
-			}
-
-			break;
-		}
-
-		return *this;
-	}
+	volatile this_t& operator%=(const dynamic_integer_content& src) volatile;
+	//{
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						cogs::assign_modulo(m_int, srcInt);
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt != 0)	// 00 = -256 
+	//					{
+	//						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						{
+	//							cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//							break;
+	//						}
+	//
+	//						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//						cogs::assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				cogs::assign_modulo(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		break;
+	//	}
+	//
+	//	return *this;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	const this_t& pre_assign_modulo(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -866,45 +860,45 @@ private:
 		return *this;
 	}
 
-	const this_t& pre_assign_modulo(const dynamic_integer_content& src)
-	{
-		assign_modulo(src);
-		return *this;
-	}
+	const this_t& pre_assign_modulo(const dynamic_integer_content& src);
+	//{
+	//	assign_modulo(src);
+	//	return *this;
+	//}
 	
-	this_t pre_assign_modulo(const dynamic_integer_content& src) volatile
-	{
-		if (src.is_negative())
-		{
-			if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-			{
-				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						return cogs::pre_assign_modulo(m_int, srcInt);
-				}
-				else	// this range will be 0..255 == 00..FF
-				{
-					if (srcInt != 0)	// 00 = -256 
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							return cogs::pre_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						return pre_assign_modulo(m_int, (ulongest)-srcInt);	// src sign doesn't affect the sign of the result
-					}
-				}
-			}
-		}
-		else
-		{
-			if (src.m_contents->get_length() <= 1)
-				return cogs::pre_assign_modulo(m_int, src.get_int());
-		}
-
-		return *this;
-	}
+	this_t pre_assign_modulo(const dynamic_integer_content& src) volatile;
+	//{
+	//	if (src.is_negative())
+	//	{
+	//		if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//		{
+	//			longest srcInt = (longest)src.get_int();
+	//			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//			{
+	//				if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					return cogs::pre_assign_modulo(m_int, srcInt);
+	//			}
+	//			else	// this range will be 0..255 == 00..FF
+	//			{
+	//				if (srcInt != 0)	// 00 = -256 
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						return cogs::pre_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					return pre_assign_modulo(m_int, (ulongest)-srcInt);	// src sign doesn't affect the sign of the result
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (src.m_contents->get_length() <= 1)
+	//			return cogs::pre_assign_modulo(m_int, src.get_int());
+	//	}
+	//
+	//	return *this;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	this_t post_assign_modulo(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -949,46 +943,46 @@ private:
 		return *this;
 	}
 
-	this_t post_assign_modulo(const dynamic_integer_content& src)
-	{
-		this_t tmp(*this);
-		assign_modulo(src);
-		return tmp;
-	}
+	this_t post_assign_modulo(const dynamic_integer_content& src);
+	//{
+	//	this_t tmp(*this);
+	//	assign_modulo(src);
+	//	return tmp;
+	//}
 
-	this_t post_assign_modulo(const dynamic_integer_content& src) volatile
-	{
-		if (src.is_negative())
-		{
-			if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
-			{
-				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						return cogs::post_assign_modulo(m_int, srcInt);
-				}
-				else	// this range will be 0..255 == 00..FF
-				{
-					if (srcInt != 0)	// 00 = -256 
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-							return cogs::post_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						return post_assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
-					}
-				}
-			}
-		}
-		else
-		{
-			if (src.m_contents->get_length() <= 1)
-				return cogs::post_assign_modulo(m_int, src.get_int());
-		}
-
-		return *this;
-	}
+	this_t post_assign_modulo(const dynamic_integer_content& src) volatile;
+	//{
+	//	if (src.is_negative())
+	//	{
+	//		if (src.m_contents->get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+	//		{
+	//			longest srcInt = (longest)src.get_int();
+	//			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//			{
+	//				if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					return cogs::post_assign_modulo(m_int, srcInt);
+	//			}
+	//			else	// this range will be 0..255 == 00..FF
+	//			{
+	//				if (srcInt != 0)	// 00 = -256 
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//						return cogs::post_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					return post_assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (src.m_contents->get_length() <= 1)
+	//			return cogs::post_assign_modulo(m_int, src.get_int());
+	//	}
+	//
+	//	return *this;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	auto divide_whole_and_modulo(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src) const
@@ -1049,59 +1043,59 @@ private:
 		return result;
 	}
 
-	auto divide_whole_and_modulo(const dynamic_integer_content& src) const
-	{
-		typedef fixed_integer<true, bits + 1> divide_t;
-		std::pair<divide_t, this_t> result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result.first = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-							result.second = cogs::modulo(m_int, srcInt);
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							result.first = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-							break;
-						}
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						result.first = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
-						result.second = cogs::modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					result.first = cogs::divide_whole(m_int, src.get_int());
-					result.second = cogs::modulo(m_int, src.get_int());
-					break;
-				}
-			}
-
-			result.second = m_int;
-			result.first.clear();
-			break;
-		}
-
-		return result;
-	}
+	auto divide_whole_and_modulo(const dynamic_integer_content& src) const;
+	//{
+	//	typedef fixed_integer<true, bits + 1> divide_t;
+	//	std::pair<divide_t, this_t> result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result.first = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						result.second = cogs::modulo(m_int, srcInt);
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						result.first = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//						break;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					result.first = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
+	//					result.second = cogs::modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				result.first = cogs::divide_whole(m_int, src.get_int());
+	//				result.second = cogs::modulo(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result.second = m_int;
+	//		result.first.clear();
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	auto divide_whole_and_assign_modulo(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -1207,107 +1201,107 @@ private:
 		return result;
 	}
 
-	auto divide_whole_and_assign_modulo(const dynamic_integer_content& src)
-	{
-		fixed_integer<true, bits + 1> result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-							cogs::assign_modulo(m_int, srcInt);
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-							break;
-						}
+	auto divide_whole_and_assign_modulo(const dynamic_integer_content& src);
+	//{
+	//	fixed_integer<true, bits + 1> result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						cogs::assign_modulo(m_int, srcInt);
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//						break;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					result = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
+	//					cogs::assign_modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				result = cogs::divide_whole(m_int, src.get_int());
+	//				cogs::assign_modulo(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result.clear();
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						result = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
-						cogs::assign_modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					result = cogs::divide_whole(m_int, src.get_int());
-					cogs::assign_modulo(m_int, src.get_int());
-					break;
-				}
-			}
-
-			result.clear();
-			break;
-		}
-
-		return result;
-	}
-
-	auto divide_whole_and_assign_modulo(const dynamic_integer_content& src) volatile
-	{
-		fixed_integer<true, bits + 1> result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-							break;
-						}
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						int_t tmp = cogs::post_assign_modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
-						result = cogs::negative(cogs::divide_whole(tmp, srcInt2)); // unsigned/unsigned divide, wont grow
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					result = cogs::divide_whole(cogs::post_assign_modulo(m_int, src.get_int()), src.get_int());
-					break;
-				}
-			}
-
-			result.clear();
-			break;
-		}
-
-		return result;
-	}
+	auto divide_whole_and_assign_modulo(const dynamic_integer_content& src) volatile;
+	//{
+	//	fixed_integer<true, bits + 1> result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//						break;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					int_t tmp = cogs::post_assign_modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
+	//					result = cogs::negative(cogs::divide_whole(tmp, srcInt2)); // unsigned/unsigned divide, wont grow
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				result = cogs::divide_whole(cogs::post_assign_modulo(m_int, src.get_int()), src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result.clear();
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	this_t modulo_and_assign_divide_whole(const typename fixed_integer_extended<has_sign2, bits2>::content_t& src)
@@ -1418,112 +1412,112 @@ private:
 		return result;
 	}
 
-	this_t modulo_and_assign_divide_whole(const dynamic_integer_content& src)
-	{
-		this_t result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::modulo(m_int, srcInt);
-							cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-							cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							break;
-						}
+	this_t modulo_and_assign_divide_whole(const dynamic_integer_content& src);
+	//{
+	//	this_t result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::modulo(m_int, srcInt);
+	//						cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//						cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						break;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					result = cogs::modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
+	//					*this = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				result = cogs::modulo(m_int, src.get_int());
+	//				cogs::assign_divide_whole(m_int, src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result = m_int;
+	//		cogs::clear(m_int);
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						result = cogs::modulo(m_int, srcInt2); // src sign doesn't affect the sign of the result
-						*this = cogs::negative(cogs::divide_whole(m_int, srcInt2)); // unsigned/unsigned divide, wont grow
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					result = cogs::modulo(m_int, src.get_int());
-					cogs::assign_divide_whole(m_int, src.get_int());
-					break;
-				}
-			}
-
-			result = m_int;
-			cogs::clear(m_int);
-			break;
-		}
-
-		return result;
-	}
-
-	this_t modulo_and_assign_divide_whole(const dynamic_integer_content& src) volatile
-	{
-		this_t result;
-		for (;;)
-		{
-			if (src.is_negative())
-			{
-				if (src.m_contents->get_length() == 1)
-				{
-					longest srcInt = (longest)src.get_int();
-					if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
-					{
-						if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
-						{
-							result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
-							// signed/signed divide, so may grow, i.e.: -128/-1=128
-							break;
-						}
-					}
-					else	// this range will be 0..255 == 00..FF
-					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						{
-							result.second = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-							// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-							break;
-						}
-
-						// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-						ulongest srcInt2 = (ulongest)-srcInt;
-						int_t tmp = atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t)
-						{
-							return cogs::negative(cogs::divide_whole(t, srcInt2)); // unsigned/unsigned divide, wont grow
-						});
-						result = cogs::modulo(tmp, srcInt2); // src sign doesn't affect the sign of the result
-					}
-				}
-			}
-			else
-			{
-				if (src.m_contents->get_length() <= 1)
-				{
-					result = cogs::modulo(cogs::post_assign_divide_whole(m_int, src.get_int()), src.get_int());
-					break;
-				}
-			}
-
-			result = cogs::exchange(m_int, 0);
-			break;
-		}
-
-		return result;
-	}
+	this_t modulo_and_assign_divide_whole(const dynamic_integer_content& src) volatile;
+	//{
+	//	this_t result;
+	//	for (;;)
+	//	{
+	//		if (src.is_negative())
+	//		{
+	//			if (src.m_contents->get_length() == 1)
+	//			{
+	//				longest srcInt = (longest)src.get_int();
+	//				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+	//				{
+	//					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+	//					{
+	//						result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
+	//						// signed/signed divide, so may grow, i.e.: -128/-1=128
+	//						break;
+	//					}
+	//				}
+	//				else	// this range will be 0..255 == 00..FF
+	//				{
+	//					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+	//					{
+	//						result.second = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+	//						// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+	//						break;
+	//					}
+	//
+	//					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
+	//					ulongest srcInt2 = (ulongest)-srcInt;
+	//					int_t tmp = atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t)
+	//					{
+	//						return cogs::negative(cogs::divide_whole(t, srcInt2)); // unsigned/unsigned divide, wont grow
+	//					});
+	//					result = cogs::modulo(tmp, srcInt2); // src sign doesn't affect the sign of the result
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (src.m_contents->get_length() <= 1)
+	//			{
+	//				result = cogs::modulo(cogs::post_assign_divide_whole(m_int, src.get_int()), src.get_int());
+	//				break;
+	//			}
+	//		}
+	//
+	//		result = cogs::exchange(m_int, 0);
+	//		break;
+	//	}
+	//
+	//	return result;
+	//}
 
 	template <bool has_sign2, size_t bits2>
 	fixed_integer_native(const fixed_integer_extended_content<has_sign2, bits2>& src)
@@ -1538,26 +1532,24 @@ private:
 		return *this;
 	}
 
-	fixed_integer_native(const dynamic_integer_content& src)
-	{
-		operator=(src);
-	}
+	fixed_integer_native(const dynamic_integer_content& src);
+	//{
+	//	operator=(src);
+	//}
 
-	this_t& operator=(const dynamic_integer_content& src)
-	{
-		cogs::assign(m_int, src.get_int());
-		return *this;
-	}
+	this_t& operator=(const dynamic_integer_content& src);
+	//{
+	//	cogs::assign(m_int, src.get_int());
+	//	return *this;
+	//}
 
 public:
 	fixed_integer_native()
 	{ }
 
-	fixed_integer_native(const dynamic_integer& src)
-	{ operator=(src); }
+	fixed_integer_native(const dynamic_integer& src); //{ operator=(src); }
 
-	fixed_integer_native(const volatile dynamic_integer& src)
-	{ operator=(src); }
+	fixed_integer_native(const volatile dynamic_integer& src); //{ operator=(src); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	fixed_integer_native(const fixed_integer_native_const<has_sign2, bits2, value2>& src)
@@ -1690,10 +1682,10 @@ public:
 	template <bool has_sign2, size_t bits2> volatile this_t& operator=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign(m_int, src.get_int()); return *this; }
 
-	this_t& operator=(const dynamic_integer& src) { cogs::assign(m_int, src.get_int()); return *this; }
-	this_t& operator=(const volatile dynamic_integer& src) { cogs::assign(m_int, src.get_int()); return *this; }
-	volatile this_t& operator=(const dynamic_integer& src) volatile { cogs::assign(m_int, src.get_int()); return *this; }
-	volatile this_t& operator=(const volatile dynamic_integer& src) volatile { cogs::assign(m_int, src.get_int()); return *this; }
+	this_t& operator=(const dynamic_integer& src); // { cogs::assign(m_int, src.get_int()); return *this; }
+	this_t& operator=(const volatile dynamic_integer& src); // { cogs::assign(m_int, src.get_int()); return *this; }
+	volatile this_t& operator=(const dynamic_integer& src) volatile; // { cogs::assign(m_int, src.get_int()); return *this; }
+	volatile this_t& operator=(const volatile dynamic_integer& src) volatile; // { cogs::assign(m_int, src.get_int()); return *this; }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	this_t& operator=(const int_t2& src) { cogs::assign(m_int, src); return *this; }
@@ -1838,10 +1830,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_right(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return bit_rotate_right(src % bits_used_t()); }
-	this_t bit_rotate_right(const dynamic_integer& src) const { return bit_rotate_right(src % bits_used_t()); }
-	this_t bit_rotate_right(const dynamic_integer& src) const volatile { return bit_rotate_right(src % bits_used_t()); }
-	this_t bit_rotate_right(const volatile dynamic_integer& src) const { return bit_rotate_right(src % bits_used_t()); }
-	this_t bit_rotate_right(const volatile dynamic_integer& src) const volatile { return bit_rotate_right(src % bits_used_t()); }
+	this_t bit_rotate_right(const dynamic_integer& src) const; // { return bit_rotate_right(src % bits_used_t()); }
+	this_t bit_rotate_right(const dynamic_integer& src) const volatile; // { return bit_rotate_right(src % bits_used_t()); }
+	this_t bit_rotate_right(const volatile dynamic_integer& src) const; // { return bit_rotate_right(src % bits_used_t()); }
+	this_t bit_rotate_right(const volatile dynamic_integer& src) const volatile ; //{ return bit_rotate_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& bit_rotate_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& bit_rotate_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -1873,10 +1865,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_right(const fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_bit_rotate_right(src % bits_used_t()); }
-	void assign_bit_rotate_right(const dynamic_integer& src) { assign_bit_rotate_right(src % bits_used_t()); }
-	void assign_bit_rotate_right(const volatile dynamic_integer& src) { assign_bit_rotate_right(src % bits_used_t()); }
-	void assign_bit_rotate_right(const dynamic_integer& src) volatile { assign_bit_rotate_right(src % bits_used_t()); }
-	void assign_bit_rotate_right(const volatile dynamic_integer& src) volatile { assign_bit_rotate_right(src % bits_used_t()); }
+	void assign_bit_rotate_right(const dynamic_integer& src); // { assign_bit_rotate_right(src % bits_used_t()); }
+	void assign_bit_rotate_right(const volatile dynamic_integer& src); // { assign_bit_rotate_right(src % bits_used_t()); }
+	void assign_bit_rotate_right(const dynamic_integer& src) volatile; // { assign_bit_rotate_right(src % bits_used_t()); }
+	void assign_bit_rotate_right(const volatile dynamic_integer& src) volatile; // { assign_bit_rotate_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) { }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { }
@@ -1908,10 +1900,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_bit_rotate_right(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_rotate_right(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_rotate_right(src % bits_used_t()); }
-	const this_t& pre_assign_bit_rotate_right(const dynamic_integer& src) { assign_bit_rotate_right(src % bits_used_t()); return *this; }
-	const this_t& pre_assign_bit_rotate_right(const volatile dynamic_integer& src) { assign_bit_rotate_right(src % bits_used_t()); return *this; }
-	this_t pre_assign_bit_rotate_right(const dynamic_integer& src) volatile { return pre_assign_bit_rotate_right(src % bits_used_t()); }
-	this_t pre_assign_bit_rotate_right(const volatile dynamic_integer& src) volatile { return pre_assign_bit_rotate_right(src % bits_used_t()); }
+	const this_t& pre_assign_bit_rotate_right(const dynamic_integer& src); // { assign_bit_rotate_right(src % bits_used_t()); return *this; }
+	const this_t& pre_assign_bit_rotate_right(const volatile dynamic_integer& src); // { assign_bit_rotate_right(src % bits_used_t()); return *this; }
+	this_t pre_assign_bit_rotate_right(const dynamic_integer& src) volatile; // { return pre_assign_bit_rotate_right(src % bits_used_t()); }
+	this_t pre_assign_bit_rotate_right(const volatile dynamic_integer& src) volatile; // { return pre_assign_bit_rotate_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -1943,10 +1935,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return post_assign_bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_right(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_rotate_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_rotate_right(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_right(const dynamic_integer& src) { return post_assign_bit_rotate_right(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_right(const volatile dynamic_integer& src) { return post_assign_bit_rotate_right(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_right(const dynamic_integer& src) volatile { return post_assign_bit_rotate_right(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_right(const volatile dynamic_integer& src) volatile { return post_assign_bit_rotate_right(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_right(const dynamic_integer& src); // { return post_assign_bit_rotate_right(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_right(const volatile dynamic_integer& src); // { return post_assign_bit_rotate_right(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_right(const dynamic_integer& src) volatile; // { return post_assign_bit_rotate_right(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_right(const volatile dynamic_integer& src) volatile; // { return post_assign_bit_rotate_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_rotate_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_rotate_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -1979,10 +1971,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_left(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return bit_rotate_left(src % bits_used_t()); }
-	this_t bit_rotate_left(const dynamic_integer& src) const { return bit_rotate_left(src % bits_used_t()); }
-	this_t bit_rotate_left(const dynamic_integer& src) const volatile { return bit_rotate_left(src % bits_used_t()); }
-	this_t bit_rotate_left(const volatile dynamic_integer& src) const { return bit_rotate_left(src % bits_used_t()); }
-	this_t bit_rotate_left(const volatile dynamic_integer& src) const volatile { return bit_rotate_left(src % bits_used_t()); }
+	this_t bit_rotate_left(const dynamic_integer& src) const; // { return bit_rotate_left(src % bits_used_t()); }
+	this_t bit_rotate_left(const dynamic_integer& src) const volatile; // { return bit_rotate_left(src % bits_used_t()); }
+	this_t bit_rotate_left(const volatile dynamic_integer& src) const; // { return bit_rotate_left(src % bits_used_t()); }
+	this_t bit_rotate_left(const volatile dynamic_integer& src) const volatile; // { return bit_rotate_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& bit_rotate_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& bit_rotate_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -2014,10 +2006,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_left(const fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_bit_rotate_left(src % bits_used_t()); }
-	void assign_bit_rotate_left(const dynamic_integer& src) { assign_bit_rotate_left(src % bits_used_t()); }
-	void assign_bit_rotate_left(const volatile dynamic_integer& src) { assign_bit_rotate_left(src % bits_used_t()); }
-	void assign_bit_rotate_left(const dynamic_integer& src) volatile { assign_bit_rotate_left(src % bits_used_t()); }
-	void assign_bit_rotate_left(const volatile dynamic_integer& src) volatile { assign_bit_rotate_left(src % bits_used_t()); }
+	void assign_bit_rotate_left(const dynamic_integer& src); // { assign_bit_rotate_left(src % bits_used_t()); }
+	void assign_bit_rotate_left(const volatile dynamic_integer& src); // { assign_bit_rotate_left(src % bits_used_t()); }
+	void assign_bit_rotate_left(const dynamic_integer& src) volatile; // { assign_bit_rotate_left(src % bits_used_t()); }
+	void assign_bit_rotate_left(const volatile dynamic_integer& src) volatile; // { assign_bit_rotate_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) { }
 	template <bool has_sign2, size_t bits2> void assign_bit_rotate_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { }
@@ -2049,10 +2041,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_bit_rotate_left(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_rotate_left(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_rotate_left(src % bits_used_t()); }
-	const this_t& pre_assign_bit_rotate_left(const dynamic_integer& src) { assign_bit_rotate_left(src % bits_used_t()); return *this; }
-	const this_t& pre_assign_bit_rotate_left(const volatile dynamic_integer& src) { assign_bit_rotate_left(src % bits_used_t()); return *this; }
-	this_t pre_assign_bit_rotate_left(const dynamic_integer& src) volatile { return pre_assign_bit_rotate_left(src % bits_used_t()); }
-	this_t pre_assign_bit_rotate_left(const volatile dynamic_integer& src) volatile { return pre_assign_bit_rotate_left(src % bits_used_t()); }
+	const this_t& pre_assign_bit_rotate_left(const dynamic_integer& src); // { assign_bit_rotate_left(src % bits_used_t()); return *this; }
+	const this_t& pre_assign_bit_rotate_left(const volatile dynamic_integer& src); // { assign_bit_rotate_left(src % bits_used_t()); return *this; }
+	this_t pre_assign_bit_rotate_left(const dynamic_integer& src) volatile; // { return pre_assign_bit_rotate_left(src % bits_used_t()); }
+	this_t pre_assign_bit_rotate_left(const volatile dynamic_integer& src) volatile; // { return pre_assign_bit_rotate_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_rotate_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2084,10 +2076,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return post_assign_bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_left(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_rotate_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_rotate_left(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_left(const dynamic_integer& src) { return post_assign_bit_rotate_left(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_left(const volatile dynamic_integer& src) { return post_assign_bit_rotate_left(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_left(const dynamic_integer& src) volatile { return post_assign_bit_rotate_left(src % bits_used_t()); }
-	this_t post_assign_bit_rotate_left(const volatile dynamic_integer& src) volatile { return post_assign_bit_rotate_left(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_left(const dynamic_integer& src); // { return post_assign_bit_rotate_left(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_left(const volatile dynamic_integer& src); // { return post_assign_bit_rotate_left(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_left(const dynamic_integer& src) volatile; // { return post_assign_bit_rotate_left(src % bits_used_t()); }
+	this_t post_assign_bit_rotate_left(const volatile dynamic_integer& src) volatile; // { return post_assign_bit_rotate_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_rotate_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_rotate_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2120,10 +2112,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t operator>>(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return operator>>(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t operator>>(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return operator>>(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t operator>>(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return operator>>(src % bits_used_t()); }
-	this_t operator>>(const dynamic_integer& src) const { return operator>>(src % bits_used_t()); }
-	this_t operator>>(const dynamic_integer& src) const volatile { return operator>>(src % bits_used_t()); }
-	this_t operator>>(const volatile dynamic_integer& src) const { return operator>>(src % bits_used_t()); }
-	this_t operator>>(const volatile dynamic_integer& src) const volatile { return operator>>(src % bits_used_t()); }
+	this_t operator>>(const dynamic_integer& src) const; // { return operator>>(src % bits_used_t()); }
+	this_t operator>>(const dynamic_integer& src) const volatile; // { return operator>>(src % bits_used_t()); }
+	this_t operator>>(const volatile dynamic_integer& src) const; // { return operator>>(src % bits_used_t()); }
+	this_t operator>>(const volatile dynamic_integer& src) const volatile; // { return operator>>(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& operator>>(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& operator>>(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -2155,10 +2147,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator>>=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { operator>>=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator>>=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { operator>>=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator>>=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { operator>>=(src % bits_used_t()); return *this; }
-	this_t& operator>>=(const dynamic_integer& src) { operator>>=(src % bits_used_t()); return *this; }
-	this_t& operator>>=(const volatile dynamic_integer& src) { operator>>=(src % bits_used_t()); return *this; }
-	volatile this_t& operator>>=(const dynamic_integer& src) volatile { operator>>=(src % bits_used_t()); return *this; }
-	volatile this_t& operator>>=(const volatile dynamic_integer& src) volatile { operator>>=(src % bits_used_t()); return *this; }
+	this_t& operator>>=(const dynamic_integer& src); // { operator>>=(src % bits_used_t()); return *this; }
+	this_t& operator>>=(const volatile dynamic_integer& src); // { operator>>=(src % bits_used_t()); return *this; }
+	volatile this_t& operator>>=(const dynamic_integer& src) volatile; // { operator>>=(src % bits_used_t()); return *this; }
+	volatile this_t& operator>>=(const volatile dynamic_integer& src) volatile; // { operator>>=(src % bits_used_t()); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator>>=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator>>=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2190,10 +2182,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) { operator>>=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_shift_right(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_shift_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_shift_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_shift_right(src % bits_used_t()); }
-	const this_t& pre_assign_bit_shift_right(const dynamic_integer& src) { operator>>=(src % bits_used_t()); return *this; }
-	const this_t& pre_assign_bit_shift_right(const volatile dynamic_integer& src) { operator>>=(src % bits_used_t()); return *this; }
-	this_t pre_assign_bit_shift_right(const dynamic_integer& src) volatile { return pre_assign_bit_shift_right(src % bits_used_t()); }
-	this_t pre_assign_bit_shift_right(const volatile dynamic_integer& src) volatile { return pre_assign_bit_shift_right(src % bits_used_t()); }
+	const this_t& pre_assign_bit_shift_right(const dynamic_integer& src); // { operator>>=(src % bits_used_t()); return *this; }
+	const this_t& pre_assign_bit_shift_right(const volatile dynamic_integer& src); // { operator>>=(src % bits_used_t()); return *this; }
+	this_t pre_assign_bit_shift_right(const dynamic_integer& src) volatile; // { return pre_assign_bit_shift_right(src % bits_used_t()); }
+	this_t pre_assign_bit_shift_right(const volatile dynamic_integer& src) volatile; // { return pre_assign_bit_shift_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2225,10 +2217,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return post_assign_bit_shift_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_right(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_shift_right(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_shift_right(src % bits_used_t()); }
-	this_t post_assign_bit_shift_right(const dynamic_integer& src) { return post_assign_bit_shift_right(src % bits_used_t()); }
-	this_t post_assign_bit_shift_right(const volatile dynamic_integer& src) { return post_assign_bit_shift_right(src % bits_used_t()); }
-	this_t post_assign_bit_shift_right(const dynamic_integer& src) volatile { return post_assign_bit_shift_right(src % bits_used_t()); }
-	this_t post_assign_bit_shift_right(const volatile dynamic_integer& src) volatile { return post_assign_bit_shift_right(src % bits_used_t()); }
+	this_t post_assign_bit_shift_right(const dynamic_integer& src); // { return post_assign_bit_shift_right(src % bits_used_t()); }
+	this_t post_assign_bit_shift_right(const volatile dynamic_integer& src); // { return post_assign_bit_shift_right(src % bits_used_t()); }
+	this_t post_assign_bit_shift_right(const dynamic_integer& src) volatile; // { return post_assign_bit_shift_right(src % bits_used_t()); }
+	this_t post_assign_bit_shift_right(const volatile dynamic_integer& src) volatile; // { return post_assign_bit_shift_right(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_shift_right(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_shift_right(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2261,10 +2253,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t operator<<(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return operator<<(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t operator<<(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return operator<<(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t operator<<(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return operator<<(src % bits_used_t()); }
-	this_t operator<<(const dynamic_integer& src) const { return operator<<(src % bits_used_t()); }
-	this_t operator<<(const dynamic_integer& src) const volatile { return operator<<(src % bits_used_t()); }
-	this_t operator<<(const volatile dynamic_integer& src) const { return operator<<(src % bits_used_t()); }
-	this_t operator<<(const volatile dynamic_integer& src) const volatile { return operator<<(src % bits_used_t()); }
+	this_t operator<<(const dynamic_integer& src) const; // { return operator<<(src % bits_used_t()); }
+	this_t operator<<(const dynamic_integer& src) const volatile; // { return operator<<(src % bits_used_t()); }
+	this_t operator<<(const volatile dynamic_integer& src) const; // { return operator<<(src % bits_used_t()); }
+	this_t operator<<(const volatile dynamic_integer& src) const volatile; // { return operator<<(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& operator<<(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& operator<<(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -2296,10 +2288,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator<<=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { operator<<=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator<<=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { operator<<=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator<<=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { operator<<=(src % bits_used_t()); return *this; }
-	this_t& operator<<=(const dynamic_integer& src) { operator<<=(src % bits_used_t()); return *this; }
-	this_t& operator<<=(const volatile dynamic_integer& src) { operator<<=(src % bits_used_t()); return *this; }
-	volatile this_t& operator<<=(const dynamic_integer& src) volatile { operator<<=(src % bits_used_t()); return *this; }
-	volatile this_t& operator<<=(const volatile dynamic_integer& src) volatile { operator<<=(src % bits_used_t()); return *this; }
+	this_t& operator<<=(const dynamic_integer& src); // { operator<<=(src % bits_used_t()); return *this; }
+	this_t& operator<<=(const volatile dynamic_integer& src); // { operator<<=(src % bits_used_t()); return *this; }
+	volatile this_t& operator<<=(const dynamic_integer& src) volatile; // { operator<<=(src % bits_used_t()); return *this; }
+	volatile this_t& operator<<=(const volatile dynamic_integer& src) volatile; // { operator<<=(src % bits_used_t()); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator<<=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator<<=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2331,10 +2323,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) { operator<<=(src % bits_used_t()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_shift_left(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_shift_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_shift_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_bit_shift_left(src % bits_used_t()); }
-	const this_t& pre_assign_bit_shift_left(const dynamic_integer& src) { operator<<=(src % bits_used_t()); return *this; }
-	const this_t& pre_assign_bit_shift_left(const volatile dynamic_integer& src) { operator<<=(src % bits_used_t()); return *this; }
-	this_t pre_assign_bit_shift_left(const dynamic_integer& src) volatile { return pre_assign_bit_shift_left(src % bits_used_t()); }
-	this_t pre_assign_bit_shift_left(const volatile dynamic_integer& src) volatile { return pre_assign_bit_shift_left(src % bits_used_t()); }
+	const this_t& pre_assign_bit_shift_left(const dynamic_integer& src); // { operator<<=(src % bits_used_t()); return *this; }
+	const this_t& pre_assign_bit_shift_left(const volatile dynamic_integer& src); // { operator<<=(src % bits_used_t()); return *this; }
+	this_t pre_assign_bit_shift_left(const dynamic_integer& src) volatile; // { return pre_assign_bit_shift_left(src % bits_used_t()); }
+	this_t pre_assign_bit_shift_left(const volatile dynamic_integer& src) volatile; // { return pre_assign_bit_shift_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_shift_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2366,10 +2358,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return post_assign_bit_shift_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_left(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_shift_left(src % bits_used_t()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_shift_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_bit_shift_left(src % bits_used_t()); }
-	this_t post_assign_bit_shift_left(const dynamic_integer& src) { return post_assign_bit_shift_left(src % bits_used_t()); }
-	this_t post_assign_bit_shift_left(const volatile dynamic_integer& src) { return post_assign_bit_shift_left(src % bits_used_t()); }
-	this_t post_assign_bit_shift_left(const dynamic_integer& src) volatile { return post_assign_bit_shift_left(src % bits_used_t()); }
-	this_t post_assign_bit_shift_left(const volatile dynamic_integer& src) volatile { return post_assign_bit_shift_left(src % bits_used_t()); }
+	this_t post_assign_bit_shift_left(const dynamic_integer& src); // { return post_assign_bit_shift_left(src % bits_used_t()); }
+	this_t post_assign_bit_shift_left(const volatile dynamic_integer& src); // { return post_assign_bit_shift_left(src % bits_used_t()); }
+	this_t post_assign_bit_shift_left(const dynamic_integer& src) volatile; // { return post_assign_bit_shift_left(src % bits_used_t()); }
+	this_t post_assign_bit_shift_left(const volatile dynamic_integer& src) volatile; // { return post_assign_bit_shift_left(src % bits_used_t()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_shift_left(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_bit_shift_left(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2776,10 +2768,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator+(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.operator+(*this); }
 	template <bool has_sign2, size_t bits2> auto operator+(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.operator+(*this); }
 	template <bool has_sign2, size_t bits2> auto operator+(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.operator+(*this); }
-	auto operator+(const dynamic_integer& src) const { return src.operator+(*this); }
-	auto operator+(const dynamic_integer& src) const volatile { return src.operator+(*this); }
-	auto operator+(const volatile dynamic_integer& src) const { return src.operator+(*this); }
-	auto operator+(const volatile dynamic_integer& src) const volatile { return src.operator+(*this); }
+	auto operator+(const dynamic_integer& src) const; // { return src.operator+(*this); }
+	auto operator+(const dynamic_integer& src) const volatile; // { return src.operator+(*this); }
+	auto operator+(const volatile dynamic_integer& src) const; // { return src.operator+(*this); }
+	auto operator+(const volatile dynamic_integer& src) const volatile; // { return src.operator+(*this); }
 
 	template <bool has_sign2, size_t bits2> const this_t& operator+(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& operator+(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -2811,10 +2803,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator+=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_add(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_add(m_int, src.get_int()); return *this; }
-	this_t& operator+=(const dynamic_integer& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
-	this_t& operator+=(const volatile dynamic_integer& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
-	volatile this_t& operator+=(const dynamic_integer& src) volatile { cogs::assign_add(m_int, src.get_int()); return *this; }
-	volatile this_t& operator+=(const volatile dynamic_integer& src) volatile { cogs::assign_add(m_int, src.get_int()); return *this; }
+	this_t& operator+=(const dynamic_integer& src); // { cogs::assign_add(m_int, src.get_int()); return *this; }
+	this_t& operator+=(const volatile dynamic_integer& src); // { cogs::assign_add(m_int, src.get_int()); return *this; }
+	volatile this_t& operator+=(const dynamic_integer& src) volatile; // { cogs::assign_add(m_int, src.get_int()); return *this; }
+	volatile this_t& operator+=(const volatile dynamic_integer& src) volatile; // { cogs::assign_add(m_int, src.get_int()); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2846,10 +2838,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_add(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_add(m_int, src.get_int()); }
-	const this_t& pre_assign_add(const dynamic_integer& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
-	const this_t& pre_assign_add(const volatile dynamic_integer& src) { cogs::assign_add(m_int, src.get_int()); return *this; }
-	this_t pre_assign_add(const dynamic_integer& src) volatile { return cogs::pre_assign_add(m_int, src.get_int()); }
-	this_t pre_assign_add(const volatile dynamic_integer& src) volatile { return cogs::pre_assign_add(m_int, src.get_int()); }
+	const this_t& pre_assign_add(const dynamic_integer& src); // { cogs::assign_add(m_int, src.get_int()); return *this; }
+	const this_t& pre_assign_add(const volatile dynamic_integer& src); // { cogs::assign_add(m_int, src.get_int()); return *this; }
+	this_t pre_assign_add(const dynamic_integer& src) volatile; // { return cogs::pre_assign_add(m_int, src.get_int()); }
+	this_t pre_assign_add(const volatile dynamic_integer& src) volatile; // { return cogs::pre_assign_add(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2881,10 +2873,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return cogs::post_assign_add(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_add(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_add(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_add(m_int, src.get_int()); }
-	this_t post_assign_add(const dynamic_integer& src) { return cogs::post_assign_add(m_int, src.get_int()); }
-	this_t post_assign_add(const volatile dynamic_integer& src) { return cogs::post_assign_add(m_int, src.get_int()); }
-	this_t post_assign_add(const dynamic_integer& src) volatile { return cogs::post_assign_add(m_int, src.get_int()); }
-	this_t post_assign_add(const volatile dynamic_integer& src) volatile { return cogs::post_assign_add(m_int, src.get_int()); }
+	this_t post_assign_add(const dynamic_integer& src); // { return cogs::post_assign_add(m_int, src.get_int()); }
+	this_t post_assign_add(const volatile dynamic_integer& src); // { return cogs::post_assign_add(m_int, src.get_int()); }
+	this_t post_assign_add(const dynamic_integer& src) volatile; // { return cogs::post_assign_add(m_int, src.get_int()); }
+	this_t post_assign_add(const volatile dynamic_integer& src) volatile; // { return cogs::post_assign_add(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2917,10 +2909,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator-(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(tmp, src); return result; }
 	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { fixed_integer_extended<has_sign2, bits2> tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
 	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { fixed_integer_extended<has_sign2, bits2> tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
-	auto operator-(const dynamic_integer& src) const { return src.inverse_subtract(*this); }
-	auto operator-(const dynamic_integer& src) const volatile { return src.inverse_subtract(*this); }
-	auto operator-(const volatile dynamic_integer& src) const { return src.inverse_subtract(*this); }
-	auto operator-(const volatile dynamic_integer& src) const volatile { return src.inverse_subtract(*this); }
+	auto operator-(const dynamic_integer& src) const; // { return src.inverse_subtract(*this); }
+	auto operator-(const dynamic_integer& src) const volatile; // { return src.inverse_subtract(*this); }
+	auto operator-(const volatile dynamic_integer& src) const; // { return src.inverse_subtract(*this); }
+	auto operator-(const volatile dynamic_integer& src) const volatile; // { return src.inverse_subtract(*this); }
 
 	template <bool has_sign2, size_t bits2> const this_t& operator-(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& operator-(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return *this; }
@@ -2952,10 +2944,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator-=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_subtract(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	this_t& operator-=(const dynamic_integer& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	this_t& operator-=(const volatile dynamic_integer& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	volatile this_t& operator-=(const dynamic_integer& src) volatile { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	volatile this_t& operator-=(const volatile dynamic_integer& src) volatile { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	this_t& operator-=(const dynamic_integer& src); // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	this_t& operator-=(const volatile dynamic_integer& src); // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	volatile this_t& operator-=(const dynamic_integer& src) volatile; // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	volatile this_t& operator-=(const volatile dynamic_integer& src) volatile; // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -2987,10 +2979,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_subtract(m_int, src.get_int()); }
-	const this_t& pre_assign_subtract(const dynamic_integer& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	const this_t& pre_assign_subtract(const volatile dynamic_integer& src) { cogs::assign_subtract(m_int, src.get_int()); return *this; }
-	this_t pre_assign_subtract(const dynamic_integer& src) volatile { return cogs::pre_assign_subtract(m_int, src.get_int()); }
-	this_t pre_assign_subtract(const volatile dynamic_integer& src) volatile { return cogs::pre_assign_subtract(m_int, src.get_int()); }
+	const this_t& pre_assign_subtract(const dynamic_integer& src); // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	const this_t& pre_assign_subtract(const volatile dynamic_integer& src); // { cogs::assign_subtract(m_int, src.get_int()); return *this; }
+	this_t pre_assign_subtract(const dynamic_integer& src) volatile ; //{ return cogs::pre_assign_subtract(m_int, src.get_int()); }
+	this_t pre_assign_subtract(const volatile dynamic_integer& src) volatile; // { return cogs::pre_assign_subtract(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -3022,10 +3014,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return cogs::post_assign_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_subtract(m_int, src.get_int()); }
-	this_t post_assign_subtract(const dynamic_integer& src) { return cogs::post_assign_subtract(m_int, src.get_int()); }
-	this_t post_assign_subtract(const volatile dynamic_integer& src) { return cogs::post_assign_subtract(m_int, src.get_int()); }
-	this_t post_assign_subtract(const dynamic_integer& src) volatile { return cogs::post_assign_subtract(m_int, src.get_int()); }
-	this_t post_assign_subtract(const volatile dynamic_integer& src) volatile { return cogs::post_assign_subtract(m_int, src.get_int()); }
+	this_t post_assign_subtract(const dynamic_integer& src); // { return cogs::post_assign_subtract(m_int, src.get_int()); }
+	this_t post_assign_subtract(const volatile dynamic_integer& src); // { return cogs::post_assign_subtract(m_int, src.get_int()); }
+	this_t post_assign_subtract(const dynamic_integer& src) volatile; // { return cogs::post_assign_subtract(m_int, src.get_int()); }
+	this_t post_assign_subtract(const volatile dynamic_integer& src) volatile; // { return cogs::post_assign_subtract(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
@@ -3058,10 +3050,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src - *this; }
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src - *this; }
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src - *this; }
-	auto inverse_subtract(const dynamic_integer& src) const { return src - *this; }
-	auto inverse_subtract(const dynamic_integer& src) const volatile { return src - *this; }
-	auto inverse_subtract(const volatile dynamic_integer& src) const { return src - *this; }
-	auto inverse_subtract(const volatile dynamic_integer& src) const volatile { return src - *this; }
+	auto inverse_subtract(const dynamic_integer& src) const; // { return src - *this; }
+	auto inverse_subtract(const dynamic_integer& src) const volatile; // { return src - *this; }
+	auto inverse_subtract(const volatile dynamic_integer& src) const; // { return src - *this; }
+	auto inverse_subtract(const volatile dynamic_integer& src) const volatile; // { return src - *this; }
 
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return operator-(); }
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return operator-(); }
@@ -3093,10 +3085,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_inverse_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_inverse_subtract(m_int, src.get_int()); }
-	void assign_inverse_subtract(const dynamic_integer& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); }
-	void assign_inverse_subtract(const volatile dynamic_integer& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); }
-	void assign_inverse_subtract(const dynamic_integer& src) volatile { cogs::assign_inverse_subtract(m_int, src.get_int()); }
-	void assign_inverse_subtract(const volatile dynamic_integer& src) volatile { cogs::assign_inverse_subtract(m_int, src.get_int()); }
+	void assign_inverse_subtract(const dynamic_integer& src); // { cogs::assign_inverse_subtract(m_int, src.get_int()); }
+	void assign_inverse_subtract(const volatile dynamic_integer& src) ; //{ cogs::assign_inverse_subtract(m_int, src.get_int()); }
+	void assign_inverse_subtract(const dynamic_integer& src) volatile; // { cogs::assign_inverse_subtract(m_int, src.get_int()); }
+	void assign_inverse_subtract(const volatile dynamic_integer& src) volatile; // { cogs::assign_inverse_subtract(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); }
@@ -3128,10 +3120,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
-	const this_t& pre_assign_inverse_subtract(const dynamic_integer& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); return *this; }
-	const this_t& pre_assign_inverse_subtract(const volatile dynamic_integer& src) { cogs::assign_inverse_subtract(m_int, src.get_int()); return *this; }
-	this_t pre_assign_inverse_subtract(const dynamic_integer& src) volatile { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
-	this_t pre_assign_inverse_subtract(const volatile dynamic_integer& src) volatile { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
+	const this_t& pre_assign_inverse_subtract(const dynamic_integer& src); // { cogs::assign_inverse_subtract(m_int, src.get_int()); return *this; }
+	const this_t& pre_assign_inverse_subtract(const volatile dynamic_integer& src); // { cogs::assign_inverse_subtract(m_int, src.get_int()); return *this; }
+	this_t pre_assign_inverse_subtract(const dynamic_integer& src) volatile; // { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
+	this_t pre_assign_inverse_subtract(const volatile dynamic_integer& src) volatile; // { return cogs::pre_assign_inverse_subtract(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); return *this; }
@@ -3163,10 +3155,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
-	this_t post_assign_inverse_subtract(const dynamic_integer& src) { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
-	this_t post_assign_inverse_subtract(const volatile dynamic_integer& src) { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
-	this_t post_assign_inverse_subtract(const dynamic_integer& src) volatile { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
-	this_t post_assign_inverse_subtract(const volatile dynamic_integer& src) volatile { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
+	this_t post_assign_inverse_subtract(const dynamic_integer& src); // { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
+	this_t post_assign_inverse_subtract(const volatile dynamic_integer& src); // { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
+	this_t post_assign_inverse_subtract(const dynamic_integer& src) volatile; // { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
+	this_t post_assign_inverse_subtract(const volatile dynamic_integer& src) volatile; // { return cogs::post_assign_inverse_subtract(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); assign_negative(); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); assign_negative(); return tmp; }
@@ -3199,10 +3191,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator*(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.operator*(*this); }
 	template <bool has_sign2, size_t bits2> auto operator*(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.operator*(*this); }
 	template <bool has_sign2, size_t bits2> auto operator*(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.operator*(*this); }
-	auto operator*(const dynamic_integer& src) const { return src.operator*(*this); }
-	auto operator*(const dynamic_integer& src) const volatile { return src.operator*(*this); }
-	auto operator*(const volatile dynamic_integer& src) const { return src.operator*(*this); }
-	auto operator*(const volatile dynamic_integer& src) const volatile { return src.operator*(*this); }
+	auto operator*(const dynamic_integer& src) const; // { return src.operator*(*this); }
+	auto operator*(const dynamic_integer& src) const volatile; // { return src.operator*(*this); }
+	auto operator*(const volatile dynamic_integer& src) const; // { return src.operator*(*this); }
+	auto operator*(const volatile dynamic_integer& src) const volatile; // { return src.operator*(*this); }
 
 	template <bool has_sign2, size_t bits2> auto operator*(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto operator*(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
@@ -3242,10 +3234,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator*=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_multiply(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	this_t& operator*=(const dynamic_integer& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	this_t& operator*=(const volatile dynamic_integer& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	volatile this_t& operator*=(const dynamic_integer& src) volatile { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	volatile this_t& operator*=(const volatile dynamic_integer& src) volatile { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	this_t& operator*=(const dynamic_integer& src); // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	this_t& operator*=(const volatile dynamic_integer& src); // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	volatile this_t& operator*=(const dynamic_integer& src) volatile; // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	volatile this_t& operator*=(const volatile dynamic_integer& src) volatile; // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
@@ -3285,10 +3277,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_extended<has_sign2, bits2>& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_multiply(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::pre_assign_multiply(m_int, src.get_int()); }
-	const this_t& pre_assign_multiply(const dynamic_integer& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	const this_t& pre_assign_multiply(const volatile dynamic_integer& src) { cogs::assign_multiply(m_int, src.get_int()); return *this; }
-	this_t pre_assign_multiply(const dynamic_integer& src) volatile { return cogs::pre_assign_multiply(m_int, src.get_int()); }
-	this_t pre_assign_multiply(const volatile dynamic_integer& src) volatile { return cogs::pre_assign_multiply(m_int, src.get_int()); }
+	const this_t& pre_assign_multiply(const dynamic_integer& src); // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	const this_t& pre_assign_multiply(const volatile dynamic_integer& src); // { cogs::assign_multiply(m_int, src.get_int()); return *this; }
+	this_t pre_assign_multiply(const dynamic_integer& src) volatile; // { return cogs::pre_assign_multiply(m_int, src.get_int()); }
+	this_t pre_assign_multiply(const volatile dynamic_integer& src) volatile; // { return cogs::pre_assign_multiply(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
@@ -3328,10 +3320,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return cogs::post_assign_multiply(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_multiply(m_int, src.get_int()); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return cogs::post_assign_multiply(m_int, src.get_int()); }
-	this_t post_assign_multiply(const dynamic_integer& src) { return cogs::post_assign_multiply(m_int, src.get_int()); }
-	this_t post_assign_multiply(const volatile dynamic_integer& src) { return cogs::post_assign_multiply(m_int, src.get_int()); }
-	this_t post_assign_multiply(const dynamic_integer& src) volatile { return cogs::post_assign_multiply(m_int, src.get_int()); }
-	this_t post_assign_multiply(const volatile dynamic_integer& src) volatile { return cogs::post_assign_multiply(m_int, src.get_int()); }
+	this_t post_assign_multiply(const dynamic_integer& src); // { return cogs::post_assign_multiply(m_int, src.get_int()); }
+	this_t post_assign_multiply(const volatile dynamic_integer& src); // { return cogs::post_assign_multiply(m_int, src.get_int()); }
+	this_t post_assign_multiply(const dynamic_integer& src) volatile; // { return cogs::post_assign_multiply(m_int, src.get_int()); }
+	this_t post_assign_multiply(const volatile dynamic_integer& src) volatile; // { return cogs::post_assign_multiply(m_int, src.get_int()); }
 
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
@@ -3385,10 +3377,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t operator%(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this); return tmp % src; }
 	template <bool has_sign2, size_t bits2> this_t operator%(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return operator%(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> this_t operator%(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this); return tmp % src; }
-	this_t operator%(const dynamic_integer& src) const { return operator%(*(src.m_contents)); }
-	this_t operator%(const dynamic_integer& src) const volatile { this_t tmp(*this); return tmp % src; }
-	this_t operator%(const volatile dynamic_integer& src) const { auto rt = src.guarded_begin_read(); auto result = operator%(*rt); rt->release(); return result; }
-	this_t operator%(const volatile dynamic_integer& src) const volatile { this_t tmp(*this); return tmp % src; }
+	this_t operator%(const dynamic_integer& src) const; // { return operator%(*(src.m_contents)); }
+	this_t operator%(const dynamic_integer& src) const volatile; // { this_t tmp(*this); return tmp % src; }
+	this_t operator%(const volatile dynamic_integer& src) const; // { auto rt = src.guarded_begin_read(); auto result = operator%(*rt); rt->release(); return result; }
+	this_t operator%(const volatile dynamic_integer& src) const volatile; // { this_t tmp(*this); return tmp % src; }
 
 	template <bool has_sign2, size_t bits2> void operator%(const fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
 	template <bool has_sign2, size_t bits2> void operator%(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
@@ -3428,10 +3420,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator%=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { operator%=(*(src.being_read())); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator%=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { operator%=(*(src.m_contents)); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator%=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { operator%=(*(src.m_contents)); return *this; }
-	this_t& operator%=(const dynamic_integer& src) { operator%=(*(src.m_contents)); return *this; }
-	this_t& operator%=(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); operator%=(*rt); rt->release(); return *this; }
-	volatile this_t& operator%=(const dynamic_integer& src) volatile { operator%=(*(src.m_contents)); return *this; }
-	volatile this_t& operator%=(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); operator%=(*rt); rt->release(); return *this; }
+	this_t& operator%=(const dynamic_integer& src); // { operator%=(*(src.m_contents)); return *this; }
+	this_t& operator%=(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); operator%=(*rt); rt->release(); return *this; }
+	volatile this_t& operator%=(const dynamic_integer& src) volatile; // { operator%=(*(src.m_contents)); return *this; }
+	volatile this_t& operator%=(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); operator%=(*rt); rt->release(); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator%=(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> this_t& operator%=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3471,10 +3463,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return pre_assign_modulo(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_modulo(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_modulo(*(src.begin_read())); }
-	const this_t& pre_assign_modulo(const dynamic_integer& src) { return pre_assign_modulo(*(src.m_contents)); }
-	const this_t& pre_assign_modulo(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); assign_modulo(*rt); rt->release(); return *this; }
-	this_t pre_assign_modulo(const dynamic_integer& src) volatile { return pre_assign_modulo(*(src.m_contents)); }
-	this_t pre_assign_modulo(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = pre_assign_modulo(*rt); rt->release(); return result; }
+	const this_t& pre_assign_modulo(const dynamic_integer& src); // { return pre_assign_modulo(*(src.m_contents)); }
+	const this_t& pre_assign_modulo(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); assign_modulo(*rt); rt->release(); return *this; }
+	this_t pre_assign_modulo(const dynamic_integer& src) volatile; // { return pre_assign_modulo(*(src.m_contents)); }
+	this_t pre_assign_modulo(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = pre_assign_modulo(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3514,10 +3506,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_modulo(m_int, *(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return post_assign_modulo(m_int, *(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_modulo(m_int, *(src.begin_read())); }
-	this_t post_assign_modulo(const dynamic_integer& src) { return post_assign_modulo(*(src.m_contents)); }
-	this_t post_assign_modulo(const dynamic_integer& src) volatile { return post_assign_modulo(*(src.m_contents)); }
-	this_t post_assign_modulo(const volatile dynamic_integer& src) { this_t tmp(*this);  auto rt = src.guarded_begin_read(); assign_modulo(*rt); rt->release(); return tmp; }
-	this_t post_assign_modulo(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = post_assign_modulo(*rt); rt->release(); return result; }
+	this_t post_assign_modulo(const dynamic_integer& src); // { return post_assign_modulo(*(src.m_contents)); }
+	this_t post_assign_modulo(const dynamic_integer& src) volatile; // { return post_assign_modulo(*(src.m_contents)); }
+	this_t post_assign_modulo(const volatile dynamic_integer& src); // { this_t tmp(*this);  auto rt = src.guarded_begin_read(); assign_modulo(*rt); rt->release(); return tmp; }
+	this_t post_assign_modulo(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = post_assign_modulo(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3558,10 +3550,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src % *this; }
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src % *this; }
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src % *this; }
-	auto inverse_modulo(const dynamic_integer& src) const { return src % *this; }
-	auto inverse_modulo(const dynamic_integer& src) const volatile { return src % *this; }
-	auto inverse_modulo(const volatile dynamic_integer& src) const { return src % *this; }
-	auto inverse_modulo(const volatile dynamic_integer& src) const volatile { return src % *this; }
+	auto inverse_modulo(const dynamic_integer& src) const; // { return src % *this; }
+	auto inverse_modulo(const dynamic_integer& src) const volatile; // { return src % *this; }
+	auto inverse_modulo(const volatile dynamic_integer& src) const; // { return src % *this; }
+	auto inverse_modulo(const volatile dynamic_integer& src) const volatile; // { return src % *this; }
 
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
@@ -3593,10 +3585,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src % *this; }
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src % t; }); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src % t; }); }
-	void assign_inverse_modulo(const dynamic_integer& src) { *this = src % *this; }
-	void assign_inverse_modulo(const volatile dynamic_integer& src) { *this = src % *this; }
-	void assign_inverse_modulo(const dynamic_integer& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src % t; }); }
-	void assign_inverse_modulo(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); assign_inverse_modulo(tmp); }
+	void assign_inverse_modulo(const dynamic_integer& src); // { *this = src % *this; }
+	void assign_inverse_modulo(const volatile dynamic_integer& src); // { *this = src % *this; }
+	void assign_inverse_modulo(const dynamic_integer& src) volatile; // { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src % t; }); }
+	void assign_inverse_modulo(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); assign_inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
@@ -3628,10 +3620,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_inverse_modulo(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src % t; }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src % t; }); }
-	const this_t& pre_assign_inverse_modulo(const dynamic_integer& src) { assign_inverse_modulo(src); return *this; }
-	const this_t& pre_assign_inverse_modulo(const volatile dynamic_integer& src) { assign_inverse_modulo(src); return *this; }
-	this_t pre_assign_inverse_modulo(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src % t; }); }
-	this_t pre_assign_inverse_modulo(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_inverse_modulo(tmp); }
+	const this_t& pre_assign_inverse_modulo(const dynamic_integer& src); // { assign_inverse_modulo(src); return *this; }
+	const this_t& pre_assign_inverse_modulo(const volatile dynamic_integer& src); // { assign_inverse_modulo(src); return *this; }
+	this_t pre_assign_inverse_modulo(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src % t; }); }
+	this_t pre_assign_inverse_modulo(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return 0; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return 0; }
@@ -3663,10 +3655,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_inverse_modulo(m_int, *(src.m_contents)); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src % t; }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src % t; }); }
-	this_t post_assign_inverse_modulo(const dynamic_integer& src) { this_t tmp(*this); assign_inverse_modulo(src); return tmp; }
-	this_t post_assign_inverse_modulo(const volatile dynamic_integer& src) { this_t tmp(*this); assign_inverse_modulo(src); return tmp; }
-	this_t post_assign_inverse_modulo(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src % t; }); }
-	this_t post_assign_inverse_modulo(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_inverse_modulo(tmp); }
+	this_t post_assign_inverse_modulo(const dynamic_integer& src); // { this_t tmp(*this); assign_inverse_modulo(src); return tmp; }
+	this_t post_assign_inverse_modulo(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_inverse_modulo(src); return tmp; }
+	this_t post_assign_inverse_modulo(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src % t; }); }
+	this_t post_assign_inverse_modulo(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); COGS_ASSERT(!!tmp); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); COGS_ASSERT(!!tmp); clear(); return tmp; }
@@ -3699,10 +3691,10 @@ public:
 	template <bool has_sign2, size_t bits2> fraction<this_t, fixed_integer_extended<has_sign2, bits2> > operator/(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return fraction<this_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 	template <bool has_sign2, size_t bits2> fraction<this_t, fixed_integer_extended<has_sign2, bits2> > operator/(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return fraction<this_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 	template <bool has_sign2, size_t bits2> fraction<this_t, fixed_integer_extended<has_sign2, bits2> > operator/(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return fraction<this_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
-	fraction<this_t, dynamic_integer> operator/(const dynamic_integer& src) const { return fraction<this_t, dynamic_integer>(*this, src); }
-	fraction<this_t, dynamic_integer> operator/(const dynamic_integer& src) const volatile { return fraction<this_t, dynamic_integer>(*this, src); }
-	fraction<this_t, dynamic_integer> operator/(const volatile dynamic_integer& src) const { return fraction<this_t, dynamic_integer>(*this, src); }
-	fraction<this_t, dynamic_integer> operator/(const volatile dynamic_integer& src) const volatile { return fraction<this_t, dynamic_integer>(*this, src); }
+	fraction<this_t, dynamic_integer> operator/(const dynamic_integer& src) const; // { return fraction<this_t, dynamic_integer>(*this, src); }
+	fraction<this_t, dynamic_integer> operator/(const dynamic_integer& src) const volatile; // { return fraction<this_t, dynamic_integer>(*this, src); }
+	fraction<this_t, dynamic_integer> operator/(const volatile dynamic_integer& src) const; // { return fraction<this_t, dynamic_integer>(*this, src); }
+	fraction<this_t, dynamic_integer> operator/(const volatile dynamic_integer& src) const volatile; // { return fraction<this_t, dynamic_integer>(*this, src); }
 
 	template <bool has_sign2, size_t bits2> void operator/(const fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
 	template <bool has_sign2, size_t bits2> void operator/(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
@@ -3743,10 +3735,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator/=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_divide_whole(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator/=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_divide_whole(*(src.m_contents)); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator/=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_divide_whole(*(src.begin_read())); return *this; }
-	this_t& operator/=(const dynamic_integer& src) { assign_divide_whole(*(src.m_contents)); return *this; }
-	this_t& operator/=(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); return *this; }
-	volatile this_t& operator/=(const dynamic_integer& src) volatile { assign_divide_whole(*(src.m_contents)); return *this; }
-	volatile this_t& operator/=(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); return *this; }
+	this_t& operator/=(const dynamic_integer& src); // { assign_divide_whole(*(src.m_contents)); return *this; }
+	this_t& operator/=(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); return *this; }
+	volatile this_t& operator/=(const dynamic_integer& src) volatile; // { assign_divide_whole(*(src.m_contents)); return *this; }
+	volatile this_t& operator/=(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); return *this; }
 
 	template <bool has_sign2, size_t bits2> this_t& operator/=(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> this_t& operator/=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3786,10 +3778,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return *this /= src; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_divide_whole(*(src.begin_read())); }
-	const this_t& pre_assign_divide(const dynamic_integer& src) { return *this /= src; }
-	const this_t& pre_assign_divide(const volatile dynamic_integer& src) { return *this /= src; }
-	this_t pre_assign_divide(const dynamic_integer& src) volatile { return pre_assign_divide_whole(*(src.m_contents)); }
-	this_t pre_assign_divide(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
+	const this_t& pre_assign_divide(const dynamic_integer& src); // { return *this /= src; }
+	const this_t& pre_assign_divide(const volatile dynamic_integer& src); // { return *this /= src; }
+	this_t pre_assign_divide(const dynamic_integer& src) volatile; // { return pre_assign_divide_whole(*(src.m_contents)); }
+	this_t pre_assign_divide(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3829,10 +3821,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); *this /= src; return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_divide_whole(*(src.begin_read())); }
-	this_t post_assign_divide(const dynamic_integer& src) { this_t tmp(*this); *this /= src; return tmp; }
-	this_t post_assign_divide(const volatile dynamic_integer& src) { this_t tmp(*this); *this /= src; return tmp; }
-	this_t post_assign_divide(const dynamic_integer& src) volatile { return post_assign_divide_whole(*(src.m_contents)); }
-	this_t post_assign_divide(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
+	this_t post_assign_divide(const dynamic_integer& src); // { this_t tmp(*this); *this /= src; return tmp; }
+	this_t post_assign_divide(const volatile dynamic_integer& src); // { this_t tmp(*this); *this /= src; return tmp; }
+	this_t post_assign_divide(const dynamic_integer& src) volatile; // { return post_assign_divide_whole(*(src.m_contents)); }
+	this_t post_assign_divide(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -3883,10 +3875,10 @@ public:
 	template <bool has_sign2, size_t bits2> fraction<fixed_integer_extended<has_sign2, bits2>, this_t> inverse_divide(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return fraction<fixed_integer_extended<has_sign2, bits2>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2> fraction<fixed_integer_extended<has_sign2, bits2>, this_t> inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return fraction<fixed_integer_extended<has_sign2, bits2>, this_t>(src, *this); }
 	template <bool has_sign2, size_t bits2> fraction<fixed_integer_extended<has_sign2, bits2>, this_t> inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return fraction<fixed_integer_extended<has_sign2, bits2>, this_t>(src, *this); }
-	fraction<dynamic_integer, this_t> inverse_divide(const dynamic_integer& src) const { return fraction<dynamic_integer, this_t>(src, *this); }
-	fraction<dynamic_integer, this_t> inverse_divide(const dynamic_integer& src) const volatile { return fraction<dynamic_integer, this_t>(src, *this); }
-	fraction<dynamic_integer, this_t> inverse_divide(const volatile dynamic_integer& src) const { return fraction<dynamic_integer, this_t>(src, *this); }
-	fraction<dynamic_integer, this_t> inverse_divide(const volatile dynamic_integer& src) const volatile { return fraction<dynamic_integer, this_t>(src, *this); }
+	fraction<dynamic_integer, this_t> inverse_divide(const dynamic_integer& src) const; // { return fraction<dynamic_integer, this_t>(src, *this); }
+	fraction<dynamic_integer, this_t> inverse_divide(const dynamic_integer& src) const volatile; // { return fraction<dynamic_integer, this_t>(src, *this); }
+	fraction<dynamic_integer, this_t> inverse_divide(const volatile dynamic_integer& src) const; // { return fraction<dynamic_integer, this_t>(src, *this); }
+	fraction<dynamic_integer, this_t> inverse_divide(const volatile dynamic_integer& src) const volatile; // { return fraction<dynamic_integer, this_t>(src, *this); }
 
 	template <bool has_sign2, size_t bits2> auto inverse_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
@@ -3918,10 +3910,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.divide_whole(*this); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	void assign_inverse_divide(const dynamic_integer& src) { *this = src.divide_whole(*this); }
-	void assign_inverse_divide(const volatile dynamic_integer& src) { *this = src.divide_whole(*this); }
-	void assign_inverse_divide(const dynamic_integer& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	void assign_inverse_divide(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); assign_inverse_divide(tmp); }
+	void assign_inverse_divide(const dynamic_integer& src); // { *this = src.divide_whole(*this); }
+	void assign_inverse_divide(const volatile dynamic_integer& src); // { *this = src.divide_whole(*this); }
+	void assign_inverse_divide(const dynamic_integer& src) volatile; // { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	void assign_inverse_divide(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); assign_inverse_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
@@ -3953,10 +3945,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_inverse_divide(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	const this_t& pre_assign_inverse_divide(const dynamic_integer& src) { assign_inverse_divide(src); return *this; }
-	const this_t& pre_assign_inverse_divide(const volatile dynamic_integer& src) { assign_inverse_divide(src); return *this; }
-	this_t pre_assign_inverse_divide(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t pre_assign_inverse_divide(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_inverse_divide(tmp); }
+	const this_t& pre_assign_inverse_divide(const dynamic_integer& src); // { assign_inverse_divide(src); return *this; }
+	const this_t& pre_assign_inverse_divide(const volatile dynamic_integer& src); // { assign_inverse_divide(src); return *this; }
+	this_t pre_assign_inverse_divide(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	this_t pre_assign_inverse_divide(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_inverse_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return *this; }
@@ -3988,10 +3980,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_inverse_divide(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t post_assign_inverse_divide(const dynamic_integer& src) { this_t tmp(*this); post_assign_inverse_divide(src); return tmp; }
-	this_t post_assign_inverse_divide(const volatile dynamic_integer& src) { this_t tmp(*this); post_assign_inverse_divide(src); return tmp; }
-	this_t post_assign_inverse_divide(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t post_assign_inverse_divide(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_inverse_divide(tmp); }
+	this_t post_assign_inverse_divide(const dynamic_integer& src); // { this_t tmp(*this); post_assign_inverse_divide(src); return tmp; }
+	this_t post_assign_inverse_divide(const volatile dynamic_integer& src); // { this_t tmp(*this); post_assign_inverse_divide(src); return tmp; }
+	this_t post_assign_inverse_divide(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	this_t post_assign_inverse_divide(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_inverse_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_divide(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); COGS_ASSERT(!!*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_divide(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); COGS_ASSERT(!!*this); clear(); return tmp; }
@@ -4067,10 +4059,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this); return tmp.divide_whole(src); }
 	template <bool has_sign2, size_t bits2> auto divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return divide_whole(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> auto divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this); return tmp.divide_whole(src); }
-	auto divide_whole(const dynamic_integer& src) const { return divide_whole(*(src.m_contents)); }
-	auto divide_whole(const dynamic_integer& src) const volatile { this_t tmp(*this); return tmp.divide_whole(src); }
-	auto divide_whole(const volatile dynamic_integer& src) const { dynamic_integer tmp(src); return divide_whole(tmp); }
-	auto divide_whole(const volatile dynamic_integer& src) const volatile { this_t tmp(*this); return tmp.divide_whole(src); }
+	auto divide_whole(const dynamic_integer& src) const; // { return divide_whole(*(src.m_contents)); }
+	auto divide_whole(const dynamic_integer& src) const volatile; // { this_t tmp(*this); return tmp.divide_whole(src); }
+	auto divide_whole(const volatile dynamic_integer& src) const; // { dynamic_integer tmp(src); return divide_whole(tmp); }
+	auto divide_whole(const volatile dynamic_integer& src) const volatile; // { this_t tmp(*this); return tmp.divide_whole(src); }
 
 	template <bool has_sign2, size_t bits2> void divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
 	template <bool has_sign2, size_t bits2> void divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
@@ -4110,10 +4102,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_divide_whole(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { assign_divide_whole(*(src.begin_read())); }
-	void assign_divide_whole(const dynamic_integer& src) { assign_divide_whole(*(src.m_contents)); }
-	void assign_divide_whole(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); }
-	void assign_divide_whole(const dynamic_integer& src) volatile { assign_divide_whole(*(src.m_contents)) }
-	void assign_divide_whole(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release();}
+	void assign_divide_whole(const dynamic_integer& src); // { assign_divide_whole(*(src.m_contents)); }
+	void assign_divide_whole(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release(); }
+	void assign_divide_whole(const dynamic_integer& src) volatile; // { assign_divide_whole(*(src.m_contents)) }
+	void assign_divide_whole(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); assign_divide_whole(*rt); rt->release();}
 
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -4153,10 +4145,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return *this /= src; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return pre_assign_divide_whole(*(src.begin_read())); }
-	const this_t& pre_assign_divide_whole(const dynamic_integer& src) { return *this /= src; }
-	const this_t& pre_assign_divide_whole(const volatile dynamic_integer& src) { return *this /= src; }
-	this_t pre_assign_divide_whole(const dynamic_integer& src) volatile { return pre_assign_divide_whole(*(src.m_contents)); }
-	this_t pre_assign_divide_whole(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
+	const this_t& pre_assign_divide_whole(const dynamic_integer& src); // { return *this /= src; }
+	const this_t& pre_assign_divide_whole(const volatile dynamic_integer& src); // { return *this /= src; }
+	this_t pre_assign_divide_whole(const dynamic_integer& src) volatile; // { return pre_assign_divide_whole(*(src.m_contents)); }
+	this_t pre_assign_divide_whole(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> this_t pre_assign_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -4196,10 +4188,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); *this /= src; return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return post_assign_divide_whole(*(src.begin_read())); }
-	this_t post_assign_divide_whole(const dynamic_integer& src) { this_t tmp(*this); *this /= src; return tmp; }
-	this_t post_assign_divide_whole(const volatile dynamic_integer& src) { this_t tmp(*this); *this /= src; return tmp; }
-	this_t post_assign_divide_whole(const dynamic_integer& src) volatile { return post_assign_divide_whole(*(src.m_contents)); }
-	this_t post_assign_divide_whole(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
+	this_t post_assign_divide_whole(const dynamic_integer& src); // { this_t tmp(*this); *this /= src; return tmp; }
+	this_t post_assign_divide_whole(const volatile dynamic_integer& src); // { this_t tmp(*this); *this /= src; return tmp; }
+	this_t post_assign_divide_whole(const dynamic_integer& src) volatile; // { return post_assign_divide_whole(*(src.m_contents)); }
+	this_t post_assign_divide_whole(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = pre_assign_divide_whole(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -4240,10 +4232,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.divide_whole(*this); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.divide_whole(*this); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.divide_whole(*this); }
-	auto inverse_divide_whole(const dynamic_integer& src) const { return src.divide_whole(*this); }
-	auto inverse_divide_whole(const dynamic_integer& src) const volatile { return src.divide_whole(*this); }
-	auto inverse_divide_whole(const volatile dynamic_integer& src) const { return src.divide_whole(*this); }
-	auto inverse_divide_whole(const volatile dynamic_integer& src) const volatile { return src.divide_whole(*this); }
+	auto inverse_divide_whole(const dynamic_integer& src) const; // { return src.divide_whole(*this); }
+	auto inverse_divide_whole(const dynamic_integer& src) const volatile; // { return src.divide_whole(*this); }
+	auto inverse_divide_whole(const volatile dynamic_integer& src) const; // { return src.divide_whole(*this); }
+	auto inverse_divide_whole(const volatile dynamic_integer& src) const volatile; // { return src.divide_whole(*this); }
 
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { COGS_ASSERT(!!*this); return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { COGS_ASSERT(!!*this); return zero_t(); }
@@ -4275,10 +4267,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.divide_whole(*this); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	void assign_inverse_divide_whole(const dynamic_integer& src) { *this = src.divide_whole(*this); }
-	void assign_inverse_divide_whole(const volatile dynamic_integer& src) { *this = src.divide_whole(*this); }
-	void assign_inverse_divide_whole(const dynamic_integer& src) volatile { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	void assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); assign_inverse_divide_whole(tmp); }
+	void assign_inverse_divide_whole(const dynamic_integer& src); // { *this = src.divide_whole(*this); }
+	void assign_inverse_divide_whole(const volatile dynamic_integer& src); // { *this = src.divide_whole(*this); }
+	void assign_inverse_divide_whole(const dynamic_integer& src) volatile; // { atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	void assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); assign_inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
@@ -4310,10 +4302,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_inverse_divide_whole(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	const this_t& pre_assign_inverse_divide_whole(const dynamic_integer& src) { assign_inverse_divide_whole(src); return *this; }
-	const this_t& pre_assign_inverse_divide_whole(const volatile dynamic_integer& src) { assign_inverse_divide_whole(src); return *this; }
-	this_t pre_assign_inverse_divide_whole(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t pre_assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_inverse_divide_whole(tmp); }
+	const this_t& pre_assign_inverse_divide_whole(const dynamic_integer& src); // { assign_inverse_divide_whole(src); return *this; }
+	const this_t& pre_assign_inverse_divide_whole(const volatile dynamic_integer& src); // { assign_inverse_divide_whole(src); return *this; }
+	this_t pre_assign_inverse_divide_whole(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	this_t pre_assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); return *this; }
@@ -4345,10 +4337,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_inverse_divide_whole(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t post_assign_inverse_divide_whole(const dynamic_integer& src) { this_t tmp(*this); assign_inverse_divide_whole(src); return tmp; }
-	this_t post_assign_inverse_divide_whole(const volatile dynamic_integer& src) { this_t tmp(*this); assign_inverse_divide_whole(src); return tmp; }
-	this_t post_assign_inverse_divide_whole(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
-	this_t post_assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_inverse_divide_whole(tmp); }
+	this_t post_assign_inverse_divide_whole(const dynamic_integer& src); // { this_t tmp(*this); assign_inverse_divide_whole(src); return tmp; }
+	this_t post_assign_inverse_divide_whole(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_inverse_divide_whole(src); return tmp; }
+	this_t post_assign_inverse_divide_whole(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.divide_whole(t); }); }
+	this_t post_assign_inverse_divide_whole(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); this_t tmp(*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> const this_t& post_assign_inverse_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); this_t tmp(*this); clear(); return tmp; }
@@ -4381,10 +4373,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this);  return tmp.divide_whole_and_modulo(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return divide_whole_and_modulo(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this);  return tmp.divide_whole_and_modulo(*(src.begin_read())); }
-	auto divide_whole_and_modulo(const dynamic_integer& src) const { return divide_whole_and_modulo(*(src.m_contents)); }
-	auto divide_whole_and_modulo(const dynamic_integer& src) const volatile { this_t tmp(*this);  return tmp.divide_whole_and_modulo(*(src.m_contents)); }
-	auto divide_whole_and_modulo(const volatile dynamic_integer& src) const { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_modulo(*rt); rt->release(); return result; }
-	auto divide_whole_and_modulo(const volatile dynamic_integer& src) const volatile { this_t tmp(*this); return tmp.divide_whole_and_modulo(src); }
+	auto divide_whole_and_modulo(const dynamic_integer& src) const; // { return divide_whole_and_modulo(*(src.m_contents)); }
+	auto divide_whole_and_modulo(const dynamic_integer& src) const volatile; // { this_t tmp(*this);  return tmp.divide_whole_and_modulo(*(src.m_contents)); }
+	auto divide_whole_and_modulo(const volatile dynamic_integer& src) const; // { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_modulo(*rt); rt->release(); return result; }
+	auto divide_whole_and_modulo(const volatile dynamic_integer& src) const volatile; // { this_t tmp(*this); return tmp.divide_whole_and_modulo(src); }
 
 	template <bool has_sign2, size_t bits2> void divide_whole_and_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
 	template <bool has_sign2, size_t bits2> void divide_whole_and_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const = delete;
@@ -4425,10 +4417,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole_and_inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.divide_whole_and_modulo(*this); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole_and_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.divide_whole_and_modulo(*this); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole_and_inverse_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.divide_whole_and_modulo(*this); }
-	auto inverse_divide_whole_and_inverse_modulo(const dynamic_integer& src) const { return src.divide_whole_and_modulo(*this); }
-	auto inverse_divide_whole_and_inverse_modulo(const dynamic_integer& src) const volatile { return src.divide_whole_and_modulo(*this); }
-	auto inverse_divide_whole_and_inverse_modulo(const volatile dynamic_integer& src) const { return src.divide_whole_and_modulo(*this); }
-	auto inverse_divide_whole_and_inverse_modulo(const volatile dynamic_integer& src) const volatile { return src.divide_whole_and_modulo(*this); }
+	auto inverse_divide_whole_and_inverse_modulo(const dynamic_integer& src) const; // { return src.divide_whole_and_modulo(*this); }
+	auto inverse_divide_whole_and_inverse_modulo(const dynamic_integer& src) const volatile; // { return src.divide_whole_and_modulo(*this); }
+	auto inverse_divide_whole_and_inverse_modulo(const volatile dynamic_integer& src) const; // { return src.divide_whole_and_modulo(*this); }
+	auto inverse_divide_whole_and_inverse_modulo(const volatile dynamic_integer& src) const volatile; // { return src.divide_whole_and_modulo(*this); }
 
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole_and_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { COGS_ASSERT(!!*this); return std::pair<zero_t, zero_t>(); }
 	template <bool has_sign2, size_t bits2> auto inverse_divide_whole_and_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { COGS_ASSERT(!!*this); return std::pair<zero_t, zero_t>(); }
@@ -4461,10 +4453,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_assign_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return divide_whole_and_assign_modulo(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return divide_whole_and_assign_modulo(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return divide_whole_and_assign_modulo(*(src.begin_read())); }
-	auto divide_whole_and_assign_modulo(const dynamic_integer& src) { return divide_whole_and_assign_modulo(*(src.m_contents)); }
-	auto divide_whole_and_assign_modulo(const dynamic_integer& src) volatile { return divide_whole_and_assign_modulo(*(src.m_contents)); }
-	auto divide_whole_and_assign_modulo(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_assign_modulo(*rt); rt->release(); return result; }
-	auto divide_whole_and_assign_modulo(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_assign_modulo(*rt); rt->release(); return result; }
+	auto divide_whole_and_assign_modulo(const dynamic_integer& src); // { return divide_whole_and_assign_modulo(*(src.m_contents)); }
+	auto divide_whole_and_assign_modulo(const dynamic_integer& src) volatile; // { return divide_whole_and_assign_modulo(*(src.m_contents)); }
+	auto divide_whole_and_assign_modulo(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_assign_modulo(*rt); rt->release(); return result; }
+	auto divide_whole_and_assign_modulo(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = divide_whole_and_assign_modulo(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> void divide_whole_and_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> void divide_whole_and_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -4505,10 +4497,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto modulo_and_assign_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return modulo_and_assign_divide_whole(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> auto modulo_and_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { return modulo_and_assign_divide_whole(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> auto modulo_and_assign_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return modulo_and_assign_divide_whole(*(src.begin_read())); }
-	auto modulo_and_assign_divide_whole(const dynamic_integer& src) { return modulo_and_assign_divide_whole(*(src.m_contents)); }
-	auto modulo_and_assign_divide_whole(const dynamic_integer& src) volatile { return modulo_and_assign_divide_whole(*(src.m_contents)); }
-	auto modulo_and_assign_divide_whole(const volatile dynamic_integer& src) { auto rt = src.guarded_begin_read(); auto result = modulo_and_assign_divide_whole(*rt); rt->release(); return result; }
-	auto modulo_and_assign_divide_whole(const volatile dynamic_integer& src) volatile { auto rt = src.guarded_begin_read(); auto result = modulo_and_assign_divide_whole(*rt); rt->release(); return result; }
+	auto modulo_and_assign_divide_whole(const dynamic_integer& src); // { return modulo_and_assign_divide_whole(*(src.m_contents)); }
+	auto modulo_and_assign_divide_whole(const dynamic_integer& src) volatile; // { return modulo_and_assign_divide_whole(*(src.m_contents)); }
+	auto modulo_and_assign_divide_whole(const volatile dynamic_integer& src); // { auto rt = src.guarded_begin_read(); auto result = modulo_and_assign_divide_whole(*rt); rt->release(); return result; }
+	auto modulo_and_assign_divide_whole(const volatile dynamic_integer& src) volatile; // { auto rt = src.guarded_begin_read(); auto result = modulo_and_assign_divide_whole(*rt); rt->release(); return result; }
 
 	template <bool has_sign2, size_t bits2> void modulo_and_assign_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> void modulo_and_assign_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -4549,10 +4541,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto gcd(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.gcd(*this); }
 	template <bool has_sign2, size_t bits2> auto gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.gcd(*this); }
 	template <bool has_sign2, size_t bits2> auto gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.gcd(*this); }
-	auto gcd(const dynamic_integer& src) const { return src.gcd(*this); }
-	auto gcd(const dynamic_integer& src) const volatile { return src.gcd(*this); }
-	auto gcd(const volatile dynamic_integer& src) const { return src.gcd(*this); }
-	auto gcd(const volatile dynamic_integer& src) const volatile { return src.gcd(*this); }
+	auto gcd(const dynamic_integer& src) const; // { return src.gcd(*this); }
+	auto gcd(const dynamic_integer& src) const volatile; // { return src.gcd(*this); }
+	auto gcd(const volatile dynamic_integer& src) const; // { return src.gcd(*this); }
+	auto gcd(const volatile dynamic_integer& src) const volatile; // { return src.gcd(*this); }
 
 	template <bool has_sign2, size_t bits2> auto gcd(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto gcd(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
@@ -4592,10 +4584,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.gcd(*this); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.gcd(*this); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.gcd(*this); }
-	void assign_gcd(const dynamic_integer& src) { *this = src.gcd(*this); }
-	void assign_gcd(const volatile dynamic_integer& src) { *this = src.gcd(*this); }
-	void assign_gcd(const dynamic_integer& src) volatile { *this = src.gcd(*this); }
-	void assign_gcd(const volatile dynamic_integer& src) volatile { *this = src.gcd(*this); }
+	void assign_gcd(const dynamic_integer& src); // { *this = src.gcd(*this); }
+	void assign_gcd(const volatile dynamic_integer& src); // { *this = src.gcd(*this); }
+	void assign_gcd(const dynamic_integer& src) volatile; // { *this = src.gcd(*this); }
+	void assign_gcd(const volatile dynamic_integer& src) volatile; // { *this = src.gcd(*this); }
 
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); }
@@ -4635,10 +4627,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_gcd(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.gcd(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.gcd(t); }); }
-	const this_t& pre_assign_gcd(const dynamic_integer& src) { assign_gcd(src); return *this; }
-	const this_t& pre_assign_gcd(const volatile dynamic_integer& src) { assign_gcd(src); return *this; }
-	this_t pre_assign_gcd(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.gcd(t); }); }
-	this_t pre_assign_gcd(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_gcd(tmp); }
+	const this_t& pre_assign_gcd(const dynamic_integer& src); // { assign_gcd(src); return *this; }
+	const this_t& pre_assign_gcd(const volatile dynamic_integer& src); // { assign_gcd(src); return *this; }
+	this_t pre_assign_gcd(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.gcd(t); }); }
+	this_t pre_assign_gcd(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_gcd(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_gcd(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_gcd(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
@@ -4678,10 +4670,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_gcd(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.gcd(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.gcd(t); }); }
-	this_t post_assign_gcd(const dynamic_integer& src) { this_t tmp(*this); assign_gcd(src); return tmp; }
-	this_t post_assign_gcd(const volatile dynamic_integer& src) { this_t tmp(*this); assign_gcd(src); return tmp; }
-	this_t post_assign_gcd(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.gcd(t); }); }
-	this_t post_assign_gcd(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_gcd(tmp); }
+	this_t post_assign_gcd(const dynamic_integer& src); // { this_t tmp(*this); assign_gcd(src); return tmp; }
+	this_t post_assign_gcd(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_gcd(src); return tmp; }
+	this_t post_assign_gcd(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.gcd(t); }); }
+	this_t post_assign_gcd(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_gcd(tmp); }
 
 	template <bool has_sign2, size_t bits2> this_t post_assign_gcd(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_gcd(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
@@ -4722,10 +4714,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto lcm(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.lcm(*this); }
 	template <bool has_sign2, size_t bits2> auto lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.lcm(*this); }
 	template <bool has_sign2, size_t bits2> auto lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.lcm(*this); }
-	auto lcm(const dynamic_integer& src) const { return src.lcm(*this); }
-	auto lcm(const dynamic_integer& src) const volatile { return src.lcm(*this); }
-	auto lcm(const volatile dynamic_integer& src) const { return src.lcm(*this); }
-	auto lcm(const volatile dynamic_integer& src) const volatile { return src.lcm(*this); }
+	auto lcm(const dynamic_integer& src) const; // { return src.lcm(*this); }
+	auto lcm(const dynamic_integer& src) const volatile; // { return src.lcm(*this); }
+	auto lcm(const volatile dynamic_integer& src) const; // { return src.lcm(*this); }
+	auto lcm(const volatile dynamic_integer& src) const volatile; // { return src.lcm(*this); }
 
 	template <bool has_sign2, size_t bits2> auto lcm(const fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
 	template <bool has_sign2, size_t bits2> auto lcm(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) const { return zero_t(); }
@@ -4765,10 +4757,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.lcm(*this); }
 	template <bool has_sign2, size_t bits2> void assign_lcm(const fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.lcm(*this); }
 	template <bool has_sign2, size_t bits2> void assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.lcm(*this); }
-	void assign_lcm(const dynamic_integer& src) { *this = src.lcm(*this); }
-	void assign_lcm(const volatile dynamic_integer& src) { *this = src.lcm(*this); }
-	void assign_lcm(const dynamic_integer& src) volatile { *this = src.lcm(*this); }
-	void assign_lcm(const volatile dynamic_integer& src) volatile { *this = src.lcm(*this); }
+	void assign_lcm(const dynamic_integer& src); // { *this = src.lcm(*this); }
+	void assign_lcm(const volatile dynamic_integer& src); // { *this = src.lcm(*this); }
+	void assign_lcm(const dynamic_integer& src) volatile; // { *this = src.lcm(*this); }
+	void assign_lcm(const volatile dynamic_integer& src) volatile; // { *this = src.lcm(*this); }
 
 	template <bool has_sign2, size_t bits2> void assign_lcm(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); }
 	template <bool has_sign2, size_t bits2> void assign_lcm(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); }
@@ -4808,10 +4800,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_lcm(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_lcm(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lcm(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lcm(t); }); }
-	const this_t& pre_assign_lcm(const dynamic_integer& src) { assign_lcm(src); return *this; }
-	const this_t& pre_assign_lcm(const volatile dynamic_integer& src) { assign_lcm(src); return *this; }
-	this_t pre_assign_lcm(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lcm(t); }); }
-	this_t pre_assign_lcm(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_lcm(tmp); }
+	const this_t& pre_assign_lcm(const dynamic_integer& src); // { assign_lcm(src); return *this; }
+	const this_t& pre_assign_lcm(const volatile dynamic_integer& src); // { assign_lcm(src); return *this; }
+	this_t pre_assign_lcm(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lcm(t); }); }
+	this_t pre_assign_lcm(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_lcm(tmp); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_lcm(const fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_lcm(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { clear(); return *this; }
@@ -4851,10 +4843,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_lcm(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_lcm(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lcm(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lcm(t); }); }
-	this_t post_assign_lcm(const dynamic_integer& src) { this_t tmp(*this); assign_lcm(src); return tmp; }
-	this_t post_assign_lcm(const volatile dynamic_integer& src) { this_t tmp(*this); assign_lcm(src); return tmp; }
-	this_t post_assign_lcm(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lcm(t); }); }
-	this_t post_assign_lcm(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_lcm(tmp); }
+	this_t post_assign_lcm(const dynamic_integer& src); // { this_t tmp(*this); assign_lcm(src); return tmp; }
+	this_t post_assign_lcm(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_lcm(src); return tmp; }
+	this_t post_assign_lcm(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lcm(t); }); }
+	this_t post_assign_lcm(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_lcm(tmp); }
 
 	template <bool has_sign2, size_t bits2> this_t post_assign_lcm(const fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_lcm(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { this_t tmp(*this); clear(); return tmp; }
@@ -4898,10 +4890,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto greater(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.greater(*this); }
 	template <bool has_sign2, size_t bits2> auto greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.greater(*this); }
 	template <bool has_sign2, size_t bits2> auto greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.greater(*this); }
-	auto greater(const dynamic_integer& src) const { return src.greater(*this); }
-	auto greater(const dynamic_integer& src) const volatile { return src.greater(*this); }
-	auto greater(const volatile dynamic_integer& src) const { return src.greater(*this); }
-	auto greater(const volatile dynamic_integer& src) const volatile { return src.greater(*this); }
+	auto greater(const dynamic_integer& src) const; // { return src.greater(*this); }
+	auto greater(const dynamic_integer& src) const volatile; // { return src.greater(*this); }
+	auto greater(const volatile dynamic_integer& src) const; // { return src.greater(*this); }
+	auto greater(const volatile dynamic_integer& src) const volatile; // { return src.greater(*this); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto greater(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return greater(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto greater(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return greater(tmp); }
@@ -4929,10 +4921,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.greater(*this); }
 	template <bool has_sign2, size_t bits2> void assign_greater(const fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.greater(*this); }
 	template <bool has_sign2, size_t bits2> void assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.greater(*this); }
-	void assign_greater(const dynamic_integer& src) { *this = src.greater(*this); }
-	void assign_greater(const volatile dynamic_integer& src) { *this = src.greater(*this); }
-	void assign_greater(const dynamic_integer& src) volatile { *this = src.greater(*this); }
-	void assign_greater(const volatile dynamic_integer& src) volatile { *this = src.greater(*this); }
+	void assign_greater(const dynamic_integer& src); // { *this = src.greater(*this); }
+	void assign_greater(const volatile dynamic_integer& src); // { *this = src.greater(*this); }
+	void assign_greater(const dynamic_integer& src) volatile; // { *this = src.greater(*this); }
+	void assign_greater(const volatile dynamic_integer& src) volatile; // { *this = src.greater(*this); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_greater(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_greater(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_greater(tmp); }
@@ -4960,10 +4952,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_greater(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_greater(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.greater(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.greater(t); }); }
-	const this_t& pre_assign_greater(const dynamic_integer& src) { assign_greater(src); return *this; }
-	const this_t& pre_assign_greater(const volatile dynamic_integer& src) { assign_greater(src); return *this; }
-	this_t pre_assign_greater(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.greater(t); }); }
-	this_t pre_assign_greater(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_greater(tmp); }
+	const this_t& pre_assign_greater(const dynamic_integer& src); // { assign_greater(src); return *this; }
+	const this_t& pre_assign_greater(const volatile dynamic_integer& src); // { assign_greater(src); return *this; }
+	this_t pre_assign_greater(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.greater(t); }); }
+	this_t pre_assign_greater(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_greater(tmp); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_greater(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_greater(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_greater(tmp); }
@@ -4991,10 +4983,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_greater(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_greater(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.greater(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.greater(t); }); }
-	this_t post_assign_greater(const dynamic_integer& src) { this_t tmp(*this); assign_greater(src); return tmp; }
-	this_t post_assign_greater(const volatile dynamic_integer& src) { this_t tmp(*this); assign_greater(src); return tmp; }
-	this_t post_assign_greater(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.greater(t); }); }
-	this_t post_assign_greater(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_greater(tmp); }
+	this_t post_assign_greater(const dynamic_integer& src); // { this_t tmp(*this); assign_greater(src); return tmp; }
+	this_t post_assign_greater(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_greater(src); return tmp; }
+	this_t post_assign_greater(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.greater(t); }); }
+	this_t post_assign_greater(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_greater(tmp); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_greater(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_greater(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_greater(tmp); }
@@ -5024,10 +5016,10 @@ public:
 	template <bool has_sign2, size_t bits2> auto lesser(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.lesser(*this); }
 	template <bool has_sign2, size_t bits2> auto lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src.lesser(*this); }
 	template <bool has_sign2, size_t bits2> auto lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src.lesser(*this); }
-	auto lesser(const dynamic_integer& src) const { return src.lesser(*this); }
-	auto lesser(const dynamic_integer& src) const volatile { return src.lesser(*this); }
-	auto lesser(const volatile dynamic_integer& src) const { return src.lesser(*this); }
-	auto lesser(const volatile dynamic_integer& src) const volatile { return src.lesser(*this); }
+	auto lesser(const dynamic_integer& src) const; // { return src.lesser(*this); }
+	auto lesser(const dynamic_integer& src) const volatile; // { return src.lesser(*this); }
+	auto lesser(const volatile dynamic_integer& src) const; // { return src.lesser(*this); }
+	auto lesser(const volatile dynamic_integer& src) const volatile; // { return src.lesser(*this); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto lesser(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return lesser(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> auto lesser(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return lesser(tmp); }
@@ -5055,10 +5047,10 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = src.lesser(*this); }
 	template <bool has_sign2, size_t bits2> void assign_lesser(const fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.lesser(*this); }
 	template <bool has_sign2, size_t bits2> void assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { *this = src.lesser(*this); }
-	void assign_lesser(const dynamic_integer& src) { *this = src.lesser(*this); }
-	void assign_lesser(const volatile dynamic_integer& src) { *this = src.lesser(*this); }
-	void assign_lesser(const dynamic_integer& src) volatile { *this = src.lesser(*this); }
-	void assign_lesser(const volatile dynamic_integer& src) volatile { *this = src.lesser(*this); }
+	void assign_lesser(const dynamic_integer& src); // { *this = src.lesser(*this); }
+	void assign_lesser(const volatile dynamic_integer& src); // { *this = src.lesser(*this); }
+	void assign_lesser(const dynamic_integer& src) volatile; // { *this = src.lesser(*this); }
+	void assign_lesser(const volatile dynamic_integer& src) volatile; // { *this = src.lesser(*this); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_lesser(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_lesser(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_lesser(tmp); }
@@ -5086,10 +5078,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_lesser(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_lesser(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lesser(t); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lesser(t); }); }
-	const this_t& pre_assign_lesser(const dynamic_integer& src) { assign_lesser(src); return *this; }
-	const this_t& pre_assign_lesser(const volatile dynamic_integer& src) { assign_lesser(src); return *this; }
-	this_t pre_assign_lesser(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lesser(t); }); }
-	this_t pre_assign_lesser(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return pre_assign_lesser(tmp); }
+	const this_t& pre_assign_lesser(const dynamic_integer& src); // { assign_lesser(src); return *this; }
+	const this_t& pre_assign_lesser(const volatile dynamic_integer& src); // { assign_lesser(src); return *this; }
+	this_t pre_assign_lesser(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_pre(m_int, [&](const int_t& t) { return src.lesser(t); }); }
+	this_t pre_assign_lesser(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_lesser(tmp); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_lesser(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_lesser(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_lesser(tmp); }
@@ -5117,10 +5109,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_lesser(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_lesser(const fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lesser(t); }); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lesser(t); }); }
-	this_t post_assign_lesser(const dynamic_integer& src) { this_t tmp(*this); assign_lesser(src); return tmp; }
-	this_t post_assign_lesser(const volatile dynamic_integer& src) { this_t tmp(*this); assign_lesser(src); return tmp; }
-	this_t post_assign_lesser(const dynamic_integer& src) volatile { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lesser(t); }); }
-	this_t post_assign_lesser(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return post_assign_lesser(tmp); }
+	this_t post_assign_lesser(const dynamic_integer& src); // { this_t tmp(*this); assign_lesser(src); return tmp; }
+	this_t post_assign_lesser(const volatile dynamic_integer& src); // { this_t tmp(*this); assign_lesser(src); return tmp; }
+	this_t post_assign_lesser(const dynamic_integer& src) volatile; // { return atomic::compare_exchange_retry_loop_post(m_int, [&](const int_t& t) { return src.lesser(t); }); }
+	this_t post_assign_lesser(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_lesser(tmp); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_lesser(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_lesser(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_lesser(tmp); }
@@ -5151,10 +5143,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator==(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src == *this; }
 	template <bool has_sign2, size_t bits2> bool operator==(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src == *this; }
 	template <bool has_sign2, size_t bits2> bool operator==(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src == *this; }
-	bool operator==(const dynamic_integer& src) const { return src == *this; }
-	bool operator==(const dynamic_integer& src) const volatile { return src == *this; }
-	bool operator==(const volatile dynamic_integer& src) const { return src == *this; }
-	bool operator==(const volatile dynamic_integer& src) const volatile { return src == *this; }
+	bool operator==(const dynamic_integer& src) const; // { return src == *this; }
+	bool operator==(const dynamic_integer& src) const volatile; // { return src == *this; }
+	bool operator==(const volatile dynamic_integer& src) const; // { return src == *this; }
+	bool operator==(const volatile dynamic_integer& src) const volatile; // { return src == *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator==(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this == tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator==(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this == tmp; }
@@ -5190,10 +5182,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator!=(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src != *this; }
 	template <bool has_sign2, size_t bits2> bool operator!=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src != *this; }
 	template <bool has_sign2, size_t bits2> bool operator!=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src != *this; }
-	bool operator!=(const dynamic_integer& src) const { return src != *this; }
-	bool operator!=(const dynamic_integer& src) const volatile { return src != *this; }
-	bool operator!=(const volatile dynamic_integer& src) const { return src != *this; }
-	bool operator!=(const volatile dynamic_integer& src) const volatile { return src != *this; }
+	bool operator!=(const dynamic_integer& src) const; // { return src != *this; }
+	bool operator!=(const dynamic_integer& src) const volatile; // { return src != *this; }
+	bool operator!=(const volatile dynamic_integer& src) const; // { return src != *this; }
+	bool operator!=(const volatile dynamic_integer& src) const volatile; // { return src != *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator!=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this != tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator!=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this != tmp; }
@@ -5222,10 +5214,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator<(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src > *this; }
 	template <bool has_sign2, size_t bits2> bool operator<(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src > *this; }
 	template <bool has_sign2, size_t bits2> bool operator<(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src > *this; }
-	bool operator<(const dynamic_integer& src) const { return src > *this; }
-	bool operator<(const dynamic_integer& src) const volatile { return src > *this; }
-	bool operator<(const volatile dynamic_integer& src) const { return src > *this; }
-	bool operator<(const volatile dynamic_integer& src) const volatile { return src > *this; }
+	bool operator<(const dynamic_integer& src) const; // { return src > *this; }
+	bool operator<(const dynamic_integer& src) const volatile; // { return src > *this; }
+	bool operator<(const volatile dynamic_integer& src) const; // { return src > *this; }
+	bool operator<(const volatile dynamic_integer& src) const volatile; // { return src > *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator<(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this < tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator<(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this < tmp; }
@@ -5254,10 +5246,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator>(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src < *this; }
 	template <bool has_sign2, size_t bits2> bool operator>(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src < *this; }
 	template <bool has_sign2, size_t bits2> bool operator>(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src < *this; }
-	bool operator>(const dynamic_integer& src) const { return src < *this; }
-	bool operator>(const dynamic_integer& src) const volatile { return src < *this; }
-	bool operator>(const volatile dynamic_integer& src) const { return src < *this; }
-	bool operator>(const volatile dynamic_integer& src) const volatile { return src < *this; }
+	bool operator>(const dynamic_integer& src) const; // { return src < *this; }
+	bool operator>(const dynamic_integer& src) const volatile; // { return src < *this; }
+	bool operator>(const volatile dynamic_integer& src) const; // { return src < *this; }
+	bool operator>(const volatile dynamic_integer& src) const volatile; // { return src < *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator>(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this > tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator>(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this > tmp; }
@@ -5286,10 +5278,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator<=(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src >= *this; }
 	template <bool has_sign2, size_t bits2> bool operator<=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src >= *this; }
 	template <bool has_sign2, size_t bits2> bool operator<=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src >= *this; }
-	bool operator<=(const dynamic_integer& src) const { return src >= *this; }
-	bool operator<=(const dynamic_integer& src) const volatile { return src >= *this; }
-	bool operator<=(const volatile dynamic_integer& src) const { return src >= *this; }
-	bool operator<=(const volatile dynamic_integer& src) const volatile { return src >= *this; }
+	bool operator<=(const dynamic_integer& src) const; // { return src >= *this; }
+	bool operator<=(const dynamic_integer& src) const volatile; // { return src >= *this; }
+	bool operator<=(const volatile dynamic_integer& src) const; // { return src >= *this; }
+	bool operator<=(const volatile dynamic_integer& src) const volatile; // { return src >= *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator<=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this <= tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator<=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this <= tmp; }
@@ -5318,10 +5310,10 @@ public:
 	template <bool has_sign2, size_t bits2> bool operator>=(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src <= *this; }
 	template <bool has_sign2, size_t bits2> bool operator>=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return src <= *this; }
 	template <bool has_sign2, size_t bits2> bool operator>=(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src <= *this; }
-	bool operator>=(const dynamic_integer& src) const { return src <= *this; }
-	bool operator>=(const dynamic_integer& src) const volatile { return src <= *this; }
-	bool operator>=(const volatile dynamic_integer& src) const { return src <= *this; }
-	bool operator>=(const volatile dynamic_integer& src) const volatile { return src <= *this; }
+	bool operator>=(const dynamic_integer& src) const; // { return src <= *this; }
+	bool operator>=(const dynamic_integer& src) const volatile; // { return src <= *this; }
+	bool operator>=(const volatile dynamic_integer& src) const; // { return src <= *this; }
+	bool operator>=(const volatile dynamic_integer& src) const volatile; // { return src <= *this; }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator>=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this >= tmp; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> bool operator>=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return *this >= tmp; }
@@ -5350,10 +5342,10 @@ public:
 	template <bool has_sign2, size_t bits2> int compare(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return -src.compare(*this); }
 	template <bool has_sign2, size_t bits2> int compare(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { return -src.compare(*this); }
 	template <bool has_sign2, size_t bits2> int compare(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return -src.compare(*this); }
-	int compare(const dynamic_integer& src) const { return -src.compare(*this); }
-	int compare(const dynamic_integer& src) const volatile { return -src.compare(*this); }
-	int compare(const volatile dynamic_integer& src) const { return -src.compare(*this); }
-	int compare(const volatile dynamic_integer& src) const volatile { return -src.compare(*this); }
+	int compare(const dynamic_integer& src) const; // { return -src.compare(*this); }
+	int compare(const dynamic_integer& src) const volatile; // { return -src.compare(*this); }
+	int compare(const volatile dynamic_integer& src) const; // { return -src.compare(*this); }
+	int compare(const volatile dynamic_integer& src) const volatile; // { return -src.compare(*this); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> int compare(const fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return compare(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> int compare(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) const { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return compare(tmp); }
