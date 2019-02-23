@@ -13,15 +13,13 @@ Cogs has been my personal project for many years, as a learning process and crea
 <p>Under Construction.  A lot still needs to be revisited and updated to use new C++ features.  Lots of tests and doc to write.  Lots more code and comments to write.</p>  
 <p>A major refactor is done, and I'm re-porting to Linux, then plan to re-port to MacOS.</p>
 
-# How Cogs is Different
+# Concepts
 
 ## Volatile
 
-Until the addition of std::atomic_ref<> in C++20(?), the C++ standard approach to atomic variables has been essentially type-locked.  An alternate type is made by wrapping a type with std::atomic<>.  All references to that new type are atomic.  However, sometimes it's desirable to have an object transition between being potentially accessed in parellel, and not accessible in parallel.  If not accessible in parallel, non-atomic functionality would be more efficient.
+Cogs leverages 'volatile' to qualify a type as atomic, in much the same way as the 'const' qualifier allows an object to be references in a const manner.  
 
-Cogs instead leverages 'volatile' to qualify a type as atomic, in much the same way as the 'const' qualifier allows an object to be references in a const manner.  
-
-Like the const qualifier, volatile can be added to member functions, in which in the object and its members are also volatile.  Methods with and without volatile qualifier can be overloaded separately, to provide versions of the same algorithm with and without the need to consider thread safety.
+Like the const qualifier, volatile can be added to member functions, in which in the object and its members are also volatile.  Methods with and without the volatile qualifier can be overloaded separately, to provide versions of the same algorithm with and without the need to consider thread safety.
 
 ```cpp
 class A
