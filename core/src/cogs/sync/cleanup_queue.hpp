@@ -41,9 +41,10 @@ private:
 	friend class thread_pool;
 
 protected:
-	cleanup_queue()
+	explicit cleanup_queue(const ptr<rc_obj_base>& desc)
+		: object(desc)
 	{
-		placement_rcnew(this_desc, &m_tasks.get());
+		placement_rcnew(&m_tasks.get(), this_desc);
 	}
 
 public:
@@ -91,6 +92,56 @@ public:
 		return singleton<cleanup_queue, singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>::get();
 	}
 };
+
+
+template <typename T>
+template <singleton_posthumous_behavior posthumous_behavior, singleton_cleanup_behavior cleanup_behavior>
+inline rcptr<T> singleton_base<T>::get(bool& isNew)
+{
+	isNew = false;
+	rcptr<T> result;
+	volatile weak_rcptr<T>* g = &s_global.get();
+	weak_rcptr<T> oldValue = *g;
+
+	bool b;
+	if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
+	{
+		result = oldValue;
+		b = !result;
+	}
+	else
+	{
+		b = false;
+		if (oldValue.get_desc() != nullptr)
+			result = oldValue;	// won't be marked, if desc was not nullptr
+		else if (oldValue.get_mark() == 0)	// not set up yet
+			b = true;
+	}
+
+	if (b)
+	{
+		rcptr<T> newValue = rcnew(bypass_constructor_permission<T>);
+		newValue.get_desc()->acquire(strong);
+		if (!g->compare_exchange(newValue, oldValue, oldValue))
+		{
+			newValue.get_desc()->release(strong);
+			if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
+				result = oldValue;
+		}
+		else
+		{
+			isNew = true;
+			result = std::move(newValue); // Return the one we just created.
+			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
+				cleanup_queue::get_global()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+		}
+	}
+
+	if (posthumous_behavior == singleton_posthumous_behavior::create_new_per_caller && !result)
+		result = rcnew(bypass_constructor_permission<T>);
+
+	return result;
+}
 
 
 }

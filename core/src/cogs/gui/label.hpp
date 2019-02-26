@@ -60,7 +60,7 @@ private:
 			}
 		};
 
-		placement_rcnew(this_desc, &m_textProperty.get(), *this, std::move(textGetter), std::move(textSetter));
+		placement_rcnew(&m_textProperty.get(), this_desc, *this, std::move(textGetter), std::move(textSetter));
 
 		auto fontGetter = [this]()
 		{
@@ -79,7 +79,7 @@ private:
 			}
 		};
 
-		placement_rcnew(this_desc, &m_fontProperty.get(), *this, std::move(fontGetter), std::move(fontSetter));
+		placement_rcnew(&m_fontProperty.get(), this_desc, *this, std::move(fontGetter), std::move(fontSetter));
 
 		auto colorGetter = [this]()
 		{
@@ -93,12 +93,13 @@ private:
 			invalidate(get_size());
 		};
 
-		placement_rcnew(this_desc, &m_colorProperty.get(), *this, std::move(colorGetter), std::move(colorSetter));
+		placement_rcnew(&m_colorProperty.get(), this_desc, *this, std::move(colorGetter), std::move(colorSetter));
 	}
 
 public:
-	label(const composite_string& text, const gfx::font& fnt, const color& c = color::black, bool useLineHeight = true)
-		: m_text(text),
+	label(const ptr<rc_obj_base>& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::black, bool useLineHeight = true)
+		: pane(desc),
+		m_text(text),
 		m_font(fnt),
 		m_textColor(c),
 		m_useLineHeight(useLineHeight)
@@ -106,8 +107,9 @@ public:
 		create_properties();
 	}
 
-	explicit label(const composite_string& text, const color& c = color::black, bool useLineHeight = true)
-		: m_text(text),
+	label(const ptr<rc_obj_base>& desc, const composite_string& text, const color& c = color::black, bool useLineHeight = true)
+		: pane(desc),
+		m_text(text),
 		m_textColor(c),
 		m_useLineHeight(useLineHeight)
 	{
@@ -162,9 +164,9 @@ public:
 		draw_text(txt, m_textExtent, f.dereference(), c);
 	}
 		
-	rcref<bindable_property<composite_string> >	get_text_property() { return get_self_rcref(&m_textProperty.get()).static_cast_to<bindable_property<composite_string>>(); }
-	rcref<bindable_property<gfx::font> >	get_font_property() { return get_self_rcref(&m_fontProperty.get()).static_cast_to<bindable_property<gfx::font> >(); }
-	rcref<bindable_property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<bindable_property<color> >(); }
+	rcref<bindable_property<composite_string> >	get_text_property() { return get_self_rcref(&m_textProperty.get()).template static_cast_to<bindable_property<composite_string>>(); }
+	rcref<bindable_property<gfx::font> >	get_font_property() { return get_self_rcref(&m_fontProperty.get()).template static_cast_to<bindable_property<gfx::font> >(); }
+	rcref<bindable_property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<bindable_property<color> >(); }
 
 	color get_text_color() const
 	{

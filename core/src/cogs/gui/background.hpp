@@ -41,12 +41,13 @@ private:
 			invalidate(get_size());
 		};
 
-		placement_rcnew(this_desc, &m_colorProperty.get(), *this, std::move(colorGetter), std::move(colorSetter));
+		placement_rcnew(&m_colorProperty.get(), this_desc, *this, std::move(colorGetter), std::move(colorSetter));
 	}
 
 public:
-	background(const color& c)
-		: m_color(c)
+	background(const ptr<rc_obj_base>& desc, const color& c)
+		: pane(desc),
+		m_color(c)
 	{
 		create_properties();
 	}
@@ -62,7 +63,7 @@ public:
 		fill(get_size(), c);
 	}
 		
-	rcref<bindable_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).static_cast_to<bindable_property<color> >(); }
+	rcref<bindable_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<bindable_property<color> >(); }
 
 	color get_color() const
 	{

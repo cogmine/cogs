@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "cogs/io/net/http.hpp"
-#include "cogs/io/net/smtp.hpp"
-#include "cogs/sync/quit_dispatcher.hpp"
+#include "cogs/cogs.hpp"
 
 using namespace cogs;
 using namespace io;
@@ -14,6 +12,7 @@ using namespace ip;
 
 
 namespace cogs {
+
 
 int main()
 {
@@ -27,7 +26,7 @@ int main()
 		m_httpServer = rcnew(http::server);
 		m_smtpServer = rcnew(smtp::server);
 
-		m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);
+		m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);// 80);
 		m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
 
 
@@ -40,6 +39,7 @@ int main()
 		m_httpListener.release();
 		m_smtpListener.release();
 	}
+
 	cogs::quit_dispatcher::get()->request();
 }
 

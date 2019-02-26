@@ -30,11 +30,12 @@ private:
 		weak_rcptr<datastream_protocol> m_datastreamProtocol;
 
 	public:
-		source_filter(const rcref<datastream_protocol>& dsp)
-			:	m_datastreamProtocol(dsp)
+		source_filter(const ptr<rc_obj_base>& desc, const rcref<datastream_protocol>& dsp)
+			: filter(desc),
+			m_datastreamProtocol(dsp)
 		{ }
 
-		virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+		virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
@@ -50,11 +51,12 @@ private:
 		weak_rcptr<datastream_protocol> m_datastreamProtocol;
 
 	public:
-		sink_filter(const rcref<datastream_protocol>& dsp)
-			:	m_datastreamProtocol(dsp)
+		sink_filter(const ptr<rc_obj_base>& desc, const rcref<datastream_protocol>& dsp)
+			: filter(desc),
+			m_datastreamProtocol(dsp)
 		{ }
 
-		virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+		virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
@@ -73,10 +75,11 @@ protected:
 	virtual composite_buffer filtering_sink(composite_buffer& src) = 0;
 
 public:
-	datastream_protocol(const rcref<datastream>& ds)
-		:	m_datastream(ds),
-			m_sourceFilter(rcnew(source_filter, this_rcref)),
-			m_sinkFilter(rcnew(sink_filter, this_rcref))
+	datastream_protocol(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds)
+		: datastream(desc),
+		m_datastream(ds),
+		m_sourceFilter(rcnew(source_filter, this_rcref)),
+		m_sinkFilter(rcnew(sink_filter, this_rcref))
 	{ }
 
 	virtual void start()

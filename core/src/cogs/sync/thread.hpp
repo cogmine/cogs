@@ -58,8 +58,9 @@ private:
 	thread& operator=(const thread&) = delete;
 
 protected:
-	explicit thread(const function<void()>& task)
-		: m_deregisteredWaiter(false)
+	explicit thread(const ptr<rc_obj_base>& desc, const function<void()>& task)
+		: object(desc),
+		m_deregisteredWaiter(false)
 	{
 		m_osThread = os::thread::create(task);
 	}

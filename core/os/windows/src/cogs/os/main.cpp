@@ -47,15 +47,12 @@ void terminate()
 	cogs::default_allocator::shutdown();
 }
 
+int main(const rcref<gui::windowing::subsystem>&);
+
+
 }
 
 #if COGS_USE_COGS_MAIN
-
-int main();
-
-namespace cogs {
-	int main(const rcref<gui::windowing::subsystem>&);
-}
 
 int main()
 {

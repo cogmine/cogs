@@ -2232,7 +2232,7 @@ public:
 	this_t operator=(const vector<type2>& src) volatile
 	{
 		assign(src);
-		return tmp;
+		return *this;
 	}
 
 	template <typename type2>
@@ -2438,13 +2438,13 @@ public:
 	template <typename type2>
 	void insert(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert(i, src.subrange(srcIndex, n))
+		insert(i, src.subrange(srcIndex, n));
 	}
 
 	template <typename type2>
 	void insert(size_t i, const volatile vector<type2> & src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert(i, src.subrange(srcIndex, n))
+		insert(i, src.subrange(srcIndex, n));
 	}
 
 
@@ -2477,13 +2477,13 @@ public:
 	template <typename type2>
 	void replace(size_t i, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		replace(i, src.subrange(srcIndex, n))
+		replace(i, src.subrange(srcIndex, n));
 	}
 
 	template <typename type2>
 	void replace(size_t i, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		replace(i, src.subrange(srcIndex, n))
+		replace(i, src.subrange(srcIndex, n));
 	}
 
 
@@ -2516,13 +2516,13 @@ public:
 	template <typename type2>
 	void insert_replace(size_t i, size_t replaceLength, const vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
+		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
 
 	template <typename type2>
 	void insert_replace(size_t i, size_t replaceLength, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
+		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
 
 

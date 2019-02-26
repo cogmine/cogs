@@ -70,21 +70,21 @@ public:
 		return readRatio;
 	}
 
-	static uint64_t convert_to_absolute(const period_t& ns)
+	static uint64_t convert_to_abs(const period_t& ns)
 	{
 		const ratio_t& r = get_mach_ratio();
 		fixed_integer<false, 64> a = (ns * r.m_denom) / r.m_numer;
 		return a.get_int<uint64_t>();
 	}
 
-	static period_t convert_from_absolute(const uint64_t& machTime)
+	static period_t convert_from_abs(const uint64_t& machTime)
 	{
 		fixed_integer<false, 64> mt = machTime;
 		const ratio_t& r = get_mach_ratio();
 		return (mt * r.m_numer) / r.m_denom;
 	}
 
-	static period_t now()	{ return convert_from_absolute(mach_absolute_time()); }
+	static period_t now()	{ return convert_from_abs(mach_absolute_time()); }
 
 private:
 	period_t	m_startTime;
@@ -243,9 +243,9 @@ public:
 		}
 	}
 
-	uint64_t get_expiration_as_mach_absolute() const
+	uint64_t get_expiration_as_mach_abs() const
 	{
-		return convert_to_absolute(m_expireTime);
+		return convert_to_abs(m_expireTime);
 	}
 
 	void get_pending(mach_timespec& ts) const

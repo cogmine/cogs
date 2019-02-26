@@ -261,7 +261,7 @@ private:
 		{
 		private:
 			static constexpr ulongest new_low_digit = low_digit + low_digit2 + (overflow ? 1 : 0);
-			static constexpr bool new_overflow = overflow ? (newDigit <= origDigit) : (newDigit < origDigit);
+			static constexpr bool new_overflow = overflow ? (new_low_digit <= low_digit2) : (new_low_digit < low_digit2);
 
 		public:
 			typedef typename fixed_integer_extended_const<has_sign, bits, highDigits...>::
@@ -523,24 +523,24 @@ private:
 		static constexpr int value = !is_same_sign ? (is_const_negative ? -1 : 1) : tmp;
 	};
 
-	template <size_t n, ulongest... lowDigits>
+	template <bool unused, size_t n, ulongest... lowDigits>
 	class left_shift_extended
 	{
 	};
 
-	template <size_t n, ulongest highestNewLowDigit, ulongest... lowDigits>
-	class left_shift_extended<n, highestNewLowDigit, lowDigits...>
+	template <bool unused, size_t n, ulongest highestNewLowDigit, ulongest... lowDigits>
+	class left_shift_extended<unused, n, highestNewLowDigit, lowDigits...>
 	{
 	public:
 		static constexpr ulongest new_low_digit = highestNewLowDigit | (low_digit << n);
 		static constexpr ulongest low_overflow = (low_digit >> ((sizeof(ulongest) * 8) - n));
 
 		typedef typename fixed_integer_extended_const<has_sign, bits, highDigits...>::
-			template left_shift_extended<n, low_overflow, lowDigits..., new_low_digit>::type type;
+			template left_shift_extended<unused, n, low_overflow, lowDigits..., new_low_digit>::type type;
 	};
 
-	template <size_t n>
-	class left_shift_extended<n>
+	template <bool unused, size_t n>
+	class left_shift_extended<unused, n>
 	{
 
 	public:
@@ -548,16 +548,16 @@ private:
 		static constexpr size_t remaining_shift_n = is_whole_digit_shift ? (n - (sizeof(ulongest) * 8)) : 0;
 
 		typedef typename fixed_integer_extended_const<has_sign, bits, 0, low_digit, highDigits...>::
-			template left_shift_extended<remaining_shift_n>::type whole_shifted_t;
+			template left_shift_extended<unused, remaining_shift_n>::type whole_shifted_t;
 
 		static constexpr size_t n2 = is_whole_digit_shift ? ((sizeof(ulongest) * 8) / 2) : n;
-		typedef typename left_shift_extended<n2, 0>::type each_shifted_t;
+		typedef typename left_shift_extended<unused, n2, 0>::type each_shifted_t;
 
 		typedef std::conditional_t<is_whole_digit_shift, whole_shifted_t, each_shifted_t> type;
 	};
 
-	template <>
-	class left_shift_extended<0>
+	template <bool unused>
+	class left_shift_extended<unused, 0>
 	{
 	public:
 		typedef fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...> type;
@@ -785,7 +785,7 @@ public:
 			return low_digit;
 		if (i >= n_digits)
 			return 0;
-		return fixed_integer_extended_const<has_sign, bits, highDigits...>::get_digit(i - 1)
+		return fixed_integer_extended_const<has_sign, bits, highDigits...>::get_digit(i - 1);
 	}
 
 	constexpr bool operator!() const volatile { return is_const_zero; }
@@ -793,7 +793,7 @@ public:
 	template <typename enable = void>	// delays expansion until called
 	auto operator~() const volatile
 	{
-		typename fixed_integer_extended_const<has_sign, bits, ~values...>::reduced_t tmp;
+		typename fixed_integer_extended_const<has_sign, bits, ~low_digit_in, ~highDigits...>::reduced_t tmp;
 		return tmp;
 	}
 
@@ -808,7 +808,7 @@ public:
 	constexpr bool is_exponent_of_two() const volatile { return is_const_exponent_of_two; }
 	constexpr bool has_fractional_part() const volatile { return false; }
 
-	// abs
+	// absolute
 	auto abs() const volatile
 	{
 		abs_t tmp;
@@ -1030,25 +1030,25 @@ public:
 
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	auto inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	auto inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& i) const volatile
 	{
 		return i + -*this;
 	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	auto inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	auto inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& i) const volatile
 	{
 		return i + -*this;
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	auto inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	auto inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
 		return i + -*this;
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	auto inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	auto inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
 		return i + -*this;
 	}
@@ -1179,25 +1179,25 @@ public:
 
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	auto inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	auto inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>& i) const volatile
 	{
 		return i - (i.divide_whole(*this) * *this);
 	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	auto inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	auto inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& i) const volatile
 	{
 		return i - (i.divide_whole(*this) * *this);
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	auto inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	auto inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
 		return i - (i.divide_whole(*this) * *this);
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	auto inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	auto inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
 		return i - (i.divide_whole(*this) * *this);
 	}
@@ -1235,19 +1235,19 @@ public:
 
 	template <bool has_sign2, size_t bits2>
 	auto operator/(const fixed_integer_native<has_sign2, bits2>& src) const volatile
-	{ return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
+	{ return fraction<this_t, fixed_integer_native<has_sign2, bits2> >(*this, src); }
 
 	template <bool has_sign2, size_t bits2>
 	auto operator/(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile
-	{ return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
+	{ return fraction<this_t, fixed_integer_native<has_sign2, bits2> >(*this, src); }
 
 	template <bool has_sign2, size_t bits2>
 	auto operator/(const fixed_integer_extended<has_sign2, bits2>& src) const volatile
-	{ return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
+	{ return fraction<this_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 
 	template <bool has_sign2, size_t bits2> 
 	auto operator/(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile
-	{ return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
+	{ return fraction<this_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 
 	auto operator/(const dynamic_integer& src) const volatile
 	{ return fraction<this_t, dynamic_integer>(*this, src); }
@@ -1292,25 +1292,25 @@ public:
 	template <bool has_sign2, size_t bits2>
 	auto inverse_divide(const fixed_integer_native<has_sign2, bits2>& src) const volatile
 	{
-		return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this);
+		return fraction<fixed_integer_native<has_sign2, bits2>, this_t>(src, *this);
 	}
 
 	template <bool has_sign2, size_t bits2>
 	auto inverse_divide(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile
 	{
-		return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this);
+		return fraction<fixed_integer_native<has_sign2, bits2>, this_t>(src, *this);
 	}
 
 	template <bool has_sign2, size_t bits2>
 	auto inverse_divide(const fixed_integer_extended<has_sign2, bits2>& src) const volatile
 	{
-		return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this);
+		return fraction<fixed_integer_extended<has_sign2, bits2>, this_t>(src, *this);
 	}
 
 	template <bool has_sign2, size_t bits2>
 	auto inverse_divide(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile
 	{
-		return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, this_t>(src, *this);
+		return fraction<fixed_integer_extended<has_sign2, bits2>, this_t>(src, *this);
 	}
 
 	auto inverse_divide(const dynamic_integer& src) const volatile
@@ -1480,7 +1480,7 @@ public:
 	auto gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		typedef typename fixed_integer_extended_const<has_sign2, bits2, values2...>::abs_t::as_extended_t abs_t2;
-		typename get_gcd2<abs_t::as_extended_t, abs_t2>::type tmp;
+		typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type tmp;
 		return tmp;
 	}
 
@@ -1488,7 +1488,7 @@ public:
 	auto gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		typedef typename fixed_integer_extended_const<has_sign2, bits2, values2...>::abs_t::as_extended_t abs_t2;
-		typename get_gcd2<abs_t::as_extended_t, abs_t2>::type tmp;
+		typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type tmp;
 		return tmp;
 	}
 
@@ -1535,7 +1535,7 @@ public:
 
 		typedef typename abs_t::template get_multiplied_extended2<abs_t2>::type mul_t;
 
-		typedef typename get_gcd2<abs_t::as_extended_t, abs_t2>::type gcd_t;
+		typedef typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type gcd_t;
 
 		typename get_divide_whole<typename mul_t::as_extended_t, typename gcd_t::as_extended_t>::type tmp;
 		return tmp;
@@ -1548,7 +1548,7 @@ public:
 
 		typedef typename abs_t::template get_multiplied_extended2<abs_t2>::type mul_t;
 
-		typedef typename get_gcd2<abs_t::as_extended_t, abs_t2>::type gcd_t;
+		typedef typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type gcd_t;
 
 		typename get_divide_whole<typename mul_t::as_extended_t, typename gcd_t::as_extended_t>::type tmp;
 		return tmp;
@@ -1596,7 +1596,7 @@ public:
 	auto greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == 1;
-		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> result_t;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
 		result_t result();
 		return result;
 	}
@@ -1605,7 +1605,7 @@ public:
 	auto greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == 1;
-		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> result_t;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
 		result_t result();
 		return result;
 	}
@@ -1652,7 +1652,7 @@ public:
 	auto lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == -1;
-		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> result_t;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
 		result_t result();
 		return result;
 	}
@@ -1661,7 +1661,7 @@ public:
 	auto lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == -1;
-		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> result_t;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
 		result_t result();
 		return result;
 	}
@@ -1964,7 +1964,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
-		static constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
+		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
 			zero_t,
 			std::conditional_t<value == 1,
@@ -1978,7 +1978,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
 	{
-		static constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
+		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
 			zero_t,
 			std::conditional_t<value == 1,
@@ -2021,7 +2021,7 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator>>(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative2;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 		typename right_shift_extended<(is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
 		return tmp;
 	}
@@ -2029,7 +2029,7 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator>>(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative2;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
 		typename right_shift_extended<(is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
 		return tmp;
 	}
@@ -2061,15 +2061,15 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator<<(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative2;
-		typename left_shift_extended<(is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		typename left_shift_extended<true, (is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
 		return tmp;
 	}
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator<<(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
-		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative2;
-		typename left_shift_extended<(is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		typename left_shift_extended<true, (is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
 		return tmp;
 	}
 
@@ -2097,10 +2097,11 @@ public:
 };
 
 
-template <bool has_sign_in, size_t bits_in, ulongest value>	// specialization for only 1 value - not valid, only used for template meta
-class fixed_integer_extended_const<has_sign_in, bits_in, value>
+template <bool has_sign_in, size_t bits_in, ulongest value_in>	// specialization for only 1 value - not valid, only used for template meta
+class fixed_integer_extended_const<has_sign_in, bits_in, value_in>
 {
 public:
+	static constexpr ulongest value = value_in;
 	typedef fixed_integer_extended_const<has_sign_in, bits_in, value> this_t;
 	static constexpr bool has_sign = has_sign_in;
 	static constexpr size_t bits = bits_in;
@@ -2149,24 +2150,24 @@ private:
 		static constexpr ulongest new_low_digit = ~low_digit + 1;
 		static constexpr bool new_overflow = new_low_digit == 0;
 
-		template <bool overflow>
+		template <bool overflow, bool unused2>
 		class helper;
 
-		template <>
-		class helper<false>
+		template <bool unused2>
+		class helper<false, unused2>
 		{
 		public:
 			typedef fixed_integer_extended_const<!is_const_negative, ((sizeof...(lowPart)+1) * (sizeof(ulongest) * 8)), lowPart..., new_low_digit> type;
 		};
 
-		template <>
-		class helper<true>
+		template <bool unused2>
+		class helper<true, unused2>
 		{
 		public:
 			typedef fixed_integer_extended_const<!is_const_negative, ((sizeof...(lowPart)+1) * (sizeof(ulongest) * 8)) + 1, lowPart..., new_low_digit, ~(ulongest)0> type;
 		};
 
-		typedef typename helper<new_overflow>::type type;
+		typedef typename helper<new_overflow, true>::type type;
 	};
 
 	template <bool overflow, ulongest... lowPart>
@@ -2457,7 +2458,7 @@ private:
 	class compare_extended<has_sign2, bits2, value2>
 	{
 	public:
-		static constexpr int value = ((value == value2) ? 0 : (value < value2 ? -1 : 1));
+		static constexpr int value = ((value_in == value2) ? 0 : ((value_in < value2) ? -1 : 1));
 	};
 
 	template <bool has_sign2, size_t bits2, ulongest low_digit2, ulongest... highDigits2>
@@ -2465,7 +2466,7 @@ private:
 	{
 	public:
 		static constexpr int value = -fixed_integer_extended_const<has_sign2, bits2, low_digit2, highDigits2...>::
-			template compare_extended<has_sign, bits, value>::value;
+			template compare_extended<has_sign, bits, value_in>::value;
 	};
 
 	template <typename T>
@@ -2526,13 +2527,13 @@ private:
 
 
 
-	template <size_t n, ulongest... lowDigits>
+	template <bool unused, size_t n, ulongest... lowDigits>
 	class left_shift_extended
 	{
 	};
 
 	template <size_t n, ulongest highestNewLowDigit, ulongest... lowDigits>
-	class left_shift_extended<n, highestNewLowDigit, lowDigits...>
+	class left_shift_extended<true, n, highestNewLowDigit, lowDigits...>
 	{
 	public:
 		static constexpr ulongest new_low_digit = highestNewLowDigit | (value << n);
@@ -2541,24 +2542,24 @@ private:
 		typedef fixed_integer_extended_const<has_sign, bits, lowDigits..., new_low_digit, low_overflow> type;
 	};
 
-	template <size_t n>
-	class left_shift_extended<n>
+	template <bool unused, size_t n>
+	class left_shift_extended<unused, n>
 	{
 	public:
 		static constexpr bool is_whole_digit_shift = (n / (sizeof(ulongest) * 8)) > 0;
 		static constexpr size_t remaining_shift_n = is_whole_digit_shift ? (n - (sizeof(ulongest) * 8)) : 0;
 
 		typedef typename fixed_integer_extended_const<has_sign, bits, 0, value>::
-			template left_shift_extended<remaining_shift_n>::type whole_shifted_t;
+			template left_shift_extended<unused, remaining_shift_n>::type whole_shifted_t;
 
 		static constexpr size_t n2 = is_whole_digit_shift ? ((sizeof(ulongest) * 8) / 2) : n;
-		typedef typename left_shift_extended<n2, 0>::type each_shifted_t;
+		typedef typename left_shift_extended<unused, n2, 0>::type each_shifted_t;
 
 		typedef std::conditional_t<is_whole_digit_shift, whole_shifted_t, each_shifted_t> type;
 	};
 
-	template <>
-	class left_shift_extended<0>
+	template <bool unused>
+	class left_shift_extended<unused, 0>
 	{
 	public:
 		typedef fixed_integer_extended_const<has_sign, bits, value> type;
@@ -2706,7 +2707,7 @@ public:
 
 	typedef fixed_integer_native<is_const_negative, reduced_bits> non_const_t;
 
-	constexpr ulongest get_digit(size_t i) const volatile { return (i == 0) : low_digit : 0; }
+	constexpr ulongest get_digit(size_t i) const volatile { return (i == 0) ? low_digit : 0; }
 
 	constexpr bool is_exponent_of_two() const volatile { return is_const_exponent_of_two; }
 
@@ -2825,7 +2826,7 @@ public:
 	auto gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		typedef typename fixed_integer_extended_const<has_sign2, bits2, values2...>::abs_t::as_extended_t abs_t2;
-		typename get_gcd2<abs_t::as_extended_t, abs_t2>::type tmp;
+		typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type tmp;
 		return tmp;
 	}
 
@@ -2833,7 +2834,7 @@ public:
 	auto gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		typedef typename fixed_integer_extended_const<has_sign2, bits2, values2...>::abs_t::as_extended_t abs_t2;
-		typename get_gcd2<abs_t::as_extended_t, abs_t2>::type tmp;
+		typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type tmp;
 		return tmp;
 	}
 
@@ -2859,7 +2860,7 @@ public:
 
 		typedef typename abs_t::template get_multiplied_extended2<abs_t2>::type mul_t;
 
-		typedef typename get_gcd2<abs_t::as_extended_t, abs_t2>::type gcd_t;
+		typedef typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type gcd_t;
 
 		typename get_divide_whole<typename mul_t::as_extended_t, typename gcd_t::as_extended_t>::type tmp;
 		return tmp;
@@ -2872,10 +2873,147 @@ public:
 
 		typedef typename abs_t::template get_multiplied_extended2<abs_t2>::type mul_t;
 
-		typedef typename get_gcd2<abs_t::as_extended_t, abs_t2>::type gcd_t;
+		typedef typename get_gcd2<typename abs_t::as_extended_t, abs_t2>::type gcd_t;
 
 		typename get_divide_whole<typename mul_t::as_extended_t, typename gcd_t::as_extended_t>::type tmp;
 		return tmp;
+	}
+
+	// greater
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto greater(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return greater(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto greater(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return greater(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == 1;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
+		result_t result();
+		return result;
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == 1;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
+		result_t result();
+		return result;
+	}
+
+	// lesser
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto lesser(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return lesser(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto lesser(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return lesser(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == -1;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
+		result_t result();
+		return result;
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		static constexpr bool b = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value == -1;
+		typedef std::conditional_t<b, this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> > result_t;
+		result_t result();
+		return result;
+	}
+
+	// const_compare
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	constexpr auto const_compare(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return const_compare(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	constexpr auto const_compare(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t tmp;
+		return const_compare(tmp);
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	{
+		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
+		std::conditional_t<value == 0,
+			zero_t,
+			std::conditional_t<value == 1,
+			one_t,
+			minus_one_t
+			>
+		> tmp;
+		return tmp;
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	{
+		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
+		std::conditional_t<value == 0,
+			zero_t,
+			std::conditional_t<value == 1,
+			one_t,
+			minus_one_t
+			>
+		> tmp;
+		return tmp;
+	}
+
+	// bit_shift_left
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto operator<<(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		typename left_shift_extended<true, (is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
+		return tmp;
+	}
+	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	auto operator<<(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
+	{
+		static constexpr bool is_const_negative2 = fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative;
+		typename left_shift_extended<true, (is_const_negative2 ? ((size_t)-value2) : (size_t)value2)>::type tmp;
+		return tmp;
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto operator<<(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		return zero_t();
+	}
+
+	template <bool has_sign2, size_t bits2, ulongest... values2>
+	auto operator<<(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
+	{
+		return zero_t();
 	}
 
 };
@@ -2886,7 +3024,7 @@ class const_compared<fixed_integer_extended_const<has_sign1, bits1, values1...>,
 {
 public:
 	static constexpr int value = const_compared<fixed_integer_extended_const<has_sign1, bits1, values1...>,
-		fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t>::value;
+		typename fixed_integer_native_const<has_sign2, bits2, value2>::as_extended_t>::value;
 };
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2, ulongest... values2>

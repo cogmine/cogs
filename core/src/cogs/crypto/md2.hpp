@@ -27,17 +27,13 @@ class md2 : public hash
 
 #else
 
-class md2 : public serial_hash<md2, 384, 128, 8, endian_t::little, 128>
+class md2 : public serial_hash<384, 128, 8, endian_t::little, 128>
 {
 private:
-	typedef serial_hash<md2, 384, 128, 8, endian_t::little, 128> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<384, 128, 8, endian_t::little, 128> base_t;
 
 	uint8_t m_checksum[16];
 
-protected:
 	void process_digit()
 	{
 		m_result[base_t::m_blockProgress + 16] = base_t::m_curDigit;
@@ -101,6 +97,7 @@ protected:
 
 public:
 	md2()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		for (size_t i = 0; i < 16; i++)
 		{
@@ -110,7 +107,7 @@ public:
 	}
 
 	md2(const md2& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		size_t i = 0;
 		for (; i < m_blockProgress; i++)

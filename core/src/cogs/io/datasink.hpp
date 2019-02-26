@@ -41,7 +41,7 @@ namespace io {
 /// pending tasks will be canceled.  It's important that derived IO objects
 /// ensure all pending tasks are completed rather than abandoned.
 /// The task itself may own resources which will not be released until
-/// the task is completed.  If an io::task needs to refer to the IO
+/// the task is completed.  If an io::queue::io_task needs to refer to the IO
 /// object, it should use a weak reference, to avoid a circular reference
 /// that would prevent the IO object from being released.  (reader and writer
 /// contain a weak reference to their associated datasource/datasink.)
@@ -63,28 +63,28 @@ public:
 
 	/// @brief Base class for datasink I/O tasks
 	template <typename result_t>
-	class task : public io::queue::task<result_t>
+	class datasink_task : public io::queue::io_task<result_t>
 	{
 	private:
-		task() = delete;
-		task(task&&) = delete;
-		task(const task&) = delete;
-		task& operator=(task&&) = delete;
-		task& operator=(const task&) = delete;
+		datasink_task() = delete;
+		datasink_task(datasink_task&&) = delete;
+		datasink_task(const datasink_task&) = delete;
+		datasink_task& operator=(datasink_task&&) = delete;
+		datasink_task& operator=(const datasink_task&) = delete;
 
 		const weak_rcptr<datasink>		m_sink;
 
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this task
-		task(const rcref<datasink>& ds) : m_sink(ds)		{ }
+		datasink_task(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : io::queue::io_task<result_t>(desc), m_sink(ds) { }
 
 		/// @brief Derived class implements executing() to execute the task
 		virtual void executing() = 0;
 
 		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
-		using io::queue::task<const rcref<result_t> >::canceling;
-		//virtual void canceling() { io::queue::task::canceling(); }
+		using io::queue::io_task<result_t>::canceling;
+		//virtual void canceling() { io::queue::io_task::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
@@ -94,8 +94,8 @@ public:
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using io::queue::task<const rcref<result_t> >::complete;
-		//void complete(bool closeQueue = false) { io::queue::task::complete(closeQueue); }
+		using io::queue::io_task<result_t>::complete;
+		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
 
 	public:
 		/// @brief Gets a weak reference to the datasink associated with this task
@@ -104,7 +104,7 @@ public:
 	};
 
 	/// @brief A flush task
-	class flusher : public task<flusher>
+	class flusher : public datasink_task<flusher>
 	{
 	private:
 		friend class datasink;
@@ -120,7 +120,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this flusher
-		flusher(const rcref<datasink>& ds) : task(ds)	{ }
+		flusher(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds)	{ }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
@@ -129,8 +129,8 @@ public:
 		virtual void flushing()		{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
-		using task<flusher>::canceling;
-		//virtual void canceling() { io::queue::task::canceling(); }
+		using datasink_task<flusher>::canceling;
+		//virtual void canceling() { io::queue::io_task::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
@@ -140,14 +140,14 @@ public:
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using task<flusher>::complete;
-		//void complete(bool closeQueue = false) { io::queue::task::complete(closeQueue); }
+		using datasink_task<flusher>::complete;
+		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
 		
 		virtual const flusher& get() const volatile { return *(const flusher*)this; }
 	};
 
 	/// @brief A close task
-	class closer : public task<closer>
+	class closer : public datasink_task<closer>
 	{
 	private:
 		friend class datasink;
@@ -162,16 +162,16 @@ public:
 
 	protected:
 		/// @brief Constructor
-		closer(const rcref<datasink>& ds) : task(ds)	{ }
+		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds)	{ }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
 		/// The default implementation completes the closer and closes the datasink's io::queue.
-		virtual void closing()	{ task<closer>::complete(true); }
+		virtual void closing()	{ datasink_task<closer>::complete(true); }
 
 		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
-		using task<closer>::canceling;
-		//virtual void canceling() { io::queue::task::canceling(); }
+		using datasink_task<closer>::canceling;
+		//virtual void canceling() { io::queue::io_task::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
@@ -181,14 +181,14 @@ public:
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using task<closer>::complete;
-		//void complete(bool closeQueue = false) { io::queue::task::complete(closeQueue); }
+		using datasink_task<closer>::complete;
+		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
 
 		virtual const closer& get() const volatile { return *(const closer*)this; }
 	};
 
 	/// @brief A write task
-	class writer : public task<writer>
+	class writer : public datasink_task<writer>
 	{
 	private:
 		friend class datasink;
@@ -213,7 +213,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this writer
-		writer(const rcref<datasink>& ds) : task(ds)	{ }
+		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds)	{ }
 
 		/// @brief Derived writers should implement writing() to perform the write operation
 		/// 
@@ -221,8 +221,8 @@ public:
 		virtual void writing()		{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a writer that has not yet been executed. 
-		using task<writer>::canceling;
-		//virtual void canceling() { io::queue::task::canceling(); }
+		using datasink_task<writer>::canceling;
+		//virtual void canceling() { io::queue::io_task::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a writer that has started executing.
 		///
@@ -232,8 +232,8 @@ public:
 
 		/// @brief Completes the writer, and starts the next task, if any.  Called by a derived writer.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using task<writer>::complete;
-		//void complete(bool closeQueue = false) { io::queue::task::complete(closeQueue); }
+		using datasink_task<writer>::complete;
+		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
 
 		/// @brief Gets the buffer to write
 		/// @return The buffer to write
@@ -313,8 +313,8 @@ private:
 	public:
 		const weak_rcptr<datasink> m_sink;
 
-		callback_writer(const rcref<datasink>& proxy, const rcref<datasink>& ds)
-			: writer(proxy),
+		callback_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<datasink>& ds)
+			: writer(desc, proxy),
 			m_sink(ds)
 		{
 		}
@@ -326,7 +326,7 @@ private:
 				complete(true);
 			else
 			{
-				rcref<cogs::task<bool> > t = ds->m_writeFunc(get_buffer());
+				rcref<task<bool> > t = ds->m_writeFunc(get_buffer());
 				t->dispatch([r{ this_rcref }](bool isClosing)
 				{
 					r->complete(isClosing);
@@ -336,28 +336,32 @@ private:
 	};
 
 protected:
-	datasink()
-		: m_ioQueue(queue::create())
+	explicit datasink(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_ioQueue(queue::create())
 	{ }
 
 	/// @brief Datasink constructor
 	/// @param ioQueue The io::queue to use.  Default: creates a new one
-	explicit datasink(const rcref<io::queue>& ioQueue)
-		: m_ioQueue(ioQueue)
+	datasink(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue)
+		: object(desc),
+		m_ioQueue(ioQueue)
 	{ }
 
-	datasink(const write_func_t& writeFunc)
-		: m_ioQueue(queue::create()),
+	datasink(const ptr<rc_obj_base>& desc, const write_func_t& writeFunc)
+		: object(desc),
+		m_ioQueue(queue::create()),
 		m_writeFunc(writeFunc)
 	{ }
 
-	datasink(write_func_t&& writeFunc)
-		: m_ioQueue(queue::create()),
+	datasink(const ptr<rc_obj_base>& desc, write_func_t&& writeFunc)
+		: object(desc),
+		m_ioQueue(queue::create()),
 		m_writeFunc(std::move(writeFunc))
 	{ }
 
-	/// @brief Arbitrarily enqueues an io::queue::task in the datasink's IO queue
-	/// @param t A reference to the io::queue::task to enqueue
+	/// @brief Arbitrarily enqueues an io::queue::io_task in the datasink's IO queue
+	/// @param t A reference to the io::queue::io_task to enqueue
 	virtual void sink_enqueue(const rcref<io::queue::task_base>& t)	{ m_ioQueue->enqueue(t); }
 
 	/// @brief Associate the specified buffer with the specified writer and enqueue it on the datasink's IO queue
@@ -423,25 +427,29 @@ private:
 	// This IO task represents the entire transaction.
 	// It posts to the original datasink, and does not complete until
 	// the transaction is complete and all data written.
-	class transaction_task : public io::queue::task<transaction_task>
+	class transaction_task : public io::queue::io_task<transaction_task>
 	{
 	public:
 		// This IO task is a dummy element placed at the start of the
 		// transaction's queue, to ensure queue'ed tasks do not trigger IO.
-		class plug : public io::queue::task<plug>
+		class plug : public io::queue::io_task<plug>
 		{
 		public:
+			explicit plug(const ptr<rc_obj_base>& desc)
+				: io::queue::io_task<plug>(desc)
+			{ }
+
 			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
 
-			using io::queue::task<plug>::complete;
+			using io::queue::io_task<plug>::complete;
 
 			virtual void executing()
 			{
 				if (!m_transactionRunning.compare_exchange(true, false))
-					io::queue::task<plug>::complete();
+					io::queue::io_task<plug>::complete();
 			}
 
-			virtual void aborting()		{ io::queue::task<plug>::complete(true); }
+			virtual void aborting()		{ io::queue::io_task<plug>::complete(true); }
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
@@ -461,8 +469,9 @@ private:
 				p->complete();
 		}
 
-		transaction_task(const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
-			: m_transactionIoQueue(ioQueue),
+		transaction_task(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
+			: io::queue::io_task<transaction_task>(desc),
+			m_transactionIoQueue(ioQueue),
 			m_closePropagationMode(closePropagationMode),
 			m_transactionAborted(false)
 		{ }
@@ -483,7 +492,7 @@ private:
 			if (m_completeOrAbortGuard.compare_exchange(true, false))
 			{
 				m_transactionIoQueue->close();
-				io::queue::task<transaction_task>::complete();
+				io::queue::io_task<transaction_task>::complete();
 			}
 		}
 
@@ -492,18 +501,18 @@ private:
 			switch (m_closePropagationMode)
 			{
 			case no_close_propagation:
-				io::queue::task<transaction_task>::complete();
+				io::queue::io_task<transaction_task>::complete();
 				break;
 			case propagate_abort_only:
 				if (!m_transactionAborted)
 				{
-					io::queue::task<transaction_task>::complete();
+					io::queue::io_task<transaction_task>::complete();
 					break;
 				}
 				// fall through
 			default:
 			//case propagate_close_and_abort:
-				io::queue::task<transaction_task>::complete(true);
+				io::queue::io_task<transaction_task>::complete(true);
 				break;
 			}
 		}
@@ -524,7 +533,7 @@ private:
 		virtual void canceling()	// transaction_task got canceled before anything executed.
 		{
 			m_transactionIoQueue->close();
-			io::queue::task<transaction_task>::canceling();
+			io::queue::io_task<transaction_task>::canceling();
 		}
 
 		virtual const transaction_task& get() const volatile { return *(const transaction_task*)this; }
@@ -534,19 +543,20 @@ private:
 
 	// This IO task is posted to the end of a transaction's io::queue
 	// to trigger the completion of the transaction_task.
-	class terminator : public io::queue::task<terminator>
+	class terminator : public io::queue::io_task<terminator>
 	{
 	public:
 		rcref<transaction_task>	m_transactionTask;
 		
-		terminator(const rcref<transaction_task>& t)
-			: m_transactionTask(t)
+		terminator(const ptr<rc_obj_base>& desc, const rcref<transaction_task>& t)
+			: io::queue::io_task<terminator>(desc),
+			m_transactionTask(t)
 		{ }
 		
 		virtual void executing()
 		{
 			rcref<transaction_task>	tt = m_transactionTask;
-			io::queue::task<terminator>::complete();
+			io::queue::io_task<terminator>::complete();
 			tt->complete();
 		}
 
@@ -554,7 +564,7 @@ private:
 		{
 			// queue was closed, pass along close.
 			rcref<transaction_task>	tt = m_transactionTask;
-			io::queue::task<terminator>::canceling();
+			io::queue::io_task<terminator>::canceling();
 			tt->abort();
 		}
 
@@ -605,10 +615,11 @@ protected:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.
 	/// @param closePropagationMode Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	transaction(const rcref<datasink>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
-		:	m_sink(ds),
-			m_started(startImmediately),
-			m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
+	transaction(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
+		: datasink(desc),
+		m_sink(ds),
+		m_started(startImmediately),
+		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
 	{
 		if (startImmediately)
 			ds->sink_enqueue(m_transactionTask);

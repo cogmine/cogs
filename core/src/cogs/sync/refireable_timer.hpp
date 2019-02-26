@@ -35,8 +35,8 @@ private:
 	}
 
 protected:
-	refireable_timer(const timeout_t& t, bool wakeAll)
-		: timer(t),
+	refireable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll)
+		: timer(desc, t),
 		m_wakeAll(wakeAll)
 	{ }
 

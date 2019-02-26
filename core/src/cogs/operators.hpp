@@ -106,20 +106,20 @@ template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all
 	post_assign_ ## name(T& t) { T tmp(t); t = name(t); return tmp; }\
 
 #define COGS_DEFINE_UNARY_OPERATOR(name, symbol)\
+	template <typename T> inline std::enable_if_t<!std::is_class_v<T>, decltype(symbol(std::declval<T&>()))> name(T& t) { return symbol(load(t)); }\
 	COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(name, symbol, )\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(assign_ ## name)\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(pre_assign_ ## name)\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(post_assign_ ## name)\
 	COGS_DEFINE_UNARY_ASSIGN_OPERATORS(name)\
-	template <typename T> inline std::enable_if_t<!std::is_class_v<T>, decltype(symbol(std::declval<T&>()))> name(T& t) { return symbol(load(t)); }\
 
 #define COGS_DEFINE_UNARY_OPERATOR_FROM_PRE_AND_POST(name, symbol)\
+	template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, std::remove_cv_t<T> > name(T& t) { std::remove_cv_t<T> tmp(load(t)); return symbol(tmp); }\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(name)\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(assign_ ## name)\
 	COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(pre_assign_ ## name, symbol, )\
 	COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(post_assign_ ## name, , symbol)\
 	COGS_DEFINE_UNARY_ASSIGN_OPERATORS(name)\
-	template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, std::remove_cv_t<T> > name(T& t) { std::remove_cv_t<T> tmp(load(t)); return symbol(tmp); }\
 
 #define COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(name)\
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(name)\
@@ -132,6 +132,9 @@ template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all
 	template <typename T, typename A1> inline std::enable_if_t<std::is_class_v<T>,\
 	decltype(std::declval<T&>() symbol std::declval<A1>())>\
 	name(T& t, A1&& a) { return t symbol std::forward<A1>(a); }\
+	template <typename T, typename A1> inline std::enable_if_t<std::is_class_v<T>,\
+	decltype(std::declval<const T&>() symbol std::declval<A1>())>\
+	name(const T& t, A1&& a) { return t symbol std::forward<A1>(a); }\
 
 #define COGS_DEFINE_BINARY_ASSIGN_OPERATORS_FROM_FUNCTION(name)\
 	template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, void>\
@@ -332,18 +335,20 @@ void do_for_each_arg(F&& f2, args_t&&... a)
 
 // not
 
+template <typename T> inline std::enable_if_t<!std::is_class_v<T>, decltype(!(std::declval<T&>()))> lnot(T& t) { return !(load(t)); }
 COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(lnot, !, )
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(assign_not)
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(pre_assign_not)
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(post_assign_not)
-COGS_DEFINE_UNARY_ASSIGN_OPERATORS(not)
-template <typename T> inline std::enable_if_t<!std::is_class_v<T>, decltype(!(std::declval<T&>()))> lnot(T& t) { return !(load(t)); }
-
+template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, void>
+assign_not(T& t) { t = lnot(t); }
+template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, T>
+pre_assign_not(T& t) { t = lnot(t); return t; }
+template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, T>
+post_assign_not(T& t) { T tmp(t); t = lnot(t); return tmp; }
 
 
 COGS_DEFINE_UNARY_OPERATOR(bit_not, ~)
-
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_negative)
 
 template <typename T> inline std::enable_if_t<std::is_arithmetic_v<T> && std::is_signed_v<T>, bool>
 is_negative(const T& t) { return load(t) < (std::remove_volatile_t<T>)0; }
@@ -351,7 +356,7 @@ is_negative(const T& t) { return load(t) < (std::remove_volatile_t<T>)0; }
 template <typename T> inline std::enable_if_t<std::is_arithmetic_v<T> && !std::is_signed_v<T>, bool>
 is_negative(const T& t) { return false; }
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_exponent_of_two)
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_negative)
 
 template <typename T> inline std::enable_if_t<std::is_integral_v<T> && !std::is_signed_v<T> && !std::is_volatile_v<T>, bool>
 is_exponent_of_two(const T& t) { decltype(auto) tmp(load(t)); return (tmp != 0) && ((tmp & (T)-(std::make_signed_t<T>)tmp) == tmp); }
@@ -362,7 +367,7 @@ is_exponent_of_two(const T& t) { return is_exponent_of_two(load(t)); }
 template <typename T> inline std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
 is_exponent_of_two(const T& t) { return is_exponent_of_two(abs(t)); }
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(has_fractional_part)
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_exponent_of_two)
 
 template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, bool>
 has_fractional_part(const T& t) { return false; }
@@ -370,13 +375,10 @@ has_fractional_part(const T& t) { return false; }
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), nullptr))>
 has_fractional_part(const T& t) { return std::modf(load(t), nullptr) != 0.0; }
 
-
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(abs)
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(has_fractional_part)
 
 template <typename T> inline std::enable_if_t<std::is_arithmetic_v<T> && !std::is_signed_v<T>, std::remove_volatile_t<T> >
 abs(const T& t) { return load(t); }
-
-
 
 template <typename T> inline std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, std::make_unsigned_t<std::conditional_t<std::is_integral_v<T>, T, int> > >
 abs(const T& t) { return (std::make_unsigned_t<T>)(is_negative(t) ? -t : t); }
@@ -389,6 +391,10 @@ abs(const T& t) { return std::fabs(t); }
 
 template <typename T> inline std::enable_if_t< std::is_floating_point_v<T>, T>
 abs(const volatile T& t) { return abs(load(t)); }
+
+
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(abs)
+
 
 COGS_DEFINE_UNARY_OPERATOR(negative, -)
 
@@ -403,7 +409,6 @@ COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(bit_scan_reverse)
 
 COGS_DEFINE_UNARY_OPERATOR_FROM_PRE_AND_POST(next, ++)
 COGS_DEFINE_UNARY_OPERATOR_FROM_PRE_AND_POST(prev, --)
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(endian_swap)
 
 
 template <typename T>
@@ -496,44 +501,44 @@ endian_swap(const T& t)
 #endif
 #endif
 
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(endian_swap)
 
-COGS_DEFINE_BINARY_OPERATOR(bit_shift_left, << )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T>, decltype(load(std::declval<T&>()) << reduce_integer_type(std::declval<A1>())) >
 bit_shift_left(T& t, A1&& a) { return load(t) << reduce_integer_type(std::forward<A1>(a)); }
 
-
-COGS_DEFINE_BINARY_OPERATOR(bit_shift_right, >> )
+COGS_DEFINE_BINARY_OPERATOR(bit_shift_left, << )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T>, decltype(load(std::declval<T&>()) >> reduce_integer_type(std::declval<A1>())) >
 bit_shift_right(const T& t, A1&& a) { return load(t) >> reduce_integer_type(std::forward<A1>(a)); }
 
+COGS_DEFINE_BINARY_OPERATOR(bit_shift_right, >> )
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(bit_rotate_left)
+
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(bit_rotate_left)
 	// bit_rotate_left is defined in env/bit_rotate.hpp , as there are efficient implementations as arch/os/env intrincs
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(bit_rotate_right)
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(bit_rotate_right)
 	// bit_rotate_right is defined in env/bit_rotate.hpp , as there are efficient implementations as arch/os/env intrincs
 
-COGS_DEFINE_BINARY_OPERATOR(bit_and, & )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T>, decltype(load(std::declval<T&>()) & reduce_integer_type(std::declval<A1>())) >
 bit_and(const T& t, A1&& a) { return load(t) & reduce_integer_type(std::forward<A1>(a)); }
 
+COGS_DEFINE_BINARY_OPERATOR(bit_and, & )
 
-COGS_DEFINE_BINARY_OPERATOR(bit_or, | )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T>, decltype(load(std::declval<T&>()) | reduce_integer_type(std::declval<A1>())) >
 bit_or(const T& t, A1&& a) { return load(t) | reduce_integer_type(std::forward<A1>(a)); }
 
+COGS_DEFINE_BINARY_OPERATOR(bit_or, | )
 
-COGS_DEFINE_BINARY_OPERATOR(bit_xor, ^ )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T>, decltype(load(std::declval<T&>()) ^ reduce_integer_type(std::declval<A1>())) >
 bit_xor(const T& t, A1&& a) { return load(t) ^ reduce_integer_type(std::forward<A1>(a)); }
 
+COGS_DEFINE_BINARY_OPERATOR(bit_xor, ^ )
 
-COGS_DEFINE_BINARY_OPERATOR(add, + )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<const A1&>() + std::declval<const T&>())>
 add(const T& t, const A1& a) { return a + t; }
@@ -585,8 +590,8 @@ add(const T& t, const A1& a);
 //	return result;
 //}
 
+COGS_DEFINE_BINARY_OPERATOR(add, + )
 
-COGS_DEFINE_BINARY_OPERATOR(subtract, -)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().inverse_subtract(std::declval<T&>()))>
 subtract(const T& t, const A1& a) { return a.inverse_subtract(t); }
@@ -640,7 +645,8 @@ subtract(const T& t, const A1& a);
 //	return result;
 //}
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_subtract)
+COGS_DEFINE_BINARY_OPERATOR(subtract, -)
+
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>() - std::declval<T&>())>
 inverse_subtract(const T& t, const A1& a) { return a - t; }
@@ -693,8 +699,8 @@ inverse_subtract(const T& t, const A1& a);
 //	return result;
 //}
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_subtract)
 
-COGS_DEFINE_BINARY_OPERATOR(multiply, * )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<const A1&>() * std::declval<const T&>())>
 multiply(const T& t, const A1& a) { return a * t; }
@@ -739,8 +745,8 @@ multiply(const T& t, const A1& a)
 	return load(t) * load(a);
 }
 
+COGS_DEFINE_BINARY_OPERATOR(multiply, * )
 
-COGS_DEFINE_BINARY_OPERATOR(modulo, % )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().inverse_modulo(std::declval<T&>()))>
 modulo(const T& t, const A1& a) { return a.inverse_modulo(t); }
@@ -787,8 +793,8 @@ modulo(const T& t, const A1& a)
 	return load(t) % load(a);
 }
 
+COGS_DEFINE_BINARY_OPERATOR(modulo, % )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_modulo)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>() % std::declval<T&>())>
 inverse_modulo(const T& t, const A1& a) { return a % t; }
@@ -835,8 +841,8 @@ inverse_modulo(const T& t, const A1& a)
 	return load(a) % load(t);
 }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_modulo)
 
-COGS_DEFINE_BINARY_OPERATOR(divide, / )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().inverse_divide(std::declval<T&>()))>
 divide(const T& t, const A1& a) { return a.inverse_divide(t); }
@@ -847,8 +853,8 @@ divide(T&& t, A1&& a)
 { return fraction<std::remove_cv_t<std::remove_reference_t<T> >, std::remove_cv_t<std::remove_reference_t<A1> > >(
 	std::forward<T>(t), std::forward<A1>(a)); }
 
+COGS_DEFINE_BINARY_OPERATOR(divide, / )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<std::remove_reference_t<T> > && !std::is_class_v<std::remove_reference_t<A1> >,
 	fraction<std::remove_cv_t<std::remove_reference_t<A1> >, std::remove_cv_t<std::remove_reference_t<T> > > >
@@ -859,37 +865,38 @@ template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<std:
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>() / std::declval<T&>())>
 inverse_divide(const T& t, const A1& a) { return a / t; }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide)
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(reciprocal)
 
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(floor)
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_cv_t<T> >
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
 floor(const T& t) { return load(t); }
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, decltype(std::floor(std::declval<std::remove_cv_t<T> >()))>
 floor(const T& t) { return std::floor(load(t)); }
 
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(floor)
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(ceil)
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_cv_t<T> >
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
 ceil(const T& t) { return load(t); }
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, decltype(std::ceil(std::declval<std::remove_cv_t<T> >()))>
 ceil(const T& t) { return std::ceil(load(t)); }
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(round)
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(ceil)
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_cv_t<T> >
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
 round(const T& t) { return load(t); }
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, decltype(std::round(std::declval<std::remove_cv_t<T> >()))>
 round(const T& t) { return std::round(load(t)); }
 
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(round)
 
-COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(fractional_part)
 
 template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, int>
 fractional_part(const T& t) { return 0; }
@@ -897,7 +904,8 @@ fractional_part(const T& t) { return 0; }
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), std::declval<nullptr_t>()))>
 fractional_part(const T& t) { return std::modf(load(t), nullptr); }
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(divide_whole)
+COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(fractional_part)
+
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().inverse_divide_whole(std::declval<T&>()))>
 divide_whole(const T& t, const A1& a) { return a.inverse_divide_whole(t); }
@@ -996,7 +1004,8 @@ divide_whole(const T& t, const A1& a);
 //	return result;
 //}
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide_whole)
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(divide_whole)
+
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().divide_whole(std::declval<T&>()))>
 inverse_divide_whole(const T& t, const A1& a) { return a.divide_whole(t); }
@@ -1095,8 +1104,8 @@ inverse_divide_whole(const T& t, const A1& a);
 //	return result;
 //}
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide_whole)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(divide_whole_and_modulo)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().inverse_divide_whole_and_modulo(std::declval<T&>()))>
 divide_whole_and_modulo(const T& t, const A1& a) { return a.inverse_divide_whole_and_modulo(t); }
@@ -1142,8 +1151,8 @@ divide_whole_and_modulo(const T& t, const A1& a)
 	return std::make_pair(wholePart, fractionalPart);
 }
 
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(divide_whole_and_modulo)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(inverse_divide_whole_and_inverse_modulo)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().divide_whole_and_modulo(std::declval<T&>()))>
 inverse_divide_whole_and_modulo(const T& t, const A1& a) { return a.divide_whole_and_modulo(t); }
@@ -1188,8 +1197,8 @@ inverse_divide_whole_and_inverse_modulo(const T& t, const A1& a)
 	return std::make_pair(wholePart, fractionalPart);
 }
 
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(inverse_divide_whole_and_inverse_modulo)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(divide_whole_and_assign_modulo)
 
 template <typename T, typename A1>
 inline std::enable_if_t <!std::is_class_v<T> && !std::is_volatile_v<T>,
@@ -1217,8 +1226,8 @@ divide_whole_and_assign_modulo(T& t, const A1& a)
 	return wholePart;
 }
 
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(divide_whole_and_assign_modulo)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(modulo_and_assign_divide_whole)
 
 template <typename T, typename A1>
 inline std::enable_if_t <!std::is_class_v<T> && !std::is_volatile_v<T>,
@@ -1245,8 +1254,8 @@ modulo_and_assign_divide_whole(T& t, const A1& a)
 		});
 	return fractionalPart;
 }
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(modulo_and_assign_divide_whole)
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(equals, == )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 equals(T& t, const A1& a) { return a == t; }
@@ -1286,8 +1295,8 @@ equals(const T& t, const A1& a)
 {
 	return load(t) == load(a);
 }
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(equals, == )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(not_equals, != )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 not_equals(const T& t, const A1& a) { return a != t; }
@@ -1295,8 +1304,8 @@ not_equals(const T& t, const A1& a) { return a != t; }
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && !std::is_class_v<A1>, bool>
 not_equals(const T& t, const A1& a) { return !equals(t, a); }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(not_equals, != )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_less_than, < )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 is_less_than(const T& t, const A1& a) { return a > t; }
@@ -1338,8 +1347,8 @@ is_less_than(const T& t, const A1& a)
 	return load(t) < load(a);
 }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_less_than, < )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_greater_than, > )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 is_greater_than(const T& t, const A1& a) { return a < t; }
@@ -1381,7 +1390,8 @@ is_greater_than(const T& t, const A1& a)
 	return load(t) > load(a);
 }
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_less_than_or_equal, <= )
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_greater_than, > )
+
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 is_less_than_or_equal(const T& t, const A1& a) { return a >= t; }
@@ -1390,8 +1400,8 @@ template <typename T, typename A1> inline std::enable_if_t <!std::is_class_v<T> 
 is_less_than_or_equal(const T& t, const A1& a)
 { return !(is_greater_than(t, a)); }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_less_than_or_equal, <= )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_greater_than_or_equal, >= )
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 is_greater_than_or_equal(const T& t, const A1& a) { return a <= t; }
@@ -1400,8 +1410,8 @@ template <typename T, typename A1> inline std::enable_if_t <!std::is_class_v<T> 
 is_greater_than_or_equal(const T& t, const A1& a)
 { return !(is_less_than(t, a)); }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(is_greater_than_or_equal, >= )
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, int>
 compare(const T& t, const A1& a) { return -(a.compare(t)); }
@@ -1417,6 +1427,8 @@ compare(const T& t, const A1& a)
 		return 1;
 	return 0;
 }
+
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare)
 
 // TODO: Add compare_3way / <=>, once it makes it into the standard
 
@@ -1545,7 +1557,6 @@ public:
 };
 
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(greater)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().greater(std::declval<T&>()))>
 greater(const T& t, const A1& a) { return a.greater(t); }
@@ -1576,8 +1587,8 @@ greater(const T& t, const A1& a)
 	return a;
 }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(greater)
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(lesser)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().lesser(std::declval<T&>()))>
 lesser(const T& t, const A1& a) { return a.lesser(t); }
@@ -1618,8 +1629,8 @@ lesser(const T& t, const A1& a)
 }
 
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(lesser)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(gcd)
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().gcd(std::declval<T&>()))>
 gcd(const T& t, const A1& a) { return a.gcd(t); }
@@ -1657,7 +1668,8 @@ gcd(const T& t, const A1& a)
 	}
 }
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(lcm)
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(gcd)
+
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().lcm(std::declval<T&>()))>
 lcm(const T& t, const A1& a) { return a.lcm(t); }
@@ -1690,50 +1702,8 @@ lcm(const T& t, const A1& a)
 	return divide_whole(multiply(t2, a2), gcd(t2, a2));
 }
 
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(lcm)
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(swap)
-
-template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().swap(std::declval<T&>()))>
-swap(T& t, const A1& a) { return a.swap(t); }
-
-template <typename T1, typename T2>
-inline std::enable_if_t<
-	!std::is_class_v<T1> && !std::is_class_v<T2>
-	&& !std::is_volatile_v<T1> && !std::is_volatile_v<T2>,
-	void
->
-swap(T1& a, T2& b)
-{
-	T1 tmp;
-	assign(tmp, b);
-	assign(b, a);
-	assign(a, tmp);
-}
-
-template <typename T1, typename T2>
-inline std::enable_if_t<
-	!std::is_class_v<T1> && !std::is_class_v<T2>
-	&& std::is_volatile_v<T1> && !std::is_volatile_v<T2>,
-	void
->
-swap(T1& a, T2& b)
-{
-	assign(b, exchange(a, b));
-}
-
-template <typename T1, typename T2>
-inline std::enable_if_t<
-	!std::is_class_v<T1> && !std::is_class_v<T2>
-	&& !std::is_volatile_v<T1> && std::is_volatile_v<T2>,
-	void
->
-swap(T1& a, T2& b)
-{
-	assign(a, exchange(b, a));
-}
-
-
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(exchange)
 
 template <typename T, typename S> inline std::enable_if_t<std::is_scalar_v<T> && !std::is_volatile_v<T>, T>
 exchange(T& t, S&& src)
@@ -1772,7 +1742,8 @@ exchange(T& t, S&& src, R& rtn)
 	assign(rtn, tmpRtn);
 }
 
-COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare_exchange)
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(exchange)
+
 
 template <typename T, typename S, typename C> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, bool>
 compare_exchange(T& t, S&& src, C&& cmp)
@@ -1817,8 +1788,50 @@ compare_exchange(T& t, S&& src, C&& cmp, R& rtn)
 	return b;
 }
 
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare_exchange)
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(clear)
+
+template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().swap(std::declval<T&>()))>
+swap(T& t, const A1& a) { return a.swap(t); }
+
+template <typename T1, typename T2>
+inline std::enable_if_t<
+	!std::is_class_v<T1> && !std::is_class_v<T2>
+	&& !std::is_volatile_v<T1> && !std::is_volatile_v<T2>,
+	void
+>
+swap(T1& a, T2& b)
+{
+	T1 tmp;
+	assign(tmp, b);
+	assign(b, a);
+	assign(a, tmp);
+}
+
+template <typename T1, typename T2>
+inline std::enable_if_t<
+	!std::is_class_v<T1> && !std::is_class_v<T2>
+	&& std::is_volatile_v<T1> && !std::is_volatile_v<T2>,
+	void
+>
+swap(T1& a, T2& b)
+{
+	assign(b, exchange(a, b));
+}
+
+template <typename T1, typename T2>
+inline std::enable_if_t<
+	!std::is_class_v<T1> && !std::is_class_v<T2>
+	&& !std::is_volatile_v<T1> && std::is_volatile_v<T2>,
+	void
+>
+swap(T1& a, T2& b)
+{
+	assign(a, exchange(b, a));
+}
+
+COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(swap)
+
 
 template <typename T> inline std::enable_if_t<!std::is_class_v<T>, void>
 clear(T& t)
@@ -1826,6 +1839,7 @@ clear(T& t)
 	assign(t, (std::remove_volatile_t<T>)0);
 }
 
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(clear)
 
 template <typename T> class composite_string_t;
 template <typename T> class string_t;
@@ -1840,8 +1854,6 @@ inline cstring string_to_cstring(const composite_string& s);
 inline string cstring_to_string(const composite_cstring& s);
 
 
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_string)
-COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_cstring)
 
 template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_string>
 to_string(const T& t)
@@ -1892,6 +1904,9 @@ to_string_t(const T& t) { return to_cstring(t); }
 template <typename char_t, typename T>
 inline std::enable_if_t<std::is_same_v<char_t, wchar_t> && (std::is_integral_v<T> || std::is_floating_point_v<T>), composite_string_t<char_t> >
 to_string_t(const T& t) { return to_string(t); }
+
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_string)
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_cstring)
 
 
 /// @brief A type that represent infinity at compile time

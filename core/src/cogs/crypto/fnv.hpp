@@ -196,13 +196,8 @@ private:
 public:
 	static fixed_integer<false, 128> get_prime()
 	{
-		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
-		static constexpr size_t shiftBy = 88 % digit_bits;
-		static constexpr size_t shiftIndex = 88 / digit_bits;
-
-		fixed_integer<false, 128> result(0);
-		result.set_digit(shiftIndex, (fixed_integer<false, 128>::int_t)1 << shiftBy);
-		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x3b));
+		fixed_integer<false, 128> result =
+			(one_t() << int_to_fixed_integer_const_t<88>()) | int_to_fixed_integer_const_t<((1 << 8) + 0x3b)>();
 		return result;
 	}
 
@@ -309,7 +304,6 @@ public:
 		fixed_integer<false, 1024> result(0);
 		result.set_digit(shiftIndex, (fixed_integer<false, 1024>::int_t)1 << shiftBy);
 		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x8D));
-		io::buffer tmpBuf = result.template to_buffer<endian_t::big>();
 		return result;
 	}
 
@@ -378,13 +372,8 @@ private:
 public:
 	static fixed_integer<false, 128> get_prime()
 	{
-		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 128>::int_t) * 8);
-		static constexpr size_t shiftBy = 88 % digit_bits;
-		static constexpr size_t shiftIndex = 88 / digit_bits;
-
-		fixed_integer<false, 128> result(0);
-		result.set_digit(shiftIndex, (fixed_integer<false, 128>::int_t)1 << shiftBy);
-		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x3b));
+		fixed_integer<false, 128> result =
+			(one_t() << int_to_fixed_integer_const_t<88>()) | int_to_fixed_integer_const_t<((1 << 8) + 0x3b)>();
 		return result;
 	}
 
@@ -408,13 +397,8 @@ private:
 public:
 	static fixed_integer<false, 256> get_prime()
 	{
-		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 256>::int_t) * 8);
-		static constexpr size_t shiftBy = 168 % digit_bits;
-		static constexpr size_t shiftIndex = 168 / digit_bits;
-
-		fixed_integer<false, 256> result(0);
-		result.set_digit(shiftIndex, (fixed_integer<false, 256>::int_t)1 << shiftBy);
-		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x63));
+		fixed_integer<false, 256> result =
+			(one_t() << int_to_fixed_integer_const_t<168>()) | int_to_fixed_integer_const_t<((1 << 8) + 0x63)>();
 		return result;
 	}
 
@@ -442,13 +426,8 @@ private:
 public:
 	static fixed_integer<false, 512> get_prime()
 	{
-		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 512>::int_t) * 8);
-		static constexpr size_t shiftBy = 344 % digit_bits;
-		static constexpr size_t shiftIndex = 344 / digit_bits;
-
-		fixed_integer<false, 512> result(0);
-		result.set_digit(shiftIndex, (fixed_integer<false, 512>::int_t)1 << shiftBy);
-		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x57));
+		fixed_integer<false, 512> result =
+			(one_t() << int_to_fixed_integer_const_t<344>()) | int_to_fixed_integer_const_t<((1 << 8) + 0x57)>();
 		return result;
 	}
 
@@ -484,14 +463,8 @@ private:
 public:
 	static fixed_integer<false, 1024> get_prime()
 	{
-		static constexpr size_t digit_bits = (sizeof(fixed_integer<false, 1024>::int_t) * 8);
-		static constexpr size_t shiftBy = 680 % digit_bits;
-		static constexpr size_t shiftIndex = 680 / digit_bits;
-
-		fixed_integer<false, 1024> result(0);
-		result.set_digit(shiftIndex, (fixed_integer<false, 1024>::int_t)1 << shiftBy);
-		result.set_digit(0, result.get_digit(0) | ((1 << 8) + 0x8D));
-		io::buffer tmpBuf = result.template to_buffer<endian_t::big>();
+		fixed_integer<false, 1024> result =
+			(one_t() << int_to_fixed_integer_const_t<680>()) | int_to_fixed_integer_const_t<((1 << 8) + 0x8D)>();
 		return result;
 	}
 

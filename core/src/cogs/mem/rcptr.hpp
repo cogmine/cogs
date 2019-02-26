@@ -389,7 +389,7 @@ public:
 	rcptr<type2> static_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.static_cast_to<type2>();
+		return tmp.template static_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -405,7 +405,7 @@ public:
 	rcptr<type2> dynamic_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.dynamic_cast_to<type2>();
+		return tmp.template dynamic_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -421,7 +421,7 @@ public:
 	rcptr<type2> const_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.const_cast_to<type2>();
+		return tmp.template const_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1105,7 +1105,7 @@ public:
 	rcptr<type2> static_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.static_cast_to<type2>();
+		return tmp.template static_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1121,7 +1121,7 @@ public:
 	rcptr<type2> dynamic_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.dynamic_cast_to<type2>();
+		return tmp.template dynamic_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1137,7 +1137,7 @@ public:
 	rcptr<type2> const_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.const_cast_to<type2>();
+		return tmp.template const_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1678,7 +1678,7 @@ public:
 	rcptr<type2> static_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.static_cast_to<type2>();
+		return tmp.template static_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1694,7 +1694,7 @@ public:
 	rcptr<type2> dynamic_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.dynamic_cast_to<type2>();
+		return tmp.template dynamic_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -1710,7 +1710,7 @@ public:
 	rcptr<type2> const_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.const_cast_to<type2>();
+		return tmp.template const_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2249,7 +2249,7 @@ public:
 	rcptr<type2> static_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.static_cast_to<type2>();
+		return tmp.template static_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2265,7 +2265,7 @@ public:
 	rcptr<type2> dynamic_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.dynamic_cast_to<type2>();
+		return tmp.template dynamic_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2281,7 +2281,7 @@ public:
 	rcptr<type2> const_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.const_cast_to<type2>();
+		return tmp.template const_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2820,7 +2820,7 @@ public:
 	rcptr<type2> static_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.static_cast_to<type2>();
+		return tmp.template static_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2836,7 +2836,7 @@ public:
 	rcptr<type2> dynamic_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.dynamic_cast_to<type2>();
+		return tmp.template dynamic_cast_to<type2>();
 	}
 
 	template <typename type2>
@@ -2852,7 +2852,7 @@ public:
 	rcptr<type2> const_cast_to() const volatile
 	{
 		this_t tmp(*this);
-		return tmp.const_cast_to<type2>();
+		return tmp.template const_cast_to<type2>();
 	}
 
 	template <typename type2>

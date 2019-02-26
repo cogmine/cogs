@@ -98,7 +98,7 @@ public:
 	};
 
 	volatile rcptr<volatile control_queue_t> m_controlQueue;
-	volatile alignas(cogs::atomic::get_alignment_v<int>) int m_dispatchMode;	// 0 = idle, 1 = running, 2 = refresh
+	alignas(cogs::atomic::get_alignment_v<int>) volatile int m_dispatchMode;	// 0 = idle, 1 = running, 2 = refresh
 
 	static void shutdown()
 	{

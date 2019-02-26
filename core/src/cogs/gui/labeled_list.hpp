@@ -741,7 +741,7 @@
 //
 //	virtual void detaching_child(const rcref<pane>& p)
 //	{
-//		rcptr<cell_t> cell = p->get_frame().static_cast_to<cell_t>();
+//		rcptr<cell_t> cell = p->get_frame().template static_cast_to<cell_t>();
 //		m_cells.remove(cell->m_removeToken);
 //		pane::detaching_child(p);
 //		reshape(get_bounds());

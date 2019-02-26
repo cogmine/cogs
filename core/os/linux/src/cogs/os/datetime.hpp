@@ -69,7 +69,7 @@ public:
 	static datetime	now()
 	{
 		time_t t;
-		time(&t);
+		::time(&t);
 		return datetime(t);
 	}
 
@@ -94,9 +94,9 @@ public:
 
 	period_t operator-(const datetime& dt)
 	{
-		measure<fixed_integer<true, (sizeof(time_t)*8) >, seconds> stamp1 = m_stamp;
-		measure<fixed_integer<true, (sizeof(time_t)*8) >, seconds> stamp2 = dt.m_stamp;
-		return stamp1 - stamp2;
+		fixed_integer<true, (sizeof(time_t)*8)> stamp1 = m_stamp;
+		fixed_integer<true, (sizeof(time_t)*8)> stamp2 = dt.m_stamp;
+		return make_measure<seconds>(stamp1 - stamp2);
 	}
 };
 

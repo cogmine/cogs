@@ -680,7 +680,7 @@ public:
 					// Handle thread messages
 					switch (strongRef->m_lastMsg.message)
 					{
-					case WM_QUIT:	// Might get this is some other app wants us to quit.
+					case WM_QUIT:	// Might get this if another app wants us to quit.
 						quit_dispatcher::get()->request();
 						break;
 					default:
@@ -775,12 +775,13 @@ public:
 		}
 
 	public:
-		ui_thread()
-			: m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL)),
+		explicit ui_thread(const ptr<rc_obj_base>& desc)
+			: object(desc),
+			m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL)),
 			m_reentrancyGuard(false),
 			m_lastActivatedWindow(NULL)
 		{
-			placement_rcnew(this_desc, &m_controlQueue.get());
+			placement_rcnew(&m_controlQueue.get(), this_desc);
 			self_acquire();
 			m_thread = cogs::thread::spawn([r{ this_weak_rcptr }]()
 			{
@@ -817,8 +818,9 @@ public:
 		}
 
 	protected:
-		subsystem()
-			: m_visibleWindows(rcnew(visible_windows_list_t)),
+		explicit subsystem(const ptr<rc_obj_base>& desc)
+			: gui::windowing::subsystem(desc),
+			m_visibleWindows(rcnew(visible_windows_list_t)),
 			m_windowClass(window_class::get_default()),
 			m_cleanupRemoveToken(cleanup_queue::get_global()->dispatch([r{ this_weak_rcptr }]()
 			{
@@ -827,7 +829,7 @@ public:
 					r2->cleanup();
 			}))
 		{
-			placement_rcnew(this_desc, &m_uiThread.get());
+			placement_rcnew(&m_uiThread.get(), this_desc);
 		}
 
 	public:
@@ -896,7 +898,8 @@ private:
 	static LRESULT CALLBACK UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 public:
-	hwnd(const rcptr<hwnd>& parent,
+	hwnd(const ptr<rc_obj_base>& desc,
+		const rcptr<hwnd>& parent,
 		const rcptr<hwnd>& belowThis,
 		const rcref<hwnd_pane>& owner,
 		const composite_string& windowClassName,
@@ -904,9 +907,10 @@ public:
 		DWORD& style,
 		DWORD& extendedStyle,
 		const rcref<volatile subsystem>& uiSubsystem)
-		:	m_uiSubsystem(uiSubsystem),
-			m_owner(owner),
-			m_parentHWND(parent)
+		: object(desc),
+		m_uiSubsystem(uiSubsystem),
+		m_owner(owner),
+		m_parentHWND(parent)
 	{
 		HWND parentHWND;
 		extendedStyle |= WS_EX_NOPARENTNOTIFY;
@@ -919,7 +923,7 @@ public:
 		{
 			parentHWND = 0;
 			extendedStyle |= WS_EX_OVERLAPPEDWINDOW;
-#ifndef _DEBUG
+#ifndef COGS_DEBUG
 			// To debug drawing, disabling WS_EX_COMPOSITED will remove some unnecessary WM_PAINTs,
 			// such as when context switching to debug in in VS.
 			extendedStyle |= WS_EX_COMPOSITED;
@@ -1221,7 +1225,7 @@ protected:
 	{
 		if (m_drawMode == user_drawn)
 		{
-			rcptr<gfx::os::gdi::bitmap> offScreenBuffer = peek_offscreen_buffer().static_cast_to<gfx::os::gdi::bitmap>();
+			rcptr<gfx::os::gdi::bitmap> offScreenBuffer = peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 			COGS_ASSERT(!!offScreenBuffer);
 			if (is_drawing_needed())
 			{
@@ -1254,7 +1258,7 @@ protected:
 			if (needNewBuffer)
 			{
 				size newSize = r.get_size() + size(25, 25); // add a little space to grow, to avoid creating buffers too often.
-				m_cachedBackgroundImage = m_deviceContext->create_pixel_image_canvas(newSize, true, get_device_context().get_dpi()).static_cast_to<gfx::os::gdi::bitmap>();
+				m_cachedBackgroundImage = m_deviceContext->create_pixel_image_canvas(newSize, true, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
 			}
 		}
 	}
@@ -1281,7 +1285,7 @@ protected:
 				ancestorHwnd = std::move(nextAncestorHwnd);
 			} while (!ancestorHwnd->is_opaque());
 
-			rcptr<gfx::os::gdi::bitmap> offScreenBuffer = ancestorHwnd->peek_offscreen_buffer().static_cast_to<gfx::os::gdi::bitmap>();
+			rcptr<gfx::os::gdi::bitmap> offScreenBuffer = ancestorHwnd->peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 			if (!offScreenBuffer)
 				return;
 			COGS_ASSERT(!!offScreenBuffer);
@@ -1307,7 +1311,7 @@ protected:
 						bounds r3 = r & r2;
 						if (!!r3)
 						{
-							offScreenBuffer = curHwnd->peek_offscreen_buffer().static_cast_to<gfx::os::gdi::bitmap>();
+							offScreenBuffer = curHwnd->peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 							if (!offScreenBuffer)
 								return; // Not rendering in z-order.  Skip.  Will self-heal as underlying pane draws.
 							
@@ -1339,8 +1343,9 @@ protected:
 	}
 
 public:
-	hwnd_pane(const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
-		: m_windowClassName(windowClassName),
+	hwnd_pane(const ptr<rc_obj_base>& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
+		: object(desc),
+		m_windowClassName(windowClassName),
 		m_style(style),
 		m_extendedStyle(extendedStyle),
 		m_uiSubsystem(uiSubsystem),
@@ -1411,9 +1416,9 @@ public:
 		rcptr<pane> p = get_parent();
 		while (!!p)
 		{
-			pane_bridge* bridge = p.dynamic_cast_to<pane_bridge>().get_ptr();
+			pane_bridge* bridge = p.template dynamic_cast_to<pane_bridge>().get_ptr();
 			if (!!bridge)
-				m_parentHwnd = get_bridged(*bridge).dynamic_cast_to<hwnd_pane>();
+				m_parentHwnd = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
 			if (!m_parentHwnd)
 			{
 				p = p->get_parent();
@@ -1446,7 +1451,7 @@ public:
 						rcptr<hwnd_pane> foundHwnd;
 						bridge = itor->dynamic_cast_to<pane_bridge>().get_ptr();
 						if (!!bridge)
-							foundHwnd = get_bridged(*bridge).dynamic_cast_to<hwnd_pane>();
+							foundHwnd = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
 
 						//rcptr<hwnd_pane> foundHwnd = get_if_hwnd_pane(**itor);
 
@@ -1523,7 +1528,7 @@ public:
 		get_device_context().set_HDC(hDC);
 
 		set_compositing_behavior(buffer_self_and_children);
-		set_externally_drawn(*m_deviceContext.static_cast_to<gfx::canvas>());
+		set_externally_drawn(*m_deviceContext.template static_cast_to<gfx::canvas>());
 
 		if (!!m_parentHwnd)
 			get_device_context().set_dpi(m_parentHwnd->get_dpi());
@@ -1881,7 +1886,7 @@ public:
 					else
 					{
 						// offscreen buffer is fetched before getting the redrawRgn, since it will call invalidate() on first paint.
-						rcptr<gfx::os::gdi::bitmap> offScreenBuffer = get_offscreen_buffer().static_cast_to<gfx::os::gdi::bitmap>();
+						rcptr<gfx::os::gdi::bitmap> offScreenBuffer = get_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 						COGS_ASSERT(!!offScreenBuffer);
 						if (is_drawing_needed())
 						{
@@ -1987,8 +1992,8 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 	class native_pane : public hwnd_pane
 	{
 	public:
-		native_pane(const rcref<volatile hwnd::subsystem>& subSystem)
-			: hwnd_pane(composite_string(), 0, 0, subSystem, user_drawn)
+		native_pane(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& subSystem)
+			: hwnd_pane(desc, composite_string(), 0, 0, subSystem, user_drawn)
 		{ }
 
 		virtual void installing()

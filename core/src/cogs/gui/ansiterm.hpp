@@ -35,7 +35,7 @@
 //{
 //private:
 //	volatile transactable<scroll_bar_state>	m_vScrollBarState;
-//	volatile alignas (atomic::get_alignment_v<double>) double	m_vScrollBarPosition;
+//	alignas (atomic::get_alignment_v<double>) volatile double	m_vScrollBarPosition;
 //
 //	delayed_construction<delegated_bindable_property<scroll_bar_state, io::read_only> >	m_vScrollBarStateProperty;
 //	delayed_construction<delegated_bindable_property<double> >	m_vScrollBarPositionProperty;
@@ -1720,7 +1720,7 @@
 //			return *(m_vScrollBarState.begin_read());
 //		};
 //
-//		placement_rcnew(this_desc, &m_vScrollBarStateProperty.get(), *this, std::move(vStateGetter));
+//		placement_rcnew(&m_vScrollBarStateProperty.get(), this_desc, *this, std::move(vStateGetter));
 //
 //		auto vPositionGetter = [this]()
 //		{
@@ -1739,7 +1739,7 @@
 //			m_vScrollBarPositionProperty->set_complete();
 //		};
 //
-//		placement_rcnew(this_desc, &m_vScrollBarPositionProperty.get(), *this, std::move(vPositionGetter), std::move(vPositionSetter));
+//		placement_rcnew(&m_vScrollBarPositionProperty.get(), this_desc, *this, std::move(vPositionGetter), std::move(vPositionSetter));
 //
 //
 //		// TODO TO DO, fix
@@ -1819,10 +1819,10 @@
 //	}
 //
 //	virtual rcref<bindable_property<scroll_bar_state, io::read_only> > get_state_property()
-//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).static_cast_to<bindable_property<scroll_bar_state, io::read_only>>(); }
+//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<bindable_property<scroll_bar_state, io::read_only>>(); }
 //
 //	virtual rcref<bindable_property<double> > get_position_property()
-//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).static_cast_to<bindable_property<double>>(); }
+//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).template static_cast_to<bindable_property<double>>(); }
 //
 //	static int get_char_width(unsigned int fontSize)	// Only 0, 1, 2 supported
 //	{

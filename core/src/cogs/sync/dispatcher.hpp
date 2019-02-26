@@ -73,14 +73,7 @@ public:
 	std::enable_if_t<
 		std::is_invocable_v<F>,
 		rcref<task<std::invoke_result_t<F> > > >
-	dispatch(F&& f, int priority = 0, const rcref<volatile args_t>&... next) volatile
-	{
-		typedef std::invoke_result_t<F> result_t2;
-		typedef forwarding_function_task<result_t2, void, args_t...> task_t;
-		rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority).static_cast_to<task<result_t2> >();
-		dispatch_inner(t.static_cast_to<task_t>().static_cast_to<task_base>(), priority);
-		return t;
-	}
+	dispatch(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers) volatile;
 
 protected:
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile = 0;
@@ -166,8 +159,9 @@ private:
 	rcref<task_base> m_taskBase;
 
 public:
-	dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t)
-		: m_parentDispatcher(parentDispatcher),
+	dispatched(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t)
+		: object(desc),
+		m_parentDispatcher(parentDispatcher),
 		m_taskBase(t)
 	{
 		COGS_ASSERT(m_taskBase.get_desc() != nullptr);
@@ -211,9 +205,9 @@ public:
 	std::enable_if_t<
 		std::is_invocable_v<F>,
 		rcref<task<std::invoke_result_t<F> > > >
-	dispatch(F&& f, int priority = 0, const rcref<volatile args_t>&... next) volatile
+	dispatch(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers) volatile
 	{
-		return ((volatile dispatcher*)(this))->dispatch(std::forward<F>(f), priority, next...);
+		return ((volatile dispatcher*)(this))->dispatch(std::forward<F>(f), priority, nextDispatcher, nextDispatchers...);
 	}
 };
 
@@ -237,62 +231,12 @@ public:
 	priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() volatile { return ((continuation_dispatched*)this)->m_removeToken; }
 	const priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() const volatile { return ((const continuation_dispatched*)this)->m_removeToken; }
 
-	continuation_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt)
-		: dispatched(parentDispatcher, t),
+	continuation_dispatched(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt)
+		: dispatched(desc, parentDispatcher, t),
 		m_removeToken(rt)
 	{ }
 };
 
-
-template <typename result_t>
-class task : public task<void>
-{
-protected:
-	static_assert(!std::is_reference_v<result_t>);	// task result must be a concrete type
-
-	virtual void signal_continuation(task_base& t) volatile
-	{
-		if (!t.needs_arg())
-			t.signal();
-		else
-		{
-			task_arg_base<result_t>* t2 = (task_arg_base<result_t>*)&t;
-			t2->signal(this_rcref.const_cast_to<task<result_t> >());
-		}
-	}
-
-	task(bool signalled)
-		: task<void>(signalled)
-	{ }
-
-public:
-	task() { }
-
-	using task<void>::dispatch;
-
-	template <typename F, typename... args_t>
-	std::enable_if_t<
-		std::is_invocable_v<F, const result_t&>,
-		rcref<task<std::invoke_result_t<F, const result_t&> > > >
-	dispatch(F&& f, int priority = 0, const rcref<volatile args_t>&... next) const volatile
-	{
-		typedef std::invoke_result_t<F, const result_t&> result_t2;
-		typedef forwarding_function_task<result_t2, result_t, args_t...> task_t;
-		rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority).static_cast_to<task<result_t2> >();
-		((volatile task<result_t>*)this)->dispatch_inner(t.static_cast_to<task_t>().static_cast_to<task_base>(), priority);
-		return t;
-	}
-
-	// It's the responsibility of the caller to add volatility to the reference returned by get()
-	// if needed, if the result may be referenced concurrently (i.e. any time there are multiple
-	// continuations on the same task, or multiple callers might call get() on the same task).
-	// Note that since it's const, it may not require volatility.
-
-	virtual const result_t& get() const volatile  = 0;	// error to call on incomplete task.
-};
-
-
-// Note: derive from task<void> if the operation can be cancelled, otherwise derive from waitable
 
 template <>
 class task<void> : public waitable, public object
@@ -344,7 +288,7 @@ protected:
 		auto r = m_continuationSubTasks.preallocate_key_with_aux<delayed_construction<continuation_dispatched> >(priority, i);
 		continuation_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(r.get_desc(), d, this_rcref, t, i);
+		placement_rcnew(d, r.get_desc(), this_rcref, t, i);
 		rcref<continuation_dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
 		i.disown();
@@ -370,8 +314,29 @@ protected:
 		t.signal();
 	}
 
-	task(bool signalled = false)
-		: m_continuationSubTaskDrainDone(signalled)
+	void signal_continuations() volatile
+	{
+		bool setDoneState = false;
+		for (;;)
+		{
+			priority_queue<int, ptr<continuation_dispatched> >::value_token vt = m_continuationSubTasks.get();
+			if (!vt)
+			{
+				if (setDoneState)
+					break;
+				setDoneState = true;
+				m_continuationSubTaskDrainDone = true;
+				continue;
+			}
+
+			ptr<continuation_dispatched> d = (*vt).template static_cast_to<continuation_dispatched>();
+			signal_continuation(*d->get_task_base());
+		}
+	}
+
+	task(const ptr<rc_obj_base>& desc, bool signalled = false)
+		: object(desc),
+		m_continuationSubTaskDrainDone(signalled)
 	{ }
 
 public:
@@ -392,6 +357,61 @@ public:
 };
 
 
+template <typename result_t>
+class task : public task<void>
+{
+protected:
+	using task<void>::signal_continuations;
+
+	static_assert(!std::is_reference_v<result_t>);	// task result must be a concrete type
+
+	virtual void signal_continuation(task_base& t) volatile
+	{
+		if (!t.needs_arg())
+			t.signal();
+		else
+		{
+			task_arg_base<result_t>* t2 = (task_arg_base<result_t>*)&t;
+			t2->signal(this_rcref.template const_cast_to<task<result_t> >());
+		}
+	}
+
+	task(const ptr<rc_obj_base>& desc, bool signalled)
+		: task<void>(desc, signalled)
+	{ }
+
+public:
+	explicit task(const ptr<rc_obj_base>& desc)
+		: task<void>(desc)
+	{ }
+
+	using task<void>::dispatch;
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, const result_t&>,
+		rcref<task<std::invoke_result_t<F, const result_t&> > > >
+	dispatch(F&& f, int priority = 0) const volatile;
+
+	template <typename F, typename... args_t>
+	std::enable_if_t<
+		std::is_invocable_v<F, const result_t&>,
+		rcref<task<std::invoke_result_t<F, const result_t&> > > >
+	dispatch(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers) const volatile;
+
+	// It's the responsibility of the caller to add volatility to the reference returned by get()
+	// if needed, if the result may be referenced concurrently (i.e. any time there are multiple
+	// continuations on the same task, or multiple callers might call get() on the same task).
+	// Note that since it's const, it may not require volatility.
+
+	virtual const result_t& get() const volatile  = 0;	// error to call on incomplete task.
+};
+
+
+// Note: derive from task<void> if the operation can be cancelled, otherwise derive from waitable
+
+
+
 inline rcptr<volatile dispatched> dispatcher::get_dispatched(const task<void>& t) { return t.get_dispatched(); }
 
 
@@ -399,6 +419,8 @@ template <typename result_t>
 class signallable_task : public task<result_t>
 {
 protected:
+	using task<result_t>::signal_continuations;
+
 	struct TaskState
 	{
 		alignas (atomic::get_alignment_v<size_t>) size_t m_numWaiting;
@@ -435,12 +457,12 @@ protected:
 
 	static_assert(can_atomic_v<TaskState>);
 
-	mutable alignas (atomic::get_alignment_v<TaskState>) TaskState m_taskState;
+	mutable TaskState m_taskState alignas (atomic::get_alignment_v<TaskState>);
 
-	signallable_task()
-		: m_taskState{ 0, nullptr }
-	{
-	}
+	explicit signallable_task(const ptr<rc_obj_base>& desc)
+		: task<result_t>(desc),
+		m_taskState{ 0, nullptr }
+	{ }
 
 	~signallable_task()
 	{
@@ -485,7 +507,7 @@ protected:
 		if (!try_set_state(oldTaskState, 2))
 			return false;
 		release_waiting(oldTaskState);
-		cancel_continuations();
+		task<result_t>::cancel_continuations();
 		return true;
 	}
 
@@ -589,22 +611,7 @@ protected:
 	void post_signal(const TaskState& oldTaskState) volatile
 	{
 		release_waiting(oldTaskState);
-		bool setDoneState = false;
-		for (;;)
-		{
-			priority_queue<int, ptr<continuation_dispatched> >::value_token vt = m_continuationSubTasks.get();
-			if (!vt)
-			{
-				if (setDoneState)
-					break;
-				setDoneState = true;
-				m_continuationSubTaskDrainDone = true;
-				continue;
-			}
-			
-			ptr<continuation_dispatched> d = (*vt).static_cast_to<continuation_dispatched>();
-			signal_continuation(*d->get_task_base());
-		}
+		signal_continuations();
 	}
 
 	bool signal() volatile
@@ -622,9 +629,15 @@ template <typename result_t>
 class signallable_task_with_payload : public signallable_task<result_t>
 {
 protected:
+	using signallable_task<result_t>::m_taskState;
+
 	placement<result_t> m_result;
 
 public:
+	explicit signallable_task_with_payload(const ptr<rc_obj_base>& desc)
+		: signallable_task<result_t>(desc)
+	{ }
+
 	~signallable_task_with_payload()
 	{
 		ptr<os::semaphore> p = m_taskState.m_osSemaphore;
@@ -640,17 +653,39 @@ public:
 template <>
 class signallable_task_with_payload<void> : public signallable_task<void>
 {
+protected:
+	explicit signallable_task_with_payload(const ptr<rc_obj_base>& desc)
+		: signallable_task<void>(desc)
+	{ }
+
+	void get() const volatile {};
 };
 
 
 template <typename result_t, typename arg_t>
 class function_task_base : public signallable_task_with_payload<result_t>, public task_arg_base<arg_t>
 {
-public:
-	using typename signallable_task<result_t>::TaskState;
+private:
+	template <typename arg_t2, bool unused = true>
+	class helper
+	{
+	public:
+		typedef function<result_t(arg_t2)> func_t;
+	};
 
-	typedef function<result_t(arg_t)> primary_func_t;
-	primary_func_t m_primaryFunc;
+	template <bool unused>
+	class helper<void, unused>
+	{
+	public:
+		typedef function<result_t()> func_t;
+	};
+
+public:
+	using signallable_task_with_payload<result_t>::get;
+	using typename signallable_task_with_payload<result_t>::TaskState;
+
+	typedef typename helper<arg_t>::func_t func_t;
+	func_t m_primaryFunc;
 
 	// If in a task chain, and a task other than the primary one is cancelled,
 	// we need to propagate that cancellation.
@@ -660,7 +695,7 @@ public:
 
 	int get_priority() const volatile
 	{
-		return atomic::get(m_priority);
+		return atomic::load(m_priority);
 	}
 
 	virtual rcref<task<void> > get_task() { return this_rcref; }
@@ -668,8 +703,9 @@ public:
 	virtual rcptr<volatile dispatched> get_dispatched() const volatile { return task_arg_base<arg_t>::get_dispatched(); }
 
 	template <typename F>
-	function_task_base(F&& f, int priority)
-		: m_primaryFunc(std::forward<F>(f)),
+	function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: signallable_task_with_payload<result_t>(desc),
+		m_primaryFunc(std::forward<F>(f)),
 		m_priority(priority)
 	{
 	}
@@ -687,7 +723,7 @@ public:
 		{
 			previousTask->cancel();
 		}
-		(*(primary_func_t*)&m_primaryFunc).release();
+		(*(func_t*)&m_primaryFunc).release();
 		int state = oldTaskState.get_state();
 		if (state == 0)
 		{
@@ -742,10 +778,18 @@ class forwarding_function_task
 template <typename result_t, typename arg_t>
 class forwarding_function_task<result_t, arg_t> : public function_task_base<result_t, arg_t>
 {
+protected:
+	using typename function_task_base<result_t, arg_t>::TaskState;
+	using typename function_task_base<result_t, arg_t>::func_t;
+	using function_task_base<result_t, arg_t>::m_primaryFunc;
+	using function_task_base<result_t, arg_t>::get;
+	using function_task_base<result_t, arg_t>::try_set_state;
+	using function_task_base<result_t, arg_t>::post_signal;
+
 public:
 	template <typename F>
-	forwarding_function_task(F&& f, int priority)
-		: function_task_base<result_t, arg_t>(std::forward<F>(f), priority)
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<result_t, arg_t>(desc, std::forward<F>(f), priority)
 	{
 	}
 
@@ -754,9 +798,9 @@ public:
 		TaskState oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
-		new ((result_t*)&m_result.get()) result_t((*(primary_func_t*)&m_primaryFunc)(parentTask->get()));
+		new ((result_t*)&get()) result_t((*(func_t*)&m_primaryFunc)(parentTask->get()));
 		post_signal(oldTaskState);
-		(*(primary_func_t*)&m_primaryFunc).release();
+		(*(func_t*)&m_primaryFunc).release();
 		return true;
 	}
 };
@@ -765,10 +809,18 @@ public:
 template <typename result_t>
 class forwarding_function_task<result_t, void> : public function_task_base<result_t, void>
 {
+protected:
+	using typename function_task_base<result_t, void>::TaskState;
+	using typename function_task_base<result_t, void>::func_t;
+	using function_task_base<result_t, void>::m_primaryFunc;
+	using function_task_base<result_t, void>::get;
+	using function_task_base<result_t, void>::try_set_state;
+	using function_task_base<result_t, void>::post_signal;
+
 public:
 	template <typename F>
-	forwarding_function_task(F&& f, int priority)
-		: function_task_base<result_t, void>(std::forward<F>(f), priority)
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<result_t, void>(desc, std::forward<F>(f), priority)
 	{
 	}
 
@@ -777,9 +829,9 @@ public:
 		TaskState oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
-		new ((result_t*)&m_result.get()) result_t((*(primary_func_t*)&m_primaryFunc)());
+		new ((result_t*)&get()) result_t((*(func_t*)&m_primaryFunc)());
 		post_signal(oldTaskState);
-		(*(primary_func_t*)&m_primaryFunc).release();
+		(*(func_t*)&m_primaryFunc).release();
 		return true;
 	}
 };
@@ -788,10 +840,18 @@ public:
 template <typename arg_t>
 class forwarding_function_task<void, arg_t> : public function_task_base<void, arg_t>
 {
+protected:
+	using typename function_task_base<void, arg_t>::TaskState;
+	using typename function_task_base<void, arg_t>::func_t;
+	using function_task_base<void, arg_t>::m_primaryFunc;
+	using function_task_base<void, arg_t>::get;
+	using function_task_base<void, arg_t>::try_set_state;
+	using function_task_base<void, arg_t>::post_signal;
+
 public:
 	template <typename F>
-	forwarding_function_task(F&& f, int priority)
-		: function_task_base<void, arg_t>(std::forward<F>(f), priority)
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<void, arg_t>(desc, std::forward<F>(f), priority)
 	{
 	}
 
@@ -800,9 +860,9 @@ public:
 		TaskState oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
-		(*(primary_func_t*)&m_primaryFunc)(parentTask->get());
+		(*(func_t*)&m_primaryFunc)(parentTask->get());
 		post_signal(oldTaskState);
-		(*(primary_func_t*)&m_primaryFunc).release();
+		(*(func_t*)&m_primaryFunc).release();
 		return true;
 	}
 };
@@ -811,10 +871,18 @@ public:
 template <>
 class forwarding_function_task<void, void> : public function_task_base<void, void>
 {
+protected:
+	using typename function_task_base<void, void>::TaskState;
+	using typename function_task_base<void, void>::func_t;
+	using function_task_base<void, void>::m_primaryFunc;
+	using function_task_base<void, void>::get;
+	using function_task_base<void, void>::try_set_state;
+	using function_task_base<void, void>::post_signal;
+
 public:
 	template <typename F>
-	forwarding_function_task(F&& f, int priority)
-		: function_task_base<void, void>(std::forward<F>(f), priority)
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<void, void>(desc, std::forward<F>(f), priority)
 	{
 	}
 
@@ -823,9 +891,9 @@ public:
 		TaskState oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
-		(*(primary_func_t*)&m_primaryFunc)();
+		(*(func_t*)&m_primaryFunc)();
 		post_signal(oldTaskState);
-		(*(primary_func_t*)&m_primaryFunc).release();
+		(*(func_t*)&m_primaryFunc).release();
 		return true;
 	}
 };
@@ -836,9 +904,18 @@ template <typename result_t, typename arg_t>
 class forwarding_function_task_base : public function_task_base<result_t, arg_t>
 {
 protected:
+	using typename function_task_base<result_t, arg_t>::func_t;
+	using function_task_base<result_t, arg_t>::m_primaryFunc;
+	using function_task_base<result_t, arg_t>::get;
+
+	template <typename F>
+	explicit forwarding_function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<result_t, arg_t>(desc, f, priority)
+	{ }
+
 	void invoke(const rcref<task<arg_t> >& parentTask) volatile
 	{
-		new ((result_t*)&m_result.get()) result_t((*(primary_func_t*)&m_primaryFunc)(parentTask->get()));
+		new ((result_t*)&get()) result_t((*(func_t*)&m_primaryFunc)(parentTask->get()));
 	};
 };
 
@@ -846,9 +923,18 @@ template <typename result_t>
 class forwarding_function_task_base<result_t, void> : public function_task_base<result_t, void>
 {
 protected:
+	using typename function_task_base<result_t, void>::func_t;
+	using function_task_base<result_t, void>::m_primaryFunc;
+	using function_task_base<result_t, void>::get;
+
+	template <typename F>
+	explicit forwarding_function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<result_t, void>(desc, f, priority)
+	{ }
+
 	void invoke(const rcref<task<void> >& parentTask) volatile
 	{
-		new ((result_t*)&m_result.get()) result_t((*(primary_func_t*)&m_primaryFunc)());
+		new ((result_t*)&get()) result_t((*(func_t*)&m_primaryFunc)());
 	};
 };
 
@@ -856,9 +942,18 @@ template <typename arg_t>
 class forwarding_function_task_base<void, arg_t> : public function_task_base<void, arg_t>
 {
 protected:
+	using typename function_task_base<void, arg_t>::func_t;
+	using function_task_base<void, arg_t>::m_primaryFunc;
+	using function_task_base<void, arg_t>::get;
+	
+	template <typename F>
+	explicit forwarding_function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<void, arg_t>(desc, f, priority)
+	{ }
+
 	void invoke(const rcref<task<arg_t> >& parentTask) volatile
 	{
-		(*(primary_func_t*)&m_primaryFunc)(parentTask->get());
+		(*(func_t*)&m_primaryFunc)(parentTask->get());
 	};
 };
 
@@ -866,9 +961,18 @@ template <>
 class forwarding_function_task_base<void, void> : public function_task_base<void, void>
 {
 protected:
+	using typename function_task_base<void, void>::func_t;
+	using function_task_base<void, void>::m_primaryFunc;
+	using function_task_base<void, void>::get;
+
+	template <typename F>
+	explicit forwarding_function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+		: function_task_base<void, void>(desc, f, priority)
+	{ }
+
 	void invoke(const rcref<task<void> >& parentTask) volatile
 	{
-		(*(primary_func_t*)&m_primaryFunc)();
+		(*(func_t*)&m_primaryFunc)();
 	};
 };
 
@@ -877,6 +981,14 @@ template <typename result_t, typename arg_t, typename T>
 class forwarding_function_task<result_t, arg_t, T> : public forwarding_function_task_base<result_t, arg_t>
 {
 private:
+	using typename forwarding_function_task_base<result_t, arg_t>::TaskState;
+	using typename forwarding_function_task_base<result_t, arg_t>::func_t;
+	using forwarding_function_task_base<result_t, arg_t>::get_priority;
+	using forwarding_function_task_base<result_t, arg_t>::m_primaryFunc;
+	using forwarding_function_task_base<result_t, arg_t>::get_state;
+	using forwarding_function_task_base<result_t, arg_t>::cancel;
+	using forwarding_function_task_base<result_t, arg_t>::try_set_state;
+
 	rcref<volatile dispatcher> m_nextDispatcher;
 	rcptr<task<void> > m_nextTask;
 
@@ -889,22 +1001,22 @@ private:
 			if (r->try_set_state(oldTaskState2, 3))
 			{
 				r->invoke(parentTask);
-				//new ((result_t*)&r->m_result.get()) result_t((*(primary_func_t*)&r->m_primaryFunc)(parentTask->get()));
+				//new ((result_t*)&r->get()) result_t((*(func_t*)&r->m_primaryFunc)(parentTask->get()));
 				r->post_signal(oldTaskState2);
-				(*(primary_func_t*)&r->m_primaryFunc).release();
+				(*(func_t*)&r->m_primaryFunc).release();
 			}
 		}, priority);
 		m_nextTask = nextTask;
 		if (get_state() == 2)
 			nextTask->cancel();
-		else if (!nextTask->m_previousTask.compare_exchange(this_rcref, nullptr))
+		else if (!nextTask.template static_cast_to<forwarding_function_task<void, void> >()->m_previousTask.compare_exchange(this_rcref, nullptr))
 			cancel();	// Failure here indicates it was cancelled.
 		else
 		{
 			int newPriority = get_priority();
 			while (newPriority != priority)
 			{
-				newTask->change_priority(newPriority);
+				nextTask->change_priority(newPriority);
 				priority = newPriority;
 				newPriority = get_priority();
 			}
@@ -927,8 +1039,8 @@ private:
 
 public:
 	template <typename F>
-	forwarding_function_task(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher)
-		: forwarding_function_task_base<result_t, arg_t>(std::forward<F>(f), priority),
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher)
+		: forwarding_function_task_base<result_t, arg_t>(desc, std::forward<F>(f), priority),
 		m_nextDispatcher(nextDispatcher)
 	{
 	}
@@ -961,6 +1073,11 @@ template <typename result_t, typename arg_t, typename T, typename... args_t>
 class forwarding_function_task<result_t, arg_t, T, args_t...> : public forwarding_function_task<result_t, arg_t, args_t...>
 {
 private:
+	using typename forwarding_function_task<result_t, arg_t, args_t...>::TaskState;
+	using forwarding_function_task<result_t, arg_t, args_t...>::get_priority;
+	using forwarding_function_task<result_t, arg_t, args_t...>::get_state;
+	using forwarding_function_task<result_t, arg_t, args_t...>::cancel;
+
 	rcref<volatile dispatcher> m_nextDispatcher;
 	rcptr<task<void> > m_nextTask;
 
@@ -974,14 +1091,14 @@ private:
 		m_nextTask = nextTask;
 		if (get_state() == 2)
 			nextTask->cancel();
-		else if (!nextTask->m_previousTask.compare_exchange(this_rcref, nullptr))
+		else if (!nextTask.template static_cast_to<forwarding_function_task<void, void> >()->m_previousTask.compare_exchange(this_rcref, nullptr))
 			cancel();	// Failure here indicates it was cancelled.
 		else
 		{
 			int newPriority = get_priority();
 			while (newPriority != priority)
 			{
-				newTask->change_priority(newPriority);
+				nextTask->change_priority(newPriority);
 				priority = newPriority;
 				newPriority = get_priority();
 			}
@@ -1008,21 +1125,19 @@ private:
 		}
 	}
 
-public:
-	typedef typename forwarding_function_task<result_t, arg_t, args_t...>::TaskState TaskState;
-
-	template <typename F>
-	forwarding_function_task(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers)
-		: forwarding_function_task<result_t, arg_t, args_t...>(std::forward<F>(f), priority, nextDispatchers...),
-		m_nextDispatcher(nextDispatcher)
-	{
-	}
-
 	bool try_cancel(TaskState& oldTaskState) volatile
 	{
 		bool b = forwarding_function_task<result_t, arg_t, args_t...>::try_cancel(oldTaskState);
 		forward_cancel();
 		return b;
+	}
+
+public:
+	template <typename F>
+	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers)
+		: forwarding_function_task<result_t, arg_t, args_t...>(desc, std::forward<F>(f), priority, nextDispatchers...),
+		m_nextDispatcher(nextDispatcher)
+	{
 	}
 
 	virtual void change_priority(int newPriority) volatile
@@ -1042,11 +1157,55 @@ public:
 };
 
 
+template <typename F, typename... args_t>
+inline std::enable_if_t<
+	std::is_invocable_v<F>,
+	rcref<task<std::invoke_result_t<F> > > >
+dispatcher::dispatch(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers) volatile
+{
+	typedef std::invoke_result_t<F> result_t2;
+	typedef forwarding_function_task<result_t2, void, args_t...> task_t;
+	rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority, nextDispatcher, nextDispatchers...).template static_cast_to<task<result_t2> >();
+	dispatch_inner(t.template static_cast_to<task_t>().template static_cast_to<task_base>(), priority);
+	return t;
+}
+
+
 inline rcref<task_base> dispatcher::dispatch_default_task(const void_function& f, int priority) volatile
 {
 	typedef forwarding_function_task<void, void> task_t;
-	rcref<task_base> t = rcnew(task_t, f, priority).static_cast_to<task_base>();
+	rcref<task_base> t = rcnew(task_t, f, priority).template static_cast_to<task_base>();
 	dispatch_inner(t, priority);
+	return t;
+}
+
+
+template <typename result_t>
+template <typename F>
+inline std::enable_if_t<
+	std::is_invocable_v<F, const result_t&>,
+	rcref<task<std::invoke_result_t<F, const result_t&> > > >
+task<result_t>::dispatch(F&& f, int priority) const volatile
+{
+	typedef std::invoke_result_t<F, const result_t&> result_t2;
+	typedef forwarding_function_task<result_t2, result_t> task_t;
+	rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority).template static_cast_to<task<result_t2> >();
+	((volatile task<result_t>*)this)->dispatch_inner(t.template static_cast_to<task_t>().template static_cast_to<task_base>(), priority);
+	return t;
+}
+
+
+template <typename result_t>
+template <typename F, typename... args_t>
+inline std::enable_if_t<
+	std::is_invocable_v<F, const result_t&>,
+	rcref<task<std::invoke_result_t<F, const result_t&> > > >
+task<result_t>::dispatch(F&& f, int priority, const rcref<volatile dispatcher>& nextDispatcher, const rcref<volatile args_t>&... nextDispatchers) const volatile
+{
+	typedef std::invoke_result_t<F, const result_t&> result_t2;
+	typedef forwarding_function_task<result_t2, result_t, args_t...> task_t;
+	rcref<task<result_t2> > t = rcnew(task_t, std::forward<F>(f), priority, nextDispatcher, nextDispatchers...).template static_cast_to<task<result_t2> >();
+	((volatile task<result_t>*)this)->dispatch_inner(t.template static_cast_to<task_t>().template static_cast_to<task_base>(), priority);
 	return t;
 }
 

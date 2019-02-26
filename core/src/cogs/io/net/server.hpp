@@ -83,8 +83,9 @@ public:
 		virtual rcref<datasource> get_datasource() const	{ return m_netConnection; }
 		virtual rcref<datasink> get_datasink() const		{ return m_netConnection; }
 
-		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
-			:	m_netConnection(c),
+		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
+			: object(desc),
+			m_netConnection(c),
 			m_server(srvr),
 			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod),
 			m_inactivityTimer(single_fire_timer::create(timeout_t::infinite()))
@@ -136,7 +137,8 @@ public:
 	};
 
 public:
-	server()
+	explicit server(const ptr<rc_obj_base>& desc)
+		: object(desc)
 	{ }
 
 	virtual void connecting(const rcref<net::connection>& c)
@@ -189,8 +191,8 @@ public:
 		}
 
 	public:
-		connection(const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
-			: server::connection(srvr, c, inactivityTimeout),
+		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
+			: server::connection(desc, srvr, c, inactivityTimeout),
 			m_reuse(supportMultipleRequests)
 		{ }
 
@@ -236,8 +238,9 @@ public:
 			const rcref<datasource::transaction>	m_transaction;
 			volatile boolean						m_completed;
 
-			request(const rcref<connection>& c)
-				: m_connection(c),
+			request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+				: object(desc),
+				m_connection(c),
 				m_transaction(datasource::transaction::create(c->get_datasource(), false, datasource::transaction::propagate_abort_only))
 			{
 			}
@@ -290,8 +293,10 @@ public:
 		protected:
 			friend class request;
 
-			response(const rcref<request>& r)
-				: m_request(r),
+
+			response(const ptr<rc_obj_base>& desc, const rcref<request>& r)
+				: object(desc),
+				m_request(r),
 				m_connection(r->get_connection()),
 				m_transaction(datasink::transaction::create(r->get_connection()->get_datasink(), false, datasink::transaction::propagate_abort_only))
 			{ }
@@ -343,7 +348,8 @@ public:
 	typedef connection::response response;
 
 public:
-	request_response_server()
+	request_response_server(const ptr<rc_obj_base>& desc)
+		: server(desc)
 	{ }
 };
 

@@ -143,8 +143,9 @@ private:
 	}
 
 public:
-	scroll_pane(scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically, bool hideInactiveScrollBar = true)
-		: m_hideInactiveScrollBar(hideInactiveScrollBar)
+	explicit scroll_pane(const ptr<rc_obj_base>& desc, scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically, bool hideInactiveScrollBar = true)
+		: pane(desc),
+		m_hideInactiveScrollBar(hideInactiveScrollBar)
 	{
 		bool scrollDimension[2];
 		scrollDimension[0] = ((scrollDimensions & scroll_horizontally) != 0);
@@ -157,7 +158,7 @@ public:
 				return *(m_scrollBarInfo[i].m_scrollBarState.begin_read());
 			};
 
-			placement_rcnew(this_desc, &m_scrollBarInfo[i].m_scrollBarStateProperty.get(), *this, std::move(stateGetter));
+			placement_rcnew(&m_scrollBarInfo[i].m_scrollBarStateProperty.get(), this_desc, *this, std::move(stateGetter));
 
 			auto positionGetter = [this, i]()
 			{
@@ -176,7 +177,7 @@ public:
 				m_scrollBarInfo[i].m_scrollBarPositionProperty->set_complete();
 			};
 
-			placement_rcnew(this_desc, &m_scrollBarInfo[i].m_scrollBarPositionProperty.get(), *this, std::move(positionGetter), std::move(positionSetter));
+			placement_rcnew(&m_scrollBarInfo[i].m_scrollBarPositionProperty.get(), this_desc, *this, std::move(positionGetter), std::move(positionSetter));
 		
 			if (scrollDimension[i])
 			{

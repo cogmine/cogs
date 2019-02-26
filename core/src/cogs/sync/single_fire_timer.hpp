@@ -35,8 +35,8 @@ private:
 	}
 
 protected:
-	single_fire_timer(const timeout_t& t)
-		: timer(t)
+	single_fire_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+		: timer(desc, t)
 	{ }
 
 public:

@@ -46,23 +46,26 @@ private:
 	rcptr<check_box_interface> m_nativeCheckBox;
 
 public:
-	check_box(const function<void(const rcref<check_box>&)>& action, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
-		: m_text(text),
+	check_box(const ptr<rc_obj_base>& desc, const function<void(const rcref<check_box>&)>& action, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
+		: pane_bridge(desc),
+		m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
 		m_action(action),
 		m_font(fnt)
 	{ }
 
-	check_box(const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
-		: m_text(text),
+	check_box(const ptr<rc_obj_base>& desc, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
+		: pane_bridge(desc),
+		m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
 		m_font(fnt)
 	{ }
 
-	check_box(const composite_string& text, bool isEnabled = true, bool isChecked = false)
-		: m_text(text),
+	check_box(const ptr<rc_obj_base>& desc, const composite_string& text, bool isEnabled = true, bool isChecked = false)
+		: pane_bridge(desc),
+		m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked)
 	{ }

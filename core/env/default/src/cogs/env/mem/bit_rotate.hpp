@@ -13,7 +13,6 @@
 
 
 namespace cogs {
-namespace env {
 
 
 // env/bit_rotate.hpp provides env level implementation of bit_rotate_left and bit_rotate_right.
@@ -51,8 +50,6 @@ bit_rotate_left(const int_t& bits, size_t n)
 
 
 }
-}
 
 
 #endif
-

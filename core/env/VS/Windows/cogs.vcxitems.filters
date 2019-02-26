@@ -261,6 +261,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\epoll_pool.hpp">
       <Filter>os\linux\io</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\auto_fd.hpp">
+      <Filter>os\linux\io</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\address.hpp">
       <Filter>os\linux\io\net\ip</Filter>
     </ClInclude>
@@ -313,6 +316,9 @@
       <Filter>os\MacOS\gui</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\kqueue_pool.hpp">
+      <Filter>os\MacOS\io</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\auto_fd.hpp">
       <Filter>os\MacOS\io</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\io\net\ip\address.hpp">
@@ -813,9 +819,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\net\telnet.hpp">
       <Filter>core\io\net</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\auto_fd.hpp">
-      <Filter>core\io</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\io\buffer.hpp">
       <Filter>core\io</Filter>
     </ClInclude>
@@ -1247,6 +1250,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\makefile">
+      <Filter>env\gcc</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\test.cpp">
       <Filter>env\gcc</Filter>
     </None>
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">

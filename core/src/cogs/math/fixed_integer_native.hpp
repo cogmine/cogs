@@ -40,10 +40,6 @@ class fixed_integer_extended;
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 class fixed_integer_native_const;
 
-typedef fixed_integer_native_const<false, 0, 0> zero_t;
-typedef fixed_integer_native_const<false, 1, 1> one_t;
-typedef fixed_integer_native_const<true, 1, -1> minus_one_t;
-
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
@@ -5439,7 +5435,8 @@ public:
 	bool compare_exchange(S&& src, C&& cmp)
 	{
 		bool b = cogs::equals(m_int, std::forward<C>(cmp));
-		cogs::assign(m_int, std::forward<S>(src));
+		if (b)
+			cogs::assign(m_int, std::forward<S>(src));
 		return b;
 	}
 

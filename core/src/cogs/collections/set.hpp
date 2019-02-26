@@ -43,13 +43,13 @@ private:
 	class payload
 	{
 	private:
-		typename placement<type>	m_value;
+		placement<type>	m_value;
 
 	public:
 		payload()						{ }
 		~payload()						{ m_value.destruct(); }
 		void construct(const type& v)	{ new (&m_value.get()) type(v); }
-		void construct()				{ new (&m_value.get()) type(); }
+		void construct()				{ new (&m_value.get()) type; }
 		type& get_key()					{ return m_value.get(); }
 		const type& get_key() const		{ return m_value.get(); }
 	};
@@ -262,7 +262,7 @@ public:
 		rcptr<type> get_obj() const
 		{
 			rcptr<type> result;
-			rcptr<payload> obj = m_iterator->get_obj();
+			rcptr<payload> obj = m_preallocated->get_obj();
 			if (!!obj)
 			{
 				result.set(obj.get_desc(), &(obj->get_value()));

@@ -94,7 +94,7 @@ void nsview_subsystem::update() volatile
 	if (!oldMode)
 	{
 		defer_task_helper* helper = [[defer_task_helper alloc] init];
-		helper->m_subsystem = this_rcptr.const_cast_to<volatile nsview_subsystem>().get_ptr();
+		helper->m_subsystem = this_rcptr.template const_cast_to<volatile nsview_subsystem>().get_ptr();
 		[helper performSelectorOnMainThread : @selector(defer) withObject:nil waitUntilDone : NO];
 	}
 }

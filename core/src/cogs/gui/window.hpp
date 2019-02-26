@@ -46,8 +46,9 @@ private:
 	public:
 		weak_rcptr<window> m_window;
 
-		window_task(const rcref<window>& w)
-			: m_window(w)
+		window_task(const ptr<rc_obj_base>& desc, const rcref<window>& w)
+			: task<void>(desc),
+			m_window(w)
 		{ }
 
 		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile
@@ -96,7 +97,7 @@ protected:
 
 	virtual void installing()
 	{
-		auto nativeWindow = get_subsystem().static_cast_to<volatile windowing::subsystem>()->create_window();
+		auto nativeWindow = get_subsystem().template static_cast_to<volatile windowing::subsystem>()->create_window();
 		m_nativeWindow = std::move(nativeWindow.second);
 		pane_bridge::install_bridged(std::move(nativeWindow.first));
 	}
@@ -108,8 +109,9 @@ protected:
 	}
 
 public:
-	window(const composite_string& title, const function<bool()>& closeDelegate = []() { return true; })
-		: m_title(title),
+	window(const ptr<rc_obj_base>& desc, const composite_string& title, const function<bool()>& closeDelegate = []() { return true; })
+		: pane_bridge(desc),
+		m_title(title),
 		m_closeDelegate(closeDelegate),
 		m_closeEvent(rcnew(single_fire_event)),
 		m_windowTask(rcnew(window_task, this_rcref))

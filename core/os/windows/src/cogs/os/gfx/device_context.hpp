@@ -409,12 +409,14 @@ private:
 	}
 
 public:
-	explicit device_context(const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: m_gdiPlusScope(gdiPlusScope)
+	explicit device_context(const ptr<rc_obj_base>& desc, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: object(desc),
+		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
-	explicit device_context(HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: m_hDC(hDC),
+	explicit device_context(const ptr<rc_obj_base>& desc, HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: object(desc),
+		m_hDC(hDC),
 		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
@@ -558,7 +560,7 @@ public:
 			};
 
 			if (!f)
-				inner(*load_font(gfx::font()).static_cast_to<font>());
+				inner(*load_font(gfx::font()).template static_cast_to<font>());
 			else
 			{
 				font* f4 = static_cast<font*>(f.get_ptr());

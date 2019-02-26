@@ -71,11 +71,11 @@ void assert_no_overflow(const ptr<void>& p);
 #endif
 
 #if COGS_DEBUG_RC_LOGGING 
-inline volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_rcLogCount;
+inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g_rcLogCount;
 #endif 
 
 #if COGS_DEBUG_ALLOC_LOGGING
-inline volatile alignas (atomic::get_alignment_v<unsigned long>) unsigned long g_allocLogCount;
+inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g_allocLogCount;
 #endif 
 
 
@@ -134,15 +134,15 @@ private:
 		bool operator>=(const counts_t& c) const { return !operator<(c); }
 	};
 
-	volatile counts_t m_counts alignas (atomic::get_alignment_v<counts_t>);
+	alignas (atomic::get_alignment_v<counts_t>) volatile counts_t m_counts;
 
 	class link : public slink
 	{
 	public:
 		rc_obj_base*	m_desc;
 
-		link(rc_obj_base* desc)
-			:	m_desc(desc)
+		link(const ptr<rc_obj_base>& desc)
+			:	m_desc(desc.get_ptr())
 		{ }
 	};
 
@@ -159,8 +159,8 @@ public:
 		rc_obj_base*		m_desc;
 		void*				m_objPtr;
 
-		tracking_header(rc_obj_base* desc)
-			:	m_desc(desc),
+		tracking_header(const ptr<rc_obj_base>& desc)
+			:	m_desc(desc.get_ptr()),
 				m_destructed(false),
 				m_debugStr(0),
 				m_typeName(0),
@@ -814,7 +814,7 @@ inline allocator* default_allocator::create_default_allocator()
 	typedef default_allocator_t default_allocator_type;
 #endif
 
-	ptr<default_allocator_type> al = env::allocator::allocate(sizeof(default_allocator_type), std::alignment_of_v<default_allocator_type>).reinterpret_cast_to<default_allocator_type>();
+	ptr<default_allocator_type> al = env::allocator::allocate(sizeof(default_allocator_type), std::alignment_of_v<default_allocator_type>).template reinterpret_cast_to<default_allocator_type>();
 	new (al) default_allocator_type;
 	return al.get_ptr();
 }

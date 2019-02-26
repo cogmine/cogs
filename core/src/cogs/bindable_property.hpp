@@ -151,7 +151,7 @@ private:
 	rcptr<notification_context>	m_lastBoundSet;
 
 	// 0 = not dispatching, 1 = processing dispatch, 2 = pending dispatch
-	volatile alignas (atomic::get_alignment_v<int>) int m_pumpSerializer;
+	alignas (atomic::get_alignment_v<int>) volatile int m_pumpSerializer;
 
 	void set_changed_pump()
 	{
@@ -236,15 +236,18 @@ private:
 	}
 
 protected:
-	virtual_bindable_property_base()
-		:	m_pendingChange(false),
-			m_pumpSerializer(0)
+
+	explicit virtual_bindable_property_base(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_pendingChange(false),
+		m_pumpSerializer(0)
 	{ }
 
-	virtual_bindable_property_base(const rcref<volatile dispatcher>& d)
-		:	m_dispatcher(d),
-			m_pendingChange(false),
-			m_pumpSerializer(0)
+	virtual_bindable_property_base(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: object(desc),
+		m_dispatcher(d),
+		m_pendingChange(false),
+		m_pumpSerializer(0)
 	{ }
 
 	void changed()
@@ -316,11 +319,12 @@ private:
 	virtual rcref<virtual_bindable_property_base<type> > get_virtual_bindable_property_base() { return this_rcref; }
 
 public:
-	virtual_bindable_property()
+	explicit virtual_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	virtual_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	virtual_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		:	base_t(desc, d)
 	{ }
 
 	virtual void bind(const rcref<bindable_property<type, io::read_write> >& srcSnk)
@@ -362,11 +366,12 @@ private:
 	virtual void setting(const type& t) { }
 
 public:
-	virtual_bindable_property()
+	explicit virtual_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	virtual_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	virtual_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: base_t(desc, d)
 	{ }
 
 	virtual void bind_to(const rcref<bindable_property<type, io::write_only> >& snk)
@@ -391,11 +396,12 @@ private:
 	virtual type getting() const = 0; // { type unused; return unused; }
 
 public:
-	virtual_bindable_property()
+	virtual_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	virtual_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	virtual_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: base_t(desc, d)
 	{ }
 
 	virtual void bind_from(const rcref<bindable_property<type, io::read_only> >& src)
@@ -428,15 +434,16 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_bindable_property(const get_delegate_type& g, const set_delegate_type& s)
-		:	m_getDelegate(g),
-			m_setDelegate(s)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const get_delegate_type& g, const set_delegate_type& s)
+		: base_t(desc),
+		m_getDelegate(g),
+		m_setDelegate(s)
 	{ }
 
-	delegated_bindable_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
-		:	base_t(d),
-			m_getDelegate(g),
-			m_setDelegate(s)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
+		: base_t(desc, d),
+		m_getDelegate(g),
+		m_setDelegate(s)
 	{ }
 
 	virtual type getting()  const { return m_getDelegate(); }
@@ -461,13 +468,14 @@ private:
 	get_delegate_type m_getDelegate;
 
 public:
-	delegated_bindable_property(const get_delegate_type& g)
-		:	m_getDelegate(g)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const get_delegate_type& g)
+		: base_t(desc),
+		m_getDelegate(g)
 	{ }
 
-	delegated_bindable_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g)
-		:	base_t(d),
-			m_getDelegate(g)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g)
+		: base_t(desc, d),
+		m_getDelegate(g)
 	{ }
 
 	virtual type getting() const { return m_getDelegate(); }
@@ -487,13 +495,14 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_bindable_property(const set_delegate_type& s)
-		:	m_setDelegate(s)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const set_delegate_type& s)
+		: base_t(desc),
+		m_setDelegate(s)
 	{ }
 
-	delegated_bindable_property(const rcref<volatile dispatcher>& d, const set_delegate_type& s)
-		:	base_t(d),
-			m_setDelegate(s)
+	delegated_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const set_delegate_type& s)
+		: base_t(desc, d),
+		m_setDelegate(s)
 	{ }
 
 	virtual void setting(const type& t)
@@ -509,22 +518,25 @@ private:
 	typedef backed_bindable_property<type, io::read_write> this_t;
 	typedef virtual_bindable_property<type, io::read_write> base_t;
 
-	volatile transactable<type> m_contents;
+	typedef transactable<type> transactable_t;
+	volatile transactable_t m_contents;
 
 public:
-	backed_bindable_property()
+	explicit backed_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	backed_bindable_property(const type& t)
-		: m_contents(typename transactable_t::construct_embedded_t(), t)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const type& t)
+		: base_t(desc),
+		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: base_t(desc, d)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
-		:	base_t(d),
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(desc, d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
@@ -544,22 +556,25 @@ private:
 	typedef backed_bindable_property<type, io::read_only> this_t;
 	typedef virtual_bindable_property<type, io::read_only> base_t;
 
-	volatile transactable<type> m_contents;
+	typedef transactable<type> transactable_t;
+	volatile transactable_t m_contents;
 
 public:
-	backed_bindable_property()
+	backed_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	backed_bindable_property(const type& t)
-		: m_contents(typename transactable_t::construct_embedded_t(), t)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const type& t)
+		: base_t(desc),
+		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: base_t(desc)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
-		:	base_t(d),
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(desc),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
@@ -573,22 +588,25 @@ private:
 	typedef backed_bindable_property<type, io::write_only> this_t;
 	typedef virtual_bindable_property<type, io::write_only> base_t;
 
-	volatile transactable<type> m_contents;
+	typedef transactable<type> transactable_t;
+	volatile transactable_t m_contents;
 
 public:
-	backed_bindable_property()
+	backed_bindable_property(const ptr<rc_obj_base>& desc)
+		: base_t(desc)
 	{ }
 
-	backed_bindable_property(const type& t)
-		: m_contents(typename transactable_t::construct_embedded_t(), t)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const type& t)
+		: base_t(desc),
+		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d)
-		:	base_t(d)
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+		: base_t(desc, d)
 	{ }
 
-	backed_bindable_property(const rcref<volatile dispatcher>& d, const type& t)
-		:	base_t(d),
+	backed_bindable_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(desc, d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 

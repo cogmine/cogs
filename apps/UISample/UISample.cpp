@@ -28,8 +28,8 @@ public:
 	function<void()>		m_expireDelegate;
 	function<void()>		m_expireInUiThreadDelegate;
 
-	box(const color& c)
-		:	background(c),
+	box(const ptr<rc_obj_base>& desc, const color& c)
+		:	background(desc, c),
 			m_timeoutPeriod(measure<int_type, milliseconds>(5)),
 			m_baseColor(c),
 			m_expireDelegate([r{ this_weak_rcptr }]()
@@ -100,16 +100,16 @@ public:
 
 int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 {
-	//{
-	//	rcptr<http::server> m_httpServer = rcnew(http::server);
-	//	rcptr<smtp::server> m_smtpServer = rcnew(smtp::server);
-	//	rcptr<tcp::listener> m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);// 80);
-	//	rcptr<tcp::listener> m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
-	//	cleanup_queue::get_global()->add(m_httpServer);
-	//	cleanup_queue::get_global()->add(m_smtpServer);
-	//	cleanup_queue::get_global()->add(m_httpListener);
-	//	cleanup_queue::get_global()->add(m_smtpListener);
-	//}
+	{
+		rcptr<http::server> m_httpServer = rcnew(http::server);
+		rcptr<smtp::server> m_smtpServer = rcnew(smtp::server);
+		rcptr<tcp::listener> m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);// 80);
+		rcptr<tcp::listener> m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
+		cleanup_queue::get_global()->add(m_httpServer);
+		cleanup_queue::get_global()->add(m_smtpServer);
+		cleanup_queue::get_global()->add(m_httpListener);
+		cleanup_queue::get_global()->add(m_smtpListener);
+	}
 
 	rcref<count_down_event> quitCountDown = count_down_event::create(0, []() { cogs::request_quit(); });
 

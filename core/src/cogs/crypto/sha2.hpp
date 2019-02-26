@@ -31,14 +31,11 @@ private:
 
 
 template <size_t digest_bits>
-class sha2_256_base : public serial_hash<sha2_256_base<digest_bits>, 256, digest_bits, 32, endian_t::big, 512>
+class sha2_256_base : public serial_hash<256, digest_bits, 32, endian_t::big, 512>
 {
 private:
 	typedef sha2_256_base<digest_bits> this_t;
-	typedef serial_hash<sha2_256_base<digest_bits>, 256, digest_bits, 32, endian_t::big, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<256, digest_bits, 32, endian_t::big, 512> base_t;
 
 	uint32_t	m_state[64];
 	uint64_t	m_bitCount;
@@ -60,7 +57,6 @@ private:
 		h = tmp + S2(a) + maj(a, b, c);
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -181,12 +177,13 @@ protected:
 
 public:
 	sha2_256_base()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 	}
 
 	sha2_256_base(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)
@@ -205,14 +202,11 @@ public:
 
 
 template <size_t digest_bits>
-class sha2_512_base : public serial_hash<sha2_512_base<digest_bits>, 512, digest_bits, 64, endian_t::big, 1024>
+class sha2_512_base : public serial_hash<512, digest_bits, 64, endian_t::big, 1024>
 {
 private:
 	typedef sha2_512_base<digest_bits> this_t;
-	typedef serial_hash<sha2_512_base<digest_bits>, 512, digest_bits, 64, endian_t::big, 1024> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<512, digest_bits, 64, endian_t::big, 1024> base_t;
 
 	uint64_t	m_state[80];
 	fixed_integer<false, 128>	m_bitCount;
@@ -235,7 +229,6 @@ private:
 		h = tmp + S2(a) + maj(a, b, c);
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -368,12 +361,13 @@ protected:
 
 public:
 	sha2_512_base()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 	}
 
 	sha2_512_base(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)

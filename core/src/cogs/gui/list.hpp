@@ -281,7 +281,7 @@
 //
 //	virtual void detaching_child(const rcref<pane>& p)
 //	{
-//		rcptr<cell_t> c = p->get_frame().static_cast_to<cell_t>();
+//		rcptr<cell_t> c = p->get_frame().template static_cast_to<cell_t>();
 //
 //		rcptr<primary_row_t>	primaryRow = c->m_primaryRow;
 //		rcptr<secondary_row_t>	secondaryRow = c->m_secondaryRow;

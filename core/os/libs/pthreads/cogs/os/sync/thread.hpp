@@ -56,31 +56,33 @@ private:
 
 	void release()
 	{
-		size_t numWaiting = atomic::load(m_joinState);
+		size_t numWaiting = cogs::atomic::load(m_joinState);
 		size_t newJoinState;
 		do {
-			atomic::store(m_releaseCount, numWaiting);
+			cogs::atomic::store(m_releaseCount, numWaiting);
 			if (!numWaiting)
 				newJoinState = -2;
 			else
 				newJoinState = -1;
-		} while (!atomic::compare_exchange(m_joinState, newJoinState, numWaiting, numWaiting));
+		} while (!cogs::atomic::compare_exchange(m_joinState, newJoinState, numWaiting, numWaiting));
 
 		if (!!numWaiting)
 			m_exitSemaphore.release(numWaiting);
 	}
-	
-	explicit thread(const function<void()>& d)
-		: m_func(d),
+
+	inline static unsigned int s_processorCount = 0;
+protected:
+	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
+		: object(desc),
+		m_func(d),
 		m_releaseCount(0),
-		m_joinState(0)
+		m_joinState(0),
+		m_exitSemaphore(desc)
 	{
 		self_acquire();	// Last thread to interact will release explicit reference.
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);
 		COGS_ASSERT(i == 0);
 	}
-
-	inline static unsigned int s_processorCount = 0;
 
 public:
 	static rcref<thread> create(const function<void()>& d)	{ return rcnew(bypass_constructor_permission<thread>, d); }
@@ -100,13 +102,13 @@ public:
 	int join(const timeout_t& timeout = timeout_t::infinite() )
 	{
 		int result = 0;
-		size_t joinState = atomic::load(m_joinState);
+		size_t joinState = cogs::atomic::load(m_joinState);
 		for (;;)
 		{
 			if (joinState == (size_t)-2)	// A joiner needs to release a reference
 			{
 				size_t allBitsSet = const_max_int_v<size_t>;
-				if (!atomic::compare_exchange(m_joinState, allBitsSet, joinState, joinState))
+				if (!cogs::atomic::compare_exchange(m_joinState, allBitsSet, joinState, joinState))
 					continue;
 				result = 1;
 				self_release();
@@ -120,14 +122,14 @@ public:
 			}
 
 			size_t newJoinState = joinState + 1;
-			if (!atomic::compare_exchange(m_joinState, newJoinState, joinState, joinState))
+			if (!cogs::atomic::compare_exchange(m_joinState, newJoinState, joinState, joinState))
 				continue;
 
 			if (!!m_exitSemaphore.acquire(timeout))
 				result = 1;
 			else				// Try to remove outselves from the waiting count.
 			{
-				joinState = atomic::load(m_joinState);
+				joinState = cogs::atomic::load(m_joinState);
 				for (;;)
 				{
 					if (joinState == const_max_int_v<size_t>)		// Terminated, nothing more to do.
@@ -137,7 +139,7 @@ public:
 					}
 					COGS_ASSERT(joinState != 0);
 					newJoinState = joinState - 1;
-					if (!atomic::compare_exchange(m_joinState, newJoinState, joinState, joinState))
+					if (!cogs::atomic::compare_exchange(m_joinState, newJoinState, joinState, joinState))
 						continue;
 					return -1;
 				}
@@ -175,8 +177,6 @@ public:
 
 
 }
-
-unsigned int get_processor_count();
 
 
 }

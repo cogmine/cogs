@@ -936,12 +936,12 @@ public:
 
 	void insert(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert(i, src.subrange(srcIndex, n))
+		insert(i, src.subrange(srcIndex, n));
 	}
 
 	void insert(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert(i, src.subrange(srcIndex, n))
+		insert(i, src.subrange(srcIndex, n));
 	}
 
 
@@ -957,12 +957,12 @@ public:
 
 	void replace(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		replace(i, src.subrange(srcIndex, n))
+		replace(i, src.subrange(srcIndex, n));
 	}
 
 	void replace(size_t i, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		replace(i, src.subrange(srcIndex, n))
+		replace(i, src.subrange(srcIndex, n));
 	}
 
 
@@ -979,12 +979,12 @@ public:
 
 	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
+		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
 
 	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
-		insert_replace(i, replaceLength, src.subrange(srcIndex, n))
+		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
 
 
@@ -1645,7 +1645,7 @@ template <typename char_t>
 inline string_t<char_t> fixed_integer_native_const<has_sign, bits, value>::to_string_t(unsigned int radix, size_t minDigits) const volatile
 {
 	non_const_t tmp(*this);
-	return tmp.to_string_t<char_t>(radix, minDigits);
+	return tmp.template to_string_t<char_t>(radix, minDigits);
 }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
@@ -1666,7 +1666,7 @@ template <typename char_t>
 inline string_t<char_t> vector<type>::to_string_t(const string_t<char_t>& prefix, const string_t<char_t>& delimiter, const string_t<char_t>& postfix) const
 {
 	string str = prefix;
-	size_t sz = size();
+	size_t sz = get_length();
 	if (!!sz)
 	{
 		size_t i = 0;

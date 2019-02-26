@@ -31,6 +31,11 @@ class datastream : public datasource,  public datasink
 public:
 	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(datastream, datasource, datasink);
 
+	explicit datastream(const ptr<rc_obj_base>& desc)
+		: datasource(desc),
+		datasink(desc)
+	{ }
+
 	class closer : public waitable, public object
 	{
 	private:
@@ -46,10 +51,11 @@ public:
 	protected:
 		friend class datastream;
 
-		closer(const rcref<datastream>& ds)
-			: m_stream(ds)
+		closer(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds)
+			: object(desc),
+			m_stream(ds)
 		{
-			placement_rcnew(this_desc, (bypass_constructor_permission<count_down_event>*)&m_event.get(), 2);
+			placement_rcnew((bypass_constructor_permission<count_down_event>*)&m_event.get(), this_desc, 2);
 		}
 
 		void closing()	{ m_event->count_down(); }

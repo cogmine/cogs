@@ -28,13 +28,13 @@ public:
 	rcptr<gfx::os::gdi::device_context::font>	m_cachedFont;
 	size									m_defaultSize;
 
-	button(const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, system_drawn_offscreen)
+	button(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, system_drawn_offscreen)
 	{ }
 
 	virtual void installing()
 	{
-		rcptr<gui::button> btn = get_bridge().static_cast_to<gui::button>();
+		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 
 		install_HWND();
 		SendMessage(get_HWND(), CCM_DPISCALE, (WPARAM)TRUE, 0);
@@ -49,7 +49,7 @@ public:
 
 	void action()
 	{
-		rcptr<gui::button> btn = get_bridge().static_cast_to<gui::button>();
+		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 		if (!!btn)
 			btn->action();
 	}
@@ -83,7 +83,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 
@@ -157,7 +157,7 @@ public:
 	virtual void dpi_changing(double oldDpi, double newDpi)
 	{
 		hwnd_pane::dpi_changing(oldDpi, newDpi);
-		rcptr<gui::button> btn = get_bridge().static_cast_to<gui::button>();
+		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 		set_font(btn->get_font());
 	}
 

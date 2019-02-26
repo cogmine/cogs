@@ -32,14 +32,14 @@ private:
 	class payload
 	{
 	public:
-		typename placement<type> m_value;
+		placement<type> m_value;
 		volatile boolean m_priorityChanged;	// Used to synchronize concurrent priority changes
 		volatile rcptr<payload> m_removed;	// Used to synchronized priority changes with concurrent scheduled removals (gets)
 		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
 
 		void construct(const type& t) { new (&get_value()) type(t); }
 
-		void construct() { new (&get_value()) type(); }
+		void construct() { new (&get_value()) type; }
 
 		void set_removed(rcptr<payload>&& removed)
 		{
@@ -822,8 +822,6 @@ public:
 					if (!oldRemoved)
 						oldRemoved = vt.get_value_obj();
 					else if (oldRemoved.get_mark() != 0)	// Already scheduled/removed, nothing to do.
-						break;
-					else if (oldRemoved->m_removed.get_mark() != 0)
 						break;
 
 					// Add new element at new priority

@@ -68,8 +68,8 @@ private:
 				CancelIoEx((HANDLE)(m_socket->m_socket), m_overlapped);
 		}
 
-		tcp_reader(const rcref<datasource>& proxy, const rcref<tcp>& t)
-			:	reader(proxy),
+		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
+			:	reader(desc, proxy),
 				m_tcp(t),
 				m_socket(t->m_socket),
 				m_overlapped(0),
@@ -239,8 +239,8 @@ private:
 		vector<WSABUF>							m_wsaBuffers;
 		volatile fixed_integer<false, 2>		m_abortStateBits;	// bit 0=aborted, bit 1=started
 		
-		tcp_writer(const rcref<datasink>& proxy, const rcref<tcp>& t)
-			:	writer(proxy),
+		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
+			:	writer(desc, proxy),
 				m_tcp(t),
 				m_socket(t->m_socket),
 				m_overlapped(0),
@@ -375,8 +375,9 @@ private:
 	}
 
 protected:
-	tcp(address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-		: m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
+	tcp(const ptr<rc_obj_base>& desc, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+		: connection(desc),
+		m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
 
 public:
@@ -398,12 +399,13 @@ public:
 
 		friend class tcp;
 
-		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
-			:	m_overlapped(0),
-				m_addresses(addresses),
-				m_network(n),
-				m_remotePort(port),
-				m_completionPort(cp)
+		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+			: signallable_task<connecter>(desc),
+			m_overlapped(0),
+			m_addresses(addresses),
+			m_network(n),
+			m_remotePort(port),
+			m_completionPort(cp)
 		{
 			self_acquire();
 
@@ -553,14 +555,15 @@ public:
 			LPFN_GETACCEPTEXSOCKADDRS			m_lpfnGetAcceptExSockaddrs;
 			char								m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
-			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-				:	m_listener(l),
-					m_acceptDelegate(acceptDelegate),
-					m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
-					m_acceptSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
-					m_addressFamily(addressFamily),
-					m_completionPort(cp),
-					m_network(n)
+			accept_helper(const ptr<rc_obj_base>& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+				: object(desc),
+				m_listener(l),
+				m_acceptDelegate(acceptDelegate),
+				m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
+				m_acceptSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
+				m_addressFamily(addressFamily),
+				m_completionPort(cp),
+				m_network(n)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -698,15 +701,19 @@ public:
 		rcptr<accept_helper>		m_acceptHelper;
 		rcref<single_fire_event>	m_closeEvent;
 				
-		listener();
-		listener(const listener&);
+		listener() = delete;
+		listener(listener&&) = delete;
+		listener(const listener&) = delete;
+		listener& operator=(listener&&) = delete;
+		listener& operator=(const listener&) = delete;
 
 	protected:
 		friend class tcp;
 
-		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
-			:	m_port(port),
-				m_closeEvent(rcnew(single_fire_event))
+		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
+			: object(desc),
+			m_port(port),
+			m_closeEvent(rcnew(single_fire_event))
 		{
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
 		}
@@ -737,7 +744,7 @@ public:
 	{
 		return listen([srvr](const rcref<tcp>& r)
 		{
-			srvr->connecting(r.static_cast_to<net::connection>());
+			srvr->connecting(r.template static_cast_to<net::connection>());
 		}, port, addressFamily);
 	}
 

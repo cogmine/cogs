@@ -10,6 +10,7 @@
 
 
 #include "cogs/crypto/hash.hpp"
+#include "cogs/function.hpp"
 #include "cogs/mem/endian.hpp"
 #include "cogs/math/bits_to_int.hpp"
 
@@ -29,13 +30,7 @@ namespace crypto {
 
 
 
-template <class derived_t,
-	size_t result_bits_in,
-	size_t digest_bits_in,
-	size_t digit_bits_in,
-	endian_t digit_endian_in,
-	size_t stride_bits_in,
-	size_t result_contribution_bits_in = result_bits_in>
+template <size_t result_bits_in, size_t digest_bits_in, size_t digit_bits_in, endian_t digit_endian_in, size_t stride_bits_in, size_t result_contribution_bits_in = result_bits_in>
 class serial_hash : public hash
 {
 public:
@@ -59,28 +54,26 @@ public:
 	static constexpr size_t stride_digits = stride_bytes / digit_bytes;
 	static constexpr size_t result_contribution_digits = result_contribution_bytes / digit_bytes;
 
-	typedef serial_hash<derived_t, result_bits, digest_bits, digit_bits, digit_endian, stride_bits, result_contribution_bits> this_t;
+	typedef serial_hash<result_bits, digest_bits, digit_bits, digit_endian, stride_bits, result_contribution_bits> this_t;
 	
 protected:
-	size_t m_digitProgress;
-	size_t m_blockProgress;
+	size_t m_digitProgress = 0;
+	size_t m_blockProgress = 0;
 	digit_t	m_result[result_digits];
-	digit_t m_curDigit;
+	digit_t m_curDigit = 0;
 
-public:
-	virtual size_t get_block_size() const				{ return stride_bytes; }
+	function<void()> m_processBlockFunc;
+	function<void()> m_processDigitFunc;
+	function<void()> m_terminateFunc;
 
-	serial_hash()
-	{
-		m_digitProgress = 0;
-		m_blockProgress = 0;
-		m_curDigit = 0;
-	}
-
-	serial_hash(const this_t& src)
-		: m_digitProgress(src.m_digitProgress),
-			m_blockProgress(src.m_blockProgress),
-			m_curDigit(src.m_curDigit)
+	template <typename F1, typename F2, typename F3>
+	serial_hash(const this_t& src, F1&& processDigitFunc, F2&& processBlockFunc, F3&& terminateFunc)
+		: m_processBlockFunc(std::forward<F1>(processDigitFunc)),
+		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
+		m_terminateFunc(std::forward<F3>(terminateFunc)),
+		m_digitProgress(src.m_digitProgress),
+		m_blockProgress(src.m_blockProgress),
+		m_curDigit(src.m_curDigit)
 	{
 		for (size_t i = 0; i < result_digits; i++)
 			m_result[i] = src.m_result[i];
@@ -95,14 +88,24 @@ public:
 			m_result[i] = src.m_result[i];
 	}
 
+public:
+	virtual size_t get_block_size() const				{ return stride_bytes; }
+
+	template <typename F1, typename F2, typename F3>
+	serial_hash(F1&& processDigitFunc, F2&& processBlockFunc, F3&& terminateFunc)
+		: m_processBlockFunc(std::forward<F1>(processDigitFunc)),
+		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
+		m_terminateFunc(std::forward<F3>(terminateFunc))
+	{
+	}
+
 	void advance_digit()
 	{
 		m_digitProgress = 0;
 		m_curDigit = 0;
 		if (++m_blockProgress == stride_digits)
 		{
-			derived_t* d = static_cast<derived_t*>(this);
-			d->process_block();
+			m_processBlockFunc();
 			m_blockProgress = 0;
 		}
 	}
@@ -122,8 +125,7 @@ public:
 
 		if (m_digitProgress == digit_bits)
 		{
-			derived_t* d = static_cast<derived_t*>(this);
-			d->process_digit();
+			m_processDigitFunc();
 		}
 	}
 
@@ -137,8 +139,7 @@ public:
 
 	virtual io::buffer get_hash()
 	{
-		derived_t* d = static_cast<derived_t*>(this);
-		d->terminate();
+		m_terminateFunc();
 
 		// Copy result buffer out
 		io::buffer resultBuffer(digest_bytes);
@@ -189,8 +190,7 @@ public:
 				}
 				if (!!done)
 					break;
-				derived_t* d = static_cast<derived_t*>(this);
-				d->process_block();
+				m_processBlockFunc();
 			}
 		}
 

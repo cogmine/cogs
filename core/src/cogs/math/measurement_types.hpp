@@ -127,7 +127,6 @@ public:
 	typedef fixed_integer_native_const<false, 1, 1> ratio_const_t;
 };
 
-
 // Automatically generate conversion in the other direction, if one direction is defined
 template <class T1, class T2>
 class unit_conversion<

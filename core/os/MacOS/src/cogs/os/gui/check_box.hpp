@@ -92,7 +92,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = load_font(fnt).static_cast_to<gfx::os::graphics_context::font>();
+		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
 		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSFont* nsFont = m_cachedFont->m_nsFont;
@@ -101,7 +101,7 @@ public:
 
 	virtual void installing()
 	{
-		rcptr<gui::check_box> cb = get_bridge().static_cast_to<gui::check_box>();
+		rcptr<gui::check_box> cb = get_bridge().template static_cast_to<gui::check_box>();
 		cb->set_completely_invalidate_on_reshape(true);
 
 		objc_check_box* objcCheckBox = [[objc_check_box alloc] init];

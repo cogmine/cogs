@@ -14,7 +14,7 @@
 #include "cogs/env.hpp"
 #include "cogs/collections/map.hpp"
 #include "cogs/function.hpp"
-#include "cogs/io/auto_fd.hpp"
+#include "cogs/os/io/auto_fd.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
@@ -56,14 +56,14 @@ private:
 			for (;;)
 			{
 				struct epoll_event ev;
-				int i = epoll_wait(m_fd->m_fd, &ev, 1, -1);
+				int i = epoll_wait(m_fd->get(), &ev, 1, -1);
 				if ((i == -1) && (errno == EINTR))
 					continue;
 				COGS_ASSERT(i != -1);
 				if (i > 0)
 				{
 					int fd = ev.data.fd;
-					if (fd == m_fd->m_fd)	// must have been triggered by m_shutdownSocket
+					if (fd == m_fd->get())	// must have been triggered by m_shutdownSocket
 					{
 						close(m_shutdownSocket[0]);
 						close(m_shutdownSocket[1]);
@@ -73,7 +73,7 @@ private:
 							COGS_ASSERT(i != -1);
 							ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP;
 							ev.data.fd = fd;
-							i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_ADD, m_shutdownSocket[1], &ev);
+							i = epoll_ctl(m_fd->get(), EPOLL_CTL_ADD, m_shutdownSocket[1], &ev);
 							COGS_ASSERT(i != -1);
 						}
 						break;
@@ -96,14 +96,6 @@ private:
 
 	rcptr<task> m_func;
 
-	epoll_pool()
-		: m_fd(rcnew(auto_fd))
-	{
-		int fd = epoll_create1(0);
-		m_fd->m_fd = fd;
-		m_func = rcnew(task, m_fd, this_rcref);
-	}
-
 	void start()
 	{
 		m_pool.start();
@@ -115,6 +107,16 @@ private:
 		});
 	}
 
+protected:
+	explicit epoll_pool(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_fd(rcnew(auto_fd))
+	{
+		int fd = epoll_create1(0);
+		m_fd->get() = fd;
+		m_func = rcnew(task, m_fd, this_rcref);
+	}
+
 public:
 	~epoll_pool()
 	{
@@ -122,8 +124,8 @@ public:
 		COGS_ASSERT(i != -1);
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP;
-		ev.data.fd = m_fd->m_fd;
-		i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_ADD, m_func->m_shutdownSocket[1], &ev);
+		ev.data.fd = m_fd->get();
+		i = epoll_ctl(m_fd->get(), EPOLL_CTL_ADD, m_func->m_shutdownSocket[1], &ev);
 		COGS_ASSERT(i != -1);
 		m_pool.shutdown();
 		m_pool.join();
@@ -132,7 +134,7 @@ public:
 	static rcref<epoll_pool> get()
 	{
 		bool isNew;
-		rcref<epoll_poll> result = singleton<epoll_poll>::get(isNew);
+		rcref<epoll_pool> result = singleton<epoll_pool>::get(isNew);
 		if (isNew)
 			result->start();
 		return result;
@@ -143,7 +145,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
-		int i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_ADD, fd, &ev);
+		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_ADD, fd, &ev);
 		COGS_ASSERT(i != -1);
 	}
 
@@ -181,7 +183,7 @@ public:
 		ev.data.fd = fd;
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_MOD, fd, &ev);
+		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;
@@ -195,7 +197,7 @@ public:
 		ev.data.fd = fd;
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_MOD, fd, &ev);
+		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;
@@ -208,7 +210,7 @@ public:
 			self_release();
 			struct epoll_event ev;
 			ev.events = EPOLLERR | EPOLLHUP | EPOLLET;
-			int i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_MOD, rt.m_fd, &ev);
+			int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, rt.m_fd, &ev);
 			COGS_ASSERT(i != -1);
 		}
 	}
@@ -221,7 +223,7 @@ public:
 		ev.data.fd = fd;	// mark lsb to clue other thread in that this is a listener FD
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = epoll_ctl(m_fd->m_fd, EPOLL_CTL_MOD, fd, &ev);
+		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;

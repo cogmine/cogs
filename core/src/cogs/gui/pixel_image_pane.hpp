@@ -28,9 +28,10 @@ private:
 	double m_dpi;
 
 public:
-	pixel_image_pane(const composite_string& imageLocation, double dpi = canvas::dip_dpi)
-		:	m_imageLocation(imageLocation),
-			m_dpi(dpi)
+	pixel_image_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation, double dpi = canvas::dip_dpi)
+		:	pane(desc),
+		m_imageLocation(imageLocation),
+		m_dpi(dpi)
 	{
 	}
 

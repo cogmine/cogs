@@ -274,7 +274,7 @@ public:
 	{
 		ref_t r = allocator_container<allocator_type>::template allocate_type_with_header<this_t, type>();
 		if (!!r)
-			new (r.get_ptr()) this_t();
+			new (r.get_ptr()) this_t;
 		return r;
 	}
 
@@ -401,7 +401,7 @@ public:
 	static ref_t allocate()
 	{
 		ref_t r = allocator_container<default_allocator>::template allocate_type_with_header<this_t, type>().dereference();
-		new (r.get_ptr()) this_t();
+		new (r.get_ptr()) this_t;
 		return r;
 	}
 

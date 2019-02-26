@@ -72,8 +72,9 @@ private:
 	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
 
 public:
-	explicit scroll_bar(dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
-		: m_dimension(d),
+	explicit scroll_bar(const ptr<rc_obj_base>& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
+		: pane_bridge(desc),
+		m_dimension(d),
 		m_isHiddenWhenInactive(isHiddenWhenInactive),
 		m_state(typename transactable_t::construct_embedded_t(), s),
 		m_pos(pos)
@@ -93,7 +94,7 @@ public:
 			m_stateProperty.get().set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_stateProperty.get(), *this, std::move(stateGetter), std::move(stateSetter));
+		placement_rcnew(&m_stateProperty.get(), this_desc, *this, std::move(stateGetter), std::move(stateSetter));
 
 		auto positionGetter = [this]()
 		{
@@ -109,7 +110,7 @@ public:
 			m_positionProperty.get().set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_positionProperty.get(), *this, std::move(positionGetter), std::move(positionSetter));
+		placement_rcnew(&m_positionProperty.get(), this_desc, *this, std::move(positionGetter), std::move(positionSetter));
 	}
 	
 	dimension get_dimension() const	{ return m_dimension; }
@@ -120,8 +121,8 @@ public:
 		pane_bridge::install_bridged(std::move(get_subsystem()->create_scroll_bar().first));
 	}
 	
-	virtual rcref<bindable_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).static_cast_to<bindable_property<scroll_bar_state>>(); }
-	virtual rcref<bindable_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).static_cast_to<bindable_property<double>>(); }
+	virtual rcref<bindable_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).template static_cast_to<bindable_property<scroll_bar_state>>(); }
+	virtual rcref<bindable_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).template static_cast_to<bindable_property<double>>(); }
 };
 
 

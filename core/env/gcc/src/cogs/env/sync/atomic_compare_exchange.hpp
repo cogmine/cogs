@@ -26,28 +26,62 @@ template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& !std::is_const_v<T>,
+	&& !std::is_const_v<T>
+	&& sizeof(T) <= 8,
 	bool
 >
 compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	rtn = cmp;
-	return __atomic_compare_exchange((uint_t*)&t, (uint_t*)&rtn, (uint_t*)&src, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+	return __atomic_compare_exchange(&t, &rtn, &src, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& std::is_scalar_v<T>
-	&& !std::is_const_v<T>,
+	&& !std::is_const_v<T>
+	&& sizeof(T) <= 8,
 	bool
 >
 compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
 	T rtn;
-	return compare(t, src, cmp, rtn);
+	return compare_exchange(t, src, cmp, rtn);
+}
+
+
+// Fallback to old intrincs until GCC gets it's atomics problem figured out
+template <typename T>
+inline std::enable_if_t<
+	can_atomic_v<T>
+	&& std::is_scalar_v<T>
+	&& !std::is_const_v<T>
+	&& sizeof(T) == 16,
+	bool
+>
+compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
+{
+	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	T tmp = __sync_val_compare_and_swap(&t, cmp, src);
+	bool b = (tmp == cmp);
+	rtn = tmp;
+	return b;
+}
+
+template <typename T>
+inline std::enable_if_t<
+	can_atomic_v<T>
+	&& std::is_scalar_v<T>
+	&& !std::is_const_v<T>
+	&& sizeof(T) == 16,
+	bool
+>
+compare_exchange(volatile T& t, const T& src, const T& cmp)
+{
+	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	return __sync_bool_compare_and_swap(&t, cmp, src);
 }
 
 

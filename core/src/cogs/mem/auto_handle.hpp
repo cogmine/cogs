@@ -81,7 +81,7 @@ public:
 			dispose_func(m_value);
 	}
 
-	bool operator!() const { return m_value != invalidValue; }
+	bool operator!() const { return m_value == invalidValue; }
 
 	void swap(this_t& wth) { cogs::swap(m_value, wth.m_value); }
 
@@ -95,14 +95,13 @@ public:
 };
 
 
-
 template <typename value_t, value_t invalidValue, void(*dispose_func)(value_t)>
 class auto_handle<value_t, invalidValue, dispose_func, std::enable_if_t<can_atomic_v<value_t> > >
 {
 private:
 	typedef auto_handle<value_t, invalidValue, dispose_func> this_t;
 
-	alignas (cogs::atomic::get_alignment_v<HANDLE>) value_t m_value;
+	alignas (cogs::atomic::get_alignment_v<value_t>) value_t m_value;
 
 public:
 	auto_handle()
@@ -181,8 +180,8 @@ public:
 			dispose_func(tmp);
 	}
 
-	bool operator!() const { return m_value != invalidValue; }
-	bool operator!() const volatile { return get() != invalidValue; }
+	bool operator!() const { return m_value == invalidValue; }
+	bool operator!() const volatile { return get() == invalidValue; }
 
 	void swap(this_t& wth) { cogs::swap(m_value, wth.m_value); }
 	void swap(volatile this_t& wth) { cogs::swap(m_value, wth.m_value); }
@@ -230,10 +229,7 @@ public:
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp, this_t volatile& rtn) volatile { return cogs::compare_exchange(m_value, src.m_value, cmp.m_value, rtn.m_value); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, this_t volatile& rtn) { return cogs::compare_exchange(m_value, src.m_value, cmp.m_value, rtn.m_value); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, this_t volatile& rtn) volatile { return cogs::compare_exchange(m_value, src.m_value, cmp.m_value, rtn.m_value); }
-
-
 };
-
 
 
 }

@@ -54,6 +54,10 @@ public:
 
 		virtual const reverse_lookup_result& get() const volatile { return *(const reverse_lookup_result*)this; }
 
+		explicit reverse_lookup_result(const ptr<rc_obj_base>& desc)
+			: signallable_task<reverse_lookup_result>(desc)
+		{ }
+
 	public:
 		const composite_string& get_name() const { return m_result; }
 	};

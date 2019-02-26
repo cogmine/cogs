@@ -30,11 +30,12 @@ private:
 	size_t m_remaining;
 
 public:
-	limiter(size_t n)
-		:	m_remaining(n)
+	limiter(const ptr<rc_obj_base>& desc, size_t n)
+		: filter(desc),
+		m_remaining(n)
 	{ }
 
-	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		composite_buffer result;
 		size_t n = m_remaining;

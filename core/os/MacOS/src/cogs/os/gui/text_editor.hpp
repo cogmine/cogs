@@ -72,7 +72,7 @@ public:
 
 	virtual void installing()
 	{
-		rcptr<gui::text_editor> te = get_bridge().static_cast_to<gui::text_editor>();
+		rcptr<gui::text_editor> te = get_bridge().template static_cast_to<gui::text_editor>();
 
 		te->set_completely_invalidate_on_reshape(true);
 
@@ -167,7 +167,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = load_font(fnt).static_cast_to<gfx::os::graphics_context::font>();
+		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
 	}
 	
 	virtual size get_default_size() const	{ return size(100, 100); }

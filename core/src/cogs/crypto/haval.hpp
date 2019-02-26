@@ -33,16 +33,13 @@ class haval : public hash
 
 
 template <size_t bits, size_t passes>
-class haval : public serial_hash<haval<bits, passes>, 256, bits, 32, endian_t::little, 1024>
+class haval : public serial_hash<256, bits, 32, endian_t::little, 1024>
 {
 private:
-	typedef serial_hash<haval<bits, passes>, 256, bits, 32, endian_t::little, 1024> base_t;
+	typedef serial_hash<256, bits, 32, endian_t::little, 1024> base_t;
 	typedef haval<bits, passes> this_t;
 
 	static constexpr uint32_t version = 1;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[32];
@@ -171,7 +168,6 @@ private:
 		return bit_rotate_right(EB(7, b, S(a, b)), b);
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -461,6 +457,7 @@ protected:
 
 public:
 	haval()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		base_t::m_result[0] = 0x243F6A88;
@@ -474,7 +471,7 @@ public:
 	}
 
 	haval(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)

@@ -195,8 +195,9 @@ public:
 
 	protected:
 		/// @brief Constructor
-		task_base()
-			: m_state(queued_state),
+		task_base(const ptr<rc_obj_base>& desc)
+			: object(desc),
+			m_state(queued_state),
 			m_wasClosed(false)
 		{
 		}
@@ -265,15 +266,22 @@ public:
 	};
 
 	template <typename result_t>
-	class task : public task_base, public signallable_task<result_t>
+	class io_task : public task_base, public signallable_task<result_t>
 	{
 	private:
+		using signallable_task<result_t>::signal;
+
 		virtual void finish() { signal(); }
 
 	public:
-		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(task<result_t>, task_base, signallable_task<result_t>);
+		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(io_task<result_t>, task_base, signallable_task<result_t>);
 
-		virtual rcref<cogs::task<bool> > cancel() volatile
+		explicit io_task(const ptr<rc_obj_base>& desc)
+			: task_base(desc),
+			signallable_task<result_t>(desc)
+		{ }
+
+		virtual rcref<task<bool> > cancel() volatile
 		{
 			abort();
 
@@ -353,8 +361,9 @@ protected:
 			c->execute_next();
 	}
 
-	queue()
-		: m_contents(rcnew(content_t))
+	explicit queue(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_contents(rcnew(content_t))
 	{
 		m_closeEvent = m_contents->m_closeEvent;
 	}
@@ -373,7 +382,7 @@ public:
 
 	static rcref<queue> create()	{ return rcnew(bypass_constructor_permission<queue>); }
 
-	rcref<waitable> get_close_event() const		{ return m_closeEvent.dereference().static_cast_to<waitable>(); }
+	rcref<waitable> get_close_event() const		{ return m_closeEvent.dereference().template static_cast_to<waitable>(); }
 
 	bool is_closed() const	{ return !m_contents; }
 	bool operator!() const	{ return is_closed(); }

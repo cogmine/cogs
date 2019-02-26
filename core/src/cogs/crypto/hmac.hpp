@@ -36,21 +36,36 @@ public:
 		size_t keyLength = k.get_length();
 		if (keyLength > blockSize)
 			k = calculate_hash<hash_t>(k);
-		if (keyLength < blockSize)
-			k.append(blockSize - keyLength, 0);
-		else
-			k.truncate_to(blockSize);			
-
+		
 		io::buffer pad(blockSize);
 		uint8_t* padPtr = (uint8_t*)pad.get_ptr();
-		const uint8_t* keyPtr = (const uint8_t*)k.get_const_ptr();
-		for (size_t i = 0; i < blockSize; i++)
-			padPtr[i] = 0x36 ^ keyPtr[i];
-		m_innerHash.update(pad);
-
-		for (size_t i = 0; i < blockSize; i++)
-			padPtr[i] = 0x5c ^ keyPtr[i];
+		if (keyLength < blockSize)
+		{
+			const uint8_t* keyPtr = (const uint8_t*)k.get_const_ptr();
+			size_t i = 0;
+			for (; i < keyLength; i++)
+				padPtr[i] = 0x36 ^ keyPtr[i];
+			for (; i < blockSize; i++)
+				padPtr[i] = 0x36;
+			m_innerHash.update(pad);
+			i = 0;
+			for (; i < keyLength; i++)
+				padPtr[i] = 0x5c ^ keyPtr[i];
+			for (; i < blockSize; i++)
+				padPtr[i] = 0x5c;
+		}
+		else
+		{
+			const uint8_t* keyPtr = (const uint8_t*)k.get_const_ptr();
+			for (size_t i = 0; i < blockSize; i++)
+				padPtr[i] = 0x36 ^ keyPtr[i];
+			m_innerHash.update(pad);
+			for (size_t i = 0; i < blockSize; i++)
+				padPtr[i] = 0x5c ^ keyPtr[i];
+		}
 		m_outerHash.update(pad);
+
+
 	}
 
 	hmac(const hmac<hash_t>& src)

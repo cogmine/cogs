@@ -94,31 +94,31 @@ private:
 		return (!((m_startTime < expireTime) ^ (n < m_startTime) ^ (expireTime <= n)));
 	}
 
-	timeout_t(const period_t& startTime, const period_t& period, const period_t& expireTime, bool inf)
-		:	m_startTime(startTime),
-			m_period(period),
-			m_expireTime(expireTime),
-			m_infinite(inf)
+	timeout_t(period_t&& startTime, period_t&& period, period_t&& expireTime, bool inf)
+		: m_startTime(std::move(startTime)),
+		m_period(std::move(period)),
+		m_expireTime(std::move(expireTime)),
+		m_infinite(inf)
 	{
 	}
 
 public:
 	timeout_t()
-		:	m_startTime(0),
-			m_period(0),
-			m_expireTime(0),
-			m_infinite(false)
+		: m_startTime(0),
+		m_period(0),
+		m_expireTime(0),
+		m_infinite(false)
 	{
 	}
 
 	timeout_t(const timeout_t& t)
-		:	m_startTime(t.m_startTime),
-			m_period(t.m_period),
-			m_expireTime(t.m_expireTime),
-			m_infinite(t.m_infinite)
+		: m_startTime(t.m_startTime),
+		m_period(t.m_period),
+		m_expireTime(t.m_expireTime),
+		m_infinite(t.m_infinite)
 	{
 	}
-	
+
 	template <typename unit_t, typename unitbase_t>
 	timeout_t(const measure<unit_t, unitbase_t>& n)
 		: m_startTime(now()),
@@ -149,8 +149,7 @@ public:
 		return *this;
 	}
 
-
-	static timeout_t infinite()		{ return timeout_t(0, 0, 0, true); }
+	static timeout_t infinite()		{ return timeout_t(period_t(0), period_t(0), period_t(0), true); }
 	static timeout_t none()			{ return timeout_t(); }
 
 	bool operator!() const			{ return expired(); }
@@ -163,12 +162,12 @@ public:
 	period_t get_pending() const
 	{
 		if (!m_period || m_infinite)
-			return 0;
+			return period_t(0);
 
 		period_t n = now();
 
 		if (expired_inner(n, m_expireTime))
-			return 0;
+			return period_t(0);
 
 		period_t result = m_expireTime;
 		result -= n;
@@ -224,8 +223,8 @@ public:
 		seconds_t s(m_expireTime);
 		ns -= s;	// remove seconds from nanoseconds part
 
-		ts.tv_sec = s.get_int<int>();
-		ts.tv_nsec = ns.get_int<int>();
+		ts.tv_sec = s.get().get_int();
+		ts.tv_nsec = ns.get().get_int();
 	}
 
 	bool operator<(const timeout_t& cmp) const

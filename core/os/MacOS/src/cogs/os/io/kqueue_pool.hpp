@@ -16,7 +16,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/collections/map.hpp"
-#include "cogs/io/auto_fd.hpp"
+#include "cogs/os/io/auto_fd.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
@@ -58,7 +58,7 @@ private:
 			for (;;)
 			{
 				struct kevent kevt;
-				int i = kevent(m_fd->m_fd, NULL, 0, &kevt, 1, 0);
+				int i = kevent(m_fd->get(), NULL, 0, &kevt, 1, 0);
 				COGS_ASSERT(i != -1);
 				if (kevt.udata == (void*)-1)
 				{
@@ -69,7 +69,7 @@ private:
 						i = pipe(m_shutdownSocket);	// Use a pipe to tell kqueue threads to shut down
 						COGS_ASSERT(i != -1);
 						EV_SET(&kevt, m_shutdownSocket[1], EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, (void*)-1);
-						i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+						i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 						COGS_ASSERT(i != -1);
 					}
 					break;
@@ -101,14 +101,6 @@ private:
 
 	rcptr<task> m_func;
 
-	kqueue_pool()
-		: m_fd(rcnew(auto_fd))
-	{
-		int fd = kqueue();
-		m_fd->m_fd = fd;
-		m_func = rcnew(task, m_fd, this_rcref);
-	}
-
 	void start()
 	{
 		m_pool.start();
@@ -118,6 +110,15 @@ private:
 		{
 			r->run();
 		});
+	}
+
+protected:
+	kqueue_pool()
+		: m_fd(rcnew(auto_fd))
+	{
+		int fd = kqueue();
+		m_fd->get() = fd;
+		m_func = rcnew(task, m_fd, this_rcref);
 	}
 
 public:
@@ -153,7 +154,7 @@ public:
 			int i = pipe(&(m_func->m_shutdownSocket[0]));	// Use a pipe to tell kqueue threads to shut down
 			COGS_ASSERT(i != -1);
 			EV_SET(&kevt, m_func->m_shutdownSocket[1], EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, (void*)-1);
-			i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+			i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 			COGS_ASSERT(i != -1);
 			m_pool.shutdown();
 			m_pool.join();
@@ -177,7 +178,7 @@ public:
 		EV_SET(&kevt, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
 		map_t::volatile_iterator itor = m_func->m_writeTasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;
@@ -191,7 +192,7 @@ public:
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_LOWAT, minBytes, 0);
 		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;
@@ -204,7 +205,7 @@ public:
 			self_release();
 			struct kevent kevt;
 			EV_SET(&kevt, rt.m_fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-			int i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+			int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 			COGS_ASSERT(i != -1);
 		}
 	}
@@ -216,7 +217,7 @@ public:
 			self_release();
 			struct kevent kevt;
 			EV_SET(&kevt, rt.m_fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-			int i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+			int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 			COGS_ASSERT(i != -1);
 		}
 	}
@@ -229,7 +230,7 @@ public:
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
 		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.try_insert(fd, d);
 		COGS_ASSERT(!!itor);	// shouldn't fail
-		int i = kevent(m_fd->m_fd, &kevt, 1, 0, 0, 0);
+		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;

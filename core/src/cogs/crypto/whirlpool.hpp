@@ -30,13 +30,10 @@ class whirlpool : public hash
 #else
 
 
-class whirlpool : public serial_hash<whirlpool, 512, 512, 64, endian_t::big, 512>
+class whirlpool : public serial_hash<512, 512, 64, endian_t::big, 512>
 {
 private:
-	typedef serial_hash<whirlpool, 512, 512, 64, endian_t::big, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<512, 512, 64, endian_t::big, 512> base_t;
 
 	fixed_integer<false, 256> m_bitCount;
 	uint64_t	m_state[8];
@@ -130,7 +127,6 @@ private:
 		return b;
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -250,6 +246,7 @@ protected:
 
 public:
 	whirlpool()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		for (size_t i = 0; i < result_digits; i++)
@@ -257,7 +254,7 @@ public:
 	}
 
 	whirlpool(const whirlpool& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < m_blockProgress; i++)

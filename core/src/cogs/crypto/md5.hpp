@@ -31,13 +31,10 @@ class md5 : public hash
 #else
 
 
-class md5 : public serial_hash<md5, 160, 128, 32, endian_t::little, 512>
+class md5 : public serial_hash<160, 128, 32, endian_t::little, 512>
 {
 private:
-	typedef serial_hash<md5, 160, 128, 32, endian_t::little, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<160, 128, 32, endian_t::little, 512> base_t;
 
 	uint64_t	m_bitCount;
 	digit_t		m_state[16];
@@ -67,7 +64,6 @@ private:
 		a = bit_rotate_left(a + I(b, c, d) + data + k, s) + b;
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -179,6 +175,7 @@ protected:
 
 public:
 	md5()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301L;
@@ -188,7 +185,7 @@ public:
 	}
 
 	md5(const md5& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < m_blockProgress; i++)

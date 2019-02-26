@@ -31,8 +31,9 @@ private:
 	}
 
 protected:
-	explicit count_down_event(size_t n)
-		: m_count(n)
+	count_down_event(const ptr<rc_obj_base>& desc, size_t n)
+		: object(desc),
+		m_count(n)
 	{
 		COGS_ASSERT(n != doneValue);	// max value is not supported (used internally to indicate fired, to allow init from 0)
 	}

@@ -49,52 +49,52 @@ protected:
 	inline static placement<boolean> s_isReleased;
 
 	template <singleton_posthumous_behavior posthumous_behavior, singleton_cleanup_behavior cleanup_behavior>
-	static rcptr<T> get(bool& isNew)
-	{
-		isNew = false;
-		rcptr<T> result;
-		volatile weak_rcptr<T>* g = &s_global.get();
-		weak_rcptr<T> oldValue = *g;
-
-		bool b;
-		if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
-		{
-			result = oldValue;
-			b = !result;
-		}
-		else
-		{
-			b = false;
-			if (oldValue.get_desc() != nullptr)
-				result = oldValue;	// won't be marked, if desc was not nullptr
-			else if (oldValue.get_mark() == 0)	// not set up yet
-				b = true;
-		}
-
-		if (b)
-		{
-			rcptr<T> newValue = rcnew(bypass_constructor_permission<T>);
-			newValue.get_desc()->acquire(strong);
-			if (!g->compare_exchange(newValue, oldValue, oldValue))
-			{
-				newValue.get_desc()->release(strong);
-				if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
-					result = oldValue;
-			}
-			else
-			{
-				isNew = true;
-				result = std::move(newValue); // Return the one we just created.
-				if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
-					cleanup_queue::get_global()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
-			}
-		}
-
-		if (posthumous_behavior == singleton_posthumous_behavior::create_new_per_caller && !result)
-			result = rcnew(bypass_constructor_permission<T>);
-
-		return result;
-	}
+	static rcptr<T> get(bool& isNew);
+	//{
+	//	isNew = false;
+	//	rcptr<T> result;
+	//	volatile weak_rcptr<T>* g = &s_global.get();
+	//	weak_rcptr<T> oldValue = *g;
+	//
+	//	bool b;
+	//	if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
+	//	{
+	//		result = oldValue;
+	//		b = !result;
+	//	}
+	//	else
+	//	{
+	//		b = false;
+	//		if (oldValue.get_desc() != nullptr)
+	//			result = oldValue;	// won't be marked, if desc was not nullptr
+	//		else if (oldValue.get_mark() == 0)	// not set up yet
+	//			b = true;
+	//	}
+	//
+	//	if (b)
+	//	{
+	//		rcptr<T> newValue = rcnew(bypass_constructor_permission<T>);
+	//		newValue.get_desc()->acquire(strong);
+	//		if (!g->compare_exchange(newValue, oldValue, oldValue))
+	//		{
+	//			newValue.get_desc()->release(strong);
+	//			if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
+	//				result = oldValue;
+	//		}
+	//		else
+	//		{
+	//			isNew = true;
+	//			result = std::move(newValue); // Return the one we just created.
+	//			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
+	//				cleanup_queue::get_global()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+	//		}
+	//	}
+	//
+	//	if (posthumous_behavior == singleton_posthumous_behavior::create_new_per_caller && !result)
+	//		result = rcnew(bypass_constructor_permission<T>);
+	//
+	//	return result;
+	//}
 
 	template <singleton_posthumous_behavior posthumous_behavior>
 	static void shutdown()
@@ -156,7 +156,7 @@ class singleton<T, singleton_posthumous_behavior::create_new_singleton, singleto
 {
 public:
 	static rcref<T> get() { bool isNew; return get(isNew); }
-	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::use_cleanup_queue>(isNew).dereference(); }
+	static rcref<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::use_cleanup_queue>(isNew)).dereference(); }
 };
 
 
@@ -165,9 +165,9 @@ class singleton<T, singleton_posthumous_behavior::create_new_singleton, singleto
 {
 public:
 	static rcref<T> get() { bool isNew; return get(isNew); }
-	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>(isNew).dereference(); }
+	static rcref<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>(isNew)).dereference(); }
 
-	static void shutdown() { singleton_base<T>::shutdown<singleton_posthumous_behavior::create_new_singleton>(); }
+	static void shutdown() { singleton_base<T>::template shutdown<singleton_posthumous_behavior::create_new_singleton>(); }
 };
 
 template <typename T>
@@ -175,10 +175,10 @@ class singleton<T, singleton_posthumous_behavior::return_null, singleton_cleanup
 {
 public:
 	static rcptr<T> get() { bool isNew; return get(isNew); }
-	static rcptr<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>(isNew); }
+	static rcptr<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>(isNew)); }
 
 	static rcptr<T> release() { return singleton_base<T>::release(); }
-	static void shutdown() { singleton_base<T>::shutdown<singleton_posthumous_behavior::return_null>(); }
+	static void shutdown() { singleton_base<T>::template shutdown<singleton_posthumous_behavior::return_null>(); }
 };
 
 template <typename T>
@@ -186,7 +186,7 @@ class singleton<T, singleton_posthumous_behavior::return_null, singleton_cleanup
 {
 public:
 	static rcptr<T> get() { bool isNew; return get(isNew); }
-	static rcptr<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::use_cleanup_queue>(isNew); }
+	static rcptr<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::use_cleanup_queue>(isNew)); }
 };
 
 template <typename T>
@@ -194,11 +194,11 @@ class singleton<T, singleton_posthumous_behavior::create_new_per_caller, singlet
 {
 public:
 	static rcref<T> get() { bool isNew; return get(isNew); }
-	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>(isNew).dereference(); }
+	static rcref<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>(isNew)).dereference(); }
 
 	static rcptr<T> release() { return singleton_base<T>::release(); }
 	
-	static void shutdown() { singleton_base<T>::shutdown<singleton_posthumous_behavior::create_new_per_caller>(); }
+	static void shutdown() { singleton_base<T>::template shutdown<singleton_posthumous_behavior::create_new_per_caller>(); }
 };
 
 template <typename T>
@@ -206,7 +206,7 @@ class singleton<T, singleton_posthumous_behavior::create_new_per_caller, singlet
 {
 public:
 	static rcref<T> get() { bool isNew; return get(isNew); }
-	static rcref<T> get(bool& isNew) { return singleton_base<T>::get<singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::use_cleanup_queue>(isNew).dereference(); }
+	static rcref<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::use_cleanup_queue>(isNew)).dereference(); }
 };
 
 

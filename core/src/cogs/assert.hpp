@@ -15,7 +15,7 @@
 namespace cogs {
 
 
-#ifdef _DEBUG
+#ifdef COGS_DEBUG
 
 
 #define COGS_ASSERT(b) assert(b)

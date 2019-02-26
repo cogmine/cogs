@@ -29,14 +29,14 @@ private:
 	rcptr<gfx::os::gdi::device_context::font>	m_cachedFont;
 
 public:
-	text_editor(const rcref<volatile hwnd::subsystem>& uiSubsystem)		// | WS_BORDER
-		: hwnd_pane(composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem,system_drawn_direct)
+	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)		// | WS_BORDER
+		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem,system_drawn_direct)
 	{
 	}
 
 	virtual void installing()
 	{
-		rcptr<gui::text_editor> te = get_bridge().static_cast_to<gui::text_editor>();
+		rcptr<gui::text_editor> te = get_bridge().template static_cast_to<gui::text_editor>();
 
 		if (te->is_multi_line())
 			m_style |= ES_MULTILINE | WS_VSCROLL | ES_WANTRETURN;
@@ -96,7 +96,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 

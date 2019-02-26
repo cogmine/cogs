@@ -111,8 +111,8 @@ private:
 	}
 
 public:
-	scroll_bar(const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, system_drawn_offscreen),
+	scroll_bar(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, system_drawn_offscreen),
 		m_isHidden(false),
 		m_pos(0)
 	{
@@ -135,7 +135,7 @@ public:
 			m_stateProperty->set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_stateProperty.get(), uiSubsystem, std::move(stateGetter), std::move(stateSetter));
+		placement_rcnew(&m_stateProperty.get(), this_desc, uiSubsystem, std::move(stateGetter), std::move(stateSetter));
 
 		auto positionGetter = [this]()
 		{
@@ -154,12 +154,12 @@ public:
 			m_positionProperty->set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_positionProperty.get(), uiSubsystem, std::move(positionGetter), std::move(positionSetter));
+		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
 	}
 
 	virtual void installing()
 	{
-		rcptr<gui::scroll_bar> sb = get_bridge().static_cast_to<gui::scroll_bar>();
+		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
 
 		m_dimension = sb->get_dimension();
 		m_isHiddenWhenInactive = sb->is_hidden_when_inactive();

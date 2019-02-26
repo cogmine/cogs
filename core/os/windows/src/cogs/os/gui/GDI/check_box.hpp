@@ -29,13 +29,13 @@ public:
 	size m_defaultSize;
 	bool m_isChecked;
 
-	check_box(const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, system_drawn_direct)
+	check_box(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, system_drawn_direct)
 	{ }
 
 	virtual void installing()
 	{
-		rcptr<gui::check_box> cb = get_bridge().static_cast_to<gui::check_box>();
+		rcptr<gui::check_box> cb = get_bridge().template static_cast_to<gui::check_box>();
 
 		install_HWND();
 		SendMessage(get_HWND(), CCM_DPISCALE, (WPARAM)TRUE, 0);
@@ -50,7 +50,7 @@ public:
 
 	void action()
 	{
-		rcptr<gui::check_box> b = get_bridge().static_cast_to<gui::check_box>();
+		rcptr<gui::check_box> b = get_bridge().template static_cast_to<gui::check_box>();
 		if (!!b)
 			b->action();
 	}
@@ -79,7 +79,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 
@@ -104,7 +104,7 @@ public:
 		case WM_CTLCOLORBTN:
 			{
 				HDC hDC = (HDC)wParam;
-				rcptr<gui::check_box> owner = get_bridge().static_cast_to<gui::check_box>();
+				rcptr<gui::check_box> owner = get_bridge().template static_cast_to<gui::check_box>();
 				if (!!owner)
 				{
 					SetBkMode(hDC, TRANSPARENT);
@@ -154,7 +154,7 @@ public:
 	virtual void dpi_changing(double oldDpi, double newDpi)
 	{
 		hwnd_pane::dpi_changing(oldDpi, newDpi);
-		rcptr<gui::check_box> cb = get_bridge().static_cast_to<gui::check_box>();
+		rcptr<gui::check_box> cb = get_bridge().template static_cast_to<gui::check_box>();
 		set_font(cb->get_font());
 	}
 

@@ -506,8 +506,8 @@ private:
 	}
 
 public:
-	telnet(const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
-		:	datastream_protocol(ds),
+	telnet(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
+		:	datastream_protocol(desc, ds),
 			m_terminal(term),
 			m_parserState(0),
 			m_sendNAWS(true),

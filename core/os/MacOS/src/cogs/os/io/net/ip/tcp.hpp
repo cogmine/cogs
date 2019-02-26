@@ -26,14 +26,6 @@ class tcp : public connection
 private:
 	const rcref<socket> m_socket;
 
-	tcp(address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-		:	m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
-	{ }
-
-	tcp(int sckt, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-		:	m_socket(rcnew(socket, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
-	{ }
-	
 	class tcp_reader : public reader
 	{
 	private:
@@ -68,8 +60,8 @@ private:
 		}
 
 	public:
-		tcp_reader(const rcref<datasource>& proxy, const rcref<tcp>& t)
-			:	reader(proxy),
+		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
+			:	reader(desc, proxy),
 				m_tcp(t),
 				m_socket(t->m_socket),
 				m_progress(0),
@@ -99,11 +91,11 @@ private:
 		// are usually very short-lived.
 		void read_inner()
 		{
-			if (!!m_tcp && !!immediate_read(m_socket->m_fd.m_fd, m_adjustedRequestedSize - m_progress))
+			if (!!m_tcp && !!immediate_read(m_socket->m_fd.get(), m_adjustedRequestedSize - m_progress))
 			{
 				if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_some) || !m_progress) && (get_read_mode() != read_now))
 				{
-					m_waiterRemoveToken = m_socket->m_kqueuePool->wait_readable(m_socket->m_fd.m_fd, [r{ this_weak_rcptr }]()
+					m_waiterRemoveToken = m_socket->m_kqueuePool->wait_readable(m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
 					{
 						rcptr<tcp_reader> r2 = r;
 						if (!!r2)
@@ -177,8 +169,8 @@ private:
 
 		volatile container_queue<task_type>	m_completionSerializer;
 
-		tcp_writer(const rcref<datasink>& proxy, const rcref<tcp>& t)
-			:	writer(proxy),
+		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
+			:	writer(desc, proxy),
 				m_tcp(t),
 				m_socket(t->m_socket),
 				m_progress(0),
@@ -240,7 +232,7 @@ private:
 					else
 					{
 						buffer b = get_buffer().get_inner(0);
-						size_t sent = send(m_socket->m_fd.m_fd, (uint8_t*)(b.get_const_ptr()), b.get_length(), 0);
+						size_t sent = send(m_socket->m_fd.get(), (uint8_t*)(b.get_const_ptr()), b.get_length(), 0);
 						if (sent == b.get_length())	// complete buffer, write again immediately
 						{
 							get_buffer().advance_array();
@@ -261,7 +253,7 @@ private:
 								break;
 							}
 						}
-						m_waiterRemoveToken = m_socket->m_kqueuePool->wait_writable(m_socket->m_fd.m_fd, [r{ this_weak_rcptr }]()
+						m_waiterRemoveToken = m_socket->m_kqueuePool->wait_writable(m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
 						{
 							rcptr<tcp_writer> r2 = r;
 							if (!!r2)
@@ -283,6 +275,17 @@ private:
 	{
 		return rcnew(tcp_writer, proxy, this_rcref);
 	}
+
+protected:
+	tcp(const ptr<rc_obj_base>& desc, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		: connection(desc),
+		m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
+	{ }
+
+	tcp(const ptr<rc_obj_base>& desc, int sckt, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		: connection(desc),
+		m_socket(rcnew(bypass_constructor_permission<socket>, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
+	{ }
 
 public:
 	~tcp()	
@@ -312,11 +315,12 @@ public:
 
 		friend class tcp;
 
-		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-			:	m_kqueuePool(kq),
-				m_addresses(addresses),
-				m_remotePort(port),
-				m_aborted(false)
+		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+			: signallable_task<connecter>(desc),
+			m_kqueuePool(kq),
+			m_addresses(addresses),
+			m_remotePort(port),
+			m_aborted(false)
 		{
 			connect();
 		}
@@ -343,7 +347,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(tcp, addr.get_address_family(), m_kqueuePool);
+				m_tcp = rcnew(bypass_constructor_permission<tcp>, addr.get_address_family(), m_kqueuePool);
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
@@ -355,7 +359,7 @@ public:
 					break;
 				}
 
-				i = ::connect(m_tcp->m_socket->m_fd.m_fd, (sockaddr*)&sa, addr.get_sockaddr_size());
+				i = ::connect(m_tcp->m_socket->m_fd.get(), (sockaddr*)&sa, addr.get_sockaddr_size());
 				if (i == 0)	// immediately connected??
 				{
 					signal();
@@ -365,7 +369,7 @@ public:
 				COGS_ASSERT(i == -1);
 				if (errno == EINPROGRESS)
 				{
-					m_waiterRemoveToken = m_kqueuePool->wait_writable(m_tcp->m_socket->m_fd.m_fd, [r{ this_weak_rcptr }]()
+					m_waiterRemoveToken = m_kqueuePool->wait_writable(m_tcp->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
 					{
 						rcptr<connecter> r2 = r;
 						if (!!r2)
@@ -390,7 +394,7 @@ public:
 						{
 							int errnum;
 							socklen_t len = sizeof(errnum);
-							int i = getsockopt(m_tcp->m_socket->m_fd.m_fd, SOL_SOCKET, SO_ERROR, &errnum, &len);
+							int i = getsockopt(m_tcp->m_socket->m_fd.get(), SOL_SOCKET, SO_ERROR, &errnum, &len);
 							COGS_ASSERT(i != -1);
 							if (errnum == 0)	 //connected
 							{
@@ -430,25 +434,23 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
-		~connecter()	{ abort(); }
+		~connecter() { cancel(); }
 
-		//void abort()	{ complete_or_abort(abort_task); }
-
-		const rcptr<tcp>& get_tcp() const				{ return m_tcp; }
-		unsigned short get_remote_port() const			{ return m_remotePort; }
+		const rcptr<tcp>& get_tcp() const { return m_tcp; }
+		unsigned short get_remote_port() const { return m_remotePort; }
 
 		virtual rcref<task<bool> > cancel() volatile
 		{
-			auto t = signallable_task<connecter>::cancel();
-			if (t.get())
-				complete_or_abort(abort_task);
+			auto t = signallable_task<connecter>::cancel();	// will complete immediately
+			if (t->get())
+				((connecter*)this)->complete_or_abort(abort_task);
 			return t;
 		}
 	};
 
 	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 	{
-		return rcnew(connecter, addresses, port, kq);
+		return rcnew(bypass_constructor_permission<connecter>, addresses, port, kq);
 	}
 
 	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
@@ -489,13 +491,14 @@ public:
 
 			volatile container_queue<task_type> m_serializer;
 
-			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-				:	m_listener(l),
-					m_acceptDelegate(acceptDelegate),
-					m_listenSocket(rcnew(tcp, addressFamily, kq)),
-					m_addressFamily(addressFamily),
-					m_kqueuePool(kq),
-					m_closed(false)
+			accept_helper(const ptr<rc_obj_base>& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+				: object(desc),
+				m_listener(l),
+				m_acceptDelegate(acceptDelegate),
+				m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, kq)),
+				m_addressFamily(addressFamily),
+				m_kqueuePool(kq),
+				m_closed(false)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -503,10 +506,10 @@ public:
 					int i = m_listenSocket->m_socket->bind_any(port);
 					if (i != -1)
 					{
-						int i = ::listen(m_listenSocket->m_socket->m_fd.m_fd, SOMAXCONN);
+						int i = ::listen(m_listenSocket->m_socket->m_fd.get(), SOMAXCONN);
 						if (i != -1)
 						{
-							m_listenerRemoveToken = m_kqueuePool->register_listener(m_listenSocket->m_socket->m_fd.m_fd, [r{ this_weak_rcptr }]()
+							m_listenerRemoveToken = m_kqueuePool->register_listener(m_listenSocket->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
 							{
 								rcptr<accept_helper> r2 = r;
 								if (!!r2)
@@ -519,7 +522,6 @@ public:
 					break;
 				}
 			}
-
 
 			void close()	{ close_or_accept_connection(close_task); }
 
@@ -540,17 +542,17 @@ public:
 								{
 									if (!!l)
 									{
-										int s = accept(m_listenSocket->m_socket->m_fd.m_fd, 0, 0);
+										int s = accept(m_listenSocket->m_socket->m_fd.get(), 0, 0);
 										if (s != -1)
 										{
-											rcref<tcp> ds = rcnew(tcp, s, m_addressFamily, m_kqueuePool);
+											rcref<tcp> ds = rcnew(bypass_constructor_permission<tcp>, s, m_addressFamily, m_kqueuePool);
 											ds->m_socket->read_endpoints();
 											thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, ds{ std::move(ds) }]()
 											{
 												r->m_acceptDelegate(ds);
 											});
 										}
-										m_listenerRemoveToken = m_kqueuePool->register_listener(m_listenSocket->m_socket->m_fd.m_fd, [r{ this_weak_rcptr }]()
+										m_listenerRemoveToken = m_kqueuePool->register_listener(m_listenSocket->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
 										{
 											rcptr<accept_helper> r2 = r;
 											if (!!r2)
@@ -587,8 +589,11 @@ public:
 		rcptr<accept_helper>		m_acceptHelper;
 		rcref<single_fire_event>	m_closeEvent;
 				
-		listener();
-		listener(const listener&);
+		listener() = delete;
+		listener(listener&&) = delete;
+		listener(const listener&) = delete;
+		listener& operator=(listener&&) = delete;
+		listener& operator=(const listener&) = delete;
 
 	protected:
 		friend class tcp;
@@ -619,14 +624,14 @@ public:
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 	{
-		return rcnew(listener, acceptDelegate, port, addressFamily, kq);
+		return rcnew(bypass_constructor_permission<listener>, acceptDelegate, port, addressFamily, kq);
 	}
 
 	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = inetv4)
 	{
 		return listen([srvr](const rcref<tcp>& r)
 		{
-			srvr->connecting(r.static_cast_to<net::connection>());
+			srvr->connecting(r.template static_cast_to<net::connection>());
 		}, port, addressFamily);
 	}
 

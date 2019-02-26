@@ -103,7 +103,7 @@ private:
 			alignas (atomic::get_alignment_v<state>) state m_state;
 		};
 
-		volatile content_t m_contents alignas (atomic::get_alignment_v<content_t>);
+		alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
 
 		ptr<token>	m_next;
 		ptr<token>	m_nextFreeToken;
@@ -277,7 +277,7 @@ private:
 		list*	m_list;
 	};
 
-	volatile content_t m_contents alignas (atomic::get_alignment_v<content_t>);
+	alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
 
 	token* get_token() volatile
 	{

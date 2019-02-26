@@ -24,8 +24,8 @@ protected:
 		pane_bridge::install_bridged(get_subsystem()->create_native_pane());
 	}
 
-	native_container_pane(const alignment& a)
-		: pane_bridge(a)
+	native_container_pane(const ptr<rc_obj_base>& desc, const alignment& a)
+		: pane_bridge(desc, a)
 	{
 	}
 

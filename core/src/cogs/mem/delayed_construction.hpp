@@ -22,7 +22,7 @@ class delayed_construction
 {
 private:
 	typedef delayed_construction<T> this_t;
-	typename placement<T> m_contents;
+	placement<T> m_contents;
 
 public:
 	delayed_construction()					{ }
@@ -50,19 +50,32 @@ public:
 };
 
 
-
 template <typename T>
 class delayed_construction_obj : public object
 {
 private:
 	typedef delayed_construction_obj<T> this_t;
 
-	typename placement<T> m_contents;
+	placement<T> m_contents;
 
 public:
-	delayed_construction_obj()					{ set_self_reference(&get(), this_desc); }
-	delayed_construction_obj(this_t&& src)		{ set_self_reference(&get(), this_desc); new (&get()) T(std::move(src.get())); }
-	delayed_construction_obj(const this_t& src)	{ set_self_reference(&get(), this_desc); new (&get()) T(src.get()); }
+	explicit delayed_construction_obj(const ptr<rc_obj_base>& desc)
+		: object(desc)
+	{
+	}
+
+	delayed_construction_obj(const ptr<rc_obj_base>& desc, this_t&& src)
+		: object(desc)
+	{
+		new (&get()) T(std::move(src.get()));
+	}
+
+	delayed_construction_obj(const ptr<rc_obj_base>& desc, const this_t& src)
+		: object(desc)
+	{
+		new (&get()) T(src.get());
+	}
+
 	~delayed_construction_obj()					{ m_contents.destruct(); }
 
 	this_t& operator=(this_t&& src)			{ get() = std::move(src.get()); return *this; }

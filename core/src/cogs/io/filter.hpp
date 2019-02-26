@@ -35,8 +35,8 @@ class filter : public datasink, public datasource
 public:
 	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(filter, datasink, datasource);
 
-	typedef function<rcref<cogs::task<composite_buffer> >(composite_buffer&)> filter_func_t;
-	typedef function<rcref<cogs::task<composite_buffer> >()> finalize_func_t;
+	typedef function<rcref<task<composite_buffer> >(composite_buffer&)> filter_func_t;
+	typedef function<rcref<task<composite_buffer> >()> finalize_func_t;
 
 	filter_func_t m_filterFunc;
 	finalize_func_t m_finalizeFunc;
@@ -73,15 +73,16 @@ private:
 		bool						m_coupledSinkClosed = false;
 
 		size_t preFilteringSize;
-		rcptr<cogs::task<composite_buffer> > m_filteringTask;
-		rcptr<cogs::task<composite_buffer> > m_finalizeTask;
+		rcptr<task<composite_buffer> > m_filteringTask;
+		rcptr<task<composite_buffer> > m_finalizeTask;
 
 		typedef void (state::* task_f)();
 
 		volatile container_queue<task_f>	m_completionSerializer;
 
-		state(const rcref<filter>& f)
-			: m_filter(f)
+		state(const ptr<rc_obj_base>& desc, const rcref<filter>& f)
+			: object(desc),
+			m_filter(f)
 		{
 		}
 
@@ -419,8 +420,8 @@ private:
 
 		const rcref<filter::state>	m_state;
 
-		reader(const rcref<datasource>& proxy, const rcref<filter::state>& s)
-			: datasource::reader(proxy),
+		reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<filter::state>& s)
+			: datasource::reader(desc, proxy),
 			m_state(s)
 		{ }
 
@@ -470,8 +471,8 @@ private:
 
 		const rcref<filter::state>	m_state;
 
-		writer_base(const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: datasink::writer(proxy),
+		writer_base(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: datasink::writer(desc, proxy),
 			m_state(s)
 		{ }
 
@@ -517,8 +518,8 @@ private:
 	class writer : public writer_base
 	{
 	public:
-		writer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: writer_base(proxy, s)
+		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: writer_base(desc, proxy, s)
 		{ }
 
 		virtual int fill_buffer()
@@ -546,8 +547,8 @@ private:
 	class bypass_writer : public writer_base
 	{
 	public:
-		bypass_writer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: writer_base(proxy, s)
+		bypass_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: writer_base(desc, proxy, s)
 		{ }
 
 		/// Empty writes complete without calling writing(), so we know this will add to m_filteredBuffer
@@ -576,8 +577,8 @@ private:
 
 		const rcref<filter::state>	m_state;
 
-		closer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: datasink::closer(proxy),
+		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: datasink::closer(desc, proxy),
 			m_state(s)
 		{ }
 
@@ -602,7 +603,7 @@ private:
 
 	// One purpose of the coupler is to stop up our datasource io::queue
 	// until a coupled datasink has closed or been decoupled, to ensure nothing else can read/write while coupled.
-	class coupler : public io::queue::task<void>
+	class coupler : public io::queue::io_task<void>
 	{
 	public:
 		friend class state;
@@ -614,10 +615,11 @@ private:
 		const bool m_hasMaxLength;
 
 		dynamic_integer m_remainingLength;
-		rcptr<cogs::task<void> > m_onSinkAbortTask;
+		rcptr<task<void> > m_onSinkAbortTask;
 		bool isCompleting = true;
 
 		coupler(
+			const ptr<rc_obj_base>& desc,
 			const rcref<filter::state>& s,
 			const rcref<datasource>& src,
 			const rcref<datasink>& snk,
@@ -625,7 +627,8 @@ private:
 			bool closeSourceOnSinkClose = false,
 			const dynamic_integer& maxLength = dynamic_integer(),
 			size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
-				: m_state(s),
+				: io::queue::io_task<void>(desc),
+				m_state(s),
 				m_hasMaxLength(!!maxLength),
 				m_remainingLength(maxLength),
 				m_sink(datasink::transaction::create(snk)),
@@ -732,15 +735,15 @@ private:
 		return rcnew(closer, proxy, m_state);
 	}
 
-	virtual rcref<cogs::task<void> > create_coupler(
+	virtual rcref<task<void> > create_coupler(
 		const rcref<datasink>& snk, 
 		bool closeSinkOnSourceClose = false,
 		bool closeSourceOnSinkClose = false,
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 	{
-		rcref<cogs::task<void> > result = rcnew(coupler, m_state, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
-		result.static_cast_to<coupler>()->start_coupler();
+		rcref<task<void> > result = rcnew(coupler, m_state, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+		result.template static_cast_to<coupler>()->start_coupler();
 		return result;
 	}
 
@@ -771,40 +774,54 @@ public:
 
 protected:
 	/// @brief Constructor
-	filter()
-		: m_state(rcnew(state, this_rcref))
+	filter(const ptr<rc_obj_base>& desc)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref))
 	{ }
 
-	filter(const filter_func_t& f)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(f)
 	{ }
 
-	filter(filter_func_t&& f)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(std::move(f))
 	{ }
 
-	filter(const filter_func_t& f, const finalize_func_t& fn)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f, const finalize_func_t& fn)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(f),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(filter_func_t&& f, const finalize_func_t& fn)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f, const finalize_func_t& fn)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(std::move(f)),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(const filter_func_t& f, finalize_func_t&& fn)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f, finalize_func_t&& fn)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(f),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(filter_func_t&& f, finalize_func_t&& fn)
-		: m_state(rcnew(state, this_rcref)),
+	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f, finalize_func_t&& fn)
+		: datasink(desc),
+		datasource(desc),
+		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(std::move(f)),
 		m_finalizeFunc(fn)
 	{ }
@@ -818,7 +835,7 @@ protected:
 	/// 
 	/// @param src Input data to filter.  Data should be removed from this buffer to indicate progress.
 	/// @return A buffer containing filtered data
-	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		if (!!m_filterFunc)
 			return m_filterFunc(src);
@@ -829,7 +846,7 @@ protected:
 	/// 
 	/// The default implemention returns an empty buffer.
 	/// @return A final buffer to terminate the filtered stream with.
-	virtual rcref<cogs::task<composite_buffer> > finalize()
+	virtual rcref<task<composite_buffer> > finalize()
 	{
 		if (!!m_finalizeFunc)
 			return m_finalizeFunc();
@@ -840,149 +857,149 @@ protected:
 };
 
 
-class datasource_facade : public datasource
-{
-protected:
-	volatile container_queue<function<void()> > m_serialQueue;
-
-	void process()
-	{
-		for (;;)
-		{
-			function<void()> f;
-			m_serialQueue.peek(f);
-			f();
-			bool wasLast;
-			m_serialQueue.remove_first(wasLast);
-			if (wasLast)
-				break;
-			// continue
-		}
-	}
-
-	class facade_reader : public datasource::reader
-	{
-	public:
-		weak_rcptr<datasource_facade> m_facade;
-
-		facade_reader(const rcref<datasource>& proxy, const rcref<datasource_facade>& f)
-			: datasource::reader(proxy),
-			m_facade(f)
-		{
-		}
-		
-		virtual void reading()
-		{
-			rcptr<datasource_facade> f = m_facade;
-			if (!f)
-			{
-				complete(true);
-				return;
-			}
-
-			bool wasEmpty = f->m_serialQueue.append([r{ this_rcref }]()
-			{
-				rcptr<datasource_facade> f2 = r->m_facade;
-				if (!!f2)
-				{
-					COGS_ASSERT(!f2->m_pendingReader);
-					f2->m_pendingReader = r;
-					r->process_read(*f2);
-				}
-			});
-			if (wasEmpty)
-				f->process();
-		}
-
-		virtual void aborting()
-		{
-			rcptr<datasource_facade> f = m_facade;
-			if (!f)
-			{
-				complete(true);
-				return;
-			}
-
-			bool wasEmpty = f->m_serialQueue.append([r{ this_rcref }]()
-			{
-				rcptr<datasource_facade> f2 = r->m_facade;
-				if (!f2)
-					r->complete(true);
-				else
-				{
-					if (f2->m_pendingReader == r)	// If abort didn't arrive after completion
-					{
-						r->complete(false);
-						f2->m_pendingReader.release();
-					}
-				}
-			});
-			if (wasEmpty)
-				f->process();
-		}
-
-		void process_read(datasource_facade& f)
-		{
-			composite_buffer& buf = f.m_accumulated;
-			size_t bufSize = buf.get_length();
-			for (;;)
-			{
-				if (!bufSize && (get_read_mode() == read_now))
-					break;
-
-				size_t unreadSize = get_unread_size();
-				size_t n = (unreadSize < bufSize) ? unreadSize : bufSize;
-				get_buffer().append(buf.split_off_before(n));
-				if ((unreadSize == n) || (get_read_mode() != read_all))
-					break;
-
-				return;
-			}
-			complete(false);
-			f.m_pendingReader.release();
-		}
-	};
-
-	rcptr<facade_reader> m_pendingReader;
-	composite_buffer m_accumulated;
-
-	virtual rcref<reader> create_reader(const rcref<datasource>& ds)
-	{
-		return rcnew(facade_reader, ds, this_rcref);
-	}
-
-	void queue_to_datasource(const composite_buffer& buf)
-	{
-		bool wasEmpty = m_serialQueue.append([f{ this_weak_rcptr }, buf2{ buf }]()
-		{
-			rcptr<datasource_facade> f2 = f;
-			if (!!f2)
-			{
-				f2->m_accumulated.append(buf2);
-				if (!!f2->m_pendingReader)	// If set, m_accumulated will be empty
-					f2->m_pendingReader->process_read(*f2);
-			}
-		});
-		if (wasEmpty)
-			process();
-	}
-
-	void queue_to_datasource(const buffer& buf)
-	{
-		bool wasEmpty = m_serialQueue.append([f{ this_weak_rcptr }, buf2{ buf }]()
-		{
-			rcptr<datasource_facade> f2 = f;
-			if (!!f2)
-			{
-				f2->m_accumulated.append(buf2);
-				if (!!f2->m_pendingReader)	// If set, m_accumulated will be empty
-					f2->m_pendingReader->process_read(*f2);
-			}
-		});
-		if (wasEmpty)
-			process();
-	}
-};
+//class datasource_facade : public datasource
+//{
+//protected:
+//	volatile container_queue<function<void()> > m_serialQueue;
+//
+//	void process()
+//	{
+//		for (;;)
+//		{
+//			function<void()> f;
+//			m_serialQueue.peek(f);
+//			f();
+//			bool wasLast;
+//			m_serialQueue.remove_first(wasLast);
+//			if (wasLast)
+//				break;
+//			// continue
+//		}
+//	}
+//
+//	class facade_reader : public datasource::reader
+//	{
+//	public:
+//		weak_rcptr<datasource_facade> m_facade;
+//
+//		facade_reader(const rcref<datasource>& proxy, const rcref<datasource_facade>& f)
+//			: datasource::reader(proxy),
+//			m_facade(f)
+//		{
+//		}
+//		
+//		virtual void reading()
+//		{
+//			rcptr<datasource_facade> f = m_facade;
+//			if (!f)
+//			{
+//				complete(true);
+//				return;
+//			}
+//
+//			bool wasEmpty = f->m_serialQueue.append([r{ this_rcref }]()
+//			{
+//				rcptr<datasource_facade> f2 = r->m_facade;
+//				if (!!f2)
+//				{
+//					COGS_ASSERT(!f2->m_pendingReader);
+//					f2->m_pendingReader = r;
+//					r->process_read(*f2);
+//				}
+//			});
+//			if (wasEmpty)
+//				f->process();
+//		}
+//
+//		virtual void aborting()
+//		{
+//			rcptr<datasource_facade> f = m_facade;
+//			if (!f)
+//			{
+//				complete(true);
+//				return;
+//			}
+//
+//			bool wasEmpty = f->m_serialQueue.append([r{ this_rcref }]()
+//			{
+//				rcptr<datasource_facade> f2 = r->m_facade;
+//				if (!f2)
+//					r->complete(true);
+//				else
+//				{
+//					if (f2->m_pendingReader == r)	// If abort didn't arrive after completion
+//					{
+//						r->complete(false);
+//						f2->m_pendingReader.release();
+//					}
+//				}
+//			});
+//			if (wasEmpty)
+//				f->process();
+//		}
+//
+//		void process_read(datasource_facade& f)
+//		{
+//			composite_buffer& buf = f.m_accumulated;
+//			size_t bufSize = buf.get_length();
+//			for (;;)
+//			{
+//				if (!bufSize && (get_read_mode() == read_now))
+//					break;
+//
+//				size_t unreadSize = get_unread_size();
+//				size_t n = (unreadSize < bufSize) ? unreadSize : bufSize;
+//				get_buffer().append(buf.split_off_before(n));
+//				if ((unreadSize == n) || (get_read_mode() != read_all))
+//					break;
+//
+//				return;
+//			}
+//			complete(false);
+//			f.m_pendingReader.release();
+//		}
+//	};
+//
+//	rcptr<facade_reader> m_pendingReader;
+//	composite_buffer m_accumulated;
+//
+//	virtual rcref<reader> create_reader(const rcref<datasource>& ds)
+//	{
+//		return rcnew(facade_reader, ds, this_rcref);
+//	}
+//
+//	void queue_to_datasource(const composite_buffer& buf)
+//	{
+//		bool wasEmpty = m_serialQueue.append([f{ this_weak_rcptr }, buf2{ buf }]()
+//		{
+//			rcptr<datasource_facade> f2 = f;
+//			if (!!f2)
+//			{
+//				f2->m_accumulated.append(buf2);
+//				if (!!f2->m_pendingReader)	// If set, m_accumulated will be empty
+//					f2->m_pendingReader->process_read(*f2);
+//			}
+//		});
+//		if (wasEmpty)
+//			process();
+//	}
+//
+//	void queue_to_datasource(const buffer& buf)
+//	{
+//		bool wasEmpty = m_serialQueue.append([f{ this_weak_rcptr }, buf2{ buf }]()
+//		{
+//			rcptr<datasource_facade> f2 = f;
+//			if (!!f2)
+//			{
+//				f2->m_accumulated.append(buf2);
+//				if (!!f2->m_pendingReader)	// If set, m_accumulated will be empty
+//					f2->m_pendingReader->process_read(*f2);
+//			}
+//		});
+//		if (wasEmpty)
+//			process();
+//	}
+//};
 
 
 }

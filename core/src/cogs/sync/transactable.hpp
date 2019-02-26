@@ -61,7 +61,7 @@ private:
 
 	// Normally we require const-correctness, so we don't need volatility just for read access to memory.
 	// But it's OK to make an exception for something that is always volatile.
-	mutable alignas (atomic::get_alignment_v<size_t>) size_t m_embeddedRefCount;
+	alignas (atomic::get_alignment_v<size_t>) mutable size_t m_embeddedRefCount;
 
 	      type& get_embedded()			{ return m_embedded.get(); }
 	const type& get_embedded() const	{ return m_embedded.get(); }
@@ -420,7 +420,7 @@ public:
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
 #endif
-			new (&get_embedded()) type(*src.get_contents());
+			new (&get_embedded()) type(*src.get());
 	}
 
 	thread_safe_transactable(volatile this_t& src)
@@ -1152,7 +1152,7 @@ public:
 	}
 
 	template <typename type2, typename type3>
-	void exchange_contents(type2&& src, type3& rtn) { cogs::exchange(*get_content(), std::forward<type2>(src), rtn); }
+	void exchange_contents(type2&& src, type3& rtn) { cogs::exchange(*get(), std::forward<type2>(src), rtn); }
 
 	template <typename type2, typename type3>
 	void exchange_contents(type2&& src, type3& rtn) volatile

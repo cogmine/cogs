@@ -76,6 +76,15 @@ private:
 #endif
 	{
 	public:
+#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
+		explicit block_base(const ptr<rc_obj_base>& desc)
+			: object(desc)
+		{ }
+#else
+		block_base()
+		{ }
+#endif
+
 		virtual ~block_base() { }
 		virtual block_base* copy() const = 0;
 		virtual void copy(void* p) const = 0;
@@ -148,7 +157,7 @@ private:
 		template <typename F, typename enable = std::enable_if_t<std::is_invocable_r_v<return_t, F, A...> > >
 		static return_t invoke(F&& f, A... a)
 		{
-			return f(std::move(a)...);
+			return f(std::forward<A>(a)...);
 		}
 	};
 
@@ -166,7 +175,7 @@ private:
 			template <typename F, typename enable = std::enable_if_t<std::is_invocable_r_v<return_t, F, A2...> >, typename... A3>
 			static return_t invoke(F&& f, A2... a2, A3&&... a3)
 			{
-				return f(std::move(a2)...);
+				return f(std::forward<A2>(a2)...);
 			}
 		};
 	};
@@ -203,6 +212,35 @@ private:
 	public:
 		F m_func;
 
+#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, F2&& f)
+			: block_base(desc),
+			m_func(std::forward<F2>(f))
+		{ }
+
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, block<F2>&& f)
+			: block_base(desc),
+			m_func(std::move(f.m_func))
+		{ }
+
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, const block<F2>& f)
+			: block_base(desc),
+			m_func(f.m_func)
+		{ }
+
+		block(const ptr<rc_obj_base>& desc, F&& f)
+			: block_base(desc),
+			m_func(std::move(f))
+		{ }
+
+		block(const ptr<rc_obj_base>& desc, const F& f)
+			: block_base(desc),
+			m_func(f)
+		{ }
+#else
 		template <typename F2>
 		block(F2&& f)
 			: m_func(std::forward<F2>(f))
@@ -225,6 +263,7 @@ private:
 		block(const F& f)
 			: m_func(f)
 		{ }
+#endif
 
 		template <size_t n2> block(block<function<return_t(args_t...), n2> >&& f) = delete;
 		template <size_t n2> block(const block<function<return_t(args_t...), n2> >& f) = delete;
@@ -268,7 +307,7 @@ private:
 
 		virtual return_t invoke(args_t... a) const
 		{
-			return reverse<args_t...>::invoke(m_func, std::move(a)...);
+			return reverse<args_t...>::invoke(m_func, std::forward<args_t>(a)...);
 		}
 	};
 
@@ -443,6 +482,15 @@ private:
 #endif
 	{
 	public:
+#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
+		explicit block_base(const ptr<rc_obj_base>& desc)
+			: object(desc)
+		{ }
+#else
+		block_base()
+		{ }
+#endif
+
 		virtual ~block_base() { }
 		virtual block_base* copy() const = 0;
 		virtual void copy(void* p) const = 0;
@@ -515,7 +563,7 @@ private:
 		template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, A...> > >
 		static void invoke(F&& f, A... a)
 		{
-			f(std::move(a)...);
+			f(std::forward<args_t>(a)...);
 		}
 	};
 
@@ -533,7 +581,7 @@ private:
 			template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, A2...> >, typename... A3>
 			static void invoke(F&& f, A2... a2, A3&&... a3)
 			{
-				f(std::move(a2)...);
+				f(std::forward<A2>(a2)...);
 			}
 		};
 	};
@@ -570,6 +618,35 @@ private:
 	public:
 		F m_func;
 
+#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, F2&& f)
+			: block_base(desc),
+			m_func(std::forward<F2>(f))
+		{ }
+
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, block<F2>&& f)
+			: block_base(desc),
+			m_func(std::move(f.m_func))
+		{ }
+
+		template <typename F2>
+		block(const ptr<rc_obj_base>& desc, const block<F2>& f)
+			: block_base(desc),
+			m_func(f.m_func)
+		{ }
+
+		block(const ptr<rc_obj_base>& desc, F&& f)
+			: block_base(desc),
+			m_func(std::move(f))
+		{ }
+
+		block(const ptr<rc_obj_base>& desc, const F& f)
+			: block_base(desc),
+			m_func(f)
+		{ }
+#else
 		template <typename F2>
 		block(F2&& f)
 			: m_func(std::forward<F2>(f))
@@ -592,6 +669,7 @@ private:
 		block(const F& f)
 			: m_func(f)
 		{ }
+#endif
 
 		template <size_t n2> block(function<void(args_t...), n2>&& f) = delete;	// Should have been copied
 		template <size_t n2> block(const function<void(args_t...), n2>& f) = delete;
@@ -633,7 +711,7 @@ private:
 			new ((block<F>*)p) block<F>(std::move(m_func));
 		}
 
-		virtual void invoke(args_t... a) const { reverse<args_t...>::invoke(m_func, std::move(a)...); }
+		virtual void invoke(args_t... a) const { reverse<args_t...>::invoke(m_func, std::forward<args_t>(a)...); }
 	};
 
 	unsigned char m_buffer[n];
@@ -747,7 +825,7 @@ private:
 				if (src.m_size <= n2)
 					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->copy();	// embedded to allocated
 				else
-					*(block_base**)&m_buffer = (*(block_base**)&srcm_buffer)->copy();	// allocated to allocated
+					*(block_base**)&m_buffer = (*(block_base**)&src.m_buffer)->copy();	// allocated to allocated
 			}
 		}
 	}

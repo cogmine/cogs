@@ -21,6 +21,10 @@ private:
 	class single_fire_signallable_task : public signallable_task<void>, public task_arg_base<void>
 	{
 	public:
+		explicit single_fire_signallable_task(const ptr<rc_obj_base>& desc)
+			: signallable_task<void>(desc)
+		{ }
+
 		virtual rcref<task<void> > get_task() { return this_rcref; }
 
 		virtual rcptr<volatile dispatched> get_dispatched() const volatile { return task_arg_base<void>::get_dispatched(); }

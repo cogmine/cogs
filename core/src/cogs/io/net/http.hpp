@@ -136,15 +136,14 @@ private:
 	trailer_map_t		m_trailers;
 
 public:
-	explicit chunk_source()
-		:	m_remainingChunk(0),
-			m_lastChunkReceived(false),
-			m_lastCharWasLF(false)
+	explicit chunk_source(const ptr<rc_obj_base>& desc)
+		: filter(desc),
+		m_remainingChunk(0),
+		m_lastChunkReceived(false),
+		m_lastCharWasLF(false)
 	{ }
 
-	const trailer_map_t& get_trailers() const	{ return m_trailers; }
-
-	virtual rcref<cogs::task<composite_buffer> > filtering(composite_buffer& src)
+	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		composite_buffer result;
 		COGS_ASSERT(!!src);
@@ -228,6 +227,8 @@ public:
 
 		return get_immediate_task(result);
 	}
+
+	const trailer_map_t& get_trailers() const	{ return m_trailers; }
 };
 
 
@@ -239,8 +240,8 @@ public:
 class chunk_sink : public filter
 {
 public:
-	chunk_sink()
-		: filter([](composite_buffer & src)
+	explicit chunk_sink(const ptr<rc_obj_base>& desc)
+		: filter(desc, [](composite_buffer & src)
 		{
 			composite_buffer result;
 			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
@@ -490,8 +491,8 @@ private:
 		friend class request;
 		friend class response;
 
-		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
-			: net::request_response_server::connection(srvr, c, true, inactivityTimeout)
+		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
 		{ }
 
 		virtual rcref<net::request_response_server::request> create_request()
@@ -607,8 +608,8 @@ private:
 		friend class connection;
 		friend class request;
 
-		response(const rcref<request>& r, status_code code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
-			: net::request_response_server::response(r),
+		response(const ptr<rc_obj_base>& desc, const rcref<request>& r, status_code code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
+			: net::request_response_server::response(desc, r),
 			m_mode(m),
 			m_contentLength(contentLength),
 			m_statusCode(code),
@@ -620,7 +621,7 @@ private:
 		{
 			net::request_response_server::response::start();
 			m_sink = net::request_response_server::response::get_datasink();
-			rcptr<connection> c = get_connection().static_cast_to<connection>();
+			rcptr<connection> c = get_connection().template static_cast_to<connection>();
 			if (!!c)
 			{
 				static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
@@ -641,7 +642,7 @@ private:
 				m_sink->write(composite_buffer::from_composite_cstring(m_statusPhrase));
 				m_sink->write(crlfBuf);
 
-				const rcref<request>& r = get_request().static_cast_to<request>();
+				const rcref<request>& r = get_request().template static_cast_to<request>();
 				rcref<header_map_t> headers = r->m_responseHeaders;
 
 				// Date header.  (rfc2616,  14.18 Date)
@@ -945,7 +946,7 @@ private:
 								error_reply(response::status_not_implemented, cstring::literal("Transfer-Encoding \"") + *itor + cstring::literal("\" not implemented"))->complete();
 							else
 							{
-								rcptr<connection> c = m_connection.static_cast_to<connection>();
+								rcptr<connection> c = m_connection.template static_cast_to<connection>();
 								if (!c)
 								{
 									closing = true;
@@ -992,7 +993,7 @@ private:
 									closing = true;
 									break;
 								}
-								rcref<server> srvr = netSrvr.static_cast_to<server>().dereference();
+								rcref<server> srvr = netSrvr.template static_cast_to<server>().dereference();
 
 								verb_handler_map_t::iterator verbItor = srvr->m_verbHandlerMap->find(m_method);
 								if (!!verbItor)
@@ -1025,8 +1026,8 @@ private:
 		}
 
 	protected:
-		request(const rcref<connection>& c)
-			: net::request_response_server::request(c),
+		request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+			: net::request_response_server::request(desc, c),
 			m_supportOutgoingChunking(true),
 			m_requestHeaders(rcnew(header_map_t)),
 			m_responseHeaders(rcnew(header_map_t)),
@@ -1051,7 +1052,7 @@ private:
 
 		void send_100_continue()
 		{
-			rcptr<connection> c = get_connection().static_cast_to<connection>();
+			rcptr<connection> c = get_connection().template static_cast_to<connection>();
 			if (!!c)
 			{
 				if (expects_continue())
@@ -1134,13 +1135,13 @@ private:
 		composite_cstring get_allow_string() const
 		{
 			composite_cstring allVerbs;
-			rcptr<connection> c = m_connection.static_cast_to<connection>();
+			rcptr<connection> c = m_connection.template static_cast_to<connection>();
 			if (!!c)
 			{
 				rcptr<io::net::server> netSrvr = c->get_server();
 				if (!!netSrvr)
 				{
-					rcref<server> srvr = netSrvr.static_cast_to<server>().dereference();
+					rcref<server> srvr = netSrvr.template static_cast_to<server>().dereference();
 					verb_handler_map_t::iterator verbItor = srvr->m_verbHandlerMap->get_first();
 					while (!!verbItor)
 					{
@@ -1169,7 +1170,7 @@ private:
 
 	rcref<verb_handler_map_t>		m_verbHandlerMap;
 
-	server(const server&);
+	server(const server&) = delete;
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
@@ -1249,15 +1250,14 @@ private:
 	}
 
 public:
-	server()
-		:	m_verbHandlerMap(get_default_verb_handlers())
+	explicit server(const ptr<rc_obj_base>& desc)
+		: net::request_response_server(desc),
+		m_verbHandlerMap(get_default_verb_handlers())
 	{ }
 
-	explicit server(const rcref<verb_handler_map_t>& verbHandlers)
-		:	m_verbHandlerMap(verbHandlers)
-	{ }
-
-	~server()
+	server(const ptr<rc_obj_base>& desc, const rcref<verb_handler_map_t>& verbHandlers)
+		: net::request_response_server(desc),
+		m_verbHandlerMap(verbHandlers)
 	{ }
 
 	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout

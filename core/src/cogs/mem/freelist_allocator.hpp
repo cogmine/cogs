@@ -39,14 +39,14 @@ class freelist_allocator
 private:
 	allocator_container<allocator_type> m_allocator;
 
-	typedef typename placement_storage<block_size, alignment> placement_t;
+	typedef placement_storage<block_size, alignment> placement_t;
 
 	typedef storage_union<placement_t, placement_t*> node_t;
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
 	volatile versioned_ptr<node_t> m_head;
-	volatile alignas (atomic::get_alignment_v<size_t>) size_t m_curPos;
+	alignas (atomic::get_alignment_v<size_t>) volatile size_t m_curPos;
 	node_t m_preallocated[num_preallocated];
 
 public:
@@ -127,7 +127,7 @@ public:
 
 	virtual void deallocate(const ref_t& p) volatile
 	{
-		node_t* n = p.reinterpret_cast<node_t>();
+		node_t* n = p.template reinterpret_cast_to<node_t>();
 		ptr<node_t> oldHead;
 		version_t oldVersion;
 		m_head.get(oldHead, oldVersion);
@@ -144,7 +144,7 @@ class freelist_allocator<block_size, alignment, allocator_type, 0>
 private:
 	allocator_container<allocator_type> m_allocator;
 
-	typedef typename placement_storage<block_size, alignment> placement_t;
+	typedef placement_storage<block_size, alignment> placement_t;
 
 	typedef storage_union<placement_t, placement_t*> node_t;
 
@@ -212,7 +212,7 @@ public:
 
 	virtual void deallocate(const ref_t& p) volatile
 	{
-		node_t* n = p.reinterpret_cast<node_t>();
+		node_t* n = p.template reinterpret_cast_to<node_t>();
 		ptr<node_t> oldHead;
 		m_head.get(oldHead);
 		do {

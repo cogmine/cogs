@@ -30,12 +30,12 @@ private:
 	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
 	{
 		f();
-		return get_immediate_task().static_cast_to<immediate_task<void> >().static_cast_to<task_base>();
+		return get_immediate_task().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		signal_continuation(*t);
+		task<result_t>::signal_continuation(*t);
 	}
 
 	immediate_task() = delete;
@@ -45,13 +45,13 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	immediate_task(const result_t& r)
-		: task<result_t>(true),
+	immediate_task(const ptr<rc_obj_base>& desc, const result_t& r)
+		: task<result_t>(desc, true),
 		m_result(r)
 	{ }
 
-	immediate_task(result_t&& r)
-		: task<result_t>(true),
+	immediate_task(const ptr<rc_obj_base>& desc, result_t&& r)
+		: task<result_t>(desc, true),
 		m_result(std::move(r))
 	{ }
 
@@ -84,13 +84,17 @@ inline rcref<task<bool> > get_immediate_task(bool b)
 	class immediate_task_true : public immediate_task<bool>
 	{
 	public:
-		immediate_task_true() : immediate_task<bool>(true) { }
+		explicit immediate_task_true(const ptr<rc_obj_base>& desc)
+			: immediate_task<bool>(desc, true)
+		{ }
 	};
 
 	class immediate_task_false : public immediate_task<bool>
 	{
 	public:
-		immediate_task_false() : immediate_task<bool>(false) { }
+		explicit immediate_task_false(const ptr<rc_obj_base>& desc)
+			: immediate_task<bool>(desc, false)
+		{ }
 	};
 
 	if (b)
@@ -112,12 +116,12 @@ private:
 	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
 	{
 		f();
-		return this_rcref.const_cast_to<this_t>().static_cast_to<task_base>();
+		return this_rcref.template const_cast_to<this_t>().template static_cast_to<task_base>();
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		signal_continuation(*t);
+		task<void>::signal_continuation(*t);
 	}
 
 	immediate_task(const this_t&) = delete;
@@ -126,8 +130,8 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	immediate_task()
-		: task<void>(true)
+	explicit immediate_task(const ptr<rc_obj_base>& desc)
+		: task<void>(desc, true)
 	{ }
 
 public:

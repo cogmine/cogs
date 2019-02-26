@@ -128,7 +128,7 @@ public:
 			m_stateProperty->set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_stateProperty.get(), uiSubsystem, std::move(stateGetter), std::move(stateSetter));
+		placement_rcnew(&m_stateProperty.get(), this_desc, uiSubsystem, std::move(stateGetter), std::move(stateSetter));
 
 		auto positionGetter = [this]()
 		{
@@ -147,7 +147,7 @@ public:
 			m_positionProperty->set_complete();
 		};
 
-		placement_rcnew(this_desc, &m_positionProperty.get(), uiSubsystem, std::move(positionGetter), std::move(positionSetter));
+		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
 	}
 	
 	~scroll_bar()
@@ -158,7 +158,7 @@ public:
 
 	virtual void installing()
 	{
-		rcptr<gui::scroll_bar> sb = get_bridge().static_cast_to<gui::scroll_bar>();
+		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
 		sb->set_completely_invalidate_on_reshape(true);
 		m_dimension = sb->get_dimension();
 		m_isHiddenWhenInactive = sb->is_hidden_when_inactive();

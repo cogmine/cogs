@@ -55,7 +55,7 @@ namespace io {
 /// pending tasks will be canceled.  It's important that derived IO objects
 /// ensure all pending tasks are completed rather than abandoned.
 /// The task itself may own resources which will not be released until
-/// the task is completed.  If an io::task needs to refer to the I/O
+/// the task is completed.  If an io::queue::io_task needs to refer to the I/O
 /// object, it should use a weak reference, to avoid a circular reference
 /// that would prevent the IO object from being released.  (reader and writer
 /// contain a weak reference to their associated datasource/datasink.)
@@ -113,28 +113,28 @@ private:
 public:
 	/// @brief Base class for datasource I/O tasks
 	template <typename result_t>
-	class task : public io::queue::task<result_t>
+	class datasource_task : public io::queue::io_task<result_t>
 	{
 	private:
-		task() = delete;
-		task(task&&) = delete;
-		task(const task&) = delete;
-		task& operator=(task&&) = delete;
-		task& operator=(const task&) = delete;
+		datasource_task() = delete;
+		datasource_task(datasource_task&&) = delete;
+		datasource_task(const datasource_task&) = delete;
+		datasource_task& operator=(datasource_task&&) = delete;
+		datasource_task& operator=(const datasource_task&) = delete;
 
 		const weak_rcptr<datasource>		m_source;
 
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasource to associate with this task
-		task(const rcref<datasource>& ds) : m_source(ds) { }
+		datasource_task(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds) : io::queue::io_task<result_t>(desc), m_source(ds) { }
 
 		/// @brief Derived class implements executing() to executing the task
 		virtual void executing() = 0;
 
 		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
-		using io::queue::task<const rcref<result_t> >::canceling;
-		//virtual void canceling() { io::queue::task<const rcref<result_t> >::canceling(); }
+		using io::queue::io_task<result_t>::canceling;
+		//virtual void canceling() { io::queue::io_task<const rcref<result_t> >::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
@@ -144,8 +144,8 @@ public:
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using io::queue::task<const rcref<result_t> >::complete;
-		//void complete(bool closeQueue = false) { io::queue::task<const rcref<result_t> >::complete(closeQueue); }
+		using io::queue::io_task<result_t>::complete;
+		//void complete(bool closeQueue = false) { io::queue::io_task<const rcref<result_t> >::complete(closeQueue); }
 
 	public:
 		/// @brief Gets a weak reference to the datasource associated with this task
@@ -154,7 +154,7 @@ public:
 	};
 
 	/// @brief A flush task
-	class flusher : public task<flusher>
+	class flusher : public datasource_task<flusher>
 	{
 	private:
 		friend class datasource;
@@ -170,7 +170,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasource to associate with this flusher
-		flusher(const rcref<datasource>& ds) : task(ds) { }
+		flusher(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds) : datasource_task<flusher>(desc, ds) { }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
@@ -179,8 +179,8 @@ public:
 		virtual void flushing() { complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
-		using task<flusher>::canceling;
-		//virtual void canceling() { task<flusher>::canceling(); }
+		using datasource_task<flusher>::canceling;
+		//virtual void canceling() { datasource_task<flusher>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
@@ -190,14 +190,14 @@ public:
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using task<flusher>::complete;
-		//void complete(bool closeQueue = false) { task<flusher>::complete(closeQueue); }
+		using datasource_task<flusher>::complete;
+		//void complete(bool closeQueue = false) { datasource_task<flusher>::complete(closeQueue); }
 
 		virtual const flusher& get() const volatile { return *(const flusher*)this; }
 	};
 
 	/// @brief A close task
-	class closer : public task<closer>
+	class closer : public datasource_task<closer>
 	{
 	private:
 		friend class datasource;
@@ -212,16 +212,16 @@ public:
 
 	protected:
 		/// @brief Constructor
-		closer(const rcref<datasource>& ds) : task(ds) { }
+		closer(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds) : datasource_task<closer>(desc, ds) { }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
 		/// The default implementation completes the closer and closes the datasource's io::queue.
-		virtual void closing() { task<closer>::complete(true); }
+		virtual void closing() { datasource_task<closer>::complete(true); }
 
 		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
-		using task<closer>::canceling;
-		//virtual void canceling() { task<closer>::canceling(); }
+		using datasource_task<closer>::canceling;
+		//virtual void canceling() { datasource_task<closer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
@@ -231,14 +231,14 @@ public:
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using task<closer>::complete;
-		//void complete(bool closeQueue = false) { task<closer>::complete(closeQueue); }
+		using datasource_task<closer>::complete;
+		//void complete(bool closeQueue = false) { datasource_task<closer>::complete(closeQueue); }
 
 		virtual const closer& get() const volatile { return *(const closer*)this; }
 	};
 
 	/// @brief A read task
-	class reader : public task<reader>
+	class reader : public datasource_task<reader>
 	{
 	private:
 		friend class datasource;
@@ -257,7 +257,7 @@ public:
 		virtual void executing()
 		{
 			if (!m_requestedSize)
-				task<reader>::complete();
+				datasource_task<reader>::complete();
 			else
 			{
 				size_t availableOverflowSize = m_overflow->get_length();
@@ -269,7 +269,7 @@ public:
 					m_readBuffer.append(m_overflow->split_off_before(availableOverflowSize));
 					if ((unreadSize == availableOverflowSize) || (m_mode != read_all))
 					{
-						task<reader>::complete();
+						datasource_task<reader>::complete();
 						return;
 					}
 				}
@@ -279,8 +279,8 @@ public:
 		}
 
 	protected:
-		reader(const rcref<datasource>& ds)
-			:	task(ds),
+		reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds)
+			:	datasource_task<reader>(desc, ds),
 				m_overflow(ds->m_overflow),
 				m_mode(read_all)
 		{ }
@@ -291,8 +291,8 @@ public:
 		virtual void reading()				{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a reader that has not yet been executed. 
-		using task<reader>::canceling;
-		//virtual void canceling() { task<reader>::canceling(); }
+		using datasource_task<reader>::canceling;
+		//virtual void canceling() { datasource_task<reader>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a reader that has started executing.
 		///
@@ -302,8 +302,8 @@ public:
 
 		/// @brief Completes the reader, and starts the next task, if any.  Called by a derived reader.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using task<reader>::complete;
-		//void complete(bool closeQueue = false) { task<reader>::complete(closeQueue); }
+		using datasource_task<reader>::complete;
+		//void complete(bool closeQueue = false) { datasource_task<reader>::complete(closeQueue); }
 
 		/// @brief Restores data to the datasource.  It will be read by the next reader.
 		///
@@ -421,7 +421,7 @@ public:
 	/// @return A reference to a coupler that can be used to synchronize with completion of the coupler, or to decoupler the coupler.
 	/// The reference to the coupler does not extend the scope of the coupled association.  If it goes out of scope, the coupled association
 	/// remains until the maximum length is reached or either the datasink or datasource is closed.
-	friend rcref<cogs::task<void> > couple(
+	friend rcref<task<void> > couple(
 		const rcref<datasource>& src,
 		const rcref<datasink>& snk,
 		bool closeSinkOnSourceClose = false,
@@ -476,8 +476,8 @@ protected:
 		source_enqueue(r);
 	}
 
-	/// @brief Arbitrarily enqueues an io::queue::task in the datasource's IO queue
-	/// @param t A reference to the io::queue::task to enqueue
+	/// @brief Arbitrarily enqueues an io::queue::io_task in the datasource's IO queue
+	/// @param t A reference to the io::queue::io_task to enqueue
 	virtual void source_enqueue(const rcref<io::queue::task_base>& t)
 	{
 		m_ioQueue->enqueue(t);
@@ -500,7 +500,7 @@ protected:
 	/// @return A reference to a coupler that can be used to synchronize with completion of the coupler, or to decoupler the coupler.
 	/// The reference to the coupler does not extend the scope of the coupled association.  If it goes out of scope, the coupled association
 	/// remains until the maximum length is reached or either the datasink or datasource is closed.
-	virtual rcref<cogs::task<void> > create_coupler(
+	virtual rcref<task<void> > create_coupler(
 		const rcref<datasink>& snk,
 		bool closeSinkOnSourceClose = false,
 		bool closeSourceOnSinkClose = false,
@@ -509,8 +509,10 @@ protected:
 
 	/// @{
 	/// @brief Constructor
-	datasource()
-		: m_ioQueue(queue::create()),
+
+	explicit datasource(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_ioQueue(queue::create()),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize(COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -519,8 +521,9 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size (COGS_DEFAULT_BLOCK_SIZE).
-	explicit datasource(size_t internalBufferSize)
-		: m_ioQueue(queue::create()),
+	datasource(const ptr<rc_obj_base>& desc, size_t internalBufferSize)
+		: object(desc),
+		m_ioQueue(queue::create()),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -530,8 +533,9 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	explicit datasource(const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: m_ioQueue(queue::create()),
+	datasource(const ptr<rc_obj_base>& desc, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: object(desc),
+		m_ioQueue(queue::create()),
 		m_overflow(overflow),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -541,8 +545,9 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	explicit datasource(const rcref<io::queue>& ioQueue, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: m_ioQueue(ioQueue),
+	datasource(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: object(desc),
+		m_ioQueue(ioQueue),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -553,8 +558,9 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	datasource(const rcref<io::queue>& ioQueue, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: m_ioQueue(ioQueue),
+	datasource(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: object(desc),
+		m_ioQueue(ioQueue),
 		m_overflow(overflow),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -604,25 +610,29 @@ private:
 	// This IO task represents the entire transaction.
 	// It posts to the original datasource, and does not complete until
 	// the transaction is complete and all data read.
-	class transaction_task : public io::queue::task<transaction_task>
+	class transaction_task : public io::queue::io_task<transaction_task>
 	{
 	public:
 		// This IO task is a dummy element placed at the start of the
 		// transaction's queue, to ensure queue'ed tasks do not trigger IO.
-		class plug : public io::queue::task<plug>
+		class plug : public io::queue::io_task<plug>
 		{
 		public:
+			explicit plug(const ptr<rc_obj_base>& desc)
+				: io::queue::io_task<plug>(desc)
+			{ }
+
 			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
 
-			using io::queue::task<plug>::complete;
+			using io::queue::io_task<plug>::complete;
 
 			virtual void executing()
 			{
 				if (!m_transactionRunning.compare_exchange(true, false))
-					io::queue::task<plug>::complete();
+					io::queue::io_task<plug>::complete();
 			}
 
-			virtual void aborting()		{ io::queue::task<plug>::complete(true); }
+			virtual void aborting()		{ io::queue::io_task<plug>::complete(true); }
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
@@ -642,8 +652,9 @@ private:
 				p->complete();
 		}
 
-		transaction_task(const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
-			: m_transactionIoQueue(ioQueue),
+		transaction_task(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
+			: io::queue::io_task<transaction_task>(desc),
+			m_transactionIoQueue(ioQueue),
 			m_closePropagationMode(closePropagationMode),
 			m_transactionAborted(false)
 		{ }
@@ -664,7 +675,7 @@ private:
 			if (m_completeOrAbortGuard.compare_exchange(true, false))
 			{
 				m_transactionIoQueue->close();
-				io::queue::task<transaction_task>::complete();
+				io::queue::io_task<transaction_task>::complete();
 			}
 		}
 
@@ -673,18 +684,18 @@ private:
 			switch (m_closePropagationMode)
 			{
 			case no_close_propagation:
-				io::queue::task<transaction_task>::complete();
+				io::queue::io_task<transaction_task>::complete();
 				break;
 			case propagate_abort_only:
 				if (!m_transactionAborted)
 				{
-					io::queue::task<transaction_task>::complete();
+					io::queue::io_task<transaction_task>::complete();
 					break;
 				}
 				// fall through
 			default:
 			//case propagate_close_and_abort:
-				io::queue::task<transaction_task>::complete(true);
+				io::queue::io_task<transaction_task>::complete(true);
 				break;
 			}
 		}
@@ -705,7 +716,7 @@ private:
 		virtual void canceling()	// transaction_task got canceled before anything executed.
 		{
 			m_transactionIoQueue->close();
-			io::queue::task<transaction_task>::canceling();
+			io::queue::io_task<transaction_task>::canceling();
 		}
 
 		virtual const transaction_task& get() const volatile { return *(const transaction_task*)this; }
@@ -715,19 +726,20 @@ private:
 
 	// This IO task is posted to the end of a transaction's io::queue
 	// to trigger the completion of the transaction_task.
-	class terminator : public io::queue::task<terminator>
+	class terminator : public io::queue::io_task<terminator>
 	{
 	public:
 		rcref<transaction_task>	m_transactionTask;
 		
-		terminator(const rcref<transaction_task>& t)
-			: m_transactionTask(t)
+		terminator(const ptr<rc_obj_base>& desc, const rcref<transaction_task>& t)
+			: io::queue::io_task<terminator>(desc),
+			m_transactionTask(t)
 		{ }
 		
 		virtual void executing()
 		{
 			rcref<transaction_task>	tt = m_transactionTask;
-			io::queue::task<terminator>::complete();
+			io::queue::io_task<terminator>::complete();
 			tt->complete();
 		}
 
@@ -735,7 +747,7 @@ private:
 		{
 			// queue was closed, pass along close.
 			rcref<transaction_task>	tt = m_transactionTask;
-			io::queue::task<terminator>::canceling();
+			io::queue::io_task<terminator>::canceling();
 			tt->abort();
 		}
 
@@ -786,8 +798,8 @@ protected:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasource.
 	/// @param closePropagationMode Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
-	transaction(const rcref<datasource>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
-		:	datasource(ds->m_overflow),
+	transaction(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
+		:	datasource(desc, ds->m_overflow),
 			m_source(ds),
 			m_started(startImmediately),
 			m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
@@ -871,8 +883,8 @@ private:
 	bool						m_writeClosed;
 	volatile boolean			m_decoupling;
 
-	rcptr<cogs::task<void> >	m_onSourceAbortTask;
-	rcptr<cogs::task<void> >	m_onSinkAbortTask;
+	rcptr<task<void> >	m_onSourceAbortTask;
+	rcptr<task<void> >	m_onSinkAbortTask;
 	
 	typedef bool (default_coupler::*task_f)();
 
@@ -1093,7 +1105,7 @@ private:
 	}
 
 public:
-	virtual rcref<cogs::task<bool> > cancel() volatile
+	virtual rcref<task<bool> > cancel() volatile
 	{
 		auto t = signallable_task<void>::cancel();
 		if (t->get())
@@ -1103,13 +1115,15 @@ public:
 
 protected:
 	default_coupler(
+		const ptr<rc_obj_base>& desc,
 		const rcref<datasource>& src,
 		const rcref<datasink>& snk,
 		bool closeSinkOnSourceClose = false,
 		bool closeSourceOnSinkClose = false,
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
-		: m_reading(false),
+		: signallable_task<void>(desc),
+		m_reading(false),
 		m_writing(false),
 		m_readClosed(false),
 		m_writeClosed(false),
@@ -1149,15 +1163,15 @@ protected:
 };
 
 
-inline rcref<cogs::task<void> > datasource::create_coupler(
+inline rcref<task<void> > datasource::create_coupler(
 	const rcref<datasink>& snk,
 	bool closeSinkOnSourceClose,
 	bool closeSourceOnSinkClose,
 	const dynamic_integer& maxLength,
 	size_t bufferBlockSize)
 {
-	rcref<cogs::task<void> > result = rcnew(bypass_constructor_permission<default_coupler>, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
-	result.static_cast_to<default_coupler>()->start_coupler();
+	rcref<task<void> > result = rcnew(bypass_constructor_permission<default_coupler>, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+	result.template static_cast_to<default_coupler>()->start_coupler();
 	return result;
 }
 

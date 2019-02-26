@@ -69,7 +69,7 @@ public:
 		rcptr<cell> r = m_cell;
 		while (!!r && r->is_frame())
 		{			
-			f = r.static_cast_to<frame>();
+			f = r.template static_cast_to<frame>();
 			r = f->get_cell();
 		}
 		return f->get_cell();
@@ -92,7 +92,7 @@ public:
 		rcptr<cell> r = m_cell;
 		while (!!r && r->is_frame())
 		{
-			f = r.static_cast_to<frame>();
+			f = r.template static_cast_to<frame>();
 			r = f->get_cell();
 		}
 		return f->get_child_position();

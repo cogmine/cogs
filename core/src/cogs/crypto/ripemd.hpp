@@ -98,18 +98,14 @@ protected:
 
 
 template <>
-class ripemd<128> : public serial_hash<ripemd<128>, 128, 128, 32, endian_t::little, 512>, public ripemd_base
+class ripemd<128> : public serial_hash<128, 128, 32, endian_t::little, 512>, public ripemd_base
 {
 private:
-	typedef serial_hash<ripemd<128>, 128, 128, 32, endian_t::little, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<128, 128, 32, endian_t::little, 512> base_t;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[16];
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -294,6 +290,7 @@ protected:
 
 public:
 	ripemd()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301L;
@@ -303,7 +300,7 @@ public:
 	}
 
 	ripemd(const ripemd<128>& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)
@@ -322,18 +319,14 @@ public:
 
 
 template <>
-class ripemd<256> : public serial_hash<ripemd<256>, 256, 256, 32, endian_t::little, 512>, public ripemd_base
+class ripemd<256> : public serial_hash<256, 256, 32, endian_t::little, 512>, public ripemd_base
 {
 private:
-	typedef serial_hash<ripemd<256>, 256, 256, 32, endian_t::little, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<256, 256, 32, endian_t::little, 512> base_t;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[16];
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -529,6 +522,7 @@ protected:
 
 public:
 	ripemd()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301L;
@@ -542,7 +536,7 @@ public:
 	}
 
 	ripemd(const ripemd<256>& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)
@@ -561,18 +555,14 @@ public:
 
 
 template <>
-class ripemd<160> : public serial_hash<ripemd<160>, 160, 160, 32, endian_t::little, 512>, public ripemd_base
+class ripemd<160> : public serial_hash<160, 160, 32, endian_t::little, 512>, public ripemd_base
 {
 private:
-	typedef serial_hash<ripemd<160>, 160, 160, 32, endian_t::little, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<160, 160, 32, endian_t::little, 512> base_t;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[16];
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -794,6 +784,7 @@ protected:
 
 public:
 	ripemd()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301L;
@@ -804,7 +795,7 @@ public:
 	}
 
 	ripemd(const ripemd<160>& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)
@@ -822,18 +813,14 @@ public:
 };
 
 template <>
-class ripemd<320> : public serial_hash<ripemd<320>, 320, 320, 32, endian_t::little, 512>, public ripemd_base
+class ripemd<320> : public serial_hash<320, 320, 32, endian_t::little, 512>, public ripemd_base
 {
 private:
-	typedef serial_hash<ripemd<320>, 320, 320, 32, endian_t::little, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<320, 320, 32, endian_t::little, 512> base_t;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[16];
 
-protected:
 	void process_digit()
 	{
 		m_state[m_blockProgress] = m_curDigit;
@@ -1069,6 +1056,7 @@ protected:
 
 public:
 	ripemd()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301L;
@@ -1084,7 +1072,7 @@ public:
 	}
 
 	ripemd(const ripemd<320>& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < m_blockProgress; i++)

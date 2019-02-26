@@ -30,13 +30,10 @@ class sha1 : public hash
 
 /// @ingroup Crypto
 /// @brief SHA-1 (Secure Hash Algorithm 1)
-class sha1 : public serial_hash<sha1, 160, 160, 32, endian_t::big, 512>
+class sha1 : public serial_hash<160, 160, 32, endian_t::big, 512>
 {
 private:
-	typedef serial_hash<sha1, 160, 160, 32, endian_t::big, 512> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<160, 160, 32, endian_t::big, 512> base_t;
 
 	uint64_t	m_bitCount;
 	digit_t		m_state[80];
@@ -77,7 +74,6 @@ private:
 		b = bit_rotate_left(b, 30);
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -144,6 +140,7 @@ protected:
 
 public:
 	sha1()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		m_result[0] = 0x67452301;
@@ -154,7 +151,7 @@ public:
 	}
 
 	sha1(const sha1& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		for (size_t i = 0; i < m_blockProgress; i++)
 			m_state[i] = src.m_state[i];

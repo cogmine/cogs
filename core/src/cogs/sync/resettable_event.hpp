@@ -34,9 +34,10 @@ private:
 
 		volatile priority_dispatcher& get() volatile	{ return m_delegates.get(); }
 
-		explicit delegates_t()
+		explicit delegates_t(const ptr<rc_obj_base>& desc)
+			: object(desc)
 		{
-			placement_rcnew(this_desc, &m_delegates.get());
+			placement_rcnew(&m_delegates.get(), this_desc);
 		}
 
 		void clear()

@@ -31,19 +31,15 @@ private:
 
 
 template <size_t digest_bits, size_t stride_bits>
-class snefru_base : public serial_hash<snefru_base<digest_bits, stride_bits>, digest_bits, digest_bits, 32, endian_t::big, stride_bits>
+class snefru_base : public serial_hash<digest_bits, digest_bits, 32, endian_t::big, stride_bits>
 {
 private:
-	typedef serial_hash<snefru_base<digest_bits, stride_bits>, digest_bits, digest_bits, 32, endian_t::big, stride_bits> base_t;
+	typedef serial_hash<digest_bits, digest_bits, 32, endian_t::big, stride_bits> base_t;
 	typedef snefru_base<digest_bits, stride_bits> this_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
 
 	uint64_t	m_bitCount;
 	uint32_t	m_state[base_t::stride_digits];
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -1027,6 +1023,7 @@ protected:
 
 public:
 	snefru_base()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		for (size_t i = 0; i < base_t::digest_digits; i++)
@@ -1034,7 +1031,7 @@ public:
 	}
 
 	snefru_base(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)

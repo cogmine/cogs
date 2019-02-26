@@ -74,8 +74,8 @@ public:
 		connection& operator=(const connection&) = delete;
 
 	protected:
-		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
-			: net::request_response_server::connection(srvr, c, true, inactivityTimeout)
+		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
 		{ }
 
 	public:
@@ -146,8 +146,8 @@ public:
 		reply_code m_replyCode;
 		const composite_cstring m_text;
 
-		response(const rcref<request>& r, reply_code replyCode, const composite_cstring& text = cstring())
-			: net::request_response_server::response(r),
+		response(const ptr<rc_obj_base>& desc, const rcref<request>& r, reply_code replyCode, const composite_cstring& text = cstring())
+			: net::request_response_server::response(desc, r),
 			m_replyCode(replyCode),
 			m_text(text)
 		{ }
@@ -228,12 +228,12 @@ public:
 
 			if (completeRequest)
 			{
-				rcptr<connection> c = m_connection.static_cast_to<connection>();
+				rcptr<connection> c = m_connection.template static_cast_to<connection>();
 				if (!c)
 					closing = true;
 				else
 				{
-					rcptr<server> srvr = c->get_server().static_cast_to<server>();
+					rcptr<server> srvr = c->get_server().template static_cast_to<server>();
 					if (!srvr)
 						closing = true;
 					else
@@ -271,8 +271,8 @@ public:
 			return r;
 		}
 
-		request(const rcref<connection>& c)
-			: net::request_response_server::request(c),
+		request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+			: net::request_response_server::request(desc, c),
 			gotCR(false),
 			m_sink(datasink::create([r{ this_weak_rcptr }](composite_buffer& b)
 			{
@@ -341,7 +341,7 @@ public:
 
 	static void default_QUIT_handler(const rcref<request>& r)
 	{
-		rcptr<connection> c = r->get_connection().static_cast_to<connection>();
+		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
 		if (!!c)
 			c->set_connection_reuse(false);
 		r->begin_response(response::reply_action_completed, cstring::literal("OK"))->complete();
@@ -349,7 +349,7 @@ public:
 
 	static void default_MAIL_handler(const rcref<request>& r)
 	{
-		rcptr<connection> c = r->get_connection().static_cast_to<connection>();
+		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
 		if (!!c)	// otherwise, connection is shutting down
 		{
 			if (!!c->m_reversePath)
@@ -373,7 +373,7 @@ public:
 
 	static void default_RCPT_handler(const rcref<request>& r)
 	{
-		rcptr<connection> c = r->get_connection().static_cast_to<connection>();
+		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
 		if (!!c)	// otherwise, connection is shutting down
 		{
 			if (!c->m_reversePath)
@@ -417,15 +417,14 @@ public:
 		return mapRef;
 	}
 
-	server()
-		:	m_commandHandlerMap(get_default_command_handlers())
+	explicit server(const ptr<rc_obj_base>& desc)
+		: net::request_response_server(desc),
+		m_commandHandlerMap(get_default_command_handlers())
 	{ } 
 
-	explicit server(const rcref<command_handler_map_t>& commandHandlers)
-		:	m_commandHandlerMap(commandHandlers)
-	{ }
-
-	~server()
+	server(const ptr<rc_obj_base>& desc, const rcref<command_handler_map_t>& commandHandlers)
+		: net::request_response_server(desc),
+		m_commandHandlerMap(commandHandlers)
 	{ }
 
 	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout

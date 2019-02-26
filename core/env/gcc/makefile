@@ -15,19 +15,16 @@ relativesources=$(patsubst %,$(root)%,$(sources))
 objects=$(patsubst %.cpp,%.o,$(patsubst %.a,%.o,$(relativesources)))
 
 
-#FLAGS= -fzero-initialized-in-bss -march=amdfam10 -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2
-#FLAGS= -fzero-initialized-in-bss -march=i686 -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -O3
 # -g -O0 -fno-inline
-FLAGS=-fmax-errors=1 -std=gnu++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -O3
-DEBUGFLAGS=-g
-RELEASEFLAGS=
+FLAGS=-mcx16 -fmax-errors=1 -std=gnu++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -D COGS_USE_COGS_MAIN -D COGS_DEBUG -g
+#-O3
 
 CC=g++ -v
 
 all: $(target)
 
 $(target): $(objects)
-	$(CC) -lrt -lpthread  $(objects) -o cogs
+	$(CC) -lrt -pthread -latomic $(objects) -o cogs
 
 .PHONY : clean
 clean:

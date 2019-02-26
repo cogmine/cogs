@@ -24,7 +24,7 @@
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/vector.hpp"
 #include "cogs/function.hpp"
-#include "cogs/io/auto_fd.hpp"
+#include "cogs/os/io/auto_fd.hpp"
 #include "cogs/io/datastream.hpp"
 #include "cogs/io/net/address.hpp"
 #include "cogs/io/net/server.hpp"
@@ -161,8 +161,9 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(const composite_string& s)
-			:	m_inputString(s)
+		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s)
+			: signallable_task<lookup_result>(desc),
+			m_inputString(s)
 		{
 			rcref<thread_pool> pool = get_dns_thread_pool();
 			m_poolTask = pool->dispatch([r{ this_rcref }]()
@@ -214,7 +215,8 @@ public:
 	protected:
 		friend class address;
 
-		reverse_lookup_result(const address& addr)
+		reverse_lookup_result(const ptr<rc_obj_base>& desc, const address& addr)
+			: net::address::reverse_lookup_result(desc)
 		{
 			m_sockAddrSize = addr.m_sockAddrSize;
 			memcpy(&m_sockAddr, &addr.m_sockAddr, m_sockAddrSize);
@@ -271,8 +273,8 @@ public:
 	}
 
 	// Any addr string, including host name or FQDN
-	static rcref<lookup_result> lookup(const composite_string& addr)						{ return rcnew(lookup_result, addr); }
-	virtual rcref<net::address::reverse_lookup_result> reverse_lookup() const	{ return rcnew(reverse_lookup_result, *this); }
+	static rcref<lookup_result> lookup(const composite_string& addr) { return rcnew(bypass_constructor_permission<lookup_result>, addr); }
+	virtual rcref<net::address::reverse_lookup_result> reverse_lookup() const { return rcnew(bypass_constructor_permission<reverse_lookup_result>, *this); }
 
 	static address get_local_host(address_family addressFamily = inetv4)
 	{

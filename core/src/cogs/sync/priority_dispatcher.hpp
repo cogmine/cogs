@@ -32,8 +32,8 @@ private:
 	public:
 		priority_queue<int, ptr<priority_dispatched> >::remove_token m_removeToken;
 
-		priority_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<priority_dispatched> >::remove_token& rt)
-			: dispatched(parentDispatcher, t),
+		priority_dispatched(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<priority_dispatched> >::remove_token& rt)
+			: dispatched(desc, parentDispatcher, t),
 			m_removeToken(rt)
 		{ }
 	};
@@ -64,7 +64,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<priority_dispatched> >(priority, i);
 		priority_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(r.get_desc(), d, this_rcref, t, i);
+		placement_rcnew(d, r.get_desc(), this_rcref, t, i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
@@ -72,7 +72,9 @@ private:
 	}
 
 public:
-	priority_dispatcher()			{ }
+	explicit priority_dispatcher(const ptr<rc_obj_base>& desc)
+		: object(desc)
+	{ }
 
 	void clear()					{ m_priorityQueue.clear(); }
 	void drain()					{ m_priorityQueue.clear(); }
@@ -137,7 +139,7 @@ public:
 
 	bool remove_and_invoke(const rcref<task<void> >& t) volatile
 	{
-		rcptr<volatile priority_dispatched> d = get_dispatched(*t).static_cast_to<volatile priority_dispatched>();
+		rcptr<volatile priority_dispatched> d = get_dispatched(*t).template static_cast_to<volatile priority_dispatched>();
 		if (!d || !m_priorityQueue.remove(d->m_removeToken))
 			return false;
 

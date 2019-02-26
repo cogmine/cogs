@@ -29,6 +29,11 @@
 //		virtual void set_action(const function<void()>&) = 0;
 //		virtual void set_text(const composite_string&) = 0;
 //		virtual void set_enabled(bool) = 0;
+//
+//		button(const ptr<rc_obj_base>& desc)
+//		: object(desc)
+//		{
+//		}
 //	};
 //
 //	virtual void nest(const rcref<pane>& contentPanel) = 0;
@@ -91,11 +96,12 @@
 //	protected:
 //		friend class button_box;
 //
-//		button(const rcref<button_box>& bb, const function<void(const rcref<button>&)>& m_action, const composite_string& text, const gfx::font& fnt, bool isEnabled)
-//			:	m_buttonBox(bb),
-//				m_text(text),
-//				m_font(fnt),
-//				m_isEnabled(isEnabled)
+//		button(const ptr<rc_obj_base>& desc, const rcref<button_box>& bb, const function<void(const rcref<button>&)>& m_action, const composite_string& text, const gfx::font& fnt, bool isEnabled)
+//			: object(desc),
+//			m_buttonBox(bb),
+//			m_text(text),
+//			m_font(fnt),
+//			m_isEnabled(isEnabled)
 //		{ }
 //
 //	public:
@@ -304,7 +310,7 @@
 //
 //	virtual void installing()
 //	{
-//		rcref<button_box_interface> buttonBox = get_subsystem()->create_button_box().static_cast_to<button_box_interface>();
+//		rcref<button_box_interface> buttonBox = get_subsystem()->create_button_box().template static_cast_to<button_box_interface>();
 //		
 //		base_t::install_bridged(buttonBox);
 //
@@ -447,7 +453,7 @@
 //	{
 //		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
-//		rcref<default_button_box_button> beforeBtn = before.static_cast_to<default_button_box_button>();
+//		rcref<default_button_box_button> beforeBtn = before.template static_cast_to<default_button_box_button>();
 //		m_wrapList->nest_before(uiButton, beforeBtn->m_uiButton);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -458,7 +464,7 @@
 //	{
 //		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
-//		rcref<default_button_box_button> afterBtn = after.static_cast_to<default_button_box_button>();
+//		rcref<default_button_box_button> afterBtn = after.template static_cast_to<default_button_box_button>();
 //		m_wrapList->nest_before(uiButton, afterBtn->m_uiButton);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -467,7 +473,7 @@
 //
 //	virtual void set_default_button(const rcptr<button_box_interface::button>& btn)
 //	{
-//		rcptr<default_button_box_button> b = btn.static_cast_to<default_button_box_button>();
+//		rcptr<default_button_box_button> b = btn.template static_cast_to<default_button_box_button>();
 //		if (m_defaultButton != b)
 //		{
 //			if (!!m_defaultButton)
@@ -480,7 +486,7 @@
 //	
 //	virtual void remove(const rcref<button_box_interface::button>& btn)
 //	{
-//		rcref<default_button_box_button> b = btn.static_cast_to<default_button_box_button>();
+//		rcref<default_button_box_button> b = btn.template static_cast_to<default_button_box_button>();
 //		if (m_defaultButton == b)
 //			m_defaultButton.release();
 //		b->m_uiButton->detach();
@@ -494,7 +500,7 @@
 //
 //	virtual void installing()
 //	{
-//		rcptr<gui::button_box> bb = get_bridge().static_cast_to<gui::button_box>();
+//		rcptr<gui::button_box> bb = get_bridge().template static_cast_to<gui::button_box>();
 //		bb->pane::nest(m_wrapList);
 //		//bb->panel::nest(m_grid);
 //		button_box_interface::installing();

@@ -59,13 +59,13 @@ private:
 		static descriptor_t* from_obj(T* obj)	{ return get_header_from_type_block<descriptor_t, T>(obj); }
 	};
 	
-	typedef typename placement_type_header_storage<descriptor_t, T>  placement_t;
+	typedef placement_type_header_storage<descriptor_t, T>  placement_t;
 
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
 
 	volatile versioned_ptr<descriptor_t> m_head;
 	placement_t m_preallocated[num_preallocated];
-	volatile alignas (atomic::get_alignment_v<size_t>) size_t m_curPos;
+	alignas (atomic::get_alignment_v<size_t>) volatile size_t m_curPos;
 
 	void release(descriptor_t* n) volatile
 	{
@@ -134,14 +134,13 @@ public:
 				desc = const_cast<descriptor_t*>(&m_preallocated[oldPos].get_header());
 			}
 
-			new (desc) descriptor_t();
+			new (desc) descriptor_t;
 			desc->m_freelist = this;
-			new (desc->get_obj()) T();
+			new (desc->get_obj()) T(desc);
 			break;
 		}
 
 		type* obj = desc->get_obj();
-		set_self_reference(obj, desc.get_ptr());
 		rcref<type> result(obj, desc);
 		return result;
 	}
@@ -235,14 +234,13 @@ public:
 			}
 
 			desc = m_allocator.template allocate_type<descriptor_t>();
-			new (desc)();
+			new (desc) descriptor_t;
 			desc->m_freelist = this;
-			new (desc->get_obj())();
+			new (desc->get_obj()) T(desc);
 			break;
 		}
 
 		type* obj = desc->get_obj();
-		set_self_reference(obj, desc);
 		rcref<type> result(obj, desc);
 		return result;
 	}

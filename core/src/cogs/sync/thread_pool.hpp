@@ -72,10 +72,11 @@ private:
 		volatile parallel_task_level_map_t	m_parallelTaskLevelMap;
 		volatile boolean					m_exiting;
 
-		explicit main_loop(size_t numThreads)
-			: m_semaphore(0, numThreads)
+		explicit main_loop(const ptr<rc_obj_base>& desc, size_t numThreads)
+			: object(desc),
+			m_semaphore(0, numThreads)
 		{
-			placement_rcnew(this_desc, &m_tasks.get());
+			placement_rcnew(&m_tasks.get(), this_desc);
 		}
 
 		void run()
@@ -200,8 +201,8 @@ public:
 	{
 		rcptr<thread_pool> threadPool = get_default();
 		if (!threadPool)
-			return get_immediate_task().static_cast_to<volatile dispatcher>();
-		return threadPool.static_cast_to<volatile dispatcher>().dereference();
+			return get_immediate_task().template static_cast_to<volatile dispatcher>();
+		return threadPool.template static_cast_to<volatile dispatcher>().dereference();
 	}
 
 

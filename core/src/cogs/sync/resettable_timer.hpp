@@ -34,8 +34,8 @@ private:
 	}
 
 protected:
-	resettable_timer(const timeout_t& t)
-		: timer(t)
+	resettable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+		: timer(desc, t)
 	{ }
 
 public:

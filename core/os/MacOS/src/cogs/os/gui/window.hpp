@@ -201,7 +201,7 @@ public:
 
 	virtual void installing()
 	{
-		rcref<window> w = rcnew(window, m_title, m_style, get_subsystem().dereference().static_cast_to<volatile nsview_subsystem>());
+		rcref<window> w = rcnew(window, m_title, m_style, get_subsystem().dereference().template static_cast_to<volatile nsview_subsystem>());
 		base_t::install_bridged(w);
 	}
 
@@ -210,7 +210,7 @@ public:
 		base_t::hiding();
 		if (m_isVisibleRootWindow)
 		{
-			rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().static_cast_to<volatile nsview_subsystem>();
+			rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
 			uiSubsystem->remove_visible_window(m_visibleRemoveToken);
 			m_isVisibleRootWindow = false;
 		}
@@ -218,7 +218,7 @@ public:
 
 	virtual void showing()
 	{
-		rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().static_cast_to<volatile nsview_subsystem>();
+		rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
 		m_visibleRemoveToken = uiSubsystem->add_visible_window(this_rcref);
 		m_isVisibleRootWindow = true;
 		base_t::showing();
@@ -236,15 +236,15 @@ void nsview_pane_base::installing(const rcref<pane>& owner, NSView* v)
 	rcptr<pane> p = owner->get_parent();
 	while (!!p)
 	{
-		rcptr<pane_bridge> parentBridge = p.dynamic_cast_to<pane_bridge>();
+		rcptr<pane_bridge> parentBridge = p.template dynamic_cast_to<pane_bridge>();
 		if (!!parentBridge)
 		{
-			m_parentView = parentBridge->get_bridged().dynamic_cast_to<nsview_pane_base>();
+			m_parentView = parentBridge->get_bridged().template dynamic_cast_to<nsview_pane_base>();
 			if (!!m_parentView)
 			{
 				m_parentWindow = m_parentView->m_parentWindow;
 				if (!m_parentWindow)
-					m_parentWindow = m_parentView.static_cast_to<window>();
+					m_parentWindow = m_parentView.template static_cast_to<window>();
 				break;
 			}
 		}

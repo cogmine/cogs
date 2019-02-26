@@ -53,7 +53,7 @@ COGS_DEFINE_ENV_DEFAULT_VOLATILE_ASSIGN_OPERATORS(lesser)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -65,7 +65,8 @@ pre_assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -79,7 +80,8 @@ pre_assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_pointer_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -94,7 +96,7 @@ pre_assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -106,7 +108,8 @@ post_assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -120,7 +123,8 @@ post_assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_pointer_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -152,7 +156,7 @@ assign_next(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -164,7 +168,8 @@ pre_assign_prev(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -178,7 +183,8 @@ pre_assign_prev(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_pointer_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -194,7 +200,7 @@ pre_assign_prev(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -206,7 +212,8 @@ post_assign_prev(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -220,7 +227,8 @@ post_assign_prev(T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_pointer_v<T>
+	(sizeof(T) <= 8)
+	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -251,9 +259,22 @@ assign_prev(T& t)
 // bit_and
 
 
+template <typename T>
+inline std::enable_if_t<
+	(sizeof(T) > 8)
+	&& std::is_volatile_v<T>
+	&& !std::is_const_v<T>,
+	std::remove_volatile_t<T>
+>
+pre_assign_bit_and(T& t)
+{
+	return os::atomic::pre_assign_bit_and(t);
+}
+
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -271,7 +292,8 @@ pre_assign_bit_and(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -307,9 +329,22 @@ assign_bit_and(T& t, const A1 & a)
 // bit_or
 
 
+template <typename T>
+inline std::enable_if_t<
+	(sizeof(T) > 8)
+	&& std::is_volatile_v<T>
+	&& !std::is_const_v<T>,
+	std::remove_volatile_t<T>
+>
+pre_assign_bit_or(T& t)
+{
+	return os::atomic::pre_assign_bit_or(t);
+}
+
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -327,7 +362,8 @@ pre_assign_bit_or(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -364,9 +400,22 @@ assign_bit_or(T& t, const A1 & a)
 // bit_xor
 
 
+template <typename T>
+inline std::enable_if_t<
+	(sizeof(T) > 8)
+	&& std::is_volatile_v<T>
+	&& !std::is_const_v<T>,
+	std::remove_volatile_t<T>
+>
+pre_assign_bit_xor(T& t)
+{
+	return os::atomic::pre_assign_bit_xor(t);
+}
+
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -384,7 +433,8 @@ pre_assign_bit_xor(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -422,7 +472,7 @@ assign_bit_xor(T& t, const A1 & a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -434,7 +484,8 @@ pre_assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -451,7 +502,8 @@ pre_assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -471,7 +523,7 @@ pre_assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -483,7 +535,8 @@ post_assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -500,7 +553,8 @@ post_assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -520,7 +574,7 @@ post_assign_add(T& t, const A1& a)
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& (std::is_integral_v<T> || std::is_pointer_v<T> || std::is_floating_point_v<T>)
+	&& (std::is_integral_v<T> || std::is_pointer_v<T> || std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	void
@@ -537,7 +591,7 @@ assign_add(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -549,7 +603,8 @@ pre_assign_subtract(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -566,7 +621,8 @@ pre_assign_subtract(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -586,7 +642,7 @@ pre_assign_subtract(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_floating_point_v<T>
+	(std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	std::remove_volatile_t<T>
@@ -598,7 +654,8 @@ post_assign_subtract(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_integral_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -615,7 +672,8 @@ post_assign_subtract(T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	can_atomic_v<T>
+	(sizeof(T) <= 8)
+	&& can_atomic_v<T>
 	&& std::is_pointer_v<T>
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
@@ -635,7 +693,7 @@ post_assign_subtract(T& t, const A1& a)
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& (std::is_integral_v<T> || std::is_pointer_v<T> || std::is_floating_point_v<T>)
+	&& (std::is_integral_v<T> || std::is_pointer_v<T> || std::is_floating_point_v<T> || (sizeof(T) > 8))
 	&& std::is_volatile_v<T>
 	&& !std::is_const_v<T>,
 	void

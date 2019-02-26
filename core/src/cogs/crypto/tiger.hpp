@@ -290,14 +290,11 @@ static constexpr uint64_t tiger_table4[256] = {
 
 
 template <size_t bits, size_t passes, unsigned char terminator_byte>
-class tiger_base : public serial_hash<tiger_base<bits, passes, terminator_byte>, 192, bits, 64, endian_t::little, 512>
+class tiger_base : public serial_hash<192, bits, 64, endian_t::little, 512>
 {
 private:
-	typedef serial_hash<tiger_base<bits, passes, terminator_byte>, 192, bits, 64, endian_t::little, 512> base_t;
+	typedef serial_hash<192, bits, 64, endian_t::little, 512> base_t;
 	typedef tiger_base<bits, passes, terminator_byte> this_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
 
 	uint64_t	m_bitCount;
 	uint64_t	m_state[8];
@@ -347,7 +344,6 @@ private:
 		y[7] -= y[6] ^ 0x0123456789ABCDEFULL;
 	}
 
-protected:
 	void process_digit()
 	{
 		m_state[base_t::m_blockProgress] = base_t::m_curDigit;
@@ -405,6 +401,7 @@ protected:
 
 public:
 	tiger_base()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = 0;
 		base_t::m_result[0] = 0x0123456789ABCDEFULL;
@@ -413,7 +410,7 @@ public:
 	}
 
 	tiger_base(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < base_t::m_blockProgress; i++)

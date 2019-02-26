@@ -234,7 +234,10 @@ public:
 
 	auto abs() const
 	{
-		fraction<decltype(cogs::abs(std::declval<numerator_t>())), decltype(cogs::abs(std::declval<denominator_t>()))>::simplified_t result;
+		typename fraction<
+			decltype(cogs::abs(std::declval<numerator_t>())),
+			decltype(cogs::abs(std::declval<denominator_t>()))
+		>::simplified_t result;
 		if (is_negative(m_numerator))
 		{
 			if (is_negative(m_denominator))
@@ -467,7 +470,7 @@ public:
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	auto operator+(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
-		return cogs::divide(cogs::add(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, src.m_numerator)), cogs::multiply(m_denominator, src.m_denominator))
+		return cogs::divide(cogs::add(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, src.m_numerator)), cogs::multiply(m_denominator, src.m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -478,7 +481,7 @@ public:
 			cogs::add(
 				cogs::multiply(m_numerator, std::move(src.m_denominator)),
 				cogs::multiply(m_denominator, std::move(src.m_numerator))),
-			std::move(denom))
+			std::move(denom));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
@@ -877,14 +880,14 @@ public:
 	void assign_divide_whole(numerator_t2&& n) const
 	{
 		cogs::assign_divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t>
 	void assign_divide_whole(const numerator_t2& n) const
 	{
 		cogs::assign_divide_whole(m_numerator, cogs::multiply(m_denominator, n));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -894,7 +897,7 @@ public:
 			cogs::divide_whole( 
 				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -904,7 +907,7 @@ public:
 			cogs::divide_whole(
 				cogs::multiply(m_numerator, std::move(src.m_denominator)),
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 
@@ -939,14 +942,14 @@ public:
 	void assign_inverse_divide_whole(numerator_t2&& n) const
 	{
 		cogs::assign_inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t>
 	void assign_inverse_divide_whole(const numerator_t2& n) const
 	{
 		cogs::assign_inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, n));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -956,7 +959,7 @@ public:
 			cogs::inverse_divide_whole(
 				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -966,7 +969,7 @@ public:
 			cogs::inverse_divide_whole(
 				cogs::multiply(m_numerator, std::move(src.m_denominator)),
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
-		cogs::assign(m_denominator, one_t())
+		cogs::assign(m_denominator, one_t());
 	}
 
 
@@ -1061,7 +1064,7 @@ public:
 	auto inverse_modulo(const fraction_content<numerator_t2, denominator_t2>& src)
 	{
 		return cogs::divide(
-			cogs::nverse_modulo(
+			cogs::inverse_modulo(
 				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)),
 			cogs::multiply(m_denominator, src.m_denominator));
@@ -1244,10 +1247,10 @@ public:
 	{
 		return cogs::divide(
 			cogs::gcd(
-				cogs::multiply(cmp.m_numerator, m_denominator),
-				cogs::multiply(m_numerator, cmp.m_denominator)), 
+				cogs::multiply(src.m_numerator, m_denominator),
+				cogs::multiply(m_numerator, src.m_denominator)), 
 			cogs::abs(
-				cogs::multiply(m_denominator, cmp.m_denominator)));
+				cogs::multiply(m_denominator, src.m_denominator)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1320,10 +1323,10 @@ public:
 	{
 		return cogs::divide(
 			cogs::lcm(
-				cogs::multiply(cmp.m_numerator, m_denominator),
-				cogs::multiply(m_numerator, cmp.m_denominator)),
+				cogs::multiply(src.m_numerator, m_denominator),
+				cogs::multiply(m_numerator, src.m_denominator)),
 			cogs::abs(
-				cogs::multiply(m_denominator, cmp.m_denominator)));
+				cogs::multiply(m_denominator, src.m_denominator)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1436,28 +1439,28 @@ public:
 	void assign_greater(numerator_t2&& n) const
 	{
 		if (n > *this)
-			result = std::move(n);
+			*this = std::move(n);
 	}
 
 	template <typename numerator_t2 = numerator_t>
 	void assign_greater(const numerator_t2& n) const
 	{
 		if (n > *this)
-			result = n;
+			*this = n;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	void assign_greater(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		if (src > *this)
-			result = src;
+			*this = src;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	void assign_greater(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		if (src > *this)
-			result = std::move(src);
+			*this = std::move(src);
 	}
 
 
@@ -1519,28 +1522,28 @@ public:
 	void assign_lesser(numerator_t2&& n) const
 	{
 		if (n < *this)
-			result = std::move(n);
+			*this = std::move(n);
 	}
 
 	template <typename numerator_t2 = numerator_t>
 	void assign_lesser(const numerator_t2& n) const
 	{
 		if (n < *this)
-			result = n;
+			*this = n;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	void assign_lesser(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		if (src < *this)
-			result = src;
+			*this = src;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	void assign_lesser(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		if (src < *this)
-			result = std::move(src);
+			*this = std::move(src);
 	}
 
 
@@ -1744,11 +1747,15 @@ private:
 		std::enable_if_t<
 			value2 != 1
 			&& !std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& !std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(), 
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 		>
@@ -1771,11 +1778,15 @@ private:
 		std::enable_if_t<
 			value2 != 1
 			&& !std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& !std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 		>
@@ -1797,11 +1808,15 @@ private:
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& !std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 		>
@@ -1823,11 +1838,15 @@ private:
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& !std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 		>
@@ -1851,7 +1870,9 @@ private:
 		std::enable_if_t<
 			value2 != 1
 			&& !std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& std::is_same_v<
@@ -1880,7 +1901,9 @@ private:
 		std::enable_if_t<
 			value2 != 1
 			&& !std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& std::is_same_v<
@@ -1908,11 +1931,15 @@ private:
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 			&& (fixed_integer_native_const<has_sign, bits, value>::is_negative)
@@ -1936,11 +1963,15 @@ private:
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
-				decltype(cogs::modulo(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 0, 0>
 			>
 			&& std::is_same_v<
-				decltype(cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
 				fixed_integer_native_const<false, 1, 1>
 			>
 			&& (fixed_integer_extended_const<has_sign, bits, values...>::is_negative)
@@ -2612,10 +2643,10 @@ public:
 	volatile this_t& operator=(fraction<numerator_t2, denominator_t2>&& src) volatile { m_contents.set(simplify_content_type(std::move(src))); return *this; }
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<T> || (!std::is_const_v<T> && !std::is_volatile_v<T>) > >
+	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<numerator_t2> || (!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2>) > >
 	this_t& operator=(numerator_t2&& n) { m_contents->assign(std::move(n), one_t()); return *this; }
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<T> || (!std::is_const_v<T> && !std::is_volatile_v<T>) > >
+	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<numerator_t2> || (!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2>) > >
 	volatile this_t& operator=(numerator_t2&& n) volatile { m_contents.set(std::move(n), one_t()); return *this; }
 
 
@@ -2656,7 +2687,7 @@ public:
 	bool has_fractional_part() const { return m_contents->has_fractional_part(); }
 	bool has_fractional_part() const volatile { return begin_read()->has_fractional_part(); }
 
-	// abs
+	// absolute
 	auto abs() const					{ return simplify_type(cogs::abs(simplify_content_type(*this))); }
 	auto abs() const volatile			{ return simplify_type(cogs::abs(simplify_content_type(*this))); }
 	void assign_abs()					{ m_contents->assign_abs(); }
@@ -3865,16 +3896,16 @@ template <typename numerator_t>
 inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal() }
+inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 
 template <typename T>

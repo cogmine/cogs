@@ -344,7 +344,6 @@
 #include "cogs/gui/text_editor.hpp"
 #include "cogs/gui/window.hpp"
 #include "cogs/gui/wrap_list.hpp"
-#include "cogs/io/auto_fd.hpp"
 #include "cogs/io/buffer.hpp"
 #include "cogs/io/composite_buffer.hpp"
 #include "cogs/io/datasink.hpp"

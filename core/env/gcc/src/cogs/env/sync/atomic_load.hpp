@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "cogs/env.hpp"
+#include "cogs/assert.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/math/bytes_to_int.hpp"
 #include "cogs/arch/sync/atomic.hpp"
@@ -26,14 +27,30 @@ template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	&& std::is_scalar_v<T>,
+	&& std::is_scalar_v<T>
+	&& sizeof(T) <= 8,
 	void
 >
 load(const volatile T& src, T& rtn)
 {
 	COGS_ASSERT(((size_t)&src % atomic::get_alignment_v<T>) == 0);
-	typedef bytes_to_int_t<sizeof(T)> int_t;
-	__atomic_load((int_t*)&src, (int_t*)&rtn, __ATOMIC_SEQ_CST);
+	__atomic_load(&src, &rtn, __ATOMIC_SEQ_CST);
+}
+
+
+// Fallback to cmpxchg16 until GCC gets it's atomics problem figured out
+template <typename T>
+inline std::enable_if_t<
+	!std::is_empty_v<T>
+	&& can_atomic_v<T>
+	&& std::is_scalar_v<T>
+	&& sizeof(T) == 16,
+	void
+>
+load(const volatile T& src, T& rtn)
+{
+	COGS_ASSERT(((size_t)&src % atomic::get_alignment_v<T>) == 0);
+	rtn = __sync_val_compare_and_swap((volatile T*)(&src), 0, 0);
 }
 
 

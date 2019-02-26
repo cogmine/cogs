@@ -51,8 +51,8 @@ private:
 protected:
 
 #if COGS_USE_DEVICE_DEPENDENT_BITMAPS
-	bitmap(HDC hDC, const size& sz, double dpi = canvas::dip_dpi)
-		: device_context(CreateCompatibleDC(hDC))
+	bitmap(const ptr<rc_obj_base>& desc, HDC hDC, const size& sz, double dpi = canvas::dip_dpi)
+		: device_context(desc, CreateCompatibleDC(hDC))
 	{
 		m_originalDpi = dpi;
 		device_context::set_dpi(dpi);
@@ -67,8 +67,8 @@ protected:
 	}
 #endif
 
-	bitmap(HDC hDC, const size& sz, int bitsPerPixel, double dpi = canvas::dip_dpi)
-		: device_context(CreateCompatibleDC(NULL))
+	bitmap(const ptr<rc_obj_base>& desc, HDC hDC, const size& sz, int bitsPerPixel, double dpi = canvas::dip_dpi)
+		: device_context(desc, CreateCompatibleDC(NULL))
 	{
 		m_bitsPerPixel = bitsPerPixel;
 		m_originalDpi = dpi;
@@ -92,8 +92,8 @@ protected:
 		m_widthBytes = bm.bmWidthBytes;
 	}
 
-	bitmap(HDC hDC, const composite_string& location, double dpi = canvas::dip_dpi)
-		: device_context(CreateCompatibleDC(hDC))
+	bitmap(const ptr<rc_obj_base>& desc, HDC hDC, const composite_string& location, double dpi = canvas::dip_dpi)
+		: device_context(desc, CreateCompatibleDC(hDC))
 	{
 		m_originalDpi = dpi;
 		device_context::set_dpi(dpi);
@@ -525,7 +525,7 @@ inline rcref<canvas::pixel_image_canvas> device_context::create_pixel_image_canv
 	// By default, GDI bitmaps are created with transparent pixels (0, 0, 0, 0)
 	// If the caller needs an opaque buffer, fill with opaque
 	if (isOpaque)
-		bmp.static_cast_to<bitmap>()->fill_inner(make_BOUNDS(canvas::point(0, 0), bmp->get_size()), true);
+		bmp.template static_cast_to<bitmap>()->fill_inner(make_BOUNDS(canvas::point(0, 0), bmp->get_size()), true);
 	return bmp;
 }
 

@@ -180,8 +180,8 @@ private:
 		priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() volatile { return ((serial_dispatched*)this)->m_removeToken; }
 		const priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() const volatile { return ((const serial_dispatched*)this)->m_removeToken; }
 
-		serial_dispatched(bool async, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
-			: dispatched(parentDispatcher, t),
+		serial_dispatched(const ptr<rc_obj_base>& desc, bool async, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
+			: dispatched(desc, parentDispatcher, t),
 			m_removeToken(rt),
 			m_async(async)
 		{ }
@@ -214,7 +214,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(r.get_desc(), d, false, this_rcref, t, i);
+		placement_rcnew(d, r.get_desc(), false, this_rcref, t, i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
@@ -458,15 +458,15 @@ private:
 	{
 		typedef std::invoke_result_t<F> result_t2;
 		typedef forwarding_function_task<result_t2, void> task_t;
-		rcref<task<result_t2> > result = rcnew(task_t, std::forward<F>(f), priority).static_cast_to<task<result_t2> >();
+		rcref<task<result_t2> > result = rcnew(task_t, std::forward<F>(f), priority).template static_cast_to<task<result_t2> >();
 		priority_queue<int, ptr<serial_dispatched> >::preallocated_t i;
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(r.get_desc(), d, true, this_rcref, result.static_cast_to<task_t>().static_cast_to<task_base>(), i);
+		placement_rcnew(d, r.get_desc(), true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
-		result.static_cast_to<task_t>().static_cast_to<task_base>()->set_dispatched(d2);
+		result.template static_cast_to<task_t>().template static_cast_to<task_base>()->set_dispatched(d2);
 		i.disown();
 		serial_dispatch();
 		return result;
@@ -476,8 +476,9 @@ private:
 	point m_innerOffset;
 
 protected:
-	explicit pane(const alignment& a = alignment::center())
-		: m_alignment(a),
+	explicit pane(const ptr<rc_obj_base>& desc, const alignment& a = alignment::center())
+		: object(desc),
+		m_alignment(a),
 		m_innerOffset(0, 0),
 		m_installed(false),
 		m_installing(false),
@@ -2222,8 +2223,8 @@ public:
 class container_pane : public pane, public virtual pane_container
 {
 protected:
-	container_pane(const alignment& a)
-		: pane(a)
+	container_pane(const ptr<rc_obj_base>& desc, const alignment& a)
+		: pane(desc, a)
 	{
 	}
 
@@ -2251,8 +2252,9 @@ private:
 	bool m_invalidateOnReshape;
 
 protected:
-	canvas_pane(const draw_delegate_t& d, bool invalidateOnReshape)
-		: m_drawDelegate(d),
+	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d, bool invalidateOnReshape)
+		: pane(desc),
+		m_drawDelegate(d),
 		m_invalidateOnReshape(invalidateOnReshape)
 	{
 	}

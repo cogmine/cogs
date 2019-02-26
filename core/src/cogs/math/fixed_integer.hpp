@@ -103,6 +103,20 @@ template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 auto reduce_integer_type(const volatile fixed_integer_native_const<has_sign, bits, value>& t) { return value; }
 
 
+template <int i>
+class int_to_fixed_integer_const
+{
+public:
+	typedef fixed_integer_native_const<(i < 0), range_to_bits_v<((i < 0) ? i : 0), ((i < 0) ? 0 : i)>, i> type;
+};
+template <int i>
+using int_to_fixed_integer_const_t = typename int_to_fixed_integer_const<i>::type;
+
+
+typedef int_to_fixed_integer_const_t<0> zero_t;
+typedef int_to_fixed_integer_const_t<1> one_t;
+typedef int_to_fixed_integer_const_t<-1> minus_one_t;
+
 
 }
 

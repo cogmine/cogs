@@ -137,8 +137,10 @@ private:
 	friend class thread_pool;
 
 public:
-	quit_dispatcher()
-		: m_priorityDispatcher(rcnew(priority_dispatcher))
+
+	explicit quit_dispatcher(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_priorityDispatcher(rcnew(priority_dispatcher))
 	{
 		m_contents->m_refCount = 0;
 		m_contents->m_state = running_state;

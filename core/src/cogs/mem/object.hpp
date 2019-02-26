@@ -25,28 +25,10 @@ class object : public rc_object_base
 protected:
 	rc_obj_base*	m_desc;
 
+	object() = delete;
+
 public:
-	object()
-	{
-		// If it's derived from object, it must be allocated with rcnew
-		COGS_ASSERT(!!m_desc);
-	}
-
-	// construct with shared descriptor
-	// Allows use of object without rcnew (i.e. as a direct member) - to reduce allocations.
-	object(rc_obj_base* desc) : m_desc(desc)	{ }
-
-	object(const object&)
-	{
-		// does not copy m_desc
-		COGS_ASSERT(!!m_desc);
-	}
-
-	object& operator=(const object&)
-	{
-		// does not copy m_desc
-		return *this;
-	}
+	object(const ptr<rc_obj_base>& desc) : m_desc(desc.get_ptr()) { }
 
 	rc_obj_base* get_desc() const			{ return m_desc; }
 	rc_obj_base* get_desc() const volatile	{ return m_desc; }	// Set on construction and not modified.
@@ -121,15 +103,6 @@ public:
 	{ storage.set(obj, m_desc); return storage; }
 
 };
-
-
-template <typename T>
-std::enable_if_t<std::is_base_of_v<object, T>, void>
-set_self_reference(T* obj, const ptr<rc_obj_base>& desc) { obj->set_desc(desc); }
-
-template <typename T>
-std::enable_if_t<!std::is_base_of_v<object, T>, void>
-set_self_reference(T* obj, const ptr<rc_obj_base>& desc) { }
 
 
 // As an optimization, use of this_xxxx does not acquire a reference.

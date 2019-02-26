@@ -308,7 +308,7 @@ private:
 	
 	virtual void detaching_child(const rcref<pane>& p)
 	{
-		rcptr<cell_t> c = p->get_outermost_frame().static_cast_to<cell_t>();
+		rcptr<cell_t> c = p->get_outermost_frame().template static_cast_to<cell_t>();
 
 		rcptr<primary_row_t>	primaryRow = c->m_primaryRow;
 		rcptr<secondary_row_t>	secondaryRow = c->m_secondaryRow;
@@ -325,8 +325,9 @@ private:
 	}
 
 public:
-	grid()
-		:	m_wasRecalculated(false)
+	explicit grid(const ptr<rc_obj_base>& desc)
+		: pane(desc),
+		m_wasRecalculated(false)
 	{ }
 	
 	void nest(const rcref<pane>& child, const primary_key_t& primaryKey, const secondary_key_t& secondaryKey, const rcptr<frame>& f = 0)

@@ -161,9 +161,10 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(const composite_string& s, const rcref<network>& n = network::get_default())
-			:	m_inputString(s.composite()),
-				m_network(n)
+		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s, const rcref<network>& n = network::get_default())
+			: signallable_task<lookup_result>(desc),
+			m_inputString(s.composite()),
+			m_network(n)
 		{
 			rcref<thread_pool> pool = get_dns_thread_pool();
 			m_poolTask = pool->dispatch([r{ this_rcref }]()
@@ -229,8 +230,9 @@ public:
 	protected:
 		friend class address;
 
-		reverse_lookup_result(const address& addr, const rcref<network>& n = network::get_default())
-			:	m_network(n)
+		reverse_lookup_result(const ptr<rc_obj_base>& desc, const address& addr, const rcref<network>& n = network::get_default())
+			: net::address::reverse_lookup_result(desc),
+			m_network(n)
 		{
 			m_sockAddrSize = addr.m_sockAddrSize;
 			memcpy(&m_sockAddr, &addr.m_sockAddr, m_sockAddrSize);

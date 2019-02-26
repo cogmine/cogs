@@ -63,8 +63,8 @@ public:
 	bool	m_initialReshapeDone;
 	function<bool()> m_closeDelegate;
 
-	window(const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn),
+	window(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn),
 		m_initialReshapeDone(false),
 		m_sizingMode(0)
 	{
@@ -73,16 +73,16 @@ public:
 	virtual void hiding()
 	{
 		hwnd_pane::hiding();
-		rcptr<volatile hwnd::subsystem> uiSubsystem = get_subsystem().static_cast_to<volatile hwnd::subsystem>();
+		rcptr<volatile hwnd::subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile hwnd::subsystem>();
 		uiSubsystem->remove_visible_window(m_visibleRemoveToken);
 	}
 
 	virtual void showing()
 	{
-		rcptr<gui::window> w = get_bridge().static_cast_to<gui::window>();
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		if (!!w)
 		{
-			rcptr<volatile hwnd::subsystem> uiSubsystem = get_subsystem().static_cast_to<volatile hwnd::subsystem>();
+			rcptr<volatile hwnd::subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile hwnd::subsystem>();
 			m_visibleRemoveToken = uiSubsystem->add_visible_window(w.dereference());
 		}
 		hwnd_pane::showing();
@@ -95,7 +95,7 @@ public:
 
 	virtual void installing()
 	{
-		rcptr<gui::window> w = get_bridge().static_cast_to<gui::window>();
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		m_closeDelegate = w->get_close_delegate();
 		m_title = w->get_title().composite();
 
@@ -179,7 +179,7 @@ public:
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		rcptr<gui::window> w = get_bridge().static_cast_to<gui::window>();
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		if (!!w)
 		{
 			switch (msg)

@@ -132,7 +132,7 @@ public:
 
 	//virtual canvas::size calc_text_bounds(const composite_string& s, const rcptr<canvas::font>& f)
 	//{
-	//	ptr<font> derivedFont = f.get_obj().static_cast_to<font>();
+	//	ptr<font> derivedFont = f.get_obj().template static_cast_to<font>();
 	//	NSFont* nsFont = derivedFont->m_nsFont;
 	//
 	//	NSString* str = string_to_NSString(s);
@@ -148,7 +148,7 @@ public:
 	
 	virtual void draw_text(const composite_string& s, const bounds_t& r, const rcptr<canvas::font>& f, const color& c = color::black, bool blendAlpha = true)
 	{
-		ptr<font> derivedFont = f.get_obj().static_cast_to<font>();
+		ptr<font> derivedFont = f.get_obj().template static_cast_to<font>();
 		NSFont* nsFont = derivedFont->m_nsFont;
 
 		NSString* str = string_to_NSString(s);

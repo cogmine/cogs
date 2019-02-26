@@ -34,14 +34,11 @@ class keccak : public hash
 
 
 template <size_t bits = 512, uint8_t terminator = 0x01, size_t stride_bits = ((200 - (2 * (bits / 8))) * 8)>
-class keccak : public serial_hash<keccak<bits, terminator, stride_bits>, 1600, bits, 64, endian_t::little, stride_bits, stride_bits>
+class keccak : public serial_hash<1600, bits, 64, endian_t::little, stride_bits, stride_bits>
 {
 private:
 	typedef keccak<bits, terminator, stride_bits> this_t;
-	typedef serial_hash<keccak<bits, terminator, stride_bits>, 1600, bits, 64, endian_t::little, stride_bits, stride_bits> base_t;
-
-	template <class derived_t, size_t, size_t, size_t, endian_t, size_t, size_t>
-	friend class serial_hash;
+	typedef serial_hash<1600, bits, 64, endian_t::little, stride_bits, stride_bits> base_t;
 
 	void r(uint64_t k1, uint64_t k2)
 	{
@@ -288,7 +285,6 @@ private:
 		base_t::m_result[24] = Asu;
 	}
 
-protected:
 	void process_block()
 	{
 		r(0x0000000000000001ULL, 0x0000000000008082ULL);
@@ -331,13 +327,14 @@ protected:
 
 public:
 	keccak()
+		: base_t([&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
 		for (int i = 0; i < 25; i++)
 			base_t::m_result[i] = 0;
 	}
 
 	keccak(const this_t& src)
-		: base_t(src)
+		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{ }
 
 	this_t& operator=(const this_t& src)

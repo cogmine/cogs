@@ -25,7 +25,7 @@ class object;
 
 
 /*
-	rcptr<> and ref<> are RAII reference container types.  rcptr<> is nullable, ref<> is not.
+	rcptr<> and rcref<> are RAII reference container types.  rcptr<> is nullable, rcref<> is not.
 
 	RAII - Resource Acquisition Is Initialization
 		RAII is antithetical to the use of garbage collection (which is implcit in Java and C#).
@@ -49,7 +49,7 @@ class rcptr;				// A reference-counted pointer class.
 							// copied by value.   To avoid redundant reference counting of
 							// function args, use: const rcptr<type>&
 							// Note: The const& allows construction of a temporary, if necessary.
-							// Only use a rcptr<type> in a subroutine when the object may
+							// Only receive a rcptr<type> as an argument if the object may
 							// be retained after the call has returned.  Otherwise, use a type*
 
 template <typename type>
@@ -59,9 +59,8 @@ class rcref;				// Like a rcptr<type>, but cannot point to NULL.
 							// To avoid redundant reference counting of function args,
 							// use: const rcref<type>&
 							// Note: The const& allows construction of a temporary, if necessary.
-							// Only use a rcref<type> in a subroutine when the object may
-							// be retained after the call has returned.  Otherwise, use a type&
-
+							// Only receive a rcref<type> as an argument if the object may
+							// be retained after the call has returned.  Otherwise, use a type*
 
 template <typename type>
 class weak_rcptr;
@@ -273,7 +272,7 @@ protected:
 	rc_container_base(const volatile this_t& src)
 	{
 		read_token rt;
-		if (!!src.guarded_acquire<refStrengthType>(rt))
+		if (!!src.template guarded_acquire<refStrengthType>(rt))
 		{
 			m_contents->m_obj = rt->m_obj;
 			m_contents->m_desc = rt->m_desc;
@@ -307,7 +306,7 @@ protected:
 	rc_container_base(const volatile rc_container_base<type2, refStrengthType2>& src)
 	{
 		typename rc_container_base<type2, refStrengthType2>::read_token rt;
-		if (!!src.guarded_acquire<refStrengthType>(rt))
+		if (!!src.template guarded_acquire<refStrengthType>(rt))
 		{
 			COGS_ASSERT(rt->m_obj || !rt->m_desc);
 			m_contents->m_obj = rt->m_obj;	// <- A failure here means type conversion (caller) error.
@@ -412,7 +411,7 @@ protected:
 			rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
 
 			read_token rt;
-			if (!!src.guarded_acquire<refStrengthType>(rt))
+			if (!!src.template guarded_acquire<refStrengthType>(rt))
 			{
 				COGS_ASSERT(rt->m_obj || !rt->m_desc);
 				m_contents->m_obj = rt->m_obj;
@@ -500,7 +499,7 @@ protected:
 		rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
 
 		typename rc_container_base<type2, refStrengthType2>::read_token rt;
-		if (!src.guarded_acquire<refStrengthType>(rt))
+		if (!src.template guarded_acquire<refStrengthType>(rt))
 			clear();
 		else
 		{
@@ -520,7 +519,7 @@ protected:
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		typename rc_container_base<type2, refStrengthType2>::read_token rt;
-		if (!src.guarded_acquire<refStrengthType>(rt))
+		if (!src.template guarded_acquire<refStrengthType>(rt))
 			release();
 		else
 		{
@@ -642,7 +641,7 @@ protected:
 			write_token wt;
 			begin_write(wt);
 
-			ptr<type> p = rt->m_obj;
+			ptr<type> p = wt->m_obj;
 			p.set_mark(mark);
 			wt->m_obj = p.get_ptr();
 

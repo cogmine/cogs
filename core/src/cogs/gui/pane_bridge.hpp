@@ -379,8 +379,8 @@ private:
 	rcptr<bridgeable_pane>	m_bridgedPane;
 
 protected:
-	explicit pane_bridge(const alignment& a = alignment::center())
-		: pane(a)
+	explicit pane_bridge(const ptr<rc_obj_base>& desc, const alignment& a = alignment::center())
+		: pane(desc, a)
 	{ }
 
 	const rcptr<bridgeable_pane>& get_bridged() const	{ return m_bridgedPane; }

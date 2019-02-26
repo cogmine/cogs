@@ -99,6 +99,10 @@ protected:
 	friend class pane;
 	static void install(pane& p, const rcptr<volatile subsystem>& subSystem);
 
+	explicit subsystem(const ptr<rc_obj_base>& desc)
+		: object(desc)
+	{ }
+
 public:
 	//virtual rcptr<ui::console> get_default_console() volatile;
 	//virtual rcptr<ui::console> create_console() volatile;
@@ -130,6 +134,10 @@ protected:
 
 	friend class gui::window;
 	virtual std::pair<rcref<bridgeable_pane>, rcref<window_interface> > create_window() volatile = 0;
+
+	explicit subsystem(const ptr<rc_obj_base>& desc)
+		: gui::subsystem(desc)
+	{ }
 
 public:
 	virtual rcref<task<void> > open(

@@ -37,7 +37,8 @@ private:
 	inline static unsigned int s_processorCount = 0;
 
 protected:
-	explicit thread(const function<void()>& d)
+	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
+		: object(desc)
 	{
 		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)new (default_allocator::get()) function<void()>(d), 0, (unsigned int*)&m_threadId);
 	}

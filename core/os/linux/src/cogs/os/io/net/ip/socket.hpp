@@ -40,11 +40,11 @@ protected:
 	{
 		if (!!m_fd)
 		{
-			int i = fcntl(m_fd.m_fd, F_SETFL, O_NONBLOCK);
+			int i = fcntl(m_fd.get(), F_SETFL, O_NONBLOCK);
 			if (i == -1)
-				m_fd.close();
+				m_fd.release();
 			else
-				m_epollPool->register_fd(m_fd.m_fd);
+				m_epollPool->register_fd(m_fd.get());
 		}
 	}
 
@@ -55,23 +55,23 @@ protected:
 	{
 		if (!!m_fd)
 		{
-			int i = fcntl(m_fd.m_fd, F_SETFL, O_NONBLOCK);
+			int i = fcntl(m_fd.get(), F_SETFL, O_NONBLOCK);
 			if (i == -1)
-				m_fd.close();
+				m_fd.release();
 			else
-				m_epollPool->register_fd(m_fd.m_fd);
+				m_epollPool->register_fd(m_fd.get());
 		}
 	}
 
 	// We dup() the socket so we can register reads and writes independently in epoll_pool.
 	int get_dup_read_fd()
 	{
-		int result = m_dupReadFd.m_fd;
+		int result = m_dupReadFd.get();
 		if (result == -1)
 		{
 			if (!!m_fd)
 			{
-				result = m_dupReadFd.m_fd = dup(m_fd.m_fd);
+				result = m_dupReadFd.get() = dup(m_fd.get());
 				if (result != -1)
 					m_epollPool->register_fd(result);
 			}
@@ -84,12 +84,12 @@ protected:
 		// determine local endpoint
 		sockaddr_storage sockAddr;
 		socklen_t sockLength = sizeof(sockaddr_storage);
-		int i = getsockname(m_fd.m_fd, (sockaddr*)&sockAddr, &sockLength);
+		int i = getsockname(m_fd.get(), (sockaddr*)&sockAddr, &sockLength);
 		m_localEndpoint.set_address_and_port(&sockAddr, sockLength);
 
 		// determine remote endpoint
 		sockLength = sizeof(sockaddr_storage);
-		i = getpeername(m_fd.m_fd, (sockaddr*)&sockAddr, &sockLength);
+		i = getpeername(m_fd.get(), (sockaddr*)&sockAddr, &sockLength);
 		m_remoteEndpoint.set_address_and_port(&sockAddr, sockLength);
 	}
 
@@ -105,7 +105,7 @@ protected:
 				addr.sin_family = AF_INET;
 				addr.sin_addr.s_addr = htonl(INADDR_ANY);
 				addr.sin_port = htons(localPort);
-				i = bind(m_fd.m_fd, (sockaddr*)&addr, sizeof(sockaddr_in));
+				i = bind(m_fd.get(), (sockaddr*)&addr, sizeof(sockaddr_in));
 			}
 			else if (m_addressFamily == inetv6)
 			{
@@ -114,7 +114,7 @@ protected:
 				addr.sin6_family = AF_INET6;
 				addr.sin6_addr = in6addr_any;
 				addr.sin6_port = htons(localPort);
-				i = bind(m_fd.m_fd, (sockaddr*)&addr, sizeof(sockaddr_in6));
+				i = bind(m_fd.get(), (sockaddr*)&addr, sizeof(sockaddr_in6));
 			}
 			else
 				COGS_ASSERT(false);	// ??
@@ -125,19 +125,19 @@ protected:
 	void close_source()
 	{
 		if (!!m_fd)
-			shutdown(m_fd.m_fd, SHUT_RD);
+			shutdown(m_fd.get(), SHUT_RD);
 	}
 
 	void close_sink()
 	{
 		if (!!m_fd)
-			shutdown(m_fd.m_fd, SHUT_WR);
+			shutdown(m_fd.get(), SHUT_WR);
 	}
 
 	void close()
 	{
 		if (!!m_fd)
-			shutdown(m_fd.m_fd, SHUT_RD | SHUT_WR);
+			shutdown(m_fd.get(), SHUT_RD | SHUT_WR);
 	}
 
 public:

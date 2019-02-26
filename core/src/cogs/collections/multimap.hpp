@@ -38,8 +38,8 @@ private:
 	class payload
 	{
 	public:
-		typename placement<key_t>	m_key;
-		typename placement<value_t>	m_value;
+		placement<key_t>	m_key;
+		placement<value_t>	m_value;
 
 		payload()	{ }
 
@@ -58,13 +58,13 @@ private:
 		void construct(const key_t& key)
 		{
 			new (&m_key.get()) key_t(key);
-			new (&m_value.get()) value_t();
+			new (&m_value.get()) value_t;
 		}
 
 		void construct()
 		{
-			new (&m_key.get()) key_t();
-			new (&m_value.get()) value_t();
+			new (&m_key.get()) key_t;
+			new (&m_value.get()) value_t;
 		}
 
 		key_t& get_key()				{ return m_key.get(); }

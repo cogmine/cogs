@@ -30,8 +30,9 @@ private:
 	HANDLE m_hSemaphore;
 
 public:
-	semaphore()
-		:	m_hSemaphore(CreateSemaphore(NULL, 0, LONG_MAX, NULL))
+	explicit semaphore(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_hSemaphore(CreateSemaphore(NULL, 0, LONG_MAX, NULL))
 	{
 		COGS_ASSERT(m_hSemaphore != NULL);
 	}

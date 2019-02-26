@@ -19,24 +19,37 @@
 namespace cogs {
 
 
-int main();
-
-};
-
-
-int main(int argc, const char **argv)
+bool initialize()
 {
-	int result = 0;
-	{
-		result = cogs::main();
-		cogs::rcptr<const cogs::single_fire_event> quitEvent = cogs::quit_dispatcher::get()->get_event();
-		if (!!quitEvent)
-			quitEvent->wait();
-	}
+	return true;
+}
 
+void terminate()
+{
 	cogs::thread_pool::shutdown_default();
 	cogs::default_allocator::shutdown();
+}
+
+int main();
+
+}
+
+
+#if COGS_USE_COGS_MAIN
+
+//int main(int argc, const char* argv[])
+int main()
+{
+	int result = 0;
+	if (cogs::initialize())
+	{
+		result = cogs::main();
+		cogs::get_quit_event()->wait();
+		cogs::terminate();
+	}
 
 	return result;
 }
+
+#endif
 

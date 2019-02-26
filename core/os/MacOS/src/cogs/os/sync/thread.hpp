@@ -92,7 +92,8 @@ private:
 	explicit thread(const function<void()>& d)
 		: m_func(d),
 		m_releaseCount(0),
-		m_joinState(0)
+		m_joinState(0),
+		m_exitSemaphore(desc)
 	{
 		self_acquire();	// Last thread to interact will release explicit reference.
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);

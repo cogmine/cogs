@@ -370,7 +370,7 @@ private:
 
 	virtual void detaching_child(const rcref<pane>& p)
 	{
-		rcptr<cell_t> c = p->get_outermost_frame().static_cast_to<cell_t>();
+		rcptr<cell_t> c = p->get_outermost_frame().template static_cast_to<cell_t>();
 		m_cells.remove(c->m_removeToken);
 		pane::detaching_child(p);
 	}
@@ -385,20 +385,23 @@ public:
 		weak_rcptr<pane> m_pane;
 	};
 
-	wrap_list()
+	wrap_list(const ptr<rc_obj_base>& desc)
+		: pane(desc)
 	{
 		m_verticalAlignment = 0;
 		m_horizontalAlignment = 0;
 	}
 
-	wrap_list(double primaryAlignment, double secondaryAlignment)
+	wrap_list(const ptr<rc_obj_base>& desc, double primaryAlignment, double secondaryAlignment)
+		: pane(desc)
 	{
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 		get_alignment(d) = primaryAlignment;
 		get_alignment(!d) = secondaryAlignment;
 	}
 
-	wrap_list(double primaryAlignment)
+	wrap_list(const ptr<rc_obj_base>& desc, double primaryAlignment)
+		: pane(desc)
 	{
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 		get_alignment(d) = primaryAlignment;
@@ -433,7 +436,7 @@ public:
 		if (!c2)
 			c2 = child;
 		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
-		rcptr<cell_t> beforeThisCell = beforeThis->get_outermost_frame().static_cast_to<cell_t>();
+		rcptr<cell_t> beforeThisCell = beforeThis->get_outermost_frame().template static_cast_to<cell_t>();
 		m_cells.insert_before(c, beforeThisCell->m_removeToken);
 		pane::nest_before(child, beforeThis, c);
 	}
@@ -444,7 +447,7 @@ public:
 		if (!c2)
 			c2 = child;
 		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
-		rcptr<cell_t> afterThisCell = afterThis->get_outermost_frame().static_cast_to<cell_t>();
+		rcptr<cell_t> afterThisCell = afterThis->get_outermost_frame().template static_cast_to<cell_t>();
 		c->m_removeToken = m_cells.insert_after(c, afterThisCell->m_removeToken);
 		pane::nest_after(child, afterThis, c);
 	}

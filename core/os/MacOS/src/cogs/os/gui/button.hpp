@@ -65,7 +65,7 @@ public:
 
 	void action()
 	{
-		rcptr<gui::button> btn = get_bridge().static_cast_to<gui::button>();
+		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 		if (!!btn)
 			btn->action();
 	}
@@ -88,7 +88,7 @@ public:
 
 	virtual void set_font(const gfx::font& fnt)
 	{
-		m_cachedFont = load_font(fnt).static_cast_to<gfx::os::graphics_context::font>();
+		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
 		objc_button* objcButton = (objc_button*)m_nsView;
 		NSButtonCell* buttonCell = [objcButton cell];
 		NSFont* nsFont = m_cachedFont->m_nsFont;
@@ -97,7 +97,7 @@ public:
 
 	virtual void installing()
 	{
-		rcptr<gui::button> btn = get_bridge().static_cast_to<gui::button>();
+		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 		btn->set_completely_invalidate_on_reshape(true);
 
 		objc_button* objcButton = [[objc_button alloc] init];

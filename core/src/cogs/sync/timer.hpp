@@ -327,9 +327,11 @@ private:
 			return result;
 		}
 
-		inner_timer(const timeout_t& t, const rcref<timer>& tmr)
-			:	m_timeoutInfo(transactable_t::construct_embedded_t(), t),
-				m_outerTimer(tmr)
+
+		inner_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, const rcref<timer>& tmr)
+			: object(desc),
+			m_timeoutInfo(transactable_t::construct_embedded_t(), t),
+			m_outerTimer(tmr)
 		{ }
 	};
 
@@ -340,7 +342,8 @@ private:
 protected:
 	resettable_event	m_event;
 
-	timer(const timeout_t& t)
+	timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+		: object(desc)
 	{
 		if (!t.is_infinite())
 			m_innerTimer = rcnew(inner_timer, t, this_rcref);
