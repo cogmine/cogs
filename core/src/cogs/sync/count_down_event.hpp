@@ -106,6 +106,9 @@ public:
 	bool operator--() volatile		{ return !count_down(); }
 	bool operator++() volatile		{ return count_up(); }
 
+	bool operator--(int) volatile		{ return !count_down(); }
+	bool operator++(int) volatile		{ return count_up(); }
+
 	class reference
 	{
 	private:

@@ -497,7 +497,7 @@ pre_assign_add(T& t, const A1& a)
 	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)__atomic_add_fetch((char*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
+	return (std::remove_volatile_t<T>)__atomic_add_fetch((uint_t*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
 }
 
 template <typename T, typename A1>
@@ -548,7 +548,7 @@ post_assign_add(T& t, const A1& a)
 	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)__atomic_fetch_add((char*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
+	return (std::remove_volatile_t<T>)__atomic_fetch_add((uint_t*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
 }
 
 template <typename T, typename A1>
@@ -616,7 +616,7 @@ pre_assign_subtract(T& t, const A1& a)
 	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)__atomic_sub_fetch((char*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
+	return (std::remove_volatile_t<T>)__atomic_sub_fetch((uint_t*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
 }
 
 template <typename T, typename A1>
@@ -667,7 +667,7 @@ post_assign_subtract(T& t, const A1& a)
 	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)__atomic_fetch_sub((char*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
+	return (std::remove_volatile_t<T>)__atomic_fetch_sub((uint_t*)(unsigned char*)&t, (char)tmp, __ATOMIC_SEQ_CST);
 }
 
 template <typename T, typename A1>

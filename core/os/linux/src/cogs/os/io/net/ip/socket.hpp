@@ -98,6 +98,9 @@ protected:
 		int i = -1;
 		if (!!m_fd)
 		{
+			int enable = 1;
+			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+
 			if (m_addressFamily == inetv4)	// ipv4
 			{
 				sockaddr_in addr;

@@ -39,11 +39,14 @@ inline std::enable_if_t<
 store(volatile T& dst, const T2& src)
 {
 	COGS_ASSERT(((size_t)&dst % atomic::get_alignment_v<T>) == 0);
-	__atomic_store(&dst, &src, __ATOMIC_SEQ_CST);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	__atomic_store((int_t*)&dst, &tmpSrc, __ATOMIC_SEQ_CST);
 }
 
 
-// Fallback to cmpxchg16 until GCC gets it's atomics problem figured out
+// Fallback to cmpxchg16 until GCC gets it's atomics figured out
 template <typename T, typename T2 = T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -59,12 +62,17 @@ store(volatile T& dst, const T2& src)
 {
 	COGS_ASSERT(((size_t)&dst % atomic::get_alignment_v<T>) == 0);
 	T cmp = atomic::load(dst);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpCmp;
+	bypass_strict_aliasing(cmp, tmpCmp);
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
 	for (;;)
 	{
-		T tmp = __sync_val_compare_and_swap(&dst, cmp, src);
-		if (tmp == cmp)
+		int_t tmp = __sync_val_compare_and_swap((int_t*)&dst, tmpCmp, tmpSrc);
+		if (tmp == tmpCmp)
 			break;
-		cmp = tmp;
+		tmpCmp = tmp;
 	}
 }
 

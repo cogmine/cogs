@@ -32,7 +32,12 @@ inline std::enable_if_t<
 exchange(volatile T& t, const T& src, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	__atomic_exchange(&t, &src, &rtn, __ATOMIC_SEQ_CST);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	int_t tmpRtn;
+	__atomic_exchange((int_t*)&t, &tmpSrc, &tmpRtn, __ATOMIC_SEQ_CST);
+	bypass_strict_aliasing(tmpRtn, rtn);
 }
 
 template <typename T>
@@ -46,13 +51,18 @@ inline std::enable_if_t<
 exchange(volatile T& t, const T& src)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	int_t tmpRtn;
+	__atomic_exchange((int_t*)&t, &tmpSrc, &tmpRtn, __ATOMIC_SEQ_CST);
 	T rtn;
-	__atomic_exchange(&t, &src, &rtn, __ATOMIC_SEQ_CST);
+	bypass_strict_aliasing(tmpRtn, rtn);
 	return rtn;
 }
 
 
-// Fallback to cmpxchg16 until GCC gets it's atomics problem figured out
+// Fallback to cmpxchg16 until GCC gets it's atomics figured out
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -64,14 +74,19 @@ exchange(volatile T& t, const T& src, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T cmp = atomic::load(t);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpCmp;
+	bypass_strict_aliasing(cmp, tmpCmp);
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
 	for (;;)
 	{
-		T tmp = __sync_val_compare_and_swap(&t, cmp, src);
-		if (tmp == cmp)
+		int_t tmp = __sync_val_compare_and_swap((int_t*)&t, tmpCmp, tmpSrc);
+		if (tmp == tmpCmp)
 			break;
-		cmp = tmp;
+		tmpCmp = tmp;
 	}
-	rtn = cmp;
+	bypass_strict_aliasing(tmpCmp, rtn);
 }
 
 template <typename T>
@@ -86,12 +101,17 @@ exchange(volatile T& t, const T& src)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T cmp = atomic::load(t);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpCmp;
+	bypass_strict_aliasing(cmp, tmpCmp);
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
 	for (;;)
 	{
-		T tmp = __sync_val_compare_and_swap(&t, cmp, src);
-		if (tmp == cmp)
+		int_t tmp = __sync_val_compare_and_swap((int_t*)&t, tmpCmp, tmpSrc);
+		if (tmp == tmpCmp)
 			break;
-		cmp = tmp;
+		tmpCmp = tmp;
 	}
 }
 

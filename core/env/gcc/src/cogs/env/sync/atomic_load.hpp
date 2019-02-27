@@ -34,11 +34,14 @@ inline std::enable_if_t<
 load(const volatile T& src, T& rtn)
 {
 	COGS_ASSERT(((size_t)&src % atomic::get_alignment_v<T>) == 0);
-	__atomic_load(&src, &rtn, __ATOMIC_SEQ_CST);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpRtn;
+	__atomic_load((int_t*)&src, &tmpRtn, __ATOMIC_SEQ_CST);
+	bypass_strict_aliasing(tmpRtn, rtn);
 }
 
 
-// Fallback to cmpxchg16 until GCC gets it's atomics problem figured out
+// Fallback to cmpxchg16 until GCC gets it's atomics figured out
 template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
@@ -50,7 +53,11 @@ inline std::enable_if_t<
 load(const volatile T& src, T& rtn)
 {
 	COGS_ASSERT(((size_t)&src % atomic::get_alignment_v<T>) == 0);
-	rtn = __sync_val_compare_and_swap((volatile T*)(&src), 0, 0);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+
+	// Will not work w/ read-only memory
+	int_t tmpRtn = __sync_val_compare_and_swap((volatile int_t*)(&src), 0, 0);
+	bypass_strict_aliasing(tmpRtn, rtn);
 }
 
 

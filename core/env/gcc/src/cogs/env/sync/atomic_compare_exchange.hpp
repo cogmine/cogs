@@ -33,8 +33,14 @@ inline std::enable_if_t<
 compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	rtn = cmp;
-	return __atomic_compare_exchange(&t, &rtn, &src, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	int_t tmpCmpRtn;
+	bypass_strict_aliasing(cmp, tmpCmpRtn);
+	bool b = __atomic_compare_exchange((int_t*)&t, &tmpCmpRtn, &tmpSrc, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+	bypass_strict_aliasing(tmpCmpRtn, rtn);
+	return b;
 }
 
 template <typename T>
@@ -52,7 +58,7 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 }
 
 
-// Fallback to old intrincs until GCC gets it's atomics problem figured out
+// Fallback to old intrincs until GCC gets it's atomics figured out
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -64,9 +70,14 @@ inline std::enable_if_t<
 compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	T tmp = __sync_val_compare_and_swap(&t, cmp, src);
-	bool b = (tmp == cmp);
-	rtn = tmp;
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpCmp;
+	bypass_strict_aliasing(cmp, tmpCmp);
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	int_t tmp = __sync_val_compare_and_swap((int_t*)&t, tmpCmp, tmpSrc);
+	bool b = (tmp == tmpCmp);
+	bypass_strict_aliasing(tmp, rtn);
 	return b;
 }
 
@@ -81,7 +92,12 @@ inline std::enable_if_t<
 compare_exchange(volatile T& t, const T& src, const T& cmp)
 {
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
-	return __sync_bool_compare_and_swap(&t, cmp, src);
+	typedef bytes_to_int_t<sizeof(T)> int_t;
+	int_t tmpCmp;
+	bypass_strict_aliasing(cmp, tmpCmp);
+	int_t tmpSrc;
+	bypass_strict_aliasing(src, tmpSrc);
+	return __sync_bool_compare_and_swap((int_t*)&t, tmpCmp, tmpSrc);
 }
 
 

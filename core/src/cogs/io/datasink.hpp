@@ -167,7 +167,7 @@ public:
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
 		/// The default implementation completes the closer and closes the datasink's io::queue.
-		virtual void closing()	{ datasink_task<closer>::complete(true); }
+		virtual void closing() { datasink_task<closer>::complete(true); }
 
 		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
 		using datasink_task<closer>::canceling;

@@ -1089,8 +1089,6 @@ private:
 	bool process_decouple()
 	{
 		m_decoupling = true;
-		m_onSinkAbortTask->cancel();
-		m_onSourceAbortTask->cancel();
 		if (!!m_reading)
 			m_currentReader->abort();
 		if (!!m_writing)
@@ -1101,6 +1099,8 @@ private:
 	void decouple()
 	{
 		self_acquire();	// Ensure we don't go out of scope if decoupling() arrives at an inopportune time.
+		m_onSinkAbortTask->cancel();
+		m_onSourceAbortTask->cancel();
 		process(&default_coupler::process_decouple);
 	}
 

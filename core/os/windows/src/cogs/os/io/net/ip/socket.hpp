@@ -69,6 +69,9 @@ protected:
 		int i = SOCKET_ERROR;
 		if (m_socket != INVALID_SOCKET)
 		{
+			BOOL enable = TRUE;
+			setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(BOOL));
+			
 			if (m_addressFamily == AF_INET)	// IPV4
 			{
 				sockaddr_in addr;
