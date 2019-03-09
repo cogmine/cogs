@@ -60,7 +60,7 @@ private:
 
 public:
 	/// @brief Provides a weak_rcptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -530,7 +530,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const								{ return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
@@ -1163,7 +1162,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -1719,7 +1717,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -2274,7 +2271,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -2828,7 +2824,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }

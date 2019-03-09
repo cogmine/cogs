@@ -86,6 +86,7 @@ protected:
 		m_curDigit = src.m_curDigit;
 		for (size_t i = 0; i < result_digits; i++)
 			m_result[i] = src.m_result[i];
+		return *this;
 	}
 
 public:
@@ -165,7 +166,6 @@ public:
 		else
 		{
 			size_t dstIndex = 0;
-			size_t endDstIndex = digest_bytes;
 			bool done = false;
 			for (;;)
 			{

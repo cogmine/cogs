@@ -1864,10 +1864,12 @@ public:
 		}
 	}
 
-	void drain() volatile
+	bool drain() volatile
 	{
+		bool foundAny = false;
 		while (!!pop_last())
-			;
+			foundAny = true;
+		return foundAny;
 	}
 
 	size_t size() const				{ return m_heightAndCount.m_count; }

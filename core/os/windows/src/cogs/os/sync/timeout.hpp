@@ -88,10 +88,10 @@ public:
 
 	timeout_t(const timeout_t& t)
 		:	m_startTime(t.m_startTime),
-			m_period(t.m_period),
-			m_expireTime(t.m_expireTime)
+		m_period(t.m_period),
+		m_expireTime(t.m_expireTime)
 	{ }
-	
+
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
 	timeout_t(const measure<unit_storage_t, unitbase_t>& n)
 		:	m_startTime(now()),
@@ -110,7 +110,7 @@ public:
 		m_expireTime += m_period;
 	}
 
-	timeout_t& operator=(const timeout_t&t)
+	timeout_t& operator=(const timeout_t& t)
 	{
 		m_startTime = t.m_startTime;
 		m_period = t.m_period;

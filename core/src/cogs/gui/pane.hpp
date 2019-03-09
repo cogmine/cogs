@@ -941,21 +941,21 @@ protected:
 		}
 	}
 
-	// Derived pane should handle invalidating the affected area.
-	virtual void dpi_changing(double oldDpi, double newDpi)
-	{
-		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->set_dpi(newDpi);
-
-		invalidate(get_size());
-
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-		while (!!itor)
-		{
-			(*itor)->dpi_changing(oldDpi, newDpi);
-			++itor;
-		}
-	}
+	//// Derived pane should handle invalidating the affected area.
+	//virtual void dpi_changing(double oldDpi, double newDpi)
+	//{
+	//	if (!!m_offScreenBuffer)
+	//		m_offScreenBuffer->set_dpi(newDpi);
+	//
+	//	invalidate(get_size());
+	//
+	//	container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+	//	while (!!itor)
+	//	{
+	//		(*itor)->dpi_changing(oldDpi, newDpi);
+	//		++itor;
+	//	}
+	//}
 
 	void recomposing(bool recomposeDescendants)
 	{
@@ -1550,7 +1550,7 @@ protected:
 			m_initialReshapeDone = true;
 		else
 		{
-			bool positionChanged = renderOffset != m_lastRenderOffset;
+			//bool positionChanged = renderOffset != m_lastRenderOffset;
 			bool isBuffered = m_compositingBehavior != no_buffer;
 
 			// Maybe an assumption here that any externally drawn pane that is only repositioned, will have own invalidate/redraw.
@@ -1659,7 +1659,6 @@ private:
 
 	void uninstall_inner()
 	{
-		cell& r = get_outermost_cell();
 		m_topmostUninstall = true;
 		uninstall_inner2();
 	}
@@ -2290,7 +2289,7 @@ public:
 	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds) { pane::composite_scaled_pixel_image(src, srcBounds, dstBounds); }
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) { pane::composite_vector_image(src, dstBounds); }
 	virtual rcref<pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi) { return pane::create_pixel_image_canvas(sz, isOpaque, dpi); }
-	virtual rcref<pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi) { return load_pixel_image(location, dpi); }
+	virtual rcref<pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi) { return pane::load_pixel_image(location, dpi); }
 	virtual rcref<pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi) { return pane::load_pixel_mask(location, dpi); }
 	//virtual rcptr<vector_image> load_vector_image(const composite_string& location) { return pane::load_vector_image(location); }
 	virtual void save_clip() { pane::save_clip(); }

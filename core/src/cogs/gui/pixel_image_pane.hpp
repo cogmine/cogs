@@ -25,22 +25,16 @@ class pixel_image_pane : public pane
 private:
 	composite_string m_imageLocation;
 	rcptr<pixel_image> m_image;
-	double m_dpi;
 
 public:
-	pixel_image_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation, double dpi = canvas::dip_dpi)
-		:	pane(desc),
-		m_imageLocation(imageLocation),
-		m_dpi(dpi)
-	{
-	}
+	pixel_image_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation)
+		: pane(desc),
+		m_imageLocation(imageLocation)
+	{ }
 
 	virtual void installing()
 	{
 		m_image = load_pixel_image(m_imageLocation);
-		if (!!m_image)
-			m_image->set_dpi(m_dpi);
-
 		pane::installing();
 	}
 
@@ -64,11 +58,6 @@ public:
 		return size(0, 0);
 	}
 
-	virtual void dpi_changing(double oldDpi, double newDpi)
-	{
-		pane::dpi_changing(oldDpi, newDpi);
-	}
-
 	virtual range get_range() const
 	{
 		range r;	// unset, no limits.  Image can be stretched by default.
@@ -78,7 +67,8 @@ public:
 	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
 	{
 		pane::reshape(r, oldOrigin);
-		invalidate(get_size());
+		if (!!m_image)
+			invalidate(get_size());
 	}
 
 	virtual void drawing()
@@ -98,4 +88,3 @@ public:
 
 
 #endif
-

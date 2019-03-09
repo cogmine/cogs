@@ -17,7 +17,6 @@ using namespace cogs::io;
 using namespace cogs::io::net;
 using namespace cogs::io::net::ip;
 
-cogs::crypto::crc5_epc sdf;
 
 class box : public background
 {
@@ -311,23 +310,6 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
 	}
 
-	{
-		rcref<background> root = rcnew(background, color::beige);
-
-		rcref<pixel_image_pane> img1 = rcnew(pixel_image_pane, string::literal(L"guitar"), 168);
-		rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
-
-		scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
-
-		rcref<background> cornerPane = rcnew(background, color::purple);
-		scrollPane->nest_corner(cornerPane);
-
-		rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		root->nest(scrollPane, f);
-		*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test - 168 dpi"), root);
-	}
-
-
 
 	{
 		rcref<background> root = rcnew(background, color::beige);
@@ -588,7 +570,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<check_box> cb1 = rcnew(check_box, string::literal(L"check box"), true, false, gfx::font(18));
 
 		root->nest(cb1, rcnew(unshrinkable_frame, cb1));
-		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
+		auto frame1 = rcnew(fixed_default_size_frame, root);
+		box->nest(root, rcnew(unconstrained_max_frame, frame1));
 
 		*quitCountDown += guiSubsystem->open(string::literal(L"lines and nested checkbox"), box);
 	}
@@ -608,7 +591,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<background> root = rcnew(background, color(color::turquoise, 0x7F));
 		rcref<text_editor> te1 = rcnew(text_editor, string::literal(L"text editor"), true, gfx::font(string::literal(L"Arial"), 38));
 		root->nest(te1);
-		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_size_frame, root, size(300, 300))));
+		auto frame1 = rcnew(fixed_size_frame, root, size(300, 300));
+		box->nest(root, rcnew(unconstrained_max_frame, frame1));
 
 		*quitCountDown += guiSubsystem->open(string::literal(L"Lines and text_editor"), box);
 	}
@@ -627,7 +611,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<background> root = rcnew(background, color(color::white, 0x3F));
 		rcref<label> lbl = rcnew(label, string::literal(L"LABEL"), gfx::font(38));
 		root->nest(lbl);
-		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
+		auto frame1 = rcnew(fixed_default_size_frame, root);
+		box->nest(root, rcnew(unconstrained_max_frame, frame1));
 
 		*quitCountDown += guiSubsystem->open(string::literal(L"Lines and label"), box);
 	}
@@ -664,7 +649,8 @@ int cogs::main(const rcref<gui::windowing::subsystem>& guiSubsystem)
 		rcref<background> root = rcnew(background, color(color::white, 0x3F));
 		rcref<button> btn = rcnew(button, []() {}, string::literal(L"BUTTON"), gfx::font(38));
 		root->nest(btn);
-		box->nest(root, rcnew(unconstrained_max_frame, rcnew(fixed_default_size_frame, root)));
+		auto frame1 = rcnew(fixed_default_size_frame, root);
+		box->nest(root, rcnew(unconstrained_max_frame, frame1));
 
 		*quitCountDown += guiSubsystem->open(string::literal(L"Lines and button"), box);
 	}

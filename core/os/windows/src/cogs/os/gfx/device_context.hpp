@@ -77,7 +77,7 @@ struct BOUNDS
 };
 
 
-class device_context : public object, public gfx::canvas
+class device_context : public object, public canvas
 {
 public:
 	class gdi_plus_scope
@@ -171,7 +171,7 @@ protected:
 	void composite_scaled_pixel_image_inner(bool& isOpaque, const SIZE& sz, const bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds);
 
 public:
-	class font : public gfx::canvas::font
+	class font : public canvas::font
 	{
 	public:
 		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
@@ -265,6 +265,9 @@ public:
 			double pixels = pixels = (dpi * pt) / 72;
 
 			composite_string fontName = resolve(m_gfxFont.get_font_names());
+			if (!fontName)
+				fontName = defaultFont.get_font_names()[0];
+
 			m_GdiplusFont = std::make_unique<gdiplus_font>(
 				fontName.composite().cstr(),
 				(Gdiplus::REAL)pixels,
@@ -316,9 +319,8 @@ public:
 			// Load default font
 			NONCLIENTMETRICS ncm;
 			ncm.cbSize = sizeof(NONCLIENTMETRICS);// -sizeof(ncm.iPaddedBorderWidth);?
-			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, gfx::canvas::dip_dpi);
+			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, canvas::dip_dpi);
 
-			get_font_names().clear();
 			append_font_name(ncm.lfMessageFont.lfFaceName);
 			set_italic(ncm.lfMessageFont.lfItalic != 0);
 			set_bold(ncm.lfMessageFont.lfWeight >= 700);
@@ -453,7 +455,7 @@ public:
 		InvertRect(m_hDC, &r2);
 	}
 
-	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true )
+	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
 	{
 		COGS_ASSERT(!!m_hDC);
 		
@@ -571,9 +573,7 @@ public:
 	}
 	
 	virtual void composite_pixel_image(const canvas::pixel_image& src, const canvas::bounds& srcBounds, const canvas::point& dstPt = canvas::point(0, 0), bool blendAlpha = true);
-
 	virtual void composite_scaled_pixel_image(const canvas::pixel_image& src, const canvas::bounds& srcBounds, const canvas::bounds& destRest);
-
 	virtual void composite_pixel_mask(const canvas::pixel_mask& src, const canvas::bounds& srcBounds, const canvas::point& dstPt = canvas::point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 	virtual rcref<canvas::pixel_image_canvas> create_pixel_image_canvas(const canvas::size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi);
 	virtual rcref<canvas::pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi);

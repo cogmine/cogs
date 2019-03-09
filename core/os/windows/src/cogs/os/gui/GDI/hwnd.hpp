@@ -803,12 +803,14 @@ public:
 
 	private:
 		delayed_construction<ui_thread> m_uiThread;
-		volatile rcptr<volatile visible_windows_list_t>	m_visibleWindows;
-		rcptr<task<void> >							m_cleanupRemoveToken;
+		volatile rcptr<volatile visible_windows_list_t> m_visibleWindows;
+		rcptr<task<void> > m_cleanupRemoveToken;
 		rcref<window_class> m_windowClass;
 
 		void cleanup()
 		{
+			// Visible windows keep the subsystem in scope.  In case windows are left open
+			// until the app closes, use a cleanup function to ensure they get closed.
 			m_visibleWindows.release();
 		}
 
@@ -1356,8 +1358,7 @@ public:
 		m_redrawRgn(NULL),
 		m_hwndChildCount(0),
 		m_deviceContext(rcnew(gfx::os::gdi::device_context))
-	{
-	}
+	{ }
 
 	~hwnd_pane()
 	{
@@ -1662,7 +1663,15 @@ public:
 		get_device_context().set_dpi(newDpi);
 		if (!!m_cachedBackgroundImage)
 			m_cachedBackgroundImage->set_dpi(newDpi);
-		bridgeable_pane::dpi_changing(oldDpi, newDpi);
+
+		invalidate(get_size());
+		
+		rcptr<hwnd_pane> currentChild = m_firstChildHwnd;
+		while (!!currentChild)
+		{
+			currentChild->dpi_changing(oldDpi, newDpi);
+			currentChild = currentChild->m_nextSiblingHwnd;
+		}
 	}
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1984,7 +1993,6 @@ inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wP
 	hwndPtr->self_release();
 	return result;
 }
-
 
 
 inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile

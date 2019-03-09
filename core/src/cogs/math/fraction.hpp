@@ -1562,8 +1562,8 @@ public:
 
 /// @ingroup Math
 /// @brief A fraction type comprosed of a numerator type and a denominator type
-/// @tparam numerator_t Data type to use as a numerator
-/// @tparam denominator_t Data type to use as a denominator
+/// @tparam numerator_type Data type to use as a numerator
+/// @tparam denominator_type Data type to use as a denominator
 template <typename numerator_type, typename denominator_type = numerator_type>
 class fraction
 {
@@ -2068,15 +2068,15 @@ private:
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
-		const volatile fraction<numerator_t2, denominator_t2>&>
-	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
+		fraction<numerator_t2, denominator_t2> >
+	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return *rt; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
-		const volatile fraction<numerator_t2, denominator_t2>&>
-	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return *rt; }
+		fraction<numerator_t2, denominator_t2> >
+	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return *rt; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2112,7 +2112,7 @@ private:
 		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
-	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
+	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
 	
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2121,7 +2121,7 @@ private:
 		&& !simplification_helper<numerator_t2, denominator_t2>::is_fraction
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
-	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
+	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2197,14 +2197,14 @@ private:
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
-	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = begin_read()) { return *rt; }
+		simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return *rt; }
 
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
-	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = begin_read()) { return *rt; }
+		simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return *rt; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2242,7 +2242,7 @@ private:
 		&& !is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
-	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
+	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
 	
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2252,7 +2252,7 @@ private:
 		&& !is_const_type_v<numerator_t2>
 		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
-	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = begin_read(); return rt->m_numerator; }
+	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>

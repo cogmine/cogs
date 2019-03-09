@@ -3737,6 +3737,48 @@ inline string cstring_to_string(const composite_cstring& s)
 }
 
 
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_string>
+to_string(const T& t)
+{
+	int_to_fixed_integer_t<T> tmp(t);
+	return tmp.to_string();
+}
+
+template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_string>
+to_string(const T& t)
+{
+	std::wstring s1 = std::to_wstring(t);
+	string s2(s1.data(), s1.size());
+	return s2;
+	// Restore once std::to_chars is implemented
+	//return cstring_to_string(to_cstring(t));
+}
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_cstring>
+to_cstring(const T& t)
+{
+	int_to_fixed_integer_t<T> tmp(t);
+	return tmp.to_cstring();
+}
+
+template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_cstring>
+to_cstring(const T& t)
+{
+	std::string s1 = std::to_string(t);
+	cstring s2(s1.data(), s1.size());
+	return s2;
+
+	// Restore once std::to_chars is implemented
+	//static constexpr size_t max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
+	//cstring s;
+	//s.resize(max_digits);
+	//char* cptr = s.get_ptr();
+	//std::to_chars_result result = std::to_chars(cptr, cptr + (max_digits - 1), t);
+	//s.resize(result.ptr - cptr);
+	//return s;
+}
+
 }
 
 

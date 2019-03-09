@@ -27,8 +27,13 @@ namespace cogs {
 inline NSString* string_to_NSString(const string& s)
 {
 	return [[NSString alloc] initWithBytes: s.get_const_ptr()
-			length: s.get_length() * sizeof(wchar_t)
-			encoding: kEncoding_wchar_t ];
+		length: s.get_length() * sizeof(wchar_t)
+		encoding: kEncoding_wchar_t ];
+}
+
+inline NSString* string_to_NSString(const composite_string& s)
+{
+	return string_to_NSString(s.composite());
 }
 
 

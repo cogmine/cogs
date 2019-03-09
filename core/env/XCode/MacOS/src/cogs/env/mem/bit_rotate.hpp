@@ -13,47 +13,43 @@
 
 
 namespace cogs {
-namespace env {
 
 
 // env/bit_rotate.hpp provides env level implementation of bit_rotate_left and bit_rotate_right.
 // Use of compiler intrinsics allow specialized instructions on platforms that support them.
 
 
-
-template <typename int_t>
+template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
-	&& !std::is_volatile_v<int_t>,
-	int_t
+	std::is_integral_v<T>,
+	std::remove_volatile_t<T>
 >
-bit_rotate_right(const int_t& bits, size_t n)
+bit_rotate_right(const T& t, const A1& n)
 {
 	if (!n)
-		return bits;
-	typedef std::make_unsigned_t<int_t> uint_t;
-	uint_t bits2 = (uint_t)bits;
-	return (int_t)((bits2 >> n) | (bits2 << ((sizeof(int_t) * 8) - n)));
+		return t;
+	typedef std::make_unsigned_t<T> uint_t;
+	uint_t bits2 = (uint_t)t;
+	return (T)((bits2 >> (int)reduce_integer_type(n)) | (bits2 << ((sizeof(T) * 8) - (int)reduce_integer_type(n))));
 }
 
 
-template <typename int_t>
+template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
-	&& !std::is_volatile_v<int_t>,
-	int_t
+	std::is_integral_v<T>,
+	std::remove_volatile_t<T>
 >
-bit_rotate_left(const int_t& bits, size_t n)
+bit_rotate_left(const T& t, const A1& n)
 {
 	if (!n)
-		return bits;
-	return ((bits << n) | (bits >> ((sizeof(int_t) * 8) - n)));
+		return t;
+	typedef std::make_unsigned_t<T> uint_t;
+	uint_t bits2 = (uint_t)t;
+	return (T)((bits2 << (int)reduce_integer_type(n)) | (bits2 >> ((sizeof(T) * 8) - (int)reduce_integer_type(n))));
 }
 
 
-}
 }
 
 
 #endif
-

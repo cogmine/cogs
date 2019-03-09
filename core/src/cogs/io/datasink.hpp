@@ -83,8 +83,7 @@ public:
 		virtual void executing() = 0;
 
 		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
-		using io::queue::io_task<result_t>::canceling;
-		//virtual void canceling() { io::queue::io_task::canceling(); }
+		virtual void canceling() { io::queue::io_task<result_t>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
@@ -94,8 +93,7 @@ public:
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using io::queue::io_task<result_t>::complete;
-		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
+		void complete(bool closeQueue = false) { io::queue::io_task<result_t>::complete(closeQueue); }
 
 	public:
 		/// @brief Gets a weak reference to the datasink associated with this task
@@ -129,8 +127,7 @@ public:
 		virtual void flushing()		{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
-		using datasink_task<flusher>::canceling;
-		//virtual void canceling() { io::queue::io_task::canceling(); }
+		virtual void canceling() { io::queue::io_task<flusher>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
@@ -140,8 +137,7 @@ public:
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using datasink_task<flusher>::complete;
-		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
+		void complete(bool closeQueue = false) { io::queue::io_task<flusher>::complete(closeQueue); }
 		
 		virtual const flusher& get() const volatile { return *(const flusher*)this; }
 	};
@@ -170,8 +166,7 @@ public:
 		virtual void closing() { datasink_task<closer>::complete(true); }
 
 		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
-		using datasink_task<closer>::canceling;
-		//virtual void canceling() { io::queue::io_task::canceling(); }
+		virtual void canceling() { io::queue::io_task<closer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
@@ -181,8 +176,7 @@ public:
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using datasink_task<closer>::complete;
-		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
+		void complete(bool closeQueue = false) { io::queue::io_task<closer>::complete(closeQueue); }
 
 		virtual const closer& get() const volatile { return *(const closer*)this; }
 	};
@@ -221,8 +215,7 @@ public:
 		virtual void writing()		{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a writer that has not yet been executed. 
-		using datasink_task<writer>::canceling;
-		//virtual void canceling() { io::queue::io_task::canceling(); }
+		virtual void canceling() { io::queue::io_task<writer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a writer that has started executing.
 		///
@@ -232,8 +225,7 @@ public:
 
 		/// @brief Completes the writer, and starts the next task, if any.  Called by a derived writer.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using datasink_task<writer>::complete;
-		//void complete(bool closeQueue = false) { io::queue::io_task::complete(closeQueue); }
+		void complete(bool closeQueue = false) { io::queue::io_task<writer>::complete(closeQueue); }
 
 		/// @brief Gets the buffer to write
 		/// @return The buffer to write

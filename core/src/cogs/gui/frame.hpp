@@ -844,13 +844,13 @@ public:
 	virtual size propose_lengths(dimension d, const size& proposedSize) const
 	{
 		size sz = proposedSize * m_proportionalSize;
-		sz = frame::propose_lengths(d, sz) / m_proportionalSize;
+		return frame::propose_lengths(d, sz) / m_proportionalSize;
 	}
 
 	virtual size propose_size(const size& proposedSize) const
 	{
 		size sz = proposedSize * m_proportionalSize;
-		sz = frame::propose_size(sz) / m_proportionalSize;
+		return frame::propose_size(sz) / m_proportionalSize;
 	}
 
 protected:

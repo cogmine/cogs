@@ -488,7 +488,6 @@ enum class sorted_btree_insert_mode
 /// @tparam derived_node_t A class derived from tlink_t.
 /// @tparam comparator_t A static comparator class used to compare keys.  Default: default_comparator
 /// @tparam ref_type Reference type to use for links.  Default: ptr
-/// @tparam allocator_type An allocator to use to allocate nodes.  Default: default_allocator
 template <typename key_t, typename derived_node_t, class comparator_t, template <typename> class ref_type = ptr>
 class sorted_btree : protected btree<derived_node_t, ref_type>
 {

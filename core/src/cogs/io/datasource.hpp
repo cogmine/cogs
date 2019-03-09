@@ -133,8 +133,7 @@ public:
 		virtual void executing() = 0;
 
 		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
-		using io::queue::io_task<result_t>::canceling;
-		//virtual void canceling() { io::queue::io_task<const rcref<result_t> >::canceling(); }
+		virtual void canceling() { io::queue::io_task<result_t>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
@@ -144,8 +143,7 @@ public:
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using io::queue::io_task<result_t>::complete;
-		//void complete(bool closeQueue = false) { io::queue::io_task<const rcref<result_t> >::complete(closeQueue); }
+		void complete(bool closeQueue = false) { io::queue::io_task<result_t>::complete(closeQueue); }
 
 	public:
 		/// @brief Gets a weak reference to the datasource associated with this task
@@ -179,8 +177,7 @@ public:
 		virtual void flushing() { complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
-		using datasource_task<flusher>::canceling;
-		//virtual void canceling() { datasource_task<flusher>::canceling(); }
+		virtual void canceling() { datasource_task<flusher>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
@@ -190,8 +187,7 @@ public:
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using datasource_task<flusher>::complete;
-		//void complete(bool closeQueue = false) { datasource_task<flusher>::complete(closeQueue); }
+		void complete(bool closeQueue = false) { datasource_task<flusher>::complete(closeQueue); }
 
 		virtual const flusher& get() const volatile { return *(const flusher*)this; }
 	};
@@ -220,8 +216,7 @@ public:
 		virtual void closing() { datasource_task<closer>::complete(true); }
 
 		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
-		using datasource_task<closer>::canceling;
-		//virtual void canceling() { datasource_task<closer>::canceling(); }
+		virtual void canceling() { datasource_task<closer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
@@ -231,8 +226,7 @@ public:
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
 		/// @param closeQueue If true the datasource is also closed and all subsequent tasks are canceled.  Default: false
-		using datasource_task<closer>::complete;
-		//void complete(bool closeQueue = false) { datasource_task<closer>::complete(closeQueue); }
+		void complete(bool closeQueue = false) { datasource_task<closer>::complete(closeQueue); }
 
 		virtual const closer& get() const volatile { return *(const closer*)this; }
 	};
@@ -291,8 +285,7 @@ public:
 		virtual void reading()				{ complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a reader that has not yet been executed. 
-		using datasource_task<reader>::canceling;
-		//virtual void canceling() { datasource_task<reader>::canceling(); }
+		virtual void canceling() { datasource_task<reader>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a reader that has started executing.
 		///
@@ -302,8 +295,7 @@ public:
 
 		/// @brief Completes the reader, and starts the next task, if any.  Called by a derived reader.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
-		using datasource_task<reader>::complete;
-		//void complete(bool closeQueue = false) { datasource_task<reader>::complete(closeQueue); }
+		void complete(bool closeQueue = false) { datasource_task<reader>::complete(closeQueue); }
 
 		/// @brief Restores data to the datasource.  It will be read by the next reader.
 		///

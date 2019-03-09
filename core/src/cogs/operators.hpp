@@ -96,6 +96,9 @@ template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all
 	template <typename T, typename... args_t>\
 	inline std::enable_if_t<std::is_class_v<T>, decltype(std::declval<T&>().name(std::declval<args_t>()...))>\
 	name(T& t, args_t&&... args) { return t.name(std::forward<args_t>(args)...); }\
+	template <typename T, typename... args_t>\
+	inline std::enable_if_t<std::is_class_v<T>, decltype(std::declval<T&>().name(std::declval<args_t>()...))>\
+	name(const T& t, args_t&&... args) { return t.name(std::forward<args_t>(args)...); }\
 
 #define COGS_DEFINE_UNARY_ASSIGN_OPERATORS(name)\
 	template <typename T> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, void>\
@@ -723,7 +726,8 @@ template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& ((sizeof(T) + sizeof(A1)) > sizeof(longest)),
-	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1))> >
+	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8>
+>
 multiply(const T& t, const A1& a);
 //{
 //	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, sizeof(T) + sizeof(A1)> result;
@@ -1854,47 +1858,18 @@ inline cstring string_to_cstring(const composite_string& s);
 inline string cstring_to_string(const composite_cstring& s);
 
 
-
 template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_string>
-to_string(const T& t)
-{
-	int_to_fixed_integer_t<T> tmp(t);
-	return tmp.to_string();
-}
+to_string(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_string>
-to_string(const T& t)
-{
-	std::wstring s1 = std::to_wstring(t);
-	string s2(s1.data(), s1.size());
-	return s2;
-	// Restore once std::to_chars is implemented
-	//return cstring_to_string(to_cstring(t));
-}
+to_string(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_cstring>
-to_cstring(const T& t)
-{
-	int_to_fixed_integer_t<T> tmp(t);
-	return tmp.to_cstring();
-}
+to_cstring(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_cstring>
-to_cstring(const T& t)
-{
-	std::string s1 = std::to_string(t);
-	cstring s2(s1.data(), s1.size());
-	return s2;
+to_cstring(const T& t);
 
-	// Restore once std::to_chars is implemented
-	//static constexpr size_t max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
-	//cstring s;
-	//s.resize(max_digits);
-	//char* cptr = s.get_ptr();
-	//std::to_chars_result result = std::to_chars(cptr, cptr + (max_digits - 1), t);
-	//s.resize(result.ptr - cptr);
-	//return s;
-}
 
 
 template <typename char_t, typename T>
@@ -1906,6 +1881,7 @@ inline std::enable_if_t<std::is_same_v<char_t, wchar_t> && (std::is_integral_v<T
 to_string_t(const T& t) { return to_string(t); }
 
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_string)
+COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_string_t)
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_cstring)
 
 
@@ -1959,7 +1935,7 @@ using first_type_t = typename first_type<T1, Ts...>::type;
 template <typename T1, typename... Ts>
 struct last_type
 {
-	typedef typename last_type<T1, Ts...>::type type;
+	typedef typename last_type<Ts...>::type type;
 };
 template <typename T1, typename... Ts>
 using last_type_t = typename last_type<T1, Ts...>::type;

@@ -136,6 +136,9 @@
     <Filter Include="env\XCode">
       <UniqueIdentifier>{ee8e1a96-f73c-47ba-a2e0-d13ffb2429ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="env\XCode\MacOS">
+      <UniqueIdentifier>{6e856743-3457-4cea-e930-060d83245a32}</UniqueIdentifier>
+    </Filter>
     <Filter Include="env\default\math">
       <UniqueIdentifier>{cc1be5f3-df6e-4288-ab74-e64c4e516d9e}</UniqueIdentifier>
     </Filter>
@@ -148,11 +151,14 @@
     <Filter Include="env\gcc\mem">
       <UniqueIdentifier>{71c78ba9-1c37-4095-a970-38f807407384}</UniqueIdentifier>
     </Filter>
-    <Filter Include="env\XCode\math">
+    <Filter Include="env\XCode\MacOS\math">
       <UniqueIdentifier>{b1efdc30-ed90-414e-a193-2a0b16896597}</UniqueIdentifier>
     </Filter>
-    <Filter Include="env\XCode\mem">
+    <Filter Include="env\XCode\MacOS\mem">
       <UniqueIdentifier>{f972c424-1ca7-4561-841e-f1646d6b6bea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="env\XCode\MacOS\sync">
+      <UniqueIdentifier>{2c27ad16-ccbd-4cd0-90a0-40f7de1ca1da}</UniqueIdentifier>
     </Filter>
     <Filter Include="env\VS\math">
       <UniqueIdentifier>{8b31638a-2f72-45bd-a552-c1de8c2d6f2c}</UniqueIdentifier>
@@ -469,22 +475,22 @@
       <Filter>env\XCode</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\math\umul.hpp">
-      <Filter>env\XCode\math</Filter>
+      <Filter>env\XCode\MacOS\math</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\alignment.hpp">
-      <Filter>env\XCode\mem</Filter>
+      <Filter>env\XCode\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\allocator.hpp">
-      <Filter>env\XCode\mem</Filter>
+      <Filter>env\XCode\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_count.hpp">
-      <Filter>env\XCode\mem</Filter>
+      <Filter>env\XCode\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_rotate.hpp">
-      <Filter>env\XCode\mem</Filter>
+      <Filter>env\XCode\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_scan.hpp">
-      <Filter>env\XCode\mem</Filter>
+      <Filter>env\XCode\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env.hpp">
       <Filter>env\VS</Filter>
@@ -1233,6 +1239,24 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\bindable_property.hpp">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_compare_exchange.hpp">
+      <Filter>env\XCode\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_exchange.hpp">
+      <Filter>env\XCode\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_load.hpp">
+      <Filter>env\XCode\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_operators.hpp">
+      <Filter>env\XCode\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_store.hpp">
+      <Filter>env\XCode\MacOS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\atomic_operators.hpp">
+      <Filter>os\MacOS\sync</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
@@ -1259,7 +1283,7 @@
       <Filter>env\gcc</Filter>
     </None>
     <None Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\main.mm">
-      <Filter>env\XCode</Filter>
+      <Filter>env\XCode\MacOS</Filter>
     </None>
   </ItemGroup>
 </Project>

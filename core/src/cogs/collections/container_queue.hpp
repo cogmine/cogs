@@ -21,10 +21,11 @@ namespace cogs {
 /// @tparam T type to contain
 /// @tparam coalesc_equal If true, contiguous equal elements may be coalesced.  Default: false
 /// @tparam allocator_type Type of allocator to use to allocate elements.  Default: default_allocator
-template <typename type, bool coalesc_equal = false, class allocator_type = default_allocator>
+template <typename T, bool coalesc_equal = false, class allocator_type = default_allocator>
 class container_queue
 {
 public:
+	typedef T type;
 	typedef container_queue<type, false, allocator_type> this_t;
 
 private:	
@@ -110,10 +111,11 @@ public:
 };
 
 
-template <typename type, class allocator_type>
-class container_queue<type, true, allocator_type>
+template <typename T, class allocator_type>
+class container_queue<T, true, allocator_type>
 {
 public:
+	typedef T type;
 	typedef container_queue<type, true, allocator_type> this_t;
 
 private:	

@@ -266,13 +266,6 @@ protected:
 				paneBridge->pane::calculate_range();
 	}
 
-	virtual void dpi_changing(double oldDpi, double newDpi)
-	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::dpi_changing(oldDpi, newDpi);
-	}
-
 	// notification interfaces (called internally, overriden)
 
 	// pane_base interface - notifications
@@ -450,16 +443,6 @@ protected:
 			m_bridgedPane->calculate_range();
 		else
 			pane::calculate_range();
-	}
-
-	virtual void dpi_changing(double oldDpi, double newDpi)
-	{
-		if (!!m_bridgedPane)
-			//return 
-			m_bridgedPane->dpi_changing(oldDpi, newDpi);
-		//return 
-		else
-			pane::dpi_changing(oldDpi, newDpi);
 	}
 
 	// notification interfaces (called internally, overriden)

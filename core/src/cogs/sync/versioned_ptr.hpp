@@ -38,7 +38,7 @@ public:
 	typedef typename versioned_t<type*>::version_t version_t;
 
 	/// @brief Provides a versioned_ptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -503,7 +503,7 @@ public:
 	typedef typename versioned_t<type*>::version_t version_t;
 
 	/// @brief Provides a versioned_ptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -800,7 +800,7 @@ public:
 	typedef typename versioned_t<type*>::version_t version_t;
 
 	/// @brief Provides a versioned_ptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -1100,7 +1100,7 @@ public:
 	typedef typename versioned_t<type*>::version_t version_t;
 
 	/// @brief Provides a versioned_ptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -1400,7 +1400,7 @@ public:
 	typedef typename versioned_t<type*>::version_t version_t;
 
 	/// @brief Provides a versioned_ptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{

@@ -67,7 +67,7 @@ bit_count(const int_t& bits)
 	std::make_unsigned_t<int_t> bits2 = bits;
 	while (!!bits2)
 	{
-		unsigned __int64 ll = (unsigned long long)bits2;
+		unsigned long long ll = (unsigned long long)bits2;
 		result += bit_count(ll);
 		bits2 >>= (sizeof(unsigned long long) * 8);
 	}

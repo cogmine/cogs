@@ -32,10 +32,13 @@ class graphics_context : public canvas
 public:
 	class font : public canvas::font
 	{
-	public:
+	private:
+		friend class graphics_context;
+
 		NSFont* m_nsFont;
 		bool	m_isUnderlined;
 
+	public:
 		font(NSFont* nsFont, bool isUnderlined)
 			:	m_nsFont(nsFont),
 				m_isUnderlined(isUnderlined)
@@ -46,6 +49,48 @@ public:
 		~font()
 		{
 			[m_nsFont release];
+		}
+
+		virtual font::metrics get_metrics() const
+		{
+			font::metrics result;
+
+			result.m_ascent = [m_nsFont ascender];
+			result.m_descent = [m_nsFont descender];
+			result.m_spacing = [m_nsFont defaultLineHeightForFont];
+
+			return result;
+		}
+
+		virtual canvas::size calc_text_bounds(const composite_string& s) const
+		{
+			NSString* str = string_to_NSString(s);
+			NSMutableDictionary* attribs = [[NSMutableDictionary alloc] initWithCapacity:2];
+			[attribs setObject:m_nsFont forKey:NSFontAttributeName]; 
+			if (m_isUnderlined)
+				[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
+			NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs];	// NSStringDrawingUsesDeviceMetrics | 
+			[attribs release];
+			[str release];
+			return canvas::size(r.size.width, r.size.height);
+		}
+	};
+
+	class default_font : public gfx::font
+	{
+	public:
+		default_font()
+		{
+			CGFloat fontSize = [NSFont systemFontSize];
+			set_point_size(fontSize);
+
+			NSFont *nsFont = [NSFont systemFontOfSize:fontSize];
+			append_font_name([nsFont fontName]);
+
+			set_italic(false);
+			set_bold(false);
+			set_underlined(false);
+			set_strike_out(false);
 		}
 	};
 
@@ -78,7 +123,7 @@ public:
 		CGContextRestoreGState (context);
 	}
 
-	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true )
+	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
 	{
 		NSPoint pt1 = NSMakePoint(0.5 + startPt.get_x(), 0.5 + startPt.get_y()); 
 		NSPoint pt2 = NSMakePoint(0.5 + endPt.get_x(), 0.5 + endPt.get_y());
@@ -94,57 +139,50 @@ public:
 		[bPath stroke];
 	}
 
-	virtual void scroll(const canvas::bounds_t& r, const canvas::point& pt = canvas::point(0,0)) = 0;
+	virtual void scroll(const canvas::bounds_t& r, const canvas::point& pt = canvas::point(0, 0))
+	{
+		// NOOP
+	}
 
 	// text and font primatives
 	virtual rcref<canvas::font> load_font(const gfx::font& guiFont)
 	{
 		NSFont* nsFont;
-		CGFloat fontSize = guiFont.get_point_size();
+		CGFloat fontSize;
+		if (!guiFont.get_point_size())
+			fontSize = [NSFont systemFontSize];
+		else
+			fontSize = guiFont.get_point_size();
+
 		size_t numFontNames = guiFont.get_num_font_names();
-		for (size_t i = 0; ; i++)
+		size_t i = 0;
+		for (; i < numFontNames; i++)
 		{
-			if (i == numFontNames)	// give up, use default font
-			{
-				nsFont = [NSFont messageFontOfSize:fontSize];
-				COGS_ASSERT(!!nsFont);
-			}
-			else
-			{
-				NSString* fontName = string_to_NSString(guiFont.get_font_names()[i]);
-				nsFont = [NSFont fontWithName:fontName size:fontSize];
-				[fontName release];
-				COGS_ASSERT(!!nsFont);	// TBD <- if this is never hit, we don't get NULL on failure.  doh.
-			}
+			NSString* fontName = string_to_NSString(guiFont.get_font_names()[i]);
+			nsFont = [NSFont fontWithName:fontName size:fontSize];
+			[fontName release];
 			if (!!nsFont)
-			{
-				NSFontManager* nsFontManager = [NSFontManager sharedFontManager];
-				if (guiFont.is_italic())
-					[nsFontManager convertFont:nsFont toHaveTrait:NSItalicFontMask];
-				if (guiFont.is_bold())
-					[nsFontManager convertFont:nsFont toHaveTrait:NSBoldFontMask];
-				return rcnew(font, nsFont, guiFont.is_underlined());
-			}
+				break;
 		}
-#error Needs to fall back to default font
-		return 0;
+
+		if (i == numFontNames)
+		{
+			nsFont = [NSFont systemFontOfSize:fontSize];
+			COGS_ASSERT(!!nsFont);
+		}
+
+		NSFontManager* nsFontManager = [NSFontManager sharedFontManager];
+		if (guiFont.is_italic())
+			[nsFontManager convertFont:nsFont toHaveTrait:NSItalicFontMask];
+		if (guiFont.is_bold())
+			[nsFontManager convertFont:nsFont toHaveTrait:NSBoldFontMask];
+		return rcnew(font, nsFont, guiFont.is_underlined());
 	}
 
-	//virtual canvas::size calc_text_bounds(const composite_string& s, const rcptr<canvas::font>& f)
-	//{
-	//	ptr<font> derivedFont = f.get_obj().template static_cast_to<font>();
-	//	NSFont* nsFont = derivedFont->m_nsFont;
-	//
-	//	NSString* str = string_to_NSString(s);
-	//	NSMutableDictionary* attribs = [[NSMutableDictionary alloc] initWithCapacity:2];
-	//	[attribs setObject:nsFont forKey:NSFontAttributeName]; 
-	//	if (derivedFont->m_isUnderlined)
-	//		[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
-	//	NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs];	// NSStringDrawingUsesDeviceMetrics | 
-	//	[attribs release];
-	//	[str release];
-	//	return canvas::size(r.size.width, r.size.height);
-	//}
+	virtual gfx::font get_default_font()
+	{
+		return *singleton<default_font>::get();
+	}
 	
 	virtual void draw_text(const composite_string& s, const bounds_t& r, const rcptr<canvas::font>& f, const color& c = color::black, bool blendAlpha = true)
 	{
@@ -170,7 +208,6 @@ public:
 	// Compositing images
 	virtual void composite_pixel_image(const pixel_image& src, const bounds& srcBounds, const point& dstPt = point(0, 0), bool blendAlpha = true);
 	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds);
-	//virtual void composite_scaled_pixel_image(const canvas::pixel_image& src, const canvas::bounds_t& srcBounds, const canvas::bounds_t& dstBounds, bool blendAlpha = true);
 	virtual void composite_pixel_mask(const canvas::pixel_mask& src, const canvas::bounds_t& srcBounds, const canvas::point& dstPt = canvas::point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 	virtual rcref<canvas::pixel_image_canvas> create_pixel_image_canvas(const canvas::size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi);
 	virtual rcref<canvas::pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi);
@@ -214,27 +251,27 @@ public:
 
 	static NSRect make_NSRect(const canvas::bounds_t& r)
 	{
-		return NSMakeRect(r.calc_left().get_int<int>(), r.calc_top().get_int<int>(), r.calc_width().get_int<int>(), r.calc_height().get_int<int>());
+		return NSMakeRect(r.calc_left(), r.calc_top(), r.calc_width(), r.calc_height());
 	}
 
 	static NSRect make_NSRect(const canvas::size& sz)
 	{
-		return NSMakeRect(0, 0, sz.get_width().get_int<int>(), sz.get_height().get_int<int>());
+		return NSMakeRect(0, 0, sz.get_width(), sz.get_height());
 	}
 
 	static NSRect make_NSRect(const canvas::point& pt, const canvas::size& sz)
 	{
-		return NSMakeRect(pt.get_x().get_int<int>(), pt.get_y().get_int<int>(), sz.get_width().get_int<int>(), sz.get_height().get_int<int>());
+		return NSMakeRect(pt.get_x(), pt.get_y(), sz.get_width(), sz.get_height());
 	}
 
 	static NSPoint make_NSPoint(const canvas::point& pt)
 	{
-		return NSMakePoint(pt.get_x().get_int<int>(), pt.get_y().get_int<int>());
+		return NSMakePoint(pt.get_x(), pt.get_y());
 	}
 
 	static NSSize make_NSSize(const canvas::size& sz)
 	{
-		return NSMakeSize(sz.get_width().get_int<int>(), sz.get_height().get_int<int>());
+		return NSMakeSize(sz.get_width(), sz.get_height());
 	}
 
 	static NSColor* make_NSColor(const color& c)

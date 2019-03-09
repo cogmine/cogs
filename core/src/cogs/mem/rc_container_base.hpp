@@ -156,6 +156,8 @@ protected:
 		rc_obj_base* oldDesc = m_contents->m_desc;
 		m_contents->m_obj = obj.get_ptr();
 		m_contents->m_desc = desc.get_ptr();
+		if (!!oldDesc)
+			oldDesc->release(refStrengthType);
 	}
 
 	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile

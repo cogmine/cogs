@@ -295,8 +295,8 @@ public:
 	priority_queue(volatile allocator_type& al) : m_contents(al) { }
 
 	void clear() { m_contents.clear(); }
-	void drain() { m_contents.clear(); }
-	void drain() volatile					{ m_contents.drain(); }
+	bool drain() { return m_contents.drain(); }
+	bool drain() volatile					{ return m_contents.drain(); }
 	bool is_empty() const volatile			{ return m_contents.is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
 	size_t size() const volatile			{ return m_contents.size(); }
@@ -734,7 +734,8 @@ public:
 	priority_queue(volatile allocator_type& al) : m_contents(al) { }
 
 	void clear()							{ m_contents.clear(); }
-	void drain() volatile					{ m_contents.drain(); }
+	bool drain()							{ return m_contents.drain(); }
+	bool drain() volatile					{ return m_contents.drain(); }
 	bool is_empty() const volatile			{ return m_contents.is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
 	size_t size() const volatile			{ return m_contents.size(); }

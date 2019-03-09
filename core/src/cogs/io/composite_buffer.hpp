@@ -300,25 +300,25 @@ public:
 		}
 	}
 
-	buffer pop_first_array()
+	vector<char> pop_first_array()
 	{
-		buffer result;
+		vector<char> result;
 		if (!!m_length)
 		{
-			result = buffer::from_vector(m_vectorVector.get_const_ptr()[0]);
+			result = m_vectorVector.get_const_ptr()[0];
 			m_length -= result.get_length();
 			m_vectorVector.advance(1);
 		}
 		return result;
 	}
 
-	buffer pop_last_array()
+	vector<char> pop_last_array()
 	{
-		buffer result;
+		vector<char> result;
 		size_t arrayArrayLength = m_vectorVector.get_length();
 		if (!!arrayArrayLength)
 		{
-			result = buffer::from_vector(m_vectorVector.get_const_ptr()[arrayArrayLength - 1]);
+			result = m_vectorVector.get_const_ptr()[arrayArrayLength - 1];
 			m_length -= result.get_length();
 			m_vectorVector.truncate(1);
 		}
@@ -3878,12 +3878,12 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void advance_array()				{ advance_arrays(1); }
-	void truncate_array()			{ truncate_arrays(1); }
+	void advance_array() { advance_arrays(1); }
+	void truncate_array() { truncate_arrays(1); }
 
-	vector<char> pop_first_array()		{ return m_contents->pop_first_array(); }
+	buffer pop_first_array()		{ return buffer::from_vector(m_contents->pop_first_array()); }
 
-	vector<char> pop_first_array() volatile
+	buffer pop_first_array() volatile
 	{
 		vector<char> result;
 		write_token wt;
@@ -3897,12 +3897,12 @@ public:
 				break;
 			result.clear();
 		}
-		return result;
+		return buffer::from_vector(result);
 	}
 
-	vector<char> pop_last_array()		{ return m_contents->pop_last_array(); }
+	buffer pop_last_array()		{ return buffer::from_vector(m_contents->pop_last_array()); }
 
-	vector<char> pop_last_array() volatile
+	buffer pop_last_array() volatile
 	{
 		vector<char> result;
 		write_token wt;
@@ -3916,7 +3916,7 @@ public:
 				break;
 			result.clear();
 		}
-		return result;
+		return buffer::from_vector(result);
 	}
 
 	composite_buffer split_off_arrays_before(size_t i)

@@ -32,7 +32,7 @@ namespace cogs {
 
 /// @ingroup Mem
 /// @brief A helper class that facilitates placement storage
-/// @tparam size Size of type
+/// @tparam n Size of type
 /// @tparam alignment Alignment of type
 template <size_t n, size_t alignment>
 class alignas (alignment) placement_storage
@@ -253,7 +253,7 @@ placement_move(T* dst, T* src, size_t n)
 			{
 				placement_copy_construct_array(dst, src, gap);
 				size_t i = gap;
-				T* t2;
+				T* t2 = 0;	// gcc things this needs initializing.  It doesn't because i == gap, and gap is < n, so the loop will run.
 				for (; i < n; i++)
 				{
 					t2 = dst + i;

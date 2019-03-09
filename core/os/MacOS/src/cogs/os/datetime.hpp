@@ -66,7 +66,7 @@ public:
 	static datetime	now()
 	{
 		time_t t;
-		time(&t);
+		::time(&t);
 		return datetime(t);
 	}
 

@@ -210,7 +210,8 @@ public:
 	wait_priority_queue(volatile allocator_type& al) : m_priorityQueue(al) { }
 
 	void clear()							{ m_priorityQueue.clear(); }
-	void drain() volatile					{ m_priorityQueue.drain(); }
+	bool drain()							{ return m_priorityQueue.drain(); }
+	bool drain() volatile					{ return m_priorityQueue.drain(); }
 	bool is_empty() const volatile			{ return m_priorityQueue.is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
 	size_t size() const volatile			{ return m_priorityQueue.size(); }
@@ -472,8 +473,8 @@ public:
 	wait_priority_queue(volatile allocator_type& al) : m_priorityQueue(al) { }
 
 	void clear() { m_priorityQueue.clear(); }
-	void drain() { m_priorityQueue.clear(); }
-	void drain() volatile					{ m_priorityQueue.drain(); }
+	bool drain() { return m_priorityQueue.drain(); }
+	bool drain() volatile					{ return m_priorityQueue.drain(); }
 	bool is_empty() const volatile			{ return m_priorityQueue.is_empty(); }
 	bool operator!() const volatile			{ return is_empty(); }
 	size_t size() const volatile			{ return m_priorityQueue.size(); }

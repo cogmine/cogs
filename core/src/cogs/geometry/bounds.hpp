@@ -100,7 +100,7 @@ public:
 	void clear() { cogs::clear(m_position); cogs::clear(m_size); }
 
 	// normalize
-	void normalize() { double tmp = calc_position(); m_size = calc_size(); m_position = m_position; }
+	void normalize() { double tmp = calc_position(); m_size = calc_size(); m_position = tmp; }
 	bounds normalized() const { return bounds(calc_position(), calc_size()); }
 
 
@@ -257,9 +257,6 @@ public:
 		}
 		else
 		{
-			double size1 = b1.get_size();
-			double size2 = b2.get_size();
-
 			if (start1 < start2)
 				segments[numSegments++].set(start1, start2 - start1);
 			else if (start2 < start1)

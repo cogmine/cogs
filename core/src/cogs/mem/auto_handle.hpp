@@ -43,8 +43,7 @@ public:
 	{ }
 
 	auto_handle(this_t&& src)
-		: m_value(std::move(src.m_value)),
-		m_value(std::move(src.m_value))
+		: m_value(std::move(src.m_value))
 	{ }
 
 	~auto_handle()
@@ -56,6 +55,14 @@ public:
 	this_t& operator=(const value_t& value)
 	{
 		set(value);
+		return *this;
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		if (m_value != invalidValue)
+			dispose_func(m_value);
+		m_value = std::move(src.m_value);
 		return *this;
 	}
 
@@ -117,8 +124,7 @@ public:
 	{ }
 
 	auto_handle(this_t&& src)
-		: m_value(std::move(src.m_value)),
-		m_value(std::move(src.m_value))
+		: m_value(std::move(src.m_value))
 	{ }
 
 	~auto_handle()
@@ -136,6 +142,18 @@ public:
 	volatile this_t& operator=(const value_t& value) volatile
 	{
 		set(value);
+		return *this;
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		set(src.m_value);
+		return *this;
+	}
+
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		set(src.m_value);
 		return *this;
 	}
 

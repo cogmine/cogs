@@ -40,6 +40,10 @@ public:
 		: m_contents(src.m_contents)
 	{ }
 
+	proportion(proportion&& src)
+		: m_contents(std::move(src.m_contents))
+	{ }
+
 	proportion(double x, double y)
 		: m_contents{ x, y }
 	{ }
@@ -47,6 +51,13 @@ public:
 	proportion& operator=(const proportion& src)
 	{
 		m_contents = src.m_contents;
+		return *this;
+	}
+
+	proportion& operator=(proportion&& src)
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
 	}
 
 	void set(double x, double y)

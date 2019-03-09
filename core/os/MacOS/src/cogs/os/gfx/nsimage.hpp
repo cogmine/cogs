@@ -23,9 +23,10 @@ namespace gfx {
 namespace os {
 
 
-class nsimage : public canvas::pixel_image_canvas, public graphics_context
+class nsimage : public canvas::pixel_image_canvas
 {
 protected:
+	graphics_context m_gc;
 	NSImage*	m_image;
 
 public:
@@ -76,21 +77,21 @@ public:
 	virtual void fill(const bounds& r, const color& c = color::black, bool blendAlpha = true)
 	{
 		[m_image lockFocus];
-		graphics_context::fill(r, c, blendAlpha);
+		m_gc.fill(r, c, blendAlpha);
 		[m_image unlockFocus];
 	}
 
 	virtual void invert(const bounds& r)
 	{
 		[m_image lockFocus];
-		graphics_context::invert(r);
+		m_gc.invert(r);
 		[m_image unlockFocus];
 	}
 
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
 	{
 		[m_image lockFocus];
-		graphics_context::draw_line(startPt, endPt, width, c, blendAlpha);
+		m_gc.draw_line(startPt, endPt, width, c, blendAlpha);
 		[m_image unlockFocus];
 	}
 
@@ -109,33 +110,33 @@ public:
 		[m_image unlockFocus];
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& guiFont)							{ return graphics_context::load_font(guiFont); }
+	virtual rcref<canvas::font> load_font(const gfx::font& guiFont)							{ return m_gc.load_font(guiFont); }
 	
 	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<canvas::font>& f = 0, const color& c = color::black, bool blendAlpha = true)
 	{
 		[m_image lockFocus];
-		graphics_context::draw_text(s, r, f, c, blendAlpha);
+		m_gc.draw_text(s, r, f, c, blendAlpha);
 		[m_image unlockFocus];
 	}
 
 	virtual void composite_pixel_image(const pixel_image& src, const bounds& srcBounds, const point& dstPt = point(0, 0), bool blendAlpha = true)
 	{
 		[m_image lockFocus];
-		graphics_context::composite_pixel_image(img, srcBounds, dstPt, blendAlpha);
+		m_gc.composite_pixel_image(img, srcBounds, dstPt, blendAlpha);
 		[m_image unlockFocus];
 	}
 
 	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds)
 	{
 		[m_image lockFocus];
-		graphics_context::composite_scaled_pixel_image(img, srcBounds, dstBounds);
+		m_gc.composite_scaled_pixel_image(img, srcBounds, dstBounds);
 		[m_image unlockFocus];
 	}
 
 	//virtual void composite_scaled_pixel_image(const canvas::pixel_image& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
 	//{
 	//	[m_image lockFocus];
-	//	graphics_context::composite_scaled_pixel_image(img, srcBounds, dstBounds, blendAlpha);
+	//	m_gc.composite_scaled_pixel_image(img, srcBounds, dstBounds, blendAlpha);
 	//	[m_image unlockFocus];
 	//}
 
@@ -143,44 +144,44 @@ public:
 	virtual void composite_pixel_mask(const canvas::pixel_mask& src, const bounds& srcBounds, const point& dstPt = point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		[m_image lockFocus];
-		graphics_context::composite_pixel_mask(src, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha);
+		m_gc.composite_pixel_mask(src, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha);
 		[m_image unlockFocus];
 	}
 
 	virtual rcref<canvas::pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi)
-	{ return graphics_context::create_pixel_image_canvas(sz, isOpaque, dpi); }
+	{ return m_gc.create_pixel_image_canvas(sz, isOpaque, dpi); }
 
 	virtual rcref<canvas::pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi)
-	{ return graphics_context::load_pixel_image(location, dpi); }
+	{ return m_gc.load_pixel_image(location, dpi); }
 
 	virtual rcref<canvas::pixel_mask> load_pixel_image_mask(const composite_string& location, double dpi = canvas::dip_dpi)
-	{ return graphics_context::load_pixel_image_mask(location, dpi); }
+	{ return m_gc.load_pixel_image_mask(location, dpi); }
 
 	virtual void save_clip()
 	{
 		[m_image lockFocus];
-		graphics_context::save_clip();
+		m_gc.save_clip();
 		[m_image unlockFocus];
 	}
 
 	virtual void restore_clip()
 	{
 		[m_image lockFocus];
-		graphics_context::restore_clip();
+		m_gc.restore_clip();
 		[m_image unlockFocus];
 	}
 
 	virtual void clip_out(const bounds& r)
 	{
 		[m_image lockFocus];
-		graphics_context::clip_out(r);
+		m_gc.clip_out(r);
 		[m_image unlockFocus];
 	}
 
 	virtual void clip_to(const bounds& r)
 	{
 		[m_image lockFocus];
-		graphics_context::clip_to(r);
+		m_gc.clip_to(r);
 		[m_image unlockFocus];
 	}
 };

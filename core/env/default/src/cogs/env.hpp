@@ -27,14 +27,14 @@
 namespace cogs {
 
 
-template <> class bytes_to_int<sizeof(unsigned char), false> { public: typedef unsigned char int_t; };
-template <> class bytes_to_int<sizeof(signed char), true> { public: typedef signed char int_t; };
+template <> class bytes_to_int<sizeof(unsigned char), false> { public: typedef unsigned char type; };
+template <> class bytes_to_int<sizeof(signed char), true> { public: typedef signed char type; };
 
-template <> class bytes_to_int<sizeof(unsigned short), false> { public: typedef unsigned short int_t; };
-template <> class bytes_to_int<sizeof(signed short), true> { public: typedef signed short int_t; };
+template <> class bytes_to_int<sizeof(unsigned short), false> { public: typedef unsigned short type; };
+template <> class bytes_to_int<sizeof(signed short), true> { public: typedef signed short type; };
 
-template <> class bytes_to_int<sizeof(unsigned long), false> { public: typedef unsigned long int_t; };
-template <> class bytes_to_int<sizeof(signed long), true> { public: typedef signed long int_t; };
+template <> class bytes_to_int<sizeof(unsigned long), false> { public: typedef unsigned long type; };
+template <> class bytes_to_int<sizeof(signed long), true> { public: typedef signed long type; };
 
 #define COGS_LONGEST_INT (4)
 

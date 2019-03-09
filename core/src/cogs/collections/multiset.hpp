@@ -386,9 +386,9 @@ public:
 
 	/// @{
 	/// @brief Drains all elements.  Unlike clear(), drain() does not imply the operation can be done atomically with respect to all elements.
-	void drain() { m_contents.clear(); }
+	bool drain() { bool foundAny = !m_contents.is_empty(); m_contents.clear(); return foundAny; }
 	/// @brief Thread-safe implementation of drain()
-	void drain() volatile { m_contents.drain(); }
+	bool drain() volatile { return m_contents.drain(); }
 	/// @}
 
 	/// @{
@@ -784,7 +784,7 @@ public:
 		m_count = 0;
 	}
 
-	void drain() { clear(); }
+	bool drain() { bool foundAny = !!m_count; clear(); return foundAny; }
 
 	size_t size() const			{ return m_count; }
 	bool is_empty() const		{ return !m_count; }

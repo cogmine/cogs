@@ -598,8 +598,9 @@ public:
 	protected:
 		friend class tcp;
 
-		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 			:	m_port(port),
+			object(desc),
 			m_closeEvent(rcnew(single_fire_event))
 		{
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, kq);

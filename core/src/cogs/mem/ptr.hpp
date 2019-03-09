@@ -49,7 +49,7 @@ public:
 	typedef ptr<type> nullable;
 
 	/// @brief Provides a ref with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -138,7 +138,7 @@ public:
 
 	/// @{
 	/// @brief Sets this ref to the specified reference value
-	/// @param r Value to set
+	/// @param p Value to set
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	void set(type2* p) { m_ref.set(p); }
 	/// @brief Thread-safe implementation of set().

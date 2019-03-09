@@ -45,7 +45,7 @@ namespace cogs {
 /// scope beyond any potential parallel access.  Managing hazardous access requires
 /// managing the scope of the element, so must be done by the caller of any intrusive lock-free collection.
 ///
-/// @tparam T  Intrusive single-link element type.  Default: slink
+/// @tparam link_t  Intrusive single-link element type.  Default: slink
 /// @tparam ref_type Type used to reference elements.  Default: ptr
 /// @tparam link_iterator	Helper type providing functions to get and set the next link.  Default: default_slink_iterator\<T, ref_type\>
 template <class link_t = slink, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >

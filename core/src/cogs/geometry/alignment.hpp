@@ -54,6 +54,10 @@ public:
 		: m_contents(src.m_contents)
 	{ }
 
+	alignment(alignment&& src)
+		: m_contents(std::move(src.m_contents))
+	{ }
+
 	alignment(double x, double y)
 		: m_contents{ x, y }
 	{ }
@@ -61,6 +65,13 @@ public:
 	alignment& operator=(const alignment& src)
 	{
 		m_contents = src.m_contents;
+		return *this;
+	}
+
+	alignment& operator=(alignment&& src)
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
 	}
 
 	void set(double x, double y)

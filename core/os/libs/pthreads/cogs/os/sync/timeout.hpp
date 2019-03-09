@@ -108,21 +108,36 @@ public:
 		m_period(0),
 		m_expireTime(0),
 		m_infinite(false)
-	{
-	}
+	{ }
 
 	timeout_t(const timeout_t& t)
 		: m_startTime(t.m_startTime),
 		m_period(t.m_period),
 		m_expireTime(t.m_expireTime),
 		m_infinite(t.m_infinite)
-	{
-	}
+	{ }
+
+	timeout_t(timeout_t&& t)
+		: m_startTime(std::move(t.m_startTime)),
+		m_period(std::move(t.m_period)),
+		m_expireTime(std::move(t.m_expireTime)),
+		m_infinite(t.m_infinite)
+	{ }
 
 	template <typename unit_t, typename unitbase_t>
 	timeout_t(const measure<unit_t, unitbase_t>& n)
 		: m_startTime(now()),
 		m_period(n),
+		m_infinite(false)
+	{
+		m_expireTime = m_startTime;
+		m_expireTime += m_period;
+	}
+
+	template <typename unit_t, typename unitbase_t>
+	timeout_t(measure<unit_t, unitbase_t>&& n)
+		: m_startTime(now()),
+		m_period(std::move(n)),
 		m_infinite(false)
 	{
 		m_expireTime = m_startTime;
@@ -138,11 +153,31 @@ public:
 		return *this;
 	}
 
+	timeout_t& operator=(timeout_t&& t)
+	{
+		m_startTime = std::move(t.m_startTime);
+		m_period = std::move(t.m_period);
+		m_expireTime = std::move(t.m_expireTime);
+		m_infinite = t.m_infinite;
+		return *this;
+	}
+
 	template <typename unit_t, typename unitbase_t>
 	timeout_t& operator=(const measure<unit_t, unitbase_t>& n)
 	{
 		m_startTime = now();
 		m_period = n;
+		m_expireTime = m_startTime;
+		m_expireTime += m_period;
+		m_infinite = false;
+		return *this;
+	}
+
+	template <typename unit_t, typename unitbase_t>
+	timeout_t& operator=(measure<unit_t, unitbase_t>&& n)
+	{
+		m_startTime = now();
+		m_period = std::move(n);
 		m_expireTime = m_startTime;
 		m_expireTime += m_period;
 		m_infinite = false;

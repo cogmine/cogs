@@ -39,22 +39,22 @@ inline int printf(const char * __restrict format, ...)
 namespace cogs {
 
 
-template <> class bytes_to_int<sizeof(__uint8_t), false> { public: typedef __uint8_t int_t; };
-template <> class bytes_to_int<sizeof(__int8_t), true> { public: typedef __int8_t int_t; };
+template <> class bytes_to_int<sizeof(__uint8_t), false> { public: typedef __uint8_t type; };
+template <> class bytes_to_int<sizeof(__int8_t), true> { public: typedef __int8_t type; };
 
-template <> class bytes_to_int<sizeof(__uint16_t), false> { public: typedef __uint16_t int_t; };
-template <> class bytes_to_int<sizeof(__int16_t), true> { public: typedef __int16_t int_t; };
+template <> class bytes_to_int<sizeof(__uint16_t), false> { public: typedef __uint16_t type; };
+template <> class bytes_to_int<sizeof(__int16_t), true> { public: typedef __int16_t type; };
 
-template <> class bytes_to_int<sizeof(__uint32_t), false> { public: typedef __uint32_t int_t; };
-template <> class bytes_to_int<sizeof(__int32_t), true> { public: typedef __int32_t int_t; };
+template <> class bytes_to_int<sizeof(__uint32_t), false> { public: typedef __uint32_t type; };
+template <> class bytes_to_int<sizeof(__int32_t), true> { public: typedef __int32_t type; };
 
-template <> class bytes_to_int<sizeof(__uint64_t), false> { public: typedef __uint64_t int_t; };
-template <> class bytes_to_int<sizeof(__int64_t), true> { public: typedef __int64_t int_t; };
+template <> class bytes_to_int<sizeof(__uint64_t), false> { public: typedef __uint64_t type; };
+template <> class bytes_to_int<sizeof(__int64_t), true> { public: typedef __int64_t type; };
 
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
 #define COGS_LONGEST_INT (16)
-template <> class bytes_to_int<sizeof(__uint128_t), false> { public: typedef __uint128_t int_t; };
-template <> class bytes_to_int<sizeof(__int128_t), true> { public: typedef __int128_t int_t; };
+template <> class bytes_to_int<sizeof(__uint128_t), false> { public: typedef __uint128_t type; };
+template <> class bytes_to_int<sizeof(__int128_t), true> { public: typedef __int128_t type; };
 #else
 #define COGS_LONGEST_INT (8)
 #endif

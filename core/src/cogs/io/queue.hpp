@@ -202,23 +202,15 @@ public:
 		{
 		}
 
-		/// @brief Derived class implements executing() to executing the task
 		virtual void executing() = 0;
 
-		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
 		virtual void canceling()
 		{
 			finish();
 		}
 
-		/// @brief Derived class implements aborting() to cancel a task that has started executing.
-		///
-		/// aborting() is only called if execute() was called and returned without having completed synchronously.
-		/// If the derived task executes synchronously, it does not need to override aborting(). 
 		virtual void aborting() { }
 
-		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
-		/// @param closeQueue If true the io::queue is also closed and all subsequent tasks are canceled.  Default: false
 		void complete(bool closeQueue = false)
 		{
 			get_queue()->m_closeEvent->signal();	// Releases a ref we used to hold it temporarily open
@@ -289,6 +281,23 @@ public:
 			// and because a task can become cancelled due to the queue being closes, not by direct task cancallation.
 			return get_immediate_task(false);
 		}
+
+	protected:
+		/// @brief Derived class implements executing() to executing the task
+		virtual void executing() = 0;
+
+		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
+		virtual void canceling() { task_base::canceling(); }
+
+		/// @brief Derived class implements aborting() to cancel a task that has started executing.
+		///
+		/// aborting() is only called if execute() was called and returned without having completed synchronously.
+		/// If the derived task executes synchronously, it does not need to override aborting(). 
+		virtual void aborting() { }
+
+		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
+		/// @param closeQueue If true the io::queue is also closed and all subsequent tasks are canceled.  Default: false
+		void complete(bool closeQueue = false) { task_base::complete(closeQueue); }
 	};
 
 protected:

@@ -759,7 +759,7 @@ public:
 	void replace(size_t i, const volatile buffer& src)
 	{
 		buffer tmp(src);
-		replace(i, src);
+		replace(i, tmp);
 	}
 
 

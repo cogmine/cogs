@@ -19,7 +19,7 @@ namespace cogs {
 /// @ingroup TypeTraits
 /// @ingroup Math
 /// @brief Template helpers to test if an integer type is signed
-/// @tparam int_t Int type
+/// @tparam T integeral or fixed_integer type
 template <typename T>
 class is_signed
 {

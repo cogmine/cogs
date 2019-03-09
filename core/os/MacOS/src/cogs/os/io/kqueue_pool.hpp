@@ -106,15 +106,16 @@ private:
 		m_pool.start();
 		size_t numThreads = m_pool.get_num_threads();
 		m_func->m_numThreadsLeft = numThreads;
-		m_pool.dispatch_parallel(numThreads, [r{ m_func.dereferenc() }]()
+		m_pool.dispatch_parallel(numThreads, [r{ m_func.dereference() }]()
 		{
 			r->run();
 		});
 	}
 
 protected:
-	kqueue_pool()
-		: m_fd(rcnew(auto_fd))
+	kqueue_pool(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_fd(rcnew(auto_fd))
 	{
 		int fd = kqueue();
 		m_fd->get() = fd;

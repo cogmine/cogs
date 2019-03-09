@@ -66,77 +66,77 @@ private:
 	weak_rcptr<terminal>	m_terminal;
 	volatile buffer			m_recvBuffer;
 
-	static constexpr uint8_t IAC =		255;
-	static constexpr uint8_t DONT =		254;
-	static constexpr uint8_t DO =		253;
-	static constexpr uint8_t WONT =		252;
-	static constexpr uint8_t WILL =		251;
-	static constexpr uint8_t SB =		250;
-	static constexpr uint8_t GA =		249;
-	static constexpr uint8_t EL =		248;
-	static constexpr uint8_t EC =		247;
-	static constexpr uint8_t AYT =		246;
-	static constexpr uint8_t AO =		245;
-	static constexpr uint8_t IP =		244;
-	static constexpr uint8_t BRK =		243;
-	static constexpr uint8_t DATAMARK =	242;
-	static constexpr uint8_t NOP =		241;
-	static constexpr uint8_t SE =		240;
-	static constexpr uint8_t SEND =		1;
-	static constexpr uint8_t IS =		0;
+	static constexpr char IAC =		(char)255;
+	static constexpr char DONT =	(char)254;
+	static constexpr char DO =		(char)253;
+	static constexpr char WONT =	(char)252;
+	static constexpr char WILL =	(char)251;
+	static constexpr char SB =		(char)250;
+	static constexpr char GA =		(char)249;
+	static constexpr char EL =		(char)248;
+	static constexpr char EC =		(char)247;
+	static constexpr char AYT =		(char)246;
+	static constexpr char AO =		(char)245;
+	static constexpr char IP =		(char)244;
+	static constexpr char BRK =		(char)243;
+	static constexpr char DATAMARK =(char)242;
+	static constexpr char NOP =		(char)241;
+	static constexpr char SE =		(char)240;
+	static constexpr char SEND =	1;
+	static constexpr char IS =		0;
 
-	static constexpr uint8_t TELOPT_BINARY =		0;
-	static constexpr uint8_t TELOPT_ECHO =			1;
-	static constexpr uint8_t TELOPT_SGA =			3;	// Suppress Go Ahead. 
-	static constexpr uint8_t TELOPT_STATUS =		5;
-	static constexpr uint8_t TELOPT_TIMING =		6;
-	static constexpr uint8_t TELOPT_RCTE =			7;	
-	static constexpr uint8_t TELOPT_NAOCRD =		10;
-	static constexpr uint8_t TELOPT_NAOHTS =		11;
-	static constexpr uint8_t TELOPT_NAOHTD =		12;
-	static constexpr uint8_t TELOPT_NAOFFD =		13;
-	static constexpr uint8_t TELOPT_NAOVTS =		14;
-	static constexpr uint8_t TELOPT_NAOVTD =		15;
-	static constexpr uint8_t TELOPT_NAOLFD =		16;
-	static constexpr uint8_t TELOPT_EXTEND_ASCII =	17;	// WILL, DO
-	static constexpr uint8_t TELOPT_LOGOUT =		18;	// 
-	static constexpr uint8_t TELOPT_BM =			19;	// Byte Macro
-	static constexpr uint8_t TELOPT_DET =			20;	// Data Entry Terminal
-	static constexpr uint8_t TELOPT_SUPDUP =		21;	// SUPDUP terminal? RFC734
-	static constexpr uint8_t TELOPT_SUPDUPOUTPUT =	22;	// SUPDUP terminal within existing term? RFC749
-	static constexpr uint8_t TELOPT_SENDLOCATION =	23;	// Send location string
-	static constexpr uint8_t TELOPT_TTYPE =			24;	// Terminal Type - RFC1091
-	static constexpr uint8_t TELOPT_EOR =			25;	// Necessary?
-	static constexpr uint8_t TELOPT_TUID =			26;	// TAC?  - Anyone still use this?
-	static constexpr uint8_t TELOPT_OUTMRK =		27;	// RFC933
-	static constexpr uint8_t TELOPT_TTYLOC =		28;	// Terminal ID number
-	static constexpr uint8_t TELOPT_3270REGIME =	29;	// 3270 terminal?
-	static constexpr uint8_t TELOPT_X3PAD =			30;	// Support X.3-PAD
-	static constexpr uint8_t TELOPT_NAWS =			31;	// Negotiate about window size.
-	static constexpr uint8_t TELOPT_TERMSPEED =		32;	// Not meaningful anymore
-	static constexpr uint8_t TELOPT_FLOWCONTROL =	33;	// Not meaningful anymore
-	static constexpr uint8_t TELOPT_LINEMODE =		34;	// Line edit mode - Lots to do there
-	static constexpr uint8_t TELOPT_XDISPLOC =		35;	// X-Windows display addr
-	static constexpr uint8_t TELOPT_AUTHENTICATION =37;	// RFC2941
-	static constexpr uint8_t TELOPT_ENCRYPT =		38;	// RFC2946
-	static constexpr uint8_t TELOPT_NEWENVIRON =	39;	// Environment options
-	static constexpr uint8_t TELOPT_TN3270E =		40;	// TN3270 Enchancements	RFC2355
-	static constexpr uint8_t TELOPT_XAUTH =			41;	// XAUTH?
-	static constexpr uint8_t TELOPT_CHARSET =		42;	// RFC2066
-	static constexpr uint8_t TELOPT_RSP =			42;	// Remote Serial Port
-	static constexpr uint8_t TELOPT_COMPORTOPTION =	44;	// Not meaningful anymore
-	static constexpr uint8_t TELOPT_SLE =			45;	// Suppress Local Echo
-	static constexpr uint8_t TELOPT_STARTTLS =		46;	// Start TLS
-	static constexpr uint8_t TELOPT_KERMIT =		47;	// Kermit
-	static constexpr uint8_t TELOPT_SENDURL =		48;	// Send URL
-	static constexpr uint8_t TELOPT_FORWARDX =		49;	// Forward X?
-	static constexpr uint8_t TELOPT_EXOPL =			255;
+	static constexpr char TELOPT_BINARY =		0;
+	static constexpr char TELOPT_ECHO =			1;
+	static constexpr char TELOPT_SGA =			3;	// Suppress Go Ahead. 
+	static constexpr char TELOPT_STATUS =		5;
+	static constexpr char TELOPT_TIMING =		6;
+	static constexpr char TELOPT_RCTE =			7;	
+	static constexpr char TELOPT_NAOCRD =		10;
+	static constexpr char TELOPT_NAOHTS =		11;
+	static constexpr char TELOPT_NAOHTD =		12;
+	static constexpr char TELOPT_NAOFFD =		13;
+	static constexpr char TELOPT_NAOVTS =		14;
+	static constexpr char TELOPT_NAOVTD =		15;
+	static constexpr char TELOPT_NAOLFD =		16;
+	static constexpr char TELOPT_EXTEND_ASCII =	17;	// WILL, DO
+	static constexpr char TELOPT_LOGOUT =		18;	// 
+	static constexpr char TELOPT_BM =			19;	// Byte Macro
+	static constexpr char TELOPT_DET =			20;	// Data Entry Terminal
+	static constexpr char TELOPT_SUPDUP =		21;	// SUPDUP terminal? RFC734
+	static constexpr char TELOPT_SUPDUPOUTPUT =	22;	// SUPDUP terminal within existing term? RFC749
+	static constexpr char TELOPT_SENDLOCATION =	23;	// Send location string
+	static constexpr char TELOPT_TTYPE =		24;	// Terminal Type - RFC1091
+	static constexpr char TELOPT_EOR =			25;	// Necessary?
+	static constexpr char TELOPT_TUID =			26;	// TAC?  - Anyone still use this?
+	static constexpr char TELOPT_OUTMRK =		27;	// RFC933
+	static constexpr char TELOPT_TTYLOC =		28;	// Terminal ID number
+	static constexpr char TELOPT_3270REGIME =	29;	// 3270 terminal?
+	static constexpr char TELOPT_X3PAD =		30;	// Support X.3-PAD
+	static constexpr char TELOPT_NAWS =			31;	// Negotiate about window size.
+	static constexpr char TELOPT_TERMSPEED =	32;	// Not meaningful anymore
+	static constexpr char TELOPT_FLOWCONTROL =	33;	// Not meaningful anymore
+	static constexpr char TELOPT_LINEMODE =		34;	// Line edit mode - Lots to do there
+	static constexpr char TELOPT_XDISPLOC =		35;	// X-Windows display addr
+	static constexpr char TELOPT_AUTHENTICATION=37;	// RFC2941
+	static constexpr char TELOPT_ENCRYPT =		38;	// RFC2946
+	static constexpr char TELOPT_NEWENVIRON =	39;	// Environment options
+	static constexpr char TELOPT_TN3270E =		40;	// TN3270 Enchancements	RFC2355
+	static constexpr char TELOPT_XAUTH =		41;	// XAUTH?
+	static constexpr char TELOPT_CHARSET =		42;	// RFC2066
+	static constexpr char TELOPT_RSP =			42;	// Remote Serial Port
+	static constexpr char TELOPT_COMPORTOPTION=	44;	// Not meaningful anymore
+	static constexpr char TELOPT_SLE =			45;	// Suppress Local Echo
+	static constexpr char TELOPT_STARTTLS =		46;	// Start TLS
+	static constexpr char TELOPT_KERMIT =		47;	// Kermit
+	static constexpr char TELOPT_SENDURL =		48;	// Send URL
+	static constexpr char TELOPT_FORWARDX =		49;	// Forward X?
+	static constexpr char TELOPT_EXOPL =		(char)255;
 
-	int		m_parserState;
-	uint8_t m_optionVerb;
+	int m_parserState;
+	char m_optionVerb;
 
-	uint8_t	m_myNegotiationState[256];		// A negotiation state per option
-	uint8_t	m_theirNegotiationState[256];	// A negotiation state per option
+	char m_myNegotiationState[256];		// A negotiation state per option
+	char m_theirNegotiationState[256];	// A negotiation state per option
 
 	// negotiation state values:
 	//
@@ -148,20 +148,20 @@ private:
 	// 5 = We've decided that I/they WILL/DO
 	// 6 = We've decided that I/they WONT/DONT
 
-	cstring	m_incomingSB;
-	uint8_t	m_option;
+	cstring m_incomingSB;
+	char m_option;
 
-	bool	m_sendNAWS;
+	bool m_sendNAWS;
 
 	void handle_option(bool response)
 	{
-		uint8_t msg[3];
+		char msg[3];
 		msg[0] = IAC;
 		msg[2] = m_option;
 		bool pos = (m_optionVerb == DO) || (m_optionVerb == WILL);
 		bool asking = (m_optionVerb == DO) || (m_optionVerb == DONT);
 
-		uint8_t* state;
+		char* state;
 		if (asking)
 		{
 			state = m_myNegotiationState;
@@ -223,7 +223,7 @@ private:
 		composite_buffer::const_iterator itor = src.get_first_const_iterator();
 		while (!!itor)
 		{
-			uint8_t c = *itor;
+			char c = *itor;
 			switch (m_parserState)
 			{
 			case 0:	// Normal state
@@ -398,7 +398,7 @@ private:
 						handle_option(true);
 						rcptr<terminal> term = m_terminal;
 						cstring termType = (!!term) ? term->get_telnet_terminal_type() : cstring::literal("UNKNOWN");
-						uint8_t msg[4] = { IAC, SB, TELOPT_TTYPE, IS };
+						char msg[4] = { IAC, SB, TELOPT_TTYPE, IS };
 						get_sink_filter()->bypass(buffer((char*)&msg[0], 4));
 						get_sink_filter()->bypass(encode_buffer_const(buffer(&termType[0], termType.get_length())));
 						//msg[0] = IAC;
@@ -519,7 +519,7 @@ public:
 		memset(m_myNegotiationState, 0, 256);
 		memset(m_theirNegotiationState, 0, 256);
 
-		uint8_t msg[3];
+		char msg[3];
 		msg[0] = IAC;
 		msg[1] = WILL;
 		msg[2] = TELOPT_SGA;
@@ -555,12 +555,12 @@ public:
 	{
 		if (m_sendNAWS)
 		{
-			uint8_t msg[4] = { IAC, SB, TELOPT_NAWS };
+			char msg[4] = { IAC, SB, TELOPT_NAWS };
 			get_sink_filter()->bypass(buffer((char*)&msg[0], 3));
-			msg[0] = (uint8_t)(width >> 8);
-			msg[1] = (uint8_t)width;
-			msg[2] = (uint8_t)(height >> 8);
-			msg[3] = (uint8_t)height;
+			msg[0] = (char)(width >> 8);
+			msg[1] = (char)width;
+			msg[2] = (char)(height >> 8);
+			msg[3] = (char)height;
 			get_sink_filter()->bypass(encode_buffer_const(buffer((char*)&msg[0], 4)));
 			msg[0] = IAC;
 			msg[1] = SE;

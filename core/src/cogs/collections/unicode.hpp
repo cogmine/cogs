@@ -24,7 +24,7 @@ public:
 	{
 		uint32_t m_start;
 		uint32_t m_end;
-		char* m_name;
+		const char* m_name;
 	};
 
 	enum normalization_form

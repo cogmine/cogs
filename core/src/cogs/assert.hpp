@@ -33,7 +33,7 @@ namespace cogs {
 
 #else
 
-#define COGS_ASSERT(b)
+#define COGS_ASSERT(b) ((void)(std::remove_reference_t<decltype((b))>*)0)
 
 #endif
 

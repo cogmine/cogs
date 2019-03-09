@@ -315,7 +315,6 @@ public:
 		}
 		else
 		{
-			double remaining = proposedSize;
 			m_length = proposedSize;
 			if (proposedSize > m_default)	// stretching beyond default
 			{

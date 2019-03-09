@@ -16,7 +16,7 @@ namespace cogs {
 
 /// @ingroup Math
 /// @brief Template helper to test if a value is negative.  Basically just avoids a compiler warning if an unsigned type.
-/// @tparam int_t Int type
+/// @tparam T Integral or fixed_integer type
 template <typename T>
 class is_negative_value
 {

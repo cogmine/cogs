@@ -45,16 +45,16 @@ private:
 		uint32_t	m_denom;
 	};
 
-	static alignas (atomic::get_alignment_v<ratio_t>) placement<ratio_t> s_ratio;
+	alignas (atomic::get_alignment_v<ratio_t>) inline static placement<ratio_t> s_ratio;
 
 public:
 	// We're going to squeeze a mach_timespec into an fixed_integer<> to calculate timespans.
 	// 64 + 32 bits is max possible with ((machTime * numerator) / denominator)
-	typedef fixed_integer<false, 64 + 32>, period_unit_t;
+	typedef fixed_integer<false, 64 + 32> period_unit_t;
 	typedef nanoseconds period_unitbase;
 	typedef measure<period_unit_t, period_unitbase> period_t;
 
-	static const ratio_t& get_mach_ratio()
+	static ratio_t get_mach_ratio()
 	{
 		volatile ratio_t& rt = s_ratio.get();
 		ratio_t readRatio = atomic::load(rt);
@@ -73,15 +73,15 @@ public:
 	static uint64_t convert_to_abs(const period_t& ns)
 	{
 		const ratio_t& r = get_mach_ratio();
-		fixed_integer<false, 64> a = (ns * r.m_denom) / r.m_numer;
-		return a.get_int<uint64_t>();
+		fixed_integer<false, 64> a = (ns.get() * r.m_denom) / r.m_numer;
+		return a.get_int();
 	}
 
 	static period_t convert_from_abs(const uint64_t& machTime)
 	{
 		fixed_integer<false, 64> mt = machTime;
 		const ratio_t& r = get_mach_ratio();
-		return (mt * r.m_numer) / r.m_denom;
+		return make_measure<period_unitbase>((mt * r.m_numer) / r.m_denom);
 	}
 
 	static period_t now()	{ return convert_from_abs(mach_absolute_time()); }
@@ -131,17 +131,24 @@ private:
 
 public:
 	timeout_t()
-		:	m_startTime(0),
-			m_period(0),
-			m_expireTime(0),
-			m_infinite(false)
+		: m_startTime(0),
+		m_period(0),
+		m_expireTime(0),
+		m_infinite(false)
 	{ }
 
 	timeout_t(const timeout_t& t)
-		:	m_startTime(t.m_startTime),
-			m_period(t.m_period),
-			m_expireTime(t.m_expireTime),
-			m_infinite(t.m_infinite)
+		: m_startTime(t.m_startTime),
+		m_period(t.m_period),
+		m_expireTime(t.m_expireTime),
+		m_infinite(t.m_infinite)
+	{ }
+
+	timeout_t(timeout_t&& t)
+		: m_startTime(std::move(t.m_startTime)),
+		m_period(std::move(t.m_period)),
+		m_expireTime(std::move(t.m_expireTime)),
+		m_infinite(t.m_infinite)
 	{ }
 
 	template <typename unit_t, typename unitbase_t>
@@ -154,11 +161,30 @@ public:
 		m_expireTime += m_period;
 	}
 
-	timeout_t& operator=(const timeout_t&t)
+	template <typename unit_t, typename unitbase_t>
+	timeout_t(measure<unit_t, unitbase_t>&& n)
+		: m_startTime(now()),
+		m_period(std::move(n)),
+		m_infinite(false)
+	{
+		m_expireTime = m_startTime;
+		m_expireTime += m_period;
+	}
+
+	timeout_t& operator=(const timeout_t& t)
 	{
 		m_startTime = t.m_startTime;
 		m_period = t.m_period;
 		m_expireTime = t.m_expireTime;
+		m_infinite = t.m_infinite;
+		return *this;
+	}
+
+	timeout_t& operator=(timeout_t&& t)
+	{
+		m_startTime = std::move(t.m_startTime);
+		m_period = std::move(t.m_period);
+		m_expireTime = std::move(t.m_expireTime);
 		m_infinite = t.m_infinite;
 		return *this;
 	}
@@ -168,6 +194,17 @@ public:
 	{
 		m_startTime = now();
 		m_period = n;
+		m_expireTime = m_startTime;
+		m_expireTime += m_period;
+		m_infinite = false;
+		return *this;
+	}
+	
+	template <typename unit_t, typename unitbase_t>
+	timeout_t& operator=(measure<unit_t, unitbase_t>&& n)
+	{
+		m_startTime = now();
+		m_period = std::move(n);
 		m_expireTime = m_startTime;
 		m_expireTime += m_period;
 		m_infinite = false;
@@ -191,11 +228,11 @@ public:
 	period_t get_pending() const
 	{
 		if (!m_period || m_infinite)
-			return 0;
+			return make_measure<period_unitbase>(0);
 
 		period_t n = now();
 		if (expired_inner(n, m_expireTime))
-			return 0;
+			return make_measure<period_unitbase>(0);
 
 		period_t result = m_expireTime;
 		result -= n;
@@ -253,8 +290,8 @@ public:
 		period_t ns = get_pending();
 		measure<longest_type, seconds> s = ns;
 		ns -= s;	// remove seconds from nanoseconds part
-		ts.tv_sec = s.get_int<unsigned int>();
-		ts.tv_nsec = ns.get_int<clock_res_t>();
+		ts.tv_sec = (unsigned int)s.get().get_int();
+		ts.tv_nsec = (clock_res_t)ns.get().get_int();
 	}
 
 	bool operator<(const timeout_t& cmp) const

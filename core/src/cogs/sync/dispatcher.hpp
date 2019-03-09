@@ -63,11 +63,11 @@ public:
 		std::is_invocable_v<F>
 		&& std::is_void_v<std::invoke_result_t<F> >,
 		rcref<task<void> > >
-	dispatch(F&& f, int priority = 0) volatile
-	{
-		rcref<task_base> t = dispatch_default_task(std::forward<F>(f), priority);
-		return t->get_task();
-	}
+		dispatch(F&& f, int priority = 0) volatile;
+	//{
+	//	rcref<task_base> t = dispatch_default_task(std::forward<F>(f), priority);
+	//	return t->get_task();
+	//}
 
 	template <typename F, typename... args_t>
 	std::enable_if_t<
@@ -411,8 +411,18 @@ public:
 // Note: derive from task<void> if the operation can be cancelled, otherwise derive from waitable
 
 
-
 inline rcptr<volatile dispatched> dispatcher::get_dispatched(const task<void>& t) { return t.get_dispatched(); }
+
+template <typename F>
+inline std::enable_if_t<
+	std::is_invocable_v<F>
+	&& std::is_void_v<std::invoke_result_t<F> >,
+	rcref<task<void> > >
+dispatcher::dispatch(F&& f, int priority) volatile
+{
+	rcref<task_base> t = dispatch_default_task(std::forward<F>(f), priority);
+	return t->get_task();
+}
 
 
 template <typename result_t>

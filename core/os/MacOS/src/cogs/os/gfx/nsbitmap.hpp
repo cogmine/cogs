@@ -22,7 +22,7 @@ namespace gfx {
 namespace os {
 
 
-class nsbitmap : public canvas::pixel_mask	// already derived from pixel_image through pixel_image_canvas
+class nsbitmap : public canvas::pixel_mask
 {
 protected:
 	NSBitmapImageRep*		m_imageRep;

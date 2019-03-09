@@ -17,7 +17,7 @@ namespace cogs {
 /// @ingroup TypeTraits
 /// @ingroup Math
 /// @brief Template helpers to test if an integer type is const.  i.e. fixed_integer_native_const or fixed_integer_extended_const
-/// @tparam int_t Int type
+/// @tparam T fixed_integer type
 template <typename T>
 class is_const_type
 {

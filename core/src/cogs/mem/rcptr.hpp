@@ -60,7 +60,7 @@ protected:
 
 public:
 	/// @brief Provides a rcptr with a different referenced type.
-	/// @tparam type Data type referenced
+	/// @tparam type2 Data type referenced
 	template <typename type2>
 	class cast
 	{
@@ -572,7 +572,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const								{ return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
@@ -1229,7 +1228,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -1802,7 +1800,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -2372,7 +2369,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -2944,7 +2940,6 @@ public:
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	/// @brief Thread-safe implementation of operator>()
 	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
@@ -3262,6 +3257,43 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const weak_rcptr<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return m_ref.compare_exchange(src, cmp, rtn); }
 	/// @}
 };
+
+
+
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+
+template <typename type>
+template <typename type2, typename type3>
+inline bool rcref<type>::compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+
 
 }
 

@@ -1141,10 +1141,12 @@ public:
 		}
 	}
 
-	void drain() volatile
+	bool drain() volatile
 	{
+		bool foundAny = false;
 		while (!!remove_last())
-			;
+			foundAny = true;
+		return foundAny;
 	}
 
 	bool is_empty() const			{ return !m_sentinel || ((m_sentinel->m_links->m_next.get_ptr() == m_sentinel.get_ptr())); }

@@ -2381,7 +2381,6 @@ public:
 			if (flip)
 			{
 				t2.divide_whole_and_assign_modulo(t2Length, &(t1.m_digits[0]), t1Length, &(scratch.m_digits[0]), t2Length);
-				size_t t2Top = t2Length;
 				for (;;)
 				{
 					size_t i = t2Length - 1;
@@ -2400,7 +2399,6 @@ public:
 			else
 			{
 				t1.divide_whole_and_assign_modulo(t1Length, &(t2.m_digits[0]), t2Length, &(scratch.m_digits[0]), t1Length);
-				size_t t1Top = t1Length;
 				for (;;)
 				{
 					size_t i = t1Length - 1;
@@ -6077,7 +6075,7 @@ public:
 	const this_t& pre_assign_divide_whole(const this_t& src) { if (this == &src) { COGS_ASSERT(!!*this); *this = one_t(); } else { this_t remainder(*this); remainder.m_contents->divide_whole_and_assign_modulo(*(src.m_contents), &*m_contents); } return *this; }
 	const this_t& pre_assign_divide_whole(const volatile this_t& src) { this_t remainder(*this); remainder.m_contents->divide_whole_and_assign_modulo(*(src.begin_read()), &*m_contents); return *this; }
 	this_t pre_assign_divide_whole(const this_t& src) volatile { return write_retry_loop_pre([&](content_t& c) { content_t remainder(c); remainder.divide_whole_and_assign_modulo(*(src.m_contents), &c); }); }
-	this_t pre_assign_divide_whole(const volatile this_t& src) volatile { if (this == &src) { this_t tmp2(one_t()); this_t tmp(exchange(tmp2)); COGS_ASSERT(!!tmp); return tmp2; } return write_retry_loop_pre([&](content_t& c) { content_t remainder(c); remainder.divide_whole_and_assign_modulo(*(src.begin_read()), &c); }); }
+	this_t pre_assign_divide_whole(const volatile this_t& src) volatile { if (this == &src) { this_t tmp2 = one_t(); this_t tmp = exchange(tmp2); COGS_ASSERT(!!tmp); return tmp2; } return write_retry_loop_pre([&](content_t& c) { content_t remainder(c); remainder.divide_whole_and_assign_modulo(*(src.begin_read()), &c); }); }
 
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide_whole(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_divide_whole(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -6379,8 +6377,8 @@ public:
 	{
 		if (this == &src)
 		{
-			this_t one(one_t());
-			this_t tmp(exchange(one));
+			this_t one = one_t();
+			this_t tmp = exchange(one);
 			COGS_ASSERT(!!tmp);
 			return one;
 		}
@@ -6477,7 +6475,8 @@ public:
 	{
 		if (this == &src)
 		{
-			this_t tmp(exchange(one_t()));
+			this_t one = one_t();
+			this_t tmp = exchange(one);
 			COGS_ASSERT(!!tmp);
 			return tmp;
 		}
@@ -6938,7 +6937,8 @@ public:
 		this_t remainder;
 		if (this == &src)
 		{
-			this_t tmp(exchange(one_t()));
+			this_t one = one_t();
+			this_t tmp = exchange(one);
 			remainder.clear();
 		}
 		else
@@ -8366,28 +8366,22 @@ template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& ((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest),
-	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > >
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 >
+>
 add(const T& t, const A1& a)
 {
-	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > result;
-	result.add(
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of add
-	return result;
+	return cogs::add(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
 
 template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
-	fixed_integer<true, (sizeof(longest) * 8) + 1> >
+	fixed_integer<true, (sizeof(longest) * 8) + 1>
+>
 subtract(const T& t, const A1& a)
 {
-	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
-	result.subtract(
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of subtract
-	return result;
+	return cogs::subtract(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
 
 
@@ -8395,14 +8389,11 @@ template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
-	fixed_integer<true, (sizeof(longest) * 8) + 1> >
+	fixed_integer<true, (sizeof(longest) * 8) + 1>
+>
 inverse_subtract(const T& t, const A1& a)
 {
-	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
-	result.subtract(
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of subtract
-	return result;
+	return cogs::inverse_subtract(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
 
 
@@ -8410,14 +8401,11 @@ template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& ((sizeof(T) + sizeof(A1)) > sizeof(longest)),
-	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1))> >
+	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8>
+>
 multiply(const T& t, const A1& a)
 {
-	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, sizeof(T) + sizeof(A1)> result;
-	result.multiply(
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of multiply
-	return result;
+	return cogs::multiply(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
 
 template <typename T, typename A1>
@@ -8430,13 +8418,8 @@ inline std::enable_if_t<
 >
 divide_whole(const T& t, const A1& a)
 {
-	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
-	result.divide_whole(
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of divide_whole
-	return result;
+	return cogs::divide_whole(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
-
 
 
 // if (unsigned / signed), or (signed / signed), it may grow a bit
@@ -8450,11 +8433,7 @@ inline std::enable_if_t<
 >
 inverse_divide_whole(const T& t, const A1& a)
 {
-	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
-	result.divide_whole(
-		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
-		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of divide_whole
-	return result;
+	return cogs::inverse_divide_whole(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
 }
 
 #pragma warning(pop)
