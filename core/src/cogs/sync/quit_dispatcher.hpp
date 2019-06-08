@@ -151,7 +151,7 @@ public:
 		return singleton<quit_dispatcher, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>::get();
 	}
 
-	// Returns true if quit was request, false if a request is already in progress or quit has completed.
+	// Returns true if quit was requested, false if a request is already in progress or quit has completed.
 	bool request() volatile
 	{
 		bool result = false;

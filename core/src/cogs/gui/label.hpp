@@ -129,9 +129,9 @@ public:
 		pane::uninstalling();
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 		invalidate(get_size());
 	}
 

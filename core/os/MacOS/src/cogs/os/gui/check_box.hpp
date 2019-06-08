@@ -27,7 +27,6 @@ class check_box;
 };
 
 
-
 @interface objc_check_box : NSButton
 {
 @public
@@ -38,52 +37,49 @@ class check_box;
 @end
 
 
-
 namespace cogs {
 namespace gui {
 namespace os {
 
 
-class check_box : public nsview_pane<check_box_interface>
+class check_box : public nsview_pane, public check_box_interface
 {
 private:
-	typedef nsview_pane<check_box_interface> base_t;
-
-	rcptr<gfx::os::graphics_context::font>	m_cachedFont;
-	size								m_defaultSize;
+	rcptr<gfx::os::graphics_context::font> m_cachedFont;
+	size m_defaultSize;
 
 public:
-	check_box(const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: base_t(uiSubsystem)
+	check_box(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(desc, uiSubsystem)
 	{ }
 
 	~check_box()
 	{
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
-		objcCheckBox->m_cppCheckBox.release();
+		//objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
+		//objcCheckBox->m_cppCheckBox.release();
 	}
 
 	virtual bool is_checked() const
 	{
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
-		return [objcCheckBox state] == NSOnState;
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
+		return [objcCheckBox state] == NSControlStateValueOn;
 	}
 
 	virtual void set_text(const composite_string& text)
 	{
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
-		NSString* text2 = string_to_NSString(text);
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
+		__strong NSString* text2 = string_to_NSString(text);
 		[objcCheckBox setTitle:text2];
-		[text2 release];
+		//[text2 release];
 	}
 	
 	virtual void set_checked(bool b)
 	{
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		if (b)
-			[objcCheckBox setState:NSOnState];
+			[objcCheckBox setState: NSControlStateValueOn];
 		else
-			[objcCheckBox setState:NSOffState];
+			[objcCheckBox setState: NSControlStateValueOff];
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
@@ -93,23 +89,23 @@ public:
 	virtual void set_font(const gfx::font& fnt)
 	{
 		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		NSButtonCell* buttonCell = [objcCheckBox cell];
-		NSFont* nsFont = m_cachedFont->m_nsFont;
+		NSFont* nsFont = m_cachedFont->get_NSFont();
 		[buttonCell setFont:nsFont];
 	}
 
 	virtual void installing()
 	{
 		rcptr<gui::check_box> cb = get_bridge().template static_cast_to<gui::check_box>();
-		cb->set_completely_invalidate_on_reshape(true);
 
 		objc_check_box* objcCheckBox = [[objc_check_box alloc] init];
-		[objcCheckBox setButtonType:NSSwitchButton];
+		[objcCheckBox setButtonType: NSButtonTypeSwitch];
 		objcCheckBox->m_cppCheckBox = this_rcptr;
 
-		base_t::installing(objcCheckBox);
-            
+		install_NSView(objcCheckBox);
+		nsview_pane::installing();
+
 		set_text(cb->get_text());
 		set_checked(cb->is_checked());
 		set_font(cb->get_font());
@@ -118,7 +114,7 @@ public:
 
 	virtual void calculate_range()
 	{
-		objc_check_box* objcCheckBox = (objc_check_box*)m_nsView;
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSSize idealSize = [buttonCell cellSize];
 		double w = (double)idealSize.width;
@@ -131,6 +127,13 @@ public:
 
 	virtual bool is_focusable() const	{ return true; }
 };
+
+
+inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > nsview_subsystem::create_check_box() volatile
+{
+	rcref<check_box> cb = rcnew(check_box, this_rcref);
+	return std::make_pair(cb, cb);
+}
 
 
 }

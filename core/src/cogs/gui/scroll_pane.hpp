@@ -328,13 +328,13 @@ public:
 		return propose2(sz);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		range contentRange = m_contentFrame->get_range();
 		size contentDefaultSize = m_contentFrame->get_default_size();
 		point contentOldOrigin = m_contentFrame->get_position();
 		bounds contentBounds(contentOldOrigin, contentDefaultSize);
-		bounds visibleBounds = r;
+		bounds visibleBounds = b;
 
 		// limit contentBounds to visibleBounds, but may still have greater min size
 		contentBounds.get_size() = contentRange.limit(visibleBounds.get_size());
@@ -427,7 +427,7 @@ public:
 						pos = 0;
 						contentBounds.get_position()[d] = 0;
 					}
-					m_scrollBarInfo[i].m_scrollBarFrame->get_position()[!d] = r.get_size()[!d];
+					m_scrollBarInfo[i].m_scrollBarFrame->get_position()[!d] = b.get_size()[!d];
 					m_scrollBarInfo[i].m_scrollBarFrame->get_position()[!d] -= m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size()[!d];
 					m_scrollBarInfo[i].m_scrollBarState.set(scroll_bar_state(max, thumbSize));
 				}
@@ -437,7 +437,7 @@ public:
 					m_scrollBarInfo[i].m_scrollBarState.set(scroll_bar_state(0, 0));
 				}
 				atomic::store(m_scrollBarInfo[i].m_scrollBarPosition, pos);
-				m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size()[d] = r.get_size()[d];
+				m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size()[d] = b.get_size()[d];
 				m_scrollBarInfo[i].m_scrollBarStateProperty->changed();
 				m_scrollBarInfo[i].m_scrollBarPositionProperty->changed();
 			}
@@ -478,7 +478,7 @@ public:
 		if (m_clippingPane->is_hidden() == visible)
 			m_clippingPane->show_or_hide(visible);
 
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 	}
 };
 

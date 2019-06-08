@@ -284,17 +284,17 @@ private:
 		return propose_lengths(d, proposedSize);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		invalidate(r.get_size());
+		invalidate(b.get_size());
 
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 
 		double oldCachedLength = m_cachedLength;
-		size newSize(r.get_size());
+		size newSize(b.get_size());
 
-		if (r.get_size(d) != oldCachedLength)
-			newSize = propose_size(r.get_size());
+		if (b.get_size(d) != oldCachedLength)
+			newSize = propose_size(b.get_size());
 
 		m_secondarySizingGroup.calculate_sizes(newSize[!d]);
 
@@ -365,7 +365,7 @@ private:
 			++rowItor;
 		}
 
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 	}
 
 	virtual void detaching_child(const rcref<pane>& p)

@@ -2442,7 +2442,7 @@ public:
 	}
 
 	template <typename type2>
-	void insert(size_t i, const volatile vector<type2> & src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
+	void insert(size_t i, const volatile vector<type2>& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
 		insert(i, src.subrange(srcIndex, n));
 	}

@@ -11,7 +11,6 @@
 
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/mem/allocator_container.hpp"
-#include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/placement_header.hpp"
 #include "cogs/mem/ptr.hpp"

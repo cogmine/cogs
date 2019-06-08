@@ -9,9 +9,9 @@
 #define COGS_HEADER_BINDABLE_PROPERTY
 
 
+#include "cogs/function.hpp"
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/collections/container_queue.hpp"
-#include "cogs/function.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/io/permission.hpp"
 #include "cogs/math/boolean.hpp"

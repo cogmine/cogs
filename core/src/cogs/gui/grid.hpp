@@ -55,7 +55,7 @@ private:
 			: frame(c)
 		{ }
 
-		virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+		virtual void reshape(const bounds&, const point& oldOrigin = point(0, 0))
 		{
 			bounds newBounds;
 
@@ -268,15 +268,15 @@ private:
 		return propose_lengths(d, proposedSize);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		double oldCachedLength = m_cachedLength;
-		size newSize(r.get_size());
+		size newSize(b.get_size());
 
-		if (m_wasRecalculated || (r.get_size(primary_dimension) != oldCachedLength))
+		if (m_wasRecalculated || (b.get_size(primary_dimension) != oldCachedLength))
 		{
 			m_wasRecalculated = false;
-			newSize = propose_size(r.get_size());
+			newSize = propose_size(b.get_size());
 		}
 		
 		m_secondarySizingGroup.calculate_sizes(newSize[!primary_dimension]);
@@ -285,10 +285,10 @@ private:
 		double curOffset = 0;
 		while (!!itor)
 		{
-			primary_row_t& r = **itor;
-			r.m_offset = curOffset;
-			r.m_cachedLength = r.get_length();
-			curOffset += r.m_cachedLength;
+			primary_row_t& b = **itor;
+			b.m_offset = curOffset;
+			b.m_cachedLength = b.get_length();
+			curOffset += b.m_cachedLength;
 			++itor;
 		}
 			
@@ -296,14 +296,14 @@ private:
 		curOffset = 0;
 		while (!!itor2)
 		{
-			secondary_row_t& r = **itor2;
-			r.m_offset = curOffset;
-			r.m_cachedLength = r.get_length();
-			curOffset += r.m_cachedLength;
+			secondary_row_t& b = **itor2;
+			b.m_offset = curOffset;
+			b.m_cachedLength = b.get_length();
+			curOffset += b.m_cachedLength;
 			++itor2;
 		}
 
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 	}
 	
 	virtual void detaching_child(const rcref<pane>& p)

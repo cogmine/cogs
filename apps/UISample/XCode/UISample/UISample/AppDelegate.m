@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "cogs/main.hpp"
 
 @interface AppDelegate ()
 
@@ -16,12 +17,24 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
+	// Insert code here to initialize your application
+
+	cogs::initialize();
+
+	(void)COGS_MAIN();
+
+	cogs::get_quit_event()->dispatch([]()
+	{
+		NSApplication* app = [NSApplication sharedApplication];
+		[app performSelectorOnMainThread : @selector(terminate : ) withObject:app waitUntilDone : NO] ;
+	});
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
-    // Insert code here to tear down your application
+	// Insert code here to tear down your application
+
+	atexit(cogs::terminate);
 }
 
 

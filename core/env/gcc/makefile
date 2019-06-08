@@ -16,7 +16,7 @@ objects=$(patsubst %.cpp,%.o,$(patsubst %.a,%.o,$(relativesources)))
 
 
 # -g -O0 -fno-inline
-FLAGS=-mcx16 -fmax-errors=1 -std=gnu++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -D COGS_USE_COGS_MAIN -D COGS_DEBUG -g
+FLAGS=-mcx16 -fmax-errors=1 -std=gnu++17 -fzero-initialized-in-bss -march=native -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -D COGS_DEBUG -g
 #-O3
 
 CC=g++ -v

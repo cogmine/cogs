@@ -42,7 +42,7 @@
 //	public:
 //		bounds m_bounds;
 //
-//		virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//		virtual void reshape(const bounds&, const point& oldOrigin = point(0, 0))
 //		{
 //			frame::reshape(m_bounds, oldOrigin);
 //		}
@@ -53,7 +53,7 @@
 //	public:
 //		bounds m_bounds;
 //
-//		virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//		virtual void reshape(const bounds&, const point& oldOrigin = point(0, 0))
 //		{
 //			frame::reshape(m_bounds, oldOrigin);
 //		}
@@ -220,7 +220,7 @@
 //			return newSize;
 //		}
 //
-//		virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//		virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //		{
 //			dimension d = dimension::horizontal;		// Compute aligned locations of label and content
 //			range labelRange = m_label->get_current_parent_range();
@@ -231,20 +231,20 @@
 //
 //			double minWidth = labelRange.get_min_width();
 //			minWidth += contentRange.get_min_width();
-//			if (r.get_width() < minWidth)	// needs to be 2 lines.
+//			if (b.get_width() < minWidth)	// needs to be 2 lines.
 //			{
 //				range::linear_t labelHeightRange;		// size header first, width first
 //				range::linear_t contentHeightRange;
-//				double newLabelWidth = m_label->propose_dimension(d, r.get_size(d), labelHeightRange);
-//				double newContentWidth = m_content->propose_dimension(d, r.get_size(d), contentHeightRange);
+//				double newLabelWidth = m_label->propose_dimension(d, b.get_size(d), labelHeightRange);
+//				double newContentWidth = m_content->propose_dimension(d, b.get_size(d), contentHeightRange);
 //
 //				m_label->m_bounds.get_size().get_width() = newLabelWidth;
 //				m_content->m_bounds.get_size().get_width() = newContentWidth;
 //				
 //				if (!scriptFlowsToTheRight)	// Align to right on left-right script languages.
 //				{
-//					m_label->m_bounds.get_position().get_x() = r.get_size().get_width();
-//					m_content->m_bounds.get_position().get_x() = r.get_size().get_width();
+//					m_label->m_bounds.get_position().get_x() = b.get_size().get_width();
+//					m_content->m_bounds.get_position().get_x() = b.get_size().get_width();
 //					m_label->m_bounds.get_position().get_x() -= newLabelWidth;
 //					m_content->m_bounds.get_position().get_x() -= newContentWidth;
 //				}
@@ -264,17 +264,17 @@
 //				// If not enough space, tweak it by taking some from the label, then the content.
 //				double usedHeight = newLabelHeight;
 //				usedHeight += newContentHeight;
-//				if (usedHeight > r.get_height())
+//				if (usedHeight > b.get_height())
 //				{
 //					double overage = usedHeight;
-//					overage -= r.get_height();
+//					overage -= b.get_height();
 //					newLabelHeight -= overage;
 //					if (newLabelHeight < labelHeightRange.get_min())
 //						newLabelHeight = labelHeightRange.get_min();
 //				}
-//				else if (usedHeight < r.get_height())	// If too much space, allocate evenly until max, then give to the other until max.
+//				else if (usedHeight < b.get_height())	// If too much space, allocate evenly until max, then give to the other until max.
 //				{
-//					double remaining = r.get_height();
+//					double remaining = b.get_height();
 //					remaining -= usedHeight;
 //
 //					double halfRoundedDown = remaining;
@@ -286,7 +286,7 @@
 //					if ((labelHeightRange.has_max()) && (newLabelHeight > labelHeightRange.get_max()))
 //						newLabelHeight = labelHeightRange.get_max();
 //				}
-//				newContentHeight = r.get_size().get_height();
+//				newContentHeight = b.get_size().get_height();
 //				newContentHeight -= newLabelHeight;
 //					if ((contentHeightRange.has_max()) && (newContentHeight > contentHeightRange.get_max()))
 //						newContentHeight = contentHeightRange.get_max();
@@ -300,8 +300,8 @@
 //				rcptr<labeled_list>	labeledList = m_labeledList;
 //				if (!!labeledList)
 //				{
-//					m_label->m_bounds.get_size().get_height() = r.get_height();
-//					m_content->m_bounds.get_size().get_height() = r.get_height();
+//					m_label->m_bounds.get_size().get_height() = b.get_height();
+//					m_content->m_bounds.get_size().get_height() = b.get_height();
 //
 //					double maxLabelWidth = labeledList->m_sortedByLabelWidth.get_last().get_key();
 //					double columnWidth;
@@ -309,7 +309,7 @@
 //						columnWidth = maxLabelWidth;
 //					else
 //						columnWidth = m_manualOffset;	
-//					double boundsMinusColumnWidth = r.get_width();
+//					double boundsMinusColumnWidth = b.get_width();
 //					boundsMinusColumnWidth -= columnWidth;
 //
 //					range::linear_t labelHeightRange;		// size header first, width first
@@ -349,17 +349,17 @@
 //						m_column->get_position().get_x() = columnStart;
 //					}
 //					
-//					if (newLabelHeight < r.get_height())
+//					if (newLabelHeight < b.get_height())
 //					{
-//						double dif = r.get_height();
+//						double dif = b.get_height();
 //						dif -= newLabelHeight;
 //						dif /= 2;
 //						m_label->m_bounds.get_position().get_y() += dif;
 //					}
 //
-//					if (newContentHeight < r.get_height())
+//					if (newContentHeight < b.get_height())
 //					{
-//						double dif = r.get_height();
+//						double dif = b.get_height();
 //						dif -= newContentHeight;
 //						dif /= 2;
 //						m_label->m_bounds.get_position().get_y() += dif;
@@ -588,15 +588,15 @@
 //		return newSize;
 //	}
 //
-//	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //	{
 //		int d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 //
 //		double oldCachedLength = m_cachedLength;
-//		size newSize(r.get_size());
+//		size newSize(b.get_size());
 //
-//		if (r.get_size(d) != oldCachedLength)
-//			newSize = propose_size(r.get_size());
+//		if (b.get_size(d) != oldCachedLength)
+//			newSize = propose_size(b.get_size());
 //
 //		m_secondarySizingGroup.calculate_sizes(newSize[!d]);
 //
@@ -667,7 +667,7 @@
 //			++rowItor;
 //		}
 //
-//		pane::reshape(r, oldOrigin);
+//		pane::reshape(b, oldOrigin);
 //	}
 //
 //public:

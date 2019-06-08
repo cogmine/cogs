@@ -215,7 +215,7 @@ public:
 		//	This allows new cleanup requests to be chained after existing ones.
 		//	(Because threads are still running, new cleanup requests could still come in late).
 
-		rcref<cleanup_queue> cleanupQueue = cleanup_queue::get_global();
+		rcref<cleanup_queue> cleanupQueue = cleanup_queue::get();
 		cleanupQueue->drain();
 
 		// Phase 2: Tear down default thread pool

@@ -29,7 +29,7 @@ class button;
 @interface objc_button : NSButton
 {
 @public
-	cogs::weak_rcptr< cogs::gui::os::button> m_cppButton;
+	cogs::weak_rcptr<cogs::gui::os::button> m_cppButton;
 }
 
 -(void)on_click:(id)sender;
@@ -37,30 +37,26 @@ class button;
 @end
 
 
-
 namespace cogs {
 namespace gui {
 namespace os {
 
 
-
-class button : public nsview_pane<button_interface>
+class button : public nsview_pane, public button_interface
 {
 private:
-	typedef nsview_pane<button_interface> base_t;
-
-	rcptr<gfx::os::graphics_context::font>	m_cachedFont;
-	size								m_defaultSize;
+	rcptr<gfx::os::graphics_context::font> m_cachedFont;
+	size m_defaultSize;
 
 public:
-	button(const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: base_t(uiSubsystem)
+	button(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(desc, uiSubsystem)
 	{ }
 
 	~button()
 	{
-		objc_button* objcButton = (objc_button*)m_nsView;
-		objcButton->m_cppButton.release();
+		//objc_button* objcButton = (objc_button*)get_NSView();
+		//objcButton->m_cppButton.release();
 	}
 
 	void action()
@@ -72,10 +68,10 @@ public:
 
 	virtual void set_text(const composite_string& text)
 	{
-		objc_button* objcButton = (objc_button*)m_nsView;
-		NSString* text2 = string_to_NSString(text);
+		objc_button* objcButton = (objc_button*)get_NSView();
+		__strong NSString* text2 = string_to_NSString(text);
 		[objcButton setTitle:text2];
-		[text2 release];
+		//[text2 release];
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
@@ -89,27 +85,27 @@ public:
 	virtual void set_font(const gfx::font& fnt)
 	{
 		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
-		objc_button* objcButton = (objc_button*)m_nsView;
+		objc_button* objcButton = (objc_button*)get_NSView();
 		NSButtonCell* buttonCell = [objcButton cell];
-		NSFont* nsFont = m_cachedFont->m_nsFont;
+		NSFont* nsFont = m_cachedFont->get_NSFont();
 		[buttonCell setFont:nsFont];
 	}
 
 	virtual void installing()
 	{
 		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
-		btn->set_completely_invalidate_on_reshape(true);
 
 		objc_button* objcButton = [[objc_button alloc] init];
 		objcButton->m_cppButton = this_rcptr;
-		[objcButton setButtonType:NSMomentaryLightButton];
+		[objcButton setButtonType: NSButtonTypeMomentaryLight];
 		[objcButton setBordered:YES];
-		[objcButton setBezelStyle:NSRoundedBezelStyle];
+		[objcButton setBezelStyle: NSBezelStyleRounded];
 		[objcButton setTarget:objcButton];
 		[objcButton setAction:@selector(on_click:)];
 
-        base_t::installing(objcButton);
-            
+		install_NSView(objcButton);
+		nsview_pane::installing();
+
 		set_text(btn->get_text());
 		set_font(btn->get_font());
 		set_enabled(btn->is_enabled());
@@ -118,7 +114,7 @@ public:
 
 	virtual void calculate_range()
 	{
-		objc_button* objcButton = (objc_button*)m_nsView;
+		objc_button* objcButton = (objc_button*)get_NSView();
 		NSButtonCell* buttonCell = [objcButton cell];
 		NSSize idealSize = [buttonCell cellSize];
 		double w = (double)idealSize.width;
@@ -126,11 +122,18 @@ public:
 		m_defaultSize.set(w, h);
 	}
 
-	virtual range	get_range() const					{ return range(m_defaultSize); }
-	virtual size		get_default_size() const			{ return m_defaultSize; }
+	virtual range get_range() const { return range(m_defaultSize); }
+	virtual size get_default_size() const { return m_defaultSize; }
 
-	virtual bool is_focusable() const	{ return true; }
+	virtual bool is_focusable() const { return true; }
 };
+
+
+inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > nsview_subsystem::create_button() volatile
+{
+	rcref<button> b = rcnew(button, this_rcref);
+	return std::make_pair(b, b);
+}
 
 
 }

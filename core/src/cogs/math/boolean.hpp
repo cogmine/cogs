@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "cogs/env/mem/alignment.hpp"
+#include "cogs/mem/default_allocator.hpp"
 #include "cogs/operators.hpp"
 
 

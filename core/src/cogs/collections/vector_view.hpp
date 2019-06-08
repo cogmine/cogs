@@ -370,7 +370,7 @@
 //	}
 //
 //	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
-//	bool operator==(const vector_view<T2> & t) const volatile
+//	bool operator==(const vector_view<T2>& t) const volatile
 //	{
 //		read_token rt = begin_read();
 //		return (t.m_contents->m_base == (unsigned char*)static_cast<T2*>((T*)rt->m_base))
@@ -398,25 +398,25 @@
 //	bool operator!=(const vector_view<T2>& t) const { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	bool operator!=(const volatile vector_view<T2> & t) const { return !operator==(t); }
+//	bool operator!=(const volatile vector_view<T2>& t) const { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
-//	bool operator!=(const vector_view<T2> & t) const { return !operator==(t); }
+//	bool operator!=(const vector_view<T2>& t) const { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
-//	bool operator!=(const volatile vector_view<T2> & t) const { return !operator==(t); }
+//	bool operator!=(const volatile vector_view<T2>& t) const { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	bool operator!=(const vector_view<T2> & t) const volatile { return !operator==(t); }
+//	bool operator!=(const vector_view<T2>& t) const volatile { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
-//	bool operator!=(const vector_view<T2> & t) const volatile { return !operator==(t); }
+//	bool operator!=(const vector_view<T2>& t) const volatile { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<is_array_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>
-//	bool operator!=(T2 & t2) const { return !operator==(t); }
+//	bool operator!=(T2& t2) const { return !operator==(t); }
 //
 //	template <typename T2, std::enable_if_t<is_array_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>
-//	bool operator!=(T2 & t2) const volatile { return !operator==(t); }
+//	bool operator!=(T2& t2) const volatile { return !operator==(t); }
 //
 //	// swap
 //	template <typename T2, std::enable_if_t<!std::is_volatile_v<T2> && is_array_view_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> && std::is_convertible_v<T*, remove_extent_t<T2>*> >...>

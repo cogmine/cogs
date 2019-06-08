@@ -120,7 +120,7 @@ private:
 	rcptr<pane> m_subFocus;
 	ptrdiff_t m_hideShowState;
 
-	rcptr<pixel_image_canvas> m_offScreenBuffer;
+	rcptr<bitmap> m_offScreenBuffer;
 
 	compositing_behavior m_compositingBehavior;
 
@@ -134,7 +134,7 @@ private:
 	bool m_initialReshapeDone;
 	bool m_cursorWasWithin;
 	bool m_needsDraw;
-	bool m_recomposeDescendants = true;	// flag to opt out of child recalculation
+	bool m_recomposeDescendants = true;
 
 	bounds m_lastVisibleBounds;
 	point m_lastRenderOffset;
@@ -554,13 +554,13 @@ protected:
 		});
 	}
 
-	const rcptr<pixel_image_canvas>& peek_offscreen_buffer()
+	const rcptr<bitmap>& peek_offscreen_buffer() const
 	{
 		COGS_ASSERT(m_installed);
 		return m_offScreenBuffer;
 	}
 
-	const rcptr<pixel_image_canvas>& get_offscreen_buffer()
+	const rcptr<bitmap>& get_offscreen_buffer()
 	{
 		COGS_ASSERT(m_installed);
 		prepare_offscreen_buffer();
@@ -757,6 +757,7 @@ protected:
 
 	compositing_behavior get_compositing_behavior() const		{ return m_compositingBehavior; }
 	
+	public://temp
 	void set_compositing_behavior(compositing_behavior cb)
 	{
 		if (m_compositingBehavior != cb)
@@ -778,29 +779,31 @@ protected:
 			}
 		}
 	}
+	protected://temp
 
 	void draw()
 	{
-		auto composite_offscreen_buffer = [&]()
-		{
-			if (!is_externally_drawn())
-			{
-				COGS_ASSERT(!!m_offScreenBuffer);
-				point offset;
-				bounds visibleBounds;
-				rcptr<pane> p = get_ancestor_render_pane(offset, visibleBounds);
-				COGS_ASSERT(!!p);
-				p->save_clip();
-				p->clip_to(visibleBounds);
-				p->clip_opaque_after(*this, offset, visibleBounds);
-				p->clip_opaque_descendants(*this, offset, visibleBounds);
-				p->composite_pixel_image(*m_offScreenBuffer, get_bounds());
-				p->restore_clip();
-			}
-		};
-
 		if (is_visible())
 		{
+			auto composite_offscreen_buffer = [&]()
+			{
+				if (!is_externally_drawn())
+				{
+					COGS_ASSERT(!!m_offScreenBuffer);
+					point offset;
+					bounds visibleBounds;
+					rcptr<pane> p = get_ancestor_render_pane(offset, visibleBounds);
+					COGS_ASSERT(!!p);
+					p->save_clip();
+					p->clip_to(visibleBounds);
+					p->clip_opaque_after(*this, offset, visibleBounds);
+					p->clip_opaque_descendants(*this, offset, visibleBounds, true);
+					bounds b = get_bounds();
+					p->draw_bitmap(*m_offScreenBuffer, b, b.get_size());
+					p->restore_clip();
+				}
+			};
+
 			prepare_offscreen_buffer();
 			if (!!m_offScreenBuffer && !m_needsDraw)					// --- Buffer already available:
 			{
@@ -941,22 +944,6 @@ protected:
 		}
 	}
 
-	//// Derived pane should handle invalidating the affected area.
-	//virtual void dpi_changing(double oldDpi, double newDpi)
-	//{
-	//	if (!!m_offScreenBuffer)
-	//		m_offScreenBuffer->set_dpi(newDpi);
-	//
-	//	invalidate(get_size());
-	//
-	//	container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-	//	while (!!itor)
-	//	{
-	//		(*itor)->dpi_changing(oldDpi, newDpi);
-	//		++itor;
-	//	}
-	//}
-
 	void recomposing(bool recomposeDescendants)
 	{
 		COGS_ASSERT(!m_installing);
@@ -985,16 +972,16 @@ protected:
 		}
 	}
 
-	void invalidate(const bounds& r)	// r in local coords
+	void invalidate(const bounds& b)	// b in local coords
 	{
-		bounds r2 = r & bounds(get_size());	// clip
-		if (!!r2.get_height() && !!r2.get_width())
+		bounds b2 = b & bounds(get_size());	// clip
+		if (!!b2.get_height() && !!b2.get_width())
 		{
 			m_needsDraw = true;
-			invalidating(r2);
-			invalidating_up(r2);
+			invalidating(b2);
+			invalidating_up(b2);
 			if (m_compositingBehavior != buffer_self)	// no need to invalidate children if we're buffering only ourselves.
-				invalidating_children(r2);
+				invalidating_children(b2);
 		}
 	}
 
@@ -1050,38 +1037,38 @@ protected:
 
 	// canvas interface - public
 
-	virtual void fill(const bounds& r, const color& c = color::black, bool blendAlpha = true)
+	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->fill(r, c, blendAlpha);
+			m_offScreenBuffer->fill(b, c, blendAlpha);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->fill(r, c, blendAlpha);
+			m_bridgedCanvas->fill(b, c, blendAlpha);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds r2 = r;
+				bounds r2 = b;
 				r2 += offset;
-				parent->fill(r2, c, blendAlpha);
+				parent->fill(r2, c, true);
 			}
 		}
 	}
 
-	virtual void invert(const bounds& r)
+	virtual void invert(const bounds& b)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->invert(r);
+			m_offScreenBuffer->invert(b);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->invert(r);
+			m_bridgedCanvas->invert(b);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds r2 = r;
+				bounds r2 = b;
 				r2 += offset;
 				parent->invert(r2);
 			}
@@ -1104,28 +1091,7 @@ protected:
 				point endPt2 = endPt;
 				startPt2 += offset;
 				endPt2 += offset;
-				parent->draw_line(startPt2, endPt2, width, c, blendAlpha);
-			}
-		}
-	}
-
-	virtual void scroll(const bounds& r, const point& pt = point(0,0))
-	{
-		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->scroll(r, pt);
-		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->scroll(r, pt);
-		else
-		{
-			point offset;
-			rcptr<pane> parent = get_ancestor_render_pane(offset);
-			if (!!parent)
-			{
-				bounds r2 = r;
-				point pt2 = pt;
-				r2 += offset;
-				pt2 += offset;
-				parent->scroll(r2, pt2);
+				parent->draw_line(startPt2, endPt2, width, c, true);
 			}
 		}
 	}
@@ -1143,7 +1109,7 @@ protected:
 		return parent->load_font(fnt);
 	}
 
-	virtual gfx::font get_default_font()
+	virtual gfx::font get_default_font() const
 	{
 		if (!!m_offScreenBuffer)
 			return m_offScreenBuffer->get_default_font();
@@ -1156,119 +1122,151 @@ protected:
 		return parent->get_default_font();
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<font>& fnt = 0, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& fnt = 0, const color& c = color::black)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->draw_text(s, r, fnt, c, blendAlpha);
+			m_offScreenBuffer->draw_text(s, b, fnt, c);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->draw_text(s, r, fnt, c, blendAlpha);
+			m_bridgedCanvas->draw_text(s, b, fnt, c);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds r2 = r;
+				bounds r2 = b;
 				r2 += offset;
-				parent->draw_text(s, r2, fnt, c, blendAlpha);
+				parent->draw_text(s, r2, fnt, c);
 			}
 		}
 	}
 
-	virtual void composite_pixel_image(const pixel_image& src, const bounds& srcBounds, const point& dstPt = point(0, 0), bool blendAlpha = true)
+	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->composite_pixel_image(src, srcBounds, dstPt, blendAlpha);
+			m_offScreenBuffer->draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->composite_pixel_image(src, srcBounds, dstPt, blendAlpha);
+			m_bridgedCanvas->draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				point dstPt2 = dstPt;
-				dstPt2 += offset;
-				parent->composite_pixel_image(src, srcBounds, dstPt2, blendAlpha);
+				bounds dstBounds2 = dstBounds;
+				dstBounds2 += offset;
+				parent->draw_bitmap(src, srcBounds, dstBounds2, true);
 			}
 		}
 	}
 
-	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds)
+	virtual void draw_bitmask(const bitmask& msk, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->composite_scaled_pixel_image(src, srcBounds, dstBounds);
+			m_offScreenBuffer->draw_bitmask(msk, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->composite_scaled_pixel_image(src, srcBounds, dstBounds);
+			m_bridgedCanvas->draw_bitmask(msk, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds dstRect2 = dstBounds;
-				dstRect2.get_position() += offset;
-				parent->composite_scaled_pixel_image(src, srcBounds, dstRect2);
+				bounds dstBounds2 = dstBounds;
+				dstBounds2 += offset;
+				parent->draw_bitmask(msk, srcBounds, dstBounds2, fore, back, true, true);
 			}
 		}
 	}
 
-	virtual void composite_pixel_mask(const pixel_mask& msk, const bounds& srcBounds, const point& dstPt = point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->composite_pixel_mask(msk, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha);
+			m_offScreenBuffer->mask_out(msk, mskBounds, dstBounds, inverted);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->composite_pixel_mask(msk, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha);
+			m_bridgedCanvas->mask_out(msk, mskBounds, dstBounds, inverted);
 		else
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				point destPoint2 = dstPt;
-				destPoint2 += offset;
-				parent->composite_pixel_mask(msk, srcBounds, destPoint2, fore, back, blendForeAlpha, blendBackAlpha);
+				bounds dstBounds2 = dstBounds;
+				dstBounds2.get_position() += offset;
+				parent->mask_out(msk, mskBounds, dstBounds2, inverted);
 			}
 		}
 	}
 
-	virtual rcref<pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi)
+	virtual void draw_bitmap_with_bitmask(const bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false)
 	{
 		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->create_pixel_image_canvas(sz, isOpaque, dpi);
+			m_offScreenBuffer->draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
+		else if (!!m_bridgedCanvas)
+			m_bridgedCanvas->draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
+		else
+		{
+			point offset;
+			rcptr<pane> parent = get_ancestor_render_pane(offset);
+			if (!!parent)
+			{
+				bounds dstBounds2 = dstBounds;
+				dstBounds2.get_position() += offset;
+				parent->draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds2, true, inverted);
+			}
+		}
+	}
+
+	virtual rcref<bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		if (!!m_offScreenBuffer)
+			return m_offScreenBuffer->create_bitmap(sz, fillColor);
 
 		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->create_pixel_image_canvas(sz, isOpaque, dpi);
+			return m_bridgedCanvas->create_bitmap(sz, fillColor);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
 		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
-		return parent->create_pixel_image_canvas(sz, isOpaque, dpi);
+		return parent->create_bitmap(sz, fillColor);
 	}
 
-	virtual rcref<pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi)
+	virtual rcref<bitmap> load_bitmap(const composite_string& location)
 	{
 		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->load_pixel_image(location, dpi);
+			return m_offScreenBuffer->load_bitmap(location);
 
 		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->load_pixel_image(location, dpi);
+			return m_bridgedCanvas->load_bitmap(location);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
 		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
-		return parent->load_pixel_image(location, dpi);
+		return parent->load_bitmap(location);
 	}
 
-	virtual rcref<pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi)
+	virtual rcref<bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt)
 	{
 		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->load_pixel_mask(location, dpi);
+			return m_offScreenBuffer->create_bitmask(sz, value);
 
 		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->load_pixel_mask(location, dpi);
+			return m_bridgedCanvas->create_bitmask(sz, value);
+
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		return parent->create_bitmask(sz, value);
+	}
+
+	virtual rcref<bitmask> load_bitmask(const composite_string& location)
+	{
+		if (!!m_offScreenBuffer)
+			return m_offScreenBuffer->load_bitmask(location);
+
+		if (!!m_bridgedCanvas)
+			return m_bridgedCanvas->load_bitmask(location);
 		
 		rcptr<pane> parent = get_ancestor_render_pane();
 		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
-		return parent->load_pixel_mask(location, dpi);
+		return parent->load_bitmask(location);
 	}
 
 	virtual void save_clip()
@@ -1299,76 +1297,61 @@ protected:
 		}
 	}
 
-	virtual void clip_out(const bounds& r)
+	virtual void clip_out(const bounds& b)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->clip_out(r);
+			m_offScreenBuffer->clip_out(b);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->clip_out(r);
+			m_bridgedCanvas->clip_out(b);
 		else if (is_visible())
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds r2 = r;
+				bounds r2 = b;
 				r2 += offset;
 				parent->clip_out(r2);
 			}
 		}
 	}
 
-	virtual void clip_to(const bounds& r)
+	virtual void clip_to(const bounds& b)
 	{
 		if (!!m_offScreenBuffer)
-			m_offScreenBuffer->clip_to(r);
+			m_offScreenBuffer->clip_to(b);
 		else if (!!m_bridgedCanvas)
-			m_bridgedCanvas->clip_to(r);
+			m_bridgedCanvas->clip_to(b);
 		else if (is_visible())
 		{
 			point offset;
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
-				bounds r2 = r;
+				bounds r2 = b;
 				r2 += offset;
 				parent->clip_to(r2);
 			}
 		}
 	}
 
-	virtual bool is_unclipped(const bounds& r) const
+	virtual bool is_unclipped(const bounds& b) const
 	{
 		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->is_unclipped(r);
+			return m_offScreenBuffer->is_unclipped(b);
 
 		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->is_unclipped(r);
+			return m_bridgedCanvas->is_unclipped(b);
 
 		rcptr<pane> parent = get_parent();
 		if (!!parent)
 		{
-			bounds r2 = r;
+			bounds r2 = b;
 			r2 += get_position();
 			return parent->is_unclipped(r2);
 		}
 		return true;
 	}
-
-	virtual double get_dpi() const
-	{
-		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->get_dpi();
-
-		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->get_dpi();
-
-		rcptr<pane> parent = get_ancestor_render_pane();
-		if (!!parent)
-			return parent->get_dpi();
-		return 0;
-	}
-
 
 	// notification interfaces (called internally, overriden)
 
@@ -1402,9 +1385,9 @@ protected:
 		uninstall_done();
 	}
 
-	virtual bool key_pressing(string::char_t c)			{ return (!!m_subFocus) && m_subFocus->key_pressing(c); }
-	virtual bool key_releasing(string::char_t c)			{ return (!!m_subFocus) && m_subFocus->key_releasing(c); }
-	virtual bool character_typing(string::char_t c)		{ return (!!m_subFocus) && m_subFocus->character_typing(c); }
+	virtual bool key_pressing(wchar_t c)			{ return (!!m_subFocus) && m_subFocus->key_pressing(c); }
+	virtual bool key_releasing(wchar_t c)			{ return (!!m_subFocus) && m_subFocus->key_releasing(c); }
+	virtual bool character_typing(wchar_t c)		{ return (!!m_subFocus) && m_subFocus->character_typing(c); }
 
 	virtual bool button_pressing(mouse_button btn, const point& pt)
 	{
@@ -1523,7 +1506,7 @@ protected:
 
 	// pane interface - notifications
 
-	virtual void invalidating(const bounds& r)	 { }
+	virtual void invalidating(const bounds&)	 { }
 
 	// A parent pane that keeps additional information about nested panes may need to override detaching_child(),
 	// to refresh that data when a pane is removed.
@@ -1536,10 +1519,10 @@ protected:
 		}
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		size oldSize = get_size();
-		cell::reshape(r, oldOrigin);
+		cell::reshape(b, oldOrigin);
 		size newSize = get_size();
 		bool sizeChanged = oldSize != newSize;
 
@@ -1584,9 +1567,17 @@ protected:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			cell::reshape((*itor)->get_outermost_cell(), r.get_size(), oldOrigin);
+			cell::reshape((*itor)->get_outermost_cell(), b.get_size(), oldOrigin);
 			++itor;
 		}
+	}
+
+	virtual rcref<bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		if (!parent)
+			return forPane.create_bitmap(sz, fillColor);
+		return parent->create_offscreen_buffer(forPane, sz, fillColor);
 	}
 
 private:
@@ -1733,11 +1724,11 @@ private:
 		self_release();
 	}
 
-	void invalidating_up(const bounds& r)
+	void invalidating_up(const bounds& b)
 	{
 		if (!is_externally_drawn())
 		{
-			bounds parentRect = r;
+			bounds parentRect = b;
 			rcptr<pane> child = this_rcptr;
 			rcptr<pane> parent = m_parent;
 			for (;;)
@@ -1763,7 +1754,7 @@ private:
 		}
 	}
 	
-	void invalidating_children(const bounds& r)	// r is in own coords
+	void invalidating_children(const bounds& b)	// b is in own coords
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		if (!!itor)
@@ -1771,7 +1762,7 @@ private:
 				rcref<pane>& child = (*itor);
 				if (!child->is_opaque())		// Only invalidate along with parent if child is self-drawn and not opaque
 				{
-					bounds r2 = r;
+					bounds r2 = b;
 					r2 -= child->get_position();			// convert to child coords
 					r2 &= bounds(child->get_size());	// intersections of child and invalid
 					if (!!r2.get_height() && !!r2.get_width())
@@ -1795,7 +1786,7 @@ private:
 		}
 	}
 
-	void clip_opaque_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds)
+	void clip_opaque_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds, bool onlyIfExternal = false)
 	{
 		container_dlist<rcref<pane> >::iterator itor = fromPane.m_children.get_first();
 		while (!!itor)
@@ -1805,7 +1796,7 @@ private:
 			bounds newVisibleBounds = visibleBounds & b;
 			if (!!newVisibleBounds)
 			{
-				if (p.is_opaque())
+				if (p.is_opaque() && (!onlyIfExternal || p.is_externally_drawn()))
 					clip_out(newVisibleBounds);
 				else
 					clip_opaque_descendants(**itor, b.get_position(), newVisibleBounds);
@@ -1916,7 +1907,7 @@ private:
 				m_offScreenBuffer->set_size(sz, size(100, 100), false);
 			else
 			{
-				m_offScreenBuffer = create_pixel_image_canvas(sz, is_opaque(), get_dpi());
+				m_offScreenBuffer = create_offscreen_buffer(*this, sz, is_opaque() ? color::black : color::transparent);
 				m_needsDraw = true;
 				invalidating(sz);
 			}
@@ -2264,9 +2255,9 @@ protected:
 			m_drawDelegate(this_rcref);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 		if (m_invalidateOnReshape)
 			invalidate(get_size());
 	}
@@ -2277,27 +2268,39 @@ public:
 		return rcnew(bypass_constructor_permission<canvas_pane>, d, invalidateOnReshape);
 	}
 
-	virtual void fill(const bounds& r, const color& c = color::black, bool blendAlpha = true) { pane::fill(r, c, blendAlpha); }
-	virtual void invert(const bounds& r) { pane::invert(r); }
+	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
+	virtual void invert(const bounds& b) { pane::invert(b); }
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
-	virtual void scroll(const bounds& r, const point& pt = point(0, 0)) { pane::scroll(r, pt); }
 	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) { return pane::load_font(guiFont); }
-	virtual gfx::font get_default_font() { return pane::get_default_font(); }
-	virtual void draw_text(const composite_string& s, const bounds& r, const rcptr<font>& f = 0, const color& c = color::black, bool blendAlpha = true) { pane::draw_text(s, r, f, c, blendAlpha); }
-	virtual void composite_pixel_mask(const pixel_mask& src, const bounds& srcBounds, const point& dstPt = point(0, 0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::composite_pixel_mask(src, srcBounds, dstPt, fore, back, blendForeAlpha, blendBackAlpha); }
-	virtual void composite_pixel_image(const pixel_image& src, const bounds& srcBounds, const point& dstPt = point(0, 0), bool blendAlpha = true) { return pane::composite_pixel_image(src, srcBounds, dstPt, blendAlpha); }
-	virtual void composite_scaled_pixel_image(const pixel_image& src, const bounds& srcBounds, const bounds& dstBounds) { pane::composite_scaled_pixel_image(src, srcBounds, dstBounds); }
+	virtual gfx::font get_default_font() const { return pane::get_default_font(); }
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) { pane::draw_text(s, b, f, c); }
+	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) { return pane::draw_bitmap(src, srcBounds, dstBounds, blendAlpha); }
+	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(src, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) { pane::composite_vector_image(src, dstBounds); }
-	virtual rcref<pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi) { return pane::create_pixel_image_canvas(sz, isOpaque, dpi); }
-	virtual rcref<pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi) { return pane::load_pixel_image(location, dpi); }
-	virtual rcref<pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi) { return pane::load_pixel_mask(location, dpi); }
+	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false) { pane::mask_out(msk, mskBounds, dstBounds, inverted); }
+	virtual void draw_bitmap_with_bitmask(const bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false) { pane::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted); }
+	virtual rcref<bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		return pane::create_bitmap(sz, fillColor);
+	}
+	virtual rcref<bitmap> load_bitmap(const composite_string& location)
+	{
+		return pane::load_bitmap(location);
+	}
+	virtual rcref<bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt)
+	{
+		return pane::create_bitmask(sz, value);
+	}
+	virtual rcref<bitmask> load_bitmask(const composite_string& location)
+	{
+		return pane::load_bitmask(location);
+	}
 	//virtual rcptr<vector_image> load_vector_image(const composite_string& location) { return pane::load_vector_image(location); }
 	virtual void save_clip() { pane::save_clip(); }
 	virtual void restore_clip() { pane::restore_clip(); }
-	virtual void clip_out(const bounds& r) { pane::clip_out(r); }
-	virtual void clip_to(const bounds& r) { pane::clip_to(r); }
-	virtual bool is_unclipped(const bounds& r) const { return pane::is_unclipped(r); }
-	virtual double get_dpi() const { return pane::get_dpi(); }
+	virtual void clip_out(const bounds& b) { pane::clip_out(b); }
+	virtual void clip_to(const bounds& b) { pane::clip_to(b); }
+	virtual bool is_unclipped(const bounds& b) const { return pane::is_unclipped(b); }
 
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
@@ -2348,6 +2351,11 @@ protected:
 	static void button_double_click(pane& p, mouse_button btn, const point& pt)
 	{
 		p.button_double_clicking(btn, pt);
+	}
+
+	static void invalidate(pane& p, const bounds& sz)
+	{
+		p.invalidate(sz);
 	}
 };
 

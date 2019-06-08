@@ -28,7 +28,6 @@ class scroll_bar;
 };
 
 
-
 @interface objc_scroll_bar : NSScroller
 {
 @public
@@ -41,33 +40,30 @@ class scroll_bar;
 @end
 
 
-
 namespace cogs {
 namespace gui {
 namespace os {
 
 
-class scroll_bar : public nsview_pane<scroll_bar_interface>
+class scroll_bar : public nsview_pane, public scroll_bar_interface
 {
 private:
-	typedef nsview_pane<scroll_bar_interface> base_t;
+	volatile transactable<scroll_bar_state> m_state;
+	volatile double m_pos;
 
-	volatile transactable<scroll_bar_state>			m_state;
-	volatile double								m_pos;
-
-	delayed_construction<delegated_bindable_property<scroll_bar_state> >	m_stateProperty;
-	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
+	delayed_construction<delegated_bindable_property<scroll_bar_state> > m_stateProperty;
+	delayed_construction<delegated_bindable_property<double> > m_positionProperty;
 
 	bool m_isHiddenWhenInactive;
 	bool m_isHidden;
 
-	int		m_dimension;
-	range	m_currentRange;
-	size	m_currentDefaultSize;
+	dimension m_dimension;
+	range m_currentRange;
+	size m_currentDefaultSize;
 
 	void set_scroll_bar_state(const scroll_bar_state& newState, double newPos)
 	{
-		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)m_nsView;
+		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
 		for (;;)
 		{
 			if (newState.m_thumbSize >= newState.m_max)
@@ -77,7 +73,7 @@ private:
 					if (!m_isHidden)
 					{
 						m_isHidden = true;
-						base_t::hiding();
+						nsview_pane::hiding();
 					}
 					break;
 				}
@@ -90,22 +86,22 @@ private:
 				if (pos > maxPos)
 					pos = maxPos;
 			
-				[objcScrollBar setDoubleValue: ((double)pos.get_int<longest>()/(double)maxPos.get_int<longest>()) ];
-				[objcScrollBar setKnobProportion: ((double)newState.m_thumbSize.get_int<longest>()/(double)newState.m_max.get_int<longest>()) ];
+				[objcScrollBar setDoubleValue: (pos / maxPos) ];
+				[objcScrollBar setKnobProportion: (newState.m_thumbSize / newState.m_max) ];
 				[objcScrollBar setEnabled:YES];
 			}
 			if (!!m_isHidden)
 			{
 				m_isHidden = false;
-				base_t::showing();
+				nsview_pane::showing();
 			}
 			break;
 		}
 	}
 
 public:
-	scroll_bar(const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: base_t(uiSubsystem),
+	scroll_bar(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(desc, uiSubsystem),
 		m_isHidden(false),
 		m_pos(0)
 	{
@@ -152,14 +148,13 @@ public:
 	
 	~scroll_bar()
 	{
-		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)m_nsView;
-		objcScrollBar->m_cppScrollBar.release();
+		//objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
+		//objcScrollBar->m_cppScrollBar.release();
 	}
 
 	virtual void installing()
 	{
 		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
-		sb->set_completely_invalidate_on_reshape(true);
 		m_dimension = sb->get_dimension();
 		m_isHiddenWhenInactive = sb->is_hidden_when_inactive();
 
@@ -183,7 +178,8 @@ public:
 		[objcScrollBar setTarget:objcScrollBar];
 		[objcScrollBar setAction: @selector(scrolled:)];
 
-		base_t::installing(objcScrollBar);
+		install_NSView(objcScrollBar);
+		nsview_pane::installing();
 
 		m_stateProperty->bind_from(sb->get_state_property());
 		m_positionProperty->bind(sb->get_position_property());
@@ -202,7 +198,7 @@ public:
 		double maxPos = max;
 		maxPos -= thumbSize;
 
-		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)m_nsView;
+		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
 		NSScrollerPart part = [objcScrollBar hitPart];
 		switch (part)
 		{
@@ -217,19 +213,19 @@ public:
 			if (pos > maxPos)
 				pos = maxPos;
 			break;
-		case NSScrollerDecrementLine:
-			if (pos > 0)
-				--pos;
-			break;
-		case NSScrollerIncrementLine:
-			if (pos < maxPos)
-				++pos;
-			break;
+		//case NSScrollerDecrementLine:
+		//	if (pos > 0)
+		//		--pos;
+		//	break;
+		//case NSScrollerIncrementLine:
+		//	if (pos < maxPos)
+		//		++pos;
+		//	break;
 		case NSScrollerKnob:
 		case NSScrollerKnobSlot:
 			{
 				double curValue = [objcScrollBar doubleValue];
-				double scaledUp = curValue * (double)maxPos.get_int<longest>();
+				double scaledUp = curValue * maxPos;
 				pos = (longest)scaledUp;
 			}
 			//setPosition = false;
@@ -243,7 +239,7 @@ public:
 		if (pos != oldPos)
 		{
 			if (!!setPosition)
-				[objcScrollBar setDoubleValue: ((double)pos.get_int<longest>()/(double)maxPos.get_int<longest>()) ];
+				[objcScrollBar setDoubleValue: (pos/maxPos) ];
 
 			// sets are serialized in the UI thread.  No need to worry about synchronizing with other writes.
 			atomic::store(m_pos, pos);
@@ -253,7 +249,7 @@ public:
 
 	virtual void calculate_range()
 	{
-		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)m_nsView;
+		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
 		m_currentRange.clear();
 		double scrollBarWidth = (longest)[NSScroller scrollerWidthForControlSize:[objcScrollBar controlSize] scrollerStyle:[objcScrollBar scrollerStyle]];
 		m_currentRange.get_max(!m_dimension) = scrollBarWidth;
@@ -267,6 +263,12 @@ public:
 
 };
 
+
+inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_subsystem::create_scroll_bar() volatile
+{
+	rcref<scroll_bar> sb = rcnew(scroll_bar, this_rcref);
+	return std::make_pair(sb, sb);
+}
 
 }
 }

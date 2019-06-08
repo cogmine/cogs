@@ -196,7 +196,7 @@ public:
 		virtual const lookup_result& get() const volatile { return *(const lookup_result*)this; }
 
 	public:
-		const vector<address> & get_hosts() const		{ return m_addresses; }
+		const vector<address>& get_hosts() const		{ return m_addresses; }
 
 		virtual rcref<task<bool> > cancel() volatile
 		{

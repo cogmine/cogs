@@ -5,7 +5,6 @@
 
 // Status: Good, WorkInProgress
 
-#ifdef COGS_COMPILE_SOURCE
 
 #include <stdlib.h>
 #include "cogs/collections/composite_string.hpp"
@@ -29,75 +28,12 @@ namespace cogs {
 namespace gui {
 namespace os {
 
-/// @internal
-@interface defer_task_helper : NSObject
-{
-@public
-	// nsview_subsystem will outlive the main threads ability to handle performSelectorOnMainThread
-	volatile nsview_subsystem* m_subsystem;
-}
-
--(void)defer;
-
-@end
-
-@implementation defer_task_helper
-
--(void)defer
-{
-	bool ranAny = false;
-	bool done = false;
-	while (!done)
-	{
-		bool b = atomic::compare_exchange(m_subsystem->m_dispatchMode, 1, 2);
-		COGS_ASSERT(b);
-		for (;;)
-		{
-			int priority;
-			rcptr<cogs::dispatcher::dispatched> dsptchd = m_subsystem->m_controlQueue->peek(priority);
-			if (!!dsptchd)
-			{
-				if (ranAny && (priority > 0x00010000))
-				{
-					atomic::store(m_subsystem->m_dispatchMode, 2);
-					[self performSelectorOnMainThread : @selector(defer) withObject:nil waitUntilDone : NO];
-					return;
-				}
-
-				if (!m_subsystem->m_controlQueue->remove_and_invoke(dsptchd.dereference()))
-					continue;
-
-				ranAny = true;
-				continue;
-			}
-
-			done = atomic::compare_exchange(m_subsystem->m_dispatchMode, 0, 1);
-			break;
-		}
-	}
-
-	[self release];
-}
-
-@end
 
 
-alignas (atomic::get_alignment_v<timeout_t::aligned_ratio_t>) placement<timeout_t::aligned_ratio_t> timeout_t::s_ratio;
-//int semaphore::s_event = 0;
-placement<rcptr<volatile nsview_subsystem> >	nsview_subsystem::s_nsViewSubsystem;
+//alignas (atomic::get_alignment_v<timeout_t::aligned_ratio_t>) placement<timeout_t::aligned_ratio_t> timeout_t::s_ratio;
+////int semaphore::s_event = 0;
+//placement<rcptr<volatile nsview_subsystem> >	nsview_subsystem::s_nsViewSubsystem;
 
-
-void nsview_subsystem::update() volatile
-{
-	int oldMode = 2;
-	cogs::exchange(m_dispatchMode, oldMode, oldMode);
-	if (!oldMode)
-	{
-		defer_task_helper* helper = [[defer_task_helper alloc] init];
-		helper->m_subsystem = this_rcptr.template const_cast_to<volatile nsview_subsystem>().get_ptr();
-		[helper performSelectorOnMainThread : @selector(defer) withObject:nil waitUntilDone : NO];
-	}
-}
 
 //rcptr<console> gui::subsystem::get_default_console() volatile
 //{
@@ -109,28 +45,28 @@ void nsview_subsystem::update() volatile
 //	return rcptr<console>();	// TBD
 //}
 
-void gui::subsystem::message(const composite_string& s) volatile
-{
-	// TBD
-}
-
-void nsview_subsystem::message(const composite_string& s) volatile
-{
-	// TBD
-}
-
-void nsview_subsystem::open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& j, const function<void()>& closeDelegate) volatile
-{
-	int style = NSTitledWindowMask | NSClosableWindowMask;
-	//if (minimizable)
-		style |= NSMiniaturizableWindowMask;
-	//if (resizable)
-		style |= NSResizableWindowMask;
-
-	rcref<window_bridge> w = rcnew(window_bridge, title, style, closeDelegate);
-	w->nest(p, j);
-	w->install(this_rcref);
-}
+//void gui::subsystem::message(const composite_string& s) volatile
+//{
+//	// TBD
+//}
+//
+//void nsview_subsystem::message(const composite_string& s) volatile
+//{
+//	// TBD
+//}
+//
+//void nsview_subsystem::open_window(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& j, const function<void()>& closeDelegate) volatile
+//{
+//	int style = NSTitledWindowMask | NSClosableWindowMask;
+//	//if (minimizable)
+//		style |= NSMiniaturizableWindowMask;
+//	//if (resizable)
+//		style |= NSResizableWindowMask;
+//
+//	rcref<window_bridge> w = rcnew(window_bridge, title, style, closeDelegate);
+//	w->nest(p, j);
+//	w->install(this_rcref);
+//}
 
 //void nsview_subsystem::open_full_screen(const composite_string& title, const rcref<pane>& p, const rcptr<frame>& j, const function<void()>& closeDelegate) volatile
 //{
@@ -138,139 +74,113 @@ void nsview_subsystem::open_window(const composite_string& title, const rcref<pa
 //}
 
 
-rcref<button_interface> nsview_subsystem::create_button() volatile
-{
-	return rcnew(gui::os::button, this_rcref);
-}
-
-rcref<check_box_interface> nsview_subsystem::create_check_box() volatile
-{
-	return rcnew(gui::os::check_box, this_rcref);
-}
-
-rcref<text_editor_interface> nsview_subsystem::create_text_editor() volatile
-{
-	return rcnew(gui::os::text_editor, this_rcref);
-}
-
-rcref<scroll_bar_interface> nsview_subsystem::create_scroll_bar() volatile
-{
-	return rcnew(gui::os::scroll_bar, this_rcref);
-}
-
-
-/// @internal
-class nsview_canvas_pane : public nsview_pane<bridgeable_pane>
-{
-private:
-	typedef nsview_pane<bridgeable_pane> base_t;
-
-public:
-	nsview_canvas_pane(const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: base_t(uiSubsystem)
-	{ }
-
-	~nsview_canvas_pane()
-	{
-		if (!!m_nsView)
-			((objc_view*)m_nsView)->m_cppView.release();
-	}
-
-	virtual void installing()
-	{
-		objc_view* nsView = [[objc_view alloc] init];
-		nsView->m_cppView = this_rcptr;
-		
-		[nsView setAutoresizesSubviews:NO];
-		[nsView setPostsFrameChangedNotifications:YES];
-		
-		base_t::installing(nsView);
-	}
-};
-
-
-rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
-{
-	rcref<nsview_canvas_pane> p = rcnew(nsview_canvas_pane, this_rcref);
-	p->m_isUserDrawn = true;
-	return p;
-}
-
-
-int main(int argc, const char * argv[])
-{
-	return NSApplicationMain(argc, argv);
-}
-
-
-namespace cogs {
-	int main();
-}
-
-
-static void do_cleanup()
-{
-	cogs::thread_pool::shutdown_default();
-
-	cogs::gui::os::nsview_subsystem::shutdown();
-
-	cogs::default_allocator::shutdown();
-}
-
-
-static void quitting()
-{
-	NSApplication* app = [NSApplication sharedApplication];
-	[app performSelectorOnMainThread: @selector(terminate:) withObject:app waitUntilDone:NO];
-}
+//rcref<button_interface> nsview_subsystem::create_button() volatile
+//{
+//	return rcnew(gui::os::button, this_rcref);
+//}
+//
+//rcref<check_box_interface> nsview_subsystem::create_check_box() volatile
+//{
+//	return rcnew(gui::os::check_box, this_rcref);
+//}
+//
+//rcref<text_editor_interface> nsview_subsystem::create_text_editor() volatile
+//{
+//	return rcnew(gui::os::text_editor, this_rcref);
+//}
+//
+//rcref<scroll_bar_interface> nsview_subsystem::create_scroll_bar() volatile
+//{
+//	return rcnew(gui::os::scroll_bar, this_rcref);
+//}
 
 
 /// @internal
-@implementation AppDelegate
+//class nsview_canvas_pane : public nsview_pane<bridgeable_pane>
+//{
+//private:
+//	typedef nsview_pane<bridgeable_pane> base_t;
+//
+//public:
+//	nsview_canvas_pane(const rcref<volatile nsview_subsystem>& uiSubsystem)
+//		: base_t(uiSubsystem)
+//	{ }
+//
+//	~nsview_canvas_pane()
+//	{
+//		if (!!m_nsView)
+//			((objc_view*)m_nsView)->m_cppView.release();
+//	}
+//
+//	virtual void installing()
+//	{
+//		objc_view* nsView = [[objc_view alloc] init];
+//		nsView->m_cppView = this_rcptr;
+//		
+//		[nsView setAutoresizesSubviews:NO];
+//		[nsView setPostsFrameChangedNotifications:YES];
+//		
+//		base_t::installing(nsView);
+//	}
+//};
 
--(void)applicationDidFinishLaunching:(NSNotification *) notification
-{
-	main();
 
-	rcref<volatile nsview_subsystem> nsViewSubsystem = nsview_subsystem::get_default();
-
-	rcptr<const single_fire_event> quitEvent = quit_dispatcher::get()->get_event();
-	if (!!quitEvent)
-	{
-		quitEvent->dispatch(&quitting);
-	}
-}
-
--(void)applicationWillTerminate:(NSNotification *)notification
-{
-	// in case someone is force-quitting us by sending us this.
-	quit_dispatcher::get()->force();
-
-	atexit(do_cleanup);
-}
+//rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
+//{
+//	rcref<nsview_canvas_pane> p = rcnew(nsview_canvas_pane, this_rcref);
+//	p->m_isUserDrawn = true;
+//	return p;
+//}
 
 
-@end
+//int main(int argc, const char * argv[])
+//{
+//	return NSApplicationMain(argc, argv);
+//}
+//
+//
+//namespace cogs {
+//	int main();
+//}
+//
+//
+//static void do_cleanup()
+//{
+//	cogs::thread_pool::shutdown_default();
+//
+//	cogs::gui::os::nsview_subsystem::shutdown();
+//
+//	cogs::default_allocator::shutdown();
+//}
+//
 
 
-/// @internal
-@implementation objc_view
+//static void quitting()
+//{
+//	NSApplication* app = [NSApplication sharedApplication];
+//	[app performSelectorOnMainThread: @selector(terminate:) withObject:app waitUntilDone:NO];
+//}
 
--(BOOL)isFlipped	{ return TRUE; }
 
--(void)drawRect:(NSRect)r
-{
-	[super drawRect:r];
-	rcptr<gui::os::nsview_pane<gui::bridgeable_pane> > cppView = m_cppView;
-	if (!!cppView)
-	{
-		rcptr<gui::pane> owner = cppView->get_bridge();
-		if (!!owner)
-			owner->draw();
-	}
-}
 
-@end
+///// @internal
+//@implementation objc_view
+//
+//-(BOOL)isFlipped	{ return TRUE; }
+//
+//-(void)drawRect:(NSRect)r
+//{
+//	[super drawRect:r];
+//	rcptr<gui::os::nsview_pane<gui::bridgeable_pane> > cppView = m_cppView;
+//	if (!!cppView)
+//	{
+//		rcptr<gui::pane> owner = cppView->get_bridge();
+//		if (!!owner)
+//			owner->draw();
+//	}
+//}
+//
+//@end
 
 
 
@@ -613,5 +523,3 @@ static void quitting()
 }
 }
 }
-
-#endif

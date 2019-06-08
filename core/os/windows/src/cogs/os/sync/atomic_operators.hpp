@@ -67,7 +67,7 @@ inline std::enable_if_t<
 exchange(T& t, const T& src, T& rtn)
 {
 	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
-	rtn = (T)InterlockedExchange64((__int64*)(unsigned char*)& t, (__int64)src);
+	rtn = (T)InterlockedExchange64((__int64*)(unsigned char*)&t, (__int64)src);
 }
 
 template <typename T>
@@ -80,7 +80,7 @@ inline std::enable_if_t<
 >
 exchange(volatile T& t, const T& src)
 {
-	return (T)InterlockedExchange8((char*)(unsigned char*)& t, (char)src);
+	return (T)InterlockedExchange8((char*)(unsigned char*)&t, (char)src);
 }
 
 template <typename T>
@@ -95,7 +95,7 @@ inline std::enable_if_t<
 exchange(volatile T& t, const T& src)
 {
 	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
-	return (T)InterlockedExchange16((short*)(unsigned char*)& t, (short)src);
+	return (T)InterlockedExchange16((short*)(unsigned char*)&t, (short)src);
 }
 
 template <typename T>
@@ -109,7 +109,7 @@ inline std::enable_if_t<
 >
 exchange(volatile T& t, const T& src)
 {
-	COGS_ASSERT((size_t)& t % cogs::atomic::get_alignment_v<T> == 0);
+	COGS_ASSERT((size_t)&t % cogs::atomic::get_alignment_v<T> == 0);
 	return (T)InterlockedExchange((long*)(unsigned char*)&t, (long)src);
 }
 

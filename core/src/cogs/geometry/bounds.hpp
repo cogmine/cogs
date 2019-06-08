@@ -37,9 +37,9 @@ private:
 public:
 	bounds() { }
 
-	bounds(const bounds& r)
-		: m_position(r.m_position),
-		m_size(r.m_size)
+	bounds(const bounds& b)
+		: m_position(b.m_position),
+		m_size(b.m_size)
 	{ }
 
 	bounds(double sz)
@@ -52,10 +52,10 @@ public:
 		m_size(sz)
 	{ }
 
-	bounds& operator=(const bounds& r)
+	bounds& operator=(const bounds& b)
 	{
-		m_position = r.m_position;
-		m_size = r.m_size;
+		m_position = b.m_position;
+		m_size = b.m_size;
 		return *this;
 	}
 
@@ -135,16 +135,16 @@ public:
 	bool operator!() const { return !m_size; }
 
 	// equality
-	bool operator==(const bounds& r) const
+	bool operator==(const bounds& b) const
 	{
 		bounds b1 = normalized();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		return ((b1.get_size() == b2.get_size()) && (b1.get_position() == b2.get_position()));
 	}
 	
 	// inequality
-	bool operator!=(const bounds& r) const
-	{ return !operator==(r); }
+	bool operator!=(const bounds& b) const
+	{ return !operator==(b); }
 	
 	// contains
 	bool contains(double pt) const
@@ -157,21 +157,21 @@ public:
 	}
 		
 	// intersects
-	bool intersects(const bounds& r) const
+	bool intersects(const bounds& b) const
 	{
 		bounds tmpThis = normalized();
-		bounds tmpR = r.normalized();
-		return (tmpThis.get_position() < tmpR.get_position() + tmpR.get_size())
-			&& (tmpThis.get_position() + tmpThis.get_size() > tmpR.get_position());
+		bounds b2 = b.normalized();
+		return (tmpThis.get_position() < b2.get_position() + b2.get_size())
+			&& (tmpThis.get_position() + tmpThis.get_size() > b2.get_position());
 	}
 
 	// overlaps
-	bool overlaps(const bounds& r) const
+	bool overlaps(const bounds& b) const
 	{
 		bounds tmpThis = normalized();
-		bounds tmpR = r.normalized();
-		return (tmpThis.get_position() <= tmpR.get_position())
-			&& (tmpThis.get_position() + tmpThis.get_size() >= tmpR.get_position() + tmpR.get_size());
+		bounds b2 = b.normalized();
+		return (tmpThis.get_position() <= b2.get_position())
+			&& (tmpThis.get_position() + tmpThis.get_size() >= b2.get_position() + b2.get_size());
 	}
 
 	// bounds + margin = bounds	// extend
@@ -272,12 +272,12 @@ public:
 	}
 
 	// bounds | bounds = bounds // union
-	bounds operator|(const bounds& r) const
+	bounds operator|(const bounds& b) const
 	{
 		bounds result;
 		bounds b1 = normalized();
 		double end1 = b1.calc_end();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
 
 		if (b1.get_position() < b2.get_position())
@@ -293,11 +293,11 @@ public:
 		return result;
 	}
 
-	bounds& operator|=(const bounds& r)
+	bounds& operator|=(const bounds& b)
 	{
 		normalize();
 		double end1 = calc_end();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
 	
 		if (get_position() > b2.get_position())
@@ -310,12 +310,12 @@ public:
 	}
 
 	// bounds & bounds = bounds // intesection
-	bounds operator&(const bounds& r) const
+	bounds operator&(const bounds& b) const
 	{
 		bounds result;
 		bounds b1 = normalized();
 		double end1 = b1.calc_end();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
 	
 		if ((end1 < b2.get_position())
@@ -339,11 +339,11 @@ public:
 		return result;
 	}
 
-	bounds& operator&=(const bounds& r)
+	bounds& operator&=(const bounds& b)
 	{
 		normalize();
 		double end1 = calc_end();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
 	
 		if ((end1 < b2.get_position())
@@ -402,9 +402,9 @@ private:
 public:
 	bounds() { }
 
-	bounds(const bounds& r)
-		: m_position(r.m_position),
-		m_size(r.m_size)
+	bounds(const bounds& b)
+		: m_position(b.m_position),
+		m_size(b.m_size)
 	{ }
 
 	bounds(const size& sz)
@@ -422,10 +422,10 @@ public:
 		m_size(w, h)
 	{ }
 
-	bounds& operator=(const bounds& r)
+	bounds& operator=(const bounds& b)
 	{
-		m_position = r.m_position;
-		m_size = r.m_size;
+		m_position = b.m_position;
+		m_size = b.m_size;
 		return *this;
 	}
 
@@ -565,16 +565,16 @@ public:
 	bool operator!() const { return !m_size; }
 
 	// equality
-	bool operator==(const bounds& r) const
+	bool operator==(const bounds& b) const
 	{
 		bounds b1 = normalized();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		return ((b1.get_size() == b2.get_size()) && (b1.get_position() == b2.get_position()));
 	}
 	
 	// inequality
-	bool operator!=(const bounds& r) const
-	{ return !operator==(r); }
+	bool operator!=(const bounds& b) const
+	{ return !operator==(b); }
 	
 	// contains
 	bool contains(const point& pt) const
@@ -587,25 +587,25 @@ public:
 	}
 	
 	// intersects
-	bool intersects(const bounds& r) const
+	bool intersects(const bounds& b) const
 	{
 		bounds tmpThis = normalized();
-		bounds tmpR = r.normalized();
-		return (tmpThis.get_position().get_x() < tmpR.get_position().get_x() + tmpR.get_size().get_width())
-			&& (tmpThis.get_position().get_x() + tmpThis.get_size().get_width() > tmpR.get_position().get_x())
-			&& (tmpThis.get_position().get_y() < tmpR.get_position().get_y() + tmpR.get_size().get_height())
-			&& (tmpThis.get_position().get_y() + tmpThis.get_size().get_height() > tmpR.get_position().get_y());
+		bounds b2 = b.normalized();
+		return (tmpThis.get_position().get_x() < b2.get_position().get_x() + b2.get_size().get_width())
+			&& (tmpThis.get_position().get_x() + tmpThis.get_size().get_width() > b2.get_position().get_x())
+			&& (tmpThis.get_position().get_y() < b2.get_position().get_y() + b2.get_size().get_height())
+			&& (tmpThis.get_position().get_y() + tmpThis.get_size().get_height() > b2.get_position().get_y());
 	}
 
 	// overlaps
-	bool overlaps(const bounds& r) const
+	bool overlaps(const bounds& b) const
 	{
 		bounds tmpThis = normalized();
-		bounds tmpR = r.normalized();
-		return (tmpThis.get_position().get_x() <= tmpR.get_position().get_x())
-			&& (tmpThis.get_position().get_x() + tmpThis.get_size().get_width() >= tmpR.get_position().get_x() + tmpR.get_size().get_width())
-			&& (tmpThis.get_position().get_y() <= tmpR.get_position().get_y())
-			&& (tmpThis.get_position().get_y() + tmpThis.get_size().get_height() >= tmpR.get_position().get_y() + tmpR.get_size().get_height());
+		bounds b2 = b.normalized();
+		return (tmpThis.get_position().get_x() <= b2.get_position().get_x())
+			&& (tmpThis.get_position().get_x() + tmpThis.get_size().get_width() >= b2.get_position().get_x() + b2.get_size().get_width())
+			&& (tmpThis.get_position().get_y() <= b2.get_position().get_y())
+			&& (tmpThis.get_position().get_y() + tmpThis.get_size().get_height() >= b2.get_position().get_y() + b2.get_size().get_height());
 	}
 
 
@@ -795,12 +795,12 @@ public:
 	}
 
 	// bounds | bounds = bounds // union
-	bounds operator|(const bounds& r) const
+	bounds operator|(const bounds& b) const
 	{
 		bounds result;
 		bounds b1 = normalized();
 		point br1 = b1.calc_bottom_right();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
 
 		if (b1.get_position().get_y() < b2.get_position().get_y())
@@ -826,11 +826,11 @@ public:
 		return result;
 	}
 
-	bounds& operator|=(const bounds& r)
+	bounds& operator|=(const bounds& b)
 	{
 		normalize();
 		point br1 = calc_bottom_right();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
 	
 		if (get_position().get_y() > b2.get_position().get_y())
@@ -849,12 +849,12 @@ public:
 	}
 
 	// bounds & bounds = bounds // intesection
-	bounds operator&(const bounds& r) const
+	bounds operator&(const bounds& b) const
 	{
 		bounds result;
 		bounds b1 = normalized();
 		point br1 = b1.calc_bottom_right();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
 	
 		if ((br1.get_y() < b2.get_position().get_y())
@@ -889,11 +889,11 @@ public:
 		return result;
 	}
 
-	bounds& operator&=(const bounds& r)
+	bounds& operator&=(const bounds& b)
 	{
 		normalize();
 		point br1 = calc_bottom_right();
-		bounds b2 = r.normalized();
+		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
 	
 		if ((br1.get_y() < b2.get_position().get_y())

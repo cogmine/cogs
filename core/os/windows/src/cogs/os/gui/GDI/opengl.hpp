@@ -102,7 +102,7 @@
 //		hwnd_pane::installing();
 //	}
 //
-//	virtual void invalidate(const canvas::bounds& r)
+//	virtual void invalidate(const canvas::bounds& b)
 //	{
 //		// Add bounds to stencil
 //	}
@@ -120,9 +120,9 @@
 //		wglMakeCurrent(hOldDC, hOldRC);
 //	}
 //
-//	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //	{
-//		hwnd_pane::reshape(r, oldOrigin);
+//		hwnd_pane::reshape(b, oldOrigin);
 //
 //		HDC hOldDC = wglGetCurrentDC();
 //		HGLRC hOldRC = wglGetCurrentContext();
@@ -130,19 +130,19 @@
 //
 //		glMatrixMode(GL_PROJECTION);
 //		glLoadIdentity();
-//		gluOrtho2D(0, r.get_width(), r.get_height(), 0);
-//		//glOrtho(0, r.get_width(), r.get_height(), 0, 0, 1);
-//		glViewport(0, 0, r.get_width(), r.get_height());                    
+//		gluOrtho2D(0, b.get_width(), b.get_height(), 0);
+//		//glOrtho(0, b.get_width(), b.get_height(), 0, 0, 1);
+//		glViewport(0, 0, b.get_width(), b.get_height());
 //		glMatrixMode(GL_MODELVIEW);
 //
 //		wglMakeCurrent(hOldDC, hOldRC);
 //	}
 //
 //	// 2D
-//	virtual void fill(const bounds& r, const color& c = color::black, bool blendAlpha = true)
+//	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
 //	{
-//		point topRight = r.calc_top_right();
-//		point bottomLeft = r.calc_bottom_left();
+//		point topRight = b.calc_top_right();
+//		point bottomLeft = b.calc_bottom_left();
 //
 //		//glClear(GL_COLOR_BUFFER_BIT);
 //
@@ -159,7 +159,7 @@
 //		glEnd();
 //	}
 //
-//	virtual void invert(const bounds& r)
+//	virtual void invert(const bounds& b)
 //	{
 //	}
 //
@@ -174,38 +174,31 @@
 //		glEnd();
 //	}
 //
-//	virtual void scroll(const bounds& r, const point& pt = point(0,0))
-//	{
-//		if (pt == r.get_position())
-//			return;
-//	}
-//
-//	virtual void draw_text(const composite_string& s, const bounds& r, const color& c = color::black, bool blendAlpha = true)
-//	{
-//		;
-//	}
-//
-//	virtual void composite_scaled_pixel_image(const gfx::pixel_image& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true )
+//	virtual void draw_text(const composite_string& s, const bounds& b, const color& c = color::black)
 //	{
 //	}
 //
-//	virtual void composite_pixel_mask(const gfx::pixel_mask& src, const bounds& srcBounds, const point& dstPt = point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
+//	virtual void draw_bitmap(const gfx::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true )
 //	{
 //	}
 //
-//	virtual rcptr<gfx::pixel_image_canvas> create_pixel_image_canvas(const size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi)
+//	virtual void draw_bitmap(const gfx::bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
 //	{
-//		return rcptr<gfx::pixel_image_canvas>();
 //	}
 //
-//	virtual rcptr<gfx::pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi)
+//	virtual rcptr<gfx::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
 //	{
-//		return rcptr<gfx::pixel_image>();
+//		return rcptr<gfx::bitmap>();
 //	}
 //
-//	virtual rcptr<gfx::pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi)
+//	virtual rcptr<gfx::bitmap> load_bitmap(const composite_string& location)
 //	{
-//		return rcptr<gfx::pixel_mask>();
+//		return rcptr<gfx::bitmap>();
+//	}
+//
+//	virtual rcptr<gfx::bitmask> load_bitmask(const composite_string& location)
+//	{
+//		return rcptr<gfx::bitmask>();
 //	}
 //
 //	virtual rcptr<volatile gui::subsystem> get_subsystem()

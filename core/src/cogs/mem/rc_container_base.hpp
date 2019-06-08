@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "cogs/env.hpp"
+#include "cogs/function.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
@@ -78,7 +79,6 @@ template <typename type_in, reference_strength_type refStrengthType = strong>
 class rc_container_base;
 
 
-
 template <typename type>
 struct rc_container_base_content_t
 {
@@ -91,10 +91,8 @@ struct rc_container_base_content_t
 
 };
 
-
-// specialized version for obj_ref_type of ptr (works with rcnew).
 template <typename type_in, reference_strength_type refStrengthType>
-class rc_container_base	// specialized version for no resolve required (allocator not needed), and obj_ref_type of ptr (works with rcnew).
+class rc_container_base
 {
 public:
 	typedef rc_container_base<type_in, refStrengthType> this_t;
@@ -1321,6 +1319,45 @@ protected:
 		}
 		rtn = std::move(tmp);
 		return result;
+	}
+
+private:
+	template <typename type2, bool unused = true>
+	class on_released_helper
+	{
+	public:
+		template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, type&, rc_obj_base&> > >
+		static void on_released2(F&& f, const this_t& rcb)
+		{
+			rc_obj_base* desc = rcb.get_desc();
+			if (!!desc)
+			{
+				desc->on_released([f, obj{ rcb.get_obj() }](rc_obj_base& desc)
+				{
+					f(*obj, desc);
+				});
+			}
+		}
+	};
+
+	template <bool unused>
+	class on_released_helper<void, unused>
+	{
+	public:
+		template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, rc_obj_base&> > >
+		static void on_released2(F&& f, const this_t& rcb)
+		{
+			rc_obj_base* desc = rcb.get_desc();
+			if (!!desc)
+				desc->on_released(std::move(f));
+		}
+	};
+
+public:
+	template <typename F>
+	void on_released(F&& f) const
+	{
+		on_released_helper<type> ::on_released2(std::move(f), *this);
 	}
 };
 

@@ -74,7 +74,7 @@
 //	static constexpr uint16_t ForeBlack = 7;
 //
 //	// settings
-//	rcptr<pixel_mask> m_fontBitMap;
+//	rcptr<bitmask> m_fontBitMap;
 //	unsigned int m_fontSize;
 //	color m_forePallete[8];
 //	color m_forePalleteBold[8];
@@ -1930,10 +1930,10 @@
 //						foreColor = m_forePalleteBold[foreColorIndex];
 //					else
 //						foreColor = m_forePallete[foreColorIndex];
-//					composite_pixel_mask(*m_fontBitMap,
+//					draw_bitmap(*m_fontBitMap,
 //						bounds(point((fontColumn * m_charWidthInPixels) + 3, (fontRow * m_charHeightInPixels) + 3),
 //							size(m_charWidthInPixels, m_charHeightInPixels)),
-//						dstPt,
+//						bounds(dstPt, size(m_charWidthInPixels, m_charHeightInPixels)),
 //						foreColor,
 //						m_backPallete[backColorIndex]);
 //
@@ -2160,7 +2160,7 @@
 //
 //	virtual cstring get_telnet_terminal_type() { return cstring::literal("ANSI"); }
 //
-//	virtual bool key_pressing(string::char_t c)
+//	virtual bool key_pressing(wchar_t c)
 //	{
 //		COGS_ASSERT(m_cursorY < 999);
 //		switch (c)
@@ -2220,7 +2220,7 @@
 //		return false;
 //	}
 //
-//	virtual bool key_releasing(string::char_t c)
+//	virtual bool key_releasing(wchar_t c)
 //	{
 //		COGS_ASSERT(m_cursorY < 999);
 //		switch (c)
@@ -2237,7 +2237,7 @@
 //		return false;
 //	}
 //
-//	virtual bool character_typing(string::char_t c)
+//	virtual bool character_typing(wchar_t c)
 //	{
 //		if (m_scrollPos != m_screenTop)
 //		{
@@ -2269,7 +2269,7 @@
 //	virtual void installing()
 //	{
 //		pane::installing();
-//		m_fontBitMap = load_pixel_mask(string::literal(L"ANSIFont") + int_to_fixed_integer_t<unsigned int>(m_fontSize).to_string(), true, get_dpi()),
+//		m_fontBitMap = load_bitmask(string::literal(L"ANSIFont") + int_to_fixed_integer_t<unsigned int>(m_fontSize).to_string(), true, get_dpi()),
 //	}
 //
 //	virtual void uninstalling()
@@ -2358,7 +2358,7 @@
 //	bool	m_wrapMode;
 //	bool	m_addCRonLF;
 //
-//	rcptr<gfx::canvas::pixel_mask>	m_fontBitMap;
+//	rcptr<gfx::canvas::bitmask>	m_fontBitMap;
 //
 //	size_t	m_bufPos;		// Position in buffer of current cursor pos
 //
@@ -4498,7 +4498,7 @@
 //		return tmp;
 //	}
 //
-//	virtual bool key_pressing(string::char_t c)
+//	virtual bool key_pressing(wchar_t c)
 //	{
 //		COGS_ASSERT(m_cursorY < 999);
 //		switch (c)
@@ -4556,7 +4556,7 @@
 //		COGS_ASSERT(m_cursorY < 999);
 //	}
 //
-//	virtual void character_typing(string::char_t c)
+//	virtual void character_typing(wchar_t c)
 //	{
 //		if (m_scrollPos != m_screenTop)
 //		{

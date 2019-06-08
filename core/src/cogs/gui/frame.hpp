@@ -34,9 +34,8 @@ typedef gfx::canvas::fair_sizing_group fair_sizing_group;
 typedef gfx::canvas::equal_sizing_group equal_sizing_group;
 
 typedef gfx::canvas::font font;
-typedef gfx::canvas::pixel_image pixel_image;
-typedef gfx::canvas::pixel_mask pixel_mask;
-typedef gfx::canvas::pixel_image_canvas pixel_image_canvas;
+typedef gfx::canvas::bitmap bitmap;
+typedef gfx::canvas::bitmask bitmask;
 
 
 // frame and cell facilitate sizing/resizing behavior of 2D rectangular elements.
@@ -56,8 +55,8 @@ protected:
 		size remaining = originalBounds.get_size() - calculatedSize;
 		size newChildPosition = remaining * a;
 		point childOldPosition = get_child_position();
-		bounds r2(originalBounds.get_position() + newChildPosition, calculatedSize);
-		frame::reshape(r2, oldOrigin + (childOldPosition - r2.get_position()));
+		bounds b(originalBounds.get_position() + newChildPosition, calculatedSize);
+		frame::reshape(b, oldOrigin + (childOldPosition - b.get_position()));
 	}
 
 public:
@@ -154,13 +153,13 @@ protected:
 			cell::calculate_range(*r);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		m_childPosition = r.get_position();
-		cell::reshape(r, oldOrigin);
+		m_childPosition = b.get_position();
+		cell::reshape(b, oldOrigin);
 		rcptr<cell> c = m_cell;
 		if (!!c)
-			cell::reshape(*c, r, oldOrigin);
+			cell::reshape(*c, b, oldOrigin);
 	}
 };
 
@@ -247,10 +246,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		size topLeftMargin = m_margin.get_top_left();
-		size calculatedSize = r.get_size();
+		size calculatedSize = b.get_size();
 		double marginTotalWidth = m_margin.get_width();
 		if (calculatedSize.get_width() > marginTotalWidth)
 			calculatedSize.get_width() -= marginTotalWidth;
@@ -269,7 +268,7 @@ protected:
 		}
 
 		point childOldPosition = get_child_position();
-		bounds r2(r.get_position() + topLeftMargin, calculatedSize);
+		bounds r2(b.get_position() + topLeftMargin, calculatedSize);
 		point childOldOrigin = oldOrigin + (childOldPosition - r2.get_position());
 		frame::reshape(r2, childOldOrigin);
 	}
@@ -312,9 +311,9 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		aligned_reshape(m_alignment, get_default_size(), r, oldOrigin);
+		aligned_reshape(m_alignment, get_default_size(), b, oldOrigin);
 	}
 
 };
@@ -378,10 +377,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		size sz = frame::propose_size(m_size);
-		frame::reshape(bounds(r.get_position(), sz), oldOrigin);
+		frame::reshape(bounds(b.get_position(), sz), oldOrigin);
 	}
 };
 
@@ -414,14 +413,14 @@ public:
 	const double get_y() const { return m_position.get_y(); }
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		point pt = r.get_position();
+		point pt = b.get_position();
 		point adjustedOldOrigin = oldOrigin;
-		size delta = m_position - r.get_position();
+		size delta = m_position - b.get_position();
 		pt += delta;
 		adjustedOldOrigin -= delta;
-		frame::reshape(bounds(pt, r.get_size()), adjustedOldOrigin);
+		frame::reshape(bounds(pt, b.get_size()), adjustedOldOrigin);
 	}
 };
 
@@ -498,16 +497,16 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		if (!m_bounds)
-			frame::reshape(r, oldOrigin);
+			frame::reshape(b, oldOrigin);
 		else
 		{
 			size sz = frame::propose_size(m_bounds.get_size());
-			point pt = r.get_position();
+			point pt = b.get_position();
 			point adjustedOldOrigin = oldOrigin;
-			size delta = m_bounds.get_position() - r.get_position();
+			size delta = m_bounds.get_position() - b.get_position();
 			pt += delta;
 			adjustedOldOrigin -= delta;
 			frame::reshape(bounds(pt, sz), adjustedOldOrigin);
@@ -557,16 +556,16 @@ public:
 	const double get_fixed_width() const { return m_bounds.get_width(); }
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		if (!m_bounds)
-			frame::reshape(r, oldOrigin);
+			frame::reshape(b, oldOrigin);
 		else
 		{
 			size sz = frame::propose_size(m_bounds.get_size());
-			point pt = r.get_position();
+			point pt = b.get_position();
 			point adjustedOldOrigin = oldOrigin;
-			size delta = m_bounds.get_position() - r.get_position();
+			size delta = m_bounds.get_position() - b.get_position();
 			pt += delta;
 			adjustedOldOrigin -= delta;
 			frame::reshape(bounds(pt, sz), adjustedOldOrigin);
@@ -854,10 +853,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = r.get_size() * m_proportionalSize;
-		aligned_reshape(m_alignment, sz, r, oldOrigin);
+		size sz = b.get_size() * m_proportionalSize;
+		aligned_reshape(m_alignment, sz, b, oldOrigin);
 	}
 };
 
@@ -895,10 +894,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(r.get_size());
-		aligned_reshape(m_alignment, sz, r, oldOrigin);
+		size sz = frame::propose_size(b.get_size());
+		aligned_reshape(m_alignment, sz, b, oldOrigin);
 	}
 };
 
@@ -953,10 +952,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(r.get_size());
-		aligned_reshape(m_alignment, sz, r, oldOrigin);
+		size sz = frame::propose_size(b.get_size());
+		aligned_reshape(m_alignment, sz, b, oldOrigin);
 	}
 
 };
@@ -1010,10 +1009,10 @@ public:
 	}
 
 protected:
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(r.get_size());
-		aligned_reshape(m_alignment, sz, r, oldOrigin);
+		size sz = frame::propose_size(b.get_size());
+		aligned_reshape(m_alignment, sz, b, oldOrigin);
 	}
 };
 

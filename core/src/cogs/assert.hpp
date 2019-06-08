@@ -20,16 +20,6 @@ namespace cogs {
 
 #define COGS_ASSERT(b) assert(b)
 
-//#define COGS_ASSERT(b) cogs_assert(b)
-//
-//inline void cogs_assert(bool b)
-//{
-//	if (!b)
-//	{
-//		b = b;
-//	}
-//}
-
 
 #else
 

@@ -277,7 +277,7 @@ public:
 	virtual void calculate_range()
 	{
 		m_currentRange.clear();
-		int scrollBarWidth = GetSystemMetricsForDpi((m_dimension == dimension::horizontal) ? SM_CYHSCROLL : SM_CXVSCROLL, (int)get_dpi());
+		int scrollBarWidth = GetSystemMetricsForDpi((m_dimension == dimension::horizontal) ? SM_CYHSCROLL : SM_CXVSCROLL, (int)get_device_context().get_dpi());
 		double sz = get_device_context().make_size(scrollBarWidth);
 
 		m_currentRange.get_max(!m_dimension) = sz;
@@ -290,9 +290,9 @@ public:
 
 	virtual bool is_focusable() const	{ return false; }
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		hwnd_pane::reshape(r, oldOrigin);
+		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
 	}
 };

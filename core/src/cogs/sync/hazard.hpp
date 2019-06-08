@@ -24,15 +24,8 @@
 namespace cogs {
 
 
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-	template <typename signature, size_t n = sizeof(void*)>	// Forces separate allocations for each function
-	class function;
-#else
-
-	template <typename signature, size_t n = sizeof(void*) * 6>	// Enough space for 2x rcptr's, and a vtable ptr, plus padding
-	class function;
-#endif
-
+template <typename signature, size_t n = sizeof(void*) * 6>	// Enough space for 2x rcptr's, and a vtable ptr, plus padding
+class function;
 
 
 /// @ingroup Synchronization

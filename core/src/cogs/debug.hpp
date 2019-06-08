@@ -20,10 +20,6 @@
 
 // Leak detection also does double-delete detection
 
-#ifndef COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-#define COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION	0
-#endif
-
 #ifndef COGS_DEBUG_LEAKED_REF_DETECTION
 #define COGS_DEBUG_LEAKED_REF_DETECTION				0
 #endif

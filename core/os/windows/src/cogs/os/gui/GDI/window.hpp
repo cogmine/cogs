@@ -11,8 +11,8 @@
 
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/function.hpp"
-#include "cogs/mem/rcnew.hpp"
 #include "cogs/gui/window.hpp"
+#include "cogs/mem/rcnew.hpp"
 #include "cogs/os/gui/GDI/hwnd.hpp"
 
 
@@ -24,12 +24,12 @@ namespace os {
 class window : public hwnd_pane, public window_interface
 {
 private:
-	volatile boolean	m_isInModalSizingLoop;
-	volatile ptr<void>	m_lastTimerId;
-	int m_sizingMode;	// 0 = none, 1 = WM_SIZING with WM_SIZE pending, 2 = WM_WINDOWPOSCHANGING with WM_WINDOWPOSCHANGED pending
-	POINT m_position;	// Always in native pixels for the DPI.
+	volatile boolean m_isInModalSizingLoop;
+	volatile ptr<void> m_lastTimerId;
+	int m_sizingMode; // 0 = none, 1 = WM_SIZING with WM_SIZE pending, 2 = WM_WINDOWPOSCHANGING with WM_WINDOWPOSCHANGED pending
+	POINT m_position; // Always in native pixels for the DPI.
 	POINT m_pendingPosition;
-	size m_pendingSize;	// without border
+	size m_pendingSize; // without border
 	bool m_sizing = false;
 	hwnd::subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
 	bool m_maximizing = false;
@@ -59,8 +59,7 @@ private:
 	}
 
 public:
-	string	m_title;
-	bool	m_initialReshapeDone;
+	bool m_initialReshapeDone;
 	function<bool()> m_closeDelegate;
 
 	window(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
@@ -68,6 +67,22 @@ public:
 		m_initialReshapeDone(false),
 		m_sizingMode(0)
 	{
+	}
+
+	virtual void installing()
+	{
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		m_closeDelegate = w->get_close_delegate();
+		string title = w->get_title().composite();
+
+		m_style |= WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_OVERLAPPED;
+		if (!title.is_empty())
+			m_style |= WS_CAPTION;
+
+		install_HWND();
+		SetWindowText(get_HWND(), title.cstr());
+
+		hwnd_pane::installing();
 	}
 
 	virtual void hiding()
@@ -93,22 +108,6 @@ public:
 		BOOL b = SetWindowText(get_HWND(), title.composite().cstr());
 	}
 
-	virtual void installing()
-	{
-		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
-		m_closeDelegate = w->get_close_delegate();
-		m_title = w->get_title().composite();
-
-		m_style |= WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_OVERLAPPED;
-		if (!m_title.is_empty())
-			m_style |= WS_CAPTION;
-
-		install_HWND();
-		SetWindowText(get_HWND(), m_title.cstr());
-
-		hwnd_pane::installing();
-	}
-
 	virtual void focus(int direction)
 	{
 		// not a control, don't take GUI focus from a control
@@ -116,10 +115,10 @@ public:
 
 	virtual bool is_opaque() const
 	{
-		return true;	// Transparent backgrounds for GDI windows?  Is this feasible?
+		return true;
 	}
 
-	void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{	
 		// We don't want to call reshape() on children, as that will happen in 
 		// response to the WM_SIZE message this will generate.  However, if the 

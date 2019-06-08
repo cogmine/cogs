@@ -11,12 +11,13 @@
 #include <type_traits>
 
 #include "cogs/env.hpp"
+#include "cogs/function.hpp"
+#include "cogs/collections/container_deque.hpp"
 #include "cogs/mem/object.hpp"
 #include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/transactable.hpp"
-#include "cogs/collections/container_deque.hpp"
 
 
 namespace cogs {
@@ -622,7 +623,7 @@ public:
 	/// @brief A container_dlist element iterator
 	class iterator
 	{
-	protected:
+	private:
 		rcptr<link_t> m_link;
 
 		friend class container_dlist;
@@ -752,7 +753,7 @@ public:
 		friend class container_dlist;
 		friend class volatile_remove_token;
 
-		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l)	{ }
+		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l) { }
 
 	public:
 		void disown()	{ m_link.disown(); }
@@ -782,7 +783,7 @@ public:
 		bool is_removed() const				{ return !!m_link && m_link->is_removed(); }
 		bool is_removed() const volatile	{ rcptr<volatile link_t> lnk(m_link); return !!lnk && lnk->is_removed(); }
 
-		volatile_iterator& operator++()
+		const volatile_iterator& operator++()
 		{
 			if (!!m_link)
 			{
@@ -807,15 +808,15 @@ public:
 			return *this;
 		}
 
-		void operator++() volatile
+		volatile_iterator operator++() volatile
 		{
-			rcptr<volatile link_t> oldLink = m_link;
-			if (!!oldLink)
+			volatile_iterator result(m_link);
+			if (!!result.m_link)
 			{
 				read_token rt;
 				for (;;)
 				{
-					oldLink->begin_read_and_complete(rt, true);
+					result.m_link->begin_read_and_complete(rt, true);
 					rcptr<volatile link_t> newLink = rt->m_next;
 					for (;;)
 					{
@@ -828,14 +829,15 @@ public:
 						}
 						break;
 					}
-					if (!m_link.compare_exchange(newLink, oldLink, oldLink))
+					if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
 						continue;
 					break;
 				}
 			}
+			return result;
 		}
 
-		volatile_iterator& operator--()
+		const volatile_iterator& operator--()
 		{
 			if (!!m_link)
 			{
@@ -859,15 +861,15 @@ public:
 			return *this;
 		}
 
-		void operator--() volatile
+		volatile_iterator operator--() volatile
 		{
-			rcptr<volatile link_t> oldLink = m_link;
-			if (!!oldLink)
+			volatile_iterator result(m_link);
+			if (!!result.m_link)
 			{
 				read_token rt;
 				for (;;)
 				{
-					oldLink->begin_read_and_complete(rt, true);
+					result.m_link->begin_read_and_complete(rt, true);
 					rcptr<volatile link_t> newLink = rt->m_prev;
 					for (;;)
 					{
@@ -880,11 +882,13 @@ public:
 						}
 						break;
 					}
-					if (!m_link.compare_exchange(newLink, oldLink, oldLink))
+					if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
 						continue;
 					break;
 				}
 			}
+
+			return result;
 		}
 
 		volatile_iterator operator++(int)			{ volatile_iterator i(*this); ++*this; return i; }
@@ -971,7 +975,7 @@ public:
 	/// @brief A preallocated container_dlist element
 	class preallocated_t
 	{
-	protected:
+	private:
 		rcptr<link_t> m_link;
 
 		friend class container_dlist;
@@ -1017,7 +1021,7 @@ public:
 	/// A remove token is like an iterator, but keeps a weak reference to the content.
 	class remove_token
 	{
-	protected:
+	private:
 		weak_rcptr<link_t> m_link;
 
 		friend class container_dlist;
@@ -1029,7 +1033,7 @@ public:
 
 		remove_token& operator=(const preallocated_t& i)	{ m_link = i.m_link; return *this; }
 		remove_token& operator=(const iterator& i)			{ m_link = i.m_link; return *this; }
-		remove_token& operator=(const remove_token& i)		{ m_link = i.m_link; return *this; }
+		remove_token& operator=(const remove_token& rt)		{ m_link = rt.m_link; return *this; }
 
 		bool is_active() const							{ rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
@@ -1038,10 +1042,10 @@ public:
 		bool operator!() const							{ return !m_link; }
 
 		bool operator==(const iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const remove_token& i) const	{ return m_link == i.m_link; }
+		bool operator==(const remove_token& rt) const	{ return m_link == rt.m_link; }
 
 		bool operator!=(const iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const remove_token& i) const	{ return !operator==(i); }
+		bool operator!=(const remove_token& rt) const	{ return !operator==(rt); }
 	};
 
 	/// @brief A volatile container_dlist element remove token
@@ -1049,7 +1053,7 @@ public:
 	/// A remove token is like an iterator, but keeps a weak reference to the content.
 	class volatile_remove_token
 	{
-	protected:
+	private:
 		weak_rcptr<volatile link_t> m_link;
 
 		friend class container_dlist;
@@ -1677,8 +1681,100 @@ static constexpr size_t container_dlist_volatile_remove_token_alignment = std::a
 static constexpr size_t container_dlist_preallocated_t_alignment = std::alignment_of_v<typename container_dlist<int>::preallocated_t>;
 
 
-
 #pragma warning(pop)
+
+
+
+class rc_obj_base::released_handlers
+{
+private:
+	friend class rc_obj_base;
+
+	container_dlist<function<void(rc_obj_base&)> > m_onReleasedHandlers;
+};
+
+class rc_obj_base::released_handler_remove_token
+{
+private:
+	friend class rc_obj_base;
+
+	typedef function<void(rc_obj_base&)> func_t;
+	typedef container_dlist<func_t> collection_t;
+
+	collection_t::volatile_remove_token m_removeToken;
+
+	released_handler_remove_token(const collection_t::volatile_iterator& i) : m_removeToken(i) { }
+	released_handler_remove_token(const collection_t::volatile_remove_token& rt) : m_removeToken(rt) { }
+
+	released_handler_remove_token& operator=(const collection_t::volatile_iterator& i) { m_removeToken = i; return *this; }
+	released_handler_remove_token& operator=(const collection_t::volatile_remove_token& rt) { m_removeToken = rt; return *this; }
+
+public:
+	released_handler_remove_token() { }
+	released_handler_remove_token(const released_handler_remove_token& rt) : m_removeToken(rt.m_removeToken) { }
+
+	released_handler_remove_token& operator=(const released_handler_remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
+
+	bool is_active() const { return m_removeToken.is_active(); }
+
+	void release() { m_removeToken.release(); }
+
+	bool operator!() const { return !m_removeToken; }
+
+	bool operator==(const released_handler_remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
+	bool operator!=(const released_handler_remove_token& rt) const { return !operator==(rt); }
+};
+
+inline rc_obj_base::released_handlers* rc_obj_base::initialize_released_handlers() const
+{
+	released_handlers* releasedHandlers = atomic::load(m_releasedHandlers);
+	if (!releasedHandlers)
+	{
+		released_handlers* newReleasedHandlers = new (default_allocator::get()) released_handlers;
+		if (atomic::compare_exchange(m_releasedHandlers, newReleasedHandlers, releasedHandlers, releasedHandlers))
+			return newReleasedHandlers;
+		default_allocator::destruct_deallocate_type(newReleasedHandlers);
+	}
+	return releasedHandlers;
+}
+
+template <typename F, typename enable>
+inline rc_obj_base::released_handler_remove_token rc_obj_base::on_released(F&& f) const
+{
+	volatile released_handlers* releasedHandlers = initialize_released_handlers();
+	volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
+	released_handler_remove_token result(handler.append(f));
+	return result;
+}
+
+inline void rc_obj_base::run_released_handlers()
+{
+	released_handlers* releasedHandlers = atomic::load(m_releasedHandlers);
+	if (!!releasedHandlers)
+	{
+		volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
+		container_dlist<function<void(rc_obj_base&)> >::volatile_iterator itor = handler.get_first();
+		while (!!itor)
+		{
+			(*itor)(*this);
+			++itor;
+		}
+	}
+}
+
+inline bool rc_obj_base::uninstall_released_handler(const released_handler_remove_token& removeToken) const
+{
+	if (!!removeToken)
+	{
+		released_handlers* releasedHandlers = atomic::load(m_releasedHandlers);
+		if (!!releasedHandlers)
+		{
+			volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
+			return handler.remove(removeToken.m_removeToken);
+		}
+	}
+	return false;
+}
 
 
 }

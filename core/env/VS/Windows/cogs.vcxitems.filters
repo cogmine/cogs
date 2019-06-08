@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="core">
@@ -470,9 +470,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_compare_exchange.hpp">
       <Filter>env\gcc\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
-      <Filter>env\XCode</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\math\umul.hpp">
       <Filter>env\XCode\MacOS\math</Filter>
@@ -1212,9 +1209,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\native_container_pane.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\pixel_image_pane.hpp">
-      <Filter>core\gui</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\immediate_task.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
@@ -1257,19 +1251,44 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\atomic_operators.hpp">
       <Filter>os\MacOS\sync</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\weak_rcptr_list.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\main.hpp">
+      <Filter>os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\main.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\main.hpp">
+      <Filter>os\linux</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\main.hpp">
+      <Filter>env\VS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\main.hpp">
+      <Filter>env\gcc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\main.hpp">
+      <Filter>env\default</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\main.hpp">
+      <Filter>env\XCode\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\main.hpp">
+      <Filter>os\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
+      <Filter>env\XCode\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\bitmap_pane.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\pthreads_sync.cpp">
-      <Filter>os\libs\pthreads\sync</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">
       <Filter>os\libs\pthreads\sync</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
       <Filter>os\MacOS\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\main.cpp">
-      <Filter>os\windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1281,9 +1300,6 @@
     </None>
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">
       <Filter>env\gcc</Filter>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\main.mm">
-      <Filter>env\XCode\MacOS</Filter>
     </None>
   </ItemGroup>
 </Project>

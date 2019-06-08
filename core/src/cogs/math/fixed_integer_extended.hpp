@@ -1699,7 +1699,7 @@ public:
 		if (!has_sign2 && !has_sign3)
 		{
 			COGS_ASSERT(!has_sign);
-			m_digits[0] = env::umul_longest(src1, src2, m_digits[1]);
+			m_digits[0] = env::umul_longest(src1.get_int(), src2.get_int(), m_digits[1]);
 		}
 		else
 		{
@@ -8366,11 +8366,13 @@ template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
 	&& ((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest),
-	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 >
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1>
 >
 add(const T& t, const A1& a)
 {
-	return cogs::add(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1> result;
+	result.add(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
+	return result;
 }
 
 template <typename T, typename A1>
@@ -8381,7 +8383,9 @@ inline std::enable_if_t<
 >
 subtract(const T& t, const A1& a)
 {
-	return cogs::subtract(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
+	result.subtract(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
+	return result;
 }
 
 
@@ -8393,7 +8397,9 @@ inline std::enable_if_t<
 >
 inverse_subtract(const T& t, const A1& a)
 {
-	return cogs::inverse_subtract(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
+	result.subtract(int_to_fixed_integer_t<A1>(load(a)), int_to_fixed_integer_t<T>(load(t)));
+	return result;
 }
 
 
@@ -8405,20 +8411,24 @@ inline std::enable_if_t<
 >
 multiply(const T& t, const A1& a)
 {
-	return cogs::multiply(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8> result;
+	result.multiply(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
+	return result;
 }
 
 template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T>
 	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3)))
+	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>)-3) == -3)))
 	&& (sizeof(T) == sizeof(longest)),
 	fixed_integer<true, (8 * sizeof(longest)) + 1>
 >
 divide_whole(const T& t, const A1& a)
 {
-	return cogs::divide_whole(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<T>(load(t)));
+	result.divide_whole(int_to_fixed_integer_t<A1>(a));
+	return result;
 }
 
 
@@ -8433,7 +8443,9 @@ inline std::enable_if_t<
 >
 inverse_divide_whole(const T& t, const A1& a)
 {
-	return cogs::inverse_divide_whole(int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)), int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));
+	fixed_integer<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<A1>(load(a)));
+	result.divide_whole(int_to_fixed_integer_t<T>(t));
+	return result;
 }
 
 #pragma warning(pop)

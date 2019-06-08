@@ -12,9 +12,10 @@
 #include <CommCtrl.h>
 
 #include "cogs/env.hpp"
+#include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/collections/multimap.hpp"
-#include "cogs/collections/composite_string.hpp"
+#include "cogs/collections/weak_rcptr_list.hpp"
 #include "cogs/function.hpp"
 #include "cogs/gui/window.hpp"
 #include "cogs/gui/pane.hpp"
@@ -596,7 +597,7 @@ public:
 			size_t srcAddr = (size_t)this;
 			string addrStr;
 			do {
-				addrStr.append((string::char_t)(srcAddr % 0x5D)+0x21);
+				addrStr.append((wchar_t)(srcAddr % 0x5D)+0x21);
 				srcAddr /= 93;
 			} while (srcAddr != 0);
 			wcex.lpszClassName = addrStr.cstr();
@@ -803,11 +804,11 @@ public:
 
 	private:
 		delayed_construction<ui_thread> m_uiThread;
-		volatile rcptr<volatile visible_windows_list_t> m_visibleWindows;
+		rcptr<volatile visible_windows_list_t> m_visibleWindows;
 		rcptr<task<void> > m_cleanupRemoveToken;
 		rcref<window_class> m_windowClass;
 
-		void cleanup()
+		void cleanup() volatile
 		{
 			// Visible windows keep the subsystem in scope.  In case windows are left open
 			// until the app closes, use a cleanup function to ensure they get closed.
@@ -824,7 +825,7 @@ public:
 			: gui::windowing::subsystem(desc),
 			m_visibleWindows(rcnew(visible_windows_list_t)),
 			m_windowClass(window_class::get_default()),
-			m_cleanupRemoveToken(cleanup_queue::get_global()->dispatch([r{ this_weak_rcptr }]()
+			m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<subsystem> r2 = r;
 				if (!!r2)
@@ -1010,15 +1011,16 @@ enum hwnd_draw_mode
 class hwnd_pane : public object, public bridgeable_pane, public pane_orchestrator
 {
 private:
+	rcref<volatile hwnd::subsystem>	m_uiSubsystem;
 	rcptr<hwnd> m_hwnd;
 	rcref<gfx::os::gdi::device_context>	m_deviceContext;
-	rcref<volatile hwnd::subsystem>	m_uiSubsystem;
 	rcptr<hwnd_pane> m_parentHwnd;
 	weak_rcptr<hwnd_pane> m_prevSiblingHwnd;
 	weak_rcptr<hwnd_pane> m_nextSiblingHwnd;
 	weak_rcptr<hwnd_pane> m_firstChildHwnd;
 	weak_rcptr<hwnd_pane> m_lastChildHwnd;
-	size_t m_hwndChildCount;
+	weak_rcptr_list<gfx::os::gdi::bitmap> m_offscreenBuffers;
+	size_t m_childCount;
 	composite_string m_windowClassName;
 	hwnd_draw_mode m_drawMode;	// i.e. window or canvas hwnd
 	bool m_focusing;
@@ -1043,9 +1045,9 @@ protected:
 	const rcref<volatile hwnd::subsystem>& get_subsystem() const { return m_uiSubsystem; }
 
 	// Converts special keys that MapVirtualKey fails to map, to special unicode values (same as NSEvent on Mac)
-	string::char_t translate_special_key(const string::char_t& c)
+	wchar_t translate_special_key(const wchar_t& c)
 	{
-		string::char_t result = 0;
+		wchar_t result = 0;
 		switch (c)
 		{
 		case VK_UP:
@@ -1223,6 +1225,8 @@ protected:
 		return result;
 	}
 
+	using bridgeable_pane::invalidate;
+
 	void draw_if_needed()
 	{
 		if (m_drawMode == user_drawn)
@@ -1247,7 +1251,7 @@ protected:
 	{
 		if (!!m_parentHwnd && !is_opaque())
 		{
-			bounds r = get_device_context().make_bounds(m_boundsInParentHwnd);
+			bounds b = get_device_context().make_bounds(m_boundsInParentHwnd);
 
 			bool needNewBuffer;
 			if (!m_cachedBackgroundImage)
@@ -1255,12 +1259,12 @@ protected:
 			else
 			{
 				size cacheSize = m_cachedBackgroundImage->get_size();
-				needNewBuffer = ((r.get_width() > cacheSize.get_width()) || (r.get_height() > cacheSize.get_height()));
+				needNewBuffer = ((b.get_width() > cacheSize.get_width()) || (b.get_height() > cacheSize.get_height()));
 			}
 			if (needNewBuffer)
 			{
-				size newSize = r.get_size() + size(25, 25); // add a little space to grow, to avoid creating buffers too often.
-				m_cachedBackgroundImage = m_deviceContext->create_pixel_image_canvas(newSize, true, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
+				size newSize = b.get_size() + size(25, 25); // add a little space to grow, to avoid creating buffers too often.
+				m_cachedBackgroundImage = m_deviceContext->create_bitmap(newSize, color::black, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
 			}
 		}
 	}
@@ -1275,7 +1279,7 @@ protected:
 
 		if (!!m_parentHwnd && !is_opaque())
 		{
-			bounds r = get_device_context().make_bounds(m_boundsInParentHwnd);
+			bounds b = get_device_context().make_bounds(m_boundsInParentHwnd);
 
 			// go up the tree to the next opaque (or the topmost) HWND
 			rcptr<hwnd_pane> ancestorHwnd = m_parentHwnd;
@@ -1283,7 +1287,7 @@ protected:
 				rcptr<hwnd_pane> nextAncestorHwnd = ancestorHwnd->m_parentHwnd;
 				if (!nextAncestorHwnd)
 					break;
-				r.get_position() += ancestorHwnd->get_device_context().make_point(ancestorHwnd->m_boundsInParentHwnd.pt);
+				b.get_position() += ancestorHwnd->get_device_context().make_point(ancestorHwnd->m_boundsInParentHwnd.pt);
 				ancestorHwnd = std::move(nextAncestorHwnd);
 			} while (!ancestorHwnd->is_opaque());
 
@@ -1294,7 +1298,7 @@ protected:
 			ancestorHwnd->draw_if_needed();
 
 			// Render all overlapping HWNDs, in z-order, until we get to this pane
-			m_cachedBackgroundImage->composite_pixel_image(*offScreenBuffer, r, point(0, 0), false);
+			m_cachedBackgroundImage->draw_bitmap(*offScreenBuffer, b, b.get_size(), false);
 
 			rcptr<hwnd_pane> curHwnd = ancestorHwnd;
 			for (;;)
@@ -1303,22 +1307,22 @@ protected:
 				if (curHwnd == this)
 					break;
 				COGS_ASSERT(!!curHwnd);	// Should have found this obj
-				r.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+				b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
 
 				for (;;)
 				{
 					if (curHwnd->m_isVisible)
 					{
-						bounds r2(point(0, 0), curHwnd->get_size());
-						bounds r3 = r & r2;
-						if (!!r3)
+						bounds b2(point(0, 0), curHwnd->get_size());
+						bounds b3 = b & b2;
+						if (!!b3)
 						{
 							offScreenBuffer = curHwnd->peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 							if (!offScreenBuffer)
 								return; // Not rendering in z-order.  Skip.  Will self-heal as underlying pane draws.
 							
 							curHwnd->draw_if_needed();
-							m_cachedBackgroundImage->composite_pixel_image(*offScreenBuffer, r2, r2.get_position() + -r.get_position(), true);
+							m_cachedBackgroundImage->draw_bitmap(*offScreenBuffer, b2, bounds(b2.get_position() + -b.get_position(), b2.get_size()), true);
 						}
 					}
 
@@ -1329,14 +1333,14 @@ protected:
 					{
 						if (!!curHwnd->m_nextSiblingHwnd)
 						{
-							r.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+							b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
 							curHwnd = curHwnd->m_nextSiblingHwnd;
 							if (curHwnd == this)
 								return;
-							r.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+							b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
 							break;
 						}
-						r.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
+						b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
 						curHwnd = curHwnd->m_parentHwnd;
 					}
 				}
@@ -1344,9 +1348,17 @@ protected:
 		}
 	}
 
+	virtual rcref<gfx::canvas::bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		rcref<gfx::canvas::bitmap> result = get_device_context().create_bitmap(sz, fillColor, get_device_context().get_dpi());
+		m_offscreenBuffers.append(result.static_cast_to<gfx::os::gdi::bitmap>());
+		return result;
+	}
+
 public:
 	hwnd_pane(const ptr<rc_obj_base>& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
 		: object(desc),
+		m_offscreenBuffers(desc),
 		m_windowClassName(windowClassName),
 		m_style(style),
 		m_extendedStyle(extendedStyle),
@@ -1356,7 +1368,7 @@ public:
 		m_boundsInParentHwnd{},
 		m_drawMode(drawMode),
 		m_redrawRgn(NULL),
-		m_hwndChildCount(0),
+		m_childCount(0),
 		m_deviceContext(rcnew(gfx::os::gdi::device_context))
 	{ }
 
@@ -1392,7 +1404,7 @@ public:
 		m_isVisible = false;
 		if (!!m_parentHwnd)
 		{
-			m_parentHwnd->m_hwndChildCount--;
+			m_parentHwnd->m_childCount--;
 			rcptr<hwnd_pane> prevSibling = m_prevSiblingHwnd;
 			rcptr<hwnd_pane> nextSibling = m_nextSiblingHwnd;
 			if (!!prevSibling)
@@ -1413,7 +1425,6 @@ public:
 	
 	void install_HWND()
 	{
-		//m_owner = get_bridge();
 		rcptr<pane> p = get_parent();
 		while (!!p)
 		{
@@ -1431,9 +1442,8 @@ public:
 			// Once we find this object, insert it after the last HWND seen.
 
 			container_dlist<rcref<pane> >::iterator itor;
-			//container_dlist<rcref<pane> >::iterator lastFoundHwndItor;
 			rcptr<hwnd_pane> lastFoundHwnd;
-			if (m_parentHwnd->m_hwndChildCount++ > 0)	// if was 0
+			if (m_parentHwnd->m_childCount++ > 0)	// if was 0
 			{
 				itor = get_bridge(*m_parentHwnd)->get_children().get_first();
 				COGS_ASSERT(!!itor);	// should at least find this obj
@@ -1453,8 +1463,6 @@ public:
 						bridge = itor->dynamic_cast_to<pane_bridge>().get_ptr();
 						if (!!bridge)
 							foundHwnd = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
-
-						//rcptr<hwnd_pane> foundHwnd = get_if_hwnd_pane(**itor);
 
 						if (!!foundHwnd)	// Don't descend beyond another HWND, move on to the next
 						{
@@ -1532,7 +1540,7 @@ public:
 		set_externally_drawn(*m_deviceContext.template static_cast_to<gfx::canvas>());
 
 		if (!!m_parentHwnd)
-			get_device_context().set_dpi(m_parentHwnd->get_dpi());
+			get_device_context().set_dpi(m_parentHwnd->get_device_context().get_dpi());
 		else
 		{
 			HMONITOR monitor = MonitorFromWindow(get_HWND(), MONITOR_DEFAULTTONEAREST);
@@ -1547,15 +1555,15 @@ public:
 		//bridgeable_pane::installing();
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		if (!!get_bridge())
 		{
 			if (!m_parentHwnd)
-				m_boundsInParentHwnd = get_device_context().make_BOUNDS(r);
+				m_boundsInParentHwnd = get_device_context().make_BOUNDS(b);
 			else // if not a window
 			{
-				bounds boundsInParentHwnd = r;
+				bounds boundsInParentHwnd = b;
 				rcptr<pane> p = get_bridge()->get_parent();	// find new coords in parent hwnd
 				for (;;)
 				{
@@ -1565,13 +1573,14 @@ public:
 					p = p->get_parent();
 				}
 
-				HWND hWnd = get_HWND();
 				m_boundsInParentHwnd = get_device_context().make_BOUNDS(boundsInParentHwnd);
-				BOOL b = MoveWindow(hWnd, m_boundsInParentHwnd.pt.x, m_boundsInParentHwnd.pt.y, m_boundsInParentHwnd.sz.cx, m_boundsInParentHwnd.sz.cy, TRUE);
+
+				HWND hWnd = get_HWND();
+				MoveWindow(hWnd, m_boundsInParentHwnd.pt.x, m_boundsInParentHwnd.pt.y, m_boundsInParentHwnd.sz.cx, m_boundsInParentHwnd.sz.cy, TRUE);
 			}
 		}
 
-		bridgeable_pane::reshape(r, oldOrigin);
+		bridgeable_pane::reshape(b, oldOrigin);
 	}
 
 	void hiding()
@@ -1595,16 +1604,16 @@ public:
 		bridgeable_pane::focusing(direction);
 	}
 
-	virtual void invalidating(const bounds& r)
+	virtual void invalidating(const bounds& b)
 	{
-		bounds r3 = r & get_size();
-		if (!!r3)
+		bounds b2 = b & get_size();
+		if (!!b2)
 		{
-			bridgeable_pane::invalidating(r3);
-			RECT r2 = get_device_context().make_invalid_RECT(r3);
+			bridgeable_pane::invalidating(b2);
+			RECT r = get_device_context().make_invalid_RECT(b2);
 			if (m_drawMode == user_drawn)
 			{
-				HRGN rectRgn = CreateRectRgn(r2.left, r2.top, r2.right, r2.bottom);
+				HRGN rectRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
 				if (m_redrawRgn == NULL)
 					m_redrawRgn = rectRgn;
 				else
@@ -1614,7 +1623,7 @@ public:
 				}
 			}
 
-			InvalidateRect(get_HWND(), &r2, FALSE);
+			InvalidateRect(get_HWND(), &r, FALSE);
 
 			// Invalidate overlapping non-opaque HWNDs above this one
 			// Start with descendants, without descending through any opaque
@@ -1625,7 +1634,7 @@ public:
 				if (!!curHwnd->m_firstChildHwnd)
 				{
 					curHwnd = curHwnd->m_firstChildHwnd;
-					r3.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in coords of current curHwnd
+					b2.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in coords of current curHwnd
 				}
 				else
 				{
@@ -1633,22 +1642,22 @@ public:
 					{
 						if (!!curHwnd->m_nextSiblingHwnd)
 						{
-							r3.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
+							b2.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
 							curHwnd = curHwnd->m_nextSiblingHwnd;
-							r3.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
+							b2.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
 							break;
 						}
 
 						if (!curHwnd->m_parentHwnd)
 							return;
 
-						r3.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
+						b2.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
 						curHwnd = curHwnd->m_parentHwnd;
 					}
 				}
 
-				r2 = get_device_context().make_RECT(r3);
-				InvalidateRect(curHwnd->get_HWND(), &r2, FALSE);
+				r = curHwnd->get_device_context().make_RECT(b2);
+				InvalidateRect(curHwnd->get_HWND(), &r, FALSE);
 			}
 		}
 	}
@@ -1664,8 +1673,59 @@ public:
 		if (!!m_cachedBackgroundImage)
 			m_cachedBackgroundImage->set_dpi(newDpi);
 
+		weak_rcptr_list<gfx::os::gdi::bitmap>::iterator offscreenBuffersItor = m_offscreenBuffers.get_first();
+		while (!!offscreenBuffersItor)
+		{
+			rcptr<gfx::os::gdi::bitmap> pic = offscreenBuffersItor.get();
+			if (!!pic)
+				pic->set_dpi(newDpi);
+			++offscreenBuffersItor;
+		}
+		offscreenBuffersItor.release();
+
+		rcptr<pane> bridgePane = get_bridge();
 		invalidate(get_size());
-		
+
+		container_dlist<rcref<pane> >::iterator itor = bridgePane->get_children().get_first();
+		if (!!itor)
+		{
+			for (;;)
+			{
+				rcptr<pane> p = (*itor);
+				if (!p->is_externally_drawn())
+				{
+					pane_orchestrator::invalidate(*p, p->get_size());
+					const container_dlist<rcref<pane> >& children = p->get_children();
+					if (!!children)
+					{
+						itor = children.get_first();
+						continue;
+					}
+				}
+				
+				for (;;)
+				{
+					++itor;
+					if (!!itor)
+						break; // continue outer loop
+
+					p = p->get_parent();	// go up
+					if (p == bridgePane)	// Got back to self
+					{
+						itor.release();
+						break;
+					}
+
+					itor = p->get_sibling_iterator();
+					// continue;
+				}
+				
+				if (!itor)
+					break;
+				//continue;
+			}
+		}
+
 		rcptr<hwnd_pane> currentChild = m_firstChildHwnd;
 		while (!!currentChild)
 		{
@@ -1676,7 +1736,7 @@ public:
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		rcptr<pane> owner = get_bridge();// m_owner;
+		rcptr<pane> owner = get_bridge();
 		if (!!owner)
 		{
 			switch (msg)		// messages common to all hwnd views
@@ -1721,7 +1781,7 @@ public:
 				}
 			case WM_KEYDOWN:
 				{
-					composite_string::char_t c = (string::char_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
+					wchar_t c = (wchar_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
 					bool doTranslate = true;
 					if (!c)
 						c = translate_special_key((wchar_t)wParam);
@@ -1730,7 +1790,7 @@ public:
 				break;
 			case WM_KEYUP:
 				{
-					string::char_t c = (string::char_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
+				wchar_t c = (wchar_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
 					if (!c)
 						c = translate_special_key((wchar_t)wParam);
 					key_release(*owner, c);
@@ -1887,7 +1947,7 @@ public:
 						paint_temporary_background();
 						lResult = render_native_control(offscreenDC);
 						get_HDC() = BeginPaint(get_HWND(), &ps);
-						get_device_context().composite_pixel_image(*m_cachedBackgroundImage, sz, point(0, 0), false);
+						get_device_context().draw_bitmap(*m_cachedBackgroundImage, sz, sz, false);
 						SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
 						DeleteObject(updateRgn);
 						EndPaint(get_HWND(), &ps);
@@ -1911,11 +1971,11 @@ public:
 						get_HDC() = BeginPaint(get_HWND(), &ps);
 						paint_temporary_background();	// Won't actually paint if background is opaque
 						if (!m_cachedBackgroundImage)
-							get_device_context().composite_pixel_image(*offScreenBuffer, sz, point(0, 0), false);
+							get_device_context().draw_bitmap(*offScreenBuffer, sz, sz, false);
 						else
 						{
-							m_cachedBackgroundImage->composite_pixel_image(*offScreenBuffer, sz, point(0, 0), true);
-							get_device_context().composite_pixel_image(*m_cachedBackgroundImage, sz, point(0, 0), false);
+							m_cachedBackgroundImage->draw_bitmap(*offScreenBuffer, sz, sz, true);
+							get_device_context().draw_bitmap(*m_cachedBackgroundImage, sz, sz, false);
 						}
 						EndPaint(get_HWND(), &ps);
 					}
@@ -1928,7 +1988,6 @@ public:
 		}
 		return call_default_window_proc(msg, wParam, lParam);
 	}
-
 };
 
 

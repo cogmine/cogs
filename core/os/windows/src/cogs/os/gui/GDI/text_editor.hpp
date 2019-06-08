@@ -24,8 +24,8 @@ namespace os {
 class text_editor : public hwnd_pane, public text_editor_interface
 {
 private:
-	color m_defaultTextColor;
-	color m_defaultBackgroundColor;
+	//color m_defaultTextColor;
+	//color m_defaultBackgroundColor;
 	rcptr<gfx::os::gdi::device_context::font>	m_cachedFont;
 
 public:
@@ -50,9 +50,9 @@ public:
 
 		HDC hDC = GetDC(get_HWND());
 		COLORREF colorRef = GetBkColor(hDC);
-		m_defaultBackgroundColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
+		//m_defaultBackgroundColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
 		colorRef = GetTextColor(hDC);
-		m_defaultTextColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
+		//m_defaultTextColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
 		ReleaseDC(get_HWND(), hDC);
 	
 		set_text_color(color::black);
@@ -166,9 +166,9 @@ public:
 		return result;
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		hwnd_pane::reshape(r, oldOrigin);
+		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
 	}
 

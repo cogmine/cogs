@@ -25,8 +25,9 @@ namespace os {
 class button : public hwnd_pane, public button_interface
 {
 public:
-	rcptr<gfx::os::gdi::device_context::font>	m_cachedFont;
-	size									m_defaultSize;
+	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
+	size m_defaultSize;
+	HBRUSH m_backgroundBrush = NULL;
 
 	button(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, system_drawn_offscreen)
@@ -45,6 +46,16 @@ public:
 		set_default(btn->is_default());
 
 		hwnd_pane::installing();
+	}
+
+	virtual void uninstalling()
+	{
+		if (!!m_backgroundBrush)
+		{
+			DeleteObject(m_backgroundBrush);
+			m_backgroundBrush = NULL;
+		}
+		hwnd_pane::uninstalling();
 	}
 
 	void action()
@@ -105,7 +116,10 @@ public:
 					allocate_temporary_background();
 					paint_temporary_background();
 					COGS_ASSERT(!!m_cachedBackgroundImage);
-					return (LRESULT)(m_cachedBackgroundImage->get_BRUSH());
+					if (!!m_backgroundBrush)
+						DeleteObject(m_backgroundBrush);
+					m_backgroundBrush = CreatePatternBrush(m_cachedBackgroundImage->get_HBITMAP());
+					return (LRESULT)m_backgroundBrush;
 				}
 			}
 			break;
@@ -161,9 +175,9 @@ public:
 		set_font(btn->get_font());
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		hwnd_pane::reshape(r, oldOrigin);
+		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
 	}
 

@@ -87,7 +87,7 @@ public:
 		return m_tasks->dispatch([r{ obj }]() {}, priority);
 	}
 
-	static rcref<cleanup_queue> get_global()
+	static rcref<cleanup_queue> get()
 	{
 		return singleton<cleanup_queue, singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>::get();
 	}
@@ -133,7 +133,7 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 			isNew = true;
 			result = std::move(newValue); // Return the one we just created.
 			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
-				cleanup_queue::get_global()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+				cleanup_queue::get()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
 		}
 	}
 

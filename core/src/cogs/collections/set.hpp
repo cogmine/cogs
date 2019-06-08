@@ -166,11 +166,11 @@ public:
 		void release()							{ m_iterator.release(); }
 		void release() volatile					{ m_iterator.release(); }
 
-		volatile_iterator& operator++()			{ ++m_iterator; return *this; }
-		volatile_iterator& operator--()			{ --m_iterator; return *this; }
+		const volatile_iterator& operator++() { ++m_iterator; return *this; }
+		const volatile_iterator& operator--() { --m_iterator; return *this; }
 
-		void operator++() volatile				{ ++m_iterator; }
-		void operator--() volatile				{ --m_iterator; }
+		volatile_iterator operator++() volatile { volatile_iterator result(*this); ++result; return result; }
+		volatile_iterator operator--() volatile { volatile_iterator result(*this); --result; return result; }
 
 		volatile_iterator operator++(int)			{ volatile_iterator i(*this); ++*this; return i; }
 		volatile_iterator operator--(int)			{ volatile_iterator i(*this); --*this; return i; }

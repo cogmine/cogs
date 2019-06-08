@@ -16,6 +16,7 @@ namespace cogs {
 
 int main()
 {
+	return cogs::main([]()
 	{
 		rcptr<http::server> m_httpServer;
 		rcptr<smtp::server> m_smtpServer;
@@ -29,7 +30,6 @@ int main()
 		m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);// 80);
 		m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
 
-
 		int i;
 		std::cin >> i;
 
@@ -39,8 +39,6 @@ int main()
 		m_httpListener.release();
 		m_smtpListener.release();
 	}
-
-	cogs::quit_dispatcher::get()->request();
 }
 
 }

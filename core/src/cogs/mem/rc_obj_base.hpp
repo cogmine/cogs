@@ -30,7 +30,6 @@ class rc_obj_base;
 class rc_object_base;	// seems ambiguous, need better names for these different objects!  TBD
 
 
-
 /// @ingroup Mem
 /// @brief The strength type of a reference.  Weak references are conditional to strong references remaining in scope.
 ///
@@ -72,11 +71,11 @@ void assert_no_overflow(const ptr<void>& p);
 
 #if COGS_DEBUG_RC_LOGGING 
 inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g_rcLogCount;
-#endif 
+#endif
 
 #if COGS_DEBUG_ALLOC_LOGGING
 inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g_allocLogCount;
-#endif 
+#endif
 
 
 /// @brief A base class for reference-counted objects
@@ -98,8 +97,8 @@ private:
 	{					// Deallocated when m_reference[weak] == 0
 		alignas (atomic::get_alignment_v<size_t>) size_t m_references[2];
 
-		      volatile size_t& operator[](reference_strength_type refStrengthType) volatile			{ return m_references[refStrengthType]; }
-		const volatile size_t& operator[](reference_strength_type refStrengthType) const volatile	{ return m_references[refStrengthType]; }
+		volatile size_t& operator[](reference_strength_type refStrengthType) volatile { return m_references[refStrengthType]; }
+		const volatile size_t& operator[](reference_strength_type refStrengthType) const volatile { return m_references[refStrengthType]; }
 
 		bool operator==(const counts_t& c) const { return (m_references[strong] == c.m_references[strong]) && (m_references[weak] == c.m_references[weak]); }
 		bool operator!=(const counts_t& c) const { return !operator==(c); }
@@ -126,23 +125,29 @@ private:
 			if (m_references[weak] < c.m_references[weak])
 				return true;
 			return false;
-		} 
-		
+		}
+
 		bool operator>(const counts_t& c) const { return c < *this; }
 
 		bool operator<=(const counts_t& c) const { return !operator>(c); }
 		bool operator>=(const counts_t& c) const { return !operator<(c); }
 	};
 
-	alignas (atomic::get_alignment_v<counts_t>) volatile counts_t m_counts;
+	alignas (atomic::get_alignment_v<counts_t>) counts_t m_counts;
+
+	class released_handlers;
+	released_handlers mutable* m_releasedHandlers;
+
+	released_handlers* initialize_released_handlers() const;
+	void run_released_handlers();
 
 	class link : public slink
 	{
 	public:
-		rc_obj_base*	m_desc;
+		rc_obj_base* m_desc;
 
 		link(const ptr<rc_obj_base>& desc)
-			:	m_desc(desc.get_ptr())
+			: m_desc(desc.get_ptr())
 		{ }
 	};
 
@@ -150,21 +155,21 @@ private:
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION
 public:
-	class tracking_header : public slink_t<tracking_header>//, public rbtree_node_t<tracking_header>
+	class tracking_header : public slink_t<tracking_header>
 	{
 	public:
 		volatile boolean	m_destructed;
-		const char*			m_debugStr;
-		const char*			m_typeName;
-		rc_obj_base*		m_desc;
-		void*				m_objPtr;
+		const char* m_debugStr;
+		const char* m_typeName;
+		rc_obj_base* m_desc;
+		void* m_objPtr;
 
 		tracking_header(const ptr<rc_obj_base>& desc)
-			:	m_desc(desc.get_ptr()),
-				m_destructed(false),
-				m_debugStr(0),
-				m_typeName(0),
-				m_objPtr(0)
+			: m_desc(desc.get_ptr()),
+			m_destructed(false),
+			m_debugStr(0),
+			m_typeName(0),
+			m_objPtr(0)
 		{ }
 	};
 
@@ -182,7 +187,7 @@ public:
 		m_typeName = s;
 #endif
 	}
-	void set_obj_ptr(void* obj)		
+	void set_obj_ptr(void* obj)
 	{
 		m_tracker->m_objPtr = obj;
 #if COGS_DEBUG_RC_LOGGING
@@ -266,7 +271,8 @@ public:
 	}
 
 	rc_obj_base()
-		: m_counts{ 1, 1 }
+		: m_counts{ 1, 1 },
+		m_releasedHandlers(0)
 	{
 		COGS_ASSERT(((size_t)&m_counts % atomic::get_alignment_v<counts_t>) == 0);
 
@@ -280,6 +286,8 @@ public:
 
 	~rc_obj_base()
 	{
+		default_allocator::destruct_deallocate_type(m_releasedHandlers);
+
 		m_tracker->m_destructed = true;
 
 #if COGS_DEBUG_RC_LOGGING
@@ -289,7 +297,7 @@ public:
 	}
 
 #else
-	
+
 public:
 
 #if COGS_DEBUG_RC_LOGGING
@@ -297,13 +305,14 @@ public:
 	const char* m_debugStr;
 	void* m_objPtr;
 
-	void set_debug_str(const char* s)	{ m_debugStr = s; }
-	void set_type_name(const char* s)	{ m_typeName = s; }
-	void set_obj_ptr(void* obj)			{ m_objPtr = obj; }
+	void set_debug_str(const char* s) { m_debugStr = s; }
+	void set_type_name(const char* s) { m_typeName = s; }
+	void set_obj_ptr(void* obj) { m_objPtr = obj; }
 #endif
 
 	rc_obj_base()
-		: m_counts{ 1, 1 }
+		: m_counts{ 1, 1 },
+		m_releasedHandlers(0)
 	{
 		COGS_ASSERT(((size_t)&m_counts % atomic::get_alignment_v<counts_t>) == 0);
 
@@ -316,12 +325,16 @@ public:
 
 	~rc_obj_base()
 	{
+		default_allocator::destruct_deallocate_type(m_releasedHandlers);
+
 #if COGS_DEBUG_RC_LOGGING
 		printf("RC_DELETE: %p %s @ %s\n", this, m_typeName, m_debugStr);
 #endif
 	}
 
 #endif
+
+	class released_handler_remove_token;
 
 	bool is_released() const
 	{
@@ -364,10 +377,8 @@ public:
 		return n;
 	}
 
-
-
-	bool acquire_strong()	{ return acquire(strong); }
-	bool acquire_weak()		{ return acquire(weak); }
+	bool acquire_strong() { return acquire(strong); }
+	bool acquire_weak() { return acquire(weak); }
 
 	bool acquire(reference_strength_type refStrengthType = strong, size_t n = 1)
 	{
@@ -394,10 +405,10 @@ public:
 		return result;
 	}
 
-	static volatile hazard& get_hazard()	{ return s_hazard.get(); }
+	static volatile hazard& get_hazard() { return s_hazard.get(); }
 
 	template <class derived_t>
-	static derived_t* guarded_acquire(derived_t* const volatile & srcDesc, reference_strength_type refStrengthType = strong, size_t n = 1)
+	static derived_t* guarded_acquire(derived_t* const volatile& srcDesc, reference_strength_type refStrengthType = strong, size_t n = 1)
 	{
 		if (!n)
 			return 0;
@@ -446,7 +457,7 @@ public:
 				COGS_ASSERT(refStrengthType != weak);
 				oldDesc = 0;
 			}
-			
+
 			break;
 		}
 
@@ -464,6 +475,7 @@ public:
 			} while (!atomic::compare_exchange(m_counts[strong], oldCount - i, oldCount, oldCount));
 			if (oldCount == i)
 			{
+				run_released_handlers();
 				released();
 				release_weak();
 				return true;
@@ -500,7 +512,7 @@ public:
 		return release_weak(i);
 	}
 
-	// Can be useful if reusing a descriptor to reset it to the initialized stated.
+	// Can be useful if reusing a descriptor to reset it to the initialized state.
 	void reset_counts()
 	{
 		m_counts[strong] = 1;
@@ -509,10 +521,12 @@ public:
 
 	virtual void released() = 0;
 	virtual void dispose() = 0;
+
+	template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, rc_obj_base&> > >
+	released_handler_remove_token on_released(F&& f) const;
+
+	bool uninstall_released_handler(const released_handler_remove_token& removeToken) const;
 };
-
-
-
 
 
 #if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
@@ -650,7 +664,7 @@ public:
 		return ptr;
 	}
 
-	virtual size_t get_allocation_size(const ptr<void> & p, size_t align, size_t knownSize) const volatile
+	virtual size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize) const volatile
 	{
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
 		return knownSize;
@@ -684,7 +698,7 @@ public:
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT || COGS_DEBUG_ALLOC_LOGGING
 
-	virtual void deallocate(const ptr<void> & p) volatile
+	virtual void deallocate(const ptr<void>& p) volatile
 	{
 		void* ptr = p.get_ptr();
 
@@ -723,7 +737,7 @@ public:
 #endif
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
-	virtual bool try_reallocate(const ptr<void> & p, size_t newSize)	volatile
+	virtual bool try_reallocate(const ptr<void>& p, size_t newSize)	volatile
 	{
 		return false;//(newSize <= get_allocation_size(p));	// disable try_reallocate() to make things simpler for debugging.
 	}
@@ -778,7 +792,7 @@ public:
 
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION
-inline void assert_not_deallocated(const ptr<void> & p)
+inline void assert_not_deallocated(const ptr<void>& p)
 {
 	if (!!p)
 	{
@@ -790,7 +804,7 @@ inline void assert_not_deallocated(const ptr<void> & p)
 #endif
 
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
-inline void assert_no_overflow(const ptr<void> & p)
+inline void assert_no_overflow(const ptr<void>& p)
 {
 	if (!!p)
 	{

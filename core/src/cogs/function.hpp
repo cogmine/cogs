@@ -9,9 +9,9 @@
 
 #include "cogs/env.hpp"
 #include "cogs/debug.hpp"
+#include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/hazard.hpp"
 
 namespace cogs {
 
@@ -69,21 +69,11 @@ class function<return_t(args_t...), n>
 private:
 	typedef function<return_t(args_t...), n> this_t;
 
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-	class block_base : public object
-#else
 	class block_base
-#endif
 	{
 	public:
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-		explicit block_base(const ptr<rc_obj_base>& desc)
-			: object(desc)
-		{ }
-#else
 		block_base()
 		{ }
-#endif
 
 		virtual ~block_base() { }
 		virtual block_base* copy() const = 0;
@@ -212,35 +202,6 @@ private:
 	public:
 		F m_func;
 
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, F2&& f)
-			: block_base(desc),
-			m_func(std::forward<F2>(f))
-		{ }
-
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, block<F2>&& f)
-			: block_base(desc),
-			m_func(std::move(f.m_func))
-		{ }
-
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, const block<F2>& f)
-			: block_base(desc),
-			m_func(f.m_func)
-		{ }
-
-		block(const ptr<rc_obj_base>& desc, F&& f)
-			: block_base(desc),
-			m_func(std::move(f))
-		{ }
-
-		block(const ptr<rc_obj_base>& desc, const F& f)
-			: block_base(desc),
-			m_func(f)
-		{ }
-#else
 		template <typename F2>
 		block(F2&& f)
 			: m_func(std::forward<F2>(f))
@@ -263,7 +224,6 @@ private:
 		block(const F& f)
 			: m_func(f)
 		{ }
-#endif
 
 		template <size_t n2> block(block<function<return_t(args_t...), n2> >&& f) = delete;
 		template <size_t n2> block(const block<function<return_t(args_t...), n2> >& f) = delete;
@@ -275,13 +235,7 @@ private:
 
 		virtual block_base* copy() const
 		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F> > r = rcnew(block<F>, m_func);
-			r.disown();
-			return r.get_ptr();
-#else
 			return new (default_allocator::get()) block<F>(m_func);
-#endif
 		}
 
 		virtual void copy(void* p) const
@@ -291,13 +245,7 @@ private:
 
 		virtual block_base* move()
 		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F> > r = rcnew(block<F>, std::move(m_func));
-			r.disown();
-			return r.get_ptr();
-#else
 			return new (default_allocator::get()) block<F>(std::move(m_func));
-#endif
 		}
 		
 		virtual void move(void* p)
@@ -321,13 +269,7 @@ private:
 			if (m_size <= n)
 				((block_base*)&m_buffer)->~block_base();
 			else
-			{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-				(*(block_base**)&m_buffer)->get_desc()->release();
-#else
 				default_allocator::destruct_deallocate_type(*(block_base**)&m_buffer);
-#endif
-			}
 		}
 	}
 
@@ -340,15 +282,7 @@ private:
 		if (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
-		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F_t> > r = rcnew(block<F_t>, std::forward<F>(f));
-			r.disown();
-			*(block<F_t>**)&m_buffer = r.get_ptr();
-#else
 			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));
-#endif
-		}
 	}
 
 	void move(this_t&& src)
@@ -475,21 +409,11 @@ class function<void(args_t...), n>
 private:
 	typedef function<void(args_t...), n> this_t;
 
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-	class block_base : public object
-#else
 	class block_base
-#endif
 	{
 	public:
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-		explicit block_base(const ptr<rc_obj_base>& desc)
-			: object(desc)
-		{ }
-#else
 		block_base()
 		{ }
-#endif
 
 		virtual ~block_base() { }
 		virtual block_base* copy() const = 0;
@@ -618,35 +542,6 @@ private:
 	public:
 		F m_func;
 
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, F2&& f)
-			: block_base(desc),
-			m_func(std::forward<F2>(f))
-		{ }
-
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, block<F2>&& f)
-			: block_base(desc),
-			m_func(std::move(f.m_func))
-		{ }
-
-		template <typename F2>
-		block(const ptr<rc_obj_base>& desc, const block<F2>& f)
-			: block_base(desc),
-			m_func(f.m_func)
-		{ }
-
-		block(const ptr<rc_obj_base>& desc, F&& f)
-			: block_base(desc),
-			m_func(std::move(f))
-		{ }
-
-		block(const ptr<rc_obj_base>& desc, const F& f)
-			: block_base(desc),
-			m_func(f)
-		{ }
-#else
 		template <typename F2>
 		block(F2&& f)
 			: m_func(std::forward<F2>(f))
@@ -669,7 +564,6 @@ private:
 		block(const F& f)
 			: m_func(f)
 		{ }
-#endif
 
 		template <size_t n2> block(function<void(args_t...), n2>&& f) = delete;	// Should have been copied
 		template <size_t n2> block(const function<void(args_t...), n2>& f) = delete;
@@ -681,13 +575,7 @@ private:
 
 		virtual block_base* copy() const
 		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F> > r = rcnew(block<F>, m_func);
-			r.disown();
-			return r.get_ptr();
-#else
 			return new (default_allocator::get()) block<F>(m_func);
-#endif
 		}
 
 		virtual void copy(void* p) const
@@ -697,13 +585,7 @@ private:
 
 		virtual block_base* move()
 		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F> > r = rcnew(block<F>, std::move(m_func));
-			r.disown();
-			return r.get_ptr();
-#else
 			return new (default_allocator::get()) block<F>(std::move(m_func));
-#endif
 		}
 
 		virtual void move(void* p)
@@ -724,13 +606,7 @@ private:
 			if (m_size <= n)
 				((block_base*)&m_buffer)->~block_base();
 			else
-			{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-				(*(block_base**)&m_buffer)->get_desc()->release();
-#else
 				default_allocator::destruct_deallocate_type(*(block_base**)&m_buffer);
-#endif
-			}
 		}
 	}
 
@@ -743,15 +619,7 @@ private:
 		if (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
-		{
-#if COGS_DEBUG_REF_LEAKED_FUNCTION_DETECTION
-			rcref<block<F_t> > r = rcnew(block<F_t>, std::forward<F>(f));
-			r.disown();
-			*(block<F_t>**)&m_buffer = r.get_ptr();
-#else
 			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));
-#endif
-		}
 	}
 
 	void move(this_t&& src)

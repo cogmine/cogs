@@ -86,7 +86,7 @@ protected:
 	//			isNew = true;
 	//			result = std::move(newValue); // Return the one we just created.
 	//			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
-	//				cleanup_queue::get_global()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+	//				cleanup_queue::get()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
 	//		}
 	//	}
 	//

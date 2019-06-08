@@ -19,22 +19,22 @@ namespace gui {
 
 
 /// @ingroup GUI
-/// @brief A pane that displays a pixel_image.
-class pixel_image_pane : public pane
+/// @brief A pane that displays a bitmap.
+class bitmap_pane : public pane
 {
 private:
 	composite_string m_imageLocation;
-	rcptr<pixel_image> m_image;
+	rcptr<bitmap> m_image;
 
 public:
-	pixel_image_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation)
+	bitmap_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation)
 		: pane(desc),
 		m_imageLocation(imageLocation)
 	{ }
 
 	virtual void installing()
 	{
-		m_image = load_pixel_image(m_imageLocation);
+		m_image = load_bitmap(m_imageLocation);
 		pane::installing();
 	}
 
@@ -64,9 +64,9 @@ public:
 		return r;
 	}
 	
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		pane::reshape(r, oldOrigin);
+		pane::reshape(b, oldOrigin);
 		if (!!m_image)
 			invalidate(get_size());
 	}
@@ -77,7 +77,7 @@ public:
 		{
 			size originalSize = m_image->get_size();
 			size stretchTo = get_bounds().get_size();
-			composite_scaled_pixel_image(*m_image, originalSize, stretchTo);
+			draw_bitmap(*m_image, originalSize, stretchTo);
 		}
 	}
 };

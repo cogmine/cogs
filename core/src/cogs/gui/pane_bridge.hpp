@@ -74,11 +74,11 @@ protected:
 		return paneBridge->pane::is_drawing_needed();
 	}
 
-	void invalidate(const bounds& r)
+	void invalidate(const bounds& b)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		paneBridge->pane::invalidate(r);
+		paneBridge->pane::invalidate(b);
 	}
 
 	void hide()
@@ -95,6 +95,20 @@ protected:
 		paneBridge->pane::show();
 	}
 
+	void focus(int direction)
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::focus(direction);
+	}
+
+	void defocus()
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::defocus();
+	}
+
 	rcptr<volatile gui::subsystem> get_subsystem() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
@@ -102,14 +116,14 @@ protected:
 		return paneBridge->pane::get_subsystem();
 	}
 
-	const rcptr<pixel_image_canvas>& peek_offscreen_buffer()
+	const rcptr<bitmap>& peek_offscreen_buffer()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		return paneBridge->pane::peek_offscreen_buffer();
 	}
 
-	const rcptr<pixel_image_canvas>& get_offscreen_buffer()
+	const rcptr<bitmap>& get_offscreen_buffer()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
@@ -142,13 +156,6 @@ protected:
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		return paneBridge->pane::get_sibling_iterator();
-	}
-
-	double get_dpi() const
-	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::get_dpi();
 	}
 
 	void set_compositing_behavior(compositing_behavior cb)
@@ -194,17 +201,15 @@ protected:
 	virtual bool is_opaque() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::is_opaque();
-		return false;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::is_opaque();
 	}
 
-	virtual bool is_unclipped(const bounds& r) const
+	virtual bool is_unclipped(const bounds& b) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::is_unclipped(r);
-		return true;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::is_unclipped(b);
 	}
 
 	// reshapable interface - public
@@ -212,58 +217,50 @@ protected:
 	virtual size get_default_size() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::get_default_size();
-		size sz(0, 0);
-		return sz;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_size();
 	}
 
 	virtual range get_range() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::get_range();
-		range r;
-		return r;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_range();
 	}
 
 	virtual dimension get_primary_flow_dimension() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::get_primary_flow_dimension();
-		return dimension::horizontal;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_primary_flow_dimension();
 	}
 	
 	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::propose_length(d, proposed, rtnOtherRange);
-		return proposed;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::propose_length(d, proposed, rtnOtherRange);
 	}
 	
 	virtual size propose_lengths(dimension d, const size& proposedSize) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::propose_lengths(d, proposedSize);
-		return proposedSize;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::propose_lengths(d, proposedSize);
 	}
 
 	virtual size propose_size(const size& proposedSize) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			return paneBridge->pane::propose_size(proposedSize);
-		return proposedSize;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::propose_size(proposedSize);
 	}
 
 	virtual void calculate_range()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-				paneBridge->pane::calculate_range();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::calculate_range();
 	}
 
 	// notification interfaces (called internally, overriden)
@@ -274,20 +271,20 @@ protected:
 	virtual void installing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::installing();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::installing();
 	}
 
 	virtual void uninstalling()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::uninstalling();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::uninstalling();
 	}
 
-	virtual bool key_pressing(string::char_t c)								{ return false; }
-	virtual bool key_releasing(string::char_t c)								{ return false; }
-	virtual bool character_typing(string::char_t c)							{ return false; }
+	virtual bool key_pressing(wchar_t c)								{ return false; }
+	virtual bool key_releasing(wchar_t c)								{ return false; }
+	virtual bool character_typing(wchar_t c)							{ return false; }
 		
 	virtual bool button_pressing(mouse_button btn, const point& pt)			{ return false; }
 	virtual bool button_releasing(mouse_button btn, const point& pt)				{ return false; }
@@ -296,74 +293,80 @@ protected:
 	virtual void cursor_hovering(const point& pt)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::cursor_hovering(pt);
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::cursor_hovering(pt);
 	}
 
 	virtual void cursor_leaving()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::cursor_leaving();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::cursor_leaving();
 	}
 	
 	virtual void hiding()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::hiding();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::hiding();
 	}
 	
 	virtual void showing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::showing();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::showing();
 	}
 	
 	virtual void drawing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::drawing();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::drawing();
 	}
 
 	// if overridden, base bridgeable_pane::focusing() should be invoked.
 	virtual void focusing(int direction)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::focusing(direction);
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::focusing(direction);
 	}
 
 	// if overridden, base bridgeable_pane::defocusing() should be invoked.
 	virtual void defocusing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::defocusing();
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::defocusing();
 	}
 
 	// if overridden, base bridgeable_pane::invalidating() should be invoked.
-	virtual void invalidating(const bounds& r)
+	virtual void invalidating(const bounds& b)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::invalidating(r);
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::invalidating(b);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
-		if (!!paneBridge)
-			paneBridge->pane::reshape(r, oldOrigin);
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::reshape(b, oldOrigin);
+	}
+
+	virtual rcref<bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->create_offscreen_buffer(forPane, sz, fillColor);
 	}
 };
 
 
 /// @ingroup GUI
 /// @brief Bridges a bridgeable_pane.
-//template <class bridgeable_pane_t>
 class pane_bridge : public pane
 {
 private:
@@ -384,65 +387,57 @@ protected:
 		bp->install(this_rcref);
 	}
 
+
 	// pane_base interface - public
 
 	virtual bool is_opaque() const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->is_opaque();
-		return pane::is_opaque();
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->is_opaque();
 	}
 
-	virtual bool is_unclipped(const bounds& r) const
+	virtual bool is_unclipped(const bounds& b) const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->is_unclipped(r);
-		return pane::is_unclipped(r);
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->is_unclipped(b);
 	}
 
 	// reshapable interface - public
 
 	virtual size get_default_size() const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->get_default_size();
-		return pane::get_default_size();
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_size();
 	}
 
 	virtual dimension get_primary_flow_dimension() const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->get_primary_flow_dimension();
-		return pane::get_primary_flow_dimension();
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_primary_flow_dimension();
 	}
 
 	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->propose_length(d, proposed, rtnOtherRange);
-		return pane::propose_length(d, proposed, rtnOtherRange);
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->propose_length(d, proposed, rtnOtherRange);
 	}
 
 	virtual size propose_lengths(dimension d, const size& proposedSize) const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->propose_lengths(d, proposedSize);
-		return pane::propose_lengths(d, proposedSize);
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->propose_lengths(d, proposedSize);
 	}
 
 	virtual size propose_size(const size& proposedSize) const
 	{
-		if (!!m_bridgedPane)
-			return m_bridgedPane->propose_size(proposedSize);
-		return pane::propose_size(proposedSize);
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->propose_size(proposedSize);
 	}
 
 	virtual void calculate_range()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->calculate_range();
-		else
-			pane::calculate_range();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->calculate_range();
 	}
 
 	// notification interfaces (called internally, overriden)
@@ -456,38 +451,36 @@ protected:
 
 	virtual void uninstalling()
 	{
-		if (!!m_bridgedPane)
-		{
-			m_bridgedPane->uninstalling();
-			m_bridgedPane = 0;
-		}
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->uninstalling();
+		m_bridgedPane = 0;
 	}
 
-	virtual bool key_pressing(string::char_t c)
+	virtual bool key_pressing(wchar_t c)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->key_pressing(c);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->key_pressing(c);
 		if (!result)
 			result = pane::key_pressing(c);
 		return result;
 	}
 
-	virtual bool key_releasing(string::char_t c)	
+	virtual bool key_releasing(wchar_t c)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->key_releasing(c);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->key_releasing(c);
 		if (!result)
 			result = pane::key_releasing(c);
 		return result;
 	}
 
-	virtual bool character_typing(string::char_t c)
+	virtual bool character_typing(wchar_t c)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->character_typing(c);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->character_typing(c);
 		if (!result)
 			result = pane::character_typing(c);
 		return result;
@@ -496,8 +489,8 @@ protected:
 	virtual bool button_pressing(mouse_button btn, const point& pt)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->button_pressing(btn, pt);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->button_pressing(btn, pt);
 		if (!result)
 			result = pane::button_pressing(btn, pt);
 		return result;
@@ -506,8 +499,8 @@ protected:
 	virtual bool button_releasing(mouse_button btn, const point& pt)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->button_releasing(btn, pt);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->button_releasing(btn, pt);
 		if (!result)
 			result = pane::button_releasing(btn, pt);
 		return result;
@@ -516,8 +509,8 @@ protected:
 	virtual bool button_double_clicking(mouse_button btn, const point& pt)
 	{
 		bool result = false;
-		if (!!m_bridgedPane)
-			result = m_bridgedPane->button_double_clicking(btn, pt);
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->button_double_clicking(btn, pt);
 		if (!result)
 			result = pane::button_double_clicking(btn, pt);
 		return result;
@@ -525,74 +518,62 @@ protected:
 
 	virtual void cursor_hovering(const point& pt)
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->cursor_hovering(pt);
-		else
-			pane::cursor_hovering(pt);
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->cursor_hovering(pt);
 	}
 
 	virtual void cursor_leaving()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->cursor_leaving();
-		else
-			pane::cursor_leaving();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->cursor_leaving();
 	}
 	
 	virtual void hiding()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->hiding();
-		else
-			pane::hiding();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->hiding();
 	}
 	
 	virtual void showing()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->showing();
-		else
-			pane::showing();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->showing();
 	}
 
 	virtual void drawing()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->drawing();
-		else
-			pane::drawing();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->drawing();
 	}
 
 	virtual void focusing(int direction)
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->focusing(direction);
-		else
-			pane::focusing(direction);
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->focusing(direction);
 	}
 
 	virtual void defocusing()
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->defocusing();
-		else
-			pane::defocusing();
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->defocusing();
 	}
 
-	virtual void invalidating(const bounds& r)
+	virtual void invalidating(const bounds& b)
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->invalidating(r);
-		else
-			pane::invalidating(r);
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->invalidating(b);
 	}
 
-	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		if (!!m_bridgedPane)
-			m_bridgedPane->reshape(r, oldOrigin);
-		else
-			pane::reshape(r, oldOrigin);
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->reshape(b, oldOrigin);
+	}
+
+	virtual rcref<bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->create_offscreen_buffer(forPane, sz, fillColor);
 	}
 
 	using pane_container::nest;

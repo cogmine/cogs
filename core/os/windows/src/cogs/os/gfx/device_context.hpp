@@ -77,6 +77,8 @@ struct BOUNDS
 };
 
 
+// device contexts are assumed to be manipulated only with the same UI thread.  (Does not call GdiFlush())
+
 class device_context : public object, public canvas
 {
 public:
@@ -102,73 +104,18 @@ public:
 		return singleton<gdi_plus_scope>::get();
 	}
 
+	static constexpr int dip_dpi = 96;
+
 private:
 	rcref<gdi_plus_scope> m_gdiPlusScope;
 	HDC m_hDC = NULL;
 	container_stack<HRGN> m_savedClips;
-	double m_dpi = canvas::dip_dpi;
+	double m_dpi = dip_dpi;
 	double m_scale = 1.0;
 
 protected:
-	static void update_opacity(bool& isOpaque, const SIZE& sz, const BOUNDS& overlap, bool isSourceOpaque, bool blendAlpha)
-	{
-		if (isSourceOpaque)
-		{
-			if (!overlap.pt)
-			{
-				if ((overlap.sz.cx >= sz.cx) && (overlap.sz.cy >= sz.cy))
-					isOpaque = true;
-			}
-		}
-		else if (!blendAlpha)
-			isOpaque = false;
-	}
-
-	void fill_inner(LONG x, LONG y, LONG cx, LONG cy, bool isOpaque)	// fill with opaque black pixels, by default
-	{
-		COGS_ASSERT(!!m_hDC);
-		Gdiplus::SolidBrush solidBrush(Gdiplus::Color(isOpaque ? 0xFF : 0, 0xFF, 0xFF, 0xFF));
-		Gdiplus::Graphics gfx(m_hDC);
-		gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
-		gfx.FillRectangle(&solidBrush, x, y, cx, cy);
-	}
-
-	void fill_inner(const BOUNDS& dstBounds, bool isOpaque)	// fill with opaque black pixels
-	{
-		fill_inner(dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, isOpaque);
-	}
-
-	void fill_inner(const BOUNDS& b, const color& c, bool blendAlpha)
-	{
-		COGS_ASSERT(!!m_hDC);
-		BYTE alph = c.get_alpha();
-		BYTE rd = c.get_red();
-		BYTE grn = c.get_green();
-		BYTE bl = c.get_blue();
-		Gdiplus::SolidBrush solidBrush(Gdiplus::Color(alph, rd, grn, bl));
-		Gdiplus::Graphics gfx(m_hDC);
-		if (!blendAlpha || c.is_opaque())
-			gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
-		gfx.FillRectangle(&solidBrush, b.pt.x, b.pt.y, b.sz.cx, b.sz.cy);
-	}
-
-	void fill_inner(bool& isOpaque, const SIZE& sz, const canvas::bounds& srcBounds, const color& c, bool blendAlpha)
-	{
-		if (!blendAlpha || !c.is_fully_transparent())
-		{
-			BOUNDS b2 = make_BOUNDS(srcBounds);
-			fill_inner(b2, c, blendAlpha);
-			update_opacity(isOpaque, sz, b2, c.is_opaque(), blendAlpha);
-		}
-	}
-
-	void composite_pixel_image_inner(const bitmap& src, const canvas::bounds& srcBounds, const canvas::point& dstPt = canvas::point(0, 0), bool blendAlpha = true);
-	void composite_pixel_image_inner(const bitmap& src, const BOUNDS& srcBounds, const POINT& dstPt, bool blendAlpha);
-	void composite_pixel_image_inner(bool& isOpaque, const SIZE& sz, const bitmap& src, const canvas::bounds& srcBounds, const canvas::point& dstPt, bool blendAlpha);
-
-	void composite_scaled_pixel_image_inner(bool isOpaque, const bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& destRest);
-	void composite_scaled_pixel_image_inner(bool isOpaque, const bitmap& src, const BOUNDS& srcBounds, const BOUNDS& dstBounds);
-	void composite_scaled_pixel_image_inner(bool& isOpaque, const SIZE& sz, const bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds);
+	void draw_bitmap_inner(gdi::bitmap* bmp, const gdi::bitmap& src, const BOUNDS& srcBounds, const BOUNDS& dstBounds, bool blendAlpha);
+	void draw_bitmask_inner(const gdi::bitmap& src, const BOUNDS& srcBounds, const BOUNDS& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha);
 
 public:
 	class font : public canvas::font
@@ -261,7 +208,7 @@ public:
 			if (!!dpi)
 				m_savedDpi = dpi;
 			else
-				m_savedDpi = canvas::dip_dpi;
+				m_savedDpi = dip_dpi;
 			double pixels = pixels = (dpi * pt) / 72;
 
 			composite_string fontName = resolve(m_gfxFont.get_font_names());
@@ -319,7 +266,7 @@ public:
 			// Load default font
 			NONCLIENTMETRICS ncm;
 			ncm.cbSize = sizeof(NONCLIENTMETRICS);// -sizeof(ncm.iPaddedBorderWidth);?
-			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, canvas::dip_dpi);
+			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
 
 			append_font_name(ncm.lfMessageFont.lfFaceName);
 			set_italic(ncm.lfMessageFont.lfItalic != 0);
@@ -422,6 +369,21 @@ public:
 		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
+	explicit device_context(const ptr<rc_obj_base>& desc, HDC hDC, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: object(desc),
+		m_hDC(hDC),
+		m_gdiPlusScope(gdiPlusScope)
+	{
+		set_dpi(dpi);
+	}
+
+	explicit device_context(const ptr<rc_obj_base>& desc, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: object(desc),
+		m_gdiPlusScope(gdiPlusScope)
+	{
+		set_dpi(dpi);
+	}
+
 	~device_context()	// Does not free the DC here!
 	{
 		HRGN hRgn;
@@ -444,15 +406,21 @@ public:
 		if (!blendAlpha || !c.is_fully_transparent())
 		{
 			BOUNDS b2 = make_BOUNDS(b);
-			fill_inner(b2, c, blendAlpha);
+			Gdiplus::SolidBrush solidBrush(Gdiplus::Color(c.get_alpha(), c.get_red(), c.get_green(), c.get_blue()));
+			Gdiplus::Graphics gfx(m_hDC);
+			if (!blendAlpha || c.is_opaque())
+				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
+			else
+				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+			gfx.FillRectangle(&solidBrush, b2.pt.x, b2.pt.y, b2.sz.cx, b2.sz.cy);
 		}
 	}
 
-	virtual void invert(const canvas::bounds& r)
+	virtual void invert(const canvas::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
-		RECT r2 = make_RECT(r);
-		InvertRect(m_hDC, &r2);
+		RECT r = make_RECT(b);
+		InvertRect(m_hDC, &r);
 	}
 
 	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
@@ -474,26 +442,11 @@ public:
 
 		if (!blendAlpha)
 			gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
+		else
+			gfx.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
 		gfx.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
 
 		gfx.DrawLine(&pen, startX, startY, endX, endY);
-	}
-
-	// Coordinates must map to whole pixels
-	virtual void scroll(const canvas::bounds& r, const canvas::point& pt = canvas::point(0, 0))
-	{
-		COGS_ASSERT(!!m_hDC);
-		canvas::point srcPt = r.calc_position();
-		if (pt != srcPt)
-		{
-			POINT srcPt2 = make_POINT(srcPt);
-			POINT pt2 = make_POINT(pt);
-			SIZE sz = make_SIZE(r.get_size());
-
-			SetTextColor(m_hDC, make_COLORREF(color::black));
-			SetBkColor(m_hDC, make_COLORREF(color::white));
-			BOOL b = BitBlt(m_hDC, pt2.x, pt2.y, sz.cx, sz.cy, m_hDC, srcPt2.x, srcPt2.y, SRCCOPY);
-		}
 	}
 
 	// text and font primatives
@@ -503,12 +456,12 @@ public:
 		return rcnew(font, guiFont, this_rcref);
 	}
 
-	virtual gfx::font get_default_font()
+	virtual gfx::font get_default_font() const
 	{
 		return *singleton<default_font>::get();
 	}
 
-	virtual void draw_text(const composite_string& s, const canvas::bounds& r, const rcptr<canvas::font>& f, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
 	{
 		COGS_ASSERT(!!m_hDC);
 		if (!!s)
@@ -532,10 +485,10 @@ public:
 				//gfx.RotateTransform(degrees);
 				Gdiplus::SolidBrush solidBrush(Gdiplus::Color(alph, rd, grn, bl));
 				Gdiplus::RectF destRectF(
-					(Gdiplus::REAL)(r.get_x() * m_scale),
-					(Gdiplus::REAL)(r.get_y() * m_scale),
-					(Gdiplus::REAL)(r.get_width() * m_scale),
-					(Gdiplus::REAL)(r.get_height() * m_scale));
+					(Gdiplus::REAL)(b.get_x() * m_scale),
+					(Gdiplus::REAL)(b.get_y() * m_scale),
+					(Gdiplus::REAL)(b.get_width() * m_scale),
+					(Gdiplus::REAL)(b.get_height() * m_scale));
 				Gdiplus::Status status = gfx.DrawString(
 					&(s2[0]),
 					(int)(s2.get_length()),
@@ -552,8 +505,8 @@ public:
 				UINT savedTextAlign = GetTextAlign(m_hDC);
 				SetTextAlign(m_hDC, TA_TOP | TA_LEFT);
 				SetBkMode(m_hDC, TRANSPARENT);
-				RECT r2 = make_RECT(r);
-				BOOL b = ExtTextOut(m_hDC, r2.left, r2.top, ETO_CLIPPED, &r2, &(s2[0]), (int)(s.get_length()), NULL);
+				RECT r = make_RECT(b);
+				ExtTextOut(m_hDC, r.left, r.top, ETO_CLIPPED, &r, &(s2[0]), (int)(s.get_length()), NULL);
 				SetTextAlign(m_hDC, savedTextAlign);
 				SelectFont(m_hDC, savedFont);
 				SelectObject(m_hDC, savedBrush);
@@ -572,12 +525,23 @@ public:
 		}
 	}
 	
-	virtual void composite_pixel_image(const canvas::pixel_image& src, const canvas::bounds& srcBounds, const canvas::point& dstPt = canvas::point(0, 0), bool blendAlpha = true);
-	virtual void composite_scaled_pixel_image(const canvas::pixel_image& src, const canvas::bounds& srcBounds, const canvas::bounds& destRest);
-	virtual void composite_pixel_mask(const canvas::pixel_mask& src, const canvas::bounds& srcBounds, const canvas::point& dstPt = canvas::point(0,0), const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
-	virtual rcref<canvas::pixel_image_canvas> create_pixel_image_canvas(const canvas::size& sz, bool isOpaque = true, double dpi = canvas::dip_dpi);
-	virtual rcref<canvas::pixel_image> load_pixel_image(const composite_string& location, double dpi = canvas::dip_dpi);
-	virtual rcref<canvas::pixel_mask> load_pixel_mask(const composite_string& location, double dpi = canvas::dip_dpi);
+	virtual void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);	
+	virtual void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
+	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false);
+	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
+
+	virtual rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor = std::nullopt)
+	{
+		return create_bitmap(sz, fillColor, dip_dpi);
+	}
+
+	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location);
+
+	virtual rcref<bitmask> create_bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt);
+
+	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location);
+
+	rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor, double dpi);
 
 	// DPI must not change while a clip is in effect.
 	// So, for UI drawing, clipping should only be used from a draw function (which is called within WM_PAINT)
@@ -610,34 +574,31 @@ public:
 		COGS_ASSERT(!!m_hDC);
 		RECT r;
 		GetClipBox(m_hDC, &r);
-		canvas::bounds clip(canvas::point(r.left, r.top), canvas::size(r.right - r.left, r.bottom - r.top));
-		return clip;
+		return make_bounds(r);
 	}
 
-	virtual void clip_out(const canvas::bounds& r)
+	virtual void clip_out(const canvas::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
-		RECT r2 = make_RECT(r);
-		ExcludeClipRect(m_hDC, r2.left, r2.top, r2.right, r2.bottom);
+		RECT r = make_RECT(b);
+		ExcludeClipRect(m_hDC, r.left, r.top, r.right, r.bottom);
 	}
 
-	virtual void clip_to(const canvas::bounds& r)
+	virtual void clip_to(const canvas::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
-		RECT r2 = make_RECT(r);
-		IntersectClipRect(m_hDC, r2.left, r2.top, r2.right, r2.bottom);
+		RECT r = make_RECT(b);
+		IntersectClipRect(m_hDC, r.left, r.top, r.right, r.bottom);
 	}
 
-	virtual bool is_unclipped(const canvas::bounds& r) const
+	virtual bool is_unclipped(const canvas::bounds& b) const
 	{
 		COGS_ASSERT(!!m_hDC);
-		bool b = false;
-		if (!!r.get_height() && !!r.get_width())
-		{
-			RECT r2 = make_RECT(r);
-			b = (RectVisible(m_hDC, &r2) == TRUE);
-		}
-		return b;
+		if (!b.get_height() || !b.get_width())
+			return false;
+
+		RECT r = make_RECT(b);
+		return (RectVisible(m_hDC, &r) == TRUE);
 	}
 	
 	virtual double get_dpi() const
@@ -648,7 +609,7 @@ public:
 	virtual void set_dpi(double dpi)
 	{
 		m_dpi = dpi;
-		m_scale = dpi / canvas::dip_dpi;
+		m_scale = dpi / dip_dpi;
 	}
 
 	// Only use when position is known to be 0,0
@@ -668,9 +629,9 @@ public:
 		return pt2;
 	}
 
-	POINT make_POINT(const canvas::bounds& r) const
+	POINT make_POINT(const canvas::bounds& b) const
 	{
-		return make_POINT(r.calc_position());
+		return make_POINT(b.calc_position());
 	}
 
 	RECT make_RECT(const canvas::bounds& b) const
@@ -717,10 +678,10 @@ public:
 		return b;
 	}
 
-	BOUNDS make_BOUNDS(const canvas::bounds& r) const
+	BOUNDS make_BOUNDS(const canvas::bounds& b) const
 	{
-		canvas::bounds r2 = r.normalized();
-		return make_BOUNDS(r2.get_position(), r2.get_size());
+		canvas::bounds b2 = b.normalized();
+		return make_BOUNDS(b2.get_position(), b2.get_size());
 	}
 
 	double make_point(LONG i) const

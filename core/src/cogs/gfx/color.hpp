@@ -112,7 +112,7 @@ public:
 		lavender			= 0xFFE6E6FA,
 		thistle				= 0xFFD8BFD8,
 		plum				= 0xFFDDA0DD,
-		viole				= 0xFFEE82EE,
+		violet				= 0xFFEE82EE,
 		orchid				= 0xFFDA70D6,
 		medium_orchid		= 0xFFBA55D3,
 		medium_purple		= 0xFF9370DB,
@@ -264,8 +264,8 @@ public:
 
 	constant get_constant() const
 	{
-		rgba_t rgba = get_rgba();
-		return (constant)((rgba.m_red << 16) | (rgba.m_green << 8) | rgba.m_blue | (rgba.m_alpha << 24));
+		rgba_t c = get_rgba();
+		return (constant)((c.m_red << 16) | (c.m_green << 8) | c.m_blue | (c.m_alpha << 24));
 	}
 
 	constant get_constant() const volatile	{ return get().get_constant(); }
@@ -284,16 +284,16 @@ public:
 	
 	void set(uint8_t r, uint8_t g, uint8_t b, uint8_t a) volatile
 	{
-		rgba_t rgba;
-		rgba.m_red   = r;
-		rgba.m_green = g;
-		rgba.m_blue  = b;
-		rgba.m_alpha = a;
-		m_rgba.set(rgba);
+		rgba_t c;
+		c.m_red   = r;
+		c.m_green = g;
+		c.m_blue  = b;
+		c.m_alpha = a;
+		m_rgba.set(c);
 	}
 
-	void set(uint8_t r, uint8_t g, uint8_t b)			{ set(r, g, b, 0); }
-	void set(uint8_t r, uint8_t g, uint8_t b) volatile	{ set(r, g, b, 0); }
+	void set(uint8_t r, uint8_t g, uint8_t b)			{ set(r, g, b, 0xFF); }
+	void set(uint8_t r, uint8_t g, uint8_t b) volatile	{ set(r, g, b, 0xFF); }
 
 	void set(const rgba_t& c)							{ set(c.m_red, c.m_green, c.m_blue, c.m_alpha); }
 	void set(const rgba_t& c) volatile					{ set(c.m_red, c.m_green, c.m_blue, c.m_alpha); }
@@ -349,11 +349,14 @@ public:
 		} while (!m_rgba.end_write(wt));
 	}
 
-	bool is_opaque() const				{ return m_rgba->m_alpha == 0xFF; }
-	bool is_opaque() const volatile		{ return get().is_opaque(); }
+	bool is_opaque() const { return m_rgba->m_alpha == 0xFF; }
+	bool is_opaque() const volatile { return get().is_opaque(); }
 
-	bool is_fully_transparent() const			{ return m_rgba->m_alpha == 0x00; }
-	bool is_fully_transparent() const volatile	{ return get().is_fully_transparent(); }
+	bool is_fully_transparent() const { return m_rgba->m_alpha == 0x00; }
+	bool is_fully_transparent() const volatile { return get().is_fully_transparent(); }
+
+	bool is_semi_transparent() const { return !is_opaque() && !is_fully_transparent(); }
+	bool is_semi_transparent() const volatile { return get().is_semi_transparent(); }
 
 	template <typename char_t>
 	composite_string_t<char_t> to_string_t(bool trimZeroAlpha = true) const

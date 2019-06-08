@@ -1440,7 +1440,7 @@ public:
 		bool is_removed() const				{ return !!m_link && m_link->is_removed(); }
 		bool is_removed() const volatile	{ rcptr<volatile link_t> lnk = m_link; return !!lnk && lnk->is_removed(); }
 
-		volatile_iterator& operator++()
+		const volatile_iterator& operator++()
 		{
 			if (!!m_link)
 			{
@@ -1465,15 +1465,15 @@ public:
 			return *this;
 		}
 
-		void operator++() volatile
+		volatile_iterator operator++() volatile
 		{
-			rcptr<volatile link_t> oldLink = m_link;
+			volatile_iterator result(m_link);
 			read_token rt;
 			for (;;)
 			{
-				if (!oldLink)
+				if (!result.m_link)
 					break;
-				oldLink->begin_read_and_complete(0, rt, true);
+				result.m_link->begin_read_and_complete(0, rt, true);
 				rcptr<volatile link_t> newLink = rt->m_next;
 				for (;;)
 				{
@@ -1486,13 +1486,13 @@ public:
 					}
 					break;
 				}
-				if (!m_link.compare_exchange(newLink, oldLink, oldLink))
+				if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
 					continue;
 				break;
 			}
 		}
 
-		volatile_iterator& operator--()
+		const volatile_iterator& operator--()
 		{
 			if (!!m_link)
 			{
@@ -1543,19 +1543,19 @@ public:
 			return *this;
 		}
 
-		void operator--() volatile
+		volatile_iterator operator--() volatile
 		{
-			rcptr<volatile link_t> oldLink = m_link;
+			volatile_iterator result(m_link);
 			read_token rt;
 			for (;;)
 			{
-				if (!oldLink)
+				if (!result.m_link)
 					break;
-				oldLink->begin_read_and_complete(0, rt, true);
+				result.m_link->begin_read_and_complete(0, rt, true);
 				rcptr<volatile link_t> newLink = rt->m_prev;
 				if (!newLink)
 				{
-					COGS_ASSERT(!oldLink->m_links[0].is_current(rt));
+					COGS_ASSERT(!result.m_link->m_links[0].is_current(rt));
 					continue;
 				}
 				for (;;)
@@ -1587,7 +1587,7 @@ public:
 						break;
 					//continue;
 				}
-				if (!m_link.compare_exchange(newLink, oldLink, oldLink))
+				if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
 					continue;
 				break;
 			}

@@ -77,18 +77,18 @@
 //			return frame::propose_lengths(d, proposedSize);
 //		}
 //
-//		virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//		virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //		{
 //			bounds newBounds;
 //			rcptr<this_t> sortedList = m_sortedList;
 //			if (!sortedList)
-//				newBounds = r;
+//				newBounds = b;
 //			else
 //			{
 //				if (list_dimension == dimension::horizontal)
-//					newBounds.set(point(m_offset, 0), size(m_cachedLength, r.get_height()));
+//					newBounds.set(point(m_offset, 0), size(m_cachedLength, b.get_height()));
 //				else
-//					newBounds.set(point(0, m_offset), size(r.get_width(), m_cachedLength));
+//					newBounds.set(point(0, m_offset), size(b.get_width(), m_cachedLength));
 //			}
 //
 //			if (!!m_frame)
@@ -173,7 +173,7 @@
 //				range::linear_t otherRange;
 //				double ignoredRtn = cell.propose_dimension(d, r2.get_length(), otherRange);
 //#error
-//				r.m_range &= otherRange;
+//				b.m_range &= otherRange;
 //				
 //				++itor;
 //			}
@@ -200,15 +200,15 @@
 //		return newSize;
 //	}
 //	
-//	virtual void reshape(const bounds& r, const point& oldOrigin = point(0, 0))
+//	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //	{
 //		double oldCachedLength = m_cachedLength;
-//		size newSize(r.get_size());
+//		size newSize(b.get_size());
 //
-//		if (m_wasRecalculated || (r.get_size(list_dimension) != oldCachedLength))
+//		if (m_wasRecalculated || (b.get_size(list_dimension) != oldCachedLength))
 //		{
 //			m_wasRecalculated = false;
-//			newSize = propose_size(r.get_size());
+//			newSize = propose_size(b.get_size());
 //		}
 //		
 //		m_secondarySizingGroup.calculate_sizes(newSize[!list_dimension]);

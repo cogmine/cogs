@@ -317,7 +317,7 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>,
 	void
 >
-assign_bit_and(T& t, const A1 & a)
+assign_bit_and(T& t, const A1& a)
 {
 	pre_assign_bit_and(t, a);
 }
@@ -387,7 +387,7 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>,
 	void
 >
-assign_bit_or(T& t, const A1 & a)
+assign_bit_or(T& t, const A1& a)
 {
 	pre_assign_bit_or(t, a);
 }
@@ -458,7 +458,7 @@ inline std::enable_if_t<
 	&& !std::is_const_v<T>,
 	void
 >
-assign_bit_xor(T& t, const A1 & a)
+assign_bit_xor(T& t, const A1& a)
 {
 	pre_assign_bit_xor(t, a);
 }
