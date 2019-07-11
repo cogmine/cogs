@@ -628,7 +628,7 @@
 //			row_t& row = *rowRef;
 //
 //			if (reverseDirection[!d])
-//				rowOffset -= row.get_length();;
+//				rowOffset -= row.get_length();
 //
 //			double cellOffset =
 //				row.m_bounds.get_position(d) = (newSize[d] > row.m_primarySizingGroup.get_length())	?	(m_alignment[d].align(newSize[d] - row.m_primarySizingGroup.get_length()))

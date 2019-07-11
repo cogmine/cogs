@@ -53,12 +53,6 @@ public:
 		: nsview_pane(desc, uiSubsystem)
 	{ }
 
-	~button()
-	{
-		//objc_button* objcButton = (objc_button*)get_NSView();
-		//objcButton->m_cppButton.release();
-	}
-
 	void action()
 	{
 		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
@@ -71,7 +65,6 @@ public:
 		objc_button* objcButton = (objc_button*)get_NSView();
 		__strong NSString* text2 = string_to_NSString(text);
 		[objcButton setTitle:text2];
-		//[text2 release];
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
@@ -95,7 +88,7 @@ public:
 	{
 		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();
 
-		objc_button* objcButton = [[objc_button alloc] init];
+		__strong objc_button* objcButton = [[objc_button alloc] init];
 		objcButton->m_cppButton = this_rcptr;
 		[objcButton setButtonType: NSButtonTypeMomentaryLight];
 		[objcButton setBordered:YES];
@@ -139,6 +132,24 @@ inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > nsview_subsys
 }
 }
 }
+
+
+#ifdef COGS_OBJECTIVE_C_CODE
+
+
+@implementation objc_button
+
+- (void)on_click:(id)sender
+{
+	cogs::rcptr<cogs::gui::os::button> cppButton = m_cppButton;
+	if (!!cppButton)
+		cppButton->action();
+}
+
+@end
+
+
+#endif
 
 
 #endif

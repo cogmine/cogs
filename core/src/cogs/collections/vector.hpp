@@ -16,7 +16,6 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/unowned.hpp"
 #include "cogs/sync/hazard.hpp"
 #include "cogs/sync/transactable.hpp"
 
@@ -468,18 +467,18 @@ public:
 
 	void clear()
 	{
-		//if (!m_desc)
-		//	m_ptr = 0;
-		//else if (m_desc->is_owned())	// If we own the buffer, try to reuse it to preserve reserved space
-		//{
-		//	m_desc->destruct_all();
-		//	m_ptr = m_desc->get_true_base();
-		//}
-		//else
-		//{
-		//	m_desc->release();
-		//	m_desc = 0;
-		//}
+		if (!m_desc)
+			m_ptr = 0;
+		else if (m_desc->is_owned())	// If we own the buffer, try to reuse it to preserve reserved space
+		{
+			m_desc->destruct_all();
+			m_ptr = m_desc->get_true_base();
+		}
+		else
+		{
+			m_desc->release();
+			m_desc = 0;
+		}
 		m_length = 0;
 	}
 

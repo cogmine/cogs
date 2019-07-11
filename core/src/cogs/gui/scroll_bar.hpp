@@ -9,7 +9,7 @@
 #define COGS_HEADER_GUI_SCROLL_BAR
 
 
-#include "cogs/bindable_property.hpp"
+#include "cogs/dependency_property.hpp"
 #include "cogs/gui/pane.hpp"
 #include "cogs/gui/pane_bridge.hpp"
 #include "cogs/sync/transactable.hpp"
@@ -68,8 +68,8 @@ private:
 	volatile transactable_t m_state;
 	volatile double m_pos;
 
-	delayed_construction<delegated_bindable_property<scroll_bar_state> >	m_stateProperty;
-	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
+	delayed_construction<delegated_dependency_property<scroll_bar_state> > m_stateProperty;
+	delayed_construction<delegated_dependency_property<double> > m_positionProperty;
 
 public:
 	explicit scroll_bar(const ptr<rc_obj_base>& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
@@ -121,8 +121,8 @@ public:
 		pane_bridge::install_bridged(std::move(get_subsystem()->create_scroll_bar().first));
 	}
 	
-	virtual rcref<bindable_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).template static_cast_to<bindable_property<scroll_bar_state>>(); }
-	virtual rcref<bindable_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).template static_cast_to<bindable_property<double>>(); }
+	virtual rcref<dependency_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state>>(); }
+	virtual rcref<dependency_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).template static_cast_to<dependency_property<double>>(); }
 };
 
 

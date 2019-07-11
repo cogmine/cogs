@@ -84,18 +84,24 @@ private:
 		}
 	};
 
-	rcref<control_queue_t> m_controlQueue;
+	const rcref<volatile control_queue_t> m_controlQueue;
+
+	// Cast away volaility for access to the const rcref
+	const rcref<volatile control_queue_t>& get_control_queue() const volatile
+	{
+		return const_cast<const ui_thread*>(this)->m_controlQueue;
+	}
+
 	alignas (atomic::get_alignment_v<int>) int m_dispatchMode;	// 0 = idle, 1 = running, 2 = refresh
 
 	void run_in_main_queue() volatile
 	{
 		bool ranAny = false;
-		bool b = atomic::compare_exchange(m_dispatchMode, 1, 2);
-		COGS_ASSERT(b);
 		for (;;)
 		{
+			atomic::compare_exchange(m_dispatchMode, 1, 2);
 			int priority;
-			rcptr<task<void> > t = m_controlQueue->peek(priority);
+			rcptr<task<void> > t = get_control_queue()->peek(priority);
 			if (!t)
 			{
 				if (atomic::compare_exchange(m_dispatchMode, 0, 1))
@@ -113,7 +119,7 @@ private:
 				break;
 			}
 			else
-				ranAny |= m_controlQueue->remove_and_invoke(t.dereference());
+				ranAny |= get_control_queue()->remove_and_invoke(t.dereference());
 			//continue;
 		}
 	}
@@ -129,16 +135,12 @@ private:
 			dispatch_async(dispatch_get_main_queue(), ^{
 				thisRef->run_in_main_queue();
 			});
-
-			//defer_task_helper* helper = [[defer_task_helper alloc]init] ;
-			//helper->m_subsystem = this_rcptr.template const_cast_to<volatile nsview_subsystem>().get_ptr();
-			//[helper performSelectorOnMainThread : @selector(defer) withObject:nil waitUntilDone : NO] ;
 		}
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		dispatcher::dispatch_inner(*m_controlQueue, t, priority);
+		dispatcher::dispatch_inner(*get_control_queue(), t, priority);
 		update();
 	}
 
@@ -152,11 +154,11 @@ protected:
 public:
 	~ui_thread()
 	{
-		if (!m_controlQueue->is_empty())
+		if (!get_control_queue()->is_empty())
 		{
 			// In case destructed off the main thread,
 			// deferring to cleanup queue ensures these get called in the main (UI) thread
-			cleanup_queue::get()->dispatch([controlQueueRef = m_controlQueue]()
+			cleanup_queue::get()->dispatch([controlQueueRef = get_control_queue()]()
 			{
 				controlQueueRef->drain();
 			});
@@ -246,12 +248,6 @@ public:
 		[alert runModal];
 		return get_immediate_task();
 	}
-
-	//virtual rcref<gui::window> open_window(
-	//	const composite_string& title,
-	//	const rcref<pane>& p,
-	//	const rcptr<frame>& f = 0,
-	//	const function<bool()>& closeDelegate = []() { return true; }) volatile;
 };
 
 
@@ -266,17 +262,9 @@ private:
 	weak_rcptr<nsview_pane> m_firstChildView;
 	weak_rcptr<nsview_pane> m_lastChildView;
 	size_t m_childCount;
-	bool m_focusing;
-	bool m_isResizing;
-
-	//rcptr<window>						m_parentWindow;
-	//bounds								m_boundsInWindow;
-	//bool								m_isUserDrawn;	// i.e. window or canvas
 
 protected:
-	//const rcptr<nsview_pane>&	get_parent_view() const			{ return m_parentView; }
-	//const rcptr<window>&			get_parent_window() const		{ return m_parentWindow; }
-	//const bounds&		get_bounds_in_window() const	{ return m_boundsInWindow; }
+	bool m_isResizing;
 
 	rcref<volatile nsview_subsystem>& get_subsystem()			{ return m_uiSubsystem; }
 	const rcref<volatile nsview_subsystem>& get_subsystem() const	{ return m_uiSubsystem; }
@@ -287,17 +275,8 @@ public:
 		m_uiSubsystem(uiSubsystem),
 		m_nsView(0),
 		m_childCount(0),
-		m_focusing(false),
 		m_isResizing(false)
-		//m_boundsInWindow(point(0,0), size(0,0)),
-		//m_isUserDrawn(false)
 	{ }
-
-	~nsview_pane()
-	{
-		//if (!!m_nsView)
-		//	[m_nsView release];
-	}
 
 	NSView* get_NSView() const
 	{
@@ -339,7 +318,10 @@ public:
 		{
 			pane_bridge* bridge = p.template dynamic_cast_to<pane_bridge>().get_ptr();
 			if (!bridge)
+			{
+				p = p->get_parent();
 				continue;
+			}
 			m_parentView = get_bridged(*bridge).template dynamic_cast_to<nsview_pane>();
 			if (!m_parentView)
 			{
@@ -469,7 +451,7 @@ public:
 					p = p->get_parent();
 				}
 
-				if (!m_isResizing)	// If this needed?
+				if (!m_isResizing)
 				{
 					NSRect newRect = gfx::os::graphics_context::make_NSRect(positionInParentView, b.get_size());
 					[m_nsView setFrame:newRect];
@@ -493,8 +475,8 @@ public:
 
 	virtual void focusing(int direction)
 	{
-		if (!m_focusing)
-			[[m_nsView window] makeFirstResponder: m_nsView];
+		[[m_nsView window] makeFirstResponder: m_nsView];
+		bridgeable_pane::focusing(direction);
 	}
 
 	virtual void invalidating(const bounds& b)
@@ -505,23 +487,17 @@ public:
 
 	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::fill(b, c, blendAlpha);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void invert(const bounds& b)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::invert(b);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::draw_line(startPt, endPt, width, c, blendAlpha);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual rcref<canvas::font> load_font(const gfx::font& f)
@@ -536,23 +512,17 @@ public:
 
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::draw_text(s, b, f, c);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::draw_bitmask(src, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false)
@@ -587,30 +557,22 @@ public:
 
 	virtual void save_clip()
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::save_clip();
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void restore_clip()
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::restore_clip();
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void clip_out(const bounds& b)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::clip_out(b, get_size());
-		//[m_nsView unlockFocus];
 	}
 
 	virtual void clip_to(const bounds& b)
 	{
-		//[m_nsView lockFocus];
 		gfx::os::graphics_context::clip_to(b);
-		//[m_nsView unlockFocus];
 	}
 
 	virtual bool is_unclipped(const bounds& b) const
@@ -621,6 +583,11 @@ public:
 		NSRect r = gfx::os::graphics_context::make_NSRect(b);
 		return [m_nsView needsToDrawRect: r];
 	}
+
+	using pane_orchestrator::request_close;
+	using pane_orchestrator::close;
+	using pane_orchestrator::focus;
+	using bridgeable_pane::get_bridge;
 };
 
 
@@ -635,7 +602,7 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 
 		virtual void installing()
 		{
-			objc_view* nsView = [[objc_view alloc] init];
+			__strong objc_view* nsView = [[objc_view alloc] init];
 			nsView->m_cppView = this_rcptr;
 		
 			[nsView setAutoresizesSubviews:NO];
@@ -651,96 +618,17 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 }
 
 
-//template <class pane_t>
-//class nsview_pane : public nsview_pane_base, public pane_t
-//{
-//public:
-//	nsview_pane(const rcref<volatile nsview_subsystem>& uiSubsystem)
-//		:	nsview_pane_base(uiSubsystem)
-//	{ }
-//	
-//	virtual void installing() = 0;
-//
-//	void installing(NSView* nsView)
-//	{
-//		rcptr<pane> owner = pane_t::get_bridge();
-//		nsview_pane_base::installing(owner.dereference(), nsView);
-//		pane_t::installing();
-//	}
-//
-//	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-//	{
-//		nsview_pane_base::reshape(b, oldOrigin);
-//		pane_t::reshape(b, oldOrigin);
-//	}
-//
-//	virtual void hiding()
-//	{
-//		nsview_pane_base::hiding();
-//		pane_t::hiding();
-//	}
-//
-//	virtual void showing()
-//	{
-//		nsview_pane_base::showing();
-//		pane_t::showing();
-//	}
-//
-//	virtual void focusing(int direction)
-//	{
-//		nsview_pane_base::focusing(direction);
-//		pane_t::focusing(direction);
-//	}
-//
-//	virtual void invalidating(const bounds& b)
-//	{
-//		nsview_pane_base::invalidating(b);
-//		pane_t::invalidating(b); 
-//	}
-//
-//	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
-//	{ nsview_pane_base::fill(b, c, blendAlpha); }
-//
-//	virtual void invert(const bounds& b)
-//	{ nsview_pane_base::invert(b); }
-//
-//	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
-//	{ nsview_pane_base::draw_line(startPt, endPt, width, c, blendAlpha); }
-//
-//	virtual rcref<canvas::font> load_font(const gfx::font& f)
-//	{ return nsview_pane_base::load_font(f); }
-//
-//	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
-//	{ nsview_pane_base::draw_text(s, b, f, c); }
-//
-//	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
-//	{ nsview_pane_base::draw_bitmap(img, srcBounds, dstPt, blendAlpha); }
-//
-//	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
-//	{ nsview_pane_base::draw_bitmask(src, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
-//
-//	virtual rcref<canvas::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
-//	{ return nsview_pane_base::create_bitmap(sz, fillColor); }
-//
-//	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location)			{ return nsview_pane_base::load_bitmap(location); }
-//	virtual rcref<canvas::bitmask> create_bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt)			{ return nsview_pane_base::create_bitmask(sz, value); }
-//	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location)			{ return nsview_pane_base::load_bitmask(location); }
-//
-//	virtual void save_clip()										{ nsview_pane_base::save_clip(); }
-//	virtual void restore_clip()										{ nsview_pane_base::restore_clip(); }
-//	virtual void clip_out(const bounds& b)							{ nsview_pane_base::clip_out(b); }
-//	virtual void clip_to(const bounds& b)							{ nsview_pane_base::clip_to(b); }
-//	virtual bool is_unclipped(const bounds& b) const				{ return nsview_pane_base::is_unclipped(b); }
-//};
-//
+}
+}
+}
 
-}
-}
-}
+
+#ifdef COGS_OBJECTIVE_C_CODE
 
 
 /// @internal
 @implementation objc_view
+
 
 -(BOOL)isFlipped { return TRUE; }
 
@@ -752,7 +640,11 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 		cppView->draw();
 }
 
+
 @end
+
+
+#endif
 
 
 #include "cogs/os/gui/window.hpp"
@@ -760,8 +652,6 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 #include "cogs/os/gui/check_box.hpp"
 #include "cogs/os/gui/scroll_bar.hpp"
 #include "cogs/os/gui/text_editor.hpp"
-
-
 
 
 #endif

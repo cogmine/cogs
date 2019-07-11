@@ -27,9 +27,15 @@ private:
 
 	virtual rcref<task<void> > get_task() { return this_rcref; }
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int priority = 0) volatile
 	{
-		f();
+		onComplete();
+		return get_immediate_task().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
+	}
+
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function& onCancel, int priority = 0) volatile
+	{
+		onComplete();
 		return get_immediate_task().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
@@ -112,10 +118,17 @@ private:
 	virtual rcref<task<void> > get_task() { return this_rcref; }
 
 	virtual bool signal() volatile { return false; }
+	virtual bool signal(const cogs::rcref<cogs::task<void>>&) volatile { return false; }
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& f, int priority) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int priority = 0) volatile
 	{
-		f();
+		onComplete();
+		return this_rcref.template const_cast_to<this_t>().template static_cast_to<task_base>();
+	}
+
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function& onCancel, int priority = 0) volatile
+	{
+		onComplete();
 		return this_rcref.template const_cast_to<this_t>().template static_cast_to<task_base>();
 	}
 

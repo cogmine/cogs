@@ -150,7 +150,7 @@ protected:
 	}
 
 public:
-	class lookup_result : public signallable_task<lookup_result>
+	class lookup_result : public signallable_task_base<lookup_result>
 	{
 	private:
 		rcref<network>	m_network;
@@ -162,7 +162,7 @@ public:
 		friend class address;
 
 		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s, const rcref<network>& n = network::get_default())
-			: signallable_task<lookup_result>(desc),
+			: signallable_task_base<lookup_result>(desc),
 			m_inputString(s.composite()),
 			m_network(n)
 		{
@@ -215,7 +215,7 @@ public:
 		virtual rcref<task<bool> > cancel() volatile
 		{
 			m_poolTask->cancel();
-			return signallable_task<lookup_result>::cancel();
+			return signallable_task_base<lookup_result>::cancel();
 		}
 	};
 	friend class lookup_result;

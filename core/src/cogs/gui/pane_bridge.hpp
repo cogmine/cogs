@@ -95,7 +95,7 @@ protected:
 		paneBridge->pane::show();
 	}
 
-	void focus(int direction)
+	void focus(int direction = 0)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
@@ -375,8 +375,8 @@ private:
 	rcptr<bridgeable_pane>	m_bridgedPane;
 
 protected:
-	explicit pane_bridge(const ptr<rc_obj_base>& desc, const alignment& a = alignment::center())
-		: pane(desc, a)
+	explicit pane_bridge(const ptr<rc_obj_base>& desc)
+		: pane(desc)
 	{ }
 
 	const rcptr<bridgeable_pane>& get_bridged() const	{ return m_bridgedPane; }

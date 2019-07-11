@@ -51,8 +51,8 @@ private:
 	volatile transactable<scroll_bar_state> m_state;
 	volatile double m_pos;
 
-	delayed_construction<delegated_bindable_property<scroll_bar_state> > m_stateProperty;
-	delayed_construction<delegated_bindable_property<double> > m_positionProperty;
+	delayed_construction<delegated_dependency_property<scroll_bar_state> > m_stateProperty;
+	delayed_construction<delegated_dependency_property<double> > m_positionProperty;
 
 	bool m_isHiddenWhenInactive;
 	bool m_isHidden;
@@ -145,12 +145,6 @@ public:
 
 		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
 	}
-	
-	~scroll_bar()
-	{
-		//objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
-		//objcScrollBar->m_cppScrollBar.release();
-	}
 
 	virtual void installing()
 	{
@@ -172,7 +166,7 @@ public:
 			bogusBounds.size.height = 100;
 		}
 
-		objc_scroll_bar* objcScrollBar = [[objc_scroll_bar alloc] initWithFrame:bogusBounds];
+		__strong objc_scroll_bar* objcScrollBar = [[objc_scroll_bar alloc] initWithFrame:bogusBounds];
 		objcScrollBar->m_cppScrollBar = this_rcptr;
 
 		[objcScrollBar setTarget:objcScrollBar];
@@ -228,8 +222,6 @@ public:
 				double scaledUp = curValue * maxPos;
 				pos = (longest)scaledUp;
 			}
-			//setPosition = false;
-			//break;
 		case NSScrollerNoPart:
 		default:
 			setPosition = false;
@@ -256,10 +248,10 @@ public:
 		m_currentDefaultSize.set(scrollBarWidth, scrollBarWidth);
 	}
 
-	virtual range	get_range() const			{ return m_currentRange; }
-	virtual size		get_default_size() const	{ return m_currentDefaultSize; }
+	virtual range get_range() const { return m_currentRange; }
+	virtual size get_default_size() const { return m_currentDefaultSize; }
 
-	virtual bool is_focusable() const	{ return false; }
+	virtual bool is_focusable() const { return false; }
 
 };
 
@@ -270,9 +262,32 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 	return std::make_pair(sb, sb);
 }
 
+
 }
 }
 }
+
+
+#ifdef COGS_OBJECTIVE_C_CODE
+
+
+@implementation objc_scroll_bar
+
+
+- (BOOL)isFlipped { return TRUE; }
+
+-(void)scrolled:(id)sender;
+{
+	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	if (!!cppScrollBar)
+		cppScrollBar->scrolled();
+}
+
+
+@end
+
+
+#endif
 
 
 #endif

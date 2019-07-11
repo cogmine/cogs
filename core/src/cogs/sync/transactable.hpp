@@ -1800,8 +1800,8 @@ public:
 	{ }
 
 	this_t& operator=(const this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
-	this_t& operator=(const volatile this_t& src) { cogs::assign(m_contents, src.m_contents);; return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { cogs::assign(m_contents, src.m_contents);; return *this; }
+	this_t& operator=(const volatile this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
 
 	this_t& operator=(this_t&& src) { m_contents = std::move(src.m_contents); return *this; }

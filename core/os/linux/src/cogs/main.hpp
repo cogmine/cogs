@@ -24,7 +24,9 @@ inline int main(F&& main_func)
 	// TODO: Console UI subsystem
 	//return main_func(uiSubsystem);
 	int result = main_func();
-	cogs::get_quit_event()->wait();
+	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
+	if (!!qd)
+		qd->get_event().wait();
 	return result;
 }
 

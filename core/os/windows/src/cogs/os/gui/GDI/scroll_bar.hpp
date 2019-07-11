@@ -13,7 +13,7 @@
 #include <commctrl.h>
 
 
-#include "cogs/bindable_property.hpp"
+#include "cogs/dependency_property.hpp"
 #include "cogs/gui/scroll_bar.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/gui/GDI/hwnd.hpp"
@@ -29,17 +29,17 @@ namespace os {
 class scroll_bar : public hwnd_pane, public scroll_bar_interface
 {
 private:
-	volatile transactable<scroll_bar_state>	m_state;
-	volatile double						m_pos;
+	volatile transactable<scroll_bar_state> m_state;
+	volatile double m_pos;
 
-	delayed_construction<delegated_bindable_property<scroll_bar_state> >	m_stateProperty;
-	delayed_construction<delegated_bindable_property<double> >			m_positionProperty;
+	delayed_construction<delegated_dependency_property<scroll_bar_state> > m_stateProperty;
+	delayed_construction<delegated_dependency_property<double> > m_positionProperty;
 
-	dimension	m_dimension;
-	bool		m_isHiddenWhenInactive;
-	bool		m_isHidden;
-	range		m_currentRange;
-	size		m_currentDefaultSize;
+	dimension m_dimension;
+	bool m_isHiddenWhenInactive;
+	bool m_isHidden;
+	range m_currentRange;
+	size m_currentDefaultSize;
 
 	void set_scroll_bar_state(const scroll_bar_state& newState, double newPos)
 	{

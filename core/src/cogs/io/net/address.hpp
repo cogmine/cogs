@@ -40,7 +40,7 @@ namespace net {
 class address
 {
 public:
-	class reverse_lookup_result : public signallable_task<reverse_lookup_result>
+	class reverse_lookup_result : public signallable_task_base<reverse_lookup_result>
 	{
 	private:
 		composite_string m_result;
@@ -55,7 +55,7 @@ public:
 		virtual const reverse_lookup_result& get() const volatile { return *(const reverse_lookup_result*)this; }
 
 		explicit reverse_lookup_result(const ptr<rc_obj_base>& desc)
-			: signallable_task<reverse_lookup_result>(desc)
+			: signallable_task_base<reverse_lookup_result>(desc)
 		{ }
 
 	public:

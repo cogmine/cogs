@@ -1041,9 +1041,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\storage_union.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\weak_rcptr.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
@@ -1230,9 +1227,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatch_parallel.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\bindable_property.hpp">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_compare_exchange.hpp">
       <Filter>env\XCode\MacOS\sync</Filter>
     </ClInclude>
@@ -1281,14 +1275,19 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
       <Filter>env\XCode\MacOS</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\bitmap_pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\function_list.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\dependency_property.hpp">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\bitmap_pane.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">
       <Filter>os\libs\pthreads\sync</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\nsview.cpp">
-      <Filter>os\MacOS\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

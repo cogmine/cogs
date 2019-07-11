@@ -158,12 +158,6 @@ public:
 	      volatile vector_t& get_vector()       volatile	{ return m_contents; }
 	const volatile vector_t& get_vector() const volatile	{ return m_contents; }
 
-	static this_t& from_vector(vector_t& v, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned())
-	{
-		storage.m_contents.set(v.get_desc(), v.get_raw_ptr(), v.get_length());
-		return storage;
-	}
-
 	static const this_t& from_vector(const vector_t& v, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned())
 	{
 		storage.m_contents.set(v.get_desc(), v.get_raw_ptr(), v.get_length());
@@ -362,7 +356,7 @@ public:
 		return storage;
 	}
 
-	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ this_t s(*this, i, n); return s; }
+	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile { this_t s(*this, i, n); return s; }
 
 
 	bool equals(const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const

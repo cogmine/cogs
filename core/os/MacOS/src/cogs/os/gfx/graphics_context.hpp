@@ -44,29 +44,24 @@ public:
 			m_cgContext([m_nsGraphicsContext CGContext])
 		{
 			[NSGraphicsContext saveGraphicsState];
-			//CGContextSaveGState(context);
 		}
 
-		state_token(__strong NSGraphicsContext* ctx)
+		state_token(NSGraphicsContext* ctx)
 			: m_nsGraphicsContext(ctx)
 		{
 			[NSGraphicsContext saveGraphicsState];
 			[NSGraphicsContext setCurrentContext : ctx];
-			//CGContextSaveGState(context);
 		}
 
 		~state_token()
 		{
 			[NSGraphicsContext restoreGraphicsState];
-			//CGContextRestoreGState(context);
 		}
 
 		NSGraphicsContext* get_NSGraphicsContext() const { return m_nsGraphicsContext; }
 		const CGContextRef& get_CGContent() const { return m_cgContext; }
 	};
 
-
-	//graphics_context() = delete;
 
 	class font : public canvas::font
 	{
@@ -81,12 +76,6 @@ public:
 			:	m_nsFont(nsFont),
 				m_isUnderlined(isUnderlined)
 		{
-			//[nsFont retain];
-		}
-
-		~font()
-		{
-			//[m_nsFont release];
 		}
 
 		NSFont* get_NSFont()
@@ -111,8 +100,6 @@ public:
 			if (m_isUnderlined)
 				[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
 			NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs];	// NSStringDrawingUsesDeviceMetrics | 
-			//[attribs release];
-			//[str release];
 			return canvas::size(r.size.width, r.size.height);
 		}
 	};
@@ -185,7 +172,6 @@ public:
 		{
 			__strong NSString* fontName = string_to_NSString(guiFont.get_font_names()[i]);
 			nsFont = [NSFont fontWithName:fontName size:fontSize];
-			//[fontName release];
 			if (!!nsFont)
 				break;
 		}

@@ -60,7 +60,6 @@ private:
 
 public:
 	bool m_initialReshapeDone;
-	function<bool()> m_closeDelegate;
 
 	window(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn),
@@ -72,7 +71,6 @@ public:
 	virtual void installing()
 	{
 		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
-		m_closeDelegate = w->get_close_delegate();
 		string title = w->get_title().composite();
 
 		m_style |= WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_OVERLAPPED;
@@ -106,11 +104,6 @@ public:
 	virtual void set_title(const composite_string& title)
 	{
 		BOOL b = SetWindowText(get_HWND(), title.composite().cstr());
-	}
-
-	virtual void focus(int direction)
-	{
-		// not a control, don't take GUI focus from a control
 	}
 
 	virtual bool is_opaque() const
@@ -451,7 +444,7 @@ public:
 			}
 			case WM_CLOSE:
 			{
-				hide();
+				request_close(*w);
 				return 0;
 			}
 			case WM_ENTERSIZEMOVE:
@@ -489,19 +482,18 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsyst
 inline rcref<gui::window> hwnd::subsystem::open_window(
 	const composite_string& title,
 	const rcref<pane>& p,
-	const rcptr<frame>& f,
-	const function<bool()>& closeDelegate) volatile
+	const rcptr<frame>& f) volatile
 {
-	rcref<gui::window> w = rcnew(gui::window, title, closeDelegate);
+	rcref<gui::window> w = rcnew(gui::window, title);
 	w->nest(p, f);
 	install(*w, rcnew(bypass_constructor_permission<hwnd::subsystem>));	// Give each window it's own subsystem instance, so it's own UI thread.
 	return w;
 }
 
-}
-}
-}
 
+}
+}
+}
 
 
 #endif

@@ -140,6 +140,7 @@ public:
 
 	explicit quit_dispatcher(const ptr<rc_obj_base>& desc)
 		: object(desc),
+		m_event(desc),
 		m_priorityDispatcher(rcnew(priority_dispatcher))
 	{
 		m_contents->m_refCount = 0;
@@ -270,7 +271,9 @@ public:
 		}
 	}
 
-	rcref<waitable> get_event()		{ return this_rcref.member_cast_to(m_event); }
+	// Called by outer main() glue to wait for all things blocking quit to complete.
+	// Really not intended to be called from anywhere else.  So, probably a bug if you are calling it.
+	const waitable& get_event() const	{ return m_event; }
 };
 
 
@@ -292,17 +295,6 @@ inline void force_quit()
 	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
 	if (!!qd)
 		qd->force();
-}
-
-
-// Called by outer main() glue to wait for all things blocking quit to complete.
-// Really not intended to be called from anywhere else.  So, probably a bug if you are calling it.
-inline rcref<waitable> get_quit_event()
-{
-	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
-	if (!!qd)
-		return qd->get_event();
-	return get_immediate_task();
 }
 
 

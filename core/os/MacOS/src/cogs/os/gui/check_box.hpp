@@ -53,12 +53,6 @@ public:
 		: nsview_pane(desc, uiSubsystem)
 	{ }
 
-	~check_box()
-	{
-		//objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
-		//objcCheckBox->m_cppCheckBox.release();
-	}
-
 	virtual bool is_checked() const
 	{
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
@@ -70,7 +64,6 @@ public:
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		__strong NSString* text2 = string_to_NSString(text);
 		[objcCheckBox setTitle:text2];
-		//[text2 release];
 	}
 	
 	virtual void set_checked(bool b)
@@ -99,7 +92,7 @@ public:
 	{
 		rcptr<gui::check_box> cb = get_bridge().template static_cast_to<gui::check_box>();
 
-		objc_check_box* objcCheckBox = [[objc_check_box alloc] init];
+		__strong objc_check_box* objcCheckBox = [[objc_check_box alloc] init];
 		[objcCheckBox setButtonType: NSButtonTypeSwitch];
 		objcCheckBox->m_cppCheckBox = this_rcptr;
 
@@ -122,10 +115,10 @@ public:
 		m_defaultSize.set(w, h);
 	}
 
-	virtual range	get_range() const					{ return range(m_defaultSize); }
-	virtual size		get_default_size() const			{ return m_defaultSize; }
+	virtual range get_range() const { return range(m_defaultSize); }
+	virtual size get_default_size() const { return m_defaultSize; }
 
-	virtual bool is_focusable() const	{ return true; }
+	virtual bool is_focusable() const { return true; }
 };
 
 
@@ -139,6 +132,16 @@ inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > nsview_sub
 }
 }
 }
+
+
+#ifdef COGS_OBJECTIVE_C_CODE
+
+
+@implementation objc_check_box
+@end
+
+
+#endif
 
 
 #endif

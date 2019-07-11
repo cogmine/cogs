@@ -11,7 +11,7 @@
 
 #include "cogs/gfx/color.hpp"
 #include "cogs/gui/pane.hpp"
-#include "cogs/bindable_property.hpp"
+#include "cogs/dependency_property.hpp"
 
 
 namespace cogs {
@@ -25,7 +25,7 @@ class background : public pane, public virtual pane_container
 private:
 	volatile color m_color;
 
-	delayed_construction<delegated_bindable_property<color> > m_colorProperty;
+	delayed_construction<delegated_dependency_property<color> > m_colorProperty;
 
 	void create_properties()
 	{
@@ -45,8 +45,8 @@ private:
 	}
 
 public:
-	background(const ptr<rc_obj_base>& desc, const color& c)
-		: pane(desc),
+	background(const ptr<rc_obj_base>& desc, const color& c, compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(desc, cb),
 		m_color(c)
 	{
 		create_properties();
@@ -63,7 +63,7 @@ public:
 		fill(get_size(), c);
 	}
 		
-	rcref<bindable_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<bindable_property<color> >(); }
+	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<dependency_property<color> >(); }
 
 	color get_color() const
 	{

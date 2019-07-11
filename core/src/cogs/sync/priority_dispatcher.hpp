@@ -65,9 +65,9 @@ private:
 		priority_dispatched* d = &(r->get());
 		i.get_value() = d;
 		placement_rcnew(d, r.get_desc(), this_rcref, t, i);
-		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
+		m_priorityQueue.insert_preallocated(i);
 		i.disown();
 	}
 

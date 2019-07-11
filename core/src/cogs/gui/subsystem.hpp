@@ -112,8 +112,7 @@ public:
 	virtual rcref<task<void> > open(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& f = 0,
-		const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
+		const rcptr<frame>& f = 0) volatile = 0;
 
 	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile	{ return rcptr<canvas3D_pane_interface>(); }	// 3D unsupported by default
 };
@@ -143,20 +142,17 @@ public:
 	virtual rcref<task<void> > open(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& f = 0,
-		const function<bool()>& closeDelegate = []() { return true; }) volatile;
+		const rcptr<frame>& f = 0) volatile;
 
 	virtual rcref<gui::window> open_window(
 		const composite_string& title,
 		const rcref<pane>& p,
-		const rcptr<frame>& f = 0,
-		const function<bool()>& closeDelegate = []() { return true; }) volatile;
+		const rcptr<frame>& f = 0) volatile;
 
 	//virtual rcref<task<void> > open_full_screen(
 	//	const composite_string& title,
 	//	const rcref<pane>& p,
-	//	const rcptr<frame>& f = 0,
-	//	const function<bool()>& closeDelegate = []() { return true; }) volatile = 0;
+	//	const rcptr<frame>& f = 0) volatile = 0;
 };
 
 

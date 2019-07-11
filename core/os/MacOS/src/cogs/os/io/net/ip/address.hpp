@@ -150,7 +150,7 @@ protected:
 	}
 
 public:
-	class lookup_result : public signallable_task<lookup_result>
+	class lookup_result : public signallable_task_base<lookup_result>
 	{
 	private:
 		composite_string	m_inputString;
@@ -161,7 +161,7 @@ public:
 		friend class address;
 
 		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s)
-			: signallable_task<lookup_result>(desc),
+			: signallable_task_base<lookup_result>(desc),
 			m_inputString(s)
 		{
 			rcref<thread_pool> pool = get_dns_thread_pool();
@@ -200,7 +200,7 @@ public:
 		virtual rcref<task<bool> > cancel() volatile
 		{
 			m_poolTask->cancel();
-			return signallable_task<lookup_result>::cancel();
+			return signallable_task_base<lookup_result>::cancel();
 		}
 	};
 	friend class lookup_result;

@@ -15,45 +15,33 @@
 namespace cogs {
 
 
-class single_fire_event : public event_base
+// A single_fire_event is similar to a signallable_task, but doesn't provide cancel()
+
+
+class single_fire_event : public event_base, public object
 {
 private:
-	class single_fire_signallable_task : public signallable_task<void>, public task_arg_base<void>
-	{
-	public:
-		explicit single_fire_signallable_task(const ptr<rc_obj_base>& desc)
-			: signallable_task<void>(desc)
-		{ }
-
-		virtual rcref<task<void> > get_task() { return this_rcref; }
-
-		virtual rcptr<volatile dispatched> get_dispatched() const volatile { return task_arg_base<void>::get_dispatched(); }
-
-		virtual bool signal() volatile { return signallable_task<void>::signal(); }
-
-		virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
-	};
-
-	rcref<single_fire_signallable_task> m_singleFireSignallableTask;
+	signallable_task<void> m_signallableTask;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		return dispatcher::dispatch_inner(*m_singleFireSignallableTask, t, priority);
+		return dispatcher::dispatch_inner(m_signallableTask, t, priority);
 	}
 
 public:
-	single_fire_event()
-		: m_singleFireSignallableTask(rcnew(single_fire_signallable_task))
+	single_fire_event(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_signallableTask(desc)
 	{ }
 
 	virtual bool signal() volatile
 	{
-		return m_singleFireSignallableTask->signal();
+		return m_signallableTask.signal();
 	}
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile
 	{
-		return m_singleFireSignallableTask->timed_wait(timeout, spinCount);
+		return m_signallableTask.timed_wait(timeout, spinCount);
 	}
 };
 

@@ -62,20 +62,14 @@ public:
 	__strong objc_window* m_nsWindow;
 	bounds m_preSizingBounds;
 	bool m_initialReshapeDone;
+	nsview_subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
 
-	window(const ptr<rc_obj_base>& desc,  const rcref<volatile nsview_subsystem>& uiSubsystem)
+	window(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem),
 
 		m_initialReshapeDone(false)
 	{
 	}
-
-	//~window()
-	//{
-	//	((objc_window*)m_nsWindow)->m_cppWindow.release();
-	//	((objc_view*)m_nsView)->m_cppView.release();
-	//	//[m_nsWindow release];
-	//}
 
 	virtual void installing()
 	{
@@ -83,20 +77,12 @@ public:
 		style |= NSWindowStyleMaskMiniaturizable;
 		style |= NSWindowStyleMaskResizable;
 
-		objc_view* nsView = [[objc_view alloc] init];
+		__strong objc_view* nsView = [[objc_view alloc] init];
 		nsView->m_cppView = this_rcptr;
 
 		[nsView setAutoresizesSubviews:NO];
 		[nsView setPostsFrameChangedNotifications:YES];
-		
-	//	NSRect screenRect = [[NSScreen mainScreen] frame];
-	//	NSApplication* app = [NSApplication sharedApplication];
-	//	NSMenu* mainMenu = [app mainMenu];
-	//	CGFloat menuBarHeight = [mainMenu menuBarHeight];
-	//	screenRect.size.height -= menuBarHeight;
-	//
-	//	NSRect windowBounds = NSMakeRect(0, screenRect.size.height - get_size().get_height().get_internal().get_int(), get_size().get_width().get_internal().get_int(), get_size().get_height().get_internal().get_int());
-		
+
 		NSRect windowBounds;		// TMP - use some temp bounds, we will resize it before showing it.
 		windowBounds.origin.x = 50;
 		windowBounds.origin.y = 50;
@@ -120,8 +106,6 @@ public:
 
 		install_NSView(nsView);
 		nsview_pane::installing();
-
-//		[m_nsWindow makeKeyAndOrderFront: nil];
 	}
 
 	void character_type(wchar_t c)
@@ -138,6 +122,12 @@ public:
 			pane_orchestrator::key_release(*w, c);
 	}
 
+	void focus(int direction = 0)
+	{
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		if (!!w)
+			pane_orchestrator::focus(*w, direction);
+	}
 
 
 	using nsview_pane::hide;
@@ -149,10 +139,18 @@ public:
 		if (!!m_nsWindow)
 			[m_nsWindow orderOut:nil];
 		nsview_pane::hiding();
+		rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
+		uiSubsystem->remove_visible_window(m_visibleRemoveToken);
 	}
 
 	virtual void showing()
 	{
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		if (!!w)
+		{
+			rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
+			m_visibleRemoveToken = uiSubsystem->add_visible_window(w.dereference());
+		}
 		nsview_pane::showing();
 		if (!!m_nsWindow)
 			[m_nsWindow makeKeyAndOrderFront:nil];
@@ -162,11 +160,6 @@ public:
 	{
 		__strong NSString* str = string_to_NSString(title);
 		[m_nsWindow setTitle: str] ;
-	}
-
-	virtual void focus(int direction)
-	{
-		// not a control, don't take GUI focus from a control
 	}
 
 	virtual bool is_opaque() const
@@ -217,12 +210,12 @@ public:
 		return r.size;
 	}
 
-	virtual void reshaping(const bounds& b, const point& oldOrigin = point(0, 0))
+	void reshaping()
 	{
 		if (!m_isResizing)
 		{
-			NSRect r = [self frame];
-			NSRect r2 = [NSWindow contentRectForFrameRect: r styleMask: [self styleMask] ];
+			NSRect r = [m_nsWindow frame];
+			NSRect r2 = [NSWindow contentRectForFrameRect: r styleMask: [m_nsWindow styleMask] ];
 
 			bounds newBounds;
 			newBounds.get_position().get_x() = r2.origin.x;
@@ -256,112 +249,6 @@ public:
 };
 
 
-//class nsview_subsystem::window_bridge : public pane_bridge<window>
-//{
-//private:
-//	typedef pane_bridge<window> base_t;
-//
-//public:
-//	nsview_subsystem::visible_windows_list_t::volatile_remove_token	m_visibleRemoveToken;
-//	bool									m_isVisibleRootWindow;
-//	composite_string						m_title;
-//	int										m_style;
-//	function<void()>						m_closeDelegate;
-//
-//	window_bridge(const composite_string& title, int style, const function<void()>& closeDelegate = function<void()>())
-//		:	m_title(title),
-//			m_isVisibleRootWindow(false),
-//			m_style(style),
-//			m_closeDelegate(closeDelegate)
-//	{ }
-//	
-//	~window_bridge()
-//	{
-//		m_closeDelegate();
-//	}
-//
-//	//virtual size propose_lengths(dimension d, const size& proposedSize) const
-//	//{
-//	//	return base_t::propose_lengths(d, proposedSize);
-//	//}
-//
-//	//virtual double propose_length(planar::dimension d, double proposed, range::linear_t& rtnOtherRange) const
-//	//{
-//	//	return base_t::propose_length(d, proposed, rtnOtherRange);
-//	//}
-//
-//	//virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-//	//{
-//	//	base_t::reshape(b, oldOrigin);
-//	//}
-//
-//	virtual void installing()
-//	{
-//		rcref<window> w = rcnew(window, m_title, m_style, get_subsystem().dereference().template static_cast_to<volatile nsview_subsystem>());
-//		base_t::install_bridged(w);
-//	}
-//
-//	virtual void hiding()
-//	{
-//		base_t::hiding();
-//		if (m_isVisibleRootWindow)
-//		{
-//			rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
-//			uiSubsystem->remove_visible_window(m_visibleRemoveToken);
-//			m_isVisibleRootWindow = false;
-//		}
-//	}
-//
-//	virtual void showing()
-//	{
-//		rcptr<volatile nsview_subsystem> uiSubsystem = get_subsystem().template static_cast_to<volatile nsview_subsystem>();
-//		m_visibleRemoveToken = uiSubsystem->add_visible_window(this_rcref);
-//		m_isVisibleRootWindow = true;
-//		base_t::showing();
-//	}
-//};
-
-
-
-
-//void nsview_pane_base::installing(const rcref<pane>& owner, NSView* v)
-//{
-//	m_nsView = v;
-//
-//	m_owner = owner;
-//	rcptr<pane> p = owner->get_parent();
-//	while (!!p)
-//	{
-//		rcptr<pane_bridge> parentBridge = p.template dynamic_cast_to<pane_bridge>();
-//		if (!!parentBridge)
-//		{
-//			m_parentView = parentBridge->get_bridged().template dynamic_cast_to<nsview_pane_base>();
-//			if (!!m_parentView)
-//			{
-//				m_parentWindow = m_parentView->m_parentWindow;
-//				if (!m_parentWindow)
-//					m_parentWindow = m_parentView.template static_cast_to<window>();
-//				break;
-//			}
-//		}
-//		p = p->get_parent();
-//	}
-//
-//	[m_nsView setAutoresizesSubviews:NO];
-//	[m_nsView setPostsFrameChangedNotifications:YES];
-//
-//	[m_nsView setHidden:YES];
-//
-//	if (!!m_parentView)
-//	{
-//		NSView* parentView = m_parentView->m_nsView;
-//		[parentView addSubview: m_nsView];
-//	}
-//
-//	//owner->set_externally_drawn();
-//}
-
-
 inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsystem::create_window() volatile
 {
 	rcref<window> w = rcnew(window, this_rcref);
@@ -369,24 +256,12 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 }
 
 
-//inline rcref<gui::window> nsview_subsystem::open_window(
-//	const composite_string& title,
-//	const rcref<pane>& p,
-//	const rcptr<frame>& f,
-//	const function<bool()>& closeDelegate) volatile
-//{
-//	rcref<gui::window> w = rcnew(gui::window, title, closeDelegate);
-//	w->nest(p, f);
-//	install(*w, this_rcref);
-//	return w;
-//}
-//
-
 }
 }
 }
 
 
+#ifdef COGS_OBJECTIVE_C_CODE
 
 
 /// @internal
@@ -444,7 +319,8 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 {
 	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
-		return cppWindow->reshaping(newSize);
+		return cppWindow->proposing_size(newSize);
+	return newSize;
 }
 
 
@@ -455,16 +331,34 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 		return cppWindow->reshaping();
 }
 
+-(BOOL)windowShouldClose:(id)sender
+{
+	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	if (!!cppWindow)
+	{
+		cogs::rcptr<cogs::gui::window> w = cppWindow->get_bridge().template static_cast_to<cogs::gui::window>();
+		if (!!w && !cppWindow->request_close(*w))
+			return NO;
+	}
+	return YES;
+}
+
 -(void)windowWillClose:(NSNotification *)notification;
 {
 	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 	{
-
+		cogs::rcptr<cogs::gui::window> w = cppWindow->get_bridge().template static_cast_to<cogs::gui::window>();
+		if (!!w)
+			cppWindow->close(*w);
 	}
 }
 
+
 @end
+
+
+#endif
 
 
 #endif

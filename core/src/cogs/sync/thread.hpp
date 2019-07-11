@@ -60,6 +60,7 @@ private:
 protected:
 	explicit thread(const ptr<rc_obj_base>& desc, const function<void()>& task)
 		: object(desc),
+		m_joinSync(desc),
 		m_deregisteredWaiter(false)
 	{
 		m_osThread = os::thread::create(task);

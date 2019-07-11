@@ -554,7 +554,7 @@ public:
 		i.get_payload().construct();
 		return storage.dereference();
 	}
-	
+
 	template <typename T>
 	const rcref<T>& preallocate_with_aux(const key_t& k, const value_t& v, preallocated_t& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{

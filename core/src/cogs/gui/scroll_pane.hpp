@@ -38,8 +38,8 @@ private:
 		rcptr<scroll_bar> m_scrollBar;
 		volatile transactable<scroll_bar_state>	m_scrollBarState;
 		volatile double m_scrollBarPosition;
-		delayed_construction<delegated_bindable_property<scroll_bar_state, io::read_only> > m_scrollBarStateProperty;
-		delayed_construction<delegated_bindable_property<double> > m_scrollBarPositionProperty;
+		delayed_construction<delegated_dependency_property<scroll_bar_state, io::read_only> > m_scrollBarStateProperty;
+		delayed_construction<delegated_dependency_property<double> > m_scrollBarPositionProperty;
 
 		scroll_bar_info()
 			: m_scrollBarPosition(0)
@@ -193,7 +193,7 @@ public:
 
 		m_contentPane = container_pane::create();
 
-		// TODO: May need to address what happens with a native control is offscreen when drawn, when backing buffer is unavailable
+		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
 		m_clippingPane = native_container_pane::create();
 		m_cornerPane = container_pane::create();

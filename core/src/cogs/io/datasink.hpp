@@ -284,7 +284,7 @@ public:
 
 	/// @brief Gets the close event associated with the datasink.
 	/// @return A rcref to a waitable that will become signaled when the datasink is closed.
-	rcref<waitable> get_sink_close_event() const	{ return m_ioQueue->get_close_event(); }
+	const waitable& get_sink_close_event() const	{ return m_ioQueue->get_close_event(); }
 
 	bool is_sink_closed() const
 	{

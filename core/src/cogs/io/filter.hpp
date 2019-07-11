@@ -635,7 +635,7 @@ private:
 				m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 				m_closeSourceOnSinkClose(closeSourceOnSinkClose)
 		{
-			m_onSinkAbortTask = m_sink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
+			m_onSinkAbortTask = m_sink->get_sink_close_event().dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<coupler> r2 = r;
 				if (!!r2)

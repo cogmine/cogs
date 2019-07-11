@@ -5270,17 +5270,38 @@ public:
 	const type& operator[](const position_t& pos) const			{ return get_inner(pos.get_outer_index())[pos.get_inner_index()]; }
 
 
-	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const
+	this_t subrange(size_t i) const
+	{
+		this_t result(*this);
+		result.set_to_subrange(i);
+		return result;
+	}
+
+	this_t subrange(size_t i, size_t n) const
 	{
 		this_t result(*this);
 		result.set_to_subrange(i, n);
 		return result;
 	}
 
-	this_t subrange(size_t i, size_t n = const_max_int_v<size_t>) const volatile
+	this_t subrange(size_t i) const volatile
+	{
+		this_t result(*this);
+		result.set_to_subrange(i);
+		return result;
+	}
+
+	this_t subrange(size_t i, size_t n) const volatile
 	{
 		this_t result(*this);
 		result.set_to_subrange(i, n);
+		return result;
+	}
+
+	this_t subrange(const position_t& start) const
+	{
+		this_t result(*this);
+		result.set_to_subrange(start);
 		return result;
 	}
 
@@ -5291,6 +5312,13 @@ public:
 		return result;
 	}
 
+	this_t subrange(const position_t& start) const volatile
+	{
+		this_t result(*this);
+		result.set_to_subrange(start);
+		return result;
+	}
+
 	this_t subrange(const position_t& start, size_t n) const volatile
 	{
 		this_t result(*this);
@@ -5298,14 +5326,14 @@ public:
 		return result;
 	}
 
-	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int_v<size_t>, const_max_int_v<size_t>)) const
+	this_t subrange(const position_t& start, const position_t& end) const
 	{
 		this_t result(*this);
 		result.set_to_subrange(start, end);
 		return result;
 	}
 
-	this_t subrange(const position_t& start, const position_t& end = position_t(const_max_int_v<size_t>, const_max_int_v<size_t>)) const volatile
+	this_t subrange(const position_t& start, const position_t& end) const volatile
 	{
 		this_t result(*this);
 		result.set_to_subrange(start, end);

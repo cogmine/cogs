@@ -386,7 +386,7 @@ public:
 		abort();
 	}
 
-	class connecter : public signallable_task<connecter>
+	class connecter : public signallable_task_base<connecter>
 	{
 	protected:
 		rcref<network>						m_network;
@@ -400,7 +400,7 @@ public:
 		friend class tcp;
 
 		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
-			: signallable_task<connecter>(desc),
+			: signallable_task_base<connecter>(desc),
 			m_overlapped(0),
 			m_addresses(addresses),
 			m_network(n),
@@ -513,7 +513,7 @@ public:
 		// TODO: cancel does not yet abort the connection operation, just prevent it from completing successfully
 		virtual rcref<task<bool> > cancel() volatile
 		{
-			return signallable_task<connecter>::cancel();
+			return signallable_task_base<connecter>::cancel();
 		}
 	};
 
@@ -621,10 +621,6 @@ public:
 				}
 			}
 
-			~accept_helper()	
-			{
-			}
-
 			void close()
 			{
 				m_listenSocket.release();
@@ -694,12 +690,11 @@ public:
 					break;
 				}
 			}
-
 		};
 
-		unsigned short				m_port;
-		rcptr<accept_helper>		m_acceptHelper;
-		rcref<single_fire_event>	m_closeEvent;
+		unsigned short			m_port;
+		rcptr<accept_helper>	m_acceptHelper;
+		single_fire_event		m_closeEvent;
 				
 		listener() = delete;
 		listener(listener&&) = delete;
@@ -712,8 +707,8 @@ public:
 
 		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
 			: object(desc),
-			m_port(port),
-			m_closeEvent(rcnew(single_fire_event))
+			m_closeEvent(desc),
+			m_port(port)
 		{
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
 		}
@@ -724,7 +719,7 @@ public:
 			{
 				m_acceptHelper->close();
 				m_acceptHelper = 0;
-				m_closeEvent->signal();
+				m_closeEvent.signal();
 			}
 		}
 
@@ -732,7 +727,7 @@ public:
 
 		~listener()									{ close(); }
 
-		rcref<waitable> get_close_event() const		{ return m_closeEvent; }
+		const waitable& get_close_event() const		{ return m_closeEvent; }
 	};
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)

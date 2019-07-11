@@ -12,6 +12,7 @@
 #include "cogs/io/datastream.hpp"
 #include "cogs/io/net/connection.hpp"
 #include "cogs/os/io/net/ip/socket.hpp"
+#include "cogs/sync/single_fire_event.hpp"
 #include "cogs/sync/thread_pool.hpp"
 
 
@@ -293,7 +294,7 @@ public:
 		abort();
 	}
 
-	class connecter : public signallable_task<connecter>
+	class connecter : public signallable_task_base<connecter>
 	{
 	protected:
 		rcref<os::io::kqueue_pool>			m_kqueuePool;
@@ -316,7 +317,7 @@ public:
 		friend class tcp;
 
 		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-			: signallable_task<connecter>(desc),
+			: signallable_task_base<connecter>(desc),
 			m_kqueuePool(kq),
 			m_addresses(addresses),
 			m_remotePort(port),
@@ -441,7 +442,7 @@ public:
 
 		virtual rcref<task<bool> > cancel() volatile
 		{
-			auto t = signallable_task<connecter>::cancel();	// will complete immediately
+			auto t = signallable_task_base<connecter>::cancel();	// will complete immediately
 			if (t->get())
 				((connecter*)this)->complete_or_abort(abort_task);
 			return t;
@@ -585,9 +586,9 @@ public:
 
 		};
 
-		unsigned short				m_port;
-		rcptr<accept_helper>		m_acceptHelper;
-		rcref<single_fire_event>	m_closeEvent;
+		unsigned short			m_port;
+		rcptr<accept_helper>	m_acceptHelper;
+		single_fire_event		m_closeEvent;
 				
 		listener() = delete;
 		listener(listener&&) = delete;
@@ -599,9 +600,9 @@ public:
 		friend class tcp;
 
 		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-			:	m_port(port),
-			object(desc),
-			m_closeEvent(rcnew(single_fire_event))
+			: object(desc),
+			m_closeEvent(desc),
+			m_port(port)
 		{
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, kq);
 		}
@@ -612,15 +613,14 @@ public:
 			{
 				m_acceptHelper->close();
 				m_acceptHelper = 0;
-				m_closeEvent->signal();
+				m_closeEvent.signal();
 			}
 		}
 
 	public:
-
 		~listener()									{ close(); }
 
-		rcref<waitable> get_close_event() const		{ return m_closeEvent; }
+		const waitable& get_close_event() const		{ return m_closeEvent; }
 	};
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
@@ -648,5 +648,3 @@ public:
 
 
 #endif
-
-

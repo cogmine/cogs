@@ -57,7 +57,9 @@ inline int main(F&& main_func)
 #error COGS_DEFAULT_GUI_SUBSYSTEM must be defined.  Currently supported values are: GDI
 #endif
 	int result = main_func(guiSubsystem);
-	cogs::get_quit_event()->wait();
+	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
+	if (!!qd)
+		qd->get_event().wait();
 	return result;
 }
 

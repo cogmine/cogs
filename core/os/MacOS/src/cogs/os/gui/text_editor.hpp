@@ -39,7 +39,6 @@ class text_editor;
 -(BOOL)becomeFirstResponder;
 
 @end
-//-(BOOL)control: (NSControl *)control textView:(NSTextView *)textView doCommandBySelector: (SEL)commandSelector;
 
 
 
@@ -52,9 +51,6 @@ namespace os {
 class text_editor : public nsview_pane, public text_editor_interface
 {
 private:
-	//color m_defaultTextColor;
-	//color m_currentTextColor;
-
 	rcptr<gfx::os::graphics_context::font>	m_cachedFont;
 
 public:
@@ -62,93 +58,38 @@ public:
 		: nsview_pane(desc, uiSubsystem)
 	{ }
 
-	//~text_editor()
-	//{
-		//objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-		//objcTextEditor->m_cppTextEditor.release();
-	//}
-
 	virtual void installing()
 	{
 		rcptr<gui::text_editor> te = get_bridge().template static_cast_to<gui::text_editor>();
 
-		objc_text_editor* objcTextEditor = [[objc_text_editor alloc] init];
+		__strong objc_text_editor* objcTextEditor = [[objc_text_editor alloc] init];
 		objcTextEditor->m_cppTextEditor = this_rcptr;
 		[objcTextEditor setDelegate:objcTextEditor];
 		[objcTextEditor setEditable:YES];
 		[objcTextEditor setSelectable:YES];
 		[objcTextEditor setBezeled:NO];
 
-		//__strong NSColor* nsColor = [objcTextEditor textColor];
-		//nsColor = [nsColor colorUsingColorSpace:NSCalibratedRGBColorSpace];
-		//m_defaultTextColor = gfx::os::graphics_context::from_NSColor(nsColor);
-
-		//if (!te->is_multi_line())
-		//	;	// ??
-
 		install_NSView(objcTextEditor);
-
-		//////set_font(te->get_font());
-		//////set_text(te->get_text());
-		//////set_max_length(te->get_max_length());
-
-		//bool overrideColor;
-		//color c = te->get_background_color(overrideColor);
-		//if (!!overrideColor)
-		//	set_background_color(c);
-		//else
-		//	set_background_color(color::white);
 
 		color c = te->get_text_color();
 		__strong NSColor* c2 = make_NSColor(c);
 		[objcTextEditor setTextColor: c2];
 
-		//if (!!overrideColor)
-		//	m_currentTextColor = c;
-		//else
-		//	m_currentTextColor = m_defaultTextColor;	// NSSystemColorsDidChangeNotification ?
-
 		nsview_pane::installing();
 	}
-
-	//virtual void set_background_color(const color& c)
-	//{
-	//	objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-	//	nsview_pane::set_background_color(c);
-	//	if (c.is_fully_transparent())
-	//		[objcTextEditor setDrawsBackground:NO];
-	//	else
-	//	{
-	//		__strong NSColor* backColor = cogs::gfx::os::graphics_context::make_NSColor(c);
-	//		[objcTextEditor setDrawsBackground:YES];
-	//		[objcTextEditor setBackgroundColor:backColor];
-	//	}
-	//}
 
 	virtual void set_text_color(const color& c)
 	{
 		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-		//m_currentTextColor = c;
 		__strong NSColor* c2 = cogs::gfx::os::graphics_context::make_NSColor(c);
 		[objcTextEditor setTextColor:c2];
 	}
-
-	//virtual void clear_background_color()
-	//{
-	//	nsview_pane::set_background_color(color::transparent);
-	//}
-
-	//virtual void clear_text_color()
-	//{
-	//	m_currentTextColor = m_defaultTextColor;
-	//}
 
 	virtual void set_text(const composite_string& text)
 	{
 		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
 		__strong NSString* text2 = string_to_NSString(text);
 		[objcTextEditor setStringValue:text2];
-		//[text2 release];
 	}
 
 	virtual void set_max_length(size_t numChars)
@@ -158,8 +99,7 @@ public:
 	virtual composite_string get_text() const
 	{
 		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-		NSString* str = [objcTextEditor stringValue];
-		return NSString_to_string(str);
+		return NSString_to_string([objcTextEditor stringValue]);
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
@@ -175,12 +115,12 @@ public:
 
 	virtual bool is_focusable() const	{ return true; }
 
-//	virtual void focusing()
-//	{
-//		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-//		if (!!objcTextEditor)
-//			[[objcTextEditor window] makeFirstResponder: objcTextEditor];
-//	}
+	void focus(int direction = 0)
+	{
+		rcptr<gui::text_editor> te = get_bridge().template static_cast_to<gui::text_editor>();
+		if (!!te)
+			pane_orchestrator::focus(*te, direction);
+	}
 };
 
 
@@ -194,6 +134,31 @@ inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > nsview_s
 }
 }
 }
+
+
+#ifdef COGS_OBJECTIVE_C_CODE
+
+
+@implementation objc_text_editor
+
+
+-(BOOL)acceptsFirstResponder
+{
+	return YES;
+}
+
+-(BOOL)becomeFirstResponder
+{
+	cogs::rcptr<cogs::gui::os::text_editor> cppTextEditor = m_cppTextEditor;
+	if (!!cppTextEditor)
+		cppTextEditor->focus();
+	return [super becomeFirstResponder];
+}
+
+@end
+
+
+#endif
 
 
 #endif

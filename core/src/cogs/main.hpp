@@ -37,12 +37,12 @@ private:
 	{
 		volatile count_and_result_t& countAndResult = s_countAndResult;
 		count_and_result_t oldValue = atomic::load(countAndResult);
-		while (oldValue.m_count > 2)
+		while (oldValue.m_count > 0)
 		{
 			count_and_result_t newValue;
 			newValue.m_count = oldValue.m_count + 1;
 			newValue.m_lastResult = oldValue.m_lastResult;
-			if (atomic::compare_exchange(countAndResult, newValue, oldValue))
+			if (atomic::compare_exchange(countAndResult, newValue, oldValue, oldValue))
 				return oldValue.m_lastResult;
 		}
 		volatile ptr<std::mutex>& mtx = s_mutex.get();
@@ -58,12 +58,17 @@ private:
 		}
 		std::lock_guard<std::mutex> l(*oldMtx);
 		oldValue = atomic::load(countAndResult);
-		if (oldValue.m_count == 0)
+		while (oldValue.m_count > 0)
 		{
-			oldValue.m_count = 1;
-			oldValue.m_lastResult = env::initialize();
-			atomic::store(countAndResult, oldValue);
+			count_and_result_t newValue;
+			newValue.m_count = oldValue.m_count + 1;
+			newValue.m_lastResult = oldValue.m_lastResult;
+			if (atomic::compare_exchange(countAndResult, newValue, oldValue, oldValue))
+				return oldValue.m_lastResult;
 		}
+		oldValue.m_count = 1;
+		oldValue.m_lastResult = env::initialize();
+		atomic::store(countAndResult, oldValue);
 		return oldValue.m_lastResult;
 	}
 
@@ -71,12 +76,12 @@ private:
 	{
 		volatile count_and_result_t& countAndResult = s_countAndResult;
 		count_and_result_t oldValue = atomic::load(countAndResult);
-		while (oldValue.m_count > 2)
+		while (oldValue.m_count > 0)
 		{
 			count_and_result_t newValue;
 			newValue.m_count = oldValue.m_count - 1;
 			newValue.m_lastResult = oldValue.m_lastResult;
-			if (atomic::compare_exchange(countAndResult, newValue, oldValue))
+			if (atomic::compare_exchange(countAndResult, newValue, oldValue, oldValue))
 				return;
 		}
 		COGS_ASSERT(oldValue.m_count == 1);
@@ -85,14 +90,23 @@ private:
 		COGS_ASSERT(!!oldMtx);
 		std::lock_guard<std::mutex> l(*oldMtx);
 		oldValue = atomic::load(countAndResult);
-		COGS_ASSERT(oldValue.m_count > 0);
-		if (oldValue.m_count == 1)
+		for (;;)
 		{
-			force_quit();
-			env::terminate();
-			thread_pool::shutdown_default();
-			default_allocator::shutdown();
-			cogs::assign(countAndResult.m_count, 0);
+			COGS_ASSERT(oldValue.m_count > 0);
+			count_and_result_t newValue;
+			newValue.m_count = oldValue.m_count - 1;
+			newValue.m_lastResult = oldValue.m_lastResult;
+			if (atomic::compare_exchange(countAndResult, newValue, oldValue, oldValue))
+			{
+				if (oldValue.m_count == 1)
+				{
+					force_quit();
+					env::terminate();
+					thread_pool::shutdown_default();
+					default_allocator::shutdown();
+				}
+				break;
+			}
 		}
 	}
 

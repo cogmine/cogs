@@ -429,7 +429,7 @@ public:
 
 	/// @brief Gets the close event associated with the datasource.
 	/// @return A rcref to a waitable that will become signaled when the datasource is closed.
-	rcref<waitable> get_source_close_event() const	{ return m_ioQueue->get_close_event(); }
+	const waitable& get_source_close_event() const	{ return m_ioQueue->get_close_event(); }
 
 	bool is_source_closed() const
 	{
@@ -849,7 +849,7 @@ public:
 };
 
 
-class datasource::default_coupler : public signallable_task<void>
+class datasource::default_coupler : public signallable_task_base<void>
 {
 private:
 	friend class datasource;
@@ -1099,7 +1099,7 @@ private:
 public:
 	virtual rcref<task<bool> > cancel() volatile
 	{
-		auto t = signallable_task<void>::cancel();
+		auto t = signallable_task_base<void>::cancel();
 		if (t->get())
 			((default_coupler*)this)->decouple(); // we manage thread safety, so cast away volatility
 		return t;
@@ -1114,7 +1114,7 @@ protected:
 		bool closeSourceOnSinkClose = false,
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
-		: signallable_task<void>(desc),
+		: signallable_task_base<void>(desc),
 		m_reading(false),
 		m_writing(false),
 		m_readClosed(false),
@@ -1142,11 +1142,11 @@ protected:
 		});
 
 		// Since we have transactions, so the source or sink will not close under us, only abort.
-		m_onSourceAbortTask = m_coupledRead->get_source_close_event()->dispatch([this]()
+		m_onSourceAbortTask = m_coupledRead->get_source_close_event().dispatch([this]()
 		{
 			process(&default_coupler::process_source_aborted);
 		});
-		m_onSinkAbortTask = m_coupledWrite->get_sink_close_event()->dispatch([this]()
+		m_onSinkAbortTask = m_coupledWrite->get_sink_close_event().dispatch([this]()
 		{
 			process(&default_coupler::process_sink_aborted);
 		});

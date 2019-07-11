@@ -883,8 +883,7 @@ public:
 		virtual rcref<gui::window> open_window(
 			const composite_string& title,
 			const rcref<pane>& p,
-			const rcptr<frame>& f = 0,
-			const function<bool()>& closeDelegate = []() { return true; }) volatile;
+			const rcptr<frame>& f = 0) volatile;
 	};
 
 private:
@@ -1767,7 +1766,7 @@ public:
 			case WM_SETFOCUS:
 				{
 					m_focusing = true;
-					owner->focus();
+					pane_orchestrator::focus(*owner);
 					m_focusing = false;
 				}
 				break;

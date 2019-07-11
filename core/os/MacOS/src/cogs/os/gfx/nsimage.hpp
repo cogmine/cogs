@@ -72,9 +72,6 @@ public:
 			imageName = name2;
 		
 		m_image = [[NSImage alloc] initWithContentsOfFile:imageName];
-		//[m_image setTemplate:YES];
-		
-		//[n release];
 
 		// If any representations have an alpha channel?
 		__strong NSArray<NSImageRep*>* reps = [m_image representations];
@@ -109,11 +106,6 @@ public:
 			m_isOpaque = fillColor->is_opaque();
 		}
 	}
-
-	//~nsimage()
-	//{
-	//	//[m_image release];
-	//}
 
 	NSImage* get_NSImage() const { return m_image; }
 
@@ -277,7 +269,7 @@ public:
 				}
 				NSSize nsSize = graphics_context::make_NSSize(newActualSize);
 				NSRect nsRect = make_NSRect(newActualSize);
-				NSImage* newImage = [[NSImage alloc] initWithSize: nsSize];
+				__strong NSImage* newImage = [[NSImage alloc] initWithSize: nsSize];
 				lock_scope token(newImage);
 				[m_image drawInRect: nsRect
 					fromRect: nsRect

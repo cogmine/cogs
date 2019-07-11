@@ -1017,7 +1017,7 @@ private:
 		{
 			net::request_response_server::request::start();
 			m_coupler = couple(get_datasource(), m_sink, true);
-			m_sink->get_sink_close_event()->dispatch([r{ this_weak_rcptr }]()
+			m_sink->get_sink_close_event().dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<request> r2 = r;
 				if (!!r2)

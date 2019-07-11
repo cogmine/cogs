@@ -286,7 +286,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& src, const can
 }
 
 
-void graphics_context::mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted)
+inline void graphics_context::mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted)
 {
 	const nsbitmap* msk2 = static_cast<const nsbitmap*>(&msk);
 	CGRect mskRect = graphics_context::make_CGRect(mskBounds);
@@ -314,7 +314,7 @@ void graphics_context::mask_out(const canvas::bitmask& msk, const canvas::bounds
 	CGImageRelease(adjustedMask);
 }
 
-void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha, bool inverted)
+inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha, bool inverted)
 {
 	const nsimage* src2 = static_cast<const nsimage*>(&src);
 	const nsbitmap* msk2 = static_cast<const nsbitmap*>(&msk);

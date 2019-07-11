@@ -250,10 +250,11 @@
 
 
 #include "cogs/assert.hpp"
-#include "cogs/bindable_property.hpp"
 #include "cogs/compatible.hpp"
 #include "cogs/debug.hpp"
+#include "cogs/dependency_property.hpp"
 #include "cogs/function.hpp"
+#include "cogs/function_list.hpp"
 #include "cogs/load.hpp"
 #include "cogs/macro_concat.hpp"
 #include "cogs/macro_stringify.hpp"

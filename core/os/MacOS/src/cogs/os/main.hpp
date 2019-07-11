@@ -28,10 +28,7 @@ inline void terminate() { }
 template <typename F>
 inline int main(F&& main_func)
 {
-	cogs::rcref<cogs::gui::windowing::subsystem> guiSubsystem = cogs::gui::os::nsview_subsystem::get();
-	int result = main_func(guiSubsystem);
-	cogs::get_quit_event()->wait();
-	return result;
+	return main_func(cogs::gui::os::nsview_subsystem::get());
 }
 
 

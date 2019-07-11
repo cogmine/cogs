@@ -12,7 +12,7 @@
 //#include "cogs/env.hpp"
 //#include "cogs/collections/simple_vector.hpp"
 //#include "cogs/collections/string.hpp"
-//#include "cogs/bindable_property.hpp"
+//#include "cogs/dependency_property.hpp"
 //#include "cogs/gui/pane.hpp"
 //#include "cogs/io/buffer.hpp"
 //#include "cogs/io/composite_buffer.hpp"
@@ -37,8 +37,8 @@
 //	volatile transactable<scroll_bar_state>	m_vScrollBarState;
 //	alignas (atomic::get_alignment_v<double>) volatile double	m_vScrollBarPosition;
 //
-//	delayed_construction<delegated_bindable_property<scroll_bar_state, io::read_only> >	m_vScrollBarStateProperty;
-//	delayed_construction<delegated_bindable_property<double> >	m_vScrollBarPositionProperty;
+//	delayed_construction<delegated_dependency_property<scroll_bar_state, io::read_only> >	m_vScrollBarStateProperty;
+//	delayed_construction<delegated_dependency_property<double> >	m_vScrollBarPositionProperty;
 //
 //	// "Screen" refers to the (bottom) terminal emulation portion of the buffer
 //	// "View" refers to the currently visible portion, which may have been scrolled up to
@@ -1818,11 +1818,11 @@
 //		return rcnew(bypass_constructor_permission<ansiterm>, fontSize, bufHeight, bufWidth, whiteBackground);
 //	}
 //
-//	virtual rcref<bindable_property<scroll_bar_state, io::read_only> > get_state_property()
-//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<bindable_property<scroll_bar_state, io::read_only>>(); }
+//	virtual rcref<dependency_property<scroll_bar_state, io::read_only> > get_state_property()
+//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state, io::read_only>>(); }
 //
-//	virtual rcref<bindable_property<double> > get_position_property()
-//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).template static_cast_to<bindable_property<double>>(); }
+//	virtual rcref<dependency_property<double> > get_position_property()
+//	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).template static_cast_to<dependency_property<double>>(); }
 //
 //	static int get_char_width(unsigned int fontSize)	// Only 0, 1, 2 supported
 //	{

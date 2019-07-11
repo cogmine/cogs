@@ -385,7 +385,7 @@ public:
 			result += monthString;
 			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
 			result += dayString;
-			result += string_t<char_t>::contain(&tee, 1);;
+			result += string_t<char_t>::contain(&tee, 1);
 
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;

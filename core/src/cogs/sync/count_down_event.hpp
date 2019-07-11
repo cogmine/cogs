@@ -33,6 +33,7 @@ private:
 protected:
 	count_down_event(const ptr<rc_obj_base>& desc, size_t n)
 		: object(desc),
+		m_event(desc),
 		m_count(n)
 	{
 		COGS_ASSERT(n != doneValue);	// max value is not supported (used internally to indicate fired, to allow init from 0)

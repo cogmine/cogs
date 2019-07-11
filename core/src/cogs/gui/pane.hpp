@@ -21,6 +21,7 @@
 #include "cogs/math/const_min_int.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/resettable_event.hpp"
 #include "cogs/sync/priority_queue.hpp"
 #include "cogs/sync/thread_pool.hpp"
 #include "cogs/ui/keyboard.hpp"
@@ -125,6 +126,7 @@ private:
 	compositing_behavior m_compositingBehavior;
 
 	rcptr<gfx::canvas> m_bridgedCanvas;
+	resettable_event m_closeEvent;
 
 	bool m_hasFocus;
 	bool m_isFocusable;
@@ -472,19 +474,17 @@ private:
 		return result;
 	}
 
-	alignment m_alignment;
 	point m_innerOffset;
 
 protected:
-	explicit pane(const ptr<rc_obj_base>& desc, const alignment& a = alignment::center())
+	explicit pane(const ptr<rc_obj_base>& desc, compositing_behavior cb = compositing_behavior::no_buffer)
 		: object(desc),
-		m_alignment(a),
 		m_innerOffset(0, 0),
 		m_installed(false),
 		m_installing(false),
 		m_uninstalling(false),
 		m_currentDefaultSize(0, 0),
-		m_compositingBehavior(no_buffer),
+		m_compositingBehavior(cb),
 		m_needsDraw(false),
 		m_hideShowState(0),
 		m_initialReshapeDone(false),
@@ -757,7 +757,6 @@ protected:
 
 	compositing_behavior get_compositing_behavior() const		{ return m_compositingBehavior; }
 	
-	public://temp
 	void set_compositing_behavior(compositing_behavior cb)
 	{
 		if (m_compositingBehavior != cb)
@@ -779,7 +778,6 @@ protected:
 			}
 		}
 	}
-	protected://temp
 
 	void draw()
 	{
@@ -822,7 +820,8 @@ protected:
 					COGS_ASSERT(!!p);
 					p->save_clip();
 					p->clip_to(visibleBounds);
-					p->clip_opaque_after(*this, offset, visibleBounds);
+					if (!is_externally_drawn())
+						p->clip_opaque_after(*this, offset, visibleBounds);
 					p->clip_opaque_descendants(*this, offset, visibleBounds);
 					drawing();											// Draw this pane
 					p->restore_clip();									// Unclip
@@ -901,7 +900,7 @@ protected:
 
 	// A call to focus should be synchronous.  If focusing() is overridden, it should call
 	// pane::focusing() before returning.
-	void focus(int direction)	// direction: -1 = prev/shift-tab, 0 = restore focus, 1 = next/tab
+	void focus(int direction = 0)	// direction: -1 = prev/shift-tab, 0 = restore focus, 1 = next/tab
 	{
 		if (!!m_hasFocus)
 		{
@@ -925,7 +924,6 @@ protected:
 		{
 			defocusing();
 			m_hasFocus = false;
-
 			if (!!m_subFocus)
 				m_subFocus->defocus();
 		}
@@ -1014,7 +1012,129 @@ protected:
 
 	size get_curent_size() const { return cell::get_size(); }
 
-	// cell interface - public
+	template <bool topToButton, typename F>
+	bool for_each_subtree(F&& f)
+	{
+		rcptr<pane> top = this_rcref;
+		rcptr<pane> p = top;
+		for (;;)
+		{
+			if (topToButton)
+			{
+				if (!f(*p))
+					break;
+			}
+			auto itor = p->get_children().get_first();
+			if (!!itor)
+			{
+				p = *itor;
+				continue;
+			}
+			if (!topToButton)
+			{
+				if (!f(*p))
+					break;
+			}
+			for (;;)
+			{
+				if (p == top)
+					return true;
+				itor = p->get_sibling_iterator();
+				++itor;
+				if (!!itor)
+				{
+					p = *itor;
+					break;
+				}
+				p = p->get_parent();
+				COGS_ASSERT(!!p);
+			}
+		}
+		return false;
+	}
+
+	const waitable& get_close_event() const
+	{
+		return m_closeEvent;
+	}
+
+	virtual void closing()
+	{
+		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			if (!(*itor)->m_closeEvent.is_signalled())
+				(*itor)->closing();
+			++itor;
+		}
+		m_closeEvent.signal();
+	}
+
+	virtual void close()
+	{
+		if (!m_closeEvent.is_signalled())
+		{
+			hide();
+			closing();
+		}
+	}
+
+	priority_queue<int, function<function<void()>(bool&)> > m_requestCloseHandlers;
+	typedef priority_queue<int, function<function<void()>(bool&)> >::remove_token request_close_handler_token;
+
+	template <typename F>
+	request_close_handler_token register_request_close_handler(F&& f, int priority = 0)
+	{
+		return m_requestCloseHandlers.insert(priority, std::move(f));
+	}
+
+	bool deregister_request_close_handler(request_close_handler_token& t)
+	{
+		return m_requestCloseHandlers.remove(t);
+	}
+
+	bool requesting_close()
+	{
+		if (!!m_closeEvent.is_signalled())
+			return true;
+
+		container_dlist<function<void(bool)> > cb;
+		bool b = for_each_subtree<true>([&cb](pane& p)
+		{
+			for (;;)
+			{
+				auto vt = p.m_requestCloseHandlers.get();
+				if (!vt)
+					return true;
+				bool allowClose = true;
+				auto f = (*vt)(allowClose);
+				if (!!f)
+					cb.append(std::move(f));
+				if (!allowClose)
+					return false;
+			}
+		});
+		auto itor = cb.get_first();
+		while (!!itor)
+		{
+			(*itor)(b);
+			++itor;
+		}
+		if (!!b)
+		{
+			hide();
+			closing();
+			return true;
+		}
+		return false;
+	}
+
+	bool request_close()
+	{
+		return requesting_close();
+	}
+
+	// cell interface
 
 	virtual void calculate_range()
 	{
@@ -1035,7 +1155,7 @@ protected:
 		m_currentDefaultSize = m_currentRange.limit(m_currentDefaultSize);
 	}
 
-	// canvas interface - public
+	// canvas interface
 
 	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
 	{
@@ -2015,7 +2135,7 @@ public:
 
 	virtual void hide()
 	{
-		if (m_hideShowState-- == 0)	// if it was hidden
+		if (m_hideShowState-- == 0)	// if it is becoming hidden
 		{
 			rcptr<pane> parent = get_parent();
 			if (!parent)
@@ -2030,8 +2150,10 @@ public:
 
 	virtual void show()
 	{
-		if (++m_hideShowState == 0)	// if it was hidden
+		COGS_ASSERT(m_hideShowState != 0);	// It's an error to show something already visible.  Counting is only for hiding.
+		if (++m_hideShowState == 0)	// if it is becoming visible
 		{
+			m_closeEvent.reset();
 			rcptr<pane> parent = get_parent();
 			if (!parent)
 				showing();
@@ -2200,8 +2322,6 @@ public:
 		return !!m_bridgedCanvas;
 	}
 
-	void focus() { focus(0); }
-
 	friend class pane_orchestrator;
 
 };
@@ -2213,15 +2333,15 @@ public:
 class container_pane : public pane, public virtual pane_container
 {
 protected:
-	container_pane(const ptr<rc_obj_base>& desc, const alignment& a)
-		: pane(desc, a)
+	container_pane(const ptr<rc_obj_base>& desc, compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(desc, cb)
 	{
 	}
 
 public:
-	static rcref<container_pane> create(const alignment& a = alignment::center())
+	static rcref<container_pane> create(compositing_behavior cb = compositing_behavior::no_buffer)
 	{
-		return rcnew(bypass_constructor_permission<container_pane>, a);
+		return rcnew(bypass_constructor_permission<container_pane>, cb);
 	}
 
 	using pane_container::nest;
@@ -2242,8 +2362,8 @@ private:
 	bool m_invalidateOnReshape;
 
 protected:
-	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d, bool invalidateOnReshape)
-		: pane(desc),
+	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d, compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
+		: pane(desc, cb),
 		m_drawDelegate(d),
 		m_invalidateOnReshape(invalidateOnReshape)
 	{
@@ -2263,9 +2383,9 @@ protected:
 	}
 
 public:
-	static rcref<canvas_pane> create(const draw_delegate_t& d = draw_delegate_t(), bool invalidateOnReshape = true)
+	static rcref<canvas_pane> create(const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
 	{
-		return rcnew(bypass_constructor_permission<canvas_pane>, d, invalidateOnReshape);
+		return rcnew(bypass_constructor_permission<canvas_pane>, d, cb, invalidateOnReshape);
 	}
 
 	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
@@ -2356,6 +2476,21 @@ protected:
 	static void invalidate(pane& p, const bounds& sz)
 	{
 		p.invalidate(sz);
+	}
+
+	static bool request_close(pane& p)
+	{
+		return p.requesting_close();
+	}
+
+	static void close(pane& p)
+	{
+		p.close();
+	}
+
+	static void focus(pane& p, int direction = 0)
+	{
+		p.focus(direction);
 	}
 };
 
