@@ -42,28 +42,28 @@ class device_context;
 class bitmap;	// forward declared here, defined in bitmap.hpp
 
 inline void auto_handle_impl_DeleteObject(HGDIOBJ h) { DeleteObject(h); }
-typedef auto_handle<HGDIOBJ, NULL, auto_handle_impl_DeleteObject> auto_HGDIOBJ;
+typedef auto_handle<HGDIOBJ, (HGDIOBJ)NULL, auto_handle_impl_DeleteObject> auto_HGDIOBJ;
 
 inline void auto_handle_impl_DeleteObject(HBRUSH h) { DeleteObject(h); }
-typedef auto_handle<HBRUSH, NULL, auto_handle_impl_DeleteObject> auto_HBRUSH;
+typedef auto_handle<HBRUSH, (HBRUSH)NULL, auto_handle_impl_DeleteObject> auto_HBRUSH;
 
 inline void auto_handle_impl_DeleteObject(HBITMAP h) { DeleteObject(h); }
-typedef auto_handle<HBITMAP, NULL, auto_handle_impl_DeleteObject> auto_HBITMAP;
+typedef auto_handle<HBITMAP, (HBITMAP)NULL, auto_handle_impl_DeleteObject> auto_HBITMAP;
 
 inline void auto_handle_impl_DeleteObject(HFONT h) { DeleteObject(h); }
-typedef auto_handle<HFONT, NULL, auto_handle_impl_DeleteObject> auto_HFONT;
+typedef auto_handle<HFONT, (HFONT)NULL, auto_handle_impl_DeleteObject> auto_HFONT;
 
 inline void auto_handle_impl_DeleteObject(HRGN h) { DeleteObject(h); }
-typedef auto_handle<HRGN, NULL, auto_handle_impl_DeleteObject> auto_HRGN;
+typedef auto_handle<HRGN, (HRGN)NULL, auto_handle_impl_DeleteObject> auto_HRGN;
 
 inline void auto_handle_impl_DeleteObject(HPEN h) { DeleteObject(h); }
-typedef auto_handle<HPEN, NULL, auto_handle_impl_DeleteObject> auto_HPEN;
+typedef auto_handle<HPEN, (HPEN)NULL, auto_handle_impl_DeleteObject> auto_HPEN;
 
 inline void auto_handle_impl_DeleteObject(HPALETTE h) { DeleteObject(h); }
-typedef auto_handle<HPALETTE, NULL, auto_handle_impl_DeleteObject> auto_HPALETTE;
+typedef auto_handle<HPALETTE, (HPALETTE)NULL, auto_handle_impl_DeleteObject> auto_HPALETTE;
 
 inline void auto_handle_impl_DeleteColorSpace(HCOLORSPACE h) { DeleteColorSpace(h); }
-typedef auto_handle<HCOLORSPACE, NULL, auto_handle_impl_DeleteColorSpace> auto_HCOLORSPACE;
+typedef auto_handle<HCOLORSPACE, (HCOLORSPACE)NULL, auto_handle_impl_DeleteColorSpace> auto_HCOLORSPACE;
 
 
 #define COGS_RENDER_GDIPLUS_FONTS 0 // If 1, use GDI+ font rendering.  If 0, use renders GDI font rendering

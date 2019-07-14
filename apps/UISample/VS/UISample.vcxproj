@@ -378,7 +378,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3  /d1FastFail</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -413,7 +413,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -603,7 +603,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
@@ -637,7 +637,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>

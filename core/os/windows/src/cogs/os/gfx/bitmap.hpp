@@ -157,7 +157,7 @@ private:
 		}
 
 		// Swaps bitmap, but preserves DC
-		void replace_with(gdi_bitmap& src)
+		void replace_with(gdi_bitmap&& src)
 		{
 			DeleteDC(src.m_hDC);
 			src.m_hDC = NULL;
@@ -750,7 +750,7 @@ public:
 				}
 				gdi_bitmap newBitmap(newActualPixelSize, m_gdiBitmap.get_depth());
 				m_gdiBitmap.blit(newBitmap.get_HDC(), { { 0, 0 }, m_logicalSize }, { 0, 0 });
-				m_gdiBitmap.replace_with(newBitmap);
+				m_gdiBitmap.replace_with(std::move(newBitmap));
 			}
 			bool widthIncreased = newLogicalPixelSize.cx > m_logicalSize.cx;
 			if (widthIncreased)

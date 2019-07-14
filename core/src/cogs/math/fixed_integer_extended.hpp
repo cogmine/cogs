@@ -1790,21 +1790,13 @@ public:
 	template <bool has_sign2, size_t bits2>
 	void multiply(const fixed_integer_native<has_sign2, bits2>& src)
 	{
+		bool isNeg = is_negative();
+		fixed_integer_extended_content<false, bits> tmp;
+		tmp.assign_abs(*this);
 		auto x = src.abs();
-		if (is_negative())
-		{
-			fixed_integer_extended_content<false, bits> tmp;
-			tmp.assign_abs(*this);
-			multiply2(tmp, x);
-			if (!src.is_negative())
-				assign_negative();
-		}
-		else
-		{
-			multiply2(*this, x);
-			if (src.is_negative())
-				assign_negative();
-		}
+		multiply2(tmp, x);
+		if (src.is_negative() != isNeg)
+			assign_negative();
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -3127,6 +3119,14 @@ public:
 
 	fixed_integer_extended(const this_t& src)
 	{ operator=(src); }
+
+	template <typename numerator_t, typename denominator_t>
+	fixed_integer_extended(const fraction<numerator_t, denominator_t>& src)
+	{ operator=(src); }
+
+	template <typename numerator_t, typename denominator_t>
+	fixed_integer_extended(const volatile fraction<numerator_t, denominator_t>& src)
+	{ operator=(src); }
 	
 	this_t& operator=(const dynamic_integer& src);
 	//{
@@ -3293,6 +3293,31 @@ public:
 	{
 		int_to_fixed_integer_t<int_t2> tmp(src);
 		return operator=(tmp);
+	}
+
+
+	template <typename numerator_t, typename denominator_t>
+	this_t& operator=(const fraction<numerator_t, denominator_t>& src)
+	{
+		return operator=(src.floor());
+	}
+
+	template <typename numerator_t, typename denominator_t>
+	this_t& operator=(const volatile fraction<numerator_t, denominator_t>& src)
+	{
+		return operator=(src.floor());
+	}
+
+	template <typename numerator_t, typename denominator_t>
+	volatile this_t& operator=(const fraction<numerator_t, denominator_t>& src) volatile
+	{
+		return operator=(src.floor());
+	}
+
+	template <typename numerator_t, typename denominator_t>
+	volatile this_t& operator=(const volatile fraction<numerator_t, denominator_t>& src) volatile
+	{
+		return operator=(src.floor());
 	}
 
 	int_t get_int() const			{ return m_contents->m_digits[0]; }
@@ -5524,7 +5549,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
+ 	auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const volatile { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >

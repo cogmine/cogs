@@ -19,7 +19,7 @@ namespace cogs {
 
 
 template <typename T>
-inline std::enable_if_t<
+inline constexpr std::enable_if_t<
 	!std::is_volatile_v<std::remove_reference_t<T> >,
 	T&&
 >
@@ -29,7 +29,7 @@ load(T&& src)	// Value may only persist for the expression containing the call, 
 }
 
 template <typename T>
-inline std::enable_if_t<
+inline constexpr std::enable_if_t<
 	std::is_volatile_v<T>
 	&& std::is_class_v<T>,
 	std::remove_volatile_t<T>
@@ -42,18 +42,34 @@ load(const T& src)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_volatile_v<T>
-	&& !std::is_class_v<T>
-	&& can_atomic_v<T>,
-	std::remove_volatile_t<T>
+	!std::is_class_v<T>,
+	T
 >
 load(const T& src)
 {
+	return src;
+}
+
+template <typename T>
+inline std::enable_if_t<
+	!std::is_class_v<T>
+	&& can_atomic_v<T>,
+	T
+>
+load(const volatile T& src)
+{
 	return atomic::load(src);
 }
+
+template <typename T>
+inline std::enable_if_t<
+	!std::is_class_v<T>
+	&& !can_atomic_v<T>,
+	T
+>
+load(const volatile T& src) = delete;
 
 
 }
 
 #endif
-

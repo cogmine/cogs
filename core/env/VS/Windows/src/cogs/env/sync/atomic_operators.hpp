@@ -793,7 +793,7 @@ post_assign_subtract(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd8((char*)(unsigned char*)&t, -(char)tmp)
+	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd8((char*)(unsigned char*)&t, -(char)tmp);
 }
 
 template <typename T, typename A1>
@@ -811,7 +811,7 @@ post_assign_subtract(T& t, const A1& a)
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd16((short*)(unsigned char*)&t, -(short)tmp)
+	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd16((short*)(unsigned char*)&t, -(short)tmp);
 }
 
 template <typename T, typename A1>
@@ -829,7 +829,7 @@ post_assign_subtract(T& t, const A1& a)
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	T tmp;
 	cogs::assign(tmp, a);
-	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd((long*)(unsigned char*)&t, -(long)tmp)
+	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd((long*)(unsigned char*)&t, -(long)tmp);
 }
 
 template <typename T, typename A1>

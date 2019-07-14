@@ -1597,8 +1597,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F> >
 dispatcher::dispatch(F&& onComplete, int priority) volatile
 {
-	typedef typename std::invoke_result_t<F>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t;
+	rcref<linked_task<result_t> > t = rcnew(linked_task<result_t>, priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t]()
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
@@ -1644,8 +1646,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F1> >
 dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 {
-	typedef typename std::invoke_result_t<F1>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F1> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t;
+	rcref<linked_task<result_t> > t = rcnew(linked_task<result_t>, priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority]()
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
@@ -1697,8 +1701,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F, const result_t&> >
 task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 {
-	typedef typename std::invoke_result_t<F, const result_t&>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F, const result_t&> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t2;
+	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>, priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const result_t& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
@@ -1746,8 +1752,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F1, const result_t&> >
 task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const volatile
 {
-	typedef typename std::invoke_result_t<F1, const result_t&>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F1, const result_t&> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t2;
+	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>, priority);
 	rcref<result_task_t> innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const result_t& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
@@ -1835,8 +1843,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F, const rcref<task<result_t> >&> >
 task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 {
-	typedef typename std::invoke_result_t<F, const rcref<task<result_t> >&>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F, const rcref<task<result_t> >&> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t2;
+	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>, priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const rcref<task<result_t> >& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
@@ -1884,8 +1894,10 @@ inline std::enable_if_t<
 	std::invoke_result_t<F1, const rcref<task<result_t> >&> >
 task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const volatile
 {
-	typedef typename std::invoke_result_t<F1, const rcref<task<result_t> >&>::type result_task_t;
-	rcref<linked_task<typename result_task_t::result_type> > t = rcnew(linked_task<typename result_task_t::result_type>, priority);
+	typedef std::invoke_result_t<F1, const rcref<task<result_t> >&> result_rcref_task_t;
+	typedef typename result_rcref_task_t::type result_task_t;
+	typedef typename result_task_t::result_type result_t2;
+	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>, priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const rcref<task<result_t> >& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;

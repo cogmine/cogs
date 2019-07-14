@@ -79,16 +79,46 @@ public:
 	typedef fixed_integer<false, 1> type;
 };
 
+template <typename T>
+using int_to_fixed_integer_t = typename int_to_fixed_integer<T>::type;
+
+
+
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, int_to_fixed_integer_t<T> >
+make_fixed_integer(const T& t)
+{
+	int_to_fixed_integer_t<T> result(t);
+	return result;
+}
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, int_to_fixed_integer_t<T> >
+make_fixed_integer(const volatile T& t)
+{
+	int_to_fixed_integer_t<T> result(load(t));
+	return result;
+}
+
+
 
 template <typename numerator_t, typename denominator_t>
 class fraction;
 
 
-template <typename T> inline std::enable_if_t<!std::is_integral_v<std::remove_reference_t<T> >, T&&>
+template <typename T> inline constexpr std::enable_if_t<!std::is_integral_v<std::remove_reference_t<T> >, T&&>
 reduce_integer_type(T&& t) { return std::forward<T>(t); }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, std::remove_cv_t<T> >
-reduce_integer_type(T& t) { return load(t); }
+template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, T>
+reduce_integer_type(T& t) { return t; }
+
+template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, T>
+reduce_integer_type(const T& t) { return t; }
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, T>
+reduce_integer_type(volatile T& t) { return load(t); }
+
+template <typename T> inline std::enable_if_t<std::is_integral_v<T>, T>
+reduce_integer_type(const volatile T& t) { return load(t); }
 
 template <bool has_sign, size_t n_bits>
 auto reduce_integer_type(const fixed_integer_native<has_sign, n_bits>& t) { return t.get_int(); }
@@ -97,10 +127,10 @@ template <bool has_sign, size_t n_bits>
 auto reduce_integer_type(const volatile fixed_integer_native<has_sign, n_bits>& t) { return t.get_int(); }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
-auto reduce_integer_type(const fixed_integer_native_const<has_sign, bits, value>& t) { return value; }
+constexpr auto reduce_integer_type(const fixed_integer_native_const<has_sign, bits, value>& t) { return value; }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
-auto reduce_integer_type(const volatile fixed_integer_native_const<has_sign, bits, value>& t) { return value; }
+constexpr auto reduce_integer_type(const volatile fixed_integer_native_const<has_sign, bits, value>& t) { return value; }
 
 
 template <int i>

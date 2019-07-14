@@ -1254,7 +1254,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\main.hpp">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\main.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\main.hpp">
       <Filter>os\linux</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\main.hpp">

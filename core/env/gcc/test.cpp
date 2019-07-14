@@ -10,10 +10,6 @@ using namespace net;
 using namespace ip;
 
 
-
-namespace cogs {
-
-
 int main()
 {
 	return cogs::main([]()
@@ -38,7 +34,6 @@ int main()
 
 		m_httpListener.release();
 		m_smtpListener.release();
-	}
-}
-
+		return EXIT_SUCCESS;
+	});
 }

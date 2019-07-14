@@ -35,6 +35,15 @@ load(const volatile T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
+	&& !can_atomic_v<T>,
+	void
+>
+load(const volatile T& src, T& rtn) = delete;
+
+
+template <typename T>
+inline std::enable_if_t<
+	!std::is_empty_v<T>
 	&& can_atomic_v<T>
 	&& !std::is_scalar_v<T>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
@@ -53,7 +62,6 @@ template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	//&& std::is_scalar_v<T>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	T
 >
