@@ -253,7 +253,7 @@
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
 //	bool operator==(const array_view<n, T2>& t) const volatile { return atomic::load(m_contents.m_base) == (unsigned char*)static_cast<T*>((T2*)t.m_contents.m_base); }
 //
-//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*>&& std::is_convertible_v<T*, T2*> >...>
+//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
 //	bool operator==(const array_view<n, T2>& t) const volatile { return t.m_contents.m_base == (unsigned char*)static_cast<T2*>((T*)atomic::load(m_contents.m_base)); }
 //
 //
@@ -270,16 +270,16 @@
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
 //	bool operator!=(const volatile array_view<n, T2>& t) const { return m_contents.m_base != (unsigned char*)static_cast<T*>((T2*)atomic::load(t.m_contents.m_base)); }
 //
-//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*>&& std::is_convertible_v<T*, T2*> >...>
+//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
 //	bool operator!=(const array_view<n, T2>& t) const { return t.m_contents.m_base != (unsigned char*)static_cast<T2*>((T*)m_contents.m_base); }
 //
-//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*>&& std::is_convertible_v<T*, T2*> >...>
+//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
 //	bool operator!=(const volatile array_view<n, T2>& t) const { return atomic::load(t.m_contents.m_base) != (unsigned char*)static_cast<T2*>((T*)m_contents.m_base); }
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
 //	bool operator!=(const array_view<n, T2>& t) const volatile { return atomic::load(m_contents.m_base) != (unsigned char*)static_cast<T*>((T2*)t.m_contents.m_base); }
 //
-//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*>&& std::is_convertible_v<T*, T2*> >...>
+//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
 //	bool operator!=(const array_view<n, T2>& t) const volatile { return t.m_contents.m_base != (unsigned char*)static_cast<T2*>((T*)atomic::load(m_contents.m_base)); }
 //
 //	template <typename T2, std::enable_if_t<is_array_v<T2> && (extent_v<T2> == n) && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>

@@ -352,7 +352,7 @@
 //			&& (m_contents->m_length == t.m_contents->m_length);
 //	}
 //
-//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*>&& std::is_convertible_v<T*, T2*> >...>
+//	template <typename T2, std::enable_if_t<!std::is_convertible_v<T2*, T*> && std::is_convertible_v<T*, T2*> >...>
 //	bool operator==(const volatile vector_view<T2>& t) const
 //	{
 //		read_token rt = t.begin_read();

@@ -8441,37 +8441,39 @@ multiply(const T& t, const A1& a)
 	return result;
 }
 
+
+
+template <typename T, typename A1>
+inline constexpr std::enable_if_t <
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& !can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
+	&& (sizeof(T) == sizeof(longest)),
+	fixed_integer<true, (8 * sizeof(T)) + 1>
+>
+divide_whole(const T& t, const A1& a)
+{
+	decltype(auto) a2(load(a));
+	fixed_integer<true, (8 * sizeof(T))> t2(load(t));
+	return t2.divide_whole(a2);
+}
+
+
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>)-3) == -3)))
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
 	&& (sizeof(T) == sizeof(longest)),
 	fixed_integer<true, (8 * sizeof(longest)) + 1>
 >
 divide_whole(const T& t, const A1& a)
 {
-	fixed_integer<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<T>(load(t)));
-	result.divide_whole(int_to_fixed_integer_t<A1>(a));
+	fixed_integer_extended<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<T>(load(t)));
+	result.assign_divide_whole(int_to_fixed_integer_t<A1>(load(a)));
 	return result;
 }
 
-
-// if (unsigned / signed), or (signed / signed), it may grow a bit
-template <typename T, typename A1>
-inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<A1> && std::is_signed_v<T> && (((std::remove_volatile_t<A1>)10 / (std::remove_volatile_t<T>) - 3) == -3)))
-	&& (sizeof(A1) == sizeof(longest)),
-	fixed_integer<true, (8 * sizeof(longest)) + 1>
->
-inverse_divide_whole(const T& t, const A1& a)
-{
-	fixed_integer<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<A1>(load(a)));
-	result.divide_whole(int_to_fixed_integer_t<T>(t));
-	return result;
-}
 
 #pragma warning(pop)
 

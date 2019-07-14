@@ -41,7 +41,7 @@ load(const T& src)
 }
 
 template <typename T>
-inline std::enable_if_t<
+inline constexpr std::enable_if_t<
 	!std::is_class_v<T>,
 	T
 >

@@ -937,62 +937,101 @@ divide_whole(const T& t, const A1& a)
 	return std::floor(load(t) / load(a));
 }
 
+
+template <typename T, typename A1, typename enable = void>
+class can_accurately_divide_whole_int : public std::false_type
+{
+};
+
+template <typename T, typename A1>
+class can_accurately_divide_whole_int<T, A1, std::enable_if_t<std::is_integral_v<T>&& std::is_integral_v<A1> > >
+{
+public:
+	static constexpr bool value =
+		(std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3))
+		|| (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)-10 / (std::remove_volatile_t<A1>)3) == -3))
+		|| (std::is_signed_v<T> && std::is_signed_v<A1>)
+		|| (!std::is_signed_v<T> && !std::is_signed_v<A1>);
+};
+template <typename T, typename A1>
+constexpr bool can_accurately_divide_whole_int_v = can_accurately_divide_whole_int<T, A1>::value;
+
+
 // Addresses the issue in which the following operation provides an invalid result:
 // ((long)-10 / (unsigned long)3)
 // Result of (signed / unsigned) will not exceed first type
 // But the compiler will promote the signed type to unsigned, and perform the operation on the wrong value.
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>) - 10 / (std::remove_volatile_t<A1>)3) != -3),
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& !can_accurately_divide_whole_int_v<T, A1>
+	&& !std::is_signed_v<A1>,
 	std::remove_volatile_t<T>
 >
 divide_whole(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
-		return (std::remove_volatile_t<T>) - ((std::make_unsigned_t<std::remove_volatile_t<T> >) - t2 / a);
-	return std::remove_volatile_t<T>(t2 / load(a));
-}
-
-// Result of (signed / unsigned) or (unsigned / unsigned) will not exceed first type
-template <typename T, typename A1>
-inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((!std::is_signed_v<T> && !std::is_signed_v<A1>) || (std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>) - 10 / (std::remove_volatile_t<A1>)3) == -3))),
-	std::remove_volatile_t<T>
->
-divide_whole(const T& t, const A1& a)
-{
-	return std::remove_volatile_t<T>(load(t) / load(a));
+		return (std::remove_volatile_t<T>)-((std::make_unsigned_t<std::remove_volatile_t<T> >)-t2 / load(a));
+	return (std::remove_volatile_t<T>)(t2 / load(a));
 }
 
 // Addresses the issue in which the following operation provides an invalid result:
 // ((unsigned long)10 / (long)-3)
 // Result should be signed, and may grow to the next larger type
 template <typename T, typename A1>
-inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& !std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>)-3) != -3),
+inline constexpr std::enable_if_t <
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& !can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
+	&& (sizeof(T) < sizeof(longest)),
 	bits_to_int_t<(8 * sizeof(T)) + 1, true>
 >
 divide_whole(const T& t, const A1& a)
 {
-	decltype(auto) a2(load(a));
-	if (is_negative(a2))
-		return negative(divide_whole(t, (std::make_unsigned_t<std::remove_volatile_t<A1> >)-a2));
-	return load(t) / a2;
+	bits_to_int_t<(8 * sizeof(T)) + 1, true> result(load(t));
+	result = -(-result / load(a));
+	return result;
 }
 
-// if (unsigned / signed), it may grow a bit, or signed / signed, it may grow a bit
+
+template <typename T, typename A1>
+inline constexpr std::enable_if_t <
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& !can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
+	&& (sizeof(T) == sizeof(longest)),
+	fixed_integer<true, (8 * sizeof(T)) + 1>
+>
+divide_whole(const T& t, const A1& a);
+//{
+//	decltype(auto) a2(load(a));
+//	fixed_integer<true, (8 * sizeof(T))> t2(load(t));
+//	return t2.divide_whole(a2);
+//}
+
+
+
+// Result of (signed / unsigned) or (unsigned / unsigned) will not exceed first type
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3)))
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& can_accurately_divide_whole_int_v<T, A1>
+	&& !std::is_signed_v<A1>,
+	std::remove_volatile_t<T>
+>
+divide_whole(const T& t, const A1& a)
+{
+	return load(t) / load(a);
+}
+
+
+// if (unsigned / signed), (or signed / signed), it may grow a bit
+template <typename T, typename A1>
+inline constexpr std::enable_if_t<
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
 	&& (sizeof(T) < sizeof(longest)),
 	bits_to_int_t<(8 * sizeof(T)) + 1, true>
 >
@@ -1004,22 +1043,23 @@ divide_whole(const T& t, const A1& a)
 // if (unsigned / signed), or (signed / signed), it may grow a bit
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3)))
+	std::is_integral_v<T> && std::is_integral_v<A1>
+	&& can_accurately_divide_whole_int_v<T, A1>
+	&& std::is_signed_v<A1>
 	&& (sizeof(T) == sizeof(longest)),
 	fixed_integer<true, (8 * sizeof(longest)) + 1>
 >
 divide_whole(const T& t, const A1& a);
 //{
-//	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
-//	result.divide_whole(
-//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of divide_whole
+//	fixed_integer_extended<true, (8 * sizeof(longest)) + 1> result(int_to_fixed_integer_t<T>(load(t)));
+//	result.assign_divide_whole(int_to_fixed_integer_t<A1>(load(a)));
 //	return result;
 //}
 
+
+
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(divide_whole)
+
 
 
 template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().divide_whole(std::declval<T&>()))>
@@ -1037,87 +1077,17 @@ inverse_divide_whole(const T& t, const A1& a)
 	return std::floor(load(a) / load(t));
 }
 
-// Addresses the issue in which the following operation provides an invalid result:
-// ((long)-10 / (unsigned long)3)
-// Result of (signed / unsigned) will not exceed first type
-// But the compiler will promote the signed type to unsigned, and perform the operation on the wrong value.
+
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& std::is_signed_v<A1> && !std::is_signed_v<T> && (((std::remove_volatile_t<A1>) - 10 / (std::remove_volatile_t<T>)3) != -3),
-	std::remove_volatile_t<A1>
+	std::is_integral_v<T> && std::is_integral_v<A1>,
+	decltype(divide_whole(std::declval<const std::remove_volatile_t<A1>&>(), std::declval<const std::remove_volatile_t<T>&>()))
 >
 inverse_divide_whole(const T& t, const A1& a)
 {
-	decltype(auto) a2(load(a));
-	if (is_negative(a2))
-		return (std::remove_volatile_t<A1>) - ((std::make_unsigned_t<std::remove_volatile_t<A1> >) - a2 / t);
-	return std::remove_volatile_t<A1>(a2 / load(t));
+	return divide_whole(a, t);
 }
 
-// Result of (signed / unsigned) or (unsigned / unsigned) will not exceed first type
-template <typename T, typename A1>
-inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((!std::is_signed_v<T> && !std::is_signed_v<A1>) || (std::is_signed_v<A1> && !std::is_signed_v<T> && (((std::remove_volatile_t<A1>) - 10 / (std::remove_volatile_t<T>)3) == -3))),
-	std::remove_volatile_t<A1>
->
-inverse_divide_whole(const T& t, const A1& a)
-{
-	return std::remove_volatile_t<A1>(load(a) / load(t));
-}
-
-// Addresses the issue in which the following operation provides an invalid result:
-// ((unsigned long)10 / (long)-3)
-// Result should be signed, and may grow to the next larger type
-template <typename T, typename A1>
-inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& !std::is_signed_v<A1> && std::is_signed_v<T> && (((std::remove_volatile_t<A1>)10 / (std::remove_volatile_t<T>) - 3) != -3),
-	bits_to_int_t<(8 * sizeof(A1)) + 1, true>
->
-inverse_divide_whole(const T& t, const A1& a)
-{
-	decltype(auto) t2(load(t));
-	if (is_negative(t2))
-		return negative(divide_whole(a, (std::make_unsigned_t<std::remove_volatile_t<T> >) - t2));
-	return load(a) / t2;
-}
-
-// if (unsigned / signed), it may grow a bit, or signed / signed, it may grow a bit
-template <typename T, typename A1>
-inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<A1> && std::is_signed_v<T> && (((std::remove_volatile_t<A1>)10 / (std::remove_volatile_t<T>) - 3) == -3)))
-	&& (sizeof(A1) < sizeof(longest)),
-	bits_to_int_t<(8 * sizeof(A1)) + 1, true>
-	>
-inverse_divide_whole(const T& t, const A1& a)
-{
-	return (bits_to_int_t<(8 * sizeof(A1)) + 1, true>)load(a) / load(t);
-}
-
-// if (unsigned / signed), or (signed / signed), it may grow a bit
-template <typename T, typename A1>
-inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& ((std::is_signed_v<T> && std::is_signed_v<A1>) || (!std::is_signed_v<A1> && std::is_signed_v<T> && (((std::remove_volatile_t<A1>)10 / (std::remove_volatile_t<T>) - 3) == -3)))
-	&& (sizeof(A1) == sizeof(longest)),
-	fixed_integer<true, (8 * sizeof(longest)) + 1>
->
-inverse_divide_whole(const T& t, const A1& a);
-//{
-//	fixed_integer<true, (8 * sizeof(longest)) + 1> result;
-//	result.divide_whole(
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of divide_whole
-//	return result;
-//}
 
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide_whole)
 
