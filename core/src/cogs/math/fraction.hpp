@@ -1648,7 +1648,7 @@ private:
 	class simplification_helper<
 		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_native_const<true, bits2, -1>,
-		std::enable_if_t<fixed_integer_native_const<has_sign, bits, value>::is_negative>
+		std::enable_if_t<fixed_integer_native_const<has_sign, bits, value>::is_const_negative>
 	>
 	{
 	public:
@@ -1661,7 +1661,7 @@ private:
 	class simplification_helper<
 		fixed_integer_extended_const<has_sign, bits, values...>,
 		fixed_integer_native_const<true, bits2, -1>,
-		std::enable_if_t<fixed_integer_extended_const<has_sign, bits, values...>::is_negative>
+		std::enable_if_t<fixed_integer_extended_const<has_sign, bits, values...>::is_const_negative>
 	>
 	{
 	public:
@@ -1765,24 +1765,32 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(), 
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
+			>
+			&& !std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(), 
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				negative_one_t
 			>
 		>
 	>
 	{
 	public:
 		typedef typename fraction<
-			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))),
-			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+				cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))),
+			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(),
+				cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
+		>::simplified_t type;
+
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1796,13 +1804,19 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
+			>
+			&& !std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				negative_one_t
 			>
 		>
 	>
@@ -1811,9 +1825,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1826,13 +1839,19 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
+			>
+			&& !std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				negative_one_t
 			>
 		>
 	>
@@ -1841,9 +1860,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1856,13 +1874,19 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
+			>
+			&& !std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				negative_one_t
 			>
 		>
 	>
@@ -1871,9 +1895,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1888,14 +1911,14 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& std::is_same_v<
 				decltype(cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
 			>
-			&& (fixed_integer_native_const<has_sign, bits, value>::is_negative)
-			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_negative)
+			&& (fixed_integer_native_const<has_sign, bits, value>::is_const_negative)
+			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative)
 		>
 	>
 	{
@@ -1903,9 +1926,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1919,14 +1941,14 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& std::is_same_v<
 				decltype(cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
 			>
-			&& (fixed_integer_extended_const<has_sign, bits, values...>::is_negative)
-			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_negative)
+			&& (fixed_integer_extended_const<has_sign, bits, values...>::is_const_negative)
+			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative)
 		>
 	>
 	{
@@ -1934,9 +1956,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1949,16 +1970,16 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
 			>
-			&& (fixed_integer_native_const<has_sign, bits, value>::is_negative)
-			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_negative)
+			&& (fixed_integer_native_const<has_sign, bits, value>::is_const_negative)
+			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_const_negative)
 		>
 	>
 	{
@@ -1966,9 +1987,8 @@ private:
 		typedef typename fraction<
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1981,16 +2001,16 @@ private:
 				decltype(cogs::modulo(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 0, 0>
+				zero_t
 			>
 			&& std::is_same_v<
 				decltype(cogs::gcd(
 					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
 					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
-				fixed_integer_native_const<false, 1, 1>
+				one_t
 			>
-			&& (fixed_integer_extended_const<has_sign, bits, values...>::is_negative)
-			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_negative)
+			&& (fixed_integer_extended_const<has_sign, bits, values...>::is_const_negative)
+			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_const_negative)
 		>
 	>
 	{
@@ -1998,9 +2018,134 @@ private:
 		typedef typename fraction<
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
-		>::simplified_t inner_simplified_t;
-		typedef typename inner_simplified_t::type type;
-		static constexpr bool is_fract = inner_simplified_t::is_fract;
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_simplifiable = true;
+	};
+
+
+	// Prefer to switch negativity to numerator if denominator is negative
+
+	// If the fraction is with consts, and it cannot be otherwise simplified, but both values are negative.  Make both positive.
+	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	class simplification_helper<
+		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign2, bits2, value2>,
+		std::enable_if_t<
+			value2 != 1
+			&& !std::is_same_v<
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				zero_t
+			>
+			&& std::is_same_v<
+				decltype(cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				negative_one_t
+			>
+			&& (!fixed_integer_native_const<has_sign, bits, value>::is_const_negative)
+			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative)
+		>
+	>
+	{
+	public:
+		typedef typename fraction<
+			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
+			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_simplifiable = true;
+	};
+
+	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
+	class simplification_helper<
+		fixed_integer_extended_const<has_sign, bits, values...>, 
+		fixed_integer_native_const<has_sign2, bits2, value2>,
+		std::enable_if_t<
+			value2 != 1
+			&& !std::is_same_v<
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				negative_one_t
+			>
+			&& std::is_same_v<
+				decltype(cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
+				one_t
+			>
+			&& (!fixed_integer_extended_const<has_sign, bits, values...>::is_const_negative)
+			&& (fixed_integer_native_const<has_sign2, bits2, value2>::is_const_negative)
+		>
+	>
+	{
+	public:
+		typedef typename fraction<
+			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
+			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_simplifiable = true;
+	};
+
+	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
+	class simplification_helper<
+		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_extended_const<has_sign2, bits2, values2...>,
+		std::enable_if_t<
+			!std::is_same_v<
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				zero_t
+			>
+			&& std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				negative_one_t
+			>
+			&& (!fixed_integer_native_const<has_sign, bits, value>::is_const_negative)
+			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_const_negative)
+		>
+	>
+	{
+	public:
+		typedef typename fraction<
+			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
+			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_simplifiable = true;
+	};
+
+	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, ulongest... values2>
+	class simplification_helper<
+		fixed_integer_extended_const<has_sign, bits, values...>,
+		fixed_integer_extended_const<has_sign2, bits2, values2...>,
+		std::enable_if_t<
+			!std::is_same_v<
+				decltype(cogs::modulo(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				zero_t
+			>
+			&& std::is_same_v<
+				decltype(cogs::gcd(
+					std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(),
+					std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())),
+				negative_one_t
+			>
+			&& (!fixed_integer_extended_const<has_sign, bits, values...>::is_const_negative)
+			&& (fixed_integer_extended_const<has_sign2, bits2, values2...>::is_const_negative)
+		>
+	>
+	{
+	public:
+		typedef typename fraction<
+			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
+			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
+		>::simplified_t type;
+		static constexpr bool is_fract = is_fraction_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -3915,16 +4060,16 @@ template <typename numerator_t>
 inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
+inline auto make_reciprocal(fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
+inline auto make_reciprocal(const fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
+inline auto make_reciprocal(volatile fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(const volatile fraction<numerator_t, denominator_t>& src) { return src.reciprocal(); }
+inline auto make_reciprocal(const volatile fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 
 template <typename T>

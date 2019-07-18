@@ -9,6 +9,8 @@
 #define COGS_HEADER_MEM_RC_OBJ_BASE
 
 
+#include <type_traits>
+
 #include "cogs/collections/abastack.hpp"
 #include "cogs/collections/slink.hpp"
 #include "cogs/collections/rbtree.hpp"
@@ -843,7 +845,7 @@ inline void default_allocator::dispose_default_allocator(allocator * al)
 #endif
 
 	ptr<default_allocator_type> al2 = static_cast<default_allocator_type*>(al);
-	al2->~default_allocator_type();
+	al2->default_allocator_type::~default_allocator_type();
 	env::allocator::deallocate(al);
 }
 
@@ -868,7 +870,7 @@ inline void default_allocator::shutdown()
 		al->log_active_allocations();
 		al->shutdown();
 #endif
-		al->~default_allocator_type();
+		al->default_allocator_type::~default_allocator_type();
 		env::allocator::deallocate(al);
 	}
 }

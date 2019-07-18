@@ -34,6 +34,8 @@ int main()
 
 		m_httpListener.release();
 		m_smtpListener.release();
+
+		quit_dispatcher::get()->request();
 		return EXIT_SUCCESS;
 	});
 }

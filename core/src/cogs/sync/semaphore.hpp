@@ -56,10 +56,10 @@ private:
 	{
 	public:
 		rcptr<os::semaphore>	m_osSemaphore;
-		ptrdiff_t				m_resourceCount;// dec'ed by woken thread.
 		size_t					m_stallCount;	// Number of threads stalled, inc'ed before waiting, dec'ed by woken threads
 		size_t					m_wakeCount;	// Number of threads waiting to wake, inc'ed by waker thread, dec's by woken thread
 												// .. helps ensure timeouts don't lead to false-wakes on os::semaphore
+		ptrdiff_t				m_resourceCount;// dec'ed by woken thread.
 
 		explicit content_t(ptrdiff_t n = 0)
 			:	m_stallCount(0),

@@ -9698,22 +9698,22 @@ inline auto fixed_integer_native_const<has_sign, bits, value>::inverse_modulo(co
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline auto fixed_integer_native_const<has_sign, bits, value>::operator/(const dynamic_integer& src) const volatile
-{ return fraction<this_t, dynamic_integer>(*this, src); }
+{ return fraction<reduced_t, dynamic_integer>(*this, src); }
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline auto fixed_integer_native_const<has_sign, bits, value>::operator/(const volatile dynamic_integer& src) const volatile
-{ return fraction<this_t, dynamic_integer>(*this, src); }
+{ return fraction<reduced_t, dynamic_integer>(*this, src); }
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline auto fixed_integer_native_const<has_sign, bits, value>::inverse_divide(const dynamic_integer& src) const volatile
-{ return fraction<dynamic_integer, this_t>(src, *this); }
+{ return fraction<dynamic_integer, reduced_t>(src, *this); }
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline auto fixed_integer_native_const<has_sign, bits, value>::inverse_divide(const volatile dynamic_integer& src) const volatile
-{ return fraction<dynamic_integer, this_t>(src, *this); }
+{ return fraction<dynamic_integer, reduced_t>(src, *this); }
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
@@ -9861,16 +9861,16 @@ template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits
 inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::inverse_modulo(const volatile dynamic_integer& src) const volatile { non_const_t tmp(*this); return tmp.inverse_modulo(src); }
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>
-inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::operator/(const dynamic_integer& src) const volatile { return fraction<this_t, dynamic_integer>(*this, src); }
+inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::operator/(const dynamic_integer& src) const volatile { return fraction<reduced_t, dynamic_integer>(*this, src); }
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>
-inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::operator/(const volatile dynamic_integer& src) const volatile { return fraction<this_t, dynamic_integer>(*this, src); }
+inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::operator/(const volatile dynamic_integer& src) const volatile { return fraction<reduced_t, dynamic_integer>(*this, src); }
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>
-inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::inverse_divide(const dynamic_integer& src) const volatile { return fraction<dynamic_integer, this_t>(src, *this); }
+inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::inverse_divide(const dynamic_integer& src) const volatile { return fraction<dynamic_integer, reduced_t>(src, *this); }
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>
-inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::inverse_divide(const volatile dynamic_integer& src) const volatile { return fraction<dynamic_integer, this_t>(src, *this); }
+inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::inverse_divide(const volatile dynamic_integer& src) const volatile { return fraction<dynamic_integer, reduced_t>(src, *this); }
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>
 inline auto fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::divide_whole(const dynamic_integer& src) const volatile { non_const_t tmp(*this); return tmp.divide_whole(src); }

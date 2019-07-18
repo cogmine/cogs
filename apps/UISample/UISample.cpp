@@ -296,21 +296,21 @@ int COGS_MAIN()
 		//}
 
 
-		//{
-		//	rcref<background> root = rcnew(background, color::beige);
+		{
+			rcref<background> root = rcnew(background, color::beige);
 
-		//	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar"));
-		//	rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
+			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar"));
+			rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
 
-		//	scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
+			scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
-		//	rcref<background> cornerPane = rcnew(background, color::purple);
-		//	scrollPane->nest_corner(cornerPane);
+			rcref<background> cornerPane = rcnew(background, color::purple);
+			scrollPane->nest_corner(cornerPane);
 
-		//	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//	root->nest(scrollPane, f);
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
-		//}
+			rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
+			root->nest(scrollPane, f);
+			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		}
 
 
 		//{
