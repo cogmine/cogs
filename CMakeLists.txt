@@ -2,31 +2,46 @@ cmake_minimum_required(VERSION 3.15)
 
 project (UISample)
 
-include_directories(
-    core/src
-    core/arch/x64/src
-    core/env/VS/Windows/src
-    core/os/windows/src
-)
-
 add_executable(UISample
     ./apps/UISample/UISample.cpp
 )
 
-target_compile_definitions(UISample PUBLIC -DUNICODE -D_UNICODE -DCOGS_DEBUG -DDEBUG -DWIN32 -DWINDOWS -DCOGS_DEFAULT_GUI_SUBSYSTEM=GDI)
+include_directories(
+    core/src
+)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /GS /Od")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL")
-set(CMAKE_VERBOSE_MAKEFILE on)
+if (WIN32)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /GS /Od /DDEBUG /DCOGS_DEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL")
 
+  target_compile_definitions(UISample PUBLIC -DUNICODE -D_UNICODE -DWIN32 -DWINDOWS -DCOGS_DEFAULT_GUI_SUBSYSTEM=GDI)
 
-# target_compile_options(UISample PUBLIC /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
-# Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
-target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+  # Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
+  #target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
+  target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
 
-target_link_options(UISample PUBLIC /INCREMENTAL:NO /DEBUG /NXCOMPAT /DYNAMICBASE /OPT:REF /OPT:ICF)
+  include_directories(
+      core/os/windows/src
+      core/env/VS/Windows/src
+  )
 
-target_link_libraries(UISample
+  if (CMAKE_SIZEOF_VOID_P MATCHES 8)
+    message(STATUS "Configured for Win32 x64")
+    include_directories(
+        core/arch/x64/src
+    )
+  elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)
+    message(STATUS "Configured for Win32 x86")
+    include_directories(
+        core/arch/x86/src
+    )
+  else()
+    message(ERROR "Unknown target architecture")
+  endif()
+
+  target_link_options(UISample PUBLIC /INCREMENTAL:NO /DEBUG /NXCOMPAT /DYNAMICBASE /OPT:REF /OPT:ICF)
+
+  target_link_libraries(UISample
     Shcore.lib
     Gdiplus.lib
     Normaliz.lib
@@ -48,5 +63,10 @@ target_link_libraries(UISample
     uuid.lib
     odbc32.lib
     odbccp32.lib
-)
+  )
 
+elseif (APPLE)
+elseif (LINUX)
+endif()
+
+set(CMAKE_VERBOSE_MAKEFILE on)
