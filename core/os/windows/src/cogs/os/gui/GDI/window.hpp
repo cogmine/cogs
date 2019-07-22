@@ -118,7 +118,7 @@ public:
 		// size is unchanged, it's still necessary to propagate the reshape request.
 
 		// If initial resize is empty, use existing default window size
-		if (m_initialReshapeDone && !newBounds || newBounds.get_size() == get_size())
+		if (m_initialReshapeDone || !newBounds || newBounds.get_size() == get_size())
 			bridgeable_pane::reshape(newBounds, point(0, 0));
 		else
 		{

@@ -231,18 +231,14 @@ template<>
 class unit_conversion<nanoseconds, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 1, 1> numerator_const_t;
-	typedef fixed_integer_native_const<false, 30, 1000000000> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<one_t>() / std::declval<unsigned_fixed_integer_const<1000000000>>()) ratio_const_t;
 };
 
 template<>
 class unit_conversion<nano100s, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 1, 1> numerator_const_t;
-	typedef fixed_integer_native_const<false, 24, 10000000> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<one_t>() / std::declval<unsigned_fixed_integer_const<10000000>>()) ratio_const_t;
 };
 
 
@@ -250,43 +246,39 @@ template<>
 class unit_conversion<microseconds, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 1, 1> numerator_const_t;
-	typedef fixed_integer_native_const<false, 20, 1000000> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<one_t>() / std::declval<unsigned_fixed_integer_const<1000000>>()) ratio_const_t;
 };
 
 template<>
 class unit_conversion<milliseconds, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 1, 1> numerator_const_t;
-	typedef fixed_integer_native_const<false, 10, 1000> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<one_t>() / std::declval<unsigned_fixed_integer_const<1000>>()) ratio_const_t;
 };
 
 template<>
 class unit_conversion<minutes, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 6, 60> numerator_const_t;
-	typedef fixed_integer_native_const<false, 1, 1> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<unsigned_fixed_integer_const<60>>() / std::declval<one_t>()) ratio_const_t;
 };
 
 template<>
 class unit_conversion<hours, seconds>
 {
 public:
-	typedef fixed_integer_native_const<false, 12, 3600> numerator_const_t;
-	typedef fixed_integer_native_const<false, 1, 1> denominator_const_t;
-	typedef decltype(std::declval<numerator_const_t>() / std::declval<denominator_const_t>()) ratio_const_t;
+	typedef decltype(std::declval<unsigned_fixed_integer_const<3600>>() / std::declval<one_t>()) ratio_const_t;
 };
+
+
+static_assert(is_courser_v<hours, seconds>);
+static_assert(is_finer_v<seconds, hours>);
 
 
 #pragma warning(pop)
 
-}
 
+}
 
 
 #endif

@@ -17,9 +17,9 @@ Cogs has been my personal project for many years, as a learning process and crea
 
 ## Volatile
 
-Cogs leverages 'volatile' to qualify a type as atomic, in much the same way as the 'const' qualifier allows an object to be references in a const manner.  
+Cogs leverages 'volatile' to qualify a type as atomic, in much the same way as the 'const' qualifier allows an object to be referenced in a const manner.  
 
-Like the const qualifier, volatile can be added to member functions, in which in the object and its members are also volatile.  Methods with and without the volatile qualifier can be overloaded separately, to provide versions of the same algorithm with and without the need to consider thread safety.
+Like the const qualifier, volatile can be added to member functions, in which the object and its members are also volatile.  Methods with and without the volatile qualifier can be overloaded separately, to provide variations of the same algorithm with and without thread safety.
 
 ```cpp
 class A

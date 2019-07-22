@@ -121,10 +121,7 @@ template <class T>
 class unit_conversion<T, T>
 {
 public:
-	typedef fixed_integer_native_const<false, 1, 1> numerator_const_t;
-	typedef fixed_integer_native_const<false, 1, 1> denominator_const_t;
-
-	typedef fixed_integer_native_const<false, 1, 1> ratio_const_t;
+	typedef one_t ratio_const_t;
 };
 
 // Automatically generate conversion in the other direction, if one direction is defined
@@ -140,10 +137,7 @@ class unit_conversion<
 >
 {
 public:
-	typedef typename unit_conversion<T2, T1>::denominator_const_t numerator_const_t;
-	typedef typename unit_conversion<T2, T1>::numerator_const_t denominator_const_t;
-
-	typedef decltype(divide(std::declval<numerator_const_t>(), std::declval<denominator_const_t>())) ratio_const_t;
+	typedef decltype(reciprocal(std::declval<typename unit_conversion<T2, T1>::ratio_const_t>())) ratio_const_t;
 };
 
 
@@ -151,28 +145,12 @@ template <class from_t, class to_t, class reative_to_t>
 class unit_conversion_relative
 {
 private:
-	typedef typename unit_conversion<from_t, reative_to_t>::numerator_const_t from_numerator_const_t;
-	typedef typename unit_conversion<from_t, reative_to_t>::denominator_const_t from_denominator_const_t;
-
-	typedef typename unit_conversion<to_t, reative_to_t>::numerator_const_t to_numerator_const_t;
-	typedef typename unit_conversion<to_t, reative_to_t>::denominator_const_t to_denominator_const_t;
-
-
-	typedef decltype(divide(std::declval<from_numerator_const_t>(), std::declval<from_denominator_const_t>())) ratio_const_t1;
-	typedef decltype(divide(std::declval<to_numerator_const_t>(), std::declval<to_denominator_const_t>())) ratio_const_t2;
-
-	typedef decltype(multiply(std::declval<from_numerator_const_t>(), std::declval<to_numerator_const_t>())) combined_numerator_const_t;
-	typedef decltype(multiply(std::declval<from_denominator_const_t>(), std::declval<to_denominator_const_t>())) combined_denominator_const_t;
-
-	typedef decltype(gcd(std::declval<combined_numerator_const_t>(), std::declval<combined_denominator_const_t>())) divisor_t;
+	typedef typename unit_conversion<to_t, reative_to_t>::ratio_const_t from_ratio_const_t;
+	typedef typename unit_conversion<to_t, reative_to_t>::ratio_const_t to_ratio_const_t;
 
 public:
-	typedef decltype(add(std::declval<combined_numerator_const_t>(), std::declval<divisor_t>())) numerator_const_t;
-	typedef decltype(add(std::declval<combined_denominator_const_t>(), std::declval<divisor_t>())) denominator_const_t;
-
-	typedef decltype(divide(std::declval<numerator_const_t>(), std::declval<denominator_const_t>())) ratio_const_t;
+	typedef decltype(multiply(std::declval<from_ratio_const_t>(), std::declval<to_ratio_const_t>())) ratio_const_t;
 };
-
 
 // Automatically convert to/from any 2 units that define conversion to/from the preferred unit base
 template <class T1, class T2>
@@ -187,9 +165,6 @@ class unit_conversion<
 >
 {
 public:
-	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::numerator_const_t numerator_const_t;
-	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::denominator_const_t denominator_const_t;
-
 	typedef typename unit_conversion_relative<T1, T2, typename T1::quantity_t::preferred_unit_t>::ratio_const_t ratio_const_t;
 };
 
@@ -198,26 +173,25 @@ public:
 template <typename T1, typename T2>
 class is_finer
 {
-private:
-	typedef unit_conversion<T1, T2> conversion_t;
-	typedef typename conversion_t::numerator_const_t numerator_const_t;
-	typedef typename conversion_t::denominator_const_t denominator_const_t;
-
-public:
-	static constexpr bool value = (const_compared<numerator_const_t, denominator_const_t>::value) > 0;
+public: 
+	static constexpr bool value = const_compared<decltype(std::declval<typename unit_conversion<T1, T2>::ratio_const_t>().floor()), one_t>::value < 0;
 };
 template <typename T1, typename T2>
 constexpr bool is_finer_v = is_finer<T1, T2>::value;
+
+template <typename T> class is_finer<T, T> : public std::false_type { };
 
 
 template <typename T1, typename T2>
 class is_courser
 {
 public:
-	static constexpr bool value = !is_finer_v<T1, T2>();
+	static constexpr bool value = !is_finer_v<T1, T2>;
 };
 template <typename T1, typename T2>
 constexpr bool is_courser_v = is_courser<T1, T2>::value;
+
+template <typename T> class is_courser<T, T> : public std::false_type { };
 
 
 template <typename T1, typename T2>
@@ -240,8 +214,6 @@ public:
 
 template <typename T1, typename T2>
 using courser_t = typename courser<T1, T2>::type;
-
-
 
 
 }

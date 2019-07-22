@@ -619,7 +619,7 @@ public:
 	public:
 		~window_class()
 		{
-			UnregisterClass((LPCTSTR)m_atom, GetModuleHandle(0));
+			UnregisterClass((LPCTSTR)(bytes_to_int_t<sizeof(LPCTSTR)>)m_atom, GetModuleHandle(0));
 			//FreeLibrary(MsfteditDll);
 		}
 
@@ -942,7 +942,7 @@ public:
 			m_windowClass = window_class::get_default();
 
 		HWND hWnd = CreateWindowEx(extendedStyle,
-			isUnownedClass ? (LPCTSTR)(windowClassName.composite().cstr()) : (LPCTSTR)(m_windowClass->get_ATOM()),
+			isUnownedClass ? (LPCTSTR)(windowClassName.composite().cstr()) : (LPCTSTR)((bytes_to_int_t<sizeof(LPCTSTR)>)m_windowClass->get_ATOM()),
 			caption.composite().cstr(), style,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			parentHWND, 0, (HINSTANCE)(GetModuleHandle(0)), 0);

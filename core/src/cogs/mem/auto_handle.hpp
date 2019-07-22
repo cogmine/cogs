@@ -174,7 +174,7 @@ public:
 
 	value_t& get() { return m_value; }
 	const value_t& get() const { return m_value; }
-	
+
 	value_t get() const volatile { return atomic::load(m_value); }
 
 	value_t& operator*() { return m_value; }

@@ -83,8 +83,6 @@ template <typename T>
 using int_to_fixed_integer_t = typename int_to_fixed_integer<T>::type;
 
 
-
-
 template <typename T> inline std::enable_if_t<std::is_integral_v<T>, int_to_fixed_integer_t<T> >
 make_fixed_integer(const T& t)
 {
@@ -98,7 +96,6 @@ make_fixed_integer(const volatile T& t)
 	int_to_fixed_integer_t<T> result(load(t));
 	return result;
 }
-
 
 
 template <typename numerator_t, typename denominator_t>
@@ -145,7 +142,7 @@ using int_to_fixed_integer_const_t = typename int_to_fixed_integer_const<i>::typ
 
 typedef int_to_fixed_integer_const_t<0> zero_t;
 typedef int_to_fixed_integer_const_t<1> one_t;
-typedef int_to_fixed_integer_const_t<-1> minus_one_t;
+typedef int_to_fixed_integer_const_t<-1> negative_one_t;
 
 
 }
