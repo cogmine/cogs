@@ -11,14 +11,8 @@ include_directories(
 )
 
 if (WIN32)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /GS /Od /DDEBUG /DCOGS_DEBUG")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL")
 
   target_compile_definitions(UISample PUBLIC -DUNICODE -D_UNICODE -DWIN32 -DWINDOWS -DCOGS_DEFAULT_GUI_SUBSYSTEM=GDI)
-
-  # Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
-  #target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
-  target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
 
   include_directories(
       core/os/windows/src
@@ -36,10 +30,8 @@ if (WIN32)
         core/arch/x86/src
     )
   else()
-    message(ERROR "Unknown target architecture")
+    message(ERROR ": Unknown target architecture")
   endif()
-
-  target_link_options(UISample PUBLIC /INCREMENTAL:NO /DEBUG /NXCOMPAT /DYNAMICBASE /OPT:REF /OPT:ICF)
 
   target_link_libraries(UISample
     Shcore.lib
@@ -67,6 +59,50 @@ if (WIN32)
 
 elseif (APPLE)
 elseif (LINUX)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
+
+  # using regular Clang or AppleClang 
+
+  target_compile_options(UISample PUBLIC /std:c++17 -mcx16) 
+
+  # TODO: Figure out what args need to be padded for clang compile/link
+  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ") 
+  #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ") 
+
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") 
+
+  # using GCC 
+
+  # TODO 
+  message(ERROR ": Intel compiler not yet supported")
+
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel") 
+
+  # using Intel C++ 
+
+  # TODO 
+  message(ERROR ": Intel compiler not yet supported")
+
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") 
+
+  # using Visual Studio C++
+
+  if (WIN32)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /GS /Od")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL")
+
+    # Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
+    #target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
+    target_compile_options(UISample PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+
+    target_link_options(UISample PUBLIC /INCREMENTAL:NO /DEBUG /NXCOMPAT /DYNAMICBASE /OPT:REF /OPT:ICF)
+
+  elseif (APPLE)
+  elseif (LINUX)
+  endif()
+
 endif()
 
 set(CMAKE_VERBOSE_MAKEFILE on)
