@@ -338,8 +338,8 @@ public:
 }
 
 
-#include "cogs/os/gfx/nsimage.hpp"
-#include "cogs/os/gfx/nsbitmap.hpp"
+#include "cogs/os/gfx/bitmap.hpp"
+#include "cogs/os/gfx/bitmask.hpp"
 
 
 #endif

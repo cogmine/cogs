@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HEADER_OS_GFX_NSBITMAP
-#define COGS_HEADER_OS_GFX_NSBITMAP
+#ifndef COGS_HEADER_OS_GFX_BITMASK
+#define COGS_HEADER_OS_GFX_BITMASK
 
 
 #include "cogs/collections/composite_string.hpp"
@@ -14,7 +14,7 @@
 #include "cogs/gfx/color.hpp"
 #include "cogs/os/collections/macos_strings.hpp"
 #include "cogs/os/gfx/graphics_context.hpp"
-#include "cogs/os/gfx/nsimage.hpp"
+#include "cogs/os/gfx/bitmap.hpp"
 #include "cogs/mem/rcnew.hpp"
 
 
@@ -23,17 +23,39 @@ namespace gfx {
 namespace os {
 
 
-class nsbitmap : public canvas::bitmask, public graphics_context
+class bitmask : public canvas::bitmask, public graphics_context
 {
 protected:
-	__strong NSBitmapImageRep* m_imageRep;
-	__strong NSGraphicsContext* m_graphicsContext;
+    __strong NSBitmapImageRep* m_imageRep;
+	//__strong NSGraphicsContext* m_graphicsContext;
 	canvas::size m_size;
 	mutable CGImageRef m_mask;
 	mutable CGImageRef m_invertedMask;
 	mutable bool m_maskNeedsUpdate = true;
 
+	CGContextRef m_cgContextRef;
+
 private:
+	class state_token
+	{
+	private:
+		CGContextRef m_cgContext;
+
+	public:
+		state_token(CGContextRef ctx)
+			: m_cgContext(ctx)
+		{
+			CGContextSaveGState(ctx);
+		}
+
+		~state_token()
+		{
+			CGContextRestoreGState(m_cgContext);
+		}
+
+		const CGContextRef& get_CGContent() const { return m_cgContext; }
+	};
+
 	void update_mask() const
 	{
 		if (m_maskNeedsUpdate)
@@ -89,7 +111,7 @@ private:
 
 public:
 	// creates bitmask from monochome image format
-	nsbitmap(const composite_string& name, bool resource = false)	// !resource implies filename
+	bitmask(const composite_string& name, bool resource = false)	// !resource implies filename
 	{
 		__strong NSString* n = string_to_NSString(name);
 		__strong NSString* imageName;
@@ -100,25 +122,30 @@ public:
 		
 		m_imageRep = [NSBitmapImageRep imageRepWithData:[NSData dataWithContentsOfFile:imageName]];
 		
-		m_graphicsContext = [NSGraphicsContext graphicsContextWithBitmapImageRep : m_imageRep];
+		//m_graphicsContext = [NSGraphicsContext graphicsContextWithBitmapImageRep: m_imageRep];
 
 		m_size = canvas::size([m_imageRep pixelsWide], [m_imageRep pixelsHigh]);
 	}
 
-	nsbitmap(const canvas::size& sz, std::optional<bool> value = std::nullopt)
+	bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt)
 		: m_size(sz)
 	{
-		m_imageRep = [[NSBitmapImageRep alloc]
-			initWithBitmapDataPlanes: NULL
-			pixelsWide: sz.get_width()
-			pixelsHigh: sz.get_height()
-			bitsPerSample: 1
-			samplesPerPixel: 1
-			hasAlpha: NO
-			isPlanar: NO
-			colorSpaceName: NSDeviceRGBColorSpace
-			bytesPerRow: 0
-			bitsPerPixel: 0];
+		m_cgContextRef = CGBitmapContextCreate(NULL, std::lround(sz.get_width()), std::lround(sz.get_height()), 8, 0, CGColorSpaceCreateDeviceGray(), 0);
+
+		// m_imageRep = [[NSBitmapImageRep alloc]
+		// 	initWithBitmapDataPlanes: NULL
+        //     pixelsWide: std::lround(sz.get_width())
+        //     pixelsHigh: std::lround(sz.get_height())
+		// 	bitsPerSample: 8
+		// 	samplesPerPixel: 1
+		// 	hasAlpha: NO
+		// 	isPlanar: NO
+		// 	colorSpaceName: NSCalibratedWhiteColorSpace
+		// 	bytesPerRow: 0
+		// 	bitsPerPixel: 0];
+
+		//m_graphicsContext = [NSGraphicsContext graphicsContextWithBitmapImageRep: m_imageRep];
+
 		if (value.has_value())
 		{
 			// Already zero initialized?
@@ -127,7 +154,7 @@ public:
 		}
 	}
 
-	~nsbitmap()
+	~bitmask()
 	{
 		CGImageRelease(m_mask);
 	}
@@ -148,8 +175,8 @@ public:
 
 	virtual void fill(const canvas::bounds& b, fill_mode fillMode = fill_mode::set_mode)
 	{
-		graphics_context::state_token token(m_graphicsContext);
-		auto& ctx = token.get_CGContent();
+		state_token token(m_cgContextRef);
+		auto ctx = token.get_CGContent();
 		CGContextSetRGBFillColor(ctx, 1.0, 1.0, 1.0, 1.0);
 		CGContextSetBlendMode(ctx, create_op(fillMode));
 		CGContextFillRect(ctx, graphics_context::make_CGRect(b));
@@ -158,14 +185,15 @@ public:
 
 	virtual void invert(const canvas::bounds& b)
 	{
-		graphics_context::state_token token(m_graphicsContext);
-		graphics_context::invert(b, token);
+		state_token token(m_cgContextRef);
+		graphics_context::invert(b);
+		//graphics_context::invert(b, token);
 		m_maskNeedsUpdate = true;
 	}
 
 	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode)
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		auto& ctx = token.get_CGContent();
 		CGContextSetRGBStrokeColor(ctx, 1.0, 1.0, 1.0, 1.0);
 		CGContextSetBlendMode(ctx, create_op(fillMode));
@@ -185,18 +213,18 @@ public:
 
 	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f = 0, bool value = true)
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		graphics_context::draw_text(s, b, f, value ? color::white : color::black);
 		m_maskNeedsUpdate = true;
 	}
 
 	virtual void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
 	{
-		const nsbitmap* src2 = static_cast<const nsbitmap*>(&src);
+		const bitmask* src2 = static_cast<const bitmask*>(&src);
 		CGRect srcRect = graphics_context::make_CGRect(srcBounds);
 		CGRect dstRect = graphics_context::make_CGRect(dstBounds.get_size());
 
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		auto& ctx = token.get_CGContent();
 
 		CGContextTranslateCTM(ctx, dstBounds.get_x(), dstBounds.get_y() + dstBounds.get_height());
@@ -220,31 +248,31 @@ public:
 
 	virtual void save_clip()
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		graphics_context::save_clip();
 	}
 
 	virtual void restore_clip()
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		graphics_context::restore_clip();
 	}
 
 	virtual void clip_out(const canvas::bounds& b)
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		graphics_context::clip_out(b, m_size);
 	}
 
 	virtual void clip_to(const canvas::bounds& b)
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		graphics_context::clip_to(b);
 	}
 
 	virtual bool is_unclipped(const canvas::bounds& b) const
 	{
-		graphics_context::state_token token(m_graphicsContext);
+		state_token token(m_cgContextRef);
 		return graphics_context::is_unclipped(b);
 	}
 };
@@ -252,7 +280,7 @@ public:
 
 inline void graphics_context::draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
 {
-	const nsbitmap* src2 = static_cast<const nsbitmap*>(&src);
+	const bitmask* src2 = static_cast<const bitmask*>(&src);
 	CGRect srcRect = graphics_context::make_CGRect(srcBounds);
 	CGRect dstRect = graphics_context::make_CGRect(dstBounds.get_size());
 
@@ -288,7 +316,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& src, const can
 
 inline void graphics_context::mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted)
 {
-	const nsbitmap* msk2 = static_cast<const nsbitmap*>(&msk);
+	const bitmask* msk2 = static_cast<const bitmask*>(&msk);
 	CGRect mskRect = graphics_context::make_CGRect(mskBounds);
 	CGRect dstRect = graphics_context::make_CGRect(dstBounds.get_size());
 
@@ -316,8 +344,8 @@ inline void graphics_context::mask_out(const canvas::bitmask& msk, const canvas:
 
 inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha, bool inverted)
 {
-	const nsimage* src2 = static_cast<const nsimage*>(&src);
-	const nsbitmap* msk2 = static_cast<const nsbitmap*>(&msk);
+	const bitmap* src2 = static_cast<const bitmap*>(&src);
+	const bitmask* msk2 = static_cast<const bitmask*>(&msk);
 
 	//CGRect srcRect = graphics_context::make_CGRect(srcBounds);
 	CGRect mskRect = graphics_context::make_CGRect(mskBounds);
@@ -348,13 +376,13 @@ inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src
 
 inline rcref<canvas::bitmask> graphics_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
 {
-	return rcnew(nsbitmap, sz, value);
+	return rcnew(bitmask, sz, value);
 }
 
 
 inline rcref<canvas::bitmask> graphics_context::load_bitmask(const composite_string& location)
 {
-	return rcnew(nsbitmap, location);
+	return rcnew(bitmask, location);
 }
 
 

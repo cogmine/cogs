@@ -93,6 +93,7 @@ public:
 									backing: NSBackingStoreBuffered
 									defer: NO ];
 		m_nsWindow->m_cppWindow = this_rcptr;
+		m_nsWindow.backgroundColor = NSColor.whiteColor;
 		[m_nsWindow setDelegate: m_nsWindow];
 
 		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();

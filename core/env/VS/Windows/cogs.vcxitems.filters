@@ -297,10 +297,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\graphics_context.hpp">
       <Filter>os\MacOS\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsbitmap.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmask.hpp">
       <Filter>os\MacOS\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\nsimage.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmap.hpp">
       <Filter>os\MacOS\gfx</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\button.hpp">

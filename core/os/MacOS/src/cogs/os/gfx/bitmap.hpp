@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HEADER_OS_GFX_NSIMAGE
-#define COGS_HEADER_OS_GFX_NSIMAGE
+#ifndef COGS_HEADER_OS_GFX_BITMAP
+#define COGS_HEADER_OS_GFX_BITMAP
 
 
 #include "cogs/collections/composite_string.hpp"
@@ -22,7 +22,7 @@ namespace gfx {
 namespace os {
 
 
-class nsimage : public canvas::bitmap, public graphics_context
+class bitmap : public canvas::bitmap, public graphics_context
 {
 private:
 	__strong NSImage* m_image;
@@ -61,17 +61,14 @@ private:
 	};
 
 public:
-	nsimage(const composite_string& name, bool resource = true)	// !resource implies filename
+	bitmap(const composite_string& name, bool resource = true)	// !resource implies filename
 		: m_isOpaque(true)
 	{
 		__strong NSString* name2 = string_to_NSString(name);
-		__strong NSString* imageName;
 		if (resource)
-			imageName = [[NSBundle mainBundle] pathForResource:name2 ofType:@"bmp"]; 
+			m_image = [[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name2 ofType:@"bmp"]];
 		else
-			imageName = name2;
-		
-		m_image = [[NSImage alloc] initWithContentsOfFile:imageName];
+			m_image = [[NSImage alloc] initWithContentsOfFile:name2];
 
 		// If any representations have an alpha channel?
 		__strong NSArray<NSImageRep*>* reps = [m_image representations];
@@ -79,20 +76,20 @@ public:
 		COGS_ASSERT(n > 0);
 		while (n != 0)
 		{
+			--n;
 			NSImageRep* rep = [reps objectAtIndex: n];
 			if (![rep isOpaque])
 			{
 				m_isOpaque = false;
 				break;
 			}
-			--n;
 		}
 
 		NSSize sz = [m_image size];
 		m_actualSize = m_logicalSize = size(sz.width, sz.height);
 	}
 
-	nsimage(const size& sz, std::optional<color> fillColor = std::nullopt)
+	bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
 		: m_actualSize(sz),
 		m_logicalSize(sz)
 	{
@@ -152,7 +149,7 @@ public:
 
 	virtual void draw_bitmap(const canvas::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
 	{
-		const nsimage* srcImage = static_cast<const nsimage*>(&src);
+		const bitmap* srcImage = static_cast<const bitmap*>(&src);
 		lock_scope token(m_image);
 		graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 		update_opacity(dstBounds, srcImage->is_opaque(), blendAlpha);
@@ -304,12 +301,12 @@ public:
 
 inline rcref<canvas::bitmap> graphics_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor)
 {
-	return rcnew(nsimage, sz, fillColor);
+	return rcnew(bitmap, sz, fillColor);
 }
 
 inline rcref<canvas::bitmap> graphics_context::load_bitmap(const composite_string& location)
 {
-	return rcnew(nsimage, location);
+	return rcnew(bitmap, location);
 }
 
 inline void graphics_context::draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha)
@@ -319,7 +316,7 @@ inline void graphics_context::draw_bitmap(const canvas::bitmap& src, const canva
 		if (src.is_opaque())
 			blendAlpha = false;
 
-		const nsimage* src2 = static_cast<const nsimage*>(&src);
+		const bitmap* src2 = static_cast<const bitmap*>(&src);
 		NSRect srcRect2 = graphics_context::make_NSRect(srcBounds);
 		NSRect dstRect2 = graphics_context::make_NSRect(dstBounds);
 
