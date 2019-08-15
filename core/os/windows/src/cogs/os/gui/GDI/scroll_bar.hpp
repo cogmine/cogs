@@ -76,7 +76,7 @@ private:
 				si.nMax = 0;
 				si.nPage = 1;
 				si.nPos = 0;
-				si.fMask = SIF_DISABLENOSCROLL | SIF_PAGE | SIF_RANGE;
+				si.fMask = SIF_PAGE | SIF_RANGE | SIF_DISABLENOSCROLL;
 
 				EnableWindow(get_HWND(), FALSE);
 			}
@@ -155,6 +155,11 @@ public:
 		};
 
 		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
+	}
+
+	virtual bool can_overlay() const
+	{
+		return false;
 	}
 
 	virtual void installing()

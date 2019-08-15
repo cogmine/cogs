@@ -51,6 +51,8 @@ public:
 /// @brief Interface for a bridgeable GUI scroll bar.
 class scroll_bar_interface
 {
+public:
+	virtual bool can_overlay() const = 0;
 };
 
 /// @ingroup GUI
@@ -61,6 +63,7 @@ public:
 	typedef function<void(const rcref<scroll_bar>&)>	scrolled_delegate_t;
 
 private:
+	rcptr<scroll_bar_interface> m_nativeScrollBar; 
 	const dimension m_dimension;
 	const bool m_isHiddenWhenInactive;
 	
@@ -116,15 +119,27 @@ public:
 	dimension get_dimension() const	{ return m_dimension; }
 	bool is_hidden_when_inactive() const	{ return m_isHiddenWhenInactive; }
 
+	virtual bool can_overlay() const
+	{
+		return m_nativeScrollBar->can_overlay();
+	}
+
 	virtual void installing()
 	{
-		pane_bridge::install_bridged(std::move(get_subsystem()->create_scroll_bar().first));
+		auto nativeScrollBar = get_subsystem()->create_scroll_bar();
+		m_nativeScrollBar = std::move(nativeScrollBar.second);
+		pane_bridge::install_bridged(std::move(nativeScrollBar.first));
 	}
 	
+	virtual void uninstalling()
+	{
+		pane_bridge::uninstalling();
+		m_nativeScrollBar.release();
+	}
+
 	virtual rcref<dependency_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state>>(); }
 	virtual rcref<dependency_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).template static_cast_to<dependency_property<double>>(); }
 };
-
 
 
 }
@@ -132,4 +147,3 @@ public:
 
 
 #endif
-

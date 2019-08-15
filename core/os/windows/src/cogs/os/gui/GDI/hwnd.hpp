@@ -1903,6 +1903,8 @@ public:
 			case WM_HSCROLL:
 			case WM_CTLCOLORSTATIC:	// Windows sends these to the parent wind.  Pass it to child, where we will intercept it.
 			case WM_CTLCOLOREDIT:
+			case WM_CTLCOLORSCROLLBAR:
+			case WM_CTLCOLORLISTBOX:
 			case WM_CTLCOLORBTN:
 				{
 					if (lParam)
@@ -1992,11 +1994,6 @@ public:
 
 inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	//string s = get_window_message_string(msg);
-	//printf("hwnd::WndProc: ");
-	//wprintf(s.cstr());
-	//printf("\n");
-
 	hwnd* hwndPtr = (hwnd*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
 	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
@@ -2022,11 +2019,6 @@ inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
 inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	//string s = get_window_message_string(msg);
-	//printf("hwnd::WndProc: ");
-	//wprintf(s.cstr());
-	//printf("\n");
-
 	auto itor = get_hwnd_map().find(hWnd);
 	if (!itor)
 		return 0;
