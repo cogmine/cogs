@@ -801,198 +801,198 @@ int COGS_MAIN()
 		//}
 		//
 
-		//{
-		//	rcref<canvas_pane> drawPane = canvas_pane::create([](const rcref<canvas_pane>& f)
-		//		{
-		//			color grn(0x40, 40, 40);
-		//			grn.set_alpha(0x90);
-		//			f->fill(f->get_size(), grn);
+		{
+			rcref<canvas_pane> drawPane = canvas_pane::create([](const rcref<canvas_pane>& f)
+				{
+					color grn(0x40, 40, 40);
+					grn.set_alpha(0x90);
+					f->fill(f->get_size(), grn);
 
-		//			color a(color::red);
-		//			color b(color::blue);
+					color a(color::red);
+					color b(color::blue);
 
-		//			rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//			msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//			msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
+					rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+					msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+					msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
 
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, false, false);
+					a.set_alpha(0xFF);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, false, false);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, false, false);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, false, false);
 
-		//			a.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::transparent, false, false);
+					a.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::transparent, false, false);
 
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::transparent, b, false, false);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::transparent, b, false, false);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, false, false);
-		//			
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, false, false);
+					a.set_alpha(0x7F);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, false, false);
+					
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, false, false);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::transparent, false, false);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::transparent, false, false);
 
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::transparent, b, false, false);
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::transparent, b, false, false);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x20);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, false, false);
-		//			
-		//			a.set_alpha(0x20);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, false, false);
-
-
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, true, true);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, true, true);
-
-		//			a.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::transparent, true, true);
-
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::transparent, b, true, true);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, true, true);
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, true, true);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::transparent, true, true);
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::transparent, b, true, true);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x20);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, true, true);
-
-		//			a.set_alpha(0x20);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, true, true);
-		//		}, compositing_behavior::buffer_self_and_children);
-		//	rcref<fixed_size_frame> fixedSizeFrame = rcnew(fixed_size_frame, drawPane, gfx::canvas::size(800, 650));
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test"), drawPane, fixedSizeFrame);
-		//}
-
-
-		//{
-		//	rcref<canvas_pane> drawPane = canvas_pane::create([](const rcref<canvas_pane>& f)
-		//		{
-		//			color grn(0x40, 40, 40);
-		//			grn.set_alpha(0x90);
-		//			f->fill(f->get_size(), grn);
-
-		//			color a(color::red);
-		//			color b(color::blue);
-
-		//			rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//			msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//			msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, true, false);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, true, false);
-
-		//			a.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::transparent, true, false);
-
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::transparent, b, true, false);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, true, false);
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, true, false);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::transparent, true, false);
-
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::transparent, b, true, false);
-
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x20);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, true, false);
-
-		//			a.set_alpha(0x20);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, true, false);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x20);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, false, false);
+					
+					a.set_alpha(0x20);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, false, false);
 
 
 
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, false, true);
+					a.set_alpha(0xFF);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, true, true);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, false, true);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, true, true);
 
-		//			a.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::transparent, false, true);
+					a.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::transparent, true, true);
 
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::transparent, b, false, true);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::transparent, b, true, true);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0xFF);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, false, true);
+					a.set_alpha(0x7F);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, true, true);
 
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, false, true);
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, true, true);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::transparent, false, true);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::transparent, true, true);
 
-		//			a.set_alpha(0xFF);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::transparent, b, false, true);
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::transparent, b, true, true);
 
-		//			a.set_alpha(0x7F);
-		//			b.set_alpha(0x20);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, false, true);
+					a.set_alpha(0x7F);
+					b.set_alpha(0x20);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, true, true);
 
-		//			a.set_alpha(0x20);
-		//			b.set_alpha(0x7F);
-		//			f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, false, true);
-		//		}, compositing_behavior::buffer_self_and_children);
-		//	rcref<fixed_size_frame> fixedSizeFrame = rcnew(fixed_size_frame, drawPane, gfx::canvas::size(800, 650));
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test2"), drawPane, fixedSizeFrame);
-		//}
+					a.set_alpha(0x20);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, true, true);
+				}, compositing_behavior::buffer_self_and_children);
+			rcref<fixed_size_frame> fixedSizeFrame = rcnew(fixed_size_frame, drawPane, gfx::canvas::size(800, 650));
+			*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test"), drawPane, fixedSizeFrame);
+		}
+
+
+		{
+			rcref<canvas_pane> drawPane = canvas_pane::create([](const rcref<canvas_pane>& f)
+				{
+					color grn(0x40, 40, 40);
+					grn.set_alpha(0x90);
+					f->fill(f->get_size(), grn);
+
+					color a(color::red);
+					color b(color::blue);
+
+					rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+					msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+					msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, true, false);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, true, false);
+
+					a.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::transparent, true, false);
+
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::transparent, b, true, false);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, true, false);
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, true, false);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::transparent, true, false);
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::transparent, b, true, false);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x20);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, true, false);
+
+					a.set_alpha(0x20);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, true, false);
+
+
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, false, true);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, false, true);
+
+					a.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::transparent, false, true);
+
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::transparent, b, false, true);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0xFF);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, false, true);
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, false, true);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::transparent, false, true);
+
+					a.set_alpha(0xFF);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::transparent, b, false, true);
+
+					a.set_alpha(0x7F);
+					b.set_alpha(0x20);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, false, true);
+
+					a.set_alpha(0x20);
+					b.set_alpha(0x7F);
+					f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, false, true);
+				}, compositing_behavior::buffer_self_and_children);
+			rcref<fixed_size_frame> fixedSizeFrame = rcnew(fixed_size_frame, drawPane, gfx::canvas::size(800, 650));
+			*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test2"), drawPane, fixedSizeFrame);
+		}
 
 
 		//{

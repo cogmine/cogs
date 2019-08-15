@@ -360,7 +360,7 @@ protected:
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		return paneBridge->create_offscreen_buffer(forPane, sz, fillColor);
+		return paneBridge->pane::create_offscreen_buffer(forPane, sz, fillColor);
 	}
 };
 

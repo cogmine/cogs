@@ -146,6 +146,11 @@ public:
 		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
 	}
 
+	virtual bool can_overlay() const
+	{
+		return true;
+	}
+
 	virtual void installing()
 	{
 		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();

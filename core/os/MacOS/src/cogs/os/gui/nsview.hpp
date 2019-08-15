@@ -428,7 +428,7 @@ public:
 			else
 			{
 				NSView* prevSiblingView = m_prevSiblingView.get_ptr()->m_nsView;
-				[parentView addSubview: m_nsView positioned: NSWindowBelow relativeTo: prevSiblingView];
+				[parentView addSubview: m_nsView positioned: NSWindowAbove relativeTo: prevSiblingView];
 			}
 		}
 
@@ -465,10 +465,12 @@ public:
 	virtual void hiding()
 	{
 		[m_nsView setHidden:YES];
+		bridgeable_pane::hiding();
 	}
 
 	virtual void showing()
 	{
+		bridgeable_pane::showing();
 		[m_nsView setHidden:NO];
 		[m_nsView setNeedsDisplay:YES];
 	}
@@ -606,7 +608,6 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 			nsView->m_cppView = this_rcptr;
 		
 			[nsView setAutoresizesSubviews:NO];
-			[nsView setPostsFrameChangedNotifications:YES];
 		
 			install_NSView(nsView);
 			nsview_pane::installing();
