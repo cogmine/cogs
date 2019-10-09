@@ -34,21 +34,23 @@ private:
 		m_event.signal();
 	}
 
-protected:
-	single_fire_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
-		: timer(desc, t)
-	{ }
-
 public:
-	static rcref<single_fire_timer> create(const timeout_t& t)
+	explicit single_fire_timer(const ptr<rc_obj_base>& desc)
+		: timer(desc, timeout_t::infinite())
 	{
-		rcref<single_fire_timer> tmr = rcnew(bypass_constructor_permission<single_fire_timer>, t);
-		if (!t.is_infinite())
-			tmr->defer();
-		return tmr;
 	}
 
-	bool reschedule(const timeout_t& t)			{ return timer::reschedule(t); }
+	single_fire_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+		: timer(desc, t)
+	{
+		if (!t.is_infinite())
+			defer();
+	}
+
+	bool reschedule(const timeout_t& t)
+	{
+		return timer::reschedule(t);
+	}
 };
 
 

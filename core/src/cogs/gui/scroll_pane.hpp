@@ -34,19 +34,55 @@ private:
 	class scroll_bar_info
 	{
 	public:
-		rcptr<override_bounds_frame> m_scrollBarFrame;
-		rcptr<scroll_bar> m_scrollBar;
-		volatile transactable<scroll_bar_state>	m_scrollBarState;
-		volatile double m_scrollBarPosition;
-		delayed_construction<delegated_dependency_property<scroll_bar_state, io::read_only> > m_scrollBarStateProperty;
-		delayed_construction<delegated_dependency_property<double> > m_scrollBarPositionProperty;
+		rcref<scroll_bar> m_scrollBar;
+		rcref<override_bounds_frame> m_frame;
+		volatile transactable<scroll_bar_state>	m_state;
+		volatile double m_position = 0;
+		volatile boolean m_canAutoFade;
 
-		scroll_bar_info()
-			: m_scrollBarPosition(0)
-		{ }
+		delegated_dependency_property<scroll_bar_state, io::read_only> m_stateProperty;
+		delegated_dependency_property<double> m_positionProperty;
+		delegated_dependency_property<bool, io::write_only> m_canAutoFadeProperty;
+
+		scroll_bar_info(const ptr<rc_obj_base>& desc, scroll_pane& scrollPane, dimension d)
+			: m_scrollBar(rcnew(scroll_bar, d, scrollPane.m_hideInactiveScrollBar)),
+			m_frame(rcnew(override_bounds_frame, m_scrollBar)),
+			m_stateProperty(desc, scrollPane, [this]()
+			{
+				return *(m_state.begin_read());
+			}),
+			m_positionProperty(desc, scrollPane, [this]()
+			{
+				return atomic::load(m_position);
+			}, [this, &scrollPane](double d)
+			{
+				double newPos = d;
+				double oldPos = atomic::exchange(m_position, newPos);
+				if (oldPos != newPos)
+				{
+					m_positionProperty.changed();
+					scrollPane.scrolled();
+				}
+				m_positionProperty.set_complete();
+			}),
+			m_canAutoFadeProperty(desc, scrollPane, [this, &scrollPane](bool b)
+			{
+				boolean oldValue = m_canAutoFade.exchange(b);
+				if (oldValue != b && scrollPane.m_shouldAutoFadeScrollBar)
+					scrollPane.recompose();
+				m_canAutoFadeProperty.set_complete();
+			})
+		{
+			scrollPane.pane::nest_last(m_scrollBar, m_frame);
+			m_stateProperty.bind_to(m_scrollBar->get_state_property());
+			m_positionProperty.bind(m_scrollBar->get_position_property(), true);
+			m_canAutoFadeProperty.bind_from(m_scrollBar->get_can_auto_fade_property());
+			scrollPane.m_shouldAutoFadeScrollBarProperty.bind_to(m_scrollBar->get_should_auto_fade_property());
+		}
 	};
 
-	scroll_bar_info m_scrollBarInfo[2];
+	bool m_hasScrollBar[2];
+	placement<scroll_bar_info> m_scrollBarInfo[2];
 
 	rcptr<container_pane> m_contentPane;
 	rcptr<native_container_pane> m_clippingPane;	// using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
@@ -60,41 +96,55 @@ private:
 	size m_calculatedDefaultSize;
 
 	bool m_hideInactiveScrollBar;
-	bool m_allowScrollBarOverlay;
 
-	bool has_scroll_bar(dimension d) const { return !!m_scrollBarInfo[(int)d].m_scrollBar; }
+	volatile boolean m_shouldAutoFadeScrollBar;
+	delegated_dependency_property<bool> m_shouldAutoFadeScrollBarProperty;
+
+	bool has_scroll_bar(dimension d) const { return m_hasScrollBar[(int)d]; }
+
+	scroll_bar_info& get_scroll_bar_info(dimension d)
+	{
+		COGS_ASSERT(has_scroll_bar(d));
+		return m_scrollBarInfo[(int)d].get();
+	}
+
+	const scroll_bar_info& get_scroll_bar_info(dimension d) const
+	{
+		COGS_ASSERT(has_scroll_bar(d));
+		return m_scrollBarInfo[(int)d].get();
+	}
 
 	void scrolled()
 	{
 		point oldOrigin = m_contentFrame->get_position();
 		point oldScrollPosition = -oldOrigin;
 
-		double hScrollPosition = atomic::load(m_scrollBarInfo[0].m_scrollBarPosition);
-		double vScrollPosition = atomic::load(m_scrollBarInfo[1].m_scrollBarPosition);
+		double hScrollPosition = has_scroll_bar(dimension::horizontal) ? atomic::load(get_scroll_bar_info(dimension::horizontal).m_position) : 0.0;
+		double vScrollPosition = has_scroll_bar(dimension::vertical) ? atomic::load(get_scroll_bar_info(dimension::vertical).m_position) : 0.0;
 
 		point newScrollPosition(hScrollPosition, vScrollPosition);
 		if (oldScrollPosition != newScrollPosition)
 		{
 			m_contentFrame->get_position() = -newScrollPosition;
-			cell::reshape(*m_contentFrame, m_contentFrame->get_fixed_bounds(), oldOrigin);
+			cell::reshape(*m_contentFrame, m_contentFrame->get_fixed_size(), oldOrigin);
 		}
 	}
 
-	bool use_scroll_bar_overlay() const
+	bool use_scroll_bar_auto_fade() const
 	{
-		if (!m_allowScrollBarOverlay)
+		if (!m_shouldAutoFadeScrollBar)
 			return false;
 		dimension d = dimension::vertical;
 		if (!has_scroll_bar(d))
 			d = !d;
-		return m_scrollBarInfo[(int)d].m_scrollBar->can_overlay();
+		return get_scroll_bar_info(d).m_canAutoFade;
 	}
 
 	// Removes inactive scroll bars
 	size propose_inner(const size& proposedSize) const
 	{
 		size sz = proposedSize;
-		if (use_scroll_bar_overlay())
+		if (use_scroll_bar_auto_fade())
 			return sz;
 
 		if (m_hideInactiveScrollBar)
@@ -119,7 +169,7 @@ private:
 										sz[!d] = contentMins[!d];
 									break;
 								}
-						min += m_scrollBarInfo[(int)!d].m_scrollBar->get_const_cell().get_default_size()[d];
+						min += get_scroll_bar_info(!d).m_scrollBar->get_const_cell().get_default_size()[d];
 					}
 
 					if (sz[d] >= min)
@@ -129,7 +179,7 @@ private:
 					}
 					else
 					{
-						double minWithScrollBar = m_calculatedRange.get_min(!d) + m_scrollBarInfo[(int)d].m_scrollBar->get_const_cell().get_default_size()[!d];
+						double minWithScrollBar = m_calculatedRange.get_min(!d) + get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
 						if (sz[!d] < minWithScrollBar)
 							sz[!d] = minWithScrollBar;
 					}
@@ -144,7 +194,7 @@ private:
 					}
 					else
 					{
-						double minWithScrollBar = m_calculatedRange.get_min(d) + m_scrollBarInfo[(int)!d].m_scrollBar->get_const_cell().get_default_size()[d];
+						double minWithScrollBar = m_calculatedRange.get_min(d) + get_scroll_bar_info(!d).m_scrollBar->get_const_cell().get_default_size()[d];
 						if (sz[d] < minWithScrollBar)
 							sz[d] = minWithScrollBar;
 					}
@@ -157,17 +207,37 @@ private:
 	}
 
 public:
-	explicit scroll_pane(const ptr<rc_obj_base>& desc, scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically, bool hideInactiveScrollBar = true, bool allowScrollBarOverlay = true)
+	// The behavior of scroll_pane varies depending on the input device.
+	// Mode A: For traditional mouse-based input, scroll bars are always shown (though can optionally be hidden when inactive).
+	// Mode B: For touch screen, or if scrolling is otherwise provided by a device, scroll bars are displayed overlaying
+	// the content only when scrolling occurs, then fade.  Drag/flick scrolling is always enabled in Mode B.
+	// On MacOS, there is a user setting to dynamically switch between these modes.
+	explicit scroll_pane(
+		const ptr<rc_obj_base>& desc,
+		scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically,
+		bool hideInactiveScrollBar = true,
+		bool shouldScrollBarAutoFade = true,	// If false, scroll bars are always displayed in mode B.
+		bool dragAndFlickScrolling = true)		// If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		: pane(desc),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
-		m_allowScrollBarOverlay(allowScrollBarOverlay)
+		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
+		m_shouldAutoFadeScrollBarProperty(desc, *this, [this]()
+		{
+			return m_shouldAutoFadeScrollBar;
+		}, [this](bool b)
+		{
+			bool oldValue = m_shouldAutoFadeScrollBar.exchange(b);
+			if (oldValue != b)
+				m_shouldAutoFadeScrollBarProperty.changed();
+			m_shouldAutoFadeScrollBarProperty.set_complete();
+		})
 	{
-		m_contentPane = container_pane::create();
+		m_contentPane = rcnew(container_pane);
 
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
-		m_clippingPane = native_container_pane::create();
-		m_cornerPane = container_pane::create();
+		m_clippingPane = rcnew(native_container_pane);
+		m_cornerPane = rcnew(container_pane);
 
 		m_contentFrame = rcnew(override_bounds_frame, m_contentPane.dereference());
 		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, m_contentFrame.dereference(), alignment(0, 0));
@@ -179,43 +249,25 @@ public:
 		pane::nest_last(m_clippingPane.dereference(), m_clippingFrame);
 		pane::nest_last(m_cornerPane.dereference(), m_cornerFrame);
 
-		bool scrollDimension[2];
-		scrollDimension[0] = ((scrollDimensions & scroll_horizontally) != 0);
-		scrollDimension[1] = ((scrollDimensions & scroll_vertically) != 0);
-
-		for (int i = 0; i < 2; i++)
+		if ((scrollDimensions & scroll_horizontally) != 0)
 		{
-			placement_rcnew(&m_scrollBarInfo[i].m_scrollBarStateProperty.get(), this_desc, *this, [this, i]()
-				{
-					return *(m_scrollBarInfo[i].m_scrollBarState.begin_read());
-				});
-
-			placement_rcnew(&m_scrollBarInfo[i].m_scrollBarPositionProperty.get(), this_desc, *this, [this, i]()
-				{
-					return atomic::load(m_scrollBarInfo[i].m_scrollBarPosition);
-				}, [this, i](double d)
-				{
-					double newPos = d;
-					double oldPos = atomic::exchange(m_scrollBarInfo[i].m_scrollBarPosition, newPos);
-					if (oldPos != newPos)
-					{
-						m_scrollBarInfo[i].m_scrollBarPositionProperty->changed();
-						scrolled();
-					}
-					m_scrollBarInfo[i].m_scrollBarPositionProperty->set_complete();
-				});
-
-			if (scrollDimension[i])
-			{
-				m_scrollBarInfo[i].m_scrollBar = rcnew(scroll_bar, (dimension)i, hideInactiveScrollBar);
-				m_scrollBarInfo[i].m_scrollBarFrame = rcnew(override_bounds_frame, m_scrollBarInfo[i].m_scrollBar.dereference());
-				m_scrollBarInfo[i].m_scrollBarFrame->get_position().get_x() = 0;
-				m_scrollBarInfo[i].m_scrollBarFrame->get_position().get_y() = 0;
-				pane::nest_last(m_scrollBarInfo[i].m_scrollBar.dereference(), m_scrollBarInfo[i].m_scrollBarFrame);
-				m_scrollBarInfo[i].m_scrollBarStateProperty->bind_to(m_scrollBarInfo[i].m_scrollBar->get_state_property());
-				m_scrollBarInfo[i].m_scrollBarPositionProperty->bind(m_scrollBarInfo[i].m_scrollBar->get_position_property());
-			}
+			m_hasScrollBar[(int)dimension::horizontal] = true;
+			new (&get_scroll_bar_info(dimension::horizontal)) scroll_bar_info(desc, *this, dimension::horizontal);
 		}
+
+		if ((scrollDimensions & scroll_vertically) != 0)
+		{
+			m_hasScrollBar[(int)dimension::vertical] = true;
+			new (&get_scroll_bar_info(dimension::vertical)) scroll_bar_info(desc, *this, dimension::vertical);
+		}
+	}
+
+	~scroll_pane()
+	{
+		if (m_hasScrollBar[(int)dimension::horizontal])
+			m_scrollBarInfo[(int)dimension::horizontal].destruct();
+		if (m_hasScrollBar[(int)dimension::vertical])
+			m_scrollBarInfo[(int)dimension::vertical].destruct();
 	}
 
 	virtual range get_range() const { return m_calculatedRange; }
@@ -280,7 +332,7 @@ public:
 		{
 			dimension d = (dimension)i;
 			if (has_scroll_bar(d))
-				m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size(!d) = m_scrollBarInfo[i].m_scrollBar->get_const_cell().get_default_size()[!d];
+				get_scroll_bar_info(d).m_frame->get_fixed_size(!d) = get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
 		}
 
 		m_calculatedRange.set_min(0, 0);
@@ -289,14 +341,14 @@ public:
 		// default to size of contents
 		m_calculatedDefaultSize = m_contentPane->get_default_size();
 		
-		bool overlay = use_scroll_bar_overlay();
-		if (!m_hideInactiveScrollBar && !overlay)
+		bool autoFade = use_scroll_bar_auto_fade();
+		if (!m_hideInactiveScrollBar && !autoFade)
 		{
 			for (int i = 0; i < 2; i++)
 			{
 				dimension d = (dimension)i;
 				if (has_scroll_bar(d))
-					m_calculatedDefaultSize[!d] += m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size(!d);
+					m_calculatedDefaultSize[!d] += get_scroll_bar_info(d).m_frame->get_fixed_size(!d);
 			}
 		}
 
@@ -309,15 +361,15 @@ public:
 			if (contentRange.has_max(!d))
 			{
 				m_calculatedRange.set_max(!d, contentRange.get_max(!d));
-				if (has_scroll_bar(!!d) && !overlay)
-					m_calculatedRange.get_max(!d) += m_scrollBarInfo[i].m_scrollBar->get_const_cell().get_default_size()[!d];
+				if (has_scroll_bar(!!d) && !autoFade)
+					m_calculatedRange.get_max(!d) += get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
 			}
 
 			if (!has_scroll_bar(!d))
 			{
 				m_calculatedRange.set_min(!d, contentRange.get_min(!d));
-				if (!m_hideInactiveScrollBar && has_scroll_bar(!!d) && !overlay)
-					m_calculatedRange.get_min(!d) += m_scrollBarInfo[i].m_scrollBar->get_const_cell().get_default_size()[!d];
+				if (!m_hideInactiveScrollBar && has_scroll_bar(!!d) && !autoFade)
+					m_calculatedRange.get_min(!d) += get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
 			}
 		}
 	}
@@ -349,11 +401,11 @@ public:
 		// limit contentBounds to visibleBounds, but may still have greater min size
 		contentBounds.get_size() = contentRange.limit(visibleBounds.get_size());
 
-		bool overlay = use_scroll_bar_overlay();
+		bool autoFade = use_scroll_bar_auto_fade();
 		auto reduce_content_bounds = [&](dimension d)
 		{
-			if (!overlay)
-				visibleBounds.get_size()[d] -= m_scrollBarInfo[(int)!d].m_scrollBarFrame->get_fixed_size()[d];
+			if (!autoFade)
+				visibleBounds.get_size()[d] -= get_scroll_bar_info(!d).m_frame->get_fixed_size()[d];
 			if (visibleBounds.get_size()[d] < contentBounds.get_size()[d])
 			{
 				contentBounds.get_size()[d] = visibleBounds.get_size()[d];
@@ -363,27 +415,25 @@ public:
 		};
 
 		bool showScrollBar[2];
-		bool hasScrollBar[2] = { has_scroll_bar((dimension)0), has_scroll_bar((dimension)1) };
-
 		if (!m_hideInactiveScrollBar)
 		{
 			// If not auto-hide, always include them.
-			showScrollBar[0] = hasScrollBar[0];
-			showScrollBar[1] = hasScrollBar[1];
-			if (showScrollBar[0])
-				reduce_content_bounds((dimension)1);
-			if (showScrollBar[1])
-				reduce_content_bounds((dimension)0);
+			showScrollBar[(int)dimension::horizontal] = has_scroll_bar(dimension::horizontal);
+			showScrollBar[(int)dimension::vertical] = has_scroll_bar(dimension::vertical);
+			if (showScrollBar[(int)dimension::horizontal])
+				reduce_content_bounds(dimension::vertical);
+			if (showScrollBar[(int)dimension::vertical])
+				reduce_content_bounds(dimension::horizontal);
 		}
 		else
 		{
-			showScrollBar[0] = false;
-			showScrollBar[1] = false;
-			bool hasBothScrollBars = hasScrollBar[0] && hasScrollBar[1];
+			showScrollBar[(int)dimension::horizontal] = false;
+			showScrollBar[(int)dimension::vertical] = false;
+			bool hasBothScrollBars = has_scroll_bar(dimension::horizontal) && has_scroll_bar(dimension::vertical);
 			if (!hasBothScrollBars)
 			{
 				// If auto-hide and only 1 dimension...
-				dimension d = hasScrollBar[0] ? (dimension)0 : (dimension)1;
+				dimension d = has_scroll_bar(dimension::horizontal) ? (dimension)0 : (dimension)1;
 				if (contentBounds.get_size()[d] > visibleBounds.get_size()[d])
 				{
 					showScrollBar[(int)d] = true;
@@ -417,9 +467,9 @@ public:
 
 		for (int i = 0; i < 2; i++)
 		{
-			if (hasScrollBar[i])
+			dimension d = (dimension)i;
+			if (has_scroll_bar(d))
 			{
-				dimension d = (dimension)i;
 				contentBounds.get_position()[d] += oldOrigin[d];
 				double pos = 0;
 				if (showScrollBar[i])
@@ -439,33 +489,33 @@ public:
 						pos = 0;
 						contentBounds.get_position()[d] = 0;
 					}
-					m_scrollBarInfo[i].m_scrollBarFrame->get_position()[!d] = b.get_size()[!d];
-					m_scrollBarInfo[i].m_scrollBarFrame->get_position()[!d] -= m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size()[!d];
-					m_scrollBarInfo[i].m_scrollBarState.set(scroll_bar_state(max, thumbSize));
+					get_scroll_bar_info(d).m_frame->get_position()[!d] = b.get_size()[!d];
+					get_scroll_bar_info(d).m_frame->get_position()[!d] -= get_scroll_bar_info(d).m_frame->get_fixed_size()[!d];
+					get_scroll_bar_info(d).m_state.set(scroll_bar_state(max, thumbSize));
 				}
 				else
 				{
 					contentBounds.get_position()[d] = 0;
-					m_scrollBarInfo[i].m_scrollBarState.set(scroll_bar_state(0, 0));
+					get_scroll_bar_info(d).m_state.set(scroll_bar_state(0, 0));
 				}
-				atomic::store(m_scrollBarInfo[i].m_scrollBarPosition, pos);
-				m_scrollBarInfo[i].m_scrollBarFrame->get_fixed_size()[d] = b.get_size()[d];
-				m_scrollBarInfo[i].m_scrollBarStateProperty->changed();
-				m_scrollBarInfo[i].m_scrollBarPositionProperty->changed();
+				atomic::store(get_scroll_bar_info(d).m_position, pos);
+				get_scroll_bar_info(d).m_frame->get_fixed_size()[d] = b.get_size()[d];
+				get_scroll_bar_info(d).m_stateProperty.changed();
+				get_scroll_bar_info(d).m_positionProperty.changed();
 			}
 		}
 
-		bool showBothScrollBars = showScrollBar[0] && showScrollBar[1];
+		bool showBothScrollBars = showScrollBar[(int)dimension::horizontal] && showScrollBar[(int)dimension::vertical];
 		if (showBothScrollBars)
 		{
-			double vScrollBarWidth = m_scrollBarInfo[1].m_scrollBarFrame->get_fixed_width();
-			double hScrollBarHeight = m_scrollBarInfo[0].m_scrollBarFrame->get_fixed_height();
-			m_scrollBarInfo[0].m_scrollBarFrame->get_fixed_width() -= vScrollBarWidth;
-			m_scrollBarInfo[1].m_scrollBarFrame->get_fixed_height() -= hScrollBarHeight;
+			double vScrollBarWidth = get_scroll_bar_info(dimension::vertical).m_frame->get_fixed_width();
+			double hScrollBarHeight = get_scroll_bar_info(dimension::horizontal).m_frame->get_fixed_height();
+			get_scroll_bar_info(dimension::horizontal).m_frame->get_fixed_width() -= vScrollBarWidth;
+			get_scroll_bar_info(dimension::vertical).m_frame->get_fixed_height() -= hScrollBarHeight;
 			m_cornerFrame->get_fixed_bounds() = bounds(
 				point(
-					m_scrollBarInfo[1].m_scrollBarFrame->get_position().get_x(),
-					m_scrollBarInfo[0].m_scrollBarFrame->get_position().get_y()),
+					get_scroll_bar_info(dimension::vertical).m_frame->get_position().get_x(),
+					get_scroll_bar_info(dimension::horizontal).m_frame->get_position().get_y()),
 				size(
 					vScrollBarWidth,
 					hScrollBarHeight));
@@ -477,10 +527,11 @@ public:
 
 		for (int i = 0; i < 2; i++)
 		{
-			if (hasScrollBar[i])
+			dimension d = (dimension)i;
+			if (has_scroll_bar(d))
 			{
-				if (m_scrollBarInfo[i].m_scrollBar->is_hidden() == showScrollBar[i])
-					m_scrollBarInfo[i].m_scrollBar->show_or_hide(showScrollBar[i]);
+				if (get_scroll_bar_info(d).m_scrollBar->is_hidden() == showScrollBar[i])
+					get_scroll_bar_info(d).m_scrollBar->show_or_hide(showScrollBar[i]);
 			}
 		}
 		if (m_cornerPane->is_hidden() == showBothScrollBars)
@@ -492,6 +543,26 @@ public:
 
 		pane::reshape(b, oldOrigin);
 	}
+
+	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		// Give child pane first chance to intercept it
+		if (!pane::wheel_moving(distance, pt, modifiers))
+		{
+			dimension scrollDimension = dimension::horizontal;
+			if (has_scroll_bar(dimension::vertical))	// If shift is held, scroll horizontally
+			{
+				if (!has_scroll_bar(dimension::horizontal) || !modifiers.get_key(ui::modifier_key::shift_key))
+					scrollDimension = dimension::vertical;
+			}
+			else if (!has_scroll_bar(dimension::horizontal))
+				return false;
+			get_scroll_bar_info(scrollDimension).m_scrollBar->scroll(distance);
+		}
+		return true;
+	}
+
+	virtual rcref<dependency_property<bool> > get_should_auto_fade_scroll_bar_property() { return get_self_rcref(&m_shouldAutoFadeScrollBarProperty); }
 };
 
 
@@ -500,4 +571,3 @@ public:
 
 
 #endif
-

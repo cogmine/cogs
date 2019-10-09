@@ -22,6 +22,9 @@ namespace gui {
 class window_interface
 {
 public:
+	virtual void set_initial_shape(const point* initialPosition, const size* initialFrameSize, bool centerPosition) = 0;
+	virtual void reshape_frame(const bounds& newBounds) = 0;
+	virtual bounds get_frame_bounds() const = 0;
 	virtual void set_title(const composite_string& title) = 0;
 };
 
@@ -31,11 +34,6 @@ public:
 class window : public pane_bridge, public virtual pane_container
 {
 private:
-	composite_string m_title;
-
-	volatile boolean m_closed;
-	rcptr<window_interface> m_nativeWindow;
-
 	friend class window_task;
 
 	class window_task : public task<void>
@@ -65,7 +63,15 @@ private:
 		}
 	};
 
+	rcptr<window_interface> m_nativeWindow;
 	window_task m_windowTask;
+	volatile boolean m_closed;
+	composite_string m_title;
+	point m_initialScreenPosition;
+	size m_initialFrameSize;
+	bool m_hasInitialScreenPosition;
+	bool m_hasInitialFrameSize;
+	bool m_initialPositionCentered;
 
 protected:
 	virtual void installing()
@@ -81,12 +87,31 @@ protected:
 		m_nativeWindow.release();
 	}
 
+	virtual void reshape_top()
+	{
+		m_nativeWindow->set_initial_shape(
+			m_hasInitialScreenPosition ? &m_initialScreenPosition : nullptr, 
+			m_hasInitialFrameSize ? &m_initialFrameSize : nullptr,
+			m_initialPositionCentered);
+	}
+
 public:
-	window(const ptr<rc_obj_base>& desc, const composite_string& title)
+	window(const ptr<rc_obj_base>& desc,
+		const gfx::canvas::point* screenPosition,
+		const gfx::canvas::size* frameSize,
+		bool positionCentered,
+		const composite_string& title)
 		: pane_bridge(desc),
 		m_windowTask(desc, this),
+		m_hasInitialScreenPosition(screenPosition != nullptr),
+		m_hasInitialFrameSize(frameSize != nullptr),
+		m_initialPositionCentered(positionCentered),
 		m_title(title)
 	{
+		if (m_hasInitialScreenPosition)
+			m_initialScreenPosition = *screenPosition;
+		if (m_hasInitialFrameSize)
+			m_initialFrameSize = *frameSize;
 	}
 
 	// Gets a task that can be used to wait for a window to go out of scope, or to close (cancel) the window
@@ -143,6 +168,22 @@ public:
 	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
 	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
 	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
+
+	using pane_bridge::reshape;
+
+	virtual void reshape_frame(const bounds& newBounds)
+	{
+		if (!!m_nativeWindow)
+			m_nativeWindow->reshape_frame(newBounds);
+	}
+
+	virtual bounds get_frame_bounds() const
+	{
+		if (!!m_nativeWindow)
+			return m_nativeWindow->get_frame_bounds();
+		bounds b = { { 0, 0 }, { 0, 0 } };
+		return b;
+	}
 };
 
 
@@ -151,15 +192,18 @@ inline rcref<task<void> > windowing::subsystem::open(
 	const rcref<pane>& p,
 	const rcptr<frame>& f) volatile
 {
-	return open_window(title, p, f)->get_window_task();
+	return open_window(nullptr, nullptr, false, title, p, f)->get_window_task();
 }
 
 inline rcref<gui::window> windowing::subsystem::open_window(
+	const gfx::canvas::point* screenPosition,
+	const gfx::canvas::size* frameSize,
+	bool positionCentered,
 	const composite_string& title,
 	const rcref<pane>& p,
 	const rcptr<frame>& f) volatile
 {
-	rcref<gui::window> w = rcnew(window, title);
+	rcref<gui::window> w = rcnew(window, screenPosition, frameSize, positionCentered, title);
 	w->nest(p, f);
 	install(*w, this_rcref);
 	return w;
@@ -171,4 +215,3 @@ inline rcref<gui::window> windowing::subsystem::open_window(
 
 
 #endif
-

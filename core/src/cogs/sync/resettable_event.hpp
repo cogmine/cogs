@@ -29,25 +29,26 @@ class resettable_event : public event_base
 private:
 	class delegates_t : public object
 	{
-	public:
-		delayed_construction<priority_dispatcher>	m_delegates;
+	private:
+		priority_dispatcher m_delegates;
 
-		volatile priority_dispatcher& get() volatile	{ return m_delegates.get(); }
+	public:
+		volatile priority_dispatcher& get() volatile { return m_delegates; }
 
 		explicit delegates_t(const ptr<rc_obj_base>& desc)
-			: object(desc)
+			: object(desc),
+			m_delegates(desc)
 		{
-			placement_rcnew(&m_delegates.get(), this_desc);
 		}
 
 		void clear()
 		{
-			m_delegates->clear();
+			m_delegates.clear();
 		}
 
 		~delegates_t()
 		{
-			while (!!m_delegates->invoke())
+			while (!!m_delegates.invoke())
 				;
 		}
 	};
@@ -432,7 +433,7 @@ public:
 				{
 					read_token rt2;
 					m_contents.begin_read(rt2);
-					if (rt2->m_osSemaphore != osSemaphore)	// If our sync token is not present, we don't need to dec, we're definitely signalled.
+					if (rt2->m_osSemaphore != osSemaphore)	// If our sync token is not present, we don't need to dec, we're definitely signaled.
 					{
 						rt2.release();
 						osSemaphore->acquire();

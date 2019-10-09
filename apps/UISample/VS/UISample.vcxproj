@@ -221,7 +221,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/env/VS/Windows/src;../../../core/arch/x86/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>false</CompileAsManaged>
@@ -240,11 +240,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -260,7 +261,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x86/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>false</CompileAsManaged>
@@ -277,11 +278,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -294,7 +296,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/env/VS/Windows/src;../../../core/arch/x86/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>true</CompileAsManaged>
@@ -313,13 +315,14 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -332,7 +335,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x86/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>true</CompileAsManaged>
@@ -350,13 +353,14 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -369,7 +373,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x64/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>false</CompileAsManaged>
@@ -378,7 +382,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -387,11 +391,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -404,7 +409,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>COGS_DEBUG;COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;COGS_DEBUG;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x64/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <CompileAsManaged>true</CompileAsManaged>
@@ -413,7 +418,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -422,13 +427,14 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -443,7 +449,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/env/VS/Windows/src;../../../core/arch/x86/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -461,10 +467,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -479,7 +486,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x86/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -497,10 +504,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -515,7 +523,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/env/VS/Windows/src;../../../core/arch/x86/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -534,13 +542,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -555,7 +564,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x86/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -574,13 +583,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -595,7 +605,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x64/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAsManaged>false</CompileAsManaged>
@@ -603,7 +613,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
@@ -611,10 +621,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>
@@ -629,7 +640,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGS_DEFAULT_GUI_SUBSYSTEM=GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGS_DEFAULT_UI_SUBSYSTEM=COGS_CONSOLE;COGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../core/src;../../../core/os/windows/src;../../../core/arch/x64/src;../../../core/env/VS/Windows/src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CompileAsManaged>true</CompileAsManaged>
@@ -637,7 +648,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -646,13 +657,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shcore.lib;Gdiplus.lib;Normaliz.lib;Mswsock.lib;ws2_32.lib;dwmapi.lib;msimg32.lib;ComCtl32.lib;WINMM.LIB;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <Manifest />
     <Manifest>

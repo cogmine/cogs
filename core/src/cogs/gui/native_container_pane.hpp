@@ -24,15 +24,10 @@ protected:
 		pane_bridge::install_bridged(get_subsystem()->create_native_pane());
 	}
 
-	native_container_pane(const ptr<rc_obj_base>& desc)
+public:
+	explicit native_container_pane(const ptr<rc_obj_base>& desc)
 		: pane_bridge(desc)
 	{
-	}
-
-public:
-	static rcref<native_container_pane> create()
-	{
-		return rcnew(bypass_constructor_permission<native_container_pane>);
 	}
 
 	using pane_container::nest;

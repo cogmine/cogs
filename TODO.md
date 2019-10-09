@@ -1,0 +1,30 @@
+## TODO
+
+* Replace hide/show state with visibile/invisible/collapsed
+* Pass snapshot of keyboard state with each keyboard and mouse event (i.e. control, shift, alt, etc.)
+* Finish porting all UI elements to MacOS
+* Implement open_window_full_screen
+* Implement support for setting full screen video resolution and modes
+* Port to UWP
+* Port to WPF
+* Port to iOS
+* Port to Android
+* Add GUI support on Linux
+* Implement UI element focus/defucus processing
+* Rework dependency_property to use tasks for async set()
+* Implement more UI properties as dependency_property's
+* Rework serial dispatcher (currently embedded in pane) to use task completion to kick off next task, instead of call to serial_resume().
+* Add internal single elements for vector<> (so single element vector does not require dynamic allocation.  Useful to collapse single-element composite_single, composite_vector, compositive_buffer)
+* Get ANSI terminal w/telnet up and running again
+* Add gui::stack_panel
+* Add/rework gui::wrap_list
+* Add/rework gui::grid
+* Add/rework gui::list
+* Add/rework gui::labeled_list
+* Add/rework gui::button_box
+* Add any missing cryptographic hashes (GOST?)
+* Add cryptographic ciphers (all)
+* Implement SSL/TLS IO classes
+* Implement HTTP related classes
+* Implement REST related classes
+* Implement GraphQL server/client classes

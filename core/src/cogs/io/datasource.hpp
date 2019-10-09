@@ -504,7 +504,7 @@ protected:
 
 	explicit datasource(const ptr<rc_obj_base>& desc)
 		: object(desc),
-		m_ioQueue(queue::create()),
+		m_ioQueue(rcnew(queue)),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize(COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -515,7 +515,7 @@ protected:
 	/// A value of zero implies the default buffer size (COGS_DEFAULT_BLOCK_SIZE).
 	datasource(const ptr<rc_obj_base>& desc, size_t internalBufferSize)
 		: object(desc),
-		m_ioQueue(queue::create()),
+		m_ioQueue(rcnew(queue)),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -527,7 +527,7 @@ protected:
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
 	datasource(const ptr<rc_obj_base>& desc, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
 		: object(desc),
-		m_ioQueue(queue::create()),
+		m_ioQueue(rcnew(queue)),
 		m_overflow(overflow),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -629,11 +629,11 @@ private:
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
 
-		rcptr<io::queue>				m_transactionIoQueue;	// extends the scope of the transaction's io queue
-		volatile rcptr<plug>			m_plug;
-		volatile boolean				m_completeOrAbortGuard;
-		const close_propagation_mode	m_closePropagationMode;
-		volatile boolean				m_transactionAborted;
+		rcptr<io::queue> m_transactionIoQueue;	// extends the scope of the transaction's io queue
+		volatile rcptr<plug> m_plug;
+		volatile boolean m_completeOrAbortGuard;
+		const close_propagation_mode m_closePropagationMode;
+		volatile boolean m_transactionAborted;
 
 		virtual void executing()
 		{
@@ -647,8 +647,7 @@ private:
 		transaction_task(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
 			: io::queue::io_task<transaction_task>(desc),
 			m_transactionIoQueue(ioQueue),
-			m_closePropagationMode(closePropagationMode),
-			m_transactionAborted(false)
+			m_closePropagationMode(closePropagationMode)
 		{ }
 
 		void queue_plug()
@@ -782,7 +781,7 @@ private:
 
 	volatile boolean m_started;
 
-protected:
+public:
 	friend class datasource;	
 
 	/// @brief Transaction constructor.
@@ -790,7 +789,7 @@ protected:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasource.
 	/// @param closePropagationMode Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
-	transaction(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
+	transaction(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
 		:	datasource(desc, ds->m_overflow),
 			m_source(ds),
 			m_started(startImmediately),
@@ -798,18 +797,6 @@ protected:
 	{
 		if (startImmediately)
 			ds->source_enqueue(m_transactionTask);
-	}
-
-public:
-	/// @brief Creates a datasource::transaction
-	///
-	/// @param src Target datasource
-	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
-	/// at some point to queue the transaction to the datasource.
-	/// @param closePropagationMode Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
-	static rcref<transaction> create(const rcref<datasource>& src, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
-	{
-		return rcnew(bypass_constructor_permission<transaction>, src, startImmediately, closePropagationMode);
 	}
 
 	/// @brief Starts processing of tasks queued to the transaction
@@ -859,21 +846,21 @@ private:
 	const bool m_closeSinkOnSourceClose;
 	const bool m_closeSourceOnSinkClose;
 
-	rcptr<datasource::transaction>	m_coupledRead;
-	rcptr<datasink::transaction>	m_coupledWrite;
-	size_t							m_bufferBlockSize;
+	rcptr<datasource::transaction> m_coupledRead;
+	rcptr<datasink::transaction> m_coupledWrite;
+	size_t m_bufferBlockSize;
 	
-	dynamic_integer					m_remaining;
-	bool							m_hasMaxLength;
+	dynamic_integer m_remaining;
+	bool m_hasMaxLength;
 
-	rcptr<datasource::reader>	m_currentReader;
-	rcptr<datasink::writer>		m_currentWriter;
-	composite_buffer			m_pendingBuffers;
-	bool						m_reading;
-	bool						m_writing;
-	bool						m_readClosed;
-	bool						m_writeClosed;
-	volatile boolean			m_decoupling;
+	rcptr<datasource::reader> m_currentReader;
+	rcptr<datasink::writer> m_currentWriter;
+	composite_buffer m_pendingBuffers;
+	bool m_reading = false;
+	bool m_writing = false;
+	bool m_readClosed = false;
+	bool m_writeClosed = false;
+	volatile boolean m_decoupling;
 
 	rcptr<task<void> >	m_onSourceAbortTask;
 	rcptr<task<void> >	m_onSinkAbortTask;
@@ -924,7 +911,6 @@ private:
 				m_coupledRead->prepend_overflow(m_pendingBuffers);
 				m_coupledRead.release();
 				m_coupledWrite.release();
-				//m_closeEvent->signal();
 				signal();
 				return true;
 			}
@@ -940,7 +926,6 @@ private:
 
 		if (!m_readClosed && !m_decoupling)
 		{
-			//COGS_ASSERT(!!m_writing);
 			size_t readSize = m_bufferBlockSize - m_pendingBuffers.get_length();
 			if (!!readSize)
 			{
@@ -1005,7 +990,6 @@ private:
 				m_coupledRead->prepend_overflow(m_pendingBuffers);
 				m_coupledRead.release();
 				m_coupledWrite.release();
-				//m_closeEvent->signal();
 				signal();
 				return true;
 			}
@@ -1013,7 +997,6 @@ private:
 
 		if (!m_decoupling)
 		{
-			//COGS_ASSERT(!m_readClosed);
 			if (!!unwrittenBufferList)		// Don't combine with m_pendingBuffers.  Functionality may depend on a separation point between message blocks.
 				m_writing = true;
 			else if (!!m_pendingBuffers)
@@ -1043,7 +1026,6 @@ private:
 					{
 						m_coupledRead.release();
 						m_coupledWrite.release();
-						//m_closeEvent->signal();
 						signal();
 						return true;
 					}
@@ -1115,13 +1097,8 @@ protected:
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 		: signallable_task_base<void>(desc),
-		m_reading(false),
-		m_writing(false),
-		m_readClosed(false),
-		m_writeClosed(false),
-		m_decoupling(false),
-		m_coupledRead(datasource::transaction::create(src)),
-		m_coupledWrite(datasink::transaction::create(snk)),
+		m_coupledRead(rcnew(datasource::transaction, src)),
+		m_coupledWrite(rcnew(datasink::transaction, snk)),
 		m_bufferBlockSize((bufferBlockSize == 0) ? COGS_DEFAULT_BLOCK_SIZE : bufferBlockSize),
 		m_hasMaxLength(!!maxLength),
 		m_remaining(maxLength),

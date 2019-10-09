@@ -25,7 +25,7 @@
 
 	cogs::initialize();
 
-	(void)COGS_MAIN();
+	(void)cogs::alt_main();
 
 	auto dq = cogs::quit_dispatcher::get();
 	dq->get_event().dispatch([]()

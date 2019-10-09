@@ -71,7 +71,8 @@ private:
 	}
 
 	inline static unsigned int s_processorCount = 0;
-protected:
+
+public:
 	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
 		: object(desc),
 		m_func(d),
@@ -83,9 +84,6 @@ protected:
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);
 		COGS_ASSERT(i == 0);
 	}
-
-public:
-	static rcref<thread> create(const function<void()>& d)	{ return rcnew(bypass_constructor_permission<thread>, d); }
 
 	~thread()
 	{

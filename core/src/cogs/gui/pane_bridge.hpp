@@ -282,19 +282,36 @@ protected:
 		paneBridge->pane::uninstalling();
 	}
 
-	virtual bool key_pressing(wchar_t c)								{ return false; }
-	virtual bool key_releasing(wchar_t c)								{ return false; }
-	virtual bool character_typing(wchar_t c)							{ return false; }
-		
-	virtual bool button_pressing(mouse_button btn, const point& pt)			{ return false; }
-	virtual bool button_releasing(mouse_button btn, const point& pt)				{ return false; }
-	virtual bool button_double_clicking(mouse_button btn, const point& pt)	{ return false; }
+	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
 
-	virtual void cursor_hovering(const point& pt)
+	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
+		
+	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+
+	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+
+	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		paneBridge->pane::cursor_hovering(pt);
+		paneBridge->pane::modifier_keys_changing(modifiers);
+	}
+
+	virtual void cursor_entering(const point& pt)
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::cursor_entering(pt);
+	}
+
+	virtual void cursor_moving(const point& pt)
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::cursor_moving(pt);
 	}
 
 	virtual void cursor_leaving()
@@ -456,70 +473,94 @@ protected:
 		m_bridgedPane = 0;
 	}
 
-	virtual bool key_pressing(wchar_t c)
+	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
 		bool result = false;
 		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->key_pressing(c);
+		result = m_bridgedPane->character_typing(c, modifiers);
 		if (!result)
-			result = pane::key_pressing(c);
+			result = pane::character_typing(c, modifiers);
 		return result;
 	}
 
-	virtual bool key_releasing(wchar_t c)
+	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
 		bool result = false;
 		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->key_releasing(c);
+		result = m_bridgedPane->key_pressing(c, modifiers);
 		if (!result)
-			result = pane::key_releasing(c);
+			result = pane::key_pressing(c, modifiers);
 		return result;
 	}
 
-	virtual bool character_typing(wchar_t c)
+	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
 		bool result = false;
 		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->character_typing(c);
+		result = m_bridgedPane->key_releasing(c, modifiers);
 		if (!result)
-			result = pane::character_typing(c);
-		return result;
-	}
-		
-	virtual bool button_pressing(mouse_button btn, const point& pt)
-	{
-		bool result = false;
-		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->button_pressing(btn, pt);
-		if (!result)
-			result = pane::button_pressing(btn, pt);
+			result = pane::key_releasing(c, modifiers);
 		return result;
 	}
 
-	virtual bool button_releasing(mouse_button btn, const point& pt)
+
+
+	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
 		bool result = false;
 		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->button_releasing(btn, pt);
+		result = m_bridgedPane->button_pressing(btn, pt, modifiers);
 		if (!result)
-			result = pane::button_releasing(btn, pt);
+			result = pane::button_pressing(btn, pt, modifiers);
 		return result;
 	}
 
-	virtual bool button_double_clicking(mouse_button btn, const point& pt)
+	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
 		bool result = false;
 		COGS_ASSERT(!!m_bridgedPane);
-		result = m_bridgedPane->button_double_clicking(btn, pt);
+		result = m_bridgedPane->button_releasing(btn, pt, modifiers);
 		if (!result)
-			result = pane::button_double_clicking(btn, pt);
+			result = pane::button_releasing(btn, pt, modifiers);
 		return result;
 	}
 
-	virtual void cursor_hovering(const point& pt)
+	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		bool result = false;
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->button_double_clicking(btn, pt, modifiers);
+		if (!result)
+			result = pane::button_double_clicking(btn, pt, modifiers);
+		return result;
+	}
+
+	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		bool result = false;
+		COGS_ASSERT(!!m_bridgedPane);
+		result = m_bridgedPane->wheel_moving(distance, pt, modifiers);
+		if (!result)
+			result = pane::wheel_moving(distance, pt, modifiers);
+		return result;
+	}
+
+	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
 	{
 		COGS_ASSERT(!!m_bridgedPane);
-		m_bridgedPane->cursor_hovering(pt);
+		m_bridgedPane->modifier_keys_changing(modifiers);
+	}
+
+	virtual void cursor_entering(const point& pt)
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->cursor_entering(pt);
+	}
+
+	virtual void cursor_moving(const point& pt)
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		m_bridgedPane->cursor_moving(pt);
 	}
 
 	virtual void cursor_leaving()

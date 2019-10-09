@@ -34,28 +34,27 @@ private:
 			m_event.pulse_one();
 	}
 
-protected:
-	refireable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll)
+public:
+	explicit refireable_timer(const ptr<rc_obj_base>& desc)
+		: timer(desc, timeout_t::infinite()),
+		m_wakeAll(true)
+	{
+	}
+
+	refireable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll = true)
 		: timer(desc, t),
 		m_wakeAll(wakeAll)
-	{ }
-
-public:
-	static rcref<refireable_timer> create(const timeout_t::period_t& p, bool wakeAll = true)
 	{
-		timeout_t t(p);
-		rcref<refireable_timer> tmr = rcnew(bypass_constructor_permission<refireable_timer>, t, wakeAll);
 		if (!t.is_infinite())
-			tmr->defer();
-		return tmr;
+			defer();
 	}
 
 	// Caller error to call when in unfired state	
 	// This refire includes the overhead of actual operation it triggered.
-	bool refire()									{ return timer::refire(); }
-	bool refire(const timeout_t& t)					{ return timer::refire(t); }
+	bool refire() { return timer::refire(); }
+	bool refire(const timeout_t& t) { return timer::refire(t); }
 
-	bool reschedule(const timeout_t::period_t& p)	{ return timer::reschedule(p); }
+	bool reschedule(const timeout_t& t) { return timer::reschedule(t); }
 };
 
 

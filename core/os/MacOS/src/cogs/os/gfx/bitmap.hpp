@@ -26,7 +26,7 @@ class bitmap : public canvas::bitmap, public graphics_context
 {
 private:
 	__strong NSImage* m_image;
-	bool m_isOpaque;
+	bool m_isOpaque = true;
 	size m_logicalSize;
 	size m_actualSize;
 
@@ -61,8 +61,7 @@ private:
 	};
 
 public:
-	bitmap(const composite_string& name, bool resource = true)	// !resource implies filename
-		: m_isOpaque(true)
+	bitmap(const composite_string& name, bool resource = true) // !resource implies filename
 	{
 		__strong NSString* name2 = string_to_NSString(name);
 		if (resource)

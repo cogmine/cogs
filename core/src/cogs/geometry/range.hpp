@@ -94,15 +94,12 @@ public:
 	// default comparator compares based on side of the range.
 
 private:
-	double m_max;
-	double m_min;
-	bool m_hasMax;
+	double m_max{ 0 };
+	double m_min{ 0 };
+	bool m_hasMax = false;
 
 public:
 	range()
-		: m_min(0),
-		m_max(0),
-		m_hasMax(false)
 	{ }
 
 	range(const range& src)
@@ -673,19 +670,15 @@ namespace planar {
 class range
 {
 private:
-	size m_minSize;
-	size m_maxSize;
-	bool m_hasMaxWidth;
-	bool m_hasMaxHeight;
+	size m_minSize{ 0, 0 };
+	size m_maxSize{ 0, 0 };
+	bool m_hasMaxWidth = false;
+	bool m_hasMaxHeight = false;
 
 public:
 	typedef linear::range linear_t;
 
 	range()
-		: m_minSize(0,0),
-		m_maxSize(0, 0),
-		m_hasMaxWidth(false),
-		m_hasMaxHeight(false)
 	{ }
 
 	range(const range& src)

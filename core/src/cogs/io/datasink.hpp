@@ -330,7 +330,7 @@ private:
 protected:
 	explicit datasink(const ptr<rc_obj_base>& desc)
 		: object(desc),
-		m_ioQueue(queue::create())
+		m_ioQueue(rcnew(queue))
 	{ }
 
 	/// @brief Datasink constructor
@@ -338,18 +338,6 @@ protected:
 	datasink(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue)
 		: object(desc),
 		m_ioQueue(ioQueue)
-	{ }
-
-	datasink(const ptr<rc_obj_base>& desc, const write_func_t& writeFunc)
-		: object(desc),
-		m_ioQueue(queue::create()),
-		m_writeFunc(writeFunc)
-	{ }
-
-	datasink(const ptr<rc_obj_base>& desc, write_func_t&& writeFunc)
-		: object(desc),
-		m_ioQueue(queue::create()),
-		m_writeFunc(std::move(writeFunc))
 	{ }
 
 	/// @brief Arbitrarily enqueues an io::queue::io_task in the datasink's IO queue
@@ -390,9 +378,17 @@ protected:
 	}
 
 public:
-	static rcref<datasink> create(const write_func_t& writeFunc) { return rcnew(bypass_constructor_permission<datasink>, writeFunc); }
+	datasink(const ptr<rc_obj_base>& desc, const write_func_t& writeFunc)
+		: object(desc),
+		m_ioQueue(rcnew(queue)),
+		m_writeFunc(writeFunc)
+	{ }
 
-	static rcref<datasink> create(write_func_t&& writeFunc) { return rcnew(bypass_constructor_permission<datasink>, std::move(writeFunc)); }
+	datasink(const ptr<rc_obj_base>& desc, write_func_t&& writeFunc)
+		: object(desc),
+		m_ioQueue(rcnew(queue)),
+		m_writeFunc(std::move(writeFunc))
+	{ }
 };
 
 
@@ -446,11 +442,11 @@ private:
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
 
-		rcptr<io::queue>				m_transactionIoQueue;	// extends the scope of the transaction's io queue
-		volatile rcptr<plug>			m_plug;
-		volatile boolean				m_completeOrAbortGuard;
-		const close_propagation_mode	m_closePropagationMode;
-		volatile boolean				m_transactionAborted;
+		rcptr<io::queue> m_transactionIoQueue;	// extends the scope of the transaction's io queue
+		volatile rcptr<plug> m_plug;
+		volatile boolean m_completeOrAbortGuard;
+		const close_propagation_mode m_closePropagationMode;
+		volatile boolean m_transactionAborted;
 
 		virtual void executing()
 		{
@@ -464,8 +460,7 @@ private:
 		transaction_task(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
 			: io::queue::io_task<transaction_task>(desc),
 			m_transactionIoQueue(ioQueue),
-			m_closePropagationMode(closePropagationMode),
-			m_transactionAborted(false)
+			m_closePropagationMode(closePropagationMode)
 		{ }
 
 		void queue_plug()
@@ -599,15 +594,13 @@ private:
 
 	volatile boolean m_started;
 
-protected:
-	friend class datasink;
-
+public:
 	/// @brief Transaction constructor.
 	/// @param ds Target datasink
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.
 	/// @param closePropagationMode Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	transaction(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds, bool startImmediately, close_propagation_mode closePropagationMode)
+	transaction(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
 		: datasink(desc),
 		m_sink(ds),
 		m_started(startImmediately),
@@ -615,18 +608,6 @@ protected:
 	{
 		if (startImmediately)
 			ds->sink_enqueue(m_transactionTask);
-	}
-
-public:
-	/// @brief Creates a datasink::transaction
-	///
-	/// @param snk Target datasink
-	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
-	/// at some point to queue the transaction to the datasink.
-	/// @param closePropagationMode Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	static rcref<transaction> create(const rcref<datasink>& snk, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
-	{
-		return rcnew(bypass_constructor_permission<transaction>, snk, startImmediately, closePropagationMode);
 	}
 
 	/// @brief Starts processing of tasks queued to the transaction

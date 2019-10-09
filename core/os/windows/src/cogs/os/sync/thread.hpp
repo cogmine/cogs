@@ -36,17 +36,11 @@ private:
 
 	inline static unsigned int s_processorCount = 0;
 
-protected:
+public:
 	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
 		: object(desc)
 	{
 		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)new (default_allocator::get()) function<void()>(d), 0, (unsigned int*)&m_threadId);
-	}
-
-public:
-	static rcref<thread> create(const function<void()>& d)
-	{
-		return rcnew(bypass_constructor_permission<thread>, d);
 	}
 
 	~thread()	{ CloseHandle(m_hThread); }

@@ -132,7 +132,7 @@ private:
 	static constexpr char TELOPT_FORWARDX =		49;	// Forward X?
 	static constexpr char TELOPT_EXOPL =		(char)255;
 
-	int m_parserState;
+	int m_parserState = 0;
 	char m_optionVerb;
 
 	char m_myNegotiationState[256];		// A negotiation state per option
@@ -151,7 +151,7 @@ private:
 	cstring m_incomingSB;
 	char m_option;
 
-	bool m_sendNAWS;
+	bool m_sendNAWS = true;
 
 	void handle_option(bool response)
 	{
@@ -474,7 +474,7 @@ private:
 		return result;
 	}
 
-	const buffer iacBuf;
+	const buffer iacBuf{ 1, IAC };
 
 	virtual composite_buffer filtering_sink(composite_buffer& src)
 	{
@@ -508,10 +508,7 @@ private:
 public:
 	telnet(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
 		:	datastream_protocol(desc, ds),
-			m_terminal(term),
-			m_parserState(0),
-			m_sendNAWS(true),
-			iacBuf(1, IAC)
+			m_terminal(term)
 	{
 		if (!!term)
 			term->m_telnet = this_rcref;

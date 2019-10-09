@@ -10,9 +10,9 @@ using namespace net;
 using namespace ip;
 
 
-int main()
+COGS_MAIN
 {
-	return cogs::main([]()
+	return cogs::main([](const auto& uiSubsystem)
 	{
 		rcptr<http::server> m_httpServer;
 		rcptr<smtp::server> m_smtpServer;

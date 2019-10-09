@@ -10,6 +10,7 @@
 
 
 #include "cogs/collections/container_dlist.hpp"
+#include "cogs/collections/vector.hpp"
 #include "cogs/function.hpp"
 #include "cogs/gui/window.hpp"
 #include "cogs/mem/rcnew.hpp"
@@ -26,15 +27,49 @@ class window : public hwnd_pane, public window_interface
 private:
 	volatile boolean m_isInModalSizingLoop;
 	volatile ptr<void> m_lastTimerId;
-	int m_sizingMode; // 0 = none, 1 = WM_SIZING with WM_SIZE pending, 2 = WM_WINDOWPOSCHANGING with WM_WINDOWPOSCHANGED pending
+	int m_sizingMode = 0; // 0 = none, 1 = WM_SIZING with WM_SIZE pending, 2 = WM_WINDOWPOSCHANGING with WM_WINDOWPOSCHANGED pending
 	POINT m_position; // Always in native pixels for the DPI.
 	POINT m_pendingPosition;
 	size m_pendingSize; // without border
 	bool m_sizing = false;
 	hwnd::subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
-	bool m_maximizing = false;
+	bool m_processingZoomRequest = false;
+	bool m_mouseTracking = false;
 
-	SIZE get_border_SIZE(double dpi)
+	bool is_zoomed() const
+	{
+		WINDOWPLACEMENT windowPlacement;
+		windowPlacement.length = sizeof(WINDOWPLACEMENT);
+		BOOL b = GetWindowPlacement(get_HWND(), &windowPlacement);
+		return windowPlacement.showCmd == SW_MAXIMIZE;
+	}
+
+	SIZE get_current_border_size()
+	{
+		SIZE sz;
+		if (is_zoomed())
+		{
+			RECT clientRect;
+			GetClientRect(get_HWND(), &clientRect);
+
+			RECT frameRect;
+			GetWindowRect(get_HWND(), &frameRect);
+
+			sz.cx = (frameRect.right - frameRect.left) - (clientRect.right - clientRect.left);
+			sz.cy = (frameRect.bottom - frameRect.top) - (clientRect.bottom - clientRect.top);
+		}
+		else
+		{
+			RECT borderRect = { 0, 0, 0, 0 };
+			BOOL b = AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)get_device_context().get_dpi());
+			sz.cx = borderRect.right - borderRect.left;
+			sz.cy = borderRect.bottom - borderRect.top;
+		}
+
+		return sz;
+	}
+
+	SIZE get_unmaximized_border_SIZE(double dpi)
 	{
 		SIZE sz;
 		RECT borderRect = { 0, 0, 0, 0 };
@@ -44,27 +79,14 @@ private:
 		return sz;
 	}
 
-	SIZE get_border_SIZE()
+	SIZE get_unmaximized_border_SIZE()
 	{
-		return get_border_SIZE(get_device_context().get_dpi());
-	}
-
-	size get_border_size()
-	{
-		size sz;
-		SIZE sz2 = get_border_SIZE();
-		sz.get_width() = sz2.cx;
-		sz.get_height() = sz2.cy;
-		return sz;
+		return get_unmaximized_border_SIZE(get_device_context().get_dpi());
 	}
 
 public:
-	bool m_initialReshapeDone;
-
 	window(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn),
-		m_initialReshapeDone(false),
-		m_sizingMode(0)
+		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn)
 	{
 	}
 
@@ -111,61 +133,176 @@ public:
 		return true;
 	}
 
-	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
-	{	
-		// We don't want to call reshape() on children, as that will happen in 
-		// response to the WM_SIZE message this will generate.  However, if the 
-		// size is unchanged, it's still necessary to propagate the reshape request.
-
-		// If initial resize is empty, use existing default window size
-		if (m_initialReshapeDone || !newBounds || newBounds.get_size() == get_size())
-			bridgeable_pane::reshape(newBounds, point(0, 0));
+	// Incoming position are in screen coordinates.  On Windows, we use real pixels for screen coordinates.
+	// Incoming size is in DIPs
+	virtual void set_initial_shape(const point* initialPosition, const size* initialFrameSize, bool centerPosition)
+	{
+		SIZE sz;
+		if (initialFrameSize)
+		{
+			sz.cx = (LONG)std::lround(initialFrameSize->get_width());
+			sz.cy = (LONG)std::lround(initialFrameSize->get_height());
+		}
 		else
 		{
-			bounds newBounds2 = newBounds;
-	
+			size defaultSize = get_default_size();
+			SIZE defaultSIZE = get_device_context().make_SIZE(defaultSize);
+			SIZE borderSIZE = get_unmaximized_border_SIZE();
+			sz.cx = defaultSIZE.cx + borderSIZE.cx;
+			sz.cy = defaultSIZE.cy + borderSIZE.cy;
+		}
+
+		POINT pt;
+		if (initialPosition)
+		{
+			pt.x = (LONG)std::lround(initialPosition->get_x());
+			pt.y = (LONG)std::lround(initialPosition->get_y());
+		}
+		else if (!centerPosition)
+		{
+			// Uses OS-selected position for new window (current position, as a result of using CW_USEDEFAULT)
 			RECT r;
 			BOOL b = GetWindowRect(get_HWND(), &r);
 			COGS_ASSERT(b);
-	
-			newBounds2 += point(r.left, r.top);
-
-			gfx::os::gdi::BOUNDS newBounds3 = get_device_context().make_BOUNDS(newBounds2);
-			m_pendingSize = get_device_context().make_size(newBounds3.sz);
-
-			RECT r2 = { 0, 0, 0, 0 };	// If top level, account for window border
-			b = AdjustWindowRectEx(&r2, m_style, FALSE, m_extendedStyle);
-			COGS_ASSERT(b);
-
-			newBounds3.sz.cx += (r2.right - r2.left);
-			newBounds3.sz.cy += (r2.bottom - r2.top);
-	
-			b = MoveWindow(get_HWND(),
-				newBounds3.pt.x,
-				newBounds3.pt.y,
-				newBounds3.sz.cx,
-				newBounds3.sz.cy,
-				FALSE);
-			COGS_ASSERT(b);
-	
-			m_initialReshapeDone = true;
+			pt.x = r.left;
+			pt.y = r.top;
 		}
+		else
+		{
+			pt.x = 0;
+			pt.y = 0;
+
+			// Calculate center position on main screen
+			DWORD i = 0;
+			for (;;)
+			{
+				DISPLAY_DEVICE dd;
+				dd.cb = sizeof(DISPLAY_DEVICE);
+				BOOL b = EnumDisplayDevicesW(NULL, i, &dd, 0);
+				if (!b)
+					break;
+				if (dd.StateFlags & DISPLAY_DEVICE_ACTIVE)
+				{
+					DEVMODE dm;
+					dm.dmSize = sizeof(DEVMODE);
+					dm.dmDriverExtra = 0;
+					b = EnumDisplaySettingsExW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm, 0);
+					if (!b)
+						break;
+					pt.x = dm.dmPosition.x;
+					pt.y = dm.dmPosition.y;
+					if (dm.dmPelsWidth > (DWORD)sz.cx)
+						pt.x += (dm.dmPelsWidth - (DWORD)sz.cx) / 2;
+					if (dm.dmPelsHeight > (DWORD)sz.cy)
+						pt.y += (dm.dmPelsHeight - (DWORD)sz.cy) / 2;
+					break;
+				}
+			}
+		}
+
+		m_pendingPosition = pt;
+		m_position = pt;
+		m_sizing = true;
+		BOOL b = MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
+		m_sizing = false;
+		COGS_ASSERT(b);
+
+		RECT r;
+		b = GetClientRect(get_HWND(), &r);
+		COGS_ASSERT(b);
+		SIZE contentSize = { r.right - r.left, r.bottom - r.top };
+		hwnd_pane::reshape(get_device_context().make_size(contentSize));
+	}
+
+	// window::reshape() reshapes the content area, not the window.
+	// Coordinates are in DIPs.  The position in newBounds will be 0,0.
+	// To reposition a window and/or resize it in screen coordinates, use reshape_frame.
+	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	{
+		// Get current bounds
+		gfx::os::gdi::BOUNDS oldBounds = get_frame_BOUNDS();
+
+		// Convert size to screen coordinates, then to frame size
+		SIZE sz = get_device_context().make_SIZE(newBounds.get_size());
+		SIZE borderSize = get_unmaximized_border_SIZE();
+		sz.cx += borderSize.cx;
+		sz.cy += borderSize.cy;
+
+		m_pendingPosition = oldBounds.pt;
+		m_sizing = true;
+		BOOL b = MoveWindow(get_HWND(), oldBounds.pt.x, oldBounds.pt.y, sz.cx, sz.cy, FALSE);
+		COGS_ASSERT(b);
+		m_sizing = false;
+
+		// We don't want to call reshape() on children, as that will happen in 
+		// response to the WM_SIZE message MoveWindow will generate.  However, if the 
+		// size is unchanged, WM_SIZE will not occur, and we need to propagate
+		// the reshape request.
+		if (sz == oldBounds.sz)
+			bridgeable_pane::reshape(newBounds.get_size(), point(0, 0));
+	}
+
+	virtual void reshape_frame(const bounds& newBounds)
+	{
+		POINT pt = { (LONG)newBounds.get_x(), (LONG)newBounds.get_y() };
+		SIZE sz = { (LONG)std::lround(newBounds.get_width()), (LONG)std::lround(newBounds.get_height()) };
+
+		SIZE oldSIZE = get_frame_SIZE();
+
+		m_pendingPosition = pt;
+		m_sizing = true;
+		BOOL b = MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
+		COGS_ASSERT(b);
+		m_sizing = false;
+
+		// We don't want to call reshape() on children, as that will happen in 
+		// response to the WM_SIZE message this will generate.  However, if the 
+		// size is unchanged, WM_SIZE will not occur, and we need to propagate
+		// the reshape request.
+		if (sz == oldSIZE)
+			bridgeable_pane::reshape(newBounds.get_size(), point(0, 0));
+	}
+
+	RECT get_frame_RECT() const
+	{
+		RECT r;
+		BOOL b = GetWindowRect(get_HWND(), &r);
+		COGS_ASSERT(b);
+		return r;
+	}
+
+	gfx::os::gdi::BOUNDS get_frame_BOUNDS() const
+	{
+		RECT r = get_frame_RECT();
+		return { { r.left, r.top }, { r.right - r.left, r.bottom - r.top } };
+	}
+
+	virtual bounds get_frame_bounds() const
+	{
+		RECT r = get_frame_RECT();
+		return { { (double)r.left, (double)r.top }, { (double)(r.right - r.left), (double)(r.bottom - r.top) } };
+	}
+
+	SIZE get_frame_SIZE() const
+	{
+		RECT r;
+		BOOL b = GetWindowRect(get_HWND(), &r);
+		COGS_ASSERT(b);
+		return { r.right - r.left, r.bottom - r.top };
 	}
 
 	virtual void calculate_range()
 	{
 		bridgeable_pane::calculate_range();
-
-		HWND hwnd = get_HWND();
+		DWORD newStyle = m_style;
 		if (get_range().is_fixed())
-		{
-			// Disable maximize button and resizable frame
-			SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~(WS_MAXIMIZEBOX | WS_THICKFRAME));
-		}
+			newStyle &= ~(WS_MAXIMIZEBOX | WS_THICKFRAME);	// Disable maximize button and resizable frame
 		else
+			newStyle |= (WS_MAXIMIZEBOX | WS_THICKFRAME);	// Enable maximize button and resizable frame
+		if (m_style != newStyle)
 		{
-			// Enable maximize button and resizable frame
-			SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) | WS_MAXIMIZEBOX | WS_THICKFRAME);
+			SetWindowLong(get_HWND(), GWL_STYLE, newStyle);
+			m_style = newStyle;
 		}
 	}
 
@@ -176,6 +313,43 @@ public:
 		{
 			switch (msg)
 			{
+			case WM_MOUSEWHEEL:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					BOOL b = ScreenToClient(get_HWND(), &pt);
+					point pt2 = get_device_context().make_point(pt);
+					WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
+					short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+					ui::modifier_keys_state modifiers = get_modifier_keys();
+					if (wheel_move(*w, zDelta / -WHEEL_DELTA, pt2, modifiers))
+						return 0;
+				}
+				break;
+			case WM_MOUSEMOVE:
+				{
+					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					point pt2 = get_device_context().make_point(pt);
+					if (m_mouseTracking)
+						cursor_move(*w, pt2);
+					else
+					{
+						cursor_enter(*w, pt2);
+						TRACKMOUSEEVENT tme;
+						tme.cbSize = sizeof(TRACKMOUSEEVENT);
+						tme.dwFlags = TME_LEAVE;
+						tme.hwndTrack = get_HWND();
+		
+						if (TrackMouseEvent(&tme))
+							m_mouseTracking = true;
+					}
+				}
+				break;
+			case WM_MOUSELEAVE:
+				{
+					m_mouseTracking = false;
+					cursor_leave(*w);
+				}
+				break;
 			case WM_DPICHANGED:
 			{
 				RECT* prcNewWindow = (RECT*)lParam;
@@ -186,10 +360,13 @@ public:
 					prcNewWindow->right - prcNewWindow->left,
 					prcNewWindow->bottom - prcNewWindow->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
+
 				return 0;
 			}
 			case WM_GETDPISCALEDSIZE:
 			{
+				hwnd_pane::process_message(WM_GETDPISCALEDSIZE, wParam, lParam);
+
 				DWORD dpi = (DWORD)wParam;
 				LPSIZE sz = (LPSIZE)lParam;
 
@@ -201,12 +378,11 @@ public:
 				calculate_range();
 
 				size newSize = propose_size(currentSize);
-
-				SIZE borderSize = get_border_SIZE(dpi);
-
-				*sz = get_device_context().make_SIZE(newSize);
-				sz->cx += borderSize.cx;
-				sz->cy += borderSize.cy;
+				SIZE borderSize = get_unmaximized_border_SIZE(dpi);
+				SIZE newSIZE = get_device_context().make_SIZE(newSize);
+				newSIZE.cx += borderSize.cx;
+				newSIZE.cy += borderSize.cy;
+				*sz = newSIZE;
 
 				return 1;
 			}
@@ -235,22 +411,26 @@ public:
 					RECT& dst = params->rgrc[1];
 					RECT& src = params->rgrc[2];
 
-					call_default_window_proc(WM_NCCALCSIZE, (WPARAM)FALSE, (LPARAM)&newClient);
+					hwnd_pane::process_message(WM_NCCALCSIZE, wParam, lParam);
 
 					src.top = 0;
 					src.bottom = 0;
 					src.left = 0;
 					src.right = 0;
 
-					dst = src;
+					dst.top = 0;
+					dst.bottom = 0;
+					dst.left = 0;
+					dst.right = 0;
 
 					return WVR_VALIDRECTS;
 				}
+				break;
 			}
 			case WM_SIZING:
 			{
-				// Indicate we have started sizing, so it position changes are detected, position
-				// should not be reset until WM_SIZE, to ensure top/left resizing works correctly(skew offset).
+				// Indicate we have started sizing, so its position changes are detected.
+				// Position should not be reset until WM_SIZE, to ensure top/left resizing works correctly(skew offset).
 				m_sizingMode = 1;
 
 				LPRECT resizeRect = (LPRECT)lParam;
@@ -258,7 +438,7 @@ public:
 				newSizeWithBorder.cx = resizeRect->right - resizeRect->left;
 				newSizeWithBorder.cy = resizeRect->bottom - resizeRect->top;
 
-				SIZE borderSize = get_border_SIZE();
+				SIZE borderSize = get_unmaximized_border_SIZE();
 				SIZE newSizeWithoutBorder;
 				newSizeWithoutBorder.cx = newSizeWithBorder.cx - borderSize.cx;
 				newSizeWithoutBorder.cy = newSizeWithBorder.cy - borderSize.cy;
@@ -340,6 +520,17 @@ public:
 
 				return 1;
 			}
+			case WM_NCLBUTTONDBLCLK:
+			{
+				if (!is_zoomed())
+				{
+					m_processingZoomRequest = true;
+					LRESULT result = hwnd_pane::process_message(msg, wParam, lParam);
+					m_processingZoomRequest = false;
+					return result;
+				}
+				break;
+			}
 			case WM_SYSCOMMAND:
 			{
 				switch (wParam)
@@ -348,27 +539,38 @@ public:
 					{
 						// If we maximizing the window, we need to propose the maximum size in WM_GETMINMAXINFO,
 						// as the actual maximum may be a subset in 1 dimension.  i.e. If maintaining aspect ratio.
-						m_maximizing = true;
-						break;
+						m_processingZoomRequest = true;
+						LRESULT result = hwnd_pane::process_message(msg, wParam, lParam);
+						m_processingZoomRequest = false;
+						return result;
 					}
 				}
 				break;
 			}
 			case WM_SIZE:
 			{
-				// If getting WM_SIZE for one we just calculated, use m_pendingSize for precision.
+				SIZE requestedClientSIZE = { LOWORD(lParam), HIWORD(lParam) };
+				size proposedSize;
+				for (;;)
+				{
+					if (m_sizingMode > 0)
+					{
+						// m_pendingSize may be slightly different converting, proposing, and converting back.
+						// If m_pendingSize reduces to the currently proposed size, use it instead of the params.
+						SIZE pendingSIZE = get_device_context().make_SIZE(m_pendingSize);
+						if (pendingSIZE == requestedClientSIZE)
+						{
+							proposedSize = m_pendingSize;
+							break;
+						}
+					}
+					size requestedClientSize = get_device_context().make_size(requestedClientSIZE);
+					proposedSize = propose_size(requestedClientSize);
+					break;
+				}
 
-				SIZE requestedClientSize = { LOWORD(lParam), HIWORD(lParam) };
-				SIZE pendingSizeAsSIZE = get_device_context().make_SIZE(m_pendingSize);
-				size requestedClientSize2;
-				if (requestedClientSize == pendingSizeAsSIZE)
-					requestedClientSize2 = m_pendingSize;
-				else
-					requestedClientSize2 = get_device_context().make_size(requestedClientSize);
-
-				size newSize = propose_size(requestedClientSize2);
 				point originSkew(0, 0);
-				if (m_sizingMode > 1)
+				if (m_sizing || m_sizingMode > 1)
 				{
 					POINT originSkewPOINT = { m_position.x - m_pendingPosition.x, m_position.y - m_pendingPosition.y };
 					m_position = m_pendingPosition;
@@ -376,8 +578,8 @@ public:
 				}
 				m_sizingMode = 0;
 
-				if ((originSkew != point(0, 0)) || (m_boundsInParentHwnd.sz != get_device_context().make_SIZE(newSize)))
-					hwnd_pane::reshape(newSize, originSkew);
+				if ((originSkew != point(0, 0)) || (m_boundsInParentHwnd.sz != get_device_context().make_SIZE(proposedSize)))
+					hwnd_pane::reshape(proposedSize, originSkew);
 
 				// Because some versions of Windows will move the existing content when resizing from left or top,
 				// invalidate the entire window each time.
@@ -385,18 +587,15 @@ public:
 					invalidate(get_size());
 
 				get_subsystem()->run_high_priority_tasks(false);
+
 				return 0;
-			}
-			case WM_MOVE:
-			{
-				int i = 1;
 			}
 			case WM_WINDOWPOSCHANGING:
 			{
+				WINDOWPOS* winPos = (WINDOWPOS*)lParam;
 				if (m_sizingMode == 1)	// If we need to save the pending size for use in WM_SIZE
 				{
 					m_sizingMode = 2;
-					WINDOWPOS* winPos = (WINDOWPOS*)lParam;
 					m_pendingPosition.x = winPos->x;
 					m_pendingPosition.y = winPos->y;
 				}
@@ -420,25 +619,75 @@ public:
 			}
 			case WM_GETMINMAXINFO:
 			{
-				const range& r = get_range();
-				SIZE borderSize = get_border_SIZE();
 				MINMAXINFO* minMaxInfo = (MINMAXINFO*)lParam;
+
+				double dpi = get_device_context().get_dpi();
+				SIZE borderSize = get_unmaximized_border_SIZE(dpi);
+
+				range r = get_range();
 				SIZE minSize = get_device_context().make_SIZE(r.get_min());
-				minMaxInfo->ptMinTrackSize.x = minSize.cx + borderSize.cx;
-				minMaxInfo->ptMinTrackSize.y = minSize.cy + borderSize.cy;
 
-				size maxSize = r.get_max();
-				if (m_maximizing)
+				// Min size is easy
+				SIZE minTrackSize = { minSize.cx + borderSize.cx, minSize.cy + borderSize.cy };
+				if (minTrackSize.cx > minMaxInfo->ptMinTrackSize.x)
+					minMaxInfo->ptMinTrackSize.x = minTrackSize.cx;
+				if (minTrackSize.cy > minMaxInfo->ptMinTrackSize.y)
+					minMaxInfo->ptMinTrackSize.y = minTrackSize.cy;
+
+				if (r.has_max_width() || r.has_max_height())
 				{
-					m_maximizing = false;
-					maxSize = propose_size(maxSize);
-				}
+					// Due to a DPI awareness bug (which I filed here: https://aka.ms/AA5zw3c ),
+					// We never touch ptMaxSize, only ptMaxTrackSize.
+					// If being called in response to an even that might result in maximizing,
+					// we set ptMaxTrackSize to the maximized size.  Otherwise, we set ptMaxTrackSize
+					// to represent separate X and Y maximimum.
+					POINT maxTrackSize = minMaxInfo->ptMaxTrackSize;
+					if (m_processingZoomRequest)
+					{
+						if (r.has_max_width() && r.has_max_height())
+						{
+							size proposedSize = propose_size(r.get_max());
+							SIZE proposedSIZE = get_device_context().make_SIZE(proposedSize);
+							maxTrackSize.x = proposedSIZE.cx + borderSize.cx;
+							maxTrackSize.y = proposedSIZE.cy + borderSize.cy;
+						}
+						else if (r.has_max_width())
+						{
+							geometry::linear::range otherRange;
+							double maxSizeX = propose_length(dimension::horizontal, r.get_max_width(), otherRange);
+							maxTrackSize.x = get_device_context().make_SIZE(maxSizeX) + borderSize.cx;
+							if (otherRange.has_max())
+								maxTrackSize.y = get_device_context().make_SIZE(otherRange.get_max()) + borderSize.cy;
+						}
+						else // if (r.has_max_height())
+						{
+							geometry::linear::range otherRange;
+							double maxSizeY = propose_length(dimension::vertical, r.get_max_height(), otherRange);
+							maxTrackSize.y = get_device_context().make_SIZE(maxSizeY) + borderSize.cy;
+							if (otherRange.has_max())
+								maxTrackSize.x = get_device_context().make_SIZE(otherRange.get_max()) + borderSize.cx;
+						}
+					}
+					else
+					{
+						if (r.has_max_width())
+						{
+							LONG maxX = get_device_context().make_SIZE(r.get_max_width());
+							maxTrackSize.x = maxX + borderSize.cx;
+						}
+						if (r.has_max_height())
+						{
+							LONG maxY = get_device_context().make_SIZE(r.get_max_height());
+							maxTrackSize.y = maxY + borderSize.cy;
+						}
+					}
 
-				SIZE maxSize2 = get_device_context().make_SIZE(maxSize);
-				if (r.has_max_width())
-					minMaxInfo->ptMaxTrackSize.x = minMaxInfo->ptMaxSize.x = maxSize2.cx + borderSize.cx;
-				if (r.has_max_height())
-					minMaxInfo->ptMaxTrackSize.y = minMaxInfo->ptMaxSize.y = maxSize2.cy + borderSize.cy;
+					if (maxTrackSize.x < minMaxInfo->ptMaxTrackSize.x)
+						minMaxInfo->ptMaxTrackSize.x = maxTrackSize.x;
+
+					if (maxTrackSize.y < minMaxInfo->ptMaxTrackSize.y)
+						minMaxInfo->ptMaxTrackSize.y = maxTrackSize.y;
+				}
 
 				return 0;
 			}
@@ -480,13 +729,16 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsyst
 
 
 inline rcref<gui::window> hwnd::subsystem::open_window(
+	const gfx::canvas::point* screenPosition,
+	const gfx::canvas::size* frameSize,
+	bool positionCentered,
 	const composite_string& title,
 	const rcref<pane>& p,
 	const rcptr<frame>& f) volatile
 {
-	rcref<gui::window> w = rcnew(gui::window, title);
+	rcref<gui::window> w = rcnew(gui::window, screenPosition, frameSize, positionCentered, title);
 	w->nest(p, f);
-	install(*w, rcnew(bypass_constructor_permission<hwnd::subsystem>));	// Give each window it's own subsystem instance, so it's own UI thread.
+	install(*w, rcnew(hwnd::subsystem));	// Give each window it's own subsystem instance, so it's own UI thread.
 	return w;
 }
 

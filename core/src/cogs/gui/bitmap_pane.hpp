@@ -76,7 +76,7 @@ public:
 		if (!!m_image)
 		{
 			size originalSize = m_image->get_size();
-			size stretchTo = get_bounds().get_size();
+			size stretchTo = get_size();
 			draw_bitmap(*m_image, originalSize, stretchTo);
 		}
 	}

@@ -92,8 +92,8 @@ private:
 
 	inline static unsigned int s_processorCount = 0;
 
-protected:
-	explicit thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
+public:
+	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
 		: object(desc),
 		m_func(d),
 		m_releaseCount(0),
@@ -105,10 +105,6 @@ protected:
 		//move_pthread_to_realtime_scheduling_class(m_thread);
 		COGS_ASSERT(i == 0);
 	}
-
-
-public:
-	static rcref<thread> create(const function<void()>& d)	{ return rcnew(bypass_constructor_permission<thread>, d); }
 
 	~thread()
 	{

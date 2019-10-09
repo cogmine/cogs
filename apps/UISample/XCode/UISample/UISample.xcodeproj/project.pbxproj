@@ -13,6 +13,7 @@
 		3D0AA72E222B50A800CA6CA3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA72D222B50A800CA6CA3 /* main.m */; };
 		3D0AA737222B50FA00CA6CA3 /* UISample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA735222B50FA00CA6CA3 /* UISample.cpp */; };
 		3D0AA738222B50FA00CA6CA3 /* guitar.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA736222B50FA00CA6CA3 /* guitar.bmp */; };
+		3DF3570E231C769000F04989 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF3570D231C769000F04989 /* CoreGraphics.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		3D0AA72F222B50A800CA6CA3 /* UISample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UISample.entitlements; sourceTree = "<group>"; };
 		3D0AA735222B50FA00CA6CA3 /* UISample.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = UISample.cpp; path = ../../../UISample.cpp; sourceTree = "<group>"; };
 		3D0AA736222B50FA00CA6CA3 /* guitar.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; name = guitar.bmp; path = ../../../guitar.bmp; sourceTree = "<group>"; };
+		3DF3570D231C769000F04989 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DF3570E231C769000F04989 /* CoreGraphics.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 			children = (
 				3D0AA723222B50A700CA6CA3 /* UISample */,
 				3D0AA722222B50A700CA6CA3 /* Products */,
+				3DF3570C231C769000F04989 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,6 +73,14 @@
 				3D0AA72F222B50A800CA6CA3 /* UISample.entitlements */,
 			);
 			path = UISample;
+			sourceTree = "<group>";
+		};
+		3DF3570C231C769000F04989 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3DF3570D231C769000F04989 /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -97,7 +109,7 @@
 		3D0AA719222B50A700CA6CA3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1010;
+				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "Colen Garoutte-Carson";
 				TargetAttributes = {
 					3D0AA720222B50A700CA6CA3 = {
@@ -279,6 +291,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_ENTITLEMENTS = UISample/UISample.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -312,6 +325,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_ENTITLEMENTS = UISample/UISample.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "COGS_USE_COGS_MAIN=1";

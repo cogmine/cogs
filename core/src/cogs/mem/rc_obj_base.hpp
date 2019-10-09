@@ -160,18 +160,14 @@ public:
 	class tracking_header : public slink_t<tracking_header>
 	{
 	public:
-		volatile boolean	m_destructed;
-		const char* m_debugStr;
-		const char* m_typeName;
+		volatile boolean m_destructed;
+		const char* m_debugStr = 0;
+		const char* m_typeName = 0;
 		rc_obj_base* m_desc;
-		void* m_objPtr;
+		void* m_objPtr = 0;
 
 		tracking_header(const ptr<rc_obj_base>& desc)
-			: m_desc(desc.get_ptr()),
-			m_destructed(false),
-			m_debugStr(0),
-			m_typeName(0),
-			m_objPtr(0)
+			: m_desc(desc.get_ptr())
 		{ }
 	};
 

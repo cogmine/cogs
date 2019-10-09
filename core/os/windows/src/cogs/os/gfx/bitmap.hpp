@@ -453,7 +453,7 @@ private:
 		}
 	}
 
-protected:
+public:
 	bitmap(const ptr<rc_obj_base>& desc, const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
 		: device_context(desc, dpi),
 		m_gdiBitmap(make_SIZE(sz), (int)imageType)
@@ -486,7 +486,6 @@ protected:
 		COGS_ASSERT(get_HDC());
 	}
 
-public:
 	virtual size get_size() const { return m_logicalDipSize; }
 
 	SIZE get_pixel_size() const { return m_logicalSize; }
@@ -776,22 +775,22 @@ public:
 
 inline rcref<canvas::bitmap> device_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor, double dpi)
 {
-	return rcnew(bypass_constructor_permission<gdi::bitmap>, sz, gdi::bitmap::image_type::rgba, fillColor, dpi);
+	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::rgba, fillColor, dpi);
 }
 
 inline rcref<canvas::bitmask> device_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
 {
-	return rcnew(bypass_constructor_permission<gdi::bitmap>, sz, gdi::bitmap::image_type::monochrome, value ? color::white : color::transparent);
+	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::monochrome, value ? color::white : color::transparent);
 }
 
 inline rcref<canvas::bitmap> device_context::load_bitmap(const composite_string& location)
 {
-	return rcnew(bypass_constructor_permission<gdi::bitmap>, location, gdi::bitmap::image_type::rgba);
+	return rcnew(gdi::bitmap, location, gdi::bitmap::image_type::rgba);
 }
 
 inline rcref<canvas::bitmask> device_context::load_bitmask(const composite_string& location)
 {
-	return rcnew(bypass_constructor_permission<gdi::bitmap>, location, gdi::bitmap::image_type::monochrome);
+	return rcnew(gdi::bitmap, location, gdi::bitmap::image_type::monochrome);
 }
 
 inline void device_context::draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha)

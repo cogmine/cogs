@@ -29,14 +29,14 @@ private:
 	class tcp_reader : public reader
 	{
 	private:
-		const weak_rcptr<tcp>		m_tcp;
-		const rcref<socket>			m_socket;
-		buffer						m_currentBuffer;
-		size_t						m_progress;
-		size_t						m_adjustedRequestedSize;
-		bool						m_aborted;
-		bool						m_complete;
-		os::io::epoll_pool::remove_token			m_waiterRemoveToken;
+		const weak_rcptr<tcp> m_tcp;
+		const rcref<socket> m_socket;
+		buffer m_currentBuffer;
+		size_t m_progress = 0;
+		size_t m_adjustedRequestedSize;
+		bool m_aborted = false;
+		bool m_complete = false;
+		os::io::epoll_pool::remove_token m_waiterRemoveToken;
 
 		enum task_type
 		{
@@ -63,10 +63,7 @@ private:
 		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
 			:	reader(desc, proxy),
 				m_tcp(t),
-				m_socket(t->m_socket),
-				m_progress(0),
-				m_aborted(false),
-				m_complete(false)
+				m_socket(t->m_socket)
 		{
 			m_socket->get_dup_read_fd();
 		}
@@ -93,11 +90,11 @@ private:
 		// are usually very short-lived.
 		void read_inner()
 		{
-			if (!!m_tcp && !!immediate_read(m_socket->m_dupReadFd.get(), m_adjustedRequestedSize - m_progress))
+			if (!!m_tcp && !!immediate_read(m_socket->get_dup(), m_adjustedRequestedSize - m_progress))
 			{
 				if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_some) || !m_progress) && (get_read_mode() != read_now))
 				{
-					m_waiterRemoveToken = m_socket->m_epollPool->wait_readable(m_socket->m_dupReadFd.get(), [r{ this_weak_rcptr }]()
+					m_waiterRemoveToken = m_socket->get_pool().wait_readable(m_socket->get_dup(), [r{ this_weak_rcptr }]()
 					{
 						rcptr<tcp_reader> r2 = r;
 						if (!!r2)
@@ -139,7 +136,7 @@ private:
 						if (!m_complete)
 						{
 							m_aborted = true;
-							m_socket->m_epollPool->abort_waiter(m_waiterRemoveToken);
+							m_socket->get_pool().abort_waiter(m_waiterRemoveToken);
 							complete();
 						}
 					}
@@ -156,12 +153,12 @@ private:
 	class tcp_writer : public writer
 	{
 	public:
-		const weak_rcptr<tcp>		m_tcp;
-		const rcref<socket>			m_socket;
-		size_t						m_progress;
-		bool						m_aborted;
-		bool						m_complete;
-		os::io::epoll_pool::remove_token	m_waiterRemoveToken;
+		const weak_rcptr<tcp> m_tcp;
+		const rcref<socket> m_socket;
+		size_t m_progress = 0;
+		bool m_aborted = false;
+		bool m_complete = false;
+		os::io::epoll_pool::remove_token m_waiterRemoveToken;
 
 		enum task_type
 		{
@@ -174,10 +171,7 @@ private:
 		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
 			:	writer(desc, proxy),
 				m_tcp(t),
-				m_socket(t->m_socket),
-				m_progress(0),
-				m_aborted(false),
-				m_complete(false)
+				m_socket(t->m_socket)
 		{ }
 		
 		virtual void writing()	{ write_more(); }
@@ -202,7 +196,7 @@ private:
 						if (!m_complete)
 						{
 							m_aborted = true;
-							m_socket->m_epollPool->abort_waiter(m_waiterRemoveToken);
+							m_socket->get_pool().abort_waiter(m_waiterRemoveToken);
 							complete();
 						}
 					}
@@ -234,7 +228,7 @@ private:
 					else
 					{
 						buffer b = get_buffer().get_inner(0);
-						size_t sent = send(m_socket->m_fd.get(), (uint8_t*)(b.get_const_ptr()), b.get_length(), 0);
+						size_t sent = send(m_socket->get(), (uint8_t*)(b.get_const_ptr()), b.get_length(), 0);
 						if (sent == b.get_length())	// complete buffer, write again immediately
 						{
 							get_buffer().advance_array();
@@ -255,7 +249,7 @@ private:
 								break;
 							}
 						}
-						m_waiterRemoveToken = m_socket->m_epollPool->wait_writable(m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
+						m_waiterRemoveToken = m_socket->get_pool().wait_writable(m_socket->get(), [r{ this_weak_rcptr }]()
 						{
 							rcptr<tcp_writer> r2 = r;
 							if (!!r2)
@@ -278,18 +272,17 @@ private:
 		return rcnew(tcp_writer, proxy, this_rcref);
 	}
 
-protected:
+public:
 	tcp(const ptr<rc_obj_base>& desc, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 		: connection(desc),
-		m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
+		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
 	{ }
 
 	tcp(const ptr<rc_obj_base>& desc, int sckt, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 		: connection(desc),
-		m_socket(rcnew(bypass_constructor_permission<socket>, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
+		m_socket(rcnew(socket, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
 	{ }
 
-public:
 	~tcp()
 	{
 		abort();
@@ -298,13 +291,13 @@ public:
 	class connecter : public signallable_task_base<connecter>
 	{
 	protected:
-		rcref<os::io::epoll_pool>			m_epollPool;
+		rcref<os::io::epoll_pool> m_epollPool;
 
-		rcptr<tcp>							m_tcp;
-		vector<address>						m_addresses;
-		unsigned short						m_remotePort;
-		os::io::epoll_pool::remove_token	m_waiterRemoveToken;
-		bool								m_aborted;
+		rcptr<tcp> m_tcp;
+		vector<address> m_addresses;
+		unsigned short m_remotePort;
+		os::io::epoll_pool::remove_token m_waiterRemoveToken;
+		bool m_aborted = false;
 		
 		enum task_type
 		{
@@ -313,18 +306,6 @@ public:
 		};
 
 		volatile container_queue<task_type> m_serializer;
-
-		friend class tcp;
-
-		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: signallable_task_base<connecter>(desc),
-			m_epollPool(epp),
-			m_addresses(addresses),
-			m_remotePort(port),
-			m_aborted(false)
-		{
-			connect();
-		}
 
 		void connect()
 		{
@@ -348,7 +329,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(bypass_constructor_permission<tcp>, addr.get_address_family(), m_epollPool);
+				m_tcp = rcnew(tcp, addr.get_address_family(), m_epollPool);
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
@@ -360,7 +341,7 @@ public:
 					break;
 				}
 
-				i = ::connect(m_tcp->m_socket->m_fd.get(), (sockaddr*)&sa, addr.get_sockaddr_size());
+				i = ::connect(m_tcp->m_socket->get(), (sockaddr*)&sa, addr.get_sockaddr_size());
 				if (i == 0)	// immediately connected??
 				{
 					signal();
@@ -370,7 +351,7 @@ public:
 				COGS_ASSERT(i == -1);
 				if (errno == EINPROGRESS)
 				{
-					m_waiterRemoveToken = m_epollPool->wait_writable(m_tcp->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
+					m_waiterRemoveToken = m_epollPool->wait_writable(m_tcp->m_socket->get(), [r{ this_weak_rcptr }]()
 					{
 						rcptr<connecter> r2 = r;
 						if (!!r2)
@@ -395,7 +376,7 @@ public:
 						{
 							int errnum;
 							socklen_t len = sizeof(errnum);
-							int i = getsockopt(m_tcp->m_socket->m_fd.get(), SOL_SOCKET, SO_ERROR, &errnum, &len);
+							int i = getsockopt(m_tcp->m_socket->get(), SOL_SOCKET, SO_ERROR, &errnum, &len);
 							COGS_ASSERT(i != -1);
 							if (errnum == 0)	 //connected
 							{
@@ -435,6 +416,24 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
+		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: signallable_task_base<connecter>(desc),
+			m_epollPool(epp),
+			m_addresses(addresses),
+			m_remotePort(port)
+		{
+			connect();
+		}
+
+		connecter(const ptr<rc_obj_base>& desc, const address& addr, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: signallable_task_base<connecter>(desc),
+			m_epollPool(epp),
+			m_remotePort(port)
+		{
+			m_addresses.append(1, addr);
+			connect();
+		}
+
 		~connecter() { cancel(); }
 
 		const rcptr<tcp>& get_tcp() const { return m_tcp; }
@@ -451,14 +450,12 @@ public:
 
 	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		return rcnew(bypass_constructor_permission<connecter>, addresses, port, epp);
+		return rcnew(connecter, addresses, port, epp);
 	}
 
 	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		vector<address> addresses;
-		addresses.append(1, addr);
-		return connect(addresses, port, epp);
+		return rcnew(connecter, addr, port, epp);
 	}
 
 	virtual void abort()			{ datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
@@ -473,16 +470,16 @@ public:
 		class accept_helper : public object
 		{
 		public:
-			rcref<os::io::epoll_pool>			m_epollPool;
-			os::io::epoll_pool::remove_token	m_listenerRemoveToken;
+			rcref<os::io::epoll_pool> m_epollPool;
+			os::io::epoll_pool::remove_token m_listenerRemoveToken;
 
-			accept_delegate_t		m_acceptDelegate;
-			address_family			m_addressFamily;
+			accept_delegate_t m_acceptDelegate;
+			address_family m_addressFamily;
 
-			weak_rcptr<listener>	m_listener;
-			rcptr<tcp>				m_listenSocket;
+			weak_rcptr<listener> m_listener;
+			rcptr<tcp> m_listenSocket;
 
-			bool				m_closed;
+			bool m_closed = false;
 
 			enum task_type
 			{
@@ -496,10 +493,9 @@ public:
 				: object(desc),
 				m_listener(l),
 				m_acceptDelegate(acceptDelegate),
-				m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, epp)),
+				m_listenSocket(rcnew(tcp, addressFamily, epp)),
 				m_addressFamily(addressFamily),
-				m_epollPool(epp),
-				m_closed(false)
+				m_epollPool(epp)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -507,10 +503,10 @@ public:
 					int i = m_listenSocket->m_socket->bind_any(port);
 					if (i != -1)
 					{
-						int i = ::listen(m_listenSocket->m_socket->m_fd.get(), SOMAXCONN);
+						int i = ::listen(m_listenSocket->m_socket->get(), SOMAXCONN);
 						if (i != -1)
 						{
-							m_listenerRemoveToken = m_epollPool->register_listener(m_listenSocket->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
+							m_listenerRemoveToken = m_epollPool->register_listener(m_listenSocket->m_socket->get(), [r{ this_weak_rcptr }]()
 							{
 								rcptr<accept_helper> r2 = r;
 								if (!!r2)
@@ -543,17 +539,17 @@ public:
 								{
 									if (!!l)
 									{
-										int s = accept(m_listenSocket->m_socket->m_fd.get(), 0, 0);
+										int s = accept(m_listenSocket->m_socket->get(), 0, 0);
 										if (s != -1)
 										{
-											rcref<tcp> ds = rcnew(bypass_constructor_permission<tcp>, s, m_addressFamily, m_epollPool);
+											rcref<tcp> ds = rcnew(tcp, s, m_addressFamily, m_epollPool);
 											ds->m_socket->read_endpoints();
 											thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, ds{ std::move(ds) }]()
 											{
 												r->m_acceptDelegate(ds);
 											});
 										}
-										m_listenerRemoveToken = m_epollPool->register_listener(m_listenSocket->m_socket->m_fd.get(), [r{ this_weak_rcptr }]()
+										m_listenerRemoveToken = m_epollPool->register_listener(m_listenSocket->m_socket->get(), [r{ this_weak_rcptr }]()
 										{
 											rcptr<accept_helper> r2 = r;
 											if (!!r2)
@@ -595,17 +591,6 @@ public:
 		listener& operator=(listener&&) = delete;
 		listener& operator=(const listener&) = delete;
 
-	protected:
-		friend class tcp;
-
-		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: object(desc),
-			m_closeEvent(desc),
-			m_port(port)
-		{
-			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, epp);
-		}
-
 		void close()
 		{
 			if (!!m_acceptHelper)
@@ -617,6 +602,14 @@ public:
 		}
 
 	public:
+		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: object(desc),
+			m_closeEvent(desc),
+			m_port(port)
+		{
+			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, epp);
+		}
+		
 		~listener()									{ close(); }
 
 		const waitable& get_close_event() const		{ return m_closeEvent; }
@@ -624,7 +617,7 @@ public:
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		return rcnew(bypass_constructor_permission<listener>, acceptDelegate, port, addressFamily, epp);
+		return rcnew(listener, acceptDelegate, port, addressFamily, epp);
 	}
 
 	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = inetv4)
@@ -635,8 +628,8 @@ public:
 		}, port, addressFamily);
 	}
 
-	virtual rcref<const net::endpoint> get_local_endpoint()	const	{ return this_rcref.member_cast_to(m_socket->m_localEndpoint); }
-	virtual rcref<const net::endpoint> get_remote_endpoint() const	{ return this_rcref.member_cast_to(m_socket->m_remoteEndpoint); }
+	virtual rcref<const net::endpoint> get_local_endpoint()	const	{ return m_socket->get_local_endpoint_ref(); }
+	virtual rcref<const net::endpoint> get_remote_endpoint() const	{ return m_socket->get_remote_endpoint_ref(); }
 };
 
 

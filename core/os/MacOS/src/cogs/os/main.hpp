@@ -25,10 +25,10 @@ inline int initialize() { return EXIT_SUCCESS; }
 inline void terminate() { }
 
 
-template <typename F>
-inline int main(F&& main_func)
+template <typename F, typename T>
+inline int main(F&& mainFunc, T&& uiSubsystem)
 {
-	return main_func(cogs::gui::os::nsview_subsystem::get());
+	return mainFunc(std::forward<T>(uiSubsystem));
 }
 
 
@@ -37,7 +37,7 @@ inline int main(F&& main_func)
 
 
 // Allows app to use alternative name for main, in case platform (i.e. Mac) already uses it.
-#define COGS_MAIN ::cogs::alt_main
+#define COGS_MAIN int ::cogs::alt_main()
 
 
 #endif

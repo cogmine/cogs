@@ -18,12 +18,10 @@ namespace os {
 inline int initialize() { return EXIT_SUCCESS; }
 inline void terminate() { }
 
-template <typename F>
-inline int main(F&& main_func)
+template <typename F, typename T>
+inline int main(F&& mainFunc, T&& uiSubsystem)
 {
-	// TODO: Console UI subsystem
-	//return main_func(uiSubsystem);
-	int result = main_func();
+	int result = mainFunc(std::forward<T>(uiSubsystem));
 	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
 	if (!!qd)
 		qd->get_event().wait();
@@ -35,7 +33,7 @@ inline int main(F&& main_func)
 }
 
 
-#define COGS_MAIN main
+#define COGS_MAIN int main()
 
 
 #endif

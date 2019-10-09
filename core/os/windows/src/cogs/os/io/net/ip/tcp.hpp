@@ -65,7 +65,7 @@ private:
 		{
 			fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(0);
 			if (resultingValue.test_bit(1))		// if it has already been started			
-				CancelIoEx((HANDLE)(m_socket->m_socket), m_overlapped);
+				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
 		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
@@ -104,20 +104,18 @@ private:
 				{
 					m_currentBuffer = allocate_buffer(get_unread_size());
 					m_adjustedRequestedSize = m_currentBuffer.get_length();
-					if (!immediate_read(m_socket->m_socket, m_adjustedRequestedSize))
+					if (!immediate_read(m_socket->get(), m_adjustedRequestedSize))
 					{
 						m_currentBuffer.release();
 						closing = true;
-						//ds->close_source();
 					}
 					else if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_some) || !m_progress) && (get_read_mode() != read_now))
 					{
 						// Defer initiating the actual read to the completion port thread.
 						// This is because, on Windows, if the thread initiating asynchronous IO
 						// terminates, so does the IO request.
-						m_socket->m_completionPort->dispatch([r{ this_rcref }]()
+						m_socket->get_pool().dispatch([r{ this_rcref }]()
 						{
-							//COGS_ASSERT(r->m_progress != (size_t)0xdededededededede);
 							r->execute_in_completion_port_thread();
 						});
 						break;
@@ -173,7 +171,7 @@ private:
 										buf.len = (ULONG)(m_adjustedRequestedSize - m_progress);
 
 									DWORD flags = 0;
-									i = WSARecv(m_socket->m_socket, &buf, 1, 0, &flags, m_overlapped->get(), 0);
+									i = WSARecv(m_socket->get(), &buf, 1, 0, &flags, m_overlapped->get(), 0);
 									DWORD err2 = WSAGetLastError();
 									if ((i == SOCKET_ERROR) && (err2 != WSA_IO_PENDING))
 										closing = true;
@@ -181,7 +179,7 @@ private:
 									{
 										fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(1);
 										if (resultingValue.test_bit(0))									// if it had already been aborted
-											CancelIoEx((HANDLE)(m_socket->m_socket), m_overlapped);
+											CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 										break;
 									}
 								}
@@ -200,10 +198,10 @@ private:
 										closing = true;
 									else if (m_adjustedRequestedSize > m_progress)
 									{
-										immediate_read(m_socket->m_socket, m_adjustedRequestedSize - m_progress);
+										immediate_read(m_socket->get(), m_adjustedRequestedSize - m_progress);
 										if ((m_adjustedRequestedSize > m_progress) && (get_read_mode() == read_all))
 										{
-											m_socket->m_completionPort->dispatch([r{ this_rcref }]()
+											m_socket->get_pool().dispatch([r{ this_rcref }]()
 											{
 												r->execute_in_completion_port_thread();
 											});
@@ -251,7 +249,7 @@ private:
 		{
 			fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(0);
 			if (resultingValue.test_bit(1))	// if it has already been started
-				CancelIoEx((HANDLE)(m_socket->m_socket), m_overlapped);
+				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
 		virtual void writing()
@@ -272,7 +270,7 @@ private:
 
 					DWORD numSent = 0;
 
-					int i = WSASend(m_socket->m_socket, wsaBuf, (DWORD)(m_wsaBuffers.get_length()), &numSent, 0, 0, 0);
+					int i = WSASend(m_socket->get(), wsaBuf, (DWORD)(m_wsaBuffers.get_length()), &numSent, 0, 0, 0);
 
 					// TBD, abort connection here if error.  Currently handled later in completion port thread.  not much harm there.
 
@@ -298,7 +296,7 @@ private:
 						// Defer initiating the actual write to the completion port thread.
 						// This is because, on Windows, if the thread initiating asynchronous IO
 						// terminates, so does the IO request.
-						m_socket->m_completionPort->dispatch([r{ this_rcref }]()
+						m_socket->get_pool().dispatch([r{ this_rcref }]()
 						{
 							r->execute_in_completion_port_thread();
 						});
@@ -330,14 +328,14 @@ private:
 								r2->write_done();
 						});
 
-						i = WSASend(m_socket->m_socket, (LPWSABUF)m_wsaBuffers.get_const_ptr(), (DWORD)(m_wsaBuffers.get_length()), NULL, 0, m_overlapped->get(), 0);
+						i = WSASend(m_socket->get(), (LPWSABUF)m_wsaBuffers.get_const_ptr(), (DWORD)(m_wsaBuffers.get_length()), NULL, 0, m_overlapped->get(), 0);
 						if ((i == SOCKET_ERROR) && (WSAGetLastError() != WSA_IO_PENDING))
 							closing = true;
 						else
 						{
 							fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(1);
 							if (resultingValue.test_bit(0))									// if it has already been aborted
-								CancelIoEx((HANDLE)(m_socket->m_socket), m_overlapped);
+								CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 							break;
 						}
 					}
@@ -374,13 +372,12 @@ private:
 		return rcnew(tcp_writer, proxy, this_rcref);
 	}
 
-protected:
+public:
 	tcp(const ptr<rc_obj_base>& desc, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		: connection(desc),
-		m_socket(rcnew(bypass_constructor_permission<socket>, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
+		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
 
-public:
 	~tcp()
 	{
 		abort();
@@ -396,27 +393,6 @@ public:
 		rcptr<tcp>								m_tcp;
 		vector<address>							m_addresses;
 		unsigned short							m_remotePort;
-
-		friend class tcp;
-
-		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
-			: signallable_task_base<connecter>(desc),
-			m_overlapped(0),
-			m_addresses(addresses),
-			m_network(n),
-			m_remotePort(port),
-			m_completionPort(cp)
-		{
-			self_acquire();
-
-			// Defer initiating the actual connect attempt to the completion port thread.
-			// This is because, on Windows, if the thread initiating asynchronous IO
-			// terminates, so does the IO request.
-			m_completionPort->dispatch([r{ this_rcref }]()
-			{
-				r->execute_in_completion_port_thread();
-			});
-		}
 
 		void execute_in_completion_port_thread()
 		{
@@ -440,7 +416,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(bypass_constructor_permission<tcp>, addr.get_address_family(), m_completionPort, m_network);
+				m_tcp = rcnew(tcp, addr.get_address_family(), m_completionPort, m_network);
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
@@ -449,7 +425,7 @@ public:
 				LPFN_CONNECTEX m_lpfnConnectEx = 0;
 				DWORD dwBytes;
 				GUID GuidConnectEx = WSAID_CONNECTEX;
-				DWORD dwErr = WSAIoctl(m_tcp->m_socket->m_socket, SIO_GET_EXTENSION_FUNCTION_POINTER,
+				DWORD dwErr = WSAIoctl(m_tcp->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 									&GuidConnectEx,
 									sizeof(GuidConnectEx),
 									&m_lpfnConnectEx,
@@ -473,7 +449,7 @@ public:
 					});
 				}
 
-				if (!!m_lpfnConnectEx(m_tcp->m_socket->m_socket, (sockaddr*)&sa, (int)(addr.get_sockaddr_size()), NULL, 0, NULL, m_overlapped->get()))
+				if (!!m_lpfnConnectEx(m_tcp->m_socket->get(), (sockaddr*)&sa, (int)(addr.get_sockaddr_size()), NULL, 0, NULL, m_overlapped->get()))
 					break;	// completed synchronously
 
 				DWORD err = WSAGetLastError();
@@ -506,6 +482,44 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
+		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+			: signallable_task_base<connecter>(desc),
+			m_overlapped(0),
+			m_addresses(addresses),
+			m_network(n),
+			m_remotePort(port),
+			m_completionPort(cp)
+		{
+			self_acquire();
+
+			// Defer initiating the actual connect attempt to the completion port thread.
+			// This is because, on Windows, if the thread initiating asynchronous IO
+			// terminates, so does the IO request.
+			m_completionPort->dispatch([r{ this_rcref }]()
+			{
+				r->execute_in_completion_port_thread();
+			});
+		}
+
+		connecter(const ptr<rc_obj_base>& desc, const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+			: signallable_task_base<connecter>(desc),
+			m_overlapped(0),
+			m_network(n),
+			m_remotePort(port),
+			m_completionPort(cp)
+		{
+			m_addresses.append(1, addr);
+			self_acquire();
+
+			// Defer initiating the actual connect attempt to the completion port thread.
+			// This is because, on Windows, if the thread initiating asynchronous IO
+			// terminates, so does the IO request.
+			m_completionPort->dispatch([r{ this_rcref }]()
+			{
+				r->execute_in_completion_port_thread();
+			});
+		}
+
 		const rcptr<tcp>& get_tcp() const				{ return m_tcp; }
 		
 		unsigned short get_remote_port() const			{ return m_remotePort; }
@@ -519,14 +533,12 @@ public:
 
 	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
-		return rcnew(bypass_constructor_permission<connecter>, addresses, port, cp);
+		return rcnew(connecter, addresses, port, cp, n);
 	}
 
 	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
-		vector<address> addresses;
-		addresses.append(1, addr);
-		return connect(addresses, port, cp);
+		return rcnew(connecter, addr, port, cp, n);
 	}
 
 	virtual void abort()			{ datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
@@ -559,8 +571,8 @@ public:
 				: object(desc),
 				m_listener(l),
 				m_acceptDelegate(acceptDelegate),
-				m_listenSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
-				m_acceptSocket(rcnew(bypass_constructor_permission<tcp>, addressFamily, cp, n)),
+				m_listenSocket(rcnew(tcp, addressFamily, cp, n)),
+				m_acceptSocket(rcnew(tcp, addressFamily, cp, n)),
 				m_addressFamily(addressFamily),
 				m_completionPort(cp),
 				m_network(n)
@@ -571,14 +583,14 @@ public:
 					int i = m_listenSocket->m_socket->bind_any(port);
 					if (i != SOCKET_ERROR)
 					{
-						int i = ::listen(m_listenSocket->m_socket->m_socket, SOMAXCONN);
+						int i = ::listen(m_listenSocket->m_socket->get(), SOMAXCONN);
 						if (i != SOCKET_ERROR)
 						{
 							// Query for ptr to AcceptEx
 							m_lpfnAcceptEx = 0;
 							DWORD dwBytes;
 							GUID GuidAcceptEx = WSAID_ACCEPTEX;
-							DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->m_socket, SIO_GET_EXTENSION_FUNCTION_POINTER,
+							DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 												&GuidAcceptEx,
 												sizeof(GuidAcceptEx),
 												&m_lpfnAcceptEx,
@@ -592,7 +604,7 @@ public:
 								m_lpfnGetAcceptExSockaddrs = 0;
 								DWORD dwBytes;
 								GUID GuidGetAcceptExSockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
-								DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->m_socket, SIO_GET_EXTENSION_FUNCTION_POINTER,
+								DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 													&GuidGetAcceptExSockaddrs,
 													sizeof(GuidGetAcceptExSockaddrs),
 													&m_lpfnGetAcceptExSockaddrs,
@@ -607,7 +619,7 @@ public:
 										r->connection_accepted();
 									});
 									
-									m_listenSocket->m_socket->m_completionPort->dispatch([r{ this_rcref }]()
+									m_listenSocket->m_socket->get_pool().dispatch([r{ this_rcref }]()
 									{
 										r->accept();
 									});
@@ -635,7 +647,7 @@ public:
 					if (!!l)
 					{
 						DWORD unused;
-						if (!(*m_lpfnAcceptEx)(m_listenSocket->m_socket->m_socket, m_acceptSocket->m_socket->m_socket, m_acceptExBuffer, 0, (16 + sizeof(SOCKADDR_STORAGE)), (16 + sizeof(SOCKADDR_STORAGE)), &unused, m_overlapped))
+						if (!(*m_lpfnAcceptEx)(m_listenSocket->m_socket->get(), m_acceptSocket->m_socket->get(), m_acceptExBuffer, 0, (16 + sizeof(SOCKADDR_STORAGE)), (16 + sizeof(SOCKADDR_STORAGE)), &unused, m_overlapped))
 						{
 							DWORD err = WSAGetLastError();
 							if (err == WSA_IO_PENDING)
@@ -657,7 +669,7 @@ public:
 					{
 						DWORD n;
 						DWORD flags;
-						BOOL b = WSAGetOverlappedResult(m_listenSocket->m_socket->m_socket, m_overlapped, &n, FALSE, &flags);
+						BOOL b = WSAGetOverlappedResult(m_listenSocket->m_socket->get(), m_overlapped, &n, FALSE, &flags);
 						if (!b)
 							l->close();
 						else
@@ -670,18 +682,20 @@ public:
 							m_lpfnGetAcceptExSockaddrs(m_acceptExBuffer, 0, (16 + sizeof(SOCKADDR_STORAGE)), (16 + sizeof(SOCKADDR_STORAGE)),
 								&localAddr, &localAddrLength, &remoteAddr, &remoteAddrLength);
 
-							endpoint& localEndpoint = m_acceptSocket->m_socket->m_localEndpoint;
-							endpoint& remoteEndpoint = m_acceptSocket->m_socket->m_remoteEndpoint;
+							endpoint localEndpoint;
+							endpoint remoteEndpoint;
 							localEndpoint.set_sockaddr_size(localAddrLength);
 							remoteEndpoint.set_sockaddr_size(remoteAddrLength);
 							memcpy(localEndpoint.get_sockaddr(), localAddr, localAddrLength);
 							memcpy(remoteEndpoint.get_sockaddr(), remoteAddr, remoteAddrLength);
-							
+							m_acceptSocket->m_socket->set_local_endpoint(localEndpoint);
+							m_acceptSocket->m_socket->set_remote_endpoint(remoteEndpoint);
+
 							thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, s{ m_acceptSocket.dereference() }]()
 							{
 								r->m_acceptDelegate(s);
 							});
-							m_acceptSocket = rcnew(bypass_constructor_permission<tcp>, m_addressFamily, m_completionPort, m_network);	// replace accept-socket
+							m_acceptSocket = rcnew(tcp, m_addressFamily, m_completionPort, m_network);	// replace accept-socket
 							accept();	// accepted, start another
 							break;
 						}
@@ -695,23 +709,12 @@ public:
 		unsigned short			m_port;
 		rcptr<accept_helper>	m_acceptHelper;
 		single_fire_event		m_closeEvent;
-				
+
 		listener() = delete;
 		listener(listener&&) = delete;
 		listener(const listener&) = delete;
 		listener& operator=(listener&&) = delete;
 		listener& operator=(const listener&) = delete;
-
-	protected:
-		friend class tcp;
-
-		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
-			: object(desc),
-			m_closeEvent(desc),
-			m_port(port)
-		{
-			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
-		}
 
 		void close()
 		{
@@ -724,6 +727,13 @@ public:
 		}
 
 	public:
+		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
+			: object(desc),
+			m_closeEvent(desc),
+			m_port(port)
+		{
+			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
+		}
 
 		~listener()									{ close(); }
 
@@ -732,7 +742,7 @@ public:
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
 	{
-		return rcnew(bypass_constructor_permission<listener>, acceptDelegate, port, addressFamily);
+		return rcnew(listener, acceptDelegate, port, addressFamily);
 	}
 
 	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = inetv4)
@@ -743,8 +753,8 @@ public:
 		}, port, addressFamily);
 	}
 
-	virtual rcref<const net::endpoint> get_local_endpoint() const	{ return this_rcref.member_cast_to(m_socket->m_localEndpoint); }
-	virtual rcref<const net::endpoint> get_remote_endpoint() const	{ return this_rcref.member_cast_to(m_socket->m_remoteEndpoint); }
+	virtual rcref<const net::endpoint> get_local_endpoint() const { return m_socket->get_local_endpoint_ref(); }
+	virtual rcref<const net::endpoint> get_remote_endpoint() const { return m_socket->get_remote_endpoint_ref(); }
 };
 
 

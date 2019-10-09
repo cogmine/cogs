@@ -8,6 +8,8 @@
 #ifndef COGS_HEADER_OS_GFX_DEVICE_CONTEXT
 #define COGS_HEADER_OS_GFX_DEVICE_CONTEXT
 
+#define COGS_GDI 1
+
 
 #include "cogs/env.hpp"
 #include "cogs/collections/container_stack.hpp"
@@ -612,6 +614,11 @@ public:
 		m_scale = dpi / dip_dpi;
 	}
 
+	LONG make_SIZE(double i) const
+	{
+		return (LONG)std::lround(m_scale * i);
+	}
+
 	// Only use when position is known to be 0,0
 	SIZE make_SIZE(const canvas::size& sz) const
 	{
@@ -619,6 +626,11 @@ public:
 		sz2.cx = (LONG)std::lround(m_scale * sz.get_width());
 		sz2.cy = (LONG)std::lround(m_scale * sz.get_height());
 		return sz2;
+	}
+
+	LONG make_POINT(double i) const
+	{
+		return (LONG)std::lround(m_scale * i);
 	}
 
 	POINT make_POINT(const canvas::point& pt) const
@@ -689,6 +701,7 @@ public:
 		return i / m_scale;
 	}
 
+
 	canvas::point make_point(const POINT& pt) const
 	{
 		return canvas::point(pt.x / m_scale, pt.y / m_scale);
@@ -696,7 +709,7 @@ public:
 
 	canvas::point make_point(const RECT& r) const
 	{
-		return canvas::point((r.right - r.left) / m_scale, (r.bottom - r.top) / m_scale);
+		return canvas::point(r.left / m_scale, r.top / m_scale);
 	}
 
 

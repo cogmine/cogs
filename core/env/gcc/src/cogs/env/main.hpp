@@ -20,7 +20,7 @@ namespace env {
 inline int initialize() { return os::initialize(); }
 inline void terminate() { os::terminate(); }
 
-template <typename F> inline int main(F&& main_func) { return os::main(std::forward<F>(main_func)); }
+template <typename F, typename T> inline int main(F&& mainFunc, T&& uiSubsystem) { return os::main(std::forward<F>(mainFunc), std::forward<T>(uiSubsystem)); }
 
 
 }

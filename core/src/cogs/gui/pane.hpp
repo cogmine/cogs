@@ -119,7 +119,7 @@ private:
 
 	rcptr<frame> m_frame;
 	rcptr<pane> m_subFocus;
-	ptrdiff_t m_hideShowState;
+	ptrdiff_t m_hideShowState = 0;
 
 	rcptr<bitmap> m_offScreenBuffer;
 
@@ -128,25 +128,25 @@ private:
 	rcptr<gfx::canvas> m_bridgedCanvas;
 	resettable_event m_closeEvent;
 
-	bool m_hasFocus;
-	bool m_isFocusable;
-	bool m_installed;
-	bool m_installing;
-	bool m_uninstalling;
-	bool m_initialReshapeDone;
-	bool m_cursorWasWithin;
-	bool m_needsDraw;
+	bool m_hasFocus = false;
+	bool m_isFocusable = true;
+	bool m_installed = false;
+	bool m_installing = false;
+	bool m_uninstalling = false;
+	bool m_initialReshapeDone = false;
+	bool m_cursorWasWithin = false;
+	bool m_needsDraw = false;
 	bool m_recomposeDescendants = true;
 
 	bounds m_lastVisibleBounds;
 	point m_lastRenderOffset;
 
 	range m_currentRange;
-	size m_currentDefaultSize;
+	size m_currentDefaultSize = { 0, 0 };
 
 	container_dlist<rcref<pane> >::iterator	m_childInstallItor;
 	rcptr<pane> m_parentInstalling;
-	bool m_topmostUninstall;
+	bool m_topmostUninstall = false;
 
 	volatile boolean m_recomposing;
 	volatile boolean m_detaching;
@@ -216,7 +216,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(d, r.get_desc(), false, this_rcref, t, i);
+		new (d) serial_dispatched(r.get_desc(), false, this_rcref, t, i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
@@ -465,7 +465,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(d, r.get_desc(), true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
+		new(d) serial_dispatched(r.get_desc(), true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		result.template static_cast_to<task_t>().template static_cast_to<task_base>()->set_dispatched(d2);
@@ -474,24 +474,10 @@ private:
 		return result;
 	}
 
-	point m_innerOffset;
-
 protected:
 	explicit pane(const ptr<rc_obj_base>& desc, compositing_behavior cb = compositing_behavior::no_buffer)
 		: object(desc),
-		m_innerOffset(0, 0),
-		m_installed(false),
-		m_installing(false),
-		m_uninstalling(false),
-		m_currentDefaultSize(0, 0),
 		m_compositingBehavior(cb),
-		m_needsDraw(false),
-		m_hideShowState(0),
-		m_initialReshapeDone(false),
-		m_topmostUninstall(false),
-		m_isFocusable(true),
-		m_cursorWasWithin(false),
-		m_hasFocus(false),
 		m_setSubsystemDelegate([r{ this_weak_rcptr }](const rcptr<volatile gui::subsystem>& s)
 		{
 			rcptr<pane> r2 = r;
@@ -605,7 +591,6 @@ protected:
 	{
 		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
 			return get_ancestor_render_pane(offset);
-		offset.set(0, 0);
 		return this_rcptr;
 	}
 
@@ -613,7 +598,6 @@ protected:
 	{
 		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
 			return get_ancestor_render_pane(offset, visibleBounds);
-		offset.set(0, 0);
 		visibleBounds = get_size();
 		return this_rcptr;
 	}
@@ -636,7 +620,6 @@ protected:
 
 	rcptr<pane> get_ancestor_render_pane(point& offset) const
 	{
-		offset.set(0, 0);
 		const pane* child = this;
 		rcptr<pane> parent = m_parent;
 		while (!!parent)
@@ -654,7 +637,6 @@ protected:
 	rcptr<pane> get_ancestor_render_pane(point& offset, bounds& visibleBounds) const
 	{
 		visibleBounds = get_size();
-		offset.set(0, 0);
 		const pane* child = this;
 		rcptr<pane> parent = m_parent;
 		while (!!parent)
@@ -814,7 +796,7 @@ protected:
 				m_needsDraw = false;
 				if (m_compositingBehavior == no_buffer)					// --- Not buffering:
 				{														// Fully clip
-					point offset;
+					point offset(0, 0);
 					bounds visibleBounds;
 					rcptr<pane> p = get_render_pane(offset, visibleBounds);
 					COGS_ASSERT(!!p);
@@ -1063,7 +1045,7 @@ protected:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			if (!(*itor)->m_closeEvent.is_signalled())
+			if (!(*itor)->m_closeEvent.is_signaled())
 				(*itor)->closing();
 			++itor;
 		}
@@ -1072,7 +1054,7 @@ protected:
 
 	virtual void close()
 	{
-		if (!m_closeEvent.is_signalled())
+		if (!m_closeEvent.is_signaled())
 		{
 			hide();
 			closing();
@@ -1095,7 +1077,7 @@ protected:
 
 	bool requesting_close()
 	{
-		if (!!m_closeEvent.is_signalled())
+		if (!!m_closeEvent.is_signaled())
 			return true;
 
 		container_dlist<function<void(bool)> > cb;
@@ -1505,11 +1487,21 @@ protected:
 		uninstall_done();
 	}
 
-	virtual bool key_pressing(wchar_t c)			{ return (!!m_subFocus) && m_subFocus->key_pressing(c); }
-	virtual bool key_releasing(wchar_t c)			{ return (!!m_subFocus) && m_subFocus->key_releasing(c); }
-	virtual bool character_typing(wchar_t c)		{ return (!!m_subFocus) && m_subFocus->character_typing(c); }
+	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->character_typing(c, modifiers); }
+	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->key_pressing(c, modifiers); }
+	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->key_releasing(c, modifiers); }
 
-	virtual bool button_pressing(mouse_button btn, const point& pt)
+	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
+	{
+		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			(*itor)->modifier_keys_changing(modifiers);
+			++itor;
+		}
+	}
+
+	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
@@ -1518,7 +1510,7 @@ protected:
 			newPt -= (*itor)->get_position().to_size();
 			if ((*itor)->get_size().contains(newPt))
 			{
-				if ((*itor)->button_pressing(btn, newPt))
+				if ((*itor)->button_pressing(btn, newPt, modifiers))
 					return true;
 			}
 			++itor;
@@ -1526,7 +1518,7 @@ protected:
 		return false;
 	}
 
-	virtual bool button_releasing(mouse_button btn, const point& pt)
+	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
@@ -1535,7 +1527,7 @@ protected:
 			newPt -= (*itor)->get_position().to_size();
 			if ((*itor)->get_size().contains(newPt))
 			{
-				if ((*itor)->button_releasing(btn, newPt))
+				if ((*itor)->button_releasing(btn, newPt, modifiers))
 					return true;
 			}
 			++itor;
@@ -1543,7 +1535,7 @@ protected:
 		return false;
 	}
 
-	virtual bool button_double_clicking(mouse_button btn, const point& pt)
+	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
@@ -1552,7 +1544,7 @@ protected:
 			newPt -= (*itor)->get_position().to_size();
 			if ((*itor)->get_size().contains(newPt))
 			{
-				if ((*itor)->button_double_clicking(btn, newPt))
+				if ((*itor)->button_double_clicking(btn, newPt, modifiers))
 					return true;
 			}
 			++itor;
@@ -1560,7 +1552,24 @@ protected:
 		return false;
 	}
 
-	virtual void cursor_hovering(const point& pt)
+	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			point newPt = pt;
+			newPt -= (*itor)->get_position().to_size();
+			if ((*itor)->get_size().contains(newPt))
+			{
+				if ((*itor)->wheel_moving(distance, newPt, modifiers))
+					return true;
+			}
+			++itor;
+		}
+		return false;
+	}
+
+	virtual void cursor_entering(const point& pt)
 	{
 		m_cursorWasWithin = true;
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
@@ -1569,7 +1578,25 @@ protected:
 			point newPt = pt;
 			newPt -= (*itor)->get_position().to_size();
 			if ((*itor)->get_size().contains(newPt))
-				(*itor)->cursor_hovering(newPt);
+				(*itor)->cursor_entering(newPt);
+			++itor;
+		}
+	}
+
+	virtual void cursor_moving(const point& pt)
+	{
+		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			point newPt = pt;
+			newPt -= (*itor)->get_position().to_size();
+			if ((*itor)->get_size().contains(newPt))
+			{
+				if ((*itor)->m_cursorWasWithin)
+					(*itor)->cursor_moving(newPt);
+				else
+					(*itor)->cursor_entering(newPt);
+			}
 			else
 			{
 				if ((*itor)->m_cursorWasWithin)
@@ -1700,6 +1727,12 @@ protected:
 		return parent->create_offscreen_buffer(forPane, sz, fillColor);
 	}
 
+	virtual void reshape_top()
+	{
+		cell& r = get_outermost_cell();
+		cell::reshape(r, r.get_default_size());
+	}
+
 private:
 	void set_subsystem_inner(const rcptr<volatile gui::subsystem>& subSystem)
 	{
@@ -1754,10 +1787,7 @@ private:
 			if (!!p)
 				p->recompose();
 			else
-			{
-				cell& r = get_outermost_cell();
-				cell::reshape(r, r.get_default_size());
-			}
+				reshape_top();
 
 			if (is_visible())
 				showing();
@@ -1873,7 +1903,7 @@ private:
 			}
 		}
 	}
-	
+
 	void invalidating_children(const bounds& b)	// b is in own coords
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
@@ -1952,7 +1982,7 @@ private:
 				break;
 		}
 	}
-	
+
 	bool is_focusable(const pane* skipChild) const	// override to indicate capable of receiving focus
 	{
 		if (this == skipChild)
@@ -2080,6 +2110,33 @@ protected:
 	friend class frame;
 
 public:
+	rcref<pane> get_top_pane()
+	{
+		rcptr<pane> p = this_rcptr;
+		while (true)
+		{
+			rcptr<pane> parent = p->get_parent();
+			if (!parent)
+				break;
+			p = std::move(parent);
+		}
+		return p.dereference();
+	}
+
+	rcref<pane> get_top_pane(point& offset)
+	{
+		rcptr<pane> p = this_rcptr;
+		while (true)
+		{
+			rcptr<pane> parent = p->get_parent();
+			if (!parent)
+				break;
+			offset += p->get_position();
+			p = std::move(parent);
+		}
+		return p.dereference();
+	}
+
 	void detach()
 	{
 		rcptr<pane> p = get_parent();
@@ -2332,16 +2389,20 @@ public:
 
 class container_pane : public pane, public virtual pane_container
 {
-protected:
-	container_pane(const ptr<rc_obj_base>& desc, compositing_behavior cb = compositing_behavior::no_buffer)
+public:
+	explicit container_pane(const ptr<rc_obj_base>& desc)
+		: pane(desc, compositing_behavior::no_buffer)
+	{
+	}
+
+	container_pane(const ptr<rc_obj_base>& desc, compositing_behavior cb)
 		: pane(desc, cb)
 	{
 	}
 
-public:
 	static rcref<container_pane> create(compositing_behavior cb = compositing_behavior::no_buffer)
 	{
-		return rcnew(bypass_constructor_permission<container_pane>, cb);
+		return rcnew(container_pane, cb);
 	}
 
 	using pane_container::nest;
@@ -2362,13 +2423,6 @@ private:
 	bool m_invalidateOnReshape;
 
 protected:
-	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d, compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
-		: pane(desc, cb),
-		m_drawDelegate(d),
-		m_invalidateOnReshape(invalidateOnReshape)
-	{
-	}
-
 	virtual void drawing()
 	{
 		if (!!m_drawDelegate)
@@ -2383,9 +2437,11 @@ protected:
 	}
 
 public:
-	static rcref<canvas_pane> create(const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
+	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
+		: pane(desc, cb),
+		m_drawDelegate(d),
+		m_invalidateOnReshape(invalidateOnReshape)
 	{
-		return rcnew(bypass_constructor_permission<canvas_pane>, d, cb, invalidateOnReshape);
 	}
 
 	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
@@ -2433,9 +2489,14 @@ public:
 class pane_orchestrator
 {
 protected:
-	static void cursor_hover(pane& p, const point& pt)
+	static void cursor_enter(pane& p, const point& pt)
 	{
-		p.cursor_hovering(pt);
+		p.cursor_entering(pt);
+	}
+
+	static void cursor_move(pane& p, const point& pt)
+	{
+		p.cursor_moving(pt);
 	}
 
 	static void cursor_leave(pane& p)
@@ -2443,34 +2504,44 @@ protected:
 		p.cursor_leaving();
 	}
 
-	static void character_type(pane& p, wchar_t c)
+	static bool character_type(pane& p, wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
-		p.character_typing(c);
+		return p.character_typing(c, modifiers);
 	}
 
-	static void key_press(pane& p, wchar_t c)
+	static bool key_press(pane& p, wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
-		p.key_pressing(c);
+		return p.key_pressing(c, modifiers);
 	}
 
-	static void key_release(pane& p, wchar_t c)
+	static bool key_release(pane& p, wchar_t c, const ui::modifier_keys_state& modifiers)
 	{
-		p.key_releasing(c);
+		return p.key_releasing(c, modifiers);
 	}
 
-	static void button_press(pane& p, mouse_button btn, const point& pt)
+	static void modifier_keys_change(pane& p, const ui::modifier_keys_state& modifiers)
 	{
-		p.button_pressing(btn, pt);
+		p.modifier_keys_changing(modifiers);
 	}
 
-	static void button_release(pane& p, mouse_button btn, const point& pt)
+	static bool button_press(pane& p, mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		p.button_releasing(btn, pt);
+		return p.button_pressing(btn, pt, modifiers);
 	}
 
-	static void button_double_click(pane& p, mouse_button btn, const point& pt)
+	static bool button_release(pane& p, mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		p.button_double_clicking(btn, pt);
+		return p.button_releasing(btn, pt, modifiers);
+	}
+
+	static bool button_double_click(pane& p, mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		return p.button_double_clicking(btn, pt, modifiers);
+	}
+
+	static bool wheel_move(pane& p, double distance, const point& pt, const ui::modifier_keys_state& modifiers)
+	{
+		return p.wheel_moving(distance, pt, modifiers);
 	}
 
 	static void invalidate(pane& p, const bounds& sz)

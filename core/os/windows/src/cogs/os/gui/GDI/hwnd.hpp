@@ -33,6 +33,16 @@
 #include "cogs/sync/thread.hpp"
 
 
+#ifndef COGS_USE_ATL_THUNK
+#define COGS_USE_ATL_THUNK 1
+#endif
+
+#if COGS_USE_ATL_THUNK
+#include <atlbase.h>
+#include <atlwin.h>
+#endif
+
+
 namespace cogs {
 namespace gui {
 namespace os {
@@ -606,7 +616,7 @@ public:
 			DWORD err = GetLastError();
 			COGS_ASSERT(m_atom != NULL);
 
-			// XP requires an explicit loading of controls.  Load all the ones we have classes for.
+			// XP required an explicit loading of controls.  Load all the ones we have classes for.
 			INITCOMMONCONTROLSEX initCtrls;
 			initCtrls.dwSize = sizeof(initCtrls);
 			initCtrls.dwICC = ICC_STANDARD_CLASSES;
@@ -631,20 +641,20 @@ public:
 	class ui_thread : public dispatcher, public object
 	{
 	private:
-		rcptr<thread>		m_thread;
-		const HANDLE		m_queueEvent;
+		rcptr<thread> m_thread;
+		const HANDLE m_queueEvent;
 
-		bool				m_reentrancyGuard;
-		MSG					m_lastMsg;
-		HWND				m_lastActivatedWindow;
+		bool m_reentrancyGuard = false;
+		MSG m_lastMsg;
+		HWND m_lastActivatedWindow = NULL;
 
-		delayed_construction<priority_dispatcher> m_controlQueue;
+		priority_dispatcher m_controlQueue;
 
 		static void thread_main(const weak_rcptr<ui_thread>& uiThread)
 		{
 			weak_rcptr<ui_thread> weakRef = uiThread;
 			rcptr<ui_thread> strongRef = uiThread;
-			volatile priority_dispatcher& controlQueue = strongRef->m_controlQueue.get();
+			volatile priority_dispatcher& controlQueue = strongRef->m_controlQueue;
 
 			strongRef->self_release();	// Release the extra reference we acquired before spawning the thread
 
@@ -711,7 +721,7 @@ public:
 			if (!m_reentrancyGuard)
 			{
 				m_reentrancyGuard = true;
-				volatile priority_dispatcher& controlQueue = m_controlQueue.get();
+				volatile priority_dispatcher& controlQueue = m_controlQueue;
 				int priority = 0x00010000;	// UI subsystem runs at 0x00010000 priority.
 				for (;;)
 				{
@@ -740,7 +750,7 @@ public:
 		// Effectively stalls processing of OS UI events until a particular task is complete.
 		void process_tasks_until(const rcref<task<void> >& t)
 		{
-			if (t->is_signalled())
+			if (t->is_signaled())
 				return;
 
 			HANDLE queueEvent = m_queueEvent;
@@ -754,10 +764,10 @@ public:
 				DWORD waitResult = WaitForSingleObject(queueEvent, INFINITE);
 				for (;;)
 				{
-					if (t->is_signalled())
+					if (t->is_signaled())
 						return;
 
-					volatile priority_dispatcher& controlQueue = m_controlQueue.get();
+					volatile priority_dispatcher& controlQueue = m_controlQueue;
 					if (!controlQueue.try_invoke(const_max_int_v<int>))
 						break;
 				}
@@ -771,7 +781,7 @@ public:
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
-			dispatcher::dispatch_inner(*m_controlQueue, t, priority);
+			dispatcher::dispatch_inner(m_controlQueue, t, priority);
 			SetEvent(m_queueEvent);
 		}
 
@@ -779,10 +789,8 @@ public:
 		explicit ui_thread(const ptr<rc_obj_base>& desc)
 			: object(desc),
 			m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL)),
-			m_reentrancyGuard(false),
-			m_lastActivatedWindow(NULL)
+			m_controlQueue(desc)
 		{
-			placement_rcnew(&m_controlQueue.get(), this_desc);
 			self_acquire();
 			m_thread = cogs::thread::spawn([r{ this_weak_rcptr }]()
 			{
@@ -792,7 +800,7 @@ public:
 
 		~ui_thread()
 		{
-			COGS_ASSERT(m_controlQueue->is_empty());
+			COGS_ASSERT(m_controlQueue.is_empty());
 			SetEvent(m_queueEvent);
 		}
 	};
@@ -803,7 +811,7 @@ public:
 		typedef container_dlist<rcref<gui::window> > visible_windows_list_t;
 
 	private:
-		delayed_construction<ui_thread> m_uiThread;
+		ui_thread m_uiThread;
 		rcptr<volatile visible_windows_list_t> m_visibleWindows;
 		rcptr<task<void> > m_cleanupRemoveToken;
 		rcref<window_class> m_windowClass;
@@ -817,12 +825,13 @@ public:
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
-			dispatcher::dispatch_inner(*m_uiThread, t, priority);
+			dispatcher::dispatch_inner(m_uiThread, t, priority);
 		}
 
-	protected:
+	public:
 		explicit subsystem(const ptr<rc_obj_base>& desc)
 			: gui::windowing::subsystem(desc),
+			m_uiThread(desc),
 			m_visibleWindows(rcnew(visible_windows_list_t)),
 			m_windowClass(window_class::get_default()),
 			m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
@@ -832,23 +841,21 @@ public:
 					r2->cleanup();
 			}))
 		{
-			placement_rcnew(&m_uiThread.get(), this_desc);
 		}
 
-	public:
 		~subsystem()
 		{
 			m_cleanupRemoveToken->cancel();
 		}
 
-		MSG& get_msg() const volatile						{ return ((subsystem*)this)->m_uiThread->get_msg(); }
-		HWND& get_last_activate_window() const volatile		{ return ((subsystem*)this)->m_uiThread->get_last_activate_window(); }
+		MSG& get_msg() const volatile						{ return ((subsystem*)this)->m_uiThread.get_msg(); }
+		HWND& get_last_activate_window() const volatile		{ return ((subsystem*)this)->m_uiThread.get_last_activate_window(); }
 
-		rcptr<const thread> get_ui_thread() const volatile	{ return ((const subsystem*)this)->m_uiThread->get_ui_thread(); }
+		rcptr<const thread> get_ui_thread() const volatile	{ return ((const subsystem*)this)->m_uiThread.get_ui_thread(); }
 
 		virtual bool is_ui_thread_current() const volatile	{ return get_ui_thread()->is_current(); }
 
-		bool run_high_priority_tasks(bool runNextIdleTask = false) const volatile		{ return ((subsystem*)this)->m_uiThread->run_high_priority_tasks(runNextIdleTask); }
+		bool run_high_priority_tasks(bool runNextIdleTask = false) const volatile		{ return ((subsystem*)this)->m_uiThread.run_high_priority_tasks(runNextIdleTask); }
 
 		void remove_visible_window(visible_windows_list_t::volatile_remove_token& removeToken) volatile
 		{
@@ -880,24 +887,53 @@ public:
 			return get_immediate_task();
 		}
 
+		virtual vector<gfx::canvas::bounds> get_screens() volatile
+		{
+			vector<gfx::canvas::bounds> result;
+			for (DWORD i = 0;; i++)
+			{
+				DISPLAY_DEVICE dd;
+				dd.cb = sizeof(DISPLAY_DEVICE);
+				BOOL b = EnumDisplayDevicesW(NULL, i, &dd, 0);
+				if (!b)
+					break;
+				if (dd.StateFlags & DISPLAY_DEVICE_ACTIVE)
+				{
+					DEVMODE dm;
+					dm.dmSize = sizeof(DEVMODE);
+					dm.dmDriverExtra = 0;
+					BOOL b2 = EnumDisplaySettingsExW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm, 0);
+					result.append(1, { { (double)dm.dmPosition.x, (double)dm.dmPosition.y }, { (double)dm.dmPelsWidth, (double)dm.dmPelsHeight } });
+				}
+			}
+			return result;
+		}
+
 		virtual rcref<gui::window> open_window(
+			const gfx::canvas::point* screenPosition,
+			const gfx::canvas::size* frameSize,
+			bool positionCentered,
 			const composite_string& title,
 			const rcref<pane>& p,
 			const rcptr<frame>& f = 0) volatile;
 	};
 
 private:
-	HWND						m_hWnd;
-	WNDPROC						m_defaultWndProc;
-	rcptr<hwnd::window_class>	m_windowClass;
-	rcref<volatile subsystem>	m_uiSubsystem;
-	rcptr<hwnd>					m_parentHWND;
+	HWND m_hWnd;
+	WNDPROC m_defaultWndProc;
+	rcptr<hwnd::window_class> m_windowClass;
+	rcref<volatile subsystem> m_uiSubsystem;
+	rcptr<hwnd> m_parentHwndPane;
+	weak_rcptr<hwnd_pane> m_owner;
+
+#if COGS_USE_ATL_THUNK
+	AtlThunkData_t* m_atlThunk;
+	static LRESULT CALLBACK AtlThunkWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#else
 	nonvolatile_map<HWND, hwnd*>::remove_token m_hWndMapRemoveToken;
-
-	weak_rcptr<hwnd_pane>	m_owner;
-
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 public:
 	hwnd(const ptr<rc_obj_base>& desc,
@@ -912,8 +948,12 @@ public:
 		: object(desc),
 		m_uiSubsystem(uiSubsystem),
 		m_owner(owner),
-		m_parentHWND(parent)
+		m_parentHwndPane(parent)
 	{
+#if COGS_USE_ATL_THUNK
+		m_atlThunk = AtlThunk_AllocateData();
+#endif
+
 		HWND parentHWND;
 		extendedStyle |= WS_EX_NOPARENTNOTIFY;
 		if (!!parent)	// if child
@@ -924,7 +964,6 @@ public:
 		else	// if window
 		{
 			parentHWND = 0;
-			extendedStyle |= WS_EX_OVERLAPPEDWINDOW;
 #ifndef COGS_DEBUG
 			// To debug drawing, disabling WS_EX_COMPOSITED will remove some unnecessary WM_PAINTs,
 			// such as when context switching to debug in in VS.
@@ -958,6 +997,12 @@ public:
 		m_hWnd = hWnd;
 
 		m_defaultWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
+
+#if COGS_USE_ATL_THUNK
+		AtlThunk_InitData(m_atlThunk, AtlThunkWndProc, (size_t)this);
+		WNDPROC thunkWndProc = AtlThunk_DataToCode(m_atlThunk);
+		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)thunkWndProc);
+#else
 		if (isUnownedClass)
 		{
 			m_hWndMapRemoveToken = get_hwnd_map().try_insert(hWnd, this);
@@ -971,25 +1016,32 @@ public:
 			// GWLP_USERDATA is owned by the window class, so can only be used if using our own window class.
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(this));
 		}
+#endif
 	}
 
-	HWND get_HWND()									{ return m_hWnd; }
-	const weak_rcptr<hwnd_pane>& get_owner() const	{ return m_owner; }
-	const rcptr<hwnd>& get_parent_hwnd() const		{ return m_parentHWND; }
-
+#if !COGS_USE_ATL_THUNK
 	static nonvolatile_map<HWND, hwnd*>& get_hwnd_map()
 	{
 		thread_local static placement<nonvolatile_map<HWND, hwnd*> > storage;
 		return storage.get();
 	}
+#endif
+
+	HWND get_HWND()									{ return m_hWnd; }
+	const weak_rcptr<hwnd_pane>& get_owner() const	{ return m_owner; }
+	const rcptr<hwnd>& get_parent_hwnd() const		{ return m_parentHwndPane; }
 
 	void release()
 	{
 		HWND hWnd = m_hWnd;
 		m_hWnd = NULL;
 		DestroyWindow(hWnd);
+#if COGS_USE_ATL_THUNK
+		AtlThunk_FreeData(m_atlThunk);
+#else
 		if (!m_windowClass)
 			hwnd::get_hwnd_map().remove(m_hWndMapRemoveToken);
+#endif
 	}
 	
 	LRESULT call_default_window_proc(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1012,27 +1064,27 @@ class hwnd_pane : public object, public bridgeable_pane, public pane_orchestrato
 private:
 	rcref<volatile hwnd::subsystem>	m_uiSubsystem;
 	rcptr<hwnd> m_hwnd;
-	rcref<gfx::os::gdi::device_context>	m_deviceContext;
-	rcptr<hwnd_pane> m_parentHwnd;
+	rcref<gfx::os::gdi::device_context>	m_deviceContext = rcnew(gfx::os::gdi::device_context);
+	rcptr<hwnd_pane> m_parentHwndPane;
 	weak_rcptr<hwnd_pane> m_prevSiblingHwnd;
 	weak_rcptr<hwnd_pane> m_nextSiblingHwnd;
 	weak_rcptr<hwnd_pane> m_firstChildHwnd;
 	weak_rcptr<hwnd_pane> m_lastChildHwnd;
 	weak_rcptr_list<gfx::os::gdi::bitmap> m_offscreenBuffers;
-	size_t m_childCount;
+	size_t m_childCount = 0;
 	composite_string m_windowClassName;
 	hwnd_draw_mode m_drawMode;	// i.e. window or canvas hwnd
-	bool m_focusing;
-	bool m_mouseTracking;
+	bool m_focusing = false;
 	bool m_isVisible = false;
+	ui::modifier_keys_state m_lastModifierKeysState = {};
 
 protected:
-	HRGN m_redrawRgn;
+	HRGN m_redrawRgn = NULL;
 	rcptr<gfx::os::gdi::bitmap> m_cachedBackgroundImage;
 	DWORD m_style;
 	DWORD m_extendedStyle;
 	composite_string m_caption;
-	gfx::os::gdi::BOUNDS m_boundsInParentHwnd;
+	gfx::os::gdi::BOUNDS m_boundsInParentHwnd = {};
 
 	gfx::os::gdi::device_context& get_device_context() { return *m_deviceContext; }
 	const gfx::os::gdi::device_context& get_device_context() const { return *m_deviceContext; }
@@ -1050,147 +1102,147 @@ protected:
 		switch (c)
 		{
 		case VK_UP:
-			result = ui::UpArrowKey;
+			result = ui::special_keys::UpArrowKey;
 			break;
 		case VK_DOWN:
-			result = ui::DownArrowKey;
+			result = ui::special_keys::DownArrowKey;
 			break;
 		case VK_LEFT:
-			result = ui::LeftArrowKey;
+			result = ui::special_keys::LeftArrowKey;
 			break;
 		case VK_RIGHT:
-			result = ui::RightArrowKey;
+			result = ui::special_keys::RightArrowKey;
 			break;
 		case VK_F1:
-			result = ui::F1Key;
+			result = ui::special_keys::F1Key;
 			break;
 		case VK_F2:
-			result = ui::F2Key;
+			result = ui::special_keys::F2Key;
 			break;
 		case VK_F3:
-			result = ui::F3Key;
+			result = ui::special_keys::F3Key;
 			break;
 		case VK_F4:
-			result = ui::F4Key;
+			result = ui::special_keys::F4Key;
 			break;
 		case VK_F5:
-			result = ui::F5Key;
+			result = ui::special_keys::F5Key;
 			break;
 		case VK_F6:
-			result = ui::F6Key;
+			result = ui::special_keys::F6Key;
 			break;
 		case VK_F7:
-			result = ui::F7Key;
+			result = ui::special_keys::F7Key;
 			break;
 		case VK_F8:
-			result = ui::F8Key;
+			result = ui::special_keys::F8Key;
 			break;
 		case VK_F9:
-			result = ui::F9Key;
+			result = ui::special_keys::F9Key;
 			break;
 		case VK_F10:
-			result = ui::F10Key;
+			result = ui::special_keys::F10Key;
 			break;
 		case VK_F11:
-			result = ui::F11Key;
+			result = ui::special_keys::F11Key;
 			break;
 		case VK_F12:
-			result = ui::F12Key;
+			result = ui::special_keys::F12Key;
 			break;
 		case VK_F13:
-			result = ui::F13Key;
+			result = ui::special_keys::F13Key;
 			break;
 		case VK_F14:
-			result = ui::F14Key;
+			result = ui::special_keys::F14Key;
 			break;
 		case VK_F15:
-			result = ui::F15Key;
+			result = ui::special_keys::F15Key;
 			break;
 		case VK_F16:
-			result = ui::F16Key;
+			result = ui::special_keys::F16Key;
 			break;
 		case VK_F17:
-			result = ui::F17Key;
+			result = ui::special_keys::F17Key;
 			break;
 		case VK_F18:
-			result = ui::F18Key;
+			result = ui::special_keys::F18Key;
 			break;
 		case VK_F19:
-			result = ui::F19Key;
+			result = ui::special_keys::F19Key;
 			break;
 		case VK_F20:
-			result = ui::F20Key;
+			result = ui::special_keys::F20Key;
 			break;
 		case VK_F21:
-			result = ui::F21Key;
+			result = ui::special_keys::F21Key;
 			break;
 		case VK_F22:
-			result = ui::F22Key;
+			result = ui::special_keys::F22Key;
 			break;
 		case VK_F23:
-			result = ui::F23Key;
+			result = ui::special_keys::F23Key;
 			break;
 		case VK_F24:
-			result = ui::F24Key;
+			result = ui::special_keys::F24Key;
 			break;
 	//	case VK_F25:
-	//		result = ui::F25Key;
+	//		result = ui::special_keys::F25Key;
 	//		break;
 	//	case VK_F26:
-	//		result = ui::F26Key;
+	//		result = ui::special_keys::F26Key;
 	//		break;
 	//	case VK_F27:
-	//		result = ui::F27Key;
+	//		result = ui::special_keys::F27Key;
 	//		break;
 	//	case VK_F28:
-	//		result = ui::F28Key;
+	//		result = ui::special_keys::F28Key;
 	//		break;
 	//	case VK_F29:
-	//		result = ui::F29Key;
+	//		result = ui::special_keys::F29Key;
 	//		break;
 	//	case VK_F30:
-	//		result = ui::F30Key;
+	//		result = ui::special_keys::F30Key;
 	//		break;
 	//	case VK_F31:
-	//		result = ui::F31Key;
+	//		result = ui::special_keys::F31Key;
 	//		break;
 	//	case VK_F32:
-	//		result = ui::F32Key;
+	//		result = ui::special_keys::F32Key;
 	//		break;
 	//	case F33Key:
 	//	case F34Key:
 	//	case F35Key:
 		case VK_INSERT:
-			result = ui::InsertKey;
+			result = ui::special_keys::InsertKey;
 			break;
 		case VK_DELETE:
-			result = ui::DeleteKey;
+			result = ui::special_keys::DeleteKey;
 			break;
 		case VK_HOME:
-			result = ui::HomeKey;
+			result = ui::special_keys::HomeKey;
 			break;
 	//	case BeginKey:
 		case VK_END:
-			result = ui::EndKey;
+			result = ui::special_keys::EndKey;
 			break;
 		case VK_PRIOR:
-			result = ui::PageUpKey;
+			result = ui::special_keys::PageUpKey;
 			break;
 		case VK_NEXT:
-			result = ui::PageDownKey;
+			result = ui::special_keys::PageDownKey;
 			break;
 		case VK_SNAPSHOT:
-			result = ui::PrintScreenKey;
+			result = ui::special_keys::PrintScreenKey;
 			break;
 		case VK_SCROLL:
-			result = ui::ScrollLockKey;
+			result = ui::special_keys::ScrollLockKey;
 			break;
 		case VK_PAUSE:
-			result = ui::PauseKey;
+			result = ui::special_keys::PauseKey;
 			break;
 	//	case SysReqKey:
 		case VK_CANCEL:	// ?
-			result = ui::BreakKey;
+			result = ui::special_keys::BreakKey;
 			break;
 	//	case ResetKey:
 	//	case StopKey:
@@ -1208,13 +1260,13 @@ protected:
 	//	case PrevKey:
 	//	case SelectKey:
 		case VK_EXECUTE:
-			result = ui::ExecuteKey;
+			result = ui::special_keys::ExecuteKey;
 			break;
 	//	case UndoKey:
 	//	case RedoKey:
 	//	case FindKey:
 		case VK_HELP:
-			result = ui::HelpKey;
+			result = ui::special_keys::HelpKey;
 			break;
 	//	case ModeSwitchKey:
 		default:
@@ -1248,7 +1300,7 @@ protected:
 
 	void allocate_temporary_background()
 	{
-		if (!!m_parentHwnd && !is_opaque())
+		if (!!m_parentHwndPane && !is_opaque())
 		{
 			bounds b = get_device_context().make_bounds(m_boundsInParentHwnd);
 
@@ -1276,14 +1328,14 @@ protected:
 		// To support transpancy, we need to capture a background image starting from the
 		// nearest non-opaque parent HWND, and including all overlapping HWNDs with prior z-order.
 
-		if (!!m_parentHwnd && !is_opaque())
+		if (!!m_parentHwndPane && !is_opaque())
 		{
 			bounds b = get_device_context().make_bounds(m_boundsInParentHwnd);
 
 			// go up the tree to the next opaque (or the topmost) HWND
-			rcptr<hwnd_pane> ancestorHwnd = m_parentHwnd;
+			rcptr<hwnd_pane> ancestorHwnd = m_parentHwndPane;
 			do {
-				rcptr<hwnd_pane> nextAncestorHwnd = ancestorHwnd->m_parentHwnd;
+				rcptr<hwnd_pane> nextAncestorHwnd = ancestorHwnd->m_parentHwndPane;
 				if (!nextAncestorHwnd)
 					break;
 				b.get_position() += ancestorHwnd->get_device_context().make_point(ancestorHwnd->m_boundsInParentHwnd.pt);
@@ -1340,7 +1392,7 @@ protected:
 							break;
 						}
 						b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
-						curHwnd = curHwnd->m_parentHwnd;
+						curHwnd = curHwnd->m_parentHwndPane;
 					}
 				}
 			}
@@ -1362,13 +1414,7 @@ public:
 		m_style(style),
 		m_extendedStyle(extendedStyle),
 		m_uiSubsystem(uiSubsystem),
-		m_focusing(false),
-		m_mouseTracking(false),
-		m_boundsInParentHwnd{},
-		m_drawMode(drawMode),
-		m_redrawRgn(NULL),
-		m_childCount(0),
-		m_deviceContext(rcnew(gfx::os::gdi::device_context))
+		m_drawMode(drawMode)
 	{ }
 
 	~hwnd_pane()
@@ -1401,9 +1447,9 @@ public:
 	virtual void uninstalling()
 	{
 		m_isVisible = false;
-		if (!!m_parentHwnd)
+		if (!!m_parentHwndPane)
 		{
-			m_parentHwnd->m_childCount--;
+			m_parentHwndPane->m_childCount--;
 			rcptr<hwnd_pane> prevSibling = m_prevSiblingHwnd;
 			rcptr<hwnd_pane> nextSibling = m_nextSiblingHwnd;
 			if (!!prevSibling)
@@ -1411,10 +1457,10 @@ public:
 			if (!!nextSibling)
 				nextSibling->m_prevSiblingHwnd = prevSibling;
 
-			if (m_parentHwnd->m_firstChildHwnd == this)
-				m_parentHwnd->m_firstChildHwnd = nextSibling;
-			if (m_parentHwnd->m_lastChildHwnd == this)
-				m_parentHwnd->m_lastChildHwnd = prevSibling;
+			if (m_parentHwndPane->m_firstChildHwnd == this)
+				m_parentHwndPane->m_firstChildHwnd = nextSibling;
+			if (m_parentHwndPane->m_lastChildHwnd == this)
+				m_parentHwndPane->m_lastChildHwnd = prevSibling;
 		}
 
 		ReleaseDC(get_HWND(), get_HDC());
@@ -1429,22 +1475,22 @@ public:
 		{
 			pane_bridge* bridge = p.template dynamic_cast_to<pane_bridge>().get_ptr();
 			if (!!bridge)
-				m_parentHwnd = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
-			if (!m_parentHwnd)
+				m_parentHwndPane = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
+			if (!m_parentHwndPane)
 			{
 				p = p->get_parent();
 				continue;
 			}
 
-			// Find previous z-order HWND by scanning descendant tree of m_parentHwnd until we find this object.
+			// Find previous z-order HWND by scanning descendant tree of m_parentHwndPane until we find this object.
 			// Whenever another HWND is covered, do not traverse its descendants.
 			// Once we find this object, insert it after the last HWND seen.
 
 			container_dlist<rcref<pane> >::iterator itor;
 			rcptr<hwnd_pane> lastFoundHwnd;
-			if (m_parentHwnd->m_childCount++ > 0)	// if was 0
+			if (m_parentHwndPane->m_childCount++ > 0)	// if was 0
 			{
-				itor = get_bridge(*m_parentHwnd)->get_children().get_first();
+				itor = get_bridge(*m_parentHwndPane)->get_children().get_first();
 				COGS_ASSERT(!!itor);	// should at least find this obj
 				container_dlist<rcref<pane> >::iterator nextItor;
 				// start at furthest last
@@ -1490,7 +1536,7 @@ public:
 							break;
 						}
 						p = (*itor)->get_parent();
-						COGS_ASSERT(p != get_bridge(*m_parentHwnd));	// Shouldn't get here.  We should have found this obj.
+						COGS_ASSERT(p != get_bridge(*m_parentHwndPane));	// Shouldn't get here.  We should have found this obj.
 						itor = p->get_sibling_iterator();
 					}
 				}
@@ -1498,16 +1544,16 @@ public:
 
 			if (!lastFoundHwnd)	// if none found, we were the last z-order HWND in this parent HWND
 			{
-				if (!!m_parentHwnd->m_lastChildHwnd) // If any were present
+				if (!!m_parentHwndPane->m_lastChildHwnd) // If any were present
 				{
-					m_prevSiblingHwnd = m_parentHwnd->m_lastChildHwnd;
+					m_prevSiblingHwnd = m_parentHwndPane->m_lastChildHwnd;
 					m_prevSiblingHwnd->m_nextSiblingHwnd = this_rcref;
 				}
 				else // If none were present
 				{
-					m_parentHwnd->m_firstChildHwnd = this_rcref;
+					m_parentHwndPane->m_firstChildHwnd = this_rcref;
 				}
-				m_parentHwnd->m_lastChildHwnd = this_rcref;
+				m_parentHwndPane->m_lastChildHwnd = this_rcref;
 			}
 			else // We were not the last in z-order.  We fit immediately after lastFoundHwnd
 			{
@@ -1516,14 +1562,14 @@ public:
 				if (!!m_nextSiblingHwnd)
 					m_nextSiblingHwnd->m_prevSiblingHwnd = this_rcref;
 				else
-					m_parentHwnd->m_lastChildHwnd = this_rcref;
+					m_parentHwndPane->m_lastChildHwnd = this_rcref;
 				lastFoundHwnd->m_nextSiblingHwnd = this_rcref;
 			}
 			break;
 		}
 
 		m_hwnd = rcnew(hwnd,
-			!m_parentHwnd ? 0 : m_parentHwnd->get_hwnd(),
+			!m_parentHwndPane ? 0 : m_parentHwndPane->get_hwnd(),
 			!m_nextSiblingHwnd ? 0 : m_nextSiblingHwnd->get_hwnd(),
 			this_rcref,
 			m_windowClassName,
@@ -1538,8 +1584,8 @@ public:
 		set_compositing_behavior(buffer_self_and_children);
 		set_externally_drawn(*m_deviceContext.template static_cast_to<gfx::canvas>());
 
-		if (!!m_parentHwnd)
-			get_device_context().set_dpi(m_parentHwnd->get_device_context().get_dpi());
+		if (!!m_parentHwndPane)
+			get_device_context().set_dpi(m_parentHwndPane->get_device_context().get_dpi());
 		else
 		{
 			HMONITOR monitor = MonitorFromWindow(get_HWND(), MONITOR_DEFAULTTONEAREST);
@@ -1554,29 +1600,55 @@ public:
 		//bridgeable_pane::installing();
 	}
 
+	rcref<hwnd_pane> get_top_hwnd_pane()
+	{
+		rcptr<hwnd_pane> p = this_rcptr;
+		while (true)
+		{
+			rcptr<hwnd_pane> p2 = p->m_parentHwndPane;
+			if (!p2)
+				break;
+			p = std::move(p2);
+		}
+		return p.dereference();
+	}
+
+	rcref<hwnd_pane> get_top_hwnd_pane(POINT& offset)
+	{
+		rcptr<hwnd_pane> p = this_rcptr;
+		while (true)
+		{
+			rcptr<hwnd_pane> p2 = p->m_parentHwndPane;
+			if (!p2)
+				break;
+			POINT& pt = p->m_boundsInParentHwnd.pt;
+			offset.x += pt.x;
+			offset.x += pt.y;
+			p = std::move(p2);
+		}
+		return p.dereference();
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		if (!!get_bridge())
+		if (!m_parentHwndPane)
+			m_boundsInParentHwnd = get_device_context().make_BOUNDS(b);
+		else // if not a window
 		{
-			if (!m_parentHwnd)
-				m_boundsInParentHwnd = get_device_context().make_BOUNDS(b);
-			else // if not a window
+			bounds boundsInParentHwnd = b;
+			rcptr<pane> p = get_bridge()->get_parent();	// find new coords in parent hwnd
+			for (;;)
 			{
-				bounds boundsInParentHwnd = b;
-				rcptr<pane> p = get_bridge()->get_parent();	// find new coords in parent hwnd
-				for (;;)
-				{
-					if (!p || (p == m_parentHwnd->get_bridge()))
-						break;
-					boundsInParentHwnd += p->get_position();
-					p = p->get_parent();
-				}
-
-				m_boundsInParentHwnd = get_device_context().make_BOUNDS(boundsInParentHwnd);
-
-				HWND hWnd = get_HWND();
-				MoveWindow(hWnd, m_boundsInParentHwnd.pt.x, m_boundsInParentHwnd.pt.y, m_boundsInParentHwnd.sz.cx, m_boundsInParentHwnd.sz.cy, TRUE);
+				if (!p || (p == m_parentHwndPane->get_bridge()))
+					break;
+				boundsInParentHwnd += p->get_position();
+				p = p->get_parent();
 			}
+
+			m_boundsInParentHwnd = get_device_context().make_BOUNDS(boundsInParentHwnd);
+
+			HWND hWnd = get_HWND();
+			MoveWindow(hWnd, m_boundsInParentHwnd.pt.x, m_boundsInParentHwnd.pt.y, m_boundsInParentHwnd.sz.cx, m_boundsInParentHwnd.sz.cy, TRUE);
 		}
 
 		bridgeable_pane::reshape(b, oldOrigin);
@@ -1647,11 +1719,11 @@ public:
 							break;
 						}
 
-						if (!curHwnd->m_parentHwnd)
+						if (!curHwnd->m_parentHwndPane)
 							return;
 
 						b2.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
-						curHwnd = curHwnd->m_parentHwnd;
+						curHwnd = curHwnd->m_parentHwndPane;
 					}
 				}
 
@@ -1664,6 +1736,39 @@ public:
 	virtual LRESULT render_native_control(HDC dc)
 	{
 		return call_default_window_proc(WM_PAINT, (WPARAM)dc, (LPARAM)0);
+	}
+
+	ui::modifier_keys_state get_modifier_keys()
+	{
+		ui::modifier_keys_state result;
+
+		BYTE m_keyStateBuffer[256] = {};
+		BOOL b = GetKeyboardState(m_keyStateBuffer);
+
+		result.set_key(ui::physical_modifier_key::left_shift_key, (m_keyStateBuffer[VK_LSHIFT] & 0x80) != 0);
+		result.set_key(ui::physical_modifier_key::right_shift_key, (m_keyStateBuffer[VK_RSHIFT] & 0x80) != 0);
+
+		result.set_key(ui::physical_modifier_key::left_control_key, (m_keyStateBuffer[VK_LCONTROL] & 0x80) != 0);
+		result.set_key(ui::physical_modifier_key::right_control_key, (m_keyStateBuffer[VK_RCONTROL] & 0x80) != 0);
+
+		result.set_key(ui::physical_modifier_key::left_alt_key, (m_keyStateBuffer[VK_LMENU] & 0x80) != 0);
+		result.set_key(ui::physical_modifier_key::right_alt_key, (m_keyStateBuffer[VK_RMENU] & 0x80) != 0);
+
+		result.set_key(ui::physical_modifier_key::left_command_key, (m_keyStateBuffer[VK_LWIN] & 0x80) != 0);
+		result.set_key(ui::physical_modifier_key::right_command_key, (m_keyStateBuffer[VK_RWIN] & 0x80) != 0);
+
+		result.set_key(ui::toggleable_modifier_key::caps_lock_key, (m_keyStateBuffer[VK_CAPITAL] & 0x01) != 0);
+		result.set_key(ui::toggleable_modifier_key::num_lock_key, (m_keyStateBuffer[VK_NUMLOCK] & 0x01) != 0);
+
+		if (result != m_lastModifierKeysState)
+		{
+			rcptr<gui::pane> p = get_bridge();
+			if (!!p)
+				pane_orchestrator::modifier_keys_change(*p, result);
+			m_lastModifierKeysState = result;
+		}
+
+		return result;
 	}
 
 	virtual void dpi_changing(double oldDpi, double newDpi)
@@ -1738,31 +1843,8 @@ public:
 		rcptr<pane> owner = get_bridge();
 		if (!!owner)
 		{
-			switch (msg)		// messages common to all hwnd views
+			switch (msg) // messages common to all hwnd views
 			{
-			case WM_MOUSEMOVE:
-				{
-					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-					point pt2 = get_device_context().make_point(pt);
-					cursor_hover(*owner, pt2);
-					if (!m_mouseTracking)
-					{
-						TRACKMOUSEEVENT tme;
-						tme.cbSize = sizeof(TRACKMOUSEEVENT);
-						tme.dwFlags = TME_LEAVE;
-						tme.hwndTrack = get_HWND();
-		
-						if (TrackMouseEvent(&tme))
-							m_mouseTracking = true;
-					}
-				}
-				break;
-			case WM_MOUSELEAVE:
-				{
-					m_mouseTracking = false;
-					cursor_leave(*owner);
-				}
-				break;
 			case WM_SETFOCUS:
 				{
 					m_focusing = true;
@@ -1776,25 +1858,31 @@ public:
 				break;
 			case WM_CHAR:
 				{
-					character_type(*owner, (wchar_t)wParam);
+					rcref<hwnd_pane> p = get_top_hwnd_pane();
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					character_type(*(p->get_bridge()), (wchar_t)wParam, modifiers);
+					return 0;
 				}
 			case WM_KEYDOWN:
 				{
 					wchar_t c = (wchar_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
-					bool doTranslate = true;
 					if (!c)
 						c = translate_special_key((wchar_t)wParam);
-					key_press(*owner, c);
+					rcref<hwnd_pane> p = get_top_hwnd_pane();
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					key_press(*(p->get_bridge()), c, modifiers);
+					return 0;
 				}
-				break;
 			case WM_KEYUP:
 				{
-				wchar_t c = (wchar_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
+					wchar_t c = (wchar_t)MapVirtualKey((UINT)wParam, MAPVK_VK_TO_CHAR);
 					if (!c)
 						c = translate_special_key((wchar_t)wParam);
-					key_release(*owner, c);
+					rcref<hwnd_pane> p = get_top_hwnd_pane();
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					key_release(*(p->get_bridge()), c, modifiers);
+					return 0;
 				}
-				break;			
 		//	case WM_SYSKEYDOWN:
 		//	case WM_SYSKEYUP:
 		//		{
@@ -1806,75 +1894,85 @@ public:
 			case WM_LBUTTONDBLCLK:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_double_click(*owner, left_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_double_click(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_LBUTTONDOWN:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_press(*owner, left_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_press(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_LBUTTONUP:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_release(*owner, left_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_release(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_MBUTTONDBLCLK:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_double_click(*owner, middle_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_double_click(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_MBUTTONDOWN:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_press(*owner, middle_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_press(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_MBUTTONUP:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_release(*owner, middle_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_release(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_RBUTTONDBLCLK:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_double_click(*owner, right_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					if (button_double_click(*(p->get_bridge()), right_mouse_button, pt2, modifiers))
+						return 0;
 				}
 				break;
-
 			case WM_RBUTTONDOWN:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_press(*owner, right_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_press(*(p->get_bridge()), right_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_RBUTTONUP:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
-					button_release(*owner, right_mouse_button, pt2);
+					ui::modifier_keys_state modifiers = p->get_modifier_keys();
+					button_release(*(p->get_bridge()), right_mouse_button, pt2, modifiers);
+					return 0;
 				}
-				break;
-
 			case WM_COMMAND:
 				{
 					if (lParam)
@@ -1884,13 +1982,16 @@ public:
 						case BN_CLICKED:	// Win32 passes button clicks to the parent window.  :/
 							{
 								HWND childHWND = (HWND)lParam;
-								auto itor = hwnd::get_hwnd_map().find(childHWND);
+#if COGS_USE_ATL_THUNK
+								return SendMessage(childHWND, msg, wParam, 0);
+#else
 								if (!!itor)
 								{
 									hwnd* childPtr = *itor;
-									rcptr<hwnd_pane> child = childPtr->get_owner();			
+									rcptr<hwnd_pane> child = childPtr->get_owner();
 									return child->process_message(msg, wParam, 0);
 								}
+#endif
 							}
 							break;
 						default:
@@ -1899,9 +2000,9 @@ public:
 					}
 				}
 				break;
-			case WM_VSCROLL:	// Windows sends these to the parent wind.  Pass it to child, where we will intercept it.
+			case WM_VSCROLL: // Windows sends these to the parent HWND.  Pass it to child, where we intercept it.
 			case WM_HSCROLL:
-			case WM_CTLCOLORSTATIC:	// Windows sends these to the parent wind.  Pass it to child, where we will intercept it.
+			case WM_CTLCOLORSTATIC:
 			case WM_CTLCOLOREDIT:
 			case WM_CTLCOLORSCROLLBAR:
 			case WM_CTLCOLORLISTBOX:
@@ -1910,19 +2011,19 @@ public:
 					if (lParam)
 					{
 						HWND childHWND = (HWND)lParam;
-						auto itor = hwnd::get_hwnd_map().find(childHWND);
+#if COGS_USE_ATL_THUNK
+						return SendMessage(childHWND, msg, wParam, 0);
+#else
 						if (!!itor)
 						{
 							hwnd* childPtr = *itor;
 							rcptr<hwnd_pane> child = childPtr->get_owner();
 							return child->process_message(msg, wParam, 0);
 						}
+#endif
 					}
 				}
 				break;
-			//case WM_NCCREATE:
-			//	//EnableNonClientDpiScaling(get_HWND());
-			//	break;
 			case WM_NCPAINT:
 				break;
 			case WM_ERASEBKGND:
@@ -1992,6 +2093,34 @@ public:
 };
 
 
+#if COGS_USE_ATL_THUNK
+
+inline LRESULT CALLBACK hwnd::AtlThunkWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	hwnd* hwndPtr = (hwnd*)hWnd;
+
+	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
+		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
+
+	LRESULT result;
+	hwndPtr->self_acquire();
+
+	// Process our own queue here to ensure it has higher priority even above
+	// messages sent directly to our WndProc
+	hwndPtr->m_uiSubsystem->run_high_priority_tasks();
+
+	rcptr<hwnd_pane> owner = hwndPtr->m_owner;
+	if (!!owner)
+		result = owner->process_message(msg, wParam, lParam);
+	else
+		result = hwndPtr->call_default_window_proc(msg, wParam, lParam);
+
+	hwndPtr->self_release();
+	return result;
+}
+
+#else
+
 inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	hwnd* hwndPtr = (hwnd*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
@@ -2044,6 +2173,8 @@ inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wP
 	return result;
 }
 
+#endif
+
 
 inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 {
@@ -2068,6 +2199,35 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 
 }
 }
+
+
+#ifndef COGS_DEFAULT_GUI_SUBSYSTEM
+#define COGS_DEFAULT_GUI_SUBSYSTEM COGS_GDI
+#endif
+
+#if COGS_DEFAULT_GUI_SUBSYSTEM == COGS_GDI
+
+
+inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
+{
+	return rcnew(gui::os::hwnd::subsystem);
+}
+
+
+inline rcptr<gui::subsystem> gui::subsystem::get_default()
+{
+	return gui::windowing::subsystem::get_default();
+}
+
+
+inline rcref<ui::subsystem> ui::subsystem::get_default()
+{
+	return gui::subsystem::get_default().dereference();
+}
+
+
+#endif
+
 }
 
 

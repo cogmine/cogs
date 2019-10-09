@@ -2157,7 +2157,7 @@ public:
 		fixed_integer_extended_content<has_sign3, bits3>* result = 0)
 	{
 		if (!!result)
-			result.clear();
+			result->clear();
 
 		ulongest* denomDigits;
 		size_t denomLength;
@@ -2203,7 +2203,7 @@ public:
 			if (!!result)
 			{
 				if (wasNegative != denom.is_negative())
-					result.assign_negative();
+					result->assign_negative();
 			}
 		}
 		else if (i == 0)

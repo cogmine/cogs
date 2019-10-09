@@ -31,24 +31,21 @@ class thread_pool;
 class cleanup_queue : public dispatcher, public object
 {
 private:
-	delayed_construction<priority_dispatcher>	m_tasks;
+	priority_dispatcher m_tasks;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		return dispatcher::dispatch_inner(m_tasks.get(), t, priority);
+		return dispatcher::dispatch_inner(m_tasks, t, priority);
 	}
 
 	friend class thread_pool;
 
-protected:
-	explicit cleanup_queue(const ptr<rc_obj_base>& desc)
-		: object(desc)
-	{
-		placement_rcnew(&m_tasks.get(), this_desc);
-	}
-
 public:
-	static rcref<cleanup_queue> create() { return rcnew(bypass_constructor_permission<cleanup_queue>); }
+	explicit cleanup_queue(const ptr<rc_obj_base>& desc)
+		: object(desc),
+		m_tasks(desc)
+	{
+	}
 
 	~cleanup_queue()
 	{
@@ -60,7 +57,7 @@ public:
 	bool drain() volatile
 	{
 		bool anyInvoked = false;
-		while (!!m_tasks->invoke())
+		while (!!m_tasks.invoke())
 			anyInvoked = true;
 		return anyInvoked;
 	}
@@ -68,7 +65,7 @@ public:
 	template <typename type>
 	rcref<task<void> > add(const rcref<type>& obj, int priority = 0) volatile
 	{
-		return m_tasks->dispatch([r{ obj }]() {}, priority);
+		return m_tasks.dispatch([r{ obj }]() {}, priority);
 	}
 
 	template <typename type>
@@ -76,7 +73,7 @@ public:
 	{
 		if (obj.get_desc() == nullptr)
 			return get_immediate_task();
-		return m_tasks->dispatch([r{ obj }]() {}, priority);
+		return m_tasks.dispatch([r{ obj }]() {}, priority);
 	}
 
 	template <typename type>
@@ -84,7 +81,7 @@ public:
 	{
 		if (obj.get_desc() == nullptr)
 			return get_immediate_task();
-		return m_tasks->dispatch([r{ obj }]() {}, priority);
+		return m_tasks.dispatch([r{ obj }]() {}, priority);
 	}
 
 	static rcref<cleanup_queue> get()

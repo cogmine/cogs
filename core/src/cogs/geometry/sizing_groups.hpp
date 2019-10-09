@@ -40,39 +40,33 @@ public:
 	{
 	protected:
 		friend class proportional_sizing_group;
-
-		double	m_length;
+		double m_length = 0.0;
 
 	public:
-		linear::range	m_range;
-		double	m_default;
+		linear::range m_range;
+		double m_default = 0.0;
 		
 		cell()
-			:	m_default(0),
-				m_length(0)
 		{ }
 		
 		cell(double defaultSize, const linear::range& r)
 			:	m_default(defaultSize),
-				m_range(r),
-				m_length(0)
+				m_range(r)
 		{}
 
-		double get_length() const		{ return m_length; }
+		double get_length() const { return m_length; }
 	};
 
 private:
-	linear::range	m_range;
-	double	m_default;
-	double	m_length;
+	linear::range m_range;
+	double m_default = 0.0;
+	double m_length = 0.0;
 
-	nonvolatile_multimap<double, rcref<cell>, false>	m_minProportions;
-	nonvolatile_multimap<double, rcref<cell>, false>	m_maxProportions;
+	nonvolatile_multimap<double, rcref<cell>, false> m_minProportions;
+	nonvolatile_multimap<double, rcref<cell>, false> m_maxProportions;
 
 public:
 	proportional_sizing_group()
-		:	m_default(0),
-			m_length(0)
 	{
 		m_range.set_fixed(0);
 	}
@@ -204,38 +198,33 @@ public:
 	protected:
 		friend class equal_sizing_group;
 			
-		double	m_length;
+		double m_length = 0.0;
 
 	public:
-		linear::range	m_range;
-		double	m_default;
+		linear::range m_range;
+		double m_default = 0;
 		
 		cell()
-			:	m_default(0),
-				m_length(0)
 		{ }
 		
 		cell(double defaultSize, const linear::range& r)
 			:	m_default(defaultSize),
-				m_range(r),
-				m_length(0)
+				m_range(r)
 		{}
 
 		double get_length() const		{ return m_length; }
 	};
 
 private:
-	linear::range	m_range;
-	double	m_default;
-	double	m_length;
+	linear::range m_range;
+	double m_default = 0.0;
+	double m_length = 0.0;
 				
 	nonvolatile_multimap<linear::range, rcref<cell>, false>	m_sortedByDefaultMaxRange;
 	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByMinDefaultGap;
 		
 public:
 	equal_sizing_group()
-		:	m_default(0),
-			m_length(0)
 	{
 		m_range.set_fixed(0);
 	}
@@ -405,38 +394,34 @@ public:
 	{
 	protected:
 		friend class fair_sizing_group;
-			
-		double	m_highWaterTotal;
-		double	m_lowWaterTotal;
 
-		size_t	m_cellPosition;
-		size_t	m_cellReversePosition;
+		double m_highWaterTotal;
+		double m_lowWaterTotal;
 
-		double	m_length;
+		size_t m_cellPosition;
+		size_t m_cellReversePosition;
+
+		double m_length = 0.0;
 
 	public:
-		linear::range	m_range;
-		double	m_default;
-		
+		linear::range m_range;
+		double m_default = 0.0;
 
 		cell()
-			:	m_default(0),
-				m_length(0)
 		{ }
 
 		cell(double defaultSize, const linear::range& r)
 			:	m_default(defaultSize),
-				m_range(r),
-				m_length(0)
+				m_range(r)
 		{}
 
 		double get_length() const		{ return m_length; }
 	};
 
 private:
-	linear::range	m_range;
-	double	m_default;
-	double	m_length;
+	linear::range m_range;
+	double m_default = 0.0;
+	double m_length = 0.0;
 		
 	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::maximum_comparator>	m_sortedByMaximumSize;
 	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::minimum_comparator>	m_sortedByMinimumSize;
@@ -446,13 +431,10 @@ private:
 	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByHighWaterTotal;
 	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByLowWaterTotal;
 
-	bool									m_updated;
+	bool m_updated = false;
 	
 public:
 	fair_sizing_group()
-		:	m_default(0),
-			m_updated(false),
-			m_length(0)
 	{
 		m_range.set_fixed(0);
 	}
@@ -733,4 +715,3 @@ public:
 
 
 #endif
-

@@ -264,10 +264,10 @@ public:
 	{ return m_allocator->get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> size_t get_allocation_size_type(type* p, size_t knownSize) const	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename type> size_t get_allocation_size_type(type* p, size_t knownSize) const volatile	
-	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
+	{ return m_allocator->get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename header_t, size_t align>
 	ptr<header_t> allocate_with_header(size_t n) const
@@ -500,7 +500,7 @@ public:
 	{ return allocator_type::get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), align, knownSize);  }
 
 	template <typename type> static size_t get_allocation_size_type(type* p, size_t knownSize)	
-	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
+	{ return allocator_type::get_allocation_size(ptr<type>(p).template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
 
 	template <typename header_t, size_t align>
 	static ptr<header_t> allocate_with_header(size_t n)

@@ -980,10 +980,6 @@ public:
 };
 
 }
-
-typedef planar::bounds rect;
-
-
 }
 }
 

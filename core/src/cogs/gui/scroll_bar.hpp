@@ -12,11 +12,15 @@
 #include "cogs/dependency_property.hpp"
 #include "cogs/gui/pane.hpp"
 #include "cogs/gui/pane_bridge.hpp"
+#include "cogs/math/boolean.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
 namespace gui {
+
+
+class scroll_bar_interface;
 
 
 class scroll_bar_state
@@ -48,14 +52,6 @@ public:
 
 
 /// @ingroup GUI
-/// @brief Interface for a bridgeable GUI scroll bar.
-class scroll_bar_interface
-{
-public:
-	virtual bool can_overlay() const = 0;
-};
-
-/// @ingroup GUI
 /// @brief A GUI scroll bar
 class scroll_bar : public pane_bridge
 {
@@ -63,16 +59,19 @@ public:
 	typedef function<void(const rcref<scroll_bar>&)>	scrolled_delegate_t;
 
 private:
-	rcptr<scroll_bar_interface> m_nativeScrollBar; 
 	const dimension m_dimension;
 	const bool m_isHiddenWhenInactive;
-	
+
 	typedef transactable<scroll_bar_state> transactable_t;
 	volatile transactable_t m_state;
 	volatile double m_pos;
+	volatile boolean m_canAutoFade;
+	volatile boolean m_shouldAutoFade;
 
-	delayed_construction<delegated_dependency_property<scroll_bar_state> > m_stateProperty;
-	delayed_construction<delegated_dependency_property<double> > m_positionProperty;
+	delegated_dependency_property<scroll_bar_state> m_stateProperty;
+	delegated_dependency_property<double> m_positionProperty;
+	delegated_dependency_property<bool> m_canAutoFadeProperty; // reflects scroll bars capability to auto-fade
+	delegated_dependency_property<bool> m_shouldAutoFadeProperty; // reflects callers choice to auto-fade
 
 public:
 	explicit scroll_bar(const ptr<rc_obj_base>& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
@@ -80,65 +79,95 @@ public:
 		m_dimension(d),
 		m_isHiddenWhenInactive(isHiddenWhenInactive),
 		m_state(typename transactable_t::construct_embedded_t(), s),
-		m_pos(pos)
-	{
-		auto stateGetter = [this]()
+		m_pos(pos),
+		m_stateProperty(desc, *this, [this]()
 		{
 			return *(m_state.begin_read());
-		};
-
-		auto stateSetter = [this](const scroll_bar_state& state)
+		}, [this](const scroll_bar_state& state)
 		{
 			scroll_bar_state newState = state;
 			scroll_bar_state oldState = newState;
 			m_state.swap_contents(oldState);
 			if (newState != oldState)
-				m_stateProperty.get().changed();
-			m_stateProperty.get().set_complete();
-		};
-
-		placement_rcnew(&m_stateProperty.get(), this_desc, *this, std::move(stateGetter), std::move(stateSetter));
-
-		auto positionGetter = [this]()
+				m_stateProperty.changed();
+			m_stateProperty.set_complete();
+		}),
+		m_positionProperty(desc, *this, [this]()
 		{
 			return atomic::load(m_pos);
-		};
-
-		auto positionSetter = [this](double d)
+		}, [this](double d)
 		{
 			double newPos = d;
 			double oldPos = atomic::exchange(m_pos, newPos);
 			if (newPos != oldPos)
-				m_positionProperty.get().changed();
-			m_positionProperty.get().set_complete();
-		};
-
-		placement_rcnew(&m_positionProperty.get(), this_desc, *this, std::move(positionGetter), std::move(positionSetter));
+				m_positionProperty.changed();
+			m_positionProperty.set_complete();
+		}),
+		m_canAutoFadeProperty(desc, *this, [this]()
+		{
+			return m_canAutoFade;
+		}, [this](bool b)
+		{
+			bool oldValue = m_canAutoFade.exchange(b);
+			if (b != oldValue)
+				m_canAutoFadeProperty.changed();
+			m_canAutoFadeProperty.set_complete();
+		}),
+		m_shouldAutoFadeProperty(desc, *this, [this]()
+		{
+			return m_shouldAutoFade;
+		}, [this](bool b)
+		{
+			bool oldValue = m_shouldAutoFade.exchange(b);
+			if (b != oldValue)
+				m_shouldAutoFadeProperty.changed();
+			m_shouldAutoFadeProperty.set_complete();
+		})
+	{
 	}
 	
 	dimension get_dimension() const	{ return m_dimension; }
 	bool is_hidden_when_inactive() const	{ return m_isHiddenWhenInactive; }
 
-	virtual bool can_overlay() const
-	{
-		return m_nativeScrollBar->can_overlay();
-	}
-
 	virtual void installing()
 	{
-		auto nativeScrollBar = get_subsystem()->create_scroll_bar();
-		m_nativeScrollBar = std::move(nativeScrollBar.second);
-		pane_bridge::install_bridged(std::move(nativeScrollBar.first));
-	}
-	
-	virtual void uninstalling()
-	{
-		pane_bridge::uninstalling();
-		m_nativeScrollBar.release();
+		pane_bridge::install_bridged(std::move(get_subsystem()->create_scroll_bar().first));
 	}
 
-	virtual rcref<dependency_property<scroll_bar_state> >	get_state_property() { return get_self_rcref(&m_stateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state>>(); }
-	virtual rcref<dependency_property<double> >			get_position_property() { return get_self_rcref(&m_positionProperty.get()).template static_cast_to<dependency_property<double>>(); }
+	rcref<dependency_property<scroll_bar_state> > get_state_property() { return get_self_rcref(&m_stateProperty).template static_cast_to<dependency_property<scroll_bar_state> >(); }
+	rcref<dependency_property<double> > get_position_property() { return get_self_rcref(&m_positionProperty).template static_cast_to<dependency_property<double> >(); }
+	rcref<dependency_property<bool> > get_should_auto_fade_property() { return get_self_rcref(&m_shouldAutoFadeProperty).template static_cast_to<dependency_property<bool> >(); }
+	rcref<dependency_property<bool, io::read_only> > get_can_auto_fade_property() { return get_self_rcref(&m_canAutoFadeProperty).template static_cast_to<dependency_property<bool, io::read_only> >(); }
+
+	bool will_auto_fade() const { return m_canAutoFade && m_shouldAutoFade; }
+
+	void scroll(double d)
+	{
+		double pos = atomic::load(m_pos);
+		pos += d;
+		if (pos < 0.0)
+			pos = 0;
+		else
+		{
+			auto rt = m_state.begin_read();
+			double max = rt->m_max - rt->m_thumbSize;
+			if (pos > max)
+				pos = max;
+		}
+		m_positionProperty.set(pos);
+	}
+
+	friend class scroll_bar_interface;
+};
+
+
+/// @ingroup GUI
+/// @brief Interface for a bridgeable GUI scroll bar.
+class scroll_bar_interface
+{
+protected:
+	// Provides write access to read-only properties
+	rcref<dependency_property<bool> > get_can_auto_fade_property(const rcref<scroll_bar>& sb) { return sb.member_cast_to(sb->m_canAutoFadeProperty).template static_cast_to<dependency_property<bool> >(); }
 };
 
 

@@ -129,18 +129,15 @@ private:
 	static constexpr size_t max_chunk_size_line_length	= 4 * 1024;	// 4K should be more than enough
 	static constexpr size_t max_trailer_items			= 500;		
 
-	size_t				m_remainingChunk;	// 0 if not in a chunk.  Otherwise, number of bytes remaining to be read in the chunk
-	composite_cstring	m_curLine;
-	bool				m_lastChunkReceived;
-	bool				m_lastCharWasLF;
-	trailer_map_t		m_trailers;
+	size_t m_remainingChunk = 0; // 0 if not in a chunk.  Otherwise, number of bytes remaining to be read in the chunk
+	composite_cstring m_curLine;
+	bool m_lastChunkReceived = false;
+	bool m_lastCharWasLF = false;
+	trailer_map_t m_trailers;
 
 public:
 	explicit chunk_source(const ptr<rc_obj_base>& desc)
-		: filter(desc),
-		m_remainingChunk(0),
-		m_lastChunkReceived(false),
-		m_lastCharWasLF(false)
+		: filter(desc)
 	{ }
 
 	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
@@ -1033,7 +1030,7 @@ private:
 			m_responseHeaders(rcnew(header_map_t)),
 			m_contentLength(0),
 			m_CRLFs(0),
-			m_sink(datasink::create([r{ this_weak_rcptr }](composite_buffer& b)
+			m_sink(rcnew(datasink, [r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
 				if (!r2)

@@ -46,7 +46,8 @@ public:
 
 	proportion(double x, double y)
 		: m_contents{ x, y }
-	{ }
+	{
+	}
 
 	proportion& operator=(const proportion& src)
 	{

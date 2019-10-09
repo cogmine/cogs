@@ -342,7 +342,7 @@ protected:
 
 	public:
 		content_t()
-			: m_closeEvent(count_down_event::create(1))
+			: m_closeEvent(rcnew(count_down_event, 1))
 		{ }
 
 		~content_t()
@@ -370,6 +370,7 @@ protected:
 			c->execute_next();
 	}
 
+public:
 	explicit queue(const ptr<rc_obj_base>& desc)
 		: object(desc),
 		m_contents(rcnew(content_t))
@@ -377,7 +378,6 @@ protected:
 		m_closeEvent = m_contents->m_closeEvent;
 	}
 
-public:
 	~queue()		{ close(); }
 
 	void close()
@@ -388,8 +388,6 @@ public:
 			m_contents.swap(tmp);
 		}
 	}
-
-	static rcref<queue> create()	{ return rcnew(bypass_constructor_permission<queue>); }
 
 	const waitable& get_close_event() const		{ return *m_closeEvent.dereference().template static_cast_to<waitable>(); }
 

@@ -40,23 +40,28 @@ private:
 		refire();
 	}
 
-protected:
-	pulse_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll)
-		: timer(desc, t),
-		m_wakeAll(wakeAll)
-	{ }
-
 public:
-	static rcref<pulse_timer> create(const timeout_t::period_t& p, bool wakeAll = true)	// wakeAll false means only wake 1 waiter per timer expiration
+
+	// wakeAll false means only wake 1 waiter per timer expiration
+
+	explicit pulse_timer(const ptr<rc_obj_base>& desc)
+		: timer(desc, timeout_t::infinite()),
+		m_wakeAll(true)
 	{
-		timeout_t t(p);
-		rcref<pulse_timer> tmr = rcnew(bypass_constructor_permission<pulse_timer>, t, wakeAll);
-		if (!t.is_infinite())
-			tmr->defer();
-		return tmr;
 	}
 
-	bool reschedule(const timeout_t::period_t& p)			{ return timer::reschedule(p); }
+	pulse_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll = true)
+		: timer(desc, t),
+		m_wakeAll(wakeAll)
+	{
+		if (!t.is_infinite())
+			defer();
+	}
+
+	bool reschedule(const timeout_t& t)
+	{
+		return timer::reschedule(t);
+	}
 };
 
 

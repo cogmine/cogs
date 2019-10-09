@@ -18,7 +18,7 @@ namespace cogs {
 /// @ingroup Timers
 /// @brief A manually reset timer
 ///
-/// A resettable_timer goes off and remains signalled, but can be manually reset.
+/// A resettable_timer goes off and remains signaled, but can be manually reset.
 /// A resettable_timer can be refired.  If it hasn't gone off yet it can be rescheduled.
 /// If aborted, reschedule() will restart it.
 class resettable_timer : public timer
@@ -33,29 +33,30 @@ private:
 		m_event.signal();
 	}
 
-protected:
+public:
+	explicit resettable_timer(const ptr<rc_obj_base>& desc)
+		: timer(desc, timeout_t::infinite())
+	{
+	}
+
 	resettable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
 		: timer(desc, t)
-	{ }
-
-public:
-	static rcref<resettable_timer> create(const timeout_t& t)
 	{
-		rcref<resettable_timer> tmr = rcnew(bypass_constructor_permission<resettable_timer>, t);
 		if (!t.is_infinite())
-			tmr->defer();
-		return tmr;
+			defer();
 	}
 
 	// reschedule() is used to alter the expiration time of a pending timer.
 	// If the timer has already gone off, reschedule() will return false.
-	bool reschedule(const timeout_t& t)			{ return timer::reschedule(t); }
+	bool reschedule(const timeout_t& t) { return timer::reschedule(t); }
 
 	// refire() is used when the timer has already gone off.
 	// It should not be called if the timer is pending.
 	// Therefore, the caller must ensure there is no thread contention over refire().
-	bool refire()								{ return timer::refire(); }
-	bool refire(const timeout_t& t)				{ return timer::refire(t); }
+	bool refire() { return timer::refire(); }
+	bool refire(const timeout_t& t) { return timer::refire(t); }
+
+	void reset(const timeout_t& t) { timer::reset(t); }
 };
 
 

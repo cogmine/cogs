@@ -330,6 +330,39 @@ public:
 		};
 		return CGColorCreate(CGColorSpaceCreateDeviceRGB(), c2);
 	}
+
+
+	static canvas::point make_point(const NSPoint& pt)
+	{
+		return canvas::point(pt.x, pt.y);
+	}
+
+	static canvas::point make_point(const NSRect& r)
+	{
+		return canvas::point(r.origin.x, r.origin.y);
+	}
+
+	static canvas::size make_size(const NSSize& sz)
+	{
+		return canvas::size(sz.width, sz.height);
+	}
+
+	static canvas::size make_size(const NSRect& r)
+	{
+		return canvas::size(r.size.width, r.size.height);
+	}
+
+
+	static canvas::bounds make_bounds(const NSPoint& pt, const NSSize& sz)
+	{
+		return canvas::bounds(make_point(pt), make_size(sz));
+	}
+
+	static canvas::bounds make_bounds(const NSRect& b)
+	{
+		return canvas::bounds(make_point(b.origin), make_size(b.size));
+	}
+
 };
 
 

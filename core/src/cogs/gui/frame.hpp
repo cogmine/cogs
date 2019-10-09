@@ -54,7 +54,7 @@ protected:
 	{
 		size remaining = originalBounds.get_size() - calculatedSize;
 		size newChildPosition = remaining * a;
-		point childOldPosition = get_child_position();
+		point childOldPosition = get_child_position();	// not set first time called, but oldOrigin is undefined then anyway.
 		bounds b(originalBounds.get_position() + newChildPosition, calculatedSize);
 		frame::reshape(b, oldOrigin + (childOldPosition - b.get_position()));
 	}
@@ -75,7 +75,8 @@ public:
 	}
 
 	frame(const rcref<cell>& r)
-		: m_cell(r)
+		: m_cell(r),
+		m_childPosition(0, 0)
 	{ }
 
 	virtual bool is_frame() const { return true; }
@@ -207,7 +208,6 @@ public:
 			proposed -= marginTotal;
 		else
 			proposed = 0;
-
 		proposed = frame::propose_length(d, proposed, rtnOtherRange);
 		rtnOtherRange += m_margin[!d].get_size();
 		return proposed + marginTotal;
@@ -284,7 +284,16 @@ public:
 	fixed_default_size_frame(const rcref<cell>& r, const alignment& a = alignment::center())
 		: frame(r),
 		m_alignment(a)
-	{ }
+	{
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
 
 	virtual range get_range() const
 	{
@@ -412,15 +421,67 @@ public:
 	double& get_y() { return m_position.get_y(); }
 	const double get_y() const { return m_position.get_y(); }
 
+	virtual size get_default_size() const
+	{
+		return frame::get_default_size() + m_position.to_size();
+	}
+
+	virtual range get_range() const
+	{
+		return frame::get_range() + m_position.to_size();
+	}
+
+	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	{
+		if (proposed > m_position[d])
+			proposed -= m_position[d];
+		else
+			proposed = 0;
+
+		double result = frame::propose_length(d, proposed, rtnOtherRange);
+		result += m_position[d];
+		rtnOtherRange += m_position[!d];
+		return result;
+	}
+
+	virtual size propose_lengths(dimension d, const size& proposedSize) const
+	{
+		size newProposedSize;
+		if (proposedSize[dimension::horizontal] > m_position[dimension::horizontal])
+			newProposedSize[dimension::horizontal] = proposedSize[dimension::horizontal] - m_position[dimension::horizontal];
+		else
+			newProposedSize[dimension::horizontal] = 0;
+		if (proposedSize[dimension::vertical] > m_position[dimension::vertical])
+			newProposedSize[dimension::vertical] = proposedSize[dimension::vertical] - m_position[dimension::vertical];
+		else
+			newProposedSize[dimension::vertical] = 0;
+		return frame::propose_lengths(d, newProposedSize) + m_position.to_size();
+	}
+
+	virtual size propose_size(const size& proposedSize) const
+	{
+		size newProposedSize;
+		if (proposedSize[dimension::horizontal] > m_position[dimension::horizontal])
+			newProposedSize[dimension::horizontal] = proposedSize[dimension::horizontal] - m_position[dimension::horizontal];
+		else
+			newProposedSize[dimension::horizontal] = 0;
+		if (proposedSize[dimension::vertical] > m_position[dimension::vertical])
+			newProposedSize[dimension::vertical] = proposedSize[dimension::vertical] - m_position[dimension::vertical];
+		else
+			newProposedSize[dimension::vertical] = 0;
+		return frame::propose_size(newProposedSize) + m_position.to_size();
+	}
+
+
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		point pt = b.get_position();
-		point adjustedOldOrigin = oldOrigin;
-		size delta = m_position - b.get_position();
-		pt += delta;
-		adjustedOldOrigin -= delta;
-		frame::reshape(bounds(pt, b.get_size()), adjustedOldOrigin);
+		bounds newBounds;
+		newBounds.set_position(b.get_position() + m_position);
+		newBounds.set_size(b.get_size() - m_position.to_size());
+		point childOldPosition = get_child_position();
+		point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
+		frame::reshape(newBounds, childOldOrigin);
 	}
 };
 
@@ -463,7 +524,9 @@ public:
 
 	virtual size get_default_size() const
 	{
-		return !m_bounds ? frame::get_default_size() : frame::propose_size(m_bounds.get_size());
+		if (!m_bounds)
+			return frame::get_default_size();
+		return frame::propose_size(m_bounds.get_size()) + m_bounds.get_position().to_size();
 	}
 
 	virtual range get_range() const
@@ -471,8 +534,8 @@ public:
 		if (!m_bounds)
 			return frame::get_range();
 
-		size sz = frame::propose_size(m_bounds.get_size());
-		range r(sz, sz, true, true);
+		size sz = frame::propose_size(m_bounds.get_size()) + m_bounds.get_position().to_size();
+		range r(sz);
 		return r;
 	}
 
@@ -504,12 +567,10 @@ protected:
 		else
 		{
 			size sz = frame::propose_size(m_bounds.get_size());
-			point pt = b.get_position();
-			point adjustedOldOrigin = oldOrigin;
-			size delta = m_bounds.get_position() - b.get_position();
-			pt += delta;
-			adjustedOldOrigin -= delta;
-			frame::reshape(bounds(pt, sz), adjustedOldOrigin);
+			bounds newBounds = { m_bounds.get_position() + b.get_position(), sz };
+			point childOldPosition = get_child_position();
+			point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
+			frame::reshape(newBounds, childOldOrigin);
 		}
 	}
 };
@@ -563,12 +624,10 @@ protected:
 		else
 		{
 			size sz = frame::propose_size(m_bounds.get_size());
-			point pt = b.get_position();
-			point adjustedOldOrigin = oldOrigin;
-			size delta = m_bounds.get_position() - b.get_position();
-			pt += delta;
-			adjustedOldOrigin -= delta;
-			frame::reshape(bounds(pt, sz), adjustedOldOrigin);
+			bounds newBounds = { m_bounds.get_position() + b.get_position(), sz };
+			point childOldPosition = get_child_position();
+			point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
+			frame::reshape(newBounds, childOldOrigin);
 		}
 	}
 };
@@ -816,7 +875,24 @@ public:
 		: frame(r),
 		m_proportionalSize(p),
 		m_alignment(a)
-	{ }
+	{
+		if (m_proportionalSize[dimension::horizontal] > 1.0)
+			m_proportionalSize[dimension::horizontal] = 1.0;
+		if (m_proportionalSize[dimension::vertical] > 1.0)
+			m_proportionalSize[dimension::vertical] = 1.0;
+		if (m_proportionalSize[dimension::horizontal] < 0.0)
+			m_proportionalSize[dimension::horizontal] = 0.0;
+		if (m_proportionalSize[dimension::vertical] < 0.0)
+			m_proportionalSize[dimension::vertical] = 0.0;
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
 
 	virtual size get_default_size() const
 	{
@@ -870,7 +946,16 @@ public:
 	unconstrained_frame(const rcref<cell>& r, const alignment& a = alignment::center())
 		: frame(r),
 		m_alignment(a)
-	{ }
+	{
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
 
 	virtual range get_range() const
 	{
@@ -912,7 +997,16 @@ public:
 	unconstrained_min_frame(const rcref<cell>& r, const alignment& a = alignment::center())
 		: frame(r),
 		m_alignment(a)
-	{ }
+	{
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
 
 	virtual range get_range() const
 	{
@@ -969,7 +1063,16 @@ public:
 	unconstrained_max_frame(const rcref<cell>& r, const alignment& a = alignment::center())
 		: frame(r),
 		m_alignment(a)
-	{ }
+	{
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
 
 	virtual range get_range() const
 	{
@@ -1017,11 +1120,8 @@ protected:
 };
 
 
-
 }
 }
-
 
 
 #endif
-

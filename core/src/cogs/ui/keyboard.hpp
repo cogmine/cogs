@@ -8,6 +8,8 @@
 #ifndef COGS_HEADER_UI_KEYBOARD
 #define COGS_HEADER_UI_KEYBOARD
 
+#include <bitset>
+
 
 namespace cogs {
 
@@ -15,87 +17,147 @@ namespace cogs {
 namespace ui {
 
 /// @brief Keyboard keys that do not have standard unicode identifiers
-enum special_key {
-   TabKey = 0x0009,
-   EscapeKey = 0x001B,
-   ReturnKey = 0x000D,
-   UpArrowKey = 0xF700,
-   DownArrowKey = 0xF701,
-   LeftArrowKey = 0xF702,
-   RightArrowKey = 0xF703,
-   F1Key = 0xF704,
-   F2Key = 0xF705,
-   F3Key = 0xF706,
-   F4Key = 0xF707,
-   F5Key = 0xF708,
-   F6Key = 0xF709,
-   F7Key = 0xF70A,
-   F8Key = 0xF70B,
-   F9Key = 0xF70C,
-   F10Key = 0xF70D,
-   F11Key = 0xF70E,
-   F12Key = 0xF70F,
-   F13Key = 0xF710,
-   F14Key = 0xF711,
-   F15Key = 0xF712,
-   F16Key = 0xF713,
-   F17Key = 0xF714,
-   F18Key = 0xF715,
-   F19Key = 0xF716,
-   F20Key = 0xF717,
-   F21Key = 0xF718,
-   F22Key = 0xF719,
-   F23Key = 0xF71A,
-   F24Key = 0xF71B,
-   F25Key = 0xF71C,
-   F26Key = 0xF71D,
-   F27Key = 0xF71E,
-   F28Key = 0xF71F,
-   F29Key = 0xF720,
-   F30Key = 0xF721,
-   F31Key = 0xF722,
-   F32Key = 0xF723,
-   F33Key = 0xF724,
-   F34Key = 0xF725,
-   F35Key = 0xF726,
-   InsertKey = 0xF727,
-   DeleteKey = 0xF728,
-   HomeKey = 0xF729,
-   BeginKey = 0xF72A,
-   EndKey = 0xF72B,
-   PageUpKey = 0xF72C,
-   PageDownKey = 0xF72D,
-   PrintScreenKey = 0xF72E,
-   ScrollLockKey = 0xF72F,
-   PauseKey = 0xF730,
-   SysReqKey = 0xF731,
-   BreakKey = 0xF732,
-   ResetKey = 0xF733,
-   StopKey = 0xF734,
-   MenuKey = 0xF735,
-   UserKey = 0xF736,
-   SystemKey = 0xF737,
-   PrintKey = 0xF738,
-   ClearLineKey = 0xF739,
-   ClearDisplayKey = 0xF73A,
-   InsertLineKey = 0xF73B,
-   DeleteLineKey = 0xF73C,
-   InsertCharKey = 0xF73D,
-   DeleteCharKey = 0xF73E,
-   PrevKey = 0xF73F,
-   NextKey = 0xF740,
-   SelectKey = 0xF741,
-   ExecuteKey = 0xF742,
-   UndoKey = 0xF743,
-   RedoKey = 0xF744,
-   FindKey = 0xF745,
-   HelpKey = 0xF746,
-   ModeSwitchKey = 0xF747
+namespace special_keys {
+
+static constexpr wchar_t TabKey = 0x0009;
+static constexpr wchar_t EscapeKey = 0x001B;
+static constexpr wchar_t ReturnKey = 0x000D;
+static constexpr wchar_t UpArrowKey = 0xF700;
+static constexpr wchar_t DownArrowKey = 0xF701;
+static constexpr wchar_t LeftArrowKey = 0xF702;
+static constexpr wchar_t RightArrowKey = 0xF703;
+static constexpr wchar_t F1Key = 0xF704;
+static constexpr wchar_t F2Key = 0xF705;
+static constexpr wchar_t F3Key = 0xF706;
+static constexpr wchar_t F4Key = 0xF707;
+static constexpr wchar_t F5Key = 0xF708;
+static constexpr wchar_t F6Key = 0xF709;
+static constexpr wchar_t F7Key = 0xF70A;
+static constexpr wchar_t F8Key = 0xF70B;
+static constexpr wchar_t F9Key = 0xF70C;
+static constexpr wchar_t F10Key = 0xF70D;
+static constexpr wchar_t F11Key = 0xF70E;
+static constexpr wchar_t F12Key = 0xF70F;
+static constexpr wchar_t F13Key = 0xF710;
+static constexpr wchar_t F14Key = 0xF711;
+static constexpr wchar_t F15Key = 0xF712;
+static constexpr wchar_t F16Key = 0xF713;
+static constexpr wchar_t F17Key = 0xF714;
+static constexpr wchar_t F18Key = 0xF715;
+static constexpr wchar_t F19Key = 0xF716;
+static constexpr wchar_t F20Key = 0xF717;
+static constexpr wchar_t F21Key = 0xF718;
+static constexpr wchar_t F22Key = 0xF719;
+static constexpr wchar_t F23Key = 0xF71A;
+static constexpr wchar_t F24Key = 0xF71B;
+static constexpr wchar_t F25Key = 0xF71C;
+static constexpr wchar_t F26Key = 0xF71D;
+static constexpr wchar_t F27Key = 0xF71E;
+static constexpr wchar_t F28Key = 0xF71F;
+static constexpr wchar_t F29Key = 0xF720;
+static constexpr wchar_t F30Key = 0xF721;
+static constexpr wchar_t F31Key = 0xF722;
+static constexpr wchar_t F32Key = 0xF723;
+static constexpr wchar_t F33Key = 0xF724;
+static constexpr wchar_t F34Key = 0xF725;
+static constexpr wchar_t F35Key = 0xF726;
+static constexpr wchar_t InsertKey = 0xF727;
+static constexpr wchar_t DeleteKey = 0xF728;
+static constexpr wchar_t HomeKey = 0xF729;
+static constexpr wchar_t BeginKey = 0xF72A;
+static constexpr wchar_t EndKey = 0xF72B;
+static constexpr wchar_t PageUpKey = 0xF72C;
+static constexpr wchar_t PageDownKey = 0xF72D;
+static constexpr wchar_t PrintScreenKey = 0xF72E;
+static constexpr wchar_t ScrollLockKey = 0xF72F;
+static constexpr wchar_t PauseKey = 0xF730;
+static constexpr wchar_t SysReqKey = 0xF731;
+static constexpr wchar_t BreakKey = 0xF732;
+static constexpr wchar_t ResetKey = 0xF733;
+static constexpr wchar_t StopKey = 0xF734;
+static constexpr wchar_t MenuKey = 0xF735;
+static constexpr wchar_t UserKey = 0xF736;
+static constexpr wchar_t SystemKey = 0xF737;
+static constexpr wchar_t PrintKey = 0xF738;
+static constexpr wchar_t ClearLineKey = 0xF739;
+static constexpr wchar_t ClearDisplayKey = 0xF73A;
+static constexpr wchar_t InsertLineKey = 0xF73B;
+static constexpr wchar_t DeleteLineKey = 0xF73C;
+static constexpr wchar_t InsertCharKey = 0xF73D;
+static constexpr wchar_t DeleteCharKey = 0xF73E;
+static constexpr wchar_t PrevKey = 0xF73F;
+static constexpr wchar_t NextKey = 0xF740;
+static constexpr wchar_t SelectKey = 0xF741;
+static constexpr wchar_t ExecuteKey = 0xF742;
+static constexpr wchar_t UndoKey = 0xF743;
+static constexpr wchar_t RedoKey = 0xF744;
+static constexpr wchar_t FindKey = 0xF745;
+static constexpr wchar_t HelpKey = 0xF746;
+static constexpr wchar_t ModeSwitchKey = 0xF747;
+
 };
+
+
+enum class physical_modifier_key {
+	left_shift_key = 2,
+	right_shift_key = 3,
+	left_control_key = 8,
+	right_control_key = 9,
+	left_alt_key = 10,
+	right_alt_key = 11,
+	left_command_key = 12,
+	right_command_key = 13
+};
+
+enum class modifier_key {
+	shift_key = 1,
+	control_key = 4,
+	alt_key = 5,
+	command_key = 6
+};
+
+enum class toggleable_modifier_key {
+	caps_lock_key = 0,
+	num_lock_key = 7
+};
+
+class modifier_keys_state
+{
+private:
+	std::bitset<14> m_bitset;
+
+public:
+	bool operator==(const modifier_keys_state& cmp) const { return m_bitset == cmp.m_bitset; }
+	bool operator!=(const modifier_keys_state& cmp) const { return m_bitset != cmp.m_bitset; }
+
+
+	bool get_key(modifier_key key) const { return m_bitset[(size_t)key]; }
+
+	bool get_key(toggleable_modifier_key key) const { return m_bitset[(size_t)key]; }
+
+	bool get_key(physical_modifier_key key) const { return m_bitset[(size_t)key]; }
+
+
+	void set_key(toggleable_modifier_key key, bool b) { m_bitset.set((size_t)key, b); }
+
+	void set_key(physical_modifier_key key, bool b)
+	{
+		m_bitset.set((size_t)key, b);
+		size_t modifierKey = (size_t)key >> 1;	// modifier_key is (physical_modifier_key / 2)
+		if (b)
+			m_bitset.set(modifierKey, true);
+		else
+		{
+			size_t otherSideKey = (size_t)key ^ 0x01;
+			if (!m_bitset[otherSideKey])
+				m_bitset.set(modifierKey, false);
+		}
+	}
+};
+
 
 }
 }
 
 
 #endif
-

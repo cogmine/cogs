@@ -19,21 +19,21 @@ namespace net {
 namespace ip {
 
 
-class socket
+class socket : public object
 {
-protected:
-	friend class tcp;
-
+private:
 	rcref<os::io::kqueue_pool>	m_kqueuePool;
 	address_family		m_addressFamily;
 	endpoint			m_localEndpoint;
 	endpoint			m_remoteEndpoint;
 	auto_fd				m_fd;
 
-	socket(int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-		:	m_fd(::socket(addressFamily, type, protocol)),
-			m_kqueuePool(kq),
-			m_addressFamily(addressFamily)
+public:
+	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		: object(desc),
+		m_fd(::socket(addressFamily, type, protocol)),
+		m_kqueuePool(kq),
+		m_addressFamily(addressFamily)
 	{
 		if (!!m_fd)
 		{
@@ -43,10 +43,11 @@ protected:
 		}
 	}
 
-	socket(int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
-		:	m_fd(sckt),
-			m_kqueuePool(kq),
-			m_addressFamily(addressFamily)
+	socket(const ptr<rc_obj_base>& desc, int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		: object(desc),
+		m_fd(sckt),
+		m_kqueuePool(kq),
+		m_addressFamily(addressFamily)
 	{
 		if (!!m_fd)
 		{
@@ -55,6 +56,22 @@ protected:
 				m_fd.release();
 		}
 	}
+
+	~socket()
+	{
+		close();
+	}
+
+	endpoint& get_local_endpoint() { return m_localEndpoint; }
+	const endpoint& get_local_endpoint() const { return m_localEndpoint; }
+	void set_local_endpoint(const endpoint& ep) { m_localEndpoint = ep; }
+
+	endpoint& get_remote_endpoint() { return m_remoteEndpoint; }
+	const endpoint& get_remote_endpoint() const { return m_remoteEndpoint; }
+	void set_remote_endpoint(const endpoint& ep) { m_remoteEndpoint = ep; }
+
+	rcref<const net::endpoint> get_local_endpoint_ref() const { return this_rcref.member_cast_to(m_localEndpoint); }
+	rcref<const net::endpoint> get_remote_endpoint_ref() const { return this_rcref.member_cast_to(m_remoteEndpoint); }
 
 	void read_endpoints()
 	{
@@ -123,10 +140,14 @@ protected:
 			shutdown(m_fd.get(), SHUT_RD | SHUT_WR);
 	}
 
-public:
-	~socket()
+	int get()
 	{
-		close();
+		return m_fd.get();
+	}
+
+	os::io::kqueue_pool& get_pool()
+	{
+		return *m_kqueuePool;
 	}
 };
 

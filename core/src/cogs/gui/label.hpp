@@ -30,71 +30,17 @@ private:
 	// a single transacted state).  This is because sets() will never happen simultaneously,
 	// though get() may occur concurrently with set()'s.
 
-	volatile composite_string		m_text;
-	volatile gfx::font	m_font;
-	volatile color		m_textColor;
+	volatile composite_string m_text;
+	volatile gfx::font m_font;
+	volatile color m_textColor;
 	bool m_useLineHeight;
 
-	delayed_construction<delegated_dependency_property<composite_string> >		m_textProperty;
-	delayed_construction<delegated_dependency_property<gfx::font> >	m_fontProperty;
-	delayed_construction<delegated_dependency_property<color> >		m_colorProperty;
+	delegated_dependency_property<composite_string> m_textProperty;
+	delegated_dependency_property<gfx::font> m_fontProperty;
+	delegated_dependency_property<color> m_colorProperty;
 
 	rcptr<canvas::font> m_cachedFont;
 	size m_textExtent;
-
-	void create_properties()
-	{
-		auto textGetter = [this]()
-		{
-			return m_text;
-		};
-
-		auto textSetter = [this](const composite_string& s)
-		{
-			m_text = s;
-			m_textProperty->set_complete(true);
-			if (is_installed())
-			{
-				invalidate(get_size());
-				recompose();
-			}
-		};
-
-		placement_rcnew(&m_textProperty.get(), this_desc, *this, std::move(textGetter), std::move(textSetter));
-
-		auto fontGetter = [this]()
-		{
-			return m_font;
-		};
-
-		auto fontSetter = [this](const gfx::font& f)
-		{
-			m_font = f;
-			m_fontProperty->set_complete(true);
-			if (is_installed())
-			{
-				m_cachedFont = load_font(f);
-				invalidate(get_size());
-				recompose();
-			}
-		};
-
-		placement_rcnew(&m_fontProperty.get(), this_desc, *this, std::move(fontGetter), std::move(fontSetter));
-
-		auto colorGetter = [this]()
-		{
-			return m_textColor;
-		};
-		
-		auto colorSetter = [this](color c)
-		{
-			m_textColor = c;
-			m_colorProperty->set_complete(true);
-			invalidate(get_size());
-		};
-
-		placement_rcnew(&m_colorProperty.get(), this_desc, *this, std::move(colorGetter), std::move(colorSetter));
-	}
 
 public:
 	label(const ptr<rc_obj_base>& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::black, bool useLineHeight = true)
@@ -102,19 +48,44 @@ public:
 		m_text(text),
 		m_font(fnt),
 		m_textColor(c),
-		m_useLineHeight(useLineHeight)
-	{
-		create_properties();
-	}
-
-	label(const ptr<rc_obj_base>& desc, const composite_string& text, const color& c = color::black, bool useLineHeight = true)
-		: pane(desc),
-		m_text(text),
-		m_textColor(c),
-		m_useLineHeight(useLineHeight)
-	{
-		create_properties();
-	}
+		m_useLineHeight(useLineHeight),
+		m_textProperty(desc, *this, [this]()
+		{
+			return m_text;
+		}, [this](const composite_string& s)
+		{
+			m_text = s;
+			m_textProperty.set_complete(true);
+			if (is_installed())
+			{
+				invalidate(get_size());
+				recompose();
+			}
+		}),
+		m_fontProperty(desc, *this, [this]()
+		{
+			return m_font;
+		}, [this](const gfx::font& f)
+		{
+			m_font = f;
+			m_fontProperty.set_complete(true);
+			if (is_installed())
+			{
+				m_cachedFont = load_font(f);
+				invalidate(get_size());
+				recompose();
+			}
+		}),
+		m_colorProperty(desc, *this, [this]()
+		{
+			return m_textColor;
+		}, [this](color c)
+		{
+			m_textColor = c;
+			m_colorProperty.set_complete(true);
+			invalidate(get_size());
+		})
+	{ }
 
 	virtual void installing()
 	{
@@ -153,8 +124,8 @@ public:
 		}
 	}
 
-	virtual range	get_range() const			{ return range(m_textExtent); }
-	virtual size	get_default_size() const	{ return m_textExtent; }
+	virtual range get_range() const { return range(m_textExtent); }
+	virtual size get_default_size() const { return m_textExtent; }
 
 	virtual void drawing()
 	{
@@ -164,18 +135,18 @@ public:
 		draw_text(txt, m_textExtent, f.dereference(), c);
 	}
 		
-	rcref<dependency_property<composite_string> >	get_text_property() { return get_self_rcref(&m_textProperty.get()).template static_cast_to<dependency_property<composite_string>>(); }
-	rcref<dependency_property<gfx::font> >	get_font_property() { return get_self_rcref(&m_fontProperty.get()).template static_cast_to<dependency_property<gfx::font> >(); }
-	rcref<dependency_property<color> >		get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<dependency_property<color> >(); }
+	rcref<dependency_property<composite_string> > get_text_property() { return get_self_rcref(&m_textProperty); }
+	rcref<dependency_property<gfx::font> > get_font_property() { return get_self_rcref(&m_fontProperty); }
+	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty); }
 
 	color get_text_color() const
 	{
-		return m_colorProperty->get();
+		return m_colorProperty.get();
 	}
 
 	void set_text_color(const color& c)
 	{
-		m_colorProperty->set(c);
+		m_colorProperty.set(c);
 	}
 
 };

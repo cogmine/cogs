@@ -47,10 +47,10 @@ public:
 		//m_contents.m_version = 0;	// Doesn't matter what # the version counter actually starts on
 	}
 
-	void get(type& t) const					{ t = m_contents.m_data; }
-	void get(type& t) const volatile		{ t = atomic::load(m_contents.m_data); }
+	void get(type& t) const { t = m_contents.m_data; }
+	void get(type& t) const volatile { t = atomic::load(m_contents.m_data); }
 
-	void get(type& t, version_t& v) const				{ get(t); get_version(v); }
+	void get(type& t, version_t& v) const { get(t); get_version(v); }
 	void get(type& t, version_t& v) const volatile
 	{
 		content_t tmp;
@@ -59,12 +59,12 @@ public:
 		v = tmp.m_version;
 	}
 
-	void      get_version(version_t& v) const			{ v = m_contents.m_version; }
-	void      get_version(version_t& v) const volatile	{ v = atomic::load(m_contents.m_version); }
-	version_t get_version() const						{ return m_contents.m_version; }
-	version_t get_version() const volatile				{ version_t tmp; get_version(tmp); return tmp; }
+	void get_version(version_t& v) const { v = m_contents.m_version; }
+	void get_version(version_t& v) const volatile { v = atomic::load(m_contents.m_version); }
+	version_t get_version() const { return m_contents.m_version; }
+	version_t get_version() const volatile { version_t tmp; get_version(tmp); return tmp; }
 
-	void touch()			{ m_contents.m_version++; }
+	void touch() { m_contents.m_version++; }
 	void touch() volatile
 	{
 		version_t oldVersion;

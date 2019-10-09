@@ -229,14 +229,14 @@ public:
 	// Returns 0 if timed-out, 1 if completed, -1 if cancelled
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile = 0;
 
-	// Returns true if signalled, false if cancelled.
+	// Returns true if signaled, false if cancelled.
 	bool wait() const volatile { return timed_wait(timeout_t::infinite()) == 1; }
 
-	bool is_signalled() const volatile { return timed_wait(timeout_t::none()) == 1; }
+	bool is_signaled() const volatile { return timed_wait(timeout_t::none()) == 1; }
 	bool is_pending() const volatile { return timed_wait(timeout_t::none()) == 0; }
 	bool is_cancelled() const volatile { return timed_wait(timeout_t::none()) == -1; }
 
-	bool operator!() const volatile { return !is_signalled(); }
+	bool operator!() const volatile { return !is_signaled(); }
 
 	// A waitable is considered const with regards to waiting on its signal
 	template <typename... args_t>
@@ -256,8 +256,8 @@ inline void dispatcher::dispatch_inner(const volatile waitable& w, const rcref<t
 class event_base : public waitable
 {
 public:
-	// Returns true if transitioned from unsignalled to signalled state.
-	// Returns false if already signalled, or cancelled, or if still in the process of signalling
+	// Returns true if transitioned from unsignaled to signalled state.
+	// Returns false if already signaled, or cancelled, or if still in the process of signaling
 	// (in which case, a previous call to signal() will have returned true).
 	virtual bool signal() volatile = 0;
 };
@@ -329,7 +329,7 @@ protected:
 		auto r = m_continuationSubTasks.preallocate_key_with_aux<delayed_construction<continuation_dispatched> >(priority, i);
 		continuation_dispatched* d = &(r->get());
 		i.get_value() = d;
-		placement_rcnew(d, r.get_desc(), this_rcref, t, i);
+		new (d) continuation_dispatched(r.get_desc(), this_rcref, t, i);
 		rcref<continuation_dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
 		i.disown();
@@ -342,7 +342,7 @@ protected:
 					break;	// was handled
 			}
 			i.release();
-			if (is_signalled())
+			if (is_signaled())
 				signal_continuation(*d->get_task_base());
 			else
 				d->get_task_base()->cancel();
@@ -376,9 +376,9 @@ protected:
 		}
 	}
 
-	task(const ptr<rc_obj_base>& desc, bool signalled = false)
+	task(const ptr<rc_obj_base>& desc, bool signaled = false)
 		: object(desc),
-		m_continuationSubTaskDrainDone(signalled)
+		m_continuationSubTaskDrainDone(signaled)
 	{ }
 
 public:
@@ -424,8 +424,8 @@ protected:
 		}
 	}
 
-	task(const ptr<rc_obj_base>& desc, bool signalled)
-		: task<void>(desc, signalled)
+	task(const ptr<rc_obj_base>& desc, bool signaled)
+		: task<void>(desc, signaled)
 	{ }
 
 public:
@@ -1633,8 +1633,9 @@ dispatcher::dispatch(F&& onComplete, int priority) volatile
 		}
 	}, [t]()
 	{
-		t.cancel_inner();
+		t->cancel_inner();
 	}, priority);
+	return t.template static_cast_to<result_task_t>();
 }
 
 
@@ -1686,7 +1687,7 @@ dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 		}
 	}, [t, onCancel]()
 	{
-		t.cancel_inner();
+		t->cancel_inner();
 		onCancel();
 	}, priority);
 	return t.template static_cast_to<result_task_t>();
@@ -1737,7 +1738,7 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 		}
 	}, [t]()
 	{
-		t.cancel_inner();
+		t->cancel_inner();
 	}, priority);
 	return t.template static_cast_to<result_task_t>();
 }
@@ -1792,7 +1793,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 		}
 	}, [t, onCancel]()
 	{
-		t.cancel_inner();
+		t->cancel_inner();
 		onCancel();
 	}, priority);
 	return t.template static_cast_to<result_task_t>();

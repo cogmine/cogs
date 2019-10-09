@@ -631,7 +631,7 @@ private:
 				m_state(s),
 				m_hasMaxLength(!!maxLength),
 				m_remainingLength(maxLength),
-				m_sink(datasink::transaction::create(snk)),
+				m_sink(rcnew(datasink::transaction, snk)),
 				m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 				m_closeSourceOnSinkClose(closeSourceOnSinkClose)
 		{

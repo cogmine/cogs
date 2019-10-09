@@ -175,12 +175,12 @@ public:
 
 		static constexpr size_t max_request_length = 64 * 1024;	// 64K
 
-		composite_buffer			m_bufferedWrite;
-		bool						gotCR;
-		composite_cstring			m_currentCommand;
-		composite_cstring			m_commandParams;
+		composite_buffer m_bufferedWrite;
+		bool m_gotCR = false;
+		composite_cstring m_currentCommand;
+		composite_cstring m_commandParams;
 		rcref<datasink> m_sink;
-		rcptr<task<void> >	m_coupler;
+		rcptr<task<void> > m_coupler;
 
 	private:
 		rcref<task<bool> > process_write(composite_buffer& compBuf)
@@ -196,10 +196,10 @@ public:
 				char c = ((char*)(buf.get_const_ptr()))[0];
 				compBuf.advance(1);
 				if (c == special_characters<char>::CR)
-					gotCR = true;
+					m_gotCR = true;
 				else if (c == special_characters<char>::LF)
 				{
-					if (gotCR)
+					if (m_gotCR)
 					{
 						completeRequest = true;
 						break;
@@ -207,7 +207,7 @@ public:
 				}
 				else
 				{
-					gotCR = false;
+					m_gotCR = false;
 					if ((c == special_characters<char>::DEL) || (c == special_characters<char>::BS))
 					{
 						if (m_currentCommand.get_length() > 0)
@@ -273,8 +273,7 @@ public:
 
 		request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
 			: net::request_response_server::request(desc, c),
-			gotCR(false),
-			m_sink(datasink::create([r{ this_weak_rcptr }](composite_buffer& b)
+			m_sink(rcnew(datasink, [r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
 				if (!r2)

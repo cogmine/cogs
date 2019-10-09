@@ -25,31 +25,22 @@ class background : public pane, public virtual pane_container
 private:
 	volatile color m_color;
 
-	delayed_construction<delegated_dependency_property<color> > m_colorProperty;
-
-	void create_properties()
-	{
-		auto colorGetter = [this]()
-		{
-			return m_color;
-		};
-		
-		auto colorSetter = [this](color c)
-		{
-			m_color = c;
-			m_colorProperty->set_complete(true);
-			invalidate(get_size());
-		};
-
-		placement_rcnew(&m_colorProperty.get(), this_desc, *this, std::move(colorGetter), std::move(colorSetter));
-	}
+	delegated_dependency_property<color> m_colorProperty;
 
 public:
 	background(const ptr<rc_obj_base>& desc, const color& c, compositing_behavior cb = compositing_behavior::no_buffer)
 		: pane(desc, cb),
-		m_color(c)
+		m_color(c),
+		m_colorProperty(desc, *this, [this]()
+			{
+				return m_color;
+			}, [this](color c)
+			{
+				m_color = c;
+				m_colorProperty.set_complete(true);
+				invalidate(get_size());
+			})
 	{
-		create_properties();
 	}
 
 	virtual bool is_opaque() const
@@ -62,17 +53,17 @@ public:
 		color c = m_color;
 		fill(get_size(), c);
 	}
-		
-	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty.get()).template static_cast_to<dependency_property<color> >(); }
+
+	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty); }
 
 	color get_color() const
 	{
-		return m_colorProperty->get();
+		return m_colorProperty.get();
 	}
 
 	void set_color(const color& c)
 	{
-		m_colorProperty->set(c);
+		m_colorProperty.set(c);
 	}
 
 	using pane_container::nest;
@@ -88,4 +79,3 @@ public:
 
 
 #endif
-

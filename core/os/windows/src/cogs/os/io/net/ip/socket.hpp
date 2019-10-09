@@ -19,9 +19,9 @@ namespace net {
 namespace ip {
 
 
-class socket
+class socket : public object
 {
-protected:
+private:
 	friend class tcp;
 
 	rcref<network>				m_network;
@@ -31,10 +31,12 @@ protected:
 	endpoint						m_localEndpoint;
 	endpoint						m_remoteEndpoint;
 
-	socket(int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-		:	m_completionPort(cp),
-			m_network(n),
-			m_addressFamily(addressFamily)
+public:
+	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+		: object(desc),
+		m_completionPort(cp),
+		m_network(n),
+		m_addressFamily(addressFamily)
 	{
 		// Socket is both overlapped and non-blocking.
 		m_socket = WSASocket(addressFamily, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -42,10 +44,30 @@ protected:
 		{
 			m_completionPort->register_handle((HANDLE)m_socket);
 
-			unsigned long argp =  1;
+			unsigned long argp = 1;
 			int i = ioctlsocket(m_socket, FIONBIO, &argp);
 		}
 	}
+
+	~socket()
+	{
+		if (m_socket != INVALID_SOCKET)
+		{
+			close();
+			closesocket(m_socket);
+		}
+	}
+
+	endpoint& get_local_endpoint() { return m_localEndpoint; }
+	const endpoint& get_local_endpoint() const { return m_localEndpoint; }
+	void set_local_endpoint(const endpoint& ep) { m_localEndpoint = ep; }
+
+	endpoint& get_remote_endpoint() { return m_remoteEndpoint; }
+	const endpoint& get_remote_endpoint() const { return m_remoteEndpoint; }
+	void set_remote_endpoint(const endpoint& ep) { m_remoteEndpoint = ep; }
+
+	rcref<const net::endpoint> get_local_endpoint_ref() const { return this_rcref.member_cast_to(m_localEndpoint); }
+	rcref<const net::endpoint> get_remote_endpoint_ref() const { return this_rcref.member_cast_to(m_remoteEndpoint); }
 
 	void read_endpoints()
 	{
@@ -114,15 +136,16 @@ protected:
 			shutdown(m_socket, SD_BOTH);
 	}
 
-public:
-	~socket()
+	SOCKET get()
 	{
-		if (m_socket != INVALID_SOCKET)
-		{
-			close();
-			closesocket(m_socket);
-		}
+		return m_socket;
 	}
+
+	os::io::completion_port& get_pool()
+	{
+		return *m_completionPort;
+	}
+
 };
 
 

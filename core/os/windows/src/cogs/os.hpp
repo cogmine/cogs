@@ -28,7 +28,28 @@
 #include <gdiplus.h>
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' " "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#pragma comment(lib, "uxtheme.lib") 
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "gdiplus.lib")
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "msimg32.lib")
+#pragma comment(lib, "mswsock.lib")
+#pragma comment(lib, "normaliz.lib")
+#pragma comment(lib, "odbc32.lib")
+#pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "shcore.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "uxtheme.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "winspool.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 #define SC_RESIZE_LEFT			0xF001
 #define SC_RESIZE_RIGHT			0xF002 

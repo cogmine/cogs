@@ -36,52 +36,39 @@ private:
 	{
 	public:
 		vector<composite_string> m_fontNames;
-		double m_pointSize;
-		bool m_isItalic;
-		bool m_isBold;
-		bool m_isUnderlined;
-		bool m_isStrikeOut;
+		double m_pointSize = 0.0; // 0 point size implies default point size
+		bool m_isItalic = false;
+		bool m_isBold = false;
+		bool m_isUnderlined = false;
+		bool m_isStrikeOut = false;
 
-		description()				// no font name(s) implies default font
-			:	m_pointSize(0),	// 0 point size implies default point size
-				m_isItalic(false),
-				m_isBold(false),
-				m_isUnderlined(false),
-				m_isStrikeOut(false)
+		description() // no font name(s) implies default font
 		{ }
 
 		description(const description& src)
-			:	m_fontNames(src.m_fontNames),
-				m_pointSize(src.m_pointSize),
-				m_isItalic(src.m_isItalic),
-				m_isBold(src.m_isBold),
-				m_isUnderlined(src.m_isUnderlined),
-				m_isStrikeOut(src.m_isStrikeOut)
+			: m_fontNames(src.m_fontNames),
+			m_pointSize(src.m_pointSize),
+			m_isItalic(src.m_isItalic),
+			m_isBold(src.m_isBold),
+			m_isUnderlined(src.m_isUnderlined),
+			m_isStrikeOut(src.m_isStrikeOut)
 		{ }
 
 		description(double pointSize)	// no font name(s) implies default font
-			:	m_pointSize(pointSize),		// 0 point size implies default point size
-				m_isItalic(false),
-				m_isBold(false),
-				m_isUnderlined(false),
-				m_isStrikeOut(false)
+			: m_pointSize(pointSize)
 		{ }
 
 		description(const vector<composite_string>& fontNames, double pointSize)
-			:	m_fontNames(fontNames),
-				m_pointSize(pointSize),
-				m_isItalic(false),
-				m_isBold(false),
-				m_isUnderlined(false),
-				m_isStrikeOut(false)
+			: m_fontNames(fontNames),
+			m_pointSize(pointSize),
+			m_isItalic(false),
+			m_isBold(false),
+			m_isUnderlined(false),
+			m_isStrikeOut(false)
 		{ }
 		
 		description(const composite_string& fontName, double pointSize)
-			:	m_pointSize(pointSize),
-				m_isItalic(false),
-				m_isBold(false),
-				m_isUnderlined(false),
-				m_isStrikeOut(false)
+			: m_pointSize(pointSize)
 		{
 			m_fontNames.prepend(1, fontName);
 		}

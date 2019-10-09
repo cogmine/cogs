@@ -47,7 +47,7 @@ private:
 
 public:
 	alignment()
-		: m_contents{ 0, 0 }
+		: m_contents{ 0.0, 0.0 }
 	{ }
 
 	alignment(const alignment& src)
@@ -60,7 +60,8 @@ public:
 
 	alignment(double x, double y)
 		: m_contents{ x, y }
-	{ }
+	{
+	}
 
 	alignment& operator=(const alignment& src)
 	{
@@ -109,8 +110,6 @@ public:
 	static alignment bottom_left() { return alignment(0, 1); }
 	static alignment bottom_center() { return alignment(0.5, 1); }
 	static alignment bottom_right() { return alignment(1, 1); }
-
-
 };
 
 }

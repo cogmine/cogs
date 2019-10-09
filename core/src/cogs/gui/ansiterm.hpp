@@ -2160,7 +2160,7 @@
 //
 //	virtual cstring get_telnet_terminal_type() { return cstring::literal("ANSI"); }
 //
-//	virtual bool key_pressing(wchar_t c)
+//	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers)
 //	{
 //		COGS_ASSERT(m_cursorY < 999);
 //		switch (c)
@@ -2237,7 +2237,7 @@
 //		return false;
 //	}
 //
-//	virtual bool character_typing(wchar_t c)
+//	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers)
 //	{
 //		if (m_scrollPos != m_screenTop)
 //		{
@@ -2404,7 +2404,7 @@
 //
 //	virtual void initializing()
 //	{
-//		rcptr<resettable_timer> blinkTimer = resettable_timer::create(measure<int_type, milliseconds>(250));
+//		rcptr<resettable_timer> blinkTimer = rcnew(resettable_timer, measure<int_type, milliseconds>(250));
 //		m_blinkTimer = blinkTimer;
 //		blinkTimer->dispatch(m_blinkTimerExpireDelegate);
 //	}
@@ -4498,7 +4498,7 @@
 //		return tmp;
 //	}
 //
-//	virtual bool key_pressing(wchar_t c)
+//	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers)
 //	{
 //		COGS_ASSERT(m_cursorY < 999);
 //		switch (c)
@@ -4556,7 +4556,7 @@
 //		COGS_ASSERT(m_cursorY < 999);
 //	}
 //
-//	virtual void character_typing(wchar_t c)
+//	virtual void character_typing(wchar_t c, const ui::modifier_keys_state& modifiers)
 //	{
 //		if (m_scrollPos != m_screenTop)
 //		{

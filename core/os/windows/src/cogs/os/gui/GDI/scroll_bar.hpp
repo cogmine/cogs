@@ -15,6 +15,7 @@
 
 #include "cogs/dependency_property.hpp"
 #include "cogs/gui/scroll_bar.hpp"
+#include "cogs/math/boolean.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/gui/GDI/hwnd.hpp"
 #include "cogs/os/gui/GDI/window.hpp"
@@ -30,19 +31,21 @@ class scroll_bar : public hwnd_pane, public scroll_bar_interface
 {
 private:
 	volatile transactable<scroll_bar_state> m_state;
-	volatile double m_pos;
+	volatile double m_pos = 0.0;
 
-	delayed_construction<delegated_dependency_property<scroll_bar_state> > m_stateProperty;
-	delayed_construction<delegated_dependency_property<double> > m_positionProperty;
+	delegated_dependency_property<scroll_bar_state> m_stateProperty;
+	delegated_dependency_property<double> m_positionProperty;
+	delegated_dependency_property<bool, io::read_only> m_canAutoFadeProperty;
 
 	dimension m_dimension;
 	bool m_isHiddenWhenInactive;
-	bool m_isHidden;
+	bool m_isHidden = false;
 	range m_currentRange;
 	size m_currentDefaultSize;
 
 	void set_scroll_bar_state(const scroll_bar_state& newState, double newPos)
 	{
+		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
 		int fnBar = SB_CTL;
 		for (;;)
 		{
@@ -68,7 +71,7 @@ private:
 					if (!m_isHidden)
 					{
 						m_isHidden = true;
-						hiding();
+						sb->hide();
 					}
 					break;
 				}
@@ -104,7 +107,7 @@ private:
 			if (!!m_isHidden)
 			{
 				m_isHidden = false;
-				showing();
+				sb->show();
 			}
 			break;
 		}
@@ -113,15 +116,10 @@ private:
 public:
 	scroll_bar(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, system_drawn_offscreen),
-		m_isHidden(false),
-		m_pos(0)
-	{
-		auto stateGetter = [this]()
+		m_stateProperty(desc, uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());
-		};
-
-		auto stateSetter = [this](const scroll_bar_state& state)
+		}, [this](const scroll_bar_state& state)
 		{
 			scroll_bar_state newState = state;
 			scroll_bar_state oldState = newState;
@@ -130,36 +128,26 @@ public:
 			{
 				double curPos = atomic::load(m_pos);
 				set_scroll_bar_state(newState, curPos);
-				m_stateProperty->changed();
+				m_stateProperty.changed();
 			}
-			m_stateProperty->set_complete();
-		};
-
-		placement_rcnew(&m_stateProperty.get(), this_desc, uiSubsystem, std::move(stateGetter), std::move(stateSetter));
-
-		auto positionGetter = [this]()
+			m_stateProperty.set_complete();
+		}),
+		m_positionProperty(desc, uiSubsystem, [this]()
 		{
 			return atomic::load(m_pos);
-		};
-
-		auto positionSetter = [this](double d)
+		}, [this](double d)
 		{
 			double newPos = d;
 			double oldPos = atomic::exchange(m_pos, newPos);
 			if (newPos != oldPos)
 			{
 				set_scroll_bar_state(*(m_state.begin_read()), newPos);
-				m_positionProperty->changed();
+				m_positionProperty.changed();
 			}
-			m_positionProperty->set_complete();
-		};
-
-		placement_rcnew(&m_positionProperty.get(), this_desc, uiSubsystem, std::move(positionGetter), std::move(positionSetter));
-	}
-
-	virtual bool can_overlay() const
+			m_positionProperty.set_complete();
+		}),
+		m_canAutoFadeProperty(desc, uiSubsystem, [this](){ return false; })
 	{
-		return false;
 	}
 
 	virtual void installing()
@@ -177,8 +165,9 @@ public:
 		install_HWND();
 		hwnd_pane::installing();
 
-		m_stateProperty->bind_from(sb->get_state_property());
-		m_positionProperty->bind(sb->get_position_property());
+		m_stateProperty.bind_from(sb->get_state_property());
+		m_positionProperty.bind(sb->get_position_property());
+		m_canAutoFadeProperty.bind_to(get_can_auto_fade_property(sb.dereference()));
 	}
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -254,8 +243,7 @@ public:
 						SetScrollInfo(get_HWND(), fnBar, &si, TRUE);
 
 						// sets are serialized in the UI thread.  No need to worry about synchronizing with other writes.
-						atomic::store(m_pos, pos);
-						m_positionProperty->changed();
+						m_positionProperty.set(pos);
 					}
 				}
 				get_subsystem()->run_high_priority_tasks();

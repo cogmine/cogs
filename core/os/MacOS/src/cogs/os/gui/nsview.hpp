@@ -195,14 +195,19 @@ private:
 		dispatcher::dispatch_inner(*m_mainThreadDispatcher, t, priority);
 	}
 
-protected:
+public:
 	nsview_subsystem(const ptr<rc_obj_base>& desc)
 		: gui::windowing::subsystem(desc),
 		m_visibleWindows(rcnew(visible_windows_list_t)),
-		m_mainThreadDispatcher(ui_thread::get())
+		m_mainThreadDispatcher(ui_thread::get()),
+		m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
+		{
+			rcptr<nsview_subsystem> r2 = r;
+			if (!!r2)
+				r2->cleanup();
+		}))
 	{ }
 
-public:
 	~nsview_subsystem()
 	{
 		m_cleanupRemoveToken->cancel();
@@ -242,12 +247,30 @@ public:
 	{
 		// TODO: Update to use button_box, allow async
 		__strong NSString* str = string_to_NSString(s);
-		__strong NSAlert* alert = [[NSAlert alloc]init] ;
+		__strong NSAlert* alert = [[NSAlert alloc]init];
 		[alert addButtonWithTitle:@"OK"];
 		[alert setInformativeText:str];
 		[alert runModal];
 		return get_immediate_task();
 	}
+
+	virtual vector<gfx::canvas::bounds> get_screens() volatile
+	{
+		vector<gfx::canvas::bounds> screens;
+		CGDirectDisplayID displayIDs[50];	// 50 monitors is enough
+		uint32_t numDisplays = 0;
+		CGGetActiveDisplayList(std::extent_v<decltype(displayIDs)>, displayIDs, &numDisplays);
+		for (size_t i = 0; i < numDisplays; i++)
+		{
+			// Filter out secondary (software) mirror displays.
+			if (CGDisplayMirrorsDisplay(displayIDs[i]) != kCGNullDirectDisplay)
+				continue;
+			CGRect r = CGDisplayBounds(displayIDs[i]);
+			screens.append(1, { { (double)r.origin.x, (double)r.origin.y }, { (double)r.size.width, (double)r.size.height } });
+		}
+		return screens;
+	}
+
 };
 
 
@@ -255,16 +278,16 @@ class nsview_pane : public object, public bridgeable_pane, public pane_orchestra
 {
 private:
 	rcref<volatile nsview_subsystem> m_uiSubsystem;
-	__strong NSView* m_nsView;
+	__strong NSView* m_nsView = nullptr;
 	rcptr<nsview_pane> m_parentView;
 	weak_rcptr<nsview_pane> m_nextSiblingView;
 	weak_rcptr<nsview_pane> m_prevSiblingView;
 	weak_rcptr<nsview_pane> m_firstChildView;
 	weak_rcptr<nsview_pane> m_lastChildView;
-	size_t m_childCount;
+	size_t m_childCount = 0;
 
 protected:
-	bool m_isResizing;
+	bool m_isResizing = false;
 
 	rcref<volatile nsview_subsystem>& get_subsystem()			{ return m_uiSubsystem; }
 	const rcref<volatile nsview_subsystem>& get_subsystem() const	{ return m_uiSubsystem; }
@@ -272,10 +295,7 @@ protected:
 public:
 	nsview_pane(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: object(desc),
-		m_uiSubsystem(uiSubsystem),
-		m_nsView(0),
-		m_childCount(0),
-		m_isResizing(false)
+		m_uiSubsystem(uiSubsystem)
 	{ }
 
 	NSView* get_NSView() const
@@ -451,11 +471,8 @@ public:
 					p = p->get_parent();
 				}
 
-				if (!m_isResizing)
-				{
-					NSRect newRect = gfx::os::graphics_context::make_NSRect(positionInParentView, b.get_size());
-					[m_nsView setFrame:newRect];
-				}
+				NSRect newRect = gfx::os::graphics_context::make_NSRect(positionInParentView, b.get_size());
+				[m_nsView setFrame:newRect];
 			}
 		}
 
@@ -621,6 +638,26 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 
 }
 }
+
+
+inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
+{
+	return rcnew(gui::os::nsview_subsystem);
+}
+
+
+inline rcptr<gui::subsystem> gui::subsystem::get_default()
+{
+	return gui::windowing::subsystem::get_default();
+}
+
+
+inline rcref<ui::subsystem> ui::subsystem::get_default()
+{
+	return gui::subsystem::get_default().dereference();
+}
+
+
 }
 
 
@@ -631,7 +668,10 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 @implementation objc_view
 
 
--(BOOL)isFlipped { return TRUE; }
+-(BOOL)isFlipped
+{
+	return YES;
+}
 
 -(void)drawRect:(NSRect)r
 {
@@ -640,7 +680,6 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 	if (!!cppView)
 		cppView->draw();
 }
-
 
 @end
 

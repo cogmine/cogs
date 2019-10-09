@@ -48,15 +48,10 @@ inline void terminate()
 }
 
 
-template <typename F>
-inline int main(F&& main_func)
+template <typename F, typename T>
+inline int main(F&& mainFunc, T&& uiSubsystem)
 {
-#if COGS_DEFAULT_GUI_SUBSYSTEM == GDI
-	cogs::rcref<cogs::gui::windowing::subsystem> guiSubsystem = rcnew(cogs::bypass_constructor_permission<cogs::gui::os::hwnd::subsystem>);
-#else
-#error COGS_DEFAULT_GUI_SUBSYSTEM must be defined.  Currently supported values are: GDI
-#endif
-	int result = main_func(guiSubsystem);
+	int result = mainFunc(std::forward<T>(uiSubsystem));
 	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
 	if (!!qd)
 		qd->get_event().wait();
@@ -68,7 +63,13 @@ inline int main(F&& main_func)
 }
 
 
-#define COGS_MAIN main
+#if COGS_DEFAULT_UI_SUBSYSTEM == COGS_CONSOLE
+#pragma comment(linker, "/subsystem:console")
+#define COGS_MAIN int main()
+#else
+#pragma comment(linker, "/subsystem:windows")
+#define COGS_MAIN int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+#endif
 
 
 #endif

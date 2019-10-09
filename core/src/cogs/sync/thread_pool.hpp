@@ -66,17 +66,17 @@ private:
 	class main_loop : public object
 	{
 	public:
-		delayed_construction<priority_dispatcher>	m_tasks;
+		priority_dispatcher m_tasks;
 
-		volatile semaphore					m_semaphore;
-		volatile parallel_task_level_map_t	m_parallelTaskLevelMap;
-		volatile boolean					m_exiting;
+		volatile semaphore m_semaphore;
+		volatile parallel_task_level_map_t m_parallelTaskLevelMap;
+		volatile boolean m_exiting;
 
 		explicit main_loop(const ptr<rc_obj_base>& desc, size_t numThreads)
 			: object(desc),
-			m_semaphore(0, numThreads)
+			m_semaphore(0, numThreads),
+			m_tasks(desc)
 		{
-			placement_rcnew(&m_tasks.get(), this_desc);
 		}
 
 		void run()
@@ -87,7 +87,7 @@ private:
 				currentPriorityLevelItor = m_parallelTaskLevelMap.get_first();
 				if (!currentPriorityLevelItor)
 				{
-					if (m_tasks->invoke())
+					if (m_tasks.invoke())
 						continue;
 					
 					if (m_exiting)	// Only check of exiting if out of tasks, immediately before acquiring the semaphore.
@@ -105,7 +105,7 @@ private:
 
 				int currentPriority = currentPriorityLevelItor.get_key();
 				int p;
-				rcptr<task<void> > vt = m_tasks->peek(p);
+				rcptr<task<void> > vt = m_tasks.peek(p);
 				if (!!vt)
 				{
 					// If a new task has arrived that is better or same priority as parallel tasks in progress, run it.
@@ -114,7 +114,7 @@ private:
 						// If better priority, or we haven't run one yet
 						if ((p < currentPriority) || !currentPriorityLevelItor->m_alternateFlag)
 						{
-							if (!m_tasks->remove_and_invoke(vt.dereference()))
+							if (!m_tasks.remove_and_invoke(vt.dereference()))
 								continue;
 							
 							// Ran higher priority event, recheck priorities
@@ -179,7 +179,7 @@ private:
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
 		COGS_ASSERT(m_state == 1);
-		dispatcher::dispatch_inner(m_mainLoop->m_tasks.get(), t, priority);
+		dispatcher::dispatch_inner(m_mainLoop->m_tasks, t, priority);
 		m_mainLoop->m_semaphore.release();
 	}
 

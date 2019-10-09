@@ -524,8 +524,7 @@ private:
 		volatile boolean m_removed;
 
 		link_t(const type& t, size_t n)
-			:	m_contents(t),
-				m_removed(false)
+			: m_contents(t)
 		{
 			m_remainingCount = n;
 		}

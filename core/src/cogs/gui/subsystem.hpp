@@ -11,7 +11,16 @@
 
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/vector.hpp"
+#include "cogs/gfx/canvas.hpp"
 #include "cogs/sync/dispatcher.hpp"
+
+
+#define COGS_CONSOLE 1
+#define COGS_GUI 2
+
+#ifndef COGS_DEFAULT_UI_SUBSYSTEM
+#define COGS_DEFAULT_UI_SUBSYSTEM COGS_GUI
+#endif
 
 
 namespace cogs {
@@ -39,6 +48,8 @@ public:
 //	virtual rcref<task<composite_string> > prompt(const composite_string& msg, const vector<composite_string>& options) volatile = 0;
 
 	virtual bool is_ui_thread_current() const volatile = 0;
+
+	static rcref<subsystem> get_default();
 };
 
 
@@ -115,6 +126,8 @@ public:
 		const rcptr<frame>& f = 0) volatile = 0;
 
 	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile	{ return rcptr<canvas3D_pane_interface>(); }	// 3D unsupported by default
+
+	static rcptr<subsystem> get_default();
 };
 
 
@@ -139,20 +152,39 @@ protected:
 	{ }
 
 public:
+	// Returns BOUNDS of all active display devices, in actual pixels.
+	// Primary screen is first.  Might be empty list, if server without monitor.
+	virtual vector<gfx::canvas::bounds> get_screens() volatile = 0;
+
 	virtual rcref<task<void> > open(
 		const composite_string& title,
 		const rcref<pane>& p,
 		const rcptr<frame>& f = 0) volatile;
 
+	// If provided, screenPosition is in screen coordinates (get_screens()).
+	// The platform will apply a window frame (title bar, etc.) to the window, so the screen position and
+	// content size do not map to a bounds in screen coordinates.
+	// If screenPosition is not proveded, and positionCentered is true, the window will be centered
+	// If screenPosition is not provided, and positionCentered is false, a platform default position may be used (or will be centered).
+	// If contentSize is not provided, the default size of the content will be used.
+	// If contentSize is provided, it will be proposed and the adjusted size will be used.
+	// If position would result in window not overlapping with the desktop, default positioning will be used.
+
 	virtual rcref<gui::window> open_window(
+		const gfx::canvas::point* screenPosition,
+		const gfx::canvas::size* contentSize,
+		bool positionCentered,
 		const composite_string& title,
 		const rcref<pane>& p,
 		const rcptr<frame>& f = 0) volatile;
 
 	//virtual rcref<task<void> > open_full_screen(
+	//	const gfx::canvas::point& screenAtPosition,	// Main display is 0,0
 	//	const composite_string& title,
 	//	const rcref<pane>& p,
 	//	const rcptr<frame>& f = 0) volatile = 0;
+
+	static rcptr<subsystem> get_default();
 };
 
 

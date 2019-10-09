@@ -88,7 +88,7 @@ public:
 			m_netConnection(c),
 			m_server(srvr),
 			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod),
-			m_inactivityTimer(single_fire_timer::create(timeout_t::infinite()))
+			m_inactivityTimer(rcnew(single_fire_timer, timeout_t::infinite()))
 		{
 			m_removeToken = srvr->m_connections.append(this_rcref);
 			m_inactivityTimer->dispatch([c{ this_weak_rcptr }]()
@@ -241,7 +241,7 @@ public:
 			request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
 				: object(desc),
 				m_connection(c),
-				m_transaction(datasource::transaction::create(c->get_datasource(), false, datasource::transaction::propagate_abort_only))
+				m_transaction(rcnew(datasource::transaction, c->get_datasource(), false, datasource::transaction::propagate_abort_only))
 			{
 			}
 
@@ -298,7 +298,7 @@ public:
 				: object(desc),
 				m_request(r),
 				m_connection(r->get_connection()),
-				m_transaction(datasink::transaction::create(r->get_connection()->get_datasink(), false, datasink::transaction::propagate_abort_only))
+				m_transaction(rcnew(datasink::transaction, r->get_connection()->get_datasink(), false, datasink::transaction::propagate_abort_only))
 			{ }
 
 		public:

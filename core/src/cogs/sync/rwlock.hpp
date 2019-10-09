@@ -23,23 +23,16 @@ namespace cogs {
 class rwlock
 {
 private:
-	semaphore	m_readerGate;
-	semaphore	m_writerGate;
+	semaphore m_readerGate;
+	semaphore m_writerGate;
 
 	class content_t
 	{
 	public:
-		bool	m_blockReaders;
-		size_t	m_readerOwners;
-		size_t	m_readersStalled;
-		size_t	m_writersStalled;
-
-		content_t()
-			:	m_blockReaders(false),
-				m_readerOwners(0),
-				m_readersStalled(0),
-				m_writersStalled(0)
-		{ }
+		bool m_blockReaders = false;
+		size_t m_readerOwners = 0;
+		size_t m_readersStalled = 0;
+		size_t m_writersStalled = 0;
 	};
 
 	volatile transactable<content_t> m_contents;

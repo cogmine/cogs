@@ -15,6 +15,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/quit_dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"
+#include "cogs/gui/subsystem.hpp"
 
 
 namespace cogs {
@@ -76,7 +77,7 @@ private:
 	{
 		volatile count_and_result_t& countAndResult = s_countAndResult;
 		count_and_result_t oldValue = atomic::load(countAndResult);
-		while (oldValue.m_count > 0)
+		while (oldValue.m_count > 1)
 		{
 			count_and_result_t newValue;
 			newValue.m_count = oldValue.m_count - 1;
@@ -121,6 +122,13 @@ public:
 		initialize();
 	}
 
+	init_token(bool isEmpty)
+		: m_isEmpty(isEmpty)
+	{
+		if (!isEmpty)
+			initialize();
+	}
+
 	init_token(init_token&& i)
 	{
 		m_isEmpty = i.m_isEmpty;
@@ -139,11 +147,27 @@ inline int initialize() { return init_token::initialize(); }
 inline void terminate() { init_token::terminate(); }
 
 template <typename F>
-inline int main(F&& main_func)
+inline int main(F&& mainFunc)
 {
 	int result = 0;
 	initialize();
-	result = env::main(std::forward<F>(main_func));
+
+	{
+#if COGS_DEFAULT_UI_SUBSYSTEM == COGS_CONSOLE
+		auto uiSubsystem = cogs::ui::subsystem::get_default();
+		result = env::main(std::forward<F>(mainFunc), std::move(uiSubsystem));
+#else
+		auto uiSubsystem = cogs::gui::subsystem::get_default();
+		if (!!uiSubsystem)
+			result = env::main(std::forward<F>(mainFunc), std::move(uiSubsystem));
+		else
+		{
+			auto uiSubsystem2 = cogs::ui::subsystem::get_default();
+			result = env::main(std::forward<F>(mainFunc), std::move(uiSubsystem2));
+		}
+#endif
+	}
+
 	terminate();
 	return result;
 }

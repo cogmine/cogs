@@ -19,11 +19,9 @@ namespace net {
 namespace ip {
 
 
-class socket
+class socket : public object
 {
-protected:
-	friend class tcp;
-
+private:
 	rcref<os::io::epoll_pool>	m_epollPool;
 	address_family		m_addressFamily;
 	endpoint			m_localEndpoint;
@@ -33,10 +31,12 @@ protected:
 	// We dup() the socket so we can register reads and writes independently in epoll_pool.
 	auto_fd				m_dupReadFd;
 
-	socket(int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		:	m_fd(::socket(addressFamily, type, protocol)),
-			m_epollPool(epp),
-			m_addressFamily(addressFamily)
+public:
+	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: object(desc),
+		m_fd(::socket(addressFamily, type, protocol)),
+		m_epollPool(epp),
+		m_addressFamily(addressFamily)
 	{
 		if (!!m_fd)
 		{
@@ -48,10 +48,11 @@ protected:
 		}
 	}
 
-	socket(int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		:	m_fd(sckt),
-			m_epollPool(epp),
-			m_addressFamily(addressFamily)
+	socket(const ptr<rc_obj_base>& desc, int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: object(desc),
+		m_fd(sckt),
+		m_epollPool(epp),
+		m_addressFamily(addressFamily)
 	{
 		if (!!m_fd)
 		{
@@ -61,6 +62,22 @@ protected:
 			else
 				m_epollPool->register_fd(m_fd.get());
 		}
+	}
+
+	endpoint& get_local_endpoint() { return m_localEndpoint; }
+	const endpoint& get_local_endpoint() const { return m_localEndpoint; }
+	void set_local_endpoint(const endpoint& ep) { m_localEndpoint = ep; }
+
+	endpoint& get_remote_endpoint() { return m_remoteEndpoint; }
+	const endpoint& get_remote_endpoint() const { return m_remoteEndpoint; }
+	void set_remote_endpoint(const endpoint& ep) { m_remoteEndpoint = ep; }
+
+	rcref<const net::endpoint> get_local_endpoint_ref() const { return this_rcref.member_cast_to(m_localEndpoint); }
+	rcref<const net::endpoint> get_remote_endpoint_ref() const { return this_rcref.member_cast_to(m_remoteEndpoint); }
+
+	~socket()
+	{
+		close();
 	}
 
 	// We dup() the socket so we can register reads and writes independently in epoll_pool.
@@ -143,10 +160,19 @@ protected:
 			shutdown(m_fd.get(), SHUT_RD | SHUT_WR);
 	}
 
-public:
-	~socket()
+	int get()
 	{
-		close();
+		return m_fd.get();
+	}
+
+	int get_dup()
+	{
+		return m_dupReadFd.get();
+	}
+
+	os::io::epoll_pool& get_pool()
+	{
+		return *m_epollPool;
 	}
 };
 

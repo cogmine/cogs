@@ -57,16 +57,14 @@ private:
 	thread(const thread&) = delete;
 	thread& operator=(const thread&) = delete;
 
-protected:
-	explicit thread(const ptr<rc_obj_base>& desc, const function<void()>& task)
+public:
+	thread(const ptr<rc_obj_base>& desc, const function<void()>& task)
 		: object(desc),
-		m_joinSync(desc),
-		m_deregisteredWaiter(false)
+		m_joinSync(desc)
 	{
-		m_osThread = os::thread::create(task);
+		m_osThread = rcnew(os::thread, task);
 	}
 
-public:
 	static unsigned int get_processor_count()
 	{
 		return os::thread::get_processor_count();
@@ -74,7 +72,7 @@ public:
 
 	static rcref<thread> spawn(const function<void()>& tsk)
 	{
-		rcref<thread> threadRef = rcnew(bypass_constructor_permission<thread>, tsk);
+		rcref<thread> threadRef = rcnew(thread, tsk);
 		register_waiter(threadRef);
 		return threadRef;
 	}
@@ -89,7 +87,7 @@ public:
 		int result = 0;
 		if (!is_current())
 		{
-			if (m_joinSync.is_signalled())
+			if (m_joinSync.is_signaled())
 				result = 1;
 			else
 			{

@@ -46,29 +46,29 @@ public:
 		closer& operator=(const closer&) = delete;
 
 		const weak_rcptr<datastream> m_stream;
-		delayed_construction<count_down_event> m_event;
+		count_down_event m_event;
 
 	protected:
 		friend class datastream;
 
 		closer(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds)
 			: object(desc),
-			m_stream(ds)
+			m_stream(ds),
+			m_event(desc, 2)
 		{
-			placement_rcnew((bypass_constructor_permission<count_down_event>*)&m_event.get(), this_desc, 2);
 		}
 
-		void closing()	{ m_event->count_down(); }
+		void closing()	{ m_event.count_down(); }
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
-			return dispatcher::dispatch_inner(*m_event, t, priority);
+			return dispatcher::dispatch_inner(m_event, t, priority);
 		}
 
 	public:
 		const weak_rcptr<datastream>& get_datastream() const				{ return m_stream; }
 
-		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile			{ return m_event->timed_wait(timeout, spinCount); }
+		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile			{ return m_event.timed_wait(timeout, spinCount); }
 	};
 
 	virtual void abort()

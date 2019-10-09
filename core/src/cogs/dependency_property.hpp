@@ -70,7 +70,7 @@ class dependency_property : public dependency_property<type, io::read_only>, pub
 public:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() = 0;
 
-	virtual void bind(const rcref<dependency_property<type, io::read_write> >& src) = 0;
+	virtual void bind(const rcref<dependency_property<type, io::read_write> >& src, bool useThisValue = false) = 0;
 	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk) = 0;
 	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src) = 0;
 
@@ -98,6 +98,9 @@ public:
 	virtual type getting() const = 0;			// User override, if virtual dependency_property
 
 	virtual void changed() = 0;
+
+	template <typename F>
+	rcref<dependency_property<type, io::write_only> > on_changed(const rcref<volatile dispatcher>& d, F&& f);
 };
 
 template <typename type>
@@ -144,14 +147,14 @@ private:
 
 	weak_rcptr<volatile dispatcher> m_dispatcher;
 
-	volatile container_dlist<rcref<binding> >	m_bindings;
-	volatile container_queue<rcref<notification_context> >	m_setQueue;
-	volatile boolean										m_pendingChange;
+	volatile container_dlist<rcref<binding> > m_bindings;
+	volatile container_queue<rcref<notification_context> > m_setQueue;
+	volatile boolean m_pendingChange;
 
 	rcptr<notification_context>	m_lastBoundSet;
 
 	// 0 = not dispatching, 1 = processing dispatch, 2 = pending dispatch
-	alignas (atomic::get_alignment_v<int>) volatile int m_pumpSerializer;
+	alignas (atomic::get_alignment_v<int>) volatile int m_pumpSerializer = 0;
 
 	void set_changed_pump()
 	{
@@ -238,16 +241,12 @@ private:
 protected:
 
 	explicit virtual_dependency_property_base(const ptr<rc_obj_base>& desc)
-		: object(desc),
-		m_pendingChange(false),
-		m_pumpSerializer(0)
+		: object(desc)
 	{ }
 
 	virtual_dependency_property_base(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
 		: object(desc),
-		m_dispatcher(d),
-		m_pendingChange(false),
-		m_pumpSerializer(0)
+		m_dispatcher(d)
 	{ }
 
 	void changed()
@@ -283,28 +282,30 @@ protected:
 	virtual void setting(const type& t)	= 0;
 	virtual type getting() const = 0;
 
-	void bind_to(const rcref<this_t>& snk, bool update = true)
+	// If both are read_write, the value of src will be used
+	static void bind2(const rcref<this_t>& src, const rcref<this_t>& snk, bool update)
 	{
 		rcref<binding> bindingObj = rcnew(binding, snk);
-		m_bindings.append(bindingObj);
+		src->m_bindings.append(bindingObj);
 		
 		if (update)	// defer an update of just this binding
-			snk->bound_set(getting(), this_rcref);
+			snk->bound_set(src->getting(), src);
+	}
+
+	void bind_to(const rcref<this_t>& snk, bool update = true)
+	{
+		bind2(this_rcref, snk, update);
 	}
 
 	void bind_from(const rcref<this_t>& src, bool update = true)
 	{
-		rcref<binding> bindingObj = rcnew(binding, this_rcref);
-		src->m_bindings.append(bindingObj);
-		
-		if (update)	// defer an update of just this binding
-			bound_set(getting(), src);
+		bind2(src, this_rcref, update);
 	}
 
-	void bind(const rcref<this_t>& srcSnk)
+	void bind(const rcref<this_t>& prop, bool useThisValue = false)
 	{
-		bind_to(srcSnk, false);	// update one way, arbitrarily
-		bind_from(srcSnk);
+		bind_from(prop, !useThisValue);
+		bind_to(prop, useThisValue);
 	}
 };
 
@@ -327,9 +328,9 @@ public:
 		:	base_t(desc, d)
 	{ }
 
-	virtual void bind(const rcref<dependency_property<type, io::read_write> >& srcSnk)
+	virtual void bind(const rcref<dependency_property<type, io::read_write> >& srcSnk, bool useThisValue = false)
 	{
-		base_t::bind(srcSnk->get_virtual_dependency_property_base());
+		base_t::bind(srcSnk->get_virtual_dependency_property_base(), useThisValue);
 	}
 
 	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk)
@@ -393,7 +394,13 @@ private:
 
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
 
-	virtual type getting() const = 0; // { type unused; return unused; }
+	virtual type getting() const
+	{
+		// Placeholder.  It's an error to try to get the value of a write-only property
+		COGS_ASSERT(false);
+		type* unused = 0;
+		return *unused;
+	}
 
 public:
 	virtual_dependency_property(const ptr<rc_obj_base>& desc)
@@ -453,6 +460,7 @@ public:
 		m_setDelegate(t, this_rcref);
 	}
 };
+
 
 template <typename type>
 class delegated_dependency_property<type, io::read_only> : public virtual_dependency_property<type, io::read_only>
@@ -616,6 +624,19 @@ public:
 		virtual_dependency_property<type, io::write_only>::set_complete(true);
 	}
 };
+
+template <typename type>
+template <typename F>
+inline rcref<dependency_property<type, io::write_only> > dependency_property<type, io::read_only>::on_changed(const rcref<volatile dispatcher>& d, F&& f)
+{
+	typedef delegated_dependency_property<type, io::write_only> property_t;
+	rcref<dependency_property<type, io::write_only> > result = rcnew(property_t, d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::write_only> >& p)
+	{
+		f(t, p);
+	}).template static_cast_to<dependency_property<type, io::write_only> >();
+	bind_to(result);
+	return result;
+}
 
 
 }

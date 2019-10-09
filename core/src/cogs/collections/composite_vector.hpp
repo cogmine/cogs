@@ -496,30 +496,36 @@ public:
 			erase(calculate_position(i), eraseLength);
 	}
 
-	// Caller error to pass invalid pos
 	void erase(const position_t& pos, size_t n)
 	{
 		if (!!n)
 		{
-			m_length -= n;
 			size_t outerIndex = pos.m_outerIndex;
 			size_t subVectorCount = m_vectorVector.get_length();
+			if (outerIndex >= subVectorCount)
+				return;
 			vector<type>* arrayArray = m_vectorVector.get_non_const_ptr();	// copy on write
 			if (pos.m_innerIndex > 0)
 			{
 				vector<type>& subArray = arrayArray[outerIndex];
-				size_t remainingLength = subArray.get_length() - pos.m_innerIndex;
-				size_t curEraseLength = remainingLength;
-				if (curEraseLength > n)
-					curEraseLength = n;
-				subArray.erase(pos.m_innerIndex, curEraseLength);
-				n -= curEraseLength;
-				if (!n)
-					return;
+				size_t innerIndex = pos.m_innerIndex;
+				size_t subVectorLength = subArray.get_length();
+				if (innerIndex < subVectorLength)
+				{
+					size_t remainingLength = subVectorLength - innerIndex;
+					size_t curEraseLength = remainingLength;
+					if (curEraseLength > n)
+						curEraseLength = n;
+					subArray.erase(innerIndex, curEraseLength);
+					m_length -= curEraseLength;
+					n -= curEraseLength;
+					if (!n)
+						return;
+				}
 				++outerIndex;
 			}
 
-			size_t dstSubVectorindex = outerIndex;
+			size_t dstSubVectorIndex = outerIndex;
 			for (;;)
 			{
 				vector<type>& subArray = arrayArray[outerIndex];
@@ -527,17 +533,20 @@ public:
 				if (subVectorLength > n)
 				{
 					subArray.erase(0, n);
-					size_t removedVectorCount = outerIndex - dstSubVectorindex;
-					arrayArray.erase(dstSubVectorindex, removedVectorCount);
-					return;
+					m_length -= n;
+					break;
 				}
 
 				m_length -= subVectorLength;
 				n -= subVectorLength;
-				if (++outerIndex == subVectorCount)
+				if (!n)
 					break;
+				if (++outerIndex == subVectorCount)
+					return;
 			}
-			m_length += n;
+
+			size_t removedVectorCount = outerIndex - dstSubVectorIndex;
+			arrayArray->erase(dstSubVectorIndex, removedVectorCount);
 		}
 	}
 
