@@ -5,7 +5,7 @@ if (WIN32)
   set(CMAKE_SYSTEM_VERSION 10.0.18362.0)
 endif()
 
-project (UISample)
+project (UISample C CXX)
 
 add_executable(UISample)
 set(EXECUTABLE_NAME "UISample")
@@ -76,16 +76,9 @@ elseif (APPLE)
   configure_file("./apps/UISample/CMake/Info.plist.in" "./Info.plist")
   target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ./Info.plist")
 
-elseif (LINUX)
-###################################################################### LINUX
-  message(STATUS "Configured for Linux")
-  include_directories(
-    core/os/linux/src
-    core/os/libs/pthreads
-  )
-elseif (UNIX)
-###################################################################### UNIX
-  message(STATUS "Configured for Unix (same as Linux, for now)")
+elseif (LINUX OR UNIX)
+###################################################################### LINUX/UNIX
+  message(STATUS "Configured for Linux/Unix")
   include_directories(
     core/os/linux/src
     core/os/libs/pthreads
@@ -117,13 +110,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         core/env/XCode/MacOS/src
       )
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -fobjc-arc -ObjC++)
-    elseif (LINUX)
-    ################################################################ CLANG LINUX
-      # TODO: Create a separate env layer for Clang on Linux?
+    elseif (LINUX OR UNIX)
+    ################################################################ CLANG LINUX/UNIX
+      # TODO: Create a separate env layer for Clang on *nux?
       include_directories(
         core/env/gcc/src
       )
-      target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules) 
     endif()
   endif()
   ################################################################
@@ -145,13 +137,15 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     core/env/gcc/src
   )
 
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++17 -fmax-errors=1 -fzero-initialized-in-bss -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -g -lrt -latomic) 
+
+  target_link_libraries(${EXECUTABLE_NAME} pthread)
+  
   if (APPLE)
   ################################################################ GCC MACOS
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -x objective-c++) 
   endif()
   ################################################################
-
-  target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++17 -fmax-errors=1 -fzero-initialized-in-bss -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -g -lrt -pthread -latomic) 
 
   if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16) 

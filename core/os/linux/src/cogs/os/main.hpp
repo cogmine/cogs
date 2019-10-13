@@ -9,9 +9,29 @@
 
 
 #include <cstdlib>
+#include "cogs/gui/subsystem.hpp"
 
 
 namespace cogs {
+
+
+inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
+{
+	rcptr<gui::windowing::subsystem> empty;
+	return empty;
+}
+
+inline rcptr<gui::subsystem> gui::subsystem::get_default()
+{
+	return gui::windowing::subsystem::get_default();
+}
+
+inline rcref<ui::subsystem> ui::subsystem::get_default()
+{
+	return gui::subsystem::get_default().dereference();
+}
+
+
 namespace os {
 
 

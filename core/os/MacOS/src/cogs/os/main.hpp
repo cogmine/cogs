@@ -15,6 +15,26 @@
 namespace cogs {
 
 
+
+inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
+{
+	return rcnew(gui::os::nsview_subsystem);
+}
+
+
+inline rcptr<gui::subsystem> gui::subsystem::get_default()
+{
+	return gui::windowing::subsystem::get_default();
+}
+
+
+inline rcref<ui::subsystem> ui::subsystem::get_default()
+{
+	return gui::subsystem::get_default().dereference();
+}
+
+
+
 int alt_main();
 
 

@@ -103,7 +103,11 @@ COGS_MAIN
 	{
 		auto guiSubsystem = gui::subsystem::get_default();
 		if (!guiSubsystem)
+		{
+			printf("Console UI - TBD\n");
+			cogs::request_quit();
 			return EXIT_SUCCESS;
+		}
 
 		rcref<count_down_event> quitCountDown = rcnew(count_down_event, 0, []() { cogs::request_quit(); });
 
