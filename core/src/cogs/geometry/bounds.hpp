@@ -20,7 +20,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -94,8 +94,8 @@ public:
 	}
 
 
-	void set_position(double pos)	{ m_position = pos; }
-	void set_size(double sz)		{ m_size = sz; }
+	void set_position(double pos) { m_position = pos; }
+	void set_size(double sz) { m_size = sz; }
 
 	void clear() { cogs::clear(m_position); cogs::clear(m_size); }
 
@@ -141,11 +141,11 @@ public:
 		bounds b2 = b.normalized();
 		return ((b1.get_size() == b2.get_size()) && (b1.get_position() == b2.get_position()));
 	}
-	
+
 	// inequality
 	bool operator!=(const bounds& b) const
 	{ return !operator==(b); }
-	
+
 	// contains
 	bool contains(double pt) const
 	{
@@ -155,7 +155,7 @@ public:
 			&& (pt < tmpThis.get_position() + tmpThis.get_size())
 			);
 	}
-		
+
 	// intersects
 	bool intersects(const bounds& b) const
 	{
@@ -174,7 +174,7 @@ public:
 			&& (tmpThis.get_position() + tmpThis.get_size() >= b2.get_position() + b2.get_size());
 	}
 
-	// bounds + margin = bounds	// extend
+	// bounds + margin = bounds // extend
 	bounds operator+(const margin& m) const
 	{
 		bounds result(m_position, m_size + m.get_size());
@@ -187,7 +187,7 @@ public:
 		return *this;
 	}
 
-	// bounds - margin = bounds	// reduce
+	// bounds - margin = bounds // reduce
 	bounds operator-(const margin& m) const
 	{
 		bounds result(m_position, m_size - m.get_size());
@@ -200,7 +200,7 @@ public:
 		return *this;
 	}
 
-	// bounds - bounds = bounds[]	// portion of this that does not overlap with arg.  Will be 0-2 segments.
+	// bounds - bounds = bounds[] // portion of this that does not overlap with arg.  Will be 0-2 segments.
 	std::pair<std::array<bounds, 2>, size_t> operator-(const bounds& b) const
 	{
 		std::pair<std::array<bounds, 2>, size_t> result;
@@ -219,13 +219,13 @@ public:
 		if ((end1 <= start2) || (end2 <= start1))
 		{
 			if (b1.get_size() != 0)
-				segments[numSegments++] = *this;	// this ends before arg starts, or this starts as/after the arg ends.  No overlap
+				segments[numSegments++] = *this; // this ends before arg starts, or this starts as/after the arg ends.  No overlap
 		}
 		else
 		{
-			if (start1 < start2)	// this starts before arg starts
+			if (start1 < start2) // this starts before arg starts
 				segments[numSegments++].set(start1, start2 - start1);
-			if (end2 < end1)	// arg ends before this ends
+			if (end2 < end1) // arg ends before this ends
 				segments[numSegments++].set(end2, end1 - end2);
 		}
 
@@ -299,13 +299,13 @@ public:
 		double end1 = calc_end();
 		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
-	
+
 		if (get_position() > b2.get_position())
 			get_position() = b2.get_position();
-		
+
 		if (end1 < end2)
 			m_size = end2 - get_position();
-		
+
 		return *this;
 	}
 
@@ -317,7 +317,7 @@ public:
 		double end1 = b1.calc_end();
 		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
-	
+
 		if ((end1 < b2.get_position())
 			|| (b1.get_position() > end2)
 			)
@@ -328,13 +328,13 @@ public:
 				result.get_position() = b1.get_position();
 			else 
 				result.get_position() = b2.get_position();
-		
+
 			if (end1 > end2)
 				result.get_size() = end2;
 			else 
 				result.get_size() = end1;
 			result.get_size() -= result.get_position();
-		
+
 		}
 		return result;
 	}
@@ -345,7 +345,7 @@ public:
 		double end1 = calc_end();
 		bounds b2 = b.normalized();
 		double end2 = b2.calc_end();
-	
+
 		if ((end1 < b2.get_position())
 			|| (get_position() > end2)
 			)
@@ -354,14 +354,14 @@ public:
 		{
 			if (get_position() < b2.get_position())
 				get_position() = b2.get_position();
-		
+
 			if (end1 > end2)
 				get_size() = end2;
 			else
 				get_size() = end1;
 			get_size() -= get_position();
 		}
-	
+
 		return *this;
 	}
 
@@ -370,11 +370,11 @@ public:
 	composite_string_t<char_t> to_string_t() const
 	{
 		composite_string_t<char_t> result;
-	
+
 		static constexpr char_t part1 = (char_t)'{';
 		static constexpr char_t part2 = (char_t)',';
 		static constexpr char_t part3 = (char_t)'}';
-	
+
 		result = string_t<char_t>::contain(&part1, 1);
 		result += cogs::to_string_t<char_t>(m_position);
 		result += string_t<char_t>::contain(&part2, 1);
@@ -382,9 +382,9 @@ public:
 		result += string_t<char_t>::contain(&part3, 1);
 		return result;
 	}
-	
-	composite_string to_string() const		{ return to_string_t<wchar_t>(); }
-	composite_cstring to_cstring() const	{ return to_string_t<char>(); }
+
+	composite_string to_string() const { return to_string_t<wchar_t>(); }
+	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
 
 
@@ -571,11 +571,11 @@ public:
 		bounds b2 = b.normalized();
 		return ((b1.get_size() == b2.get_size()) && (b1.get_position() == b2.get_position()));
 	}
-	
+
 	// inequality
 	bool operator!=(const bounds& b) const
 	{ return !operator==(b); }
-	
+
 	// contains
 	bool contains(const point& pt) const
 	{
@@ -585,7 +585,7 @@ public:
 			&& (pt.get_x() >= tmpThis.get_position().get_x())
 			&& (pt.get_x() < tmpThis.get_position().get_x() + tmpThis.get_size().get_width());
 	}
-	
+
 	// intersects
 	bool intersects(const bounds& b) const
 	{
@@ -609,7 +609,7 @@ public:
 	}
 
 
-	// bounds + point = bounds	// offset
+	// bounds + point = bounds // offset
 	bounds operator+(const point& p) const
 	{
 		bounds result(m_position + p, m_size);
@@ -622,7 +622,7 @@ public:
 		return *this;
 	}
 
-	// bounds - point = bounds	// offset
+	// bounds - point = bounds // offset
 	bounds operator-(const point& p) const
 	{
 		bounds result(m_position - p.to_size(), m_size);
@@ -635,7 +635,7 @@ public:
 		return *this;
 	}
 
-	// bounds + size = bounds	// extend
+	// bounds + size = bounds // extend
 	bounds operator+(const size& sz) const
 	{
 		bounds result(m_position, m_size + sz);
@@ -648,7 +648,7 @@ public:
 		return *this;
 	}
 
-	// bounds + margin = bounds	// extend
+	// bounds + margin = bounds // extend
 	bounds operator+(const margin& m) const
 	{
 		bounds result(m_position, m_size + m.get_size());
@@ -661,7 +661,7 @@ public:
 		return *this;
 	}
 
-	// bounds - size = bounds	// reduce
+	// bounds - size = bounds // reduce
 	bounds operator-(const size& sz) const
 	{
 		bounds result(m_position, m_size - sz);
@@ -674,7 +674,7 @@ public:
 		return *this;
 	}
 
-	// bounds - margin = bounds	// reduce
+	// bounds - margin = bounds // reduce
 	bounds operator-(const margin& m) const
 	{
 		bounds result(m_position, m_size - m.get_size());
@@ -687,7 +687,7 @@ public:
 		return *this;
 	}
 
-	// bounds - bounds = bounds[]	// portion of this that does not overlap with arg.  Might be 0-4 rects.
+	// bounds - bounds = bounds[] // portion of this that does not overlap with arg.  Might be 0-4 rects.
 	std::pair<std::array<bounds, 4>, size_t> operator-(const bounds& b) const
 	{
 		std::pair<std::array<bounds, 4>, size_t> result;
@@ -718,14 +718,14 @@ public:
 			double size1X = b1.get_size().get_width();
 			double size1Y = b1.get_size().get_height();
 
-			if (start1X < start2X)	// this starts before arg starts
+			if (start1X < start2X) // this starts before arg starts
 				segments[numSegments++].set(point(start1X, start1Y), size(start2X - start1X, size1Y));
-			if (end2X < end1X)	// arg ends before this ends
+			if (end2X < end1X) // arg ends before this ends
 				segments[numSegments++].set(point(end2X, start1Y), size(end1X - end2X, size1Y));
 
-			if (start1Y < start2Y)	// this starts before arg starts
+			if (start1Y < start2Y) // this starts before arg starts
 				segments[numSegments++].set(point(start1X, start1Y), size(size1X, start2Y - start1Y));
-			if (end2Y < end1Y)	// arg ends before this ends
+			if (end2Y < end1Y) // arg ends before this ends
 				segments[numSegments++].set(point(start1X, end2Y), size(size1X, end1Y - end2Y));
 		}
 
@@ -755,7 +755,7 @@ public:
 		double end2X = br2.get_x();
 		double start2Y = b2.get_position().get_y();
 		double end2Y = br2.get_y();
-		
+
 		if ((end1X <= start2X) || (start1X >= end2X) || (end1Y <= start2Y) || (start1Y >= end2Y))
 		{
 			if (!!*this)
@@ -784,7 +784,7 @@ public:
 				segments[numSegments++].set(point(start1X, start1Y), size(size1X, start2Y - start1Y));
 			else if (start2Y < start1Y)
 				segments[numSegments++].set(point(start2X, start2Y), size(size2X, start1Y - start2Y));
-			
+
 			if (end2Y < end1Y)
 				segments[numSegments++].set(point(start1X, end2Y), size(size1X, end1Y - end2Y));
 			else if (end1Y < end2Y)
@@ -832,19 +832,19 @@ public:
 		point br1 = calc_bottom_right();
 		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
-	
+
 		if (get_position().get_y() > b2.get_position().get_y())
 			get_position().get_y() = b2.get_position().get_y();
-	
+
 		if (get_position().get_x() > b2.get_position().get_x())
 			get_position().get_x() = b2.get_position().get_x();
-	
+
 		if (br1.get_y() < br2.get_y())
 			get_height() = br2.get_y() - get_position().get_y();
-	
+
 		if (br1.get_x() < br2.get_x())
 			get_width() = br2.get_x() - get_position().get_x();
-	
+
 		return *this;
 	}
 
@@ -856,7 +856,7 @@ public:
 		point br1 = b1.calc_bottom_right();
 		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
-	
+
 		if ((br1.get_y() < b2.get_position().get_y())
 			|| (b1.get_position().get_y() > br2.get_y()) 
 			|| (br1.get_x() < b2.get_position().get_x())
@@ -868,18 +868,18 @@ public:
 				result.get_position().get_y() = b1.get_position().get_y();
 			else 
 				result.get_position().get_y() = b2.get_position().get_y();
-	
+
 			if (b1.get_position().get_x() > b2.get_position().get_x())
 				result.get_position().get_x() = b1.get_position().get_x();
 			else 
 				result.get_position().get_x() = b2.get_position().get_x();
-	
+
 			if (br1.get_y() > br2.get_y())
 				result.get_height() = br2.get_y();
 			else 
 				result.get_height() = br1.get_y();
 			result.get_height() -= result.get_position().get_y();
-	
+
 			if (br1.get_x() > br2.get_x())
 				result.get_width() = br2.get_x();
 			else 
@@ -895,7 +895,7 @@ public:
 		point br1 = calc_bottom_right();
 		bounds b2 = b.normalized();
 		point br2 = b2.calc_bottom_right();
-	
+
 		if ((br1.get_y() < b2.get_position().get_y())
 			|| (get_position().get_y() > br2.get_y()) 
 			|| (br1.get_x() < b2.get_position().get_x())
@@ -905,23 +905,23 @@ public:
 		{
 			if (get_position().get_y() < b2.get_position().get_y())
 				get_position().get_y() = b2.get_position().get_y();
-	
+
 			if (get_position().get_x() < b2.get_position().get_x())
 				get_position().get_x() = b2.get_position().get_x();
-	
+
 			if (br1.get_y() > br2.get_y())
 				get_height() = br2.get_y();
 			else
 				get_height() = br1.get_y();
 			get_height() -= get_position().get_y();
-	
+
 			if (br1.get_x() > br2.get_x())
 				get_width() = br2.get_x();
 			else 
 				get_width() = br1.get_x();
 			get_width() -= get_position().get_x();
 		}
-	
+
 		return *this;
 	}
 
@@ -962,11 +962,11 @@ public:
 	composite_string_t<char_t> to_string_t() const
 	{
 		composite_string_t<char_t> result;
-	
+
 		static constexpr char_t part1 = (char_t)'{';
 		static constexpr char_t part2 = (char_t)',';
 		static constexpr char_t part3 = (char_t)'}';
-	
+
 		result = string_t<char_t>::contain(&part1, 1);
 		result += m_position.template to_string_t<char_t>();
 		result += string_t<char_t>::contain(&part2, 1);
@@ -974,9 +974,9 @@ public:
 		result += string_t<char_t>::contain(&part3, 1);
 		return result;
 	}
-	
-	composite_string to_string() const		{ return to_string_t<wchar_t>(); }
-	composite_cstring to_cstring() const	{ return to_string_t<char>(); }
+
+	composite_string to_string() const { return to_string_t<wchar_t>(); }
+	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
 
 }

@@ -21,16 +21,16 @@ using namespace cogs::io::net::ip;
 class box : public background
 {
 public:
-	color					m_baseColor;
-	timeout_t::period_t		m_timeoutPeriod;
-	rcptr<resettable_timer>	m_boxTimer;
-	function<void()>		m_expireDelegate;
-	function<void()>		m_expireInUiThreadDelegate;
+	color m_baseColor;
+	timeout_t::period_t m_timeoutPeriod;
+	function<void()> m_expireDelegate;
+	function<void()> m_expireInUiThreadDelegate;
+	rcptr<resettable_timer> m_boxTimer;
 
 	box(const ptr<rc_obj_base>& desc, const color& c)
 		: background(desc, c),
-		m_timeoutPeriod(measure<int_type, milliseconds>(5)),
 		m_baseColor(c),
+		m_timeoutPeriod(measure<int_type, milliseconds>(5)),
 		m_expireDelegate([r{ this_weak_rcptr }]()
 		{
 			rcptr<box> r2 = r;

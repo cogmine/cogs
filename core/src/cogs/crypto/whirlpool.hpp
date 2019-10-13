@@ -36,7 +36,7 @@ private:
 	typedef serial_hash<512, 512, 64, endian_t::big, 512> base_t;
 
 	fixed_integer<false, 256> m_bitCount;
-	uint64_t	m_state[8];
+	uint64_t m_state[8];
 
 	static uint64_t r(const uint64_t* a, uint8_t n)
 	{
@@ -174,7 +174,7 @@ private:
 		tmpState[7] = m_state[7] ^ tmpResult[7];
 
 		for (uint8_t i = 0; i < 10; i++)
-		{  
+		{
 			tmp[0] = r(tmpResult, 0) ^ roundConstants[i];
 			tmp[1] = r(tmpResult, 1);
 			tmp[2] = r(tmpResult, 2);
@@ -192,7 +192,7 @@ private:
 			tmpResult[5] = tmp[5];
 			tmpResult[6] = tmp[6];
 			tmpResult[7] = tmp[7];
-		
+
 			tmp[0] = r(tmpState, 0) ^ tmpResult[0];
 			tmp[1] = r(tmpState, 1) ^ tmpResult[1];
 			tmp[2] = r(tmpState, 2) ^ tmpResult[2];
@@ -211,7 +211,7 @@ private:
 			tmpState[6] = tmp[6];
 			tmpState[7] = tmp[7];
 		} 
-		
+
 		m_result[0] ^= tmpState[0] ^ m_state[0];
 		m_result[1] ^= tmpState[1] ^ m_state[1];
 		m_result[2] ^= tmpState[2] ^ m_state[2];

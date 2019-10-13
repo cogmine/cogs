@@ -1,0 +1,94 @@
+{
+    "configurations": [
+        {
+            "name": "Win32-x64-Release",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "core/src",
+                "core/arch/x64/src",
+                "core/env/VS/Windows/src",
+                "core/os/windows/src"
+            ],
+            "defines": [
+                "UNICODE",
+                "_UNICODE",
+                "COGS_DEFAULT_GUI_SUBSYSTEM=GDI"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.22.27905/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64",
+            "configurationProvider": "vector-of-bool.cmake-tools"
+        },
+        {
+            "name": "Win32-x64-Debug",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "core/src",
+                "core/arch/x64/src",
+                "core/env/VS/Windows/src",
+                "core/os/windows/src"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "COGS_DEBUG",
+                "COGS_DEFAULT_GUI_SUBSYSTEM=GDI"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.22.27905/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "configurationProvider": "vector-of-bool.cmake-tools"
+        },
+        {
+            "name": "Win32-x86-Release",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "core/src",
+                "core/arch/x86/src",
+                "core/env/VS/Windows/src",
+                "core/os/windows/src"
+            ],
+            "defines": [
+                "UNICODE",
+                "_UNICODE",
+                "COGS_DEFAULT_GUI_SUBSYSTEM=GDI"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.22.27905/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64",
+            "configurationProvider": "vector-of-bool.cmake-tools"
+        },
+        {
+            "name": "Win32-x86-Debug",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "core/src",
+                "core/arch/x86/src",
+                "core/env/VS/Windows/src",
+                "core/os/windows/src"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "COGS_DEBUG",
+                "COGS_DEFAULT_GUI_SUBSYSTEM=GDI"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.22.27905/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64",
+            "configurationProvider": "vector-of-bool.cmake-tools"
+        }
+    ],
+    "version": 4
+}

@@ -134,7 +134,7 @@ public:
 	}
 
 	virtual rcref<canvas::font> load_font(const gfx::font& guiFont) { return graphics_context::load_font(guiFont); }
-	
+
 	virtual gfx::font get_default_font() const
 	{
 		return graphics_context::get_default_font();
@@ -233,7 +233,7 @@ public:
 		lock_scope token(m_image);
 		graphics_context::clip_to(b);
 	}
-	
+
 	virtual bool is_unclipped(const bounds& b) const
 	{
 		lock_scope token(m_image);

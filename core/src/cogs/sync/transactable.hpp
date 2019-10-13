@@ -24,8 +24,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 template <typename T>
 class transactable;
@@ -52,25 +52,25 @@ private:
 
 	typedef rc_obj<type> descriptor_t;
 
-	ptr<descriptor_t>			m_desc;
-	placement<type>	m_embedded;
+	ptr<descriptor_t> m_desc;
+	placement<type> m_embedded;
 
 #if COGS_DEBUG_TRANSACTABLE
-	type*						m_embeddedPtrDebug;
+	type* m_embeddedPtrDebug;
 #endif
 
 	// Normally we require const-correctness, so we don't need volatility just for read access to memory.
 	// But it's OK to make an exception for something that is always volatile.
 	alignas (atomic::get_alignment_v<size_t>) mutable size_t m_embeddedRefCount;
 
-	      type& get_embedded()			{ return m_embedded.get(); }
-	const type& get_embedded() const	{ return m_embedded.get(); }
+	type& get_embedded() { return m_embedded.get(); }
+	const type& get_embedded() const { return m_embedded.get(); }
 
 	// Normally we require const-correctness, so we don't need volatility just for read access to memory.
 	// But it's OK to cast away the volatility of something that will not be written to.
 	// When object is promoted to volatile, all legal concurrent access must be volatile.  Embedded contents
 	// will not be changed through volatile access.
-	const type&	get_embedded() const volatile	{ return *const_cast<const type*>(&m_embedded.get()); }
+	const type& get_embedded() const volatile { return *const_cast<const type*>(&m_embedded.get()); }
 
 	template <typename... args_t>
 	static descriptor_t* allocate(args_t&&... src)
@@ -133,7 +133,7 @@ private:
 			}
 			else if (atomic::compare_exchange(m_embeddedRefCount, curCount - 1, curCount, curCount))
 				break;
-		}	
+		}
 	}
 
 	void shed_embedded()
@@ -170,7 +170,7 @@ private:
 	}
 
 	template <typename... args_t>
-	thread_safe_transactable(const construct_embedded_volatile_t&, args_t&&... src)	// Allocates block, does not initialize embedded
+	thread_safe_transactable(const construct_embedded_volatile_t&, args_t&&... src) // Allocates block, does not initialize embedded
 	{
 		m_desc = allocate(std::forward<args_t>(src)...);
 #if COGS_DEBUG_TRANSACTABLE
@@ -179,7 +179,7 @@ private:
 		m_embeddedRefCount = 1;
 	}
 
-	thread_safe_transactable(const unconstructed_embedded_t&)	// Allocates block, does not initialize embedded
+	thread_safe_transactable(const unconstructed_embedded_t&) // Allocates block, does not initialize embedded
 		: m_desc(0)
 	{
 #if COGS_DEBUG_TRANSACTABLE
@@ -188,7 +188,7 @@ private:
 		m_embeddedRefCount = 0;
 	}
 
-	thread_safe_transactable(const unconstructed_embedded_volatile_t&)	// Allocates block, does not initialize embedded
+	thread_safe_transactable(const unconstructed_embedded_volatile_t&) // Allocates block, does not initialize embedded
 	{
 		m_desc = allocate_unconstructed();
 #if COGS_DEBUG_TRANSACTABLE
@@ -197,7 +197,7 @@ private:
 		m_embeddedRefCount = 1;
 	}
 	template <typename... args_t>
-	thread_safe_transactable(descriptor_t* srcDesc, args_t&&... src)	// takes ownership of srcDesc if not null
+	thread_safe_transactable(descriptor_t* srcDesc, args_t&&... src) // takes ownership of srcDesc if not null
 		: m_desc(srcDesc)
 	{
 		if (!!srcDesc)
@@ -219,15 +219,15 @@ private:
 
 public:
 	class read_token
-	{	
+	{
 	protected:
-		ptr<descriptor_t>		m_compare;
-		ptr<descriptor_t>		m_read;
+		ptr<descriptor_t> m_compare;
+		ptr<descriptor_t> m_read;
 
 		friend class thread_safe_transactable;
 
-		explicit read_token(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& read)	// read must already be acquired
-			:	m_compare(compare), m_read(read)
+		explicit read_token(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& read) // read must already be acquired
+			: m_compare(compare), m_read(read)
 		{ }
 
 		void acquire_inner()
@@ -235,14 +235,14 @@ public:
 			if (!!m_read)
 				m_read->acquire();
 		}
-		
+
 		void release_inner()
 		{
 			if (!!m_read)
 				m_read->release();
 		}
 
-		void set(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& read)	// read must already be acquired
+		void set(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& read) // read must already be acquired
 		{
 			release_inner();
 			m_compare = compare;
@@ -291,26 +291,26 @@ public:
 			release_inner();
 		}
 
-		const type* get() const			{ return m_read->get_obj(); }
-		const type& operator*() const	{ return *get(); }
-		const type* operator->() const	{ return get(); }
+		const type* get() const { return m_read->get_obj(); }
+		const type& operator*() const { return *get(); }
+		const type* operator->() const { return get(); }
 	};
 
 	class write_token
-	{	
+	{
 	protected:
 		// Unlike read_token, the write_token will acquire m_compare.
 		// This is to ensure there is a remaining reference to the original
 		// contents for the duration of the write, to avoid an ABA Problem.
 
-		ptr<descriptor_t>		m_compare;
-		ptr<descriptor_t>		m_write;
+		ptr<descriptor_t> m_compare;
+		ptr<descriptor_t> m_write;
 
 		friend class thread_safe_transactable;
 
-		explicit write_token(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& write)	// both must already be acquired
-			:	m_compare(compare),
-				m_write(write)
+		explicit write_token(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& write) // both must already be acquired
+			: m_compare(compare),
+			m_write(write)
 		{ }
 
 		void acquire_inner()
@@ -333,7 +333,7 @@ public:
 			}
 		}
 
-		void set(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& write)	// both must already be acquired
+		void set(const ptr<descriptor_t>& compare, const ptr<descriptor_t>& write) // both must already be acquired
 		{
 			release_inner();
 			m_compare = compare;
@@ -386,16 +386,17 @@ public:
 			release_inner();
 		}
 
-		      type* get()				{ return m_write->get_obj(); }
-		const type* get() const			{ return m_write->get_obj(); }
-		      type& operator*()			{ return *get(); }
-		const type& operator*() const	{ return *get(); }
-		      type* operator->()		{ return get(); }
-		const type* operator->() const	{ return get(); }
+		type* get() { return m_write->get_obj(); }
+		const type* get() const { return m_write->get_obj(); }
+		type& operator*() { return *get(); }
+		const type& operator*() const { return *get(); }
+		type* operator->() { return get(); }
+		const type* operator->() const { return get(); }
 	};
 
 	thread_safe_transactable()
-		:	m_desc(0), m_embeddedRefCount(0)
+		: m_desc(0),
+		m_embeddedRefCount(0)
 	{
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
@@ -576,14 +577,14 @@ public:
 	bool operator!=(const volatile this_t& cmp) const { return !operator==(cmp); }
 	bool operator!=(const volatile this_t& cmp) const volatile { return !operator==(cmp); }
 
-	type* get()				{ return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
-	const type* get() const	{ return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
+	type* get() { return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
+	const type* get() const { return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
 
-	type& operator*()					{ return *get(); }
-	const type& operator*() const		{ return *get(); }
+	type& operator*() { return *get(); }
+	const type& operator*() const { return *get(); }
 
-	type* operator->()					{ return get(); }
-	const type* operator->() const		{ return get(); }
+	type* operator->() { return get(); }
+	const type* operator->() const { return get(); }
 
 	template <typename... args_t>
 	void set(args_t&&... src) { placement_reconstruct(get(), std::forward<args_t>(src)...); }
@@ -636,7 +637,7 @@ public:
 			if (!!m_desc)
 			{
 				if (!!wth.m_desc)
-					m_desc.swap(wth.m_desc);	// both have descriptors, so swapping those is preferred
+					m_desc.swap(wth.m_desc); // both have descriptors, so swapping those is preferred
 				else
 					cogs::swap(wth.get_embedded(), *(m_desc->get_obj()));
 			}
@@ -669,9 +670,9 @@ public:
 		release_embedded();
 	}
 
-	void swap(volatile this_t& wth)			{ wth.swap(*this); }
+	void swap(volatile this_t& wth) { wth.swap(*this); }
 
-	void swap_contents(type& wth)			{ cogs::swap(*get(), wth); }
+	void swap_contents(type& wth) { cogs::swap(*get(), wth); }
 
 	void swap_contents(type& wth) volatile
 	{
@@ -829,7 +830,7 @@ public:
 			if (!!m_desc)
 			{
 				if (!!rtn.m_desc)
-					m_desc.swap(rtn.m_desc);	// both have descriptors, so swapping those is preferred
+					m_desc.swap(rtn.m_desc); // both have descriptors, so swapping those is preferred
 				else
 					cogs::swap(*(m_desc->get_obj()), rtn.get_embedded());
 			}
@@ -839,7 +840,7 @@ public:
 		else
 			cogs::exchange(*get(), *(src.get()), *(rtn.get()));
 	}
-	
+
 	void exchange(const this_t& src, volatile this_t& rtn)
 	{
 		if (this == &src)
@@ -1059,7 +1060,7 @@ public:
 			m_desc = src.m_desc;
 			src.m_desc = 0;
 		}
-		else			// If we gave m_desc to rtn, we would need to create another anyway.  So, copy to rtn.
+		else // If we gave m_desc to rtn, we would need to create another anyway.  So, copy to rtn.
 		{
 			type* p = !!m_desc ? m_desc->get_obj() : &get_embedded();
 			newRtnDesc = allocate(*p);
@@ -1297,7 +1298,7 @@ public:
 			readDesc = allocate(get_embedded());
 		}
 		else
-			readDesc = compareDesc;	// readDesc now owns, compareDesc does not own it
+			readDesc = compareDesc; // readDesc now owns, compareDesc does not own it
 
 		release_embedded();
 		rt.set(compareDesc, readDesc);
@@ -1332,8 +1333,8 @@ public:
 		ptr<descriptor_t> oldDesc = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
 		wt.set(oldDesc, newDesc);
 	}
-	
-	bool promote_read_token(read_token& rt, write_token& wt) volatile	// ends read_token
+
+	bool promote_read_token(read_token& rt, write_token& wt) volatile // ends read_token
 	{
 		bool result = false;
 		if (!!rt.m_read)
@@ -1345,17 +1346,17 @@ public:
 				if (result)
 				{
 					if (!desc)
-					{							// If read_token's m_compare is null, then the m_read was a one-off.  Just use it.
+					{ // If read_token's m_compare is null, then the m_read was a one-off.  Just use it.
 						wt.set(nullptr, rt.m_read);
-						break;					// don't release read token
+						break; // don't release read token
 					}
-					if (!desc->is_owned())		// Read token would be the same as compare, and read token was acquired...
-					{							// Take ownership from the read token, and allocate a new writeable copy
+					if (!desc->is_owned()) // Read token would be the same as compare, and read token was acquired...
+					{ // Take ownership from the read token, and allocate a new writeable copy
 						wt.set(desc, allocate(*(desc->get_obj())));
 						break;
 					}
 					COGS_ASSERT(m_desc != desc);
-					result = false;				// If we own the only copy of that block, then we KNOW a write would fail anyway
+					result = false; // If we own the only copy of that block, then we KNOW a write would fail anyway
 				}
 				rt.m_read->release();
 				break;
@@ -1378,17 +1379,17 @@ public:
 				if (result)
 				{
 					if (!desc)
-					{							// If read_token's m_compare is null, then the m_read was a one-off.  Just use it.
+					{ // If read_token's m_compare is null, then the m_read was a one-off.  Just use it.
 						wt.set(0, rt.m_read);
-						break;					// don't release read token
+						break; // don't release read token
 					}
-					if (!desc->is_owned())		// Read token would be the same as compare, and read token was acquired...
-					{							// Take ownership from the read token, and allocate a new writeable copy
+					if (!desc->is_owned()) // Read token would be the same as compare, and read token was acquired...
+					{ // Take ownership from the read token, and allocate a new writeable copy
 						wt.set(desc, allocate(std::forward<args_t>(src)...));
 						break;
 					}
 					COGS_ASSERT(m_desc != desc);
-					result = false;				// If we own the only copy of that block, then we KNOW a write would fail anyway
+					result = false; // If we own the only copy of that block, then we KNOW a write would fail anyway
 				}
 				COGS_ASSERT(!!desc);
 				rt.m_read->release();
@@ -1398,7 +1399,7 @@ public:
 		}
 		return result;
 	}
-	
+
 	bool end_write(write_token& t) volatile
 	{
 		COGS_ASSERT(t.m_compare != t.m_write);
@@ -1408,13 +1409,13 @@ public:
 		{
 			result = m_desc.compare_exchange(t.m_write, t.m_compare);
 			if (!result)
-				t.m_write->release();	// Clean out write token
+				t.m_write->release(); // Clean out write token
 			else if (!!t.m_compare)
-				t.m_compare->release();	// If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
+				t.m_compare->release(); // If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
 			else
-				release_embedded();		// Otherwise, embedded needs to be released
+				release_embedded(); // Otherwise, embedded needs to be released
 			if (!!t.m_compare)
-				t.m_compare->release();	// Clean out write token
+				t.m_compare->release(); // Clean out write token
 			t.m_write = 0;
 		}
 		return result;
@@ -1429,12 +1430,12 @@ public:
 			ptr<descriptor_t> newDesc = allocate(std::forward<args_t>(src)...);
 			result = m_desc.compare_exchange(newDesc, t.m_compare);
 			if (!result)
-				newDesc->release();			// newDesc won't be used, so needs to be released.
+				newDesc->release(); // newDesc won't be used, so needs to be released.
 			else if (!!t.m_compare)
-				t.m_compare->release();		// If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
+				t.m_compare->release(); // If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
 			else
-				release_embedded();			// Otherwise, embedded needs to be released
-			t.m_read->release();			// Clean out read token
+				release_embedded(); // Otherwise, embedded needs to be released
+			t.m_read->release(); // Clean out read token
 			t.m_read = 0;
 		}
 		return result;
@@ -1449,21 +1450,21 @@ public:
 			ptr<descriptor_t> newDesc = allocate(std::forward<args_t>(src)...);
 			result = m_desc.compare_exchange(newDesc, t.m_compare);
 			if (!result)
-				newDesc->release();			// newDesc won't be used, so needs to be released.
+				newDesc->release(); // newDesc won't be used, so needs to be released.
 			else if (!!t.m_compare)
-				t.m_compare->release();		// If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
+				t.m_compare->release(); // If t.m_compare was not null, it now contains the original value, and needs to be released on its behalf.
 			else
-				release_embedded();			// Otherwise, embedded needs to be released
-			t.m_write->release();		// Clean out write token.  We didn't use it at all, we used src args
+				release_embedded(); // Otherwise, embedded needs to be released
+			t.m_write->release(); // Clean out write token.  We didn't use it at all, we used src args
 			if (!!t.m_compare)
-				t.m_compare->release();	// Clean out write token
+				t.m_compare->release(); // Clean out write token
 			t.m_write = 0;
 		}
 		return result;
 	}
 
-	bool is_current(const read_token& rt) const volatile		{ return (m_desc == rt.m_compare) && !!rt.m_read; }
-	bool is_current(const write_token& wt) const volatile		{ return (m_desc == wt.m_compare) && !!wt.m_write; }
+	bool is_current(const read_token& rt) const volatile { return (m_desc == rt.m_compare) && !!rt.m_read; }
+	bool is_current(const write_token& wt) const volatile { return (m_desc == wt.m_compare) && !!wt.m_write; }
 };
 
 
@@ -1471,7 +1472,7 @@ template <typename T>
 class empty_transactable
 {
 public:
-	typedef empty_transactable<T>	this_t;
+	typedef empty_transactable<T> this_t;
 	typedef T type;
 
 private:
@@ -1496,7 +1497,7 @@ public:
 	class write_token
 	{
 	public:
-		write_token()	// leave contents uninitialized
+		write_token() // leave contents uninitialized
 		{ }
 
 		write_token(write_token& wt) = delete;// { }
@@ -1547,11 +1548,11 @@ public:
 	this_t& operator=(this_t&& src) { return *this; }
 
 
-	bool operator==(const this_t& cmp) const volatile  { return true; }
-	bool operator==(const volatile this_t& cmp) const volatile  { return true; }
+	bool operator==(const this_t& cmp) const volatile { return true; }
+	bool operator==(const volatile this_t& cmp) const volatile { return true; }
 
-	bool operator!=(const this_t& cmp) const volatile  { return false; }
-	bool operator!=(const volatile this_t& cmp) const volatile  { return false; }
+	bool operator!=(const this_t& cmp) const volatile { return false; }
+	bool operator!=(const volatile this_t& cmp) const volatile { return false; }
 
 	type* get() { return nullptr; }
 	const type* get() const { return nullptr; }
@@ -1639,7 +1640,7 @@ template <typename T>
 class cas_transactable
 {
 public:
-	typedef cas_transactable<T>	this_t;
+	typedef cas_transactable<T> this_t;
 	typedef T type;
 
 private:
@@ -1675,8 +1676,8 @@ public:
 	class write_token
 	{
 	protected:
-		placement<type>	m_old;
-		placement<type>	m_new;
+		placement<type> m_old;
+		placement<type> m_new;
 
 		friend class cas_transactable;
 
@@ -1690,7 +1691,7 @@ public:
 		{
 			memcpy(&m_old, &t, sizeof(type));
 			memcpy(&m_new, &t, sizeof(type));
-		}	
+		} 
 
 		void set(const type& t, const type& newT)
 		{
@@ -1699,7 +1700,7 @@ public:
 		}
 
 	public:
-		write_token()	// leave contents uninitialized
+		write_token() // leave contents uninitialized
 		{ }
 
 		write_token(write_token& wt) = delete;
@@ -1721,33 +1722,33 @@ public:
 
 		void release() { }
 
-		      type* get()				{ return &m_new.get(); }
-		const type* get() const			{ return &m_new.get(); }
-		      type& operator*()			{ return m_new.get(); }
-		const type& operator*() const	{ return m_new.get(); }
-		      type* operator->()		{ return get(); }
-		const type* operator->() const	{ return get(); }
+		type* get() { return &m_new.get(); }
+		const type* get() const { return &m_new.get(); }
+		type& operator*() { return m_new.get(); }
+		const type& operator*() const { return m_new.get(); }
+		type* operator->() { return get(); }
+		const type* operator->() const { return get(); }
 	};
 
 	class read_token
-	{	
+	{
 	protected:
-		placement<type>	m_obj;
+		placement<type> m_obj;
 
 		friend class cas_transactable;
-		
+
 		read_token(const type& t)
 		{
 			memcpy(&m_obj, &t, sizeof(type));
 		}
 
-		void set(const type& t)			
+		void set(const type& t)
 		{
 			memcpy(&m_obj, &t, sizeof(type));
 		}
 
 	public:
-		read_token()	
+		read_token()
 		{ }
 
 		read_token(const read_token& rt) = delete;
@@ -1767,9 +1768,9 @@ public:
 
 		void release() { }
 
-		const type* get() const			{ return &m_obj.get(); }
-		const type& operator*() const	{ return m_obj.get(); }
-		const type* operator->() const	{ return get(); }
+		const type* get() const { return &m_obj.get(); }
+		const type& operator*() const { return m_obj.get(); }
+		const type* operator->() const { return get(); }
 	};
 
 	cas_transactable()
@@ -1785,7 +1786,7 @@ public:
 	}
 
 	// Need a non-const version of this constructor to prevent variadic constructor from being select for non-const arg
-	
+
 	cas_transactable(this_t& src)
 		: m_contents(src.m_contents)
 	{ }
@@ -1824,8 +1825,8 @@ public:
 
 	type& operator*() { return *get(); }
 	const type& operator*() const { return *get(); }
-	volatile type& operator*() volatile	{ return *get(); }
-	const volatile type& operator*() const volatile	{ return *get(); }
+	volatile type& operator*() volatile { return *get(); }
+	const volatile type& operator*() const volatile { return *get(); }
 
 	type* operator->() { return get(); }
 	const type* operator->() const { return get(); }
@@ -1933,13 +1934,13 @@ public:
 
 
 
-	read_token begin_read() const volatile			{ read_token rt; begin_read(rt); return rt; }
-	
-	void begin_read(read_token& rt) const volatile	{ type tmp; atomic::load(m_contents, tmp); rt.set(tmp); }
+	read_token begin_read() const volatile { read_token rt; begin_read(rt); return rt; }
 
-	bool end_read(read_token& t) volatile			{ type tmp; atomic::load(m_contents, tmp); return tmp == t.m_obj; }
+	void begin_read(read_token& rt) const volatile { type tmp; atomic::load(m_contents, tmp); rt.set(tmp); }
 
-	void begin_write(write_token& wt) volatile		{ type tmp; atomic::load(m_contents, tmp); wt.set(tmp); }
+	bool end_read(read_token& t) volatile { type tmp; atomic::load(m_contents, tmp); return tmp == t.m_obj; }
+
+	void begin_write(write_token& wt) volatile { type tmp; atomic::load(m_contents, tmp); wt.set(tmp); }
 
 	template <typename... args_t>
 	void begin_write(write_token& wt, args_t&&... src) volatile
@@ -1949,7 +1950,7 @@ public:
 		wt.set(tmp, std::forward<args_t>(src)...);
 	}
 
-	bool promote_read_token(read_token& rt, write_token& wt) volatile	// ends read_token
+	bool promote_read_token(read_token& rt, write_token& wt) volatile // ends read_token
 	{
 		type tmp;
 		atomic::load(m_contents, tmp);
@@ -1960,7 +1961,7 @@ public:
 	}
 
 	template <typename... args_t>
-	bool promote_read_token(read_token& rt, write_token& wt, args_t&&... src) volatile	// ends read_token
+	bool promote_read_token(read_token& rt, write_token& wt, args_t&&... src) volatile // ends read_token
 	{
 		type tmp;
 		atomic::load(m_contents, tmp);
@@ -1975,14 +1976,14 @@ public:
 	{
 		return atomic::compare_exchange(m_contents, *(t.get()), t.m_old.get());
 	}
-	
+
 	template <typename... args_t>
 	bool end_write(read_token& t, args_t&&... src) volatile
 	{
 		type tmp(std::forward<args_t>(src)...);
 		return atomic::compare_exchange(m_contents, tmp, *(t.get()));
 	}
-	
+
 	template <typename... args_t>
 	bool end_write(write_token& t, args_t&&... src) volatile
 	{
@@ -2019,12 +2020,12 @@ template <typename T>
 class transactable
 {
 public:
-	typedef T	type;
-	typedef transactable<T>	this_t;
+	typedef T type;
+	typedef transactable<T> this_t;
 
 private:
 	typedef std::conditional_t<std::is_empty_v<T>, empty_transactable<type>,
-				std::conditional_t<can_atomic_v<T>, cas_transactable<type>, thread_safe_transactable<type> > > content_t;
+		std::conditional_t<can_atomic_v<T>, cas_transactable<type>, thread_safe_transactable<type> > > content_t;
 
 	content_t m_contents;
 
@@ -2056,19 +2057,19 @@ public:
 	class read_token
 	{
 	private:
-		typename content_t::read_token	m_readToken;
+		typename content_t::read_token m_readToken;
 
 		template <typename>
 		friend class transactable;
 
 		read_token(typename content_t::read_token& rt)
-			:	m_readToken(rt)
+			: m_readToken(rt)
 		{ }
 
 	public:
 		/// @{
 		/// @brief Constructor
-		read_token()															{ }
+		read_token() { }
 		/// @}
 
 		/// @{
@@ -2077,7 +2078,7 @@ public:
 		read_token(read_token& src) = delete;
 		read_token(read_token&& src) : m_readToken(std::move(src.m_readToken)) { }
 		/// @}
-		
+
 		/// @{
 		/// @brief Move-Assignment
 		/// @param src Value to copy
@@ -2088,15 +2089,15 @@ public:
 
 		/// @{
 		/// @brief Releases this read_token
-		void release()															{ m_readToken.release(); }
+		void release() { m_readToken.release(); }
 		/// @}
 
 		/// @{
 		/// @brief Gets the value referenced by this read_token
 		/// @return The value referenced by this read_token
-		const type* get() const													{ return m_readToken.get(); }
-		const type& operator*() const											{ return *get(); }
-		const type* operator->() const											{ return get(); }
+		const type* get() const { return m_readToken.get(); }
+		const type& operator*() const { return *get(); }
+		const type* operator->() const { return get(); }
 		/// @}
 	};
 
@@ -2104,7 +2105,7 @@ public:
 	class write_token
 	{
 	private:
-		typename content_t::write_token	m_writeToken;
+		typename content_t::write_token m_writeToken;
 
 		template <typename>
 		friend class transactable;
@@ -2116,7 +2117,7 @@ public:
 	public:
 		/// @{
 		/// @brief Constructor
-		write_token()															{ }
+		write_token() { }
 		/// @}
 
 		/// @{
@@ -2129,22 +2130,22 @@ public:
 		/// @brief Move-Assignment
 		/// @param src Value to move
 		/// @return A reference to this
-		write_token& operator=(write_token&& src)							{ m_writeToken = std::move(src.m_writeToken); return *this; }
+		write_token& operator=(write_token&& src) { m_writeToken = std::move(src.m_writeToken); return *this; }
 		/// @}
 
 		/// @{
 		/// @brief Releases this write_token
-		void release()														{ m_writeToken.release(); }
+		void release() { m_writeToken.release(); }
 		/// @}
 
 		/// @{
 		/// @brief Gets the value referenced by this write_token
-		      type* get()				{ return m_writeToken.get(); }
-		const type* get() const			{ return m_writeToken.get(); }
-		      type& operator*()			{ return *get(); }
-		const type& operator*() const	{ return *get(); }
-		      type* operator->()		{ return get(); }
-		const type* operator->() const	{ return get(); }
+		type* get() { return m_writeToken.get(); }
+		const type* get() const { return m_writeToken.get(); }
+		type& operator*() { return *get(); }
+		const type& operator*() const { return *get(); }
+		type* operator->() { return get(); }
+		const type* operator->() const { return get(); }
 		/// @}
 	};
 
@@ -2188,17 +2189,17 @@ public:
 	this_t& operator=(const volatile this_t& src) { m_contents = src.m_contents; return *this; }
 
 	template <typename type2>
-	this_t& operator=(const transactable<type2>& src)		{ *get() = *src.get(); return *this; }
+	this_t& operator=(const transactable<type2>& src) { *get() = *src.get(); return *this; }
 
 	template <typename type2>
-	this_t& operator=(const volatile transactable<type2>& src)	{ *get() = *(src.begin_read()); return *this; }
+	this_t& operator=(const volatile transactable<type2>& src) { *get() = *(src.begin_read()); return *this; }
 
 	/// @brief Thread-safe implementation of operator=()
 	/// @param src Value to set to
 	volatile this_t& operator=(const this_t& src) volatile { m_contents = src.m_contents; return *this; }
 
 	template <typename type2>
-	volatile this_t& operator=(const transactable<type2>& src) volatile	{ m_contents.set(*src); return *this; }
+	volatile this_t& operator=(const transactable<type2>& src) volatile { m_contents.set(*src); return *this; }
 
 	template <typename type2>
 	volatile this_t& operator=(const volatile transactable<type2>& src) volatile { m_contents.set(*src.begin_read());  return *this; }
@@ -2222,19 +2223,19 @@ public:
 	/// Direct access to the encapsulated value bypasses thread safety, and should
 	/// not be done if there is potential parallel access.
 	/// @return A pointer to the encapsulated object
-	               type* get()					{ return m_contents.get(); }
-	const          type* get() const			{ return m_contents.get(); }
+	type* get() { return m_contents.get(); }
+	const type* get() const { return m_contents.get(); }
 
-	               type* operator->()					{ return get(); }
-	const          type* operator->() const				{ return get(); }
+	type* operator->() { return get(); }
+	const type* operator->() const { return get(); }
 
 	/// @brief Gets the encapsulated value.
 	///
 	/// Direct access to the encapsulated value bypasses thread safety, and should
 	/// not be done if there is potential parallel access.
 	/// @return A reference to the encapsulated object
-	               type& operator*()					{ return *get(); }
-	const          type& operator*() const				{ return *get(); }
+	type& operator*() { return *get(); }
+	const type& operator*() const { return *get(); }
 	/// @}
 
 	/// @{
@@ -2249,10 +2250,10 @@ public:
 	/// @}
 
 	template <typename type2, typename... args_t>
-	void exchange_set(type2& rtn, args_t&&... src)			{ m_contents.exchange_set(rtn, std::forward<args_t>(src)...); }
+	void exchange_set(type2& rtn, args_t&&... src) { m_contents.exchange_set(rtn, std::forward<args_t>(src)...); }
 
 	template <typename type2, typename... args_t>
-	void exchange_set(type2& rtn, args_t&&... src) volatile	{ m_contents.exchange_set(rtn, std::forward<args_t>(src)...); }
+	void exchange_set(type2& rtn, args_t&&... src) volatile { m_contents.exchange_set(rtn, std::forward<args_t>(src)...); }
 
 	/// @{
 	/// @brief Swaps contents with another transactable
@@ -2345,10 +2346,10 @@ public:
 	/// @{
 	/// @brief Gets an object that provides read-only access to the encapsulated value
 	/// @return An object that provides read-only access to the encapsulated value
-	read_token begin_read() const volatile									{ read_token rt; m_contents.begin_read(rt.m_readToken); return rt; }
+	read_token begin_read() const volatile { read_token rt; m_contents.begin_read(rt.m_readToken); return rt; }
 	/// @brief Gets an object that provides read-only access to the encapsulated value
 	/// @param[out] rt An object that provides read-only access to the encapsulated value
-	void begin_read(read_token& rt) const volatile							{ m_contents.begin_read(rt.m_readToken); }
+	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt.m_readToken); }
 	/// @}
 
 	/// @{
@@ -2358,18 +2359,18 @@ public:
 	/// state has remained current at the end of a read operation.
 	/// @param[in,out] rt An object that provides read-only access to the encapsulated value
 	/// @return True if the value has remained the same since the read token was acquired
-	bool end_read(read_token& rt) const volatile							{ return m_contents.end_read(rt.m_readToken); }
+	bool end_read(read_token& rt) const volatile { return m_contents.end_read(rt.m_readToken); }
 	/// @}
 
 	/// @{
 	/// @brief Gets an object that provides (read and) write access to the encapsulated value
 	/// @param[out] wt An object that provides (read and) write access to the encapsulated value
-	void begin_write(write_token& wt) volatile								{ m_contents.begin_write(wt.m_writeToken); }
+	void begin_write(write_token& wt) volatile { m_contents.begin_write(wt.m_writeToken); }
 	/// @brief Gets an object that provides write access to the encapsulated value
 	/// @param[out] wt An object that provides write access to the encapsulated value
 	/// @param src New value to initialize the write token to.
 	template <typename... args_t>
-	void begin_write(write_token& wt, args_t&&... src) volatile				{ m_contents.begin_write(wt.m_writeToken, std::forward<args_t>(src)...); }
+	void begin_write(write_token& wt, args_t&&... src) volatile { m_contents.begin_write(wt.m_writeToken, std::forward<args_t>(src)...); }
 	/// @}
 
 	/// @{
@@ -2377,34 +2378,34 @@ public:
 	/// @param[in,out] rt read_token to convert to a write token
 	/// @param[out] wt An object that provides (read and) write access to the encapsulated value
 	/// @return True if the promotion was successful
-	bool promote_read_token(read_token& rt, write_token& wt) volatile		{ return m_contents.promote_read_token(rt.m_readToken, wt.m_writeToken); }
+	bool promote_read_token(read_token& rt, write_token& wt) volatile { return m_contents.promote_read_token(rt.m_readToken, wt.m_writeToken); }
 	/// @brief Converts a read_token to a write_token, if the value has not yet changed
 	/// @param[in,out] rt read_token to convert to a write token
 	/// @param[out] wt An object that provides (read and) write access to the encapsulated value
 	/// @param src New value to initialize the write token to.
 	/// @return True if the promotion was successful
 	template <typename... args_t>
-	bool promote_read_token(read_token& rt, write_token& wt, args_t&&... src) volatile	{ return m_contents.promote_read_token(rt.m_readToken, wt.m_writeToken, std::forward<args_t>(src)...); }
+	bool promote_read_token(read_token& rt, write_token& wt, args_t&&... src) volatile { return m_contents.promote_read_token(rt.m_readToken, wt.m_writeToken, std::forward<args_t>(src)...); }
 	/// @}
 
 	/// @{
 	/// @brief Commits a write token, if the value has not changed since read.
 	/// @param[in,out] wt write_token to write
 	/// @return True if value was successfully committed
-	bool end_write(write_token& wt) volatile								{ return m_contents.end_write(wt.m_writeToken); }
+	bool end_write(write_token& wt) volatile { return m_contents.end_write(wt.m_writeToken); }
 	/// @brief Commits a write token, if the value has not changed since read.
 	/// @param[in,out] rt read_token associated with a write to perform
 	/// @param src Value to write
 	/// @return True if value was successfully committed
 	template <typename... args_t>
-	bool end_write(read_token& rt, args_t&&... src) volatile				{ return m_contents.end_write(rt.m_readToken, std::forward<args_t>(src)...); }
+	bool end_write(read_token& rt, args_t&&... src) volatile { return m_contents.end_write(rt.m_readToken, std::forward<args_t>(src)...); }
 	/// @}
 
 	/// @{
 	/// @brief Checks if a read_token reflects the current state of the transactable.
-	bool is_current(const read_token& rt) const volatile					{ return m_contents.is_current(rt.m_readToken); }
+	bool is_current(const read_token& rt) const volatile { return m_contents.is_current(rt.m_readToken); }
 	/// @brief Checks if a write_token reflects the current state of the transactable.
-	bool is_current(const write_token& wt) const volatile					{ return m_contents.is_current(wt.m_writeToken); }
+	bool is_current(const write_token& wt) const volatile { return m_contents.is_current(wt.m_writeToken); }
 	/// @}
 
 	template <class functor_t>

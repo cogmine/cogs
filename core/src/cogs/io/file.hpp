@@ -238,9 +238,9 @@
 //// and file<write_access>, so can be cast down.
 //enum access_mode
 //{
-//	read_access			=	0x01,						// 01
-//	write_access		=	0x02,						// 10
-//	read_write_access	=	read_access | write_access	// 11
+//	read_access       = 0x01, // 01
+//	write_access      = 0x02, // 10
+//	read_write_access = 0x03  // 11
 //};
 //
 //template <access_mode mode, typename file_size_t = default_file_size_t>
@@ -439,21 +439,21 @@
 //	{ }
 //
 //	segment(const this_t& s)
-//		:	m_start(s.m_start),
-//			m_length(s.m_length)
+//		: m_start(s.m_start),
+//		m_length(s.m_length)
 //	{ }
 //
 //	segment(const file_size_t& start, const file_size_t& length)
-//		:	m_start(start),
-//			m_length(length)
+//		: m_start(start),
+//		m_length(length)
 //	{ }
 //	
-//	const file_size_t& get_length() const	{ return m_length; }
-//	const file_size_t& get_start() const	{ return m_start; }
-//	const file_size_t get_end() const		{ return m_start + m_length; }
+//	const file_size_t& get_length() const { return m_length; }
+//	const file_size_t& get_start() const { return m_start; }
+//	const file_size_t get_end() const { return m_start + m_length; }
 //
-//	void set_start(const file_size_t& s)	{ m_start = s; }
-//	void set_length(const file_size_t& l)	{ m_length = l; }
+//	void set_start(const file_size_t& s) { m_start = s; }
+//	void set_length(const file_size_t& l) { m_length = l; }
 //
 //	this_t split_off_after(file_size_t n)
 //	{
@@ -567,20 +567,20 @@
 //	{ }
 //
 //	segment_buffer(const segment_buffer& s)
-//		:	m_start(s.m_start),
-//			m_buffer(s.m_buffer)
+//		: m_start(s.m_start),
+//		m_buffer(s.m_buffer)
 //	{ }
 //
 //	segment_buffer(const file_size_t& start, const const_buffer& b)
-//		:	m_start(start),
-//			m_buffer(b)
+//		: m_start(start),
+//		m_buffer(b)
 //	{ }
 //		
-//	const size_t get_length() const					{ return m_buffer.size(); }
-//	const file_size_t& get_start() const			{ return m_start; }
-//	const file_size_t get_end() const				{ return m_start + m_buffer.size(); }
-//	const segment<file_size_t> get_segment() const	{ return segment<file_size_t>(m_start, m_buffer.size()); }
-//	const const_buffer& get_buffer() const			{ return m_buffer; }
+//	const size_t get_length() const { return m_buffer.size(); }
+//	const file_size_t& get_start() const { return m_start; }
+//	const file_size_t get_end() const { return m_start + m_buffer.size(); }
+//	const segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
+//	const const_buffer& get_buffer() const { return m_buffer; }
 //
 //	this_t split_off_after(size_t n)
 //	{
@@ -639,25 +639,25 @@
 //	{ }
 //
 //	segment_bufferlist(const this_t& s)
-//		:	m_start(s.m_start),
-//			m_buffer(s.m_buffer)
+//		:m_start(s.m_start),
+//		m_buffer(s.m_buffer)
 //	{ }
 //
 //	segment_bufferlist(const segment_buffer<file_size_t>& s)
-//		:	m_start(s.get_start()),
-//			m_buffer(s.get_buffer())
+//		: m_start(s.get_start()),
+//		m_buffer(s.get_buffer())
 //	{ }
 //
 //	segment_bufferlist(const file_size_t& start, const composite_buffer& b)
-//		:	m_start(start),
-//			m_buffer(b)
+//		: m_start(start),
+//		m_buffer(b)
 //	{ }
 //		
-//	const size_t get_length() const					{ return m_buffer.get_length(); }
-//	const file_size_t& get_start() const			{ return m_start; }
-//	const file_size_t get_end() const				{ return m_start + m_buffer.size(); }
-//	const segment<file_size_t> get_segment() const	{ return segment<file_size_t>(m_start, m_buffer.size()); }
-//	const composite_buffer& get_buffer() const			{ return m_buffer; }
+//	const size_t get_length() const { return m_buffer.get_length(); }
+//	const file_size_t& get_start() const { return m_start; }
+//	const file_size_t get_end() const { return m_start + m_buffer.size(); }
+//	const segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
+//	const composite_buffer& get_buffer() const { return m_buffer; }
 //
 //	this_t split_off_after(size_t n)
 //	{
@@ -776,19 +776,19 @@
 //	class node : public sorted_list_node<true, node>
 //	{
 //	public:
-//		segment<file_size_t>	m_segment;
+//		segment<file_size_t> m_segment;
 //
 //		node(const segment<file_size_t>& s)
-//			:	m_segment(s)
+//			: m_segment(s)
 //		{ }
 //
-//		const file_size_t& get_key() const			{ return m_segment.get_start(); }
+//		const file_size_t& get_key() const { return m_segment.get_start(); }
 //
-//		void merge(const segment<file_size_t>& s)	{ m_segment.merge(s); }
+//		void merge(const segment<file_size_t>& s) { m_segment.merge(s); }
 //
-//		const file_size_t& get_start() const		{ return m_segment.get_start(); }
-//		const file_size_t& get_length() const		{ return m_segment.get_length(); }
-//		const file_size_t  get_end() const			{ return m_segment.get_end(); }
+//		const file_size_t& get_start() const { return m_segment.get_start(); }
+//		const file_size_t& get_length() const { return m_segment.get_length(); }
+//		const file_size_t  get_end() const { return m_segment.get_end(); }
 //	};
 //
 //	typedef sorted_list<file_size_t, true, node> list_t;
@@ -816,39 +816,39 @@
 //		ptr<node> m_node;
 //
 //	protected:
-//		iterator(const ptr<node>& n)	:	m_node(n)	{ }
+//		iterator(const ptr<node>& n) : m_node(n) { }
 //
 //		friend class segment_map;
 //
 //	public:
-//		iterator()	{ }
+//		iterator() { }
 //
-//		iterator(const iterator& i)	:	m_node(i.m_node)	{ }
+//		iterator(const iterator& i) : m_node(i.m_node) { }
 //
-//		iterator& operator++()		{ if (!!m_node) m_node = node::get_next(m_node); return *this; }
-//		iterator& operator--()		{ if (!!m_node) m_node = node::get_prev(m_node); return *this; }
+//		iterator& operator++() { if (!!m_node) m_node = node::get_next(m_node); return *this; }
+//		iterator& operator--() { if (!!m_node) m_node = node::get_prev(m_node); return *this; }
 //
-//		bool operator!() const						{ return !m_node; }
+//		bool operator!() const { return !m_node; }
 //
-//		bool operator==(const iterator& i) const	{ return m_node == i.m_node; }
-//		bool operator!=(const iterator& i) const	{ return m_node != i.m_node; }
+//		bool operator==(const iterator& i) const { return m_node == i.m_node; }
+//		bool operator!=(const iterator& i) const { return m_node != i.m_node; }
 //
-//		segment<file_size_t>* get() const			{ return (!m_node) ? (segment_t<file_size_t>*)0 : &(m_node->m_segment); }
-//		segment<file_size_t>& operator*() const		{ return m_node->m_segment; }
-//		segment<file_size_t>* operator->() const	{ return &(m_node->m_segment); }
+//		segment<file_size_t>* get() const { return (!m_node) ? (segment_t<file_size_t>*)0 : &(m_node->m_segment); }
+//		segment<file_size_t>& operator*() const { return m_node->m_segment; }
+//		segment<file_size_t>* operator->() const { return &(m_node->m_segment); }
 //			
-//		void release()								{ m_node = 0; }
+//		void release() { m_node = 0; }
 //
-//		iterator& operator=(const iterator& i)		{ m_node = i.m_node; return *this; }
+//		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //
-//		iterator next() const						{ return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
-//		iterator prev() const						{ return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
+//		iterator next() const { return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
+//		iterator prev() const { return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
 //	};
 //
-//	segment_map()								:	m_count(0)	{ }
-//	segment_map(const segment<file_size_t>& s)	:	m_count(1)	{ m_list.insert(new (default_allocator::get()) node(s)); }
+//	segment_map() : m_count(0) { }
+//	segment_map(const segment<file_size_t>& s) : m_count(1) { m_list.insert(new (default_allocator::get()) node(s)); }
 //
-//	~segment_map()			{ clear_inner(); }
+//	~segment_map() { clear_inner(); }
 //
 //	void clear()
 //	{
@@ -857,9 +857,9 @@
 //		m_count = 0;
 //	}
 //
-//	bool is_empty() const			{ return !m_count; }
-//	bool operator!() const			{ return !m_count; }
-//	size_t size() const				{ return m_count; }
+//	bool is_empty() const { return !m_count; }
+//	bool operator!() const { return !m_count; }
+//	size_t size() const { return m_count; }
 //		
 //	bool does_overlap(const segment<file_size_t>& s) const
 //	{
@@ -917,10 +917,10 @@
 //			bool doneMerge = false;
 //			if ((trailingEnd != s.m_start) && (s.m_start < trailingNode->get_start()))
 //			{
-//				ptr<node> leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start);	// We know leadingNode != trailingNode
+//				ptr<node> leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start); // We know leadingNode != trailingNode
 //				if (!leadingNode)
-//					leadingNode = m_list.get_first();				// Might be some cruft overlapping, so start at beginning cleaning stuff out.
-//				else if (leadingNode->get_end() < s.m_start)	// If leadingNode is well before us.
+//					leadingNode = m_list.get_first(); // Might be some cruft overlapping, so start at beginning cleaning stuff out.
+//				else if (leadingNode->get_end() < s.m_start) // If leadingNode is well before us.
 //					++leadingNode;
 //				else											// If leadingNode overlaps or is adjacent
 //				{
@@ -966,19 +966,19 @@
 //	void remove(const segment<file_size_t>& s)
 //	{
 //		file_size_t segmentEnd = s.get_end();
-//		ptr<node> n = m_list.find_nearest_less_than(segmentEnd);	// node starts before segment ends
+//		ptr<node> n = m_list.find_nearest_less_than(segmentEnd); // node starts before segment ends
 //		while (!!n)
 //		{
 //			file_size_t nodeEnd = n->get_end();
-//			if (segmentEnd < nodeEnd)	// if node extends beyond the segment
+//			if (segmentEnd < nodeEnd) // if node extends beyond the segment
 //			{
-//				if (n->get_start() < s->get_start())	// Surrounds it.  Need to poke a hole.
-//				{	
+//				if (n->get_start() < s->get_start()) // Surrounds it.  Need to poke a hole.
+//				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
 //					m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
 //					break;
 //				}
-//				n->advance(segmentEnd - n->get_start());	// include only the trailing region
+//				n->advance(segmentEnd - n->get_start()); // include only the trailing region
 //				n = n->get_prev();
 //				if (!n)
 //					break;
@@ -990,7 +990,7 @@
 //				if (nodeEnd <= s.get_start())
 //					break;
 //
-//				if (n->get_start() < s->get_start())	// if node is entirely within the segment, remove it.
+//				if (n->get_start() < s->get_start()) // if node is entirely within the segment, remove it.
 //				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
 //					break;
@@ -1016,7 +1016,7 @@
 //		}
 //	}
 //
-//	void combine(this_t& src)	// Only use on known non-overlapping.  Removes all from src.
+//	void combine(this_t& src) // Only use on known non-overlapping.  Removes all from src.
 //	{
 //		for (;;)
 //		{
@@ -1028,18 +1028,18 @@
 //		}
 //	}
 //
-//	iterator get_first() const												{ return iterator(m_list.get_first()); }
-//	iterator get_last() const												{ return iterator(m_list.get_last()); }
+//	iterator get_first() const { return iterator(m_list.get_first()); }
+//	iterator get_last() const { return iterator(m_list.get_last()); }
 //
-//	iterator find(const file_size_t& n) const							{ return iterator(m_list.find_any_equal(n)); }
-//	iterator find_any_before(const file_size_t& n) const				{ return iterator(m_list.find_any_less_than(n)); }
-//	iterator find_any_after(const file_size_t& n) const					{ return iterator(m_list.find_any_greater_than(n)); }
-//	iterator find_equal_or_any_before(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_less_than(n)); }
-//	iterator find_equal_or_any_after(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_greater_than(n)); }
-//	iterator find_nearest_before(const file_size_t& n) const			{ return iterator(m_list.find_nearest_less_than(n)); }
-//	iterator find_nearest_after(const file_size_t& n) const				{ return iterator(m_list.find_nearest_greater_than(n)); }
-//	iterator find_equal_or_nearest_before(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
-//	iterator find_equal_or_nearest_after(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
+//	iterator find(const file_size_t& n) const { return iterator(m_list.find_any_equal(n)); }
+//	iterator find_any_before(const file_size_t& n) const { return iterator(m_list.find_any_less_than(n)); }
+//	iterator find_any_after(const file_size_t& n) const { return iterator(m_list.find_any_greater_than(n)); }
+//	iterator find_equal_or_any_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_less_than(n)); }
+//	iterator find_equal_or_any_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_greater_than(n)); }
+//	iterator find_nearest_before(const file_size_t& n) const { return iterator(m_list.find_nearest_less_than(n)); }
+//	iterator find_nearest_after(const file_size_t& n) const { return iterator(m_list.find_nearest_greater_than(n)); }
+//	iterator find_equal_or_nearest_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
+//	iterator find_equal_or_nearest_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
 //};
 //
 //template <typename file_size_t>
@@ -1054,28 +1054,28 @@
 //	class node : public sorted_list_node<true, node>
 //	{
 //	public:
-//		segment_buffer<file_size_t>	m_segmentBuffer;
+//		segment_buffer<file_size_t> m_segmentBuffer;
 //	
 //		node(const segment_buffer<file_size_t>& sb)
-//			:	m_segmentBuffer(sb)
+//			: m_segmentBuffer(sb)
 //		{ }
 //
-//		const file_size_t& get_key() const			{ return m_segmentBuffer.get_start(); }
+//		const file_size_t& get_key() const { return m_segmentBuffer.get_start(); }
 //
-//		const file_size_t& get_start() const		{ return m_segmentBuffer.get_start(); }
-//		const file_size_t& get_length() const		{ return m_segmentBuffer.get_length(); }
-//		const file_size_t  get_end() const			{ return m_segmentBuffer.get_end(); }
+//		const file_size_t& get_start() const { return m_segmentBuffer.get_start(); }
+//		const file_size_t& get_length() const { return m_segmentBuffer.get_length(); }
+//		const file_size_t  get_end() const { return m_segmentBuffer.get_end(); }
 //
-//		void advance(size_t n)						{ m_segmentBuffer.advance(n); }
-//		void truncate_to(size_t n)					{ m_segmentBuffer.truncate_to(n); }
+//		void advance(size_t n) { m_segmentBuffer.advance(n); }
+//		void truncate_to(size_t n) { m_segmentBuffer.truncate_to(n); }
 //
-//		segment<file_size_t> get_segment() const	{ return m_segmentBuffer.get_segment(); }
+//		segment<file_size_t> get_segment() const { return m_segmentBuffer.get_segment(); }
 //	};
 //
 //	typedef sorted_list<file_size_t, true, node> list_t;
 //
-//	list_t	m_list;
-//	size_t	m_count;
+//	list_t m_list;
+//	size_t m_count;
 //
 //	void clear_inner()
 //	{
@@ -1098,44 +1098,44 @@
 //		ptr<node> m_node;
 //
 //	protected:
-//		iterator(const ptr<node>& n)	:	m_node(n)	{ }
+//		iterator(const ptr<node>& n) : m_node(n) { }
 //
 //		friend class segment_buffer_map<file_size_t>;
 //
 //	public:
-//		iterator()	{ }
+//		iterator() { }
 //
-//		iterator(const iterator& i)	:	m_node(i.m_node)	{ }
+//		iterator(const iterator& i) : m_node(i.m_node) { }
 //
-//		iterator& operator++()		{ if (!!m_node) m_node = node::get_next(m_node); return *this; }
-//		iterator& operator--()		{ if (!!m_node) m_node = node::get_prev(m_node); return *this; }
+//		iterator& operator++() { if (!!m_node) m_node = node::get_next(m_node); return *this; }
+//		iterator& operator--() { if (!!m_node) m_node = node::get_prev(m_node); return *this; }
 //
-//		bool operator!() const							{ return !m_node; }
+//		bool operator!() const { return !m_node; }
 //
-//		bool operator==(const iterator& i) const		{ return m_node == i.m_node; }
-//		bool operator!=(const iterator& i) const		{ return m_node != i.m_node; }
+//		bool operator==(const iterator& i) const { return m_node == i.m_node; }
+//		bool operator!=(const iterator& i) const { return m_node != i.m_node; }
 //
-//		segment_buffer<file_size_t>* get() const		{ return (!m_node) ? (segment_t*)0 : &(m_node->m_segmentBuffer); }
-//		segment_buffer<file_size_t>& operator*() const	{ return m_node->m_segmentBuffer; }
-//		segment_buffer<file_size_t>* operator->() const	{ return &(m_node->m_segmentBuffer); }
+//		segment_buffer<file_size_t>* get() const { return (!m_node) ? (segment_t*)0 : &(m_node->m_segmentBuffer); }
+//		segment_buffer<file_size_t>& operator*() const { return m_node->m_segmentBuffer; }
+//		segment_buffer<file_size_t>* operator->() const { return &(m_node->m_segmentBuffer); }
 //			
-//		void release()									{ m_node = 0; }
+//		void release() { m_node = 0; }
 //
-//		iterator& operator=(const iterator& i)			{ m_node = i.m_node; return *this; }
+//		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //
-//		iterator next() const						{ return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
-//		iterator prev() const						{ return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
+//		iterator next() const { return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
+//		iterator prev() const { return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
 //	};
 //		
 //	segment_buffer_map()
-//		:	m_count(0)
+//		: m_count(0)
 //	{ }
 //
 //	segment_buffer_map(const segment_buffer<file_size_t>& sb)
-//		:	m_count(1)
+//		: m_count(1)
 //	{ m_list.insert(new (default_allocator::get()) node(sb)); }
 //
-//	~segment_buffer_map()			{ clear_inner(); }
+//	~segment_buffer_map() { clear_inner(); }
 //
 //	void clear()
 //	{
@@ -1144,14 +1144,14 @@
 //		m_count = 0;
 //	}
 //
-//	bool is_empty() const			{ return !m_count; }
-//	bool operator!() const			{ return !m_count; }
-//	size_t size() const				{ return m_count; }
+//	bool is_empty() const { return !m_count; }
+//	bool operator!() const { return !m_count; }
+//	size_t size() const { return m_count; }
 //
 //	iterator add(const segment_buffer<file_size_t>& sb)
 //	{
 //		file_size_t sbEnd = sb.get_end();
-//		file_size_t trailingEnd;	// Find first one that starts before the end of the new segment.
+//		file_size_t trailingEnd; // Find first one that starts before the end of the new segment.
 //		ptr<node> trailingNode = m_list.find_nearest_less_than(sbEnd);
 //		bool overlapping = false;
 //		if (!!trailingNode)
@@ -1163,12 +1163,12 @@
 //			trailingNode = 0;
 //		else // sb.get_start() < trailingEnd
 //		{
-//			if (trailingNode->get_start() < sb.get_start())	// If we need to split off the front of the buffer
+//			if (trailingNode->get_start() < sb.get_start()) // If we need to split off the front of the buffer
 //			{
 //				size_t startGap = (size_t)(sb.get_start() - trailingNode->get_start());
 //				if (trailingEnd <= sbEnd)
-//					trailingNode->truncate_to(startGap);	// Just need to split off the front.
-//				else // if (sbEnd < trailingEnd)			// need to break it into 3 parts, to split off the end also
+//					trailingNode->truncate_to(startGap); // Just need to split off the front.
+//				else // if (sbEnd < trailingEnd) // need to break it into 3 parts, to split off the end also
 //				{
 //					m_list.insert(new (default_allocator::get()) node(trailingNode->m_segmentBuffer.split_off_after(startGap).split_off_before(sb.get_length())));
 //					++m_count;
@@ -1179,12 +1179,12 @@
 //			{
 //				if (sb.get_start() < trailingNode->get_start())
 //				{
-//					ptr<node> leadingNode = m_list.find_any_equal_or_nearest_less_than(sb.get_start());	// We know leadingNode != trailingNode
+//					ptr<node> leadingNode = m_list.find_any_equal_or_nearest_less_than(sb.get_start()); // We know leadingNode != trailingNode
 //					if (!leadingNode)
-//						leadingNode = m_list.get_first();				// Might be some cruft overlapping, so start at beginning cleaning stuff out.
-//					else if (leadingNode->get_end() <= sb.get_start())	// If leadingNode ends before us.
+//						leadingNode = m_list.get_first(); // Might be some cruft overlapping, so start at beginning cleaning stuff out.
+//					else if (leadingNode->get_end() <= sb.get_start()) // If leadingNode ends before us.
 //						++leadingNode;
-//					else if (leadingNode->get_start() < sb.get_start())		// Only truncate leadingNode if there is something left-over at the start of it.
+//					else if (leadingNode->get_start() < sb.get_start()) // Only truncate leadingNode if there is something left-over at the start of it.
 //					{
 //						leadingNode->truncate_to((size_t)(sb.get_start() - leadingNode->get_start()));
 //						++leadingNode;
@@ -1243,19 +1243,19 @@
 //	void remove(const segment<file_size_t>& s)
 //	{
 //		file_size_t segmentEnd = s.get_end();
-//		ptr<node> n = m_list.find_nearest_less_than(segmentEnd);	// node starts before segment ends
+//		ptr<node> n = m_list.find_nearest_less_than(segmentEnd); // node starts before segment ends
 //		while (!!n)
 //		{
 //			file_size_t nodeEnd = n->get_end();
-//			if (segmentEnd < nodeEnd)	// if node extends beyond the segment
+//			if (segmentEnd < nodeEnd) // if node extends beyond the segment
 //			{
-//				if (n->get_start() < s->get_start())	// Surrounds it.  Need to poke a hole.
-//				{	
+//				if (n->get_start() < s->get_start()) // Surrounds it.  Need to poke a hole.
+//				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
 //					m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
 //					break;
 //				}
-//				n->advance(segmentEnd - n->get_start());	// include only the trailing region
+//				n->advance(segmentEnd - n->get_start()); // include only the trailing region
 //				n = n->get_prev();
 //				if (!n)
 //					break;
@@ -1267,7 +1267,7 @@
 //				if (nodeEnd <= s.get_start())
 //					break;
 //
-//				if (n->get_start() < s->get_start())	// if node is entirely within the segment, remove it.
+//				if (n->get_start() < s->get_start()) // if node is entirely within the segment, remove it.
 //				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
 //					break;
@@ -1293,7 +1293,7 @@
 //		}
 //	}
 //
-//	void combine(this_t& src)	// Only use on known non-overlapping.  Removes all from src.
+//	void combine(this_t& src) // Only use on known non-overlapping.  Removes all from src.
 //	{
 //		for (;;)
 //		{
@@ -1352,25 +1352,25 @@
 //	// will be advanced as needed until the segments they point to no longer overlap.
 //	void read_overlap_inner(segment_map<file_size_t>& segmentMap, iterator& segmentBufferMapItor, typename segment_map<file_size_t>::iterator& segmentMapItor)
 //	{
-//		bool						isSegmentSplit		= false;
-//		segment_buffer<file_size_t>	curSegmentBuffer	= *segmentBufferMapItor;	// copied, modified.
-//		segment<file_size_t>		curSegment			= *segmentMapItor;			// copied, modified.
+//		bool isSegmentSplit = false;
+//		segment_buffer<file_size_t> curSegmentBuffer = *segmentBufferMapItor; // copied, modified.
+//		segment<file_size_t> curSegment = *segmentMapItor; // copied, modified.
 //		
 //		for (;;)
 //		{
-//			if (curSegmentBuffer.get_start() < curSegment.get_start())		// Ignore any segmentBuffer before segment.
+//			if (curSegmentBuffer.get_start() < curSegment.get_start()) // Ignore any segmentBuffer before segment.
 //				curSegmentBuffer.advance((size_t)(curSegment.get_start() - curSegmentBuffer.get_start()));
-//			else if (curSegment.get_start() < curSegmentBuffer.get_start())	// Split off unmatched segment start
+//			else if (curSegment.get_start() < curSegmentBuffer.get_start()) // Split off unmatched segment start
 //			{
 //				file_size_t dif = curSegmentBuffer.get_start() - curSegment.get_start();
-//				if (!isSegmentSplit)	// if curSegment is in segmentMap
+//				if (!isSegmentSplit) // if curSegment is in segmentMap
 //				{
-//					curSegment = segmentMapItor->split_off_after(dif);	// if in the map, skip past unused portion, leaving it in the map.
-//					isSegmentSplit = true;	// indicates that curSegment is not currently reflected in segmentMap.
+//					curSegment = segmentMapItor->split_off_after(dif); // if in the map, skip past unused portion, leaving it in the map.
+//					isSegmentSplit = true; // indicates that curSegment is not currently reflected in segmentMap.
 //				}
-//				else //if (!!isSegmentSplit)	// if curSegment is not in segmentMap
+//				else //if (!!isSegmentSplit) // if curSegment is not in segmentMap
 //				{
-//					segmentMap.add(curSegment.get_start(), dif);	// Add unused portion back into the map
+//					segmentMap.add(curSegment.get_start(), dif); // Add unused portion back into the map
 //					curSegment.advance(dif);
 //				}
 //			}
@@ -1379,27 +1379,27 @@
 //			// Cache next segmentMapItor, so we can still advance after removing the currrent one.
 //			segment_map<file_size_t>::iterator nextSegmentMapItor = segmentMapItor.next();
 //
-//			file_size_t curSegmentEnd = curSegment.get_end();				// cache end positions
-//			file_size_t curSegmentBufferEnd = curSegmentBuffer.get_end();	// cache end positions
-//			if (curSegmentEnd < curSegmentBufferEnd)	// If segment is done before the end of this segmentBuffer,
-//			{											// Add matched segment
-//				add(curSegmentBuffer.split_off_before((size_t)(curSegmentEnd - curSegmentBuffer.get_start())));	// curSegmentBuffer retains next buffer to match.
-//				if (!isSegmentSplit)	// Remove segment.  if isSegmentSplit, then no need to remove it since we haven't added it.
+//			file_size_t curSegmentEnd = curSegment.get_end(); // cache end positions
+//			file_size_t curSegmentBufferEnd = curSegmentBuffer.get_end(); // cache end positions
+//			if (curSegmentEnd < curSegmentBufferEnd) // If segment is done before the end of this segmentBuffer,
+//			{ // Add matched segment
+//				add(curSegmentBuffer.split_off_before((size_t)(curSegmentEnd - curSegmentBuffer.get_start()))); // curSegmentBuffer retains next buffer to match.
+//				if (!isSegmentSplit) // Remove segment.  if isSegmentSplit, then no need to remove it since we haven't added it.
 //					segmentMap.remove(segmentMapItor);
 //
 //				// We have left-over contents in curSegmentBuffer.
-//				segmentMapItor = nextSegmentMapItor;	// Move on to next segment.
-//				if (!segmentMapItor)	
-//					break;	// No more segments, we're done.
+//				segmentMapItor = nextSegmentMapItor; // Move on to next segment.
+//				if (!segmentMapItor)
+//					break; // No more segments, we're done.
 //				
-//				curSegment = *segmentMapItor;	
-//				if (curSegment.get_start() >= curSegmentBuffer.get_end())	// If starts past buffer, we're done with this buffer
+//				curSegment = *segmentMapItor;
+//				if (curSegment.get_start() >= curSegmentBuffer.get_end()) // If starts past buffer, we're done with this buffer
 //				{
 //					curSegmentBuffer = *++segmentBufferMapItor;
 //					if (!curSegmentBuffer.get_segment().does_overlap(curSegment))
 //						break;
 //				}
-//				isSegmentSplit = false;	// Otherwise, we take this new curSegment back to the start of the loop.
+//				isSegmentSplit = false; // Otherwise, we take this new curSegment back to the start of the loop.
 //				//continue;
 //			}
 //			else // if (curSegmentBufferEnd <= curSegmentEnd)
@@ -1407,32 +1407,32 @@
 //				add(curSegmentBuffer);
 //				if (curSegmentBufferEnd == curSegmentEnd)
 //				{
-//					if (!isSegmentSplit)	// Entirely remove segment.  if isSegmentSplit, then no need to remove it since we haven't added it.
+//					if (!isSegmentSplit) // Entirely remove segment.  if isSegmentSplit, then no need to remove it since we haven't added it.
 //						segmentMap.remove(segmentMapItor);
-//					curSegment = *(segmentMapItor = nextSegmentMapItor);	// Move on to next segment.
-//					curSegmentBuffer = *++segmentBufferMapItor;				// Move on to next segment buffer.
+//					curSegment = *(segmentMapItor = nextSegmentMapItor); // Move on to next segment.
+//					curSegmentBuffer = *++segmentBufferMapItor; // Move on to next segment buffer.
 //					if (!curSegmentBuffer.get_segment().does_overlap(curSegment))
 //						break;
 //					isSegmentSplit = false;
 //				}
-//				else // if (curSegmentBufferEnd < curSegmentEnd)	// We have left over contents in curSegment
+//				else // if (curSegmentBufferEnd < curSegmentEnd) // We have left over contents in curSegment
 //				{
 //					if (!isSegmentSplit)
 //						segmentMapItor->advance(curSegmentBufferEnd - segmentMapItor->get_start());
-//					curSegment.advance(curSegmentBufferEnd - curSegment.get_start());	// curSegment retains segment to match
-//					curSegmentBuffer = *++segmentBufferMapItor;						// Move on to next segment buffer.
+//					curSegment.advance(curSegmentBufferEnd - curSegment.get_start()); // curSegment retains segment to match
+//					curSegmentBuffer = *++segmentBufferMapItor; // Move on to next segment buffer.
 //					if (curSegment.get_end() <= curSegmentBuffer.get_start())
 //					{
 //						if (isSegmentSplit)
 //							segmentMap.add(curSegment);
-//						curSegment = *(segmentMapItor = nextSegmentMapItor);		// Move on to next segment.
+//						curSegment = *(segmentMapItor = nextSegmentMapItor); // Move on to next segment.
 //						if (!curSegmentBuffer.get_segment().does_overlap(curSegment))
 //							break;
 //						isSegmentSplit = false;
 //					}
 //					// else //continue;
 //				}
-//				//continue;	// Otherwise, we take this new curSegmentBuffer back to the start of the loop.
+//				//continue; // Otherwise, we take this new curSegmentBuffer back to the start of the loop.
 //			}
 //		}
 //	}
@@ -1445,27 +1445,27 @@
 //		if (srcDst.is_empty() || sbm.is_empty())
 //			return;
 //		
-//		iterator									segmentBufferMapItor;
-//		typename segment_map<file_size_t>::iterator	segmentMapItor;
+//		iterator segmentBufferMapItor;
+//		typename segment_map<file_size_t>::iterator segmentMapItor;
 //
 //		if ((srcDst.get_last()->get_end() < sbm.get_first()->get_start())
 //			|| (sbm.get_last()->get_end() < srcDst.get_first()->get_start()))
-//			return;	// If either is empty, or one starts after the other ends, don't bother.
+//			return; // If either is empty, or one starts after the other ends, don't bother.
 //
 //		if (srcDst.size() <= sbm.size())
-//		{		// srcDst is smaller, iterate through it looking for overlaps in sbm.
+//		{ // srcDst is smaller, iterate through it looking for overlaps in sbm.
 //			segmentMapItor = srcDst.get_first();
 //			do {
 //				bool foundAny = false;
 //				file_size_t segmentStartPos = segmentMapItor->get_start();
 //				segmentBufferMapItor = sbm.find_equal_or_nearest_before(segmentStartPos);
-//				if (!segmentBufferMapItor)	// if none found, check the first
+//				if (!segmentBufferMapItor) // if none found, check the first
 //				{
 //					segmentBufferMapItor = sbm.get_first();
 //					if (segmentBufferMapItor->get_end() <= segmentMapItor->get_end())
 //						foundAny = true;
 //				}
-//				else // if (!!segmentBufferMapItor)	// found one that starts before or at the start position
+//				else // if (!!segmentBufferMapItor) // found one that starts before or at the start position
 //				{
 //					if ((segmentBufferMapItor->get_end() <= segmentStartPos)
 //						&& (!++segmentBufferMapItor))
@@ -1483,20 +1483,20 @@
 //				}
 //			} while (!!segmentMapItor);
 //		}
-//		else	// sbm is smaller, iterate through it looking for overlaps in srcDst.
+//		else // sbm is smaller, iterate through it looking for overlaps in srcDst.
 //		{
 //			segmentBufferMapItor = sbm.get_first();
 //			do {
 //				bool foundAny = false;
 //				file_size_t segmentBufferStartPos = segmentBufferMapItor->get_start();
 //				segmentMapItor = srcDst.find_equal_or_nearest_before(segmentBufferStartPos);
-//				if (!segmentMapItor)	// if none found, check the first
+//				if (!segmentMapItor) // if none found, check the first
 //				{
 //					segmentMapItor = srcDst.get_first();
 //					if (segmentMapItor->get_end() <= segmentBufferMapItor->get_end())
 //						foundAny = true;
 //				}
-//				else // if (!!segmentMapItor)	// found one that starts before or at the start position
+//				else // if (!!segmentMapItor) // found one that starts before or at the start position
 //				{
 //					if ((segmentMapItor->get_end() <= segmentBufferStartPos)
 //						&& (!++segmentMapItor))
@@ -1516,18 +1516,18 @@
 //		}
 //	}
 //
-//	iterator get_first() const												{ return iterator(m_list.get_first()); }
-//	iterator get_last() const												{ return iterator(m_list.get_last()); }
+//	iterator get_first() const { return iterator(m_list.get_first()); }
+//	iterator get_last() const { return iterator(m_list.get_last()); }
 //
-//	iterator find(const file_size_t& n) const							{ return iterator(m_list.find_any_equal(n)); }
-//	iterator find_any_before(const file_size_t& n) const				{ return iterator(m_list.find_any_less_than(n)); }
-//	iterator find_any_after(const file_size_t& n) const					{ return iterator(m_list.find_any_greater_than(n)); }
-//	iterator find_equal_or_any_before(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_less_than(n)); }
-//	iterator find_equal_or_any_after(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_greater_than(n)); }
-//	iterator find_nearest_before(const file_size_t& n) const			{ return iterator(m_list.find_nearest_less_than(n)); }
-//	iterator find_nearest_after(const file_size_t& n) const				{ return iterator(m_list.find_nearest_greater_than(n)); }
-//	iterator find_equal_or_nearest_before(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
-//	iterator find_equal_or_nearest_after(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
+//	iterator find(const file_size_t& n) const { return iterator(m_list.find_any_equal(n)); }
+//	iterator find_any_before(const file_size_t& n) const { return iterator(m_list.find_any_less_than(n)); }
+//	iterator find_any_after(const file_size_t& n) const { return iterator(m_list.find_any_greater_than(n)); }
+//	iterator find_equal_or_any_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_less_than(n)); }
+//	iterator find_equal_or_any_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_greater_than(n)); }
+//	iterator find_nearest_before(const file_size_t& n) const { return iterator(m_list.find_nearest_less_than(n)); }
+//	iterator find_nearest_after(const file_size_t& n) const { return iterator(m_list.find_nearest_greater_than(n)); }
+//	iterator find_equal_or_nearest_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
+//	iterator find_equal_or_nearest_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
 //};
 //
 //template <typename file_size_t>
@@ -1560,20 +1560,20 @@
 //	file_mask(const this_t&);
 //	this_t& operator=(const this_t&);
 //	
-//	segment_map<file_size_t>	m_segments;
-//	bool						m_pastEof;		// true if mask incldes everything past the (unknown) EOF position
+//	segment_map<file_size_t> m_segments;
+//	bool m_pastEof; // true if mask incldes everything past the (unknown) EOF position
 //
 //	explicit file_mask(bool spanPastEof)
-//		:	m_pastEof(spanPastEof)
+//		: m_pastEof(spanPastEof)
 //	{ }
 //
 //public:
 //	file_mask()
-//		:	m_pastEof(false)
+//		: m_pastEof(false)
 //	{ }
 //
-//	static this_t all(bool spanPastEof = true)	{ this_t result(true);  result.m_segments.add(0, -1); return result; }
-//	static this_t eof()							{ return this_t(true); }
+//	static this_t all(bool spanPastEof = true) { this_t result(true);  result.m_segments.add(0, -1); return result; }
+//	static this_t eof() { return this_t(true); }
 //	
 //	void clear()
 //	{
@@ -1594,8 +1594,8 @@
 //		m_segments.add(0, -1);
 //	}
 //
-//	void include(const segment<file_size_t>& s)			{ m_segments.add(s); }
-//	void exclude(const segment<file_size_t>& s)			{ m_segments.add(s); }
+//	void include(const segment<file_size_t>& s) { m_segments.add(s); }
+//	void exclude(const segment<file_size_t>& s) { m_segments.add(s); }
 //		
 //	void include(const segment_map<file_size_t>& sm)
 //	{
@@ -1617,8 +1617,8 @@
 //		}
 //	}
 //
-//	void include_past_eof(bool includePastEof = true)	{ m_pastEof = includePastEof; }
-//	void exclude_past_eof()								{ m_pastEof = false; }
+//	void include_past_eof(bool includePastEof = true) { m_pastEof = includePastEof; }
+//	void exclude_past_eof() { m_pastEof = false; }
 //
 //	// does_overlap() assumes both masks are of the same file.
 //	bool does_overlap(const this_t& fm, const file_size_t& currentEof) const
@@ -1629,7 +1629,7 @@
 //				return true;
 //			segment_map<file_size_t>::iterator lastItor = fm.m_segments.get_last();
 //			if (!lastItor)
-//				return false;	// no overlap if nothing is there.
+//				return false; // no overlap if nothing is there.
 //			if (lastItor->get_end() > currentEof)
 //				return true;
 //		}
@@ -1637,7 +1637,7 @@
 //		{
 //			segment_map<file_size_t>::iterator lastItor = m_segments.get_last();
 //			if (!lastItor)
-//				return false;	// no overlap if nothing is there.
+//				return false; // no overlap if nothing is there.
 //			if (lastItor->get_end() > currentEof)
 //				return true;
 //		}
@@ -1649,23 +1649,23 @@
 //class segment_state_map_node : public sorted_list_node<true, segment_state_map_node<file_size_t> >
 //{
 //private:
-//	segment<file_size_t>	m_segment;
+//	segment<file_size_t> m_segment;
 //
 //public:
 //	segment_state_map_node(const segment<file_size_t>& s)
-//		:	m_segment(s)
+//		: m_segment(s)
 //	{ }
 //
 //	segment_state_map_node(const segment_state_map_node<file_size_t>& s, const file_size_t& i)
-//		:	m_segment(s.m_segment.split_off_after(i))
+//		: m_segment(s.m_segment.split_off_after(i))
 //	{ }
 //
-//	const segment<file_size_t>& get_segment() const		{ return m_segment; }
+//	const segment<file_size_t>& get_segment() const { return m_segment; }
 //
-//	const file_size_t& get_key() const		{ return m_segment.get_start(); }
-//	const file_size_t& get_start() const	{ return m_segment.get_start(); }
-//	const file_size_t& get_length() const	{ return m_segment.get_length(); }
-//	const file_size_t  get_end() const		{ return m_segment.get_end(); }
+//	const file_size_t& get_key() const { return m_segment.get_start(); }
+//	const file_size_t& get_start() const { return m_segment.get_start(); }
+//	const file_size_t& get_length() const { return m_segment.get_length(); }
+//	const file_size_t  get_end() const { return m_segment.get_end(); }
 //};
 //
 //template <typename dereived_segment_state_map_node_t, typename file_size_t>
@@ -1679,7 +1679,7 @@
 //		
 //	typedef sorted_list<file_size_t, true, node> list_t;
 //
-//	list_t	m_list;
+//	list_t m_list;
 //
 //	void clear_inner()
 //	{
@@ -1707,39 +1707,39 @@
 //		ptr<node> m_node;
 //
 //	protected:
-//		iterator(const ptr<node>& n)	:	m_node(n)	{ }
+//		iterator(const ptr<node>& n) : m_node(n) { }
 //
 //		friend class segment_buffer_map<file_size_t>;
 //
 //	public:
-//		iterator()	{ }
+//		iterator() { }
 //
-//		iterator(const iterator& i)	:	m_node(i.m_node)	{ }
+//		iterator(const iterator& i) : m_node(i.m_node) { }
 //
-//		iterator& operator++()		{ if (!!m_node) m_node = node::get_next(m_node); return *this; }
-//		iterator& operator--()		{ if (!!m_node) m_node = node::get_prev(m_node); return *this; }
+//		iterator& operator++() { if (!!m_node) m_node = node::get_next(m_node); return *this; }
+//		iterator& operator--() { if (!!m_node) m_node = node::get_prev(m_node); return *this; }
 //
-//		bool operator!() const							{ return !m_node; }
+//		bool operator!() const { return !m_node; }
 //
-//		bool operator==(const iterator& i) const		{ return m_node == i.m_node; }
-//		bool operator!=(const iterator& i) const		{ return m_node != i.m_node; }
+//		bool operator==(const iterator& i) const { return m_node == i.m_node; }
+//		bool operator!=(const iterator& i) const { return m_node != i.m_node; }
 //
-//		node* get() const								{ return m_node.get(); }
-//		node& operator*() const							{ return *m_node; }
-//		node* operator->() const						{ return m_node.get(); }
+//		node* get() const { return m_node.get(); }
+//		node& operator*() const { return *m_node; }
+//		node* operator->() const { return m_node.get(); }
 //			
-//		void clear()									{ m_node = 0; }
+//		void clear() { m_node = 0; }
 //
-//		iterator& operator=(const iterator& i)			{ m_node = i.m_node; return *this; }
+//		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //
-//		iterator next() const							{ return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
-//		iterator prev() const							{ return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
+//		iterator next() const { return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
+//		iterator prev() const { return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
 //	};
 //
 //	segment_state_map()
 //	{ }
 //
-//	~segment_state_map()	{ clear_inner(); }
+//	~segment_state_map() { clear_inner(); }
 //
 //	void clear()
 //	{
@@ -1747,8 +1747,8 @@
 //		m_list.clear();
 //	}
 //
-//	bool is_empty() const			{ return !m_list; }
-//	bool operator!() const			{ return !m_list; }
+//	bool is_empty() const { return !m_list; }
+//	bool operator!() const { return !m_list; }
 //
 //	// split_create() ensures there are states encompassing the entirety of the specified segment.
 //	// If there are any gaps, there are filled in with new nodes and default states.
@@ -1766,28 +1766,28 @@
 //			n = new (default_allocator::get()) node(s);
 //			m_list.insert(n);
 //		}
-//		else	// Node ends after the segment starts
+//		else // Node ends after the segment starts
 //		{
-//			if (nodeEnd < segmentEnd)		// If extending past the new range, create a new block to bridge the gap
+//			if (nodeEnd < segmentEnd) // If extending past the new range, create a new block to bridge the gap
 //				m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(nodeEnd, segmentEnd - nodeEnd)));
-//			else if (segmentEnd < nodeEnd)	// If splitting the block at the end
+//			else if (segmentEnd < nodeEnd) // If splitting the block at the end
 //				split_off_after(*n, segmentEnd - n->get_start());
 //
-//			if (n->get_start() < s.get_start())	// trim leading, then done.
+//			if (n->get_start() < s.get_start()) // trim leading, then done.
 //				n = split_off_after(*n, s.get_start() - n->get_start());
-//			else if (s.get_start() < n->get_start())	// block starts before curSubrange.  We need to look for prev blocks.
+//			else if (s.get_start() < n->get_start()) // block starts before curSubrange.  We need to look for prev blocks.
 //			{
-//				for (;;)	// just to use break/continue as goto labels
+//				for (;;) // just to use break/continue as goto labels
 //				{
 //					node* prev = node::get_prev(n);
-//					if ((!prev) || (prev->get_end() <= s.get_start()))	// Nothing prior within this segment, create 1 new segment
+//					if ((!prev) || (prev->get_end() <= s.get_start())) // Nothing prior within this segment, create 1 new segment
 //					{
 //						n = new (default_allocator::get()) node(segment<file_size_t>(s.get_start(), n->get_start()));
 //						m_list.insert(n);
 //						break;
 //					}
-//					//else // (s.get_start() < prev->m_end)	// If prev ends within our block
-//					if (prev->get_end() < n->get_start())	// If prev ends before subsequent block starts, fill the gap
+//					//else // (s.get_start() < prev->m_end) // If prev ends within our block
+//					if (prev->get_end() < n->get_start()) // If prev ends before subsequent block starts, fill the gap
 //						m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(prev->get_end(), n->get_start())));
 //					n = prev;
 //					//continue;
@@ -1809,8 +1809,8 @@
 //class file<read_access, file_size_t>
 //{
 //public:
-//	typedef typename file<read_access, file_size_t>				this_t;
-//	typedef typename smaller_type<file_size_t, size_t>::type	buffer_size_t;
+//	typedef typename file<read_access, file_size_t> this_t;
+//	typedef typename smaller_type<file_size_t, size_t>::type buffer_size_t;
 //
 //	class reader : public waitable
 //	{
@@ -1818,34 +1818,34 @@
 //		reader(const reader&);
 //		reader& operator=(const reader&);
 //
-//		event									m_event;
-//		rcref<segment_map<file_size_t> >			m_unreadSegments;		// Takes ownership of map passed in.
-//		rcref<segment_buffer_map<file_size_t> >	m_readSegmentBuffers;	// Starts out empty
+//		event m_event;
+//		rcref<segment_map<file_size_t> > m_unreadSegments; // Takes ownership of map passed in.
+//		rcref<segment_buffer_map<file_size_t> > m_readSegmentBuffers; // Starts out empty
 //
-//	protected:		
+//	protected:
 //		reader(const rcref<segment_map<file_size_t> >& sm)
-//			:	m_unreadSegments(sm),
-//				m_readSegmentBuffers(rcnew(segment_buffer_map<file_size_t>))
+//			: m_unreadSegments(sm),
+//			m_readSegmentBuffers(rcnew(segment_buffer_map<file_size_t>))
 //		{
 //			self_acquire();
 //		}
 //
-//		void complete()			{ m_event.set(); self_release(); }
+//		void complete() { m_event.set(); self_release(); }
 //
 //	public:
-//		const rcref<segment_map<file_size_t> >& get_unread_segments() const	{ return m_unreadSegments; }
-//		const rcref<segment_buffer_map<file_size_t> >& get_buffers() const	{ return m_readSegmentBuffers; }
+//		const rcref<segment_map<file_size_t> >& get_unread_segments() const { return m_unreadSegments; }
+//		const rcref<segment_buffer_map<file_size_t> >& get_buffers() const { return m_readSegmentBuffers; }
 //
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile			{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const					{ m_event.dispatch(delegate(d, this_rcref)); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref)); }
 //	};
 //
-//	rcref<reader> read(file_size_t offset, buffer_size_t n)		{ return begin_read(rcnew(segment_map<file_size_t>, segment<file_size_t>(offset, n))); }
-//	rcref<reader> read(const segment<file_size_t>& s)				{ return begin_read(rcnew(segment_map<file_size_t>, s)); }
-//	rcref<reader> read(const rcref<segment_map<file_size_t> >& sm)	{ return begin_read(sm); }
+//	rcref<reader> read(file_size_t offset, buffer_size_t n) { return begin_read(rcnew(segment_map<file_size_t>, segment<file_size_t>(offset, n))); }
+//	rcref<reader> read(const segment<file_size_t>& s) { return begin_read(rcnew(segment_map<file_size_t>, s)); }
+//	rcref<reader> read(const rcref<segment_map<file_size_t> >& sm) { return begin_read(sm); }
 //
 //	class size_reader : public waitable
 //	{
@@ -1853,28 +1853,28 @@
 //		size_reader(const size_reader&);
 //		size_reader& operator=(const size_reader&);
 //
-//		event		m_event;
-//		file_size_t	m_size;
+//		event m_event;
+//		file_size_t m_size;
 //
-//	protected:		
+//	protected:
 //		explicit size_reader(file_size_t sz = 0)
-//			:	m_size(sz)
+//			: m_size(sz)
 //		{
 //			self_acquire();
 //		}
 //		
-//		void complete()	{ m_event.set(); self_release(); }
+//		void complete() { m_event.set(); self_release(); }
 //
-//		void set_size(const file_size_t& sz)		{ m_size = sz; }
+//		void set_size(const file_size_t& sz) { m_size = sz; }
 //
 //	public:
-//		const file_size_t& get_size() const		{ return m_size; }
+//		const file_size_t& get_size() const { return m_size; }
 //
 //		typedef delegate_t<void, const rcref<const size_reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile			{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const					{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	virtual rcref<size_reader> get_size() = 0;
@@ -1893,32 +1893,32 @@
 //		writer(const writer&);
 //		writer& operator=(const writer&);
 //
-//		event									m_event;
-//		rcref<segment_buffer_map<file_size_t> >	m_unwrittenBuffers;	// Takes ownership of map passed in.
+//		event m_event;
+//		rcref<segment_buffer_map<file_size_t> > m_unwrittenBuffers; // Takes ownership of map passed in.
 //
-//	protected:		
+//	protected:
 //		writer(const rcref<segment_buffer_map<file_size_t> >& sbm)
-//			:	m_unwrittenBuffers(sbm)
+//			: m_unwrittenBuffers(sbm)
 //		{
 //			self_acquire();
 //		}
 //
-//		void complete()			{ m_event.set(); self_release(); }
+//		void complete() { m_event.set(); self_release(); }
 //
 //	public:
-//		const rcref<segment_buffer_map<file_size_t> >& get_unwritten_buffers() const	{ return m_unwrittenBuffers; }
+//		const rcref<segment_buffer_map<file_size_t> >& get_unwritten_buffers() const { return m_unwrittenBuffers; }
 //
 //		typedef delegate_t<void, const rcref<const writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1 const volatile			{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const				{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1 const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //	
-//	rcref<writer> write(file_size_t offset, void* b, size_t n)				{ return begin_write(rcnew(segment_buffer_map, offset, const_buffer::contain(b, n))); }
-//	rcref<writer> write(file_size_t offset, const const_buffer& b)			{ return begin_write(rcnew(segment_buffer_map, offset, b)); }
-//	rcref<writer> write(file_size_t offset, const composite_buffer& b)			{ return begin_write(rcnew(segment_buffer_map, offset, b)); }
-//	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm)	{ return begin_write(sbm); }
+//	rcref<writer> write(file_size_t offset, void* b, size_t n) { return begin_write(rcnew(segment_buffer_map, offset, const_buffer::contain(b, n))); }
+//	rcref<writer> write(file_size_t offset, const const_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
+//	rcref<writer> write(file_size_t offset, const composite_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
+//	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return begin_write(sbm); }
 //	
 //	class size_writer : public waitable
 //	{
@@ -1926,26 +1926,26 @@
 //		size_writer(const size_writer&);
 //		size_writer& operator=(const size_writer&);
 //
-//		event		m_event;
-//		file_size_t	m_size;
+//		event m_event;
+//		file_size_t m_size;
 //
-//	protected:		
+//	protected:
 //		size_writer(file_size_t sz)
-//			:	m_size(sz)
+//			: m_size(sz)
 //		{
 //			self_acquire();
 //		}
 //
-//		void complete()			{ m_event.set(); self_release(); }
+//		void complete() { m_event.set(); self_release(); }
 //
 //	public:
-//		const file_size_t& get_size() const		{ return m_size; }
+//		const file_size_t& get_size() const { return m_size; }
 //
 //		typedef delegate_t<void, const rcref<const size_writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile								{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const									{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //	
 //	// May fail if the underlying file implementation does not support resizing.
@@ -1974,8 +1974,8 @@
 //class synchronized_file_impl : public object
 //{
 //public:
-//	typedef file_size_t							file_size_t;
-//	typedef synchronized_file_impl<file_size_t>	this_t;
+//	typedef file_size_t file_size_t;
+//	typedef synchronized_file_impl<file_size_t> this_t;
 //
 //private:
 //	synchronized_file_impl(const this_t&) = delete;
@@ -2136,98 +2136,98 @@
 //	class transaction
 //	{
 //	public:
-//		segment_map		m_wasReadMap;
-//		segment_map		m_mayWriteMap;
-//		segment_buffer_map	m_composedWrites;
+//		segment_map m_wasReadMap;
+//		segment_map m_mayWriteMap;
+//		segment_buffer_map m_composedWrites;
 //
-//		reader*				m_composedReaders;
-//		writer*				m_composedWriters;	// all completed at once, when entire write buffer map is complete.
+//		reader* m_composedReaders;
+//		writer* m_composedWriters; // all completed at once, when entire write buffer map is complete.
 //	};
 //
-//	typedef map<transaction_id, transaction*, true, default_comparator, vector_index, ptr>   transaction_map;
-//	typedef map<transaction_id,      reader*, true, default_comparator, vector_index, ptr>  waiting_read_map;
-//	typedef map<transaction_id,      writer*, true, default_comparator, vector_index, ptr> waiting_write_map;
+//	typedef map<transaction_id, transaction*, true, default_comparator, vector_index, ptr> transaction_map;
+//	typedef map<transaction_id, reader*, true, default_comparator, vector_index, ptr> waiting_read_map;
+//	typedef map<transaction_id, writer*, true, default_comparator, vector_index, ptr> waiting_write_map;
 //
 //	class contention_state : public segment_state_map_node<file_size_t>
 //	{
 //	public:
 //		// Use allocator_vectors so entire maps can be duplicated in O(n) time, whenever a contention_state is split.
-//		allocator_vector<sizeof(  transaction_map::node)>	m_wasReadLocksAllocator;
-//		allocator_vector<sizeof(  transaction_map::node)>	m_mayWriteLocksAllocator;
-//		allocator_vector<sizeof( waiting_read_map::node)>	m_waitingReadsAllocator;
-//		allocator_vector<sizeof(waiting_write_map::node)>	m_waitingWritesAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_wasReadLocksAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_mayWriteLocksAllocator;
+//		allocator_vector<sizeof(waiting_read_map::node)> m_waitingReadsAllocator;
+//		allocator_vector<sizeof(waiting_write_map::node)> m_waitingWritesAllocator;
 //
-//		  transaction_map	m_wasReadLocks;
-//		  transaction_map	m_mayWriteLocks;
-//		 waiting_read_map	m_waitingReads;
-//		waiting_write_map	m_waitingWrites;
+//		transaction_map m_wasReadLocks;
+//		transaction_map m_mayWriteLocks;
+//		waiting_read_map m_waitingReads;
+//		waiting_write_map m_waitingWrites;
 //		
-//		bool	m_initialized;
+//		bool m_initialized;
 //
 //		contention_state()
-//			:	m_initialized(false)
+//			: m_initialized(false)
 //		{ }
 //
 //		contention_state(const contention_state& st, const file_size_t& i)
-//			:	segment_state_map_node<file_size_t>(st, i),
-//				m_mayWriteLocksAllocator(st.m_mayWriteLocksAllocator),
-//				m_waitingWritesAllocator(st.m_waitingWritesAllocator),
-//				m_wasReadLocksAllocator(st.m_wasReadLocksAllocator),
-//				m_waitingReadsAllocator(st.m_waitingReadsAllocator),
-//				m_mayWriteLocks(st.m_mayWriteLocks, m_mayWriteLocksAllocator),
-//				m_waitingWrites(st.m_waitingWrites, m_waitingWritesAllocator),
-//				m_wasReadLocks(st.m_wasReadLocks, m_wasReadLocksAllocator),
-//				m_waitingReads(st.m_waitingReads, m_waitingReadsAllocator),
-//				m_initialized(true)
+//			: segment_state_map_node<file_size_t>(st, i),
+//			m_mayWriteLocksAllocator(st.m_mayWriteLocksAllocator),
+//			m_waitingWritesAllocator(st.m_waitingWritesAllocator),
+//			m_wasReadLocksAllocator(st.m_wasReadLocksAllocator),
+//			m_waitingReadsAllocator(st.m_waitingReadsAllocator),
+//			m_mayWriteLocks(st.m_mayWriteLocks, m_mayWriteLocksAllocator),
+//			m_waitingWrites(st.m_waitingWrites, m_waitingWritesAllocator),
+//			m_wasReadLocks(st.m_wasReadLocks, m_wasReadLocksAllocator),
+//			m_waitingReads(st.m_waitingReads, m_waitingReadsAllocator),
+//			m_initialized(true)
 //		{ }
 //	};
 //
 //	class concurrency_state : public segment_state_map_node<file_size_t>
 //	{
 //	public:
-//		const_buffer				m_buffer;	// Either of write operation still in progress, or cached.
+//		const_buffer m_buffer; // Either of write operation still in progress, or cached.
 //
 //		// All of the segments in single inner-read are linked together in a thread.
 //		// This makes it possible for the completed read to iterate directly through
 //		// all concurrency_state's that need to receive read data, without incurring any
 //		// additional tree lookups.  As node is split, the link is divide, but both
 //		// are kept in the list.
-//		ptr<concurrency_state>		m_nextInReadThread;
-//		ptr<concurrency_state>& get_next_in_read_thread()	{ return m_nextInReadThread; }
+//		ptr<concurrency_state> m_nextInReadThread;
+//		ptr<concurrency_state>& get_next_in_read_thread() { return m_nextInReadThread; }
 //
 //		// All of the segments in single inner-write are linked together in a thread.
 //		// This makes it possible for the completed write to iterate directly through
 //		// all concurrency_state's that need to receive read data, without incurring any
 //		// additional tree lookups.  As node is split, the link is divide, but both
 //		// are kept in the list.
-//		ptr<concurrency_state>		m_nextInWriteThread;
-//		ptr<concurrency_state>& get_next_in_write_thread()	{ return m_nextInWriteThread; }
+//		ptr<concurrency_state> m_nextInWriteThread;
+//		ptr<concurrency_state>& get_next_in_write_thread() { return m_nextInWriteThread; }
 //
-//		ptr<waiting_read_segment>	m_firstWaitingReadSegment;
+//		ptr<waiting_read_segment> m_firstWaitingReadSegment;
 //
 //		// When a write is deferred due to a read or write already in progress, a
 //		// waiting_write_segment is added to the m_firstWaitingWriteSegment.  Each
 //		// new write updates the buffer to be written.  When the original operation
 //		// is complete, these waiting_write_segment's are moved into m_firstWaitingIssuedWriteSegment
 //		// for the duration of the write operation associated with them.
-//		ptr<waiting_write_segment>	m_firstWaitingWriteSegment;
-//		ptr<waiting_write_segment>	m_firstWaitingIssuedWriteSegment;
+//		ptr<waiting_write_segment> m_firstWaitingWriteSegment;
+//		ptr<waiting_write_segment> m_firstWaitingIssuedWriteSegment;
 //
-//		bool						m_initialized;	// If true, a read or write is in progress.
+//		bool m_initialized; // If true, a read or write is in progress.
 //
 //		concurrency_state()
-//			:	m_initialized(false)
+//			: m_initialized(false)
 //		{ }
 //
 //		concurrency_state(const concurrency_state& st, const file_size_t& i)
-//			:	segment_state_map_node<file_size_t>(st, i),
-//				m_buffer(st.m_buffer.split_off_after((size_t)i)),
-//				m_nextInReadThread(st.m_nextInReadThread),
-//				m_nextInWriteThread(st.m_nextInWriteThread),
-//				m_firstWaitingReadSegment(st.m_firstWaitingReadSegment),
-//				m_firstWaitingWriteSegment(st.m_firstWaitingWriteSegment),
-//				m_firstWaitingIssuedWriteSegment(st.m_firstWaitingIssuedWriteSegment),
-//				m_initialized(true)
+//			: segment_state_map_node<file_size_t>(st, i),
+//			m_buffer(st.m_buffer.split_off_after((size_t)i)),
+//			m_nextInReadThread(st.m_nextInReadThread),
+//			m_nextInWriteThread(st.m_nextInWriteThread),
+//			m_firstWaitingReadSegment(st.m_firstWaitingReadSegment),
+//			m_firstWaitingWriteSegment(st.m_firstWaitingWriteSegment),
+//			m_firstWaitingIssuedWriteSegment(st.m_firstWaitingIssuedWriteSegment),
+//			m_initialized(true)
 //		{
 //			if (!!m_firstWaitingReadSegment)
 //				++(m_firstWaitingReadSegment->m_refCount);
@@ -2240,10 +2240,10 @@
 //		}
 //	};
 //
-//	segment_state_map< contention_state, file_size_t>	m_contentionMap;
-//	segment_state_map<concurrency_state, file_size_t>	m_concurrencyMap;
+//	segment_state_map< contention_state, file_size_t> m_contentionMap;
+//	segment_state_map<concurrency_state, file_size_t> m_concurrencyMap;
 //
-//	file_size_t						m_eof;
+//	file_size_t m_eof;
 //
 //	void initialize_locking_transaction(transaction& t, const file_mask& mayWriteMask)
 //	{
@@ -2277,15 +2277,15 @@
 ///*
 //enum transaction_submit_type
 //{
-//	auto_submit_transaction		= 0,
-//	manual_submit_transaction	= 1
+//	auto_submit_transaction = 0,
+//	manual_submit_transaction = 1
 //};
 //
 //enum file_transaction_type
 //{
-//	composed_transaction	= 0,
-//	locking_transaction		= 1,
-//	failable_transaction	= 2
+//	composed_transaction = 0,
+//	locking_transaction = 1,
+//	failable_transaction = 2
 //};
 //
 //
@@ -2295,8 +2295,8 @@
 //class synchronized_file_impl : public object
 //{
 //protected:
-//	typedef file_size_t							file_size_t;
-//	typedef synchronized_file_impl<file_size_t>	this_t;
+//	typedef file_size_t file_size_t;
+//	typedef synchronized_file_impl<file_size_t> this_t;
 //
 //	class transaction_internals;
 //	class reader;
@@ -2323,14 +2323,14 @@
 //	class waiting_read_segment
 //	{
 //	public:
-//		reader&	m_reader;
-//		size_t	m_refCount;
+//		reader& m_reader;
+//		size_t m_refCount;
 //
-//		ptr<waiting_read_segment>	m_nextWaitingReadSegment;
+//		ptr<waiting_read_segment> m_nextWaitingReadSegment;
 //
 //		waiting_read_segment(reader& r)
-//			:	m_reader(r),
-//				m_refCount(0)
+//			: m_reader(r),
+//			m_refCount(0)
 //		{ }
 //	};
 //
@@ -2350,66 +2350,66 @@
 //	class waiting_write_segment
 //	{
 //	public:
-//		writer&	m_writer;
-//		size_t	m_refCount;
+//		writer& m_writer;
+//		size_t m_refCount;
 //
-//		ptr<waiting_write_segment>	m_nextWaitingWriteSegment;
+//		ptr<waiting_write_segment> m_nextWaitingWriteSegment;
 //
 //		waiting_write_segment(writer& w)
-//			:	m_writer(w),
-//				m_refCount(0)
+//			: m_writer(w),
+//			m_refCount(0)
 //		{ }
 //	};
 //	
 //	class concurrency_state : public segment_state_map_node<file_size_t>
 //	{
 //	public:
-////		segment<file_size_t>		m_segment;
-//		const_buffer				m_buffer;	// Either of write operation still in progress, or cached.
+////		segment<file_size_t> m_segment;
+//		const_buffer m_buffer; // Either of write operation still in progress, or cached.
 //
-//		ptr<waiting_read_segment>	m_firstWaitingReadSegment;
+//		ptr<waiting_read_segment> m_firstWaitingReadSegment;
 //
 //		// When a write is deferred due to a read or write already in progress, a
 //		// waiting_write_segment is added to the m_firstWaitingWriteSegment.  Each
 //		// new write updates the buffer to be written.  When the original operation
 //		// is complete, these waiting_write_segment's are moved into m_firstWaitingIssuedWriteSegment
 //		// for the duration of the write operation associated with them.
-//		ptr<waiting_write_segment>	m_firstWaitingWriteSegment;
-//		ptr<waiting_write_segment>	m_firstWaitingIssuedWriteSegment;
+//		ptr<waiting_write_segment> m_firstWaitingWriteSegment;
+//		ptr<waiting_write_segment> m_firstWaitingIssuedWriteSegment;
 //
 //		// All of the segments in single inner-read are linked together in a thread.
 //		// This makes it possible for the completed read to iterate directly through
 //		// all concurrency_state's that need to receive read data, without incurring any
 //		// additional tree lookups.  As node is split, the link is divide, but both
 //		// are kept in the list.
-//		ptr<concurrency_state>		m_nextInReadThread;
-//		ptr<concurrency_state>& get_next_in_read_thread()	{ return m_nextInReadThread; }
+//		ptr<concurrency_state> m_nextInReadThread;
+//		ptr<concurrency_state>& get_next_in_read_thread() { return m_nextInReadThread; }
 //
 //		// All of the segments in single inner-write are linked together in a thread.
 //		// This makes it possible for the completed write to iterate directly through
 //		// all concurrency_state's that need to receive read data, without incurring any
 //		// additional tree lookups.  As node is split, the link is divide, but both
 //		// are kept in the list.
-//		ptr<concurrency_state>		m_nextInWriteThread;
-//		ptr<concurrency_state>& get_next_in_write_thread()	{ return m_nextInWriteThread; }
+//		ptr<concurrency_state> m_nextInWriteThread;
+//		ptr<concurrency_state>& get_next_in_write_thread() { return m_nextInWriteThread; }
 //
-//		bool						m_initialized;	// If true, a read or write is in progress.
-//		rcptr<reader>				m_outerReader;	// Set if this is the first node associated with an inner reader
-//		rcptr<writer>				m_outerWriter;	// Set if this is the first node associated with an inner writer
+//		bool m_initialized; // If true, a read or write is in progress.
+//		rcptr<reader> m_outerReader; // Set if this is the first node associated with an inner reader
+//		rcptr<writer> m_outerWriter; // Set if this is the first node associated with an inner writer
 //
 //		concurrency_state()
-//			:	m_initialized(false)
+//			: m_initialized(false)
 //		{ }
 //
 //		concurrency_state(const concurrency_state& st, const file_size_t& i)
-//			:	segment_state_map_node<file_size_t>(st, i),
-//				m_buffer(st.m_buffer.split_off_after((size_t)i)),
-//				m_firstWaitingReadSegment(st.m_firstWaitingReadSegment),
-//				m_firstWaitingWriteSegment(st.m_firstWaitingWriteSegment),
-//				m_firstWaitingIssuedWriteSegment(st.m_firstWaitingIssuedWriteSegment),
-//				m_nextInReadThread(st.m_nextInReadThread),
-//				m_nextInWriteThread(st.m_nextInWriteThread),
-//				m_initialized(true)
+//			: segment_state_map_node<file_size_t>(st, i),
+//			m_buffer(st.m_buffer.split_off_after((size_t)i)),
+//			m_firstWaitingReadSegment(st.m_firstWaitingReadSegment),
+//			m_firstWaitingWriteSegment(st.m_firstWaitingWriteSegment),
+//			m_firstWaitingIssuedWriteSegment(st.m_firstWaitingIssuedWriteSegment),
+//			m_nextInReadThread(st.m_nextInReadThread),
+//			m_nextInWriteThread(st.m_nextInWriteThread),
+//			m_initialized(true)
 //		{
 //			if (!!m_firstWaitingReadSegment)
 //				++(m_firstWaitingReadSegment->m_refCount);
@@ -2444,17 +2444,17 @@
 //
 //		typedef map<transaction_id, locking_transaction, true, default_comparator, vector_index, ptr> transaction_map;
 //
-//		allocator_vector<sizeof(transaction_map::node)>	m_waitingWritesAllocator;
-//		allocator_vector<sizeof(transaction_map::node)>	m_waitingReadsAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_waitingWritesAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_waitingReadsAllocator;
 //
-//		allocator_vector<sizeof(transaction_map::node)>	m_readingTransactionsAllocator;
-//		allocator_vector<sizeof(transaction_map::node)>	m_activeTransactionsAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_readingTransactionsAllocator;
+//		allocator_vector<sizeof(transaction_map::node)> m_activeTransactionsAllocator;
 //
-//		transaction_map	m_waitingWrites;
-//		transaction_map	m_waitingReads;
+//		transaction_map m_waitingWrites;
+//		transaction_map m_waitingReads;
 //
 //		transaction_map m_readingTransactions;
-//		transaction_map	m_activeTransactions;
+//		transaction_map m_activeTransactions;
 //
 //		// 
 //
@@ -2462,13 +2462,13 @@
 //		// area, from starting.  Note that write blocks cascade, such that locking_transactions are unblocked in the order
 //		// they were queue, if overlapping.  For example:
 //		//
-//		//	1. Write A is requested at positions 0-49, and issued.
-//		//	2. Write B is requested at positions 50-99, and issued.
+//		//  1. Write A is requested at positions 0-49, and issued.
+//		//  2. Write B is requested at positions 50-99, and issued.
 //		//  3. Write C is requested at positions 0-99, which causes it to be blocked on A and B.
 //		//  4. Write D is requested at positions 0-49, which cases it to be blocked on C.
 //		//  5. Write A completes, releasing range 0-49 to write C, which is still blocked.
-//		//	6. Write B completes, releasing range 50-99 to write C, which is then unblocked.
-//		//	7. Write C completes, releasing range 0-49 to write D, which is then unblocked.
+//		//  6. Write B completes, releasing range 50-99 to write C, which is then unblocked.
+//		//  7. Write C completes, releasing range 0-49 to write D, which is then unblocked.
 //		//
 //		// Note it would have been possible to issue write D between steps 5 and 6, but
 //		// it was delayed until step 7.  This is to prevent the potential starvation of write C.
@@ -2481,20 +2481,20 @@
 //		// a map of transaction_ids, of transactions waiting to read from this segment.
 //
 //
-//		ptr<contention_state>			m_nextInSameTransaction;
-//		ptr<contention_state>			m_prevInSameTransaction;
-//		bool							m_initialized;
+//		ptr<contention_state> m_nextInSameTransaction;
+//		ptr<contention_state> m_prevInSameTransaction;
+//		bool m_initialized;
 //
 //		contention_state()
-//			:	m_initialized(false)
+//			: m_initialized(false)
 //		{ }
 //
 //		contention_state(const contention_state& st, const file_size_t& i)
-//			:	segment_state_map_node<file_size_t>(st, i),
-//				m_prevInSameTransaction(&st)
-//				m_nextInSameTransaction(st.m_nextInSameTransaction),
-//				m_waitingTransactions(st.m_waitingTransactions),
-//				m_initialized(true)
+//			: segment_state_map_node<file_size_t>(st, i),
+//			m_prevInSameTransaction(&st)
+//			m_nextInSameTransaction(st.m_nextInSameTransaction),
+//			m_waitingTransactions(st.m_waitingTransactions),
+//			m_initialized(true)
 //		{
 //			if (!!m_nextInSameTransaction)
 //				m_nextInSameTransaction->m_prevInSameTransaction = this;
@@ -2506,35 +2506,35 @@
 //	class writer : public file<write_access, file_size_t>::writer
 //	{
 //	public:
-//		size_t							m_numWaitingWrites;
+//		size_t m_numWaitingWrites;
 //
 //		// If 'waiting write segments' fail to be properly written before the primary write
 //		// operation is completed, they are kept in m_failedWriteSegments until the primary
 //		// write has completed.
-//		ptr<waiting_write_segment>		m_failedWriteSegments;
+//		ptr<waiting_write_segment> m_failedWriteSegments;
 //
-//		ptr<concurrency_state>			m_firstInWriteThread;	// Nodes are split from the end, so this always remains valid.
+//		ptr<concurrency_state> m_firstInWriteThread; // Nodes are split from the end, so this always remains valid.
 //
-//		rcptr<transaction_internals>	m_transaction;
+//		rcptr<transaction_internals> m_transaction;
 //
-//		rcptr<writer>					m_nextWriter;
+//		rcptr<writer> m_nextWriter;
 //
 //		writer(const rcref<segment_buffer_map<file_size_t> >& sbm, const rcptr<transaction_internals>& t)
-//			:	file<write_access, file_size_t>::writer(sbm),
-//				m_transaction(t),
-//				m_numWaitingWrites(0)
+//			: file<write_access, file_size_t>::writer(sbm),
+//			m_transaction(t),
+//			m_numWaitingWrites(0)
 //		{ }
 //
-//		void complete()			{ file<write_access, file_size_t>::writer::complete(); }
+//		void complete() { file<write_access, file_size_t>::writer::complete(); }
 //
 //		// completion routine for inner writer.  This node is the first node in the chain associated with this writer.
 //		void done_inner_write(const rcref<const typename file<write_access, file_size_t>::writer>& w)
 //		{
 //			typedef delegate_t<void, const rcref<const typename file<write_access, file_size_t>::writer>&> file_writer_arg_delegate_t;
 //			m_transaction->m_synchronizedFileImpl->m_serialQueue->submit(delegate(file_writer_arg_delegate_t(&writer::done_inner_write2, this_rcref), w));
-//		}		
+//		}
 //		
-//		void done_inner_write2(const rcref<const typename file<write_access, file_size_t>::writer>& w)	// serialized w/ synchronized_file
+//		void done_inner_write2(const rcref<const typename file<write_access, file_size_t>::writer>& w) // serialized w/ synchronized_file
 //		{
 //			rcptr<segment_buffer_map<file_size_t> > accumulatedWriteBuffers;
 //			ptr<concurrency_state> firstNodeInInnerWrite;
@@ -2556,7 +2556,7 @@
 //			// The unwrittenBuffers represent failed writes
 //			rcref<segment_buffer_map<file_size_t> > unwrittenBuffers = w->get_unwritten_buffers();
 //			
-//			COGS_ASSERT(!unwrittenBuffers);	// TBD: What happens when file writes fail????!
+//			COGS_ASSERT(!unwrittenBuffers); // TBD: What happens when file writes fail????!
 //
 //			segment_buffer_map<file_size_t>::iterator itor = unwrittenBuffers->get_first();
 //			ptr<concurrency_state> curNode = m_firstInWriteThread;
@@ -2572,13 +2572,13 @@
 //		}
 //	};
 //	
-////	void done_secondary_write(const rcref<const typename file<write_access, file_size_t>::writer>& w)	// serialized w/ synchronized_file
+////	void done_secondary_write(const rcref<const typename file<write_access, file_size_t>::writer>& w) // serialized w/ synchronized_file
 ////	{
 ////		typedef delegate_t<void, const rcref<const typename file<read_access, file_size_t>::reader>&> file_reader_arg_delegate_t;
 ////		m_serialQueue->submit(delegate(file_reader_arg_delegate_t(&synchronized_file_impl<file_size_t>::done_secondary_write2, this_rcref), w));
 ////	}
 ////
-////	void done_secondary_write2(const rcref<const typename file<write_access, file_size_t>::writer>& w)	// serialized w/ synchronized_file
+////	void done_secondary_write2(const rcref<const typename file<write_access, file_size_t>::writer>& w) // serialized w/ synchronized_file
 ////	{
 ////		// TBD
 ////	}
@@ -2606,8 +2606,8 @@
 //
 //		// (Phase 4) When the inner read is complete, all concurrency_state's associated with the 
 //		// ranges requested are traversed (using a linked-list that threads them together).
-//		ptr<concurrency_state>			m_firstInReadThread;	// Nodes are split from the end, so this always remains valid.
-//		size_t							m_numWaitingReads;
+//		ptr<concurrency_state> m_firstInReadThread; // Nodes are split from the end, so this always remains valid.
+//		size_t m_numWaitingReads;
 //
 //		// These threaded segments will be a superset of the segments described in m_unreadSegments
 //		// and m_readSegmentBuffers, so those can also be iterated through instead of inccuring any
@@ -2615,24 +2615,24 @@
 //		// In case some of the other readers we were waiting on did not complete successfully, we
 //		// copy the left-over contents from the 'waiting segments' back into the 'unread segments'.
 //		
-//		rcptr<transaction_internals>	m_transaction;
+//		rcptr<transaction_internals> m_transaction;
 //
-//		rcptr<reader>					m_nextReader;
+//		rcptr<reader> m_nextReader;
 //
 //		reader(const rcref<segment_map<file_size_t> >& sm, const rcptr<transaction_internals>& t)
-//			:	file<read_access, file_size_t>::reader(sm),
-//				m_transaction(t),
-//				m_numWaitingReads(0)
+//			: file<read_access, file_size_t>::reader(sm),
+//			m_transaction(t),
+//			m_numWaitingReads(0)
 //		{ }
 //
-//		void complete()		{ file<read_access, file_size_t>::reader::complete(); }
+//		void complete() { file<read_access, file_size_t>::reader::complete(); }
 //
 //		// completion routine for inner reader.  This node is the first node in the chain associated with this reader.
 //		void done_inner_read(const rcref<const typename file<read_access, file_size_t>::reader>& r)
 //		{
 //			typedef delegate_t<void, const rcref<const typename file<read_access, file_size_t>::reader>&> file_reader_arg_delegate_t;
 //			m_transaction->m_synchronizedFileImpl->m_serialQueue->submit(delegate(file_reader_arg_delegate_t(&reader::done_inner_read2, this_rcref), r));
-//		}		
+//		}
 //
 //		concurrency_state* done_read_node(concurrency_state& curNode, segment_buffer_map<file_size_t>& accumulatedReadSegmentBuffers, segment_map<file_size_t>& accumulatedUnreadSegments)
 //		{
@@ -2654,7 +2654,7 @@
 //					else
 //					{
 //						if (!--r.m_numWaitingReads)
-//							r.complete();	// Might have been the last thing that reader was waiting for.
+//							r.complete(); // Might have been the last thing that reader was waiting for.
 //						default_allocator::destruct_deallocate_type(waitingReadSegment);
 //					}
 //				}
@@ -2666,13 +2666,13 @@
 //			concurrency_state* nextNode = curNode.m_nextInReadThread;
 //
 //			// Figure out if node needs to be cleared out or not
-//			if (!curNode.m_firstWaitingIssuedWriteSegment)	// No reads, no writes, means not needed.  TBD: Linger if caching?
+//			if (!curNode.m_firstWaitingIssuedWriteSegment) // No reads, no writes, means not needed.  TBD: Linger if caching?
 //				m_transaction->m_synchronizedFileImpl->m_concurrencyMap.remove(curNode);
 //
 //			return nextNode;
 //		}
 //
-//		void done_inner_read2(const rcref<const typename file<read_access, file_size_t>::reader>& r)	// serialized w/ synchronized_file
+//		void done_inner_read2(const rcref<const typename file<read_access, file_size_t>::reader>& r) // serialized w/ synchronized_file
 //		{
 //			rcptr<segment_buffer_map<file_size_t> > accumulatedWriteBuffers;
 //			ptr<concurrency_state> firstNodeInInnerWrite;
@@ -2715,7 +2715,7 @@
 //					accumulatedWriteBuffers->add(curNode->m_segment.get_start(), curNode->m_buffer);
 //				}
 //
-//				if (!curNode->m_firstWaitingReadSegment)	// If no waiting segments, no need to split out portions
+//				if (!curNode->m_firstWaitingReadSegment) // If no waiting segments, no need to split out portions
 //				{
 //					curNode = done_read_node(*curNode, accumulatedReadSegmentBuffers, accumulatedUnreadSegments);
 //					if (!!curNode)
@@ -2723,7 +2723,7 @@
 //					continue;
 //				}
 //				file_size_t nodeEnd = curNode->get_end();
-//				if (!itor || (itor->get_start() > nodeEnd))	// whole node is missing.
+//				if (!itor || (itor->get_start() > nodeEnd)) // whole node is missing.
 //				{
 //					accumulatedUnreadSegments.add(nodeStart, nodeEnd - nodeStart);
 //					curNode = done_read_node(*curNode, accumulatedReadSegmentBuffers, accumulatedUnreadSegments);
@@ -2793,37 +2793,37 @@
 //	class size_reader : public file<read_access, file_size_t>::size_reader
 //	{
 //	public:
-//		rcptr<transaction_internals>	m_transaction;
+//		rcptr<transaction_internals> m_transaction;
 //
 //		size_reader(const rcptr<transaction_internals>& t)
-//			:	m_transaction(t)
+//			: m_transaction(t)
 //		{ }
 //
-//		void set_size(const file_size_t& sz)	{ file<read_access, file_size_t>::size_reader::set_size(sz); }
-//		void complete()							{ file<read_access, file_size_t>::size_reader::complete(); }
+//		void set_size(const file_size_t& sz) { file<read_access, file_size_t>::size_reader::set_size(sz); }
+//		void complete() { file<read_access, file_size_t>::size_reader::complete(); }
 //	};
 //	
 //	class size_writer : public file<write_access, file_size_t>::size_writer
 //	{
 //	public:
-//		rcptr<transaction_internals>	m_transaction;
+//		rcptr<transaction_internals> m_transaction;
 //
 //		size_writer(const file_size_t& sz, const rcptr<transaction_internals>& t)
-//			:	file<write_access, file_size_t>::size_writer(sz),
-//				m_transaction(t)
+//			: file<write_access, file_size_t>::size_writer(sz),
+//			m_transaction(t)
 //		{ }
 //
-//		void complete()	{ file<write_access, file_size_t>::size_writer::complete(); }
+//		void complete() { file<write_access, file_size_t>::size_writer::complete(); }
 //	};
 //
-////	virtual rcref<size_reader> get_size()	// TEMP!
+////	virtual rcref<size_reader> get_size() // TEMP!
 ////	{
 ////		rcref<size_reader> result = rcnew(size_reader, m_eof);
 ////		result->complete();
 ////		return result;
 ////	}
 ////
-////	virtual rcref<size_writer> set_size(const file_size_t& sz)		// TEMP!
+////	virtual rcref<size_writer> set_size(const file_size_t& sz) // TEMP!
 ////	{
 ////		m_eof = sz;
 ////		rcref<size_writer> result = rcnew(size_writer, sz);
@@ -2831,39 +2831,39 @@
 ////		return result;
 ////	}
 //
-//	segment_state_map<concurrency_state, file_size_t>	m_concurrencyMap;
-//	segment_state_map<contention_state, file_size_t>	m_contentionMap;
+//	segment_state_map<concurrency_state, file_size_t> m_concurrencyMap;
+//	segment_state_map<contention_state, file_size_t> m_contentionMap;
 //
-//	file_size_t						m_eof;
+//	file_size_t m_eof;
 //
 //	//	If any of these segments are written to before the failable_transaction completes, it fails.
-//	rcptr<transaction_internals>	m_failableTransactions;
+//	rcptr<transaction_internals> m_failableTransactions;
 //
 //	// If a queued locking transaction attempts to read, that read is deferred until that transaction
 //	// becomes the current one.
 //	// Only the current (first) locking transaction may commit reads.
-//	rcptr<transaction_internals>	m_firstDeferredLockingTransaction;
-//	rcptr<transaction_internals>	m_lastDeferredLockingTransaction;
+//	rcptr<transaction_internals> m_firstDeferredLockingTransaction;
+//	rcptr<transaction_internals> m_lastDeferredLockingTransaction;
 //
 //	// Synchronizes reads, and queueing of locking transactions.
-////	rcref<delegate_chain>				m_lockingReadDeferQueue;
+////	rcref<delegate_chain> m_lockingReadDeferQueue;
 //
 //	// Any submitted composed transaction containg writes overlapping the lock-mask, is queued.
-//	rcptr<transaction_internals>	m_firstDeferredComposedTransaction;
-//	rcptr<transaction_internals>	m_lastDeferredComposedTransaction;
+//	rcptr<transaction_internals> m_firstDeferredComposedTransaction;
+//	rcptr<transaction_internals> m_lastDeferredComposedTransaction;
 //
 //	// Any submitted failable-transaction contain writes overlapping the lock-mask, is queued.
-//	rcptr<transaction_internals>	m_firstDeferredFailableTransaction;
-//	rcptr<transaction_internals>	m_lastDeferredFailableTransaction;
+//	rcptr<transaction_internals> m_firstDeferredFailableTransaction;
+//	rcptr<transaction_internals> m_lastDeferredFailableTransaction;
 //
-//	rcref<delegate_chain>	m_serialQueue;
+//	rcref<delegate_chain> m_serialQueue;
 //
 //	typedef delegate_t<void, const rcref<transaction_internals>&> submit_delegate_t;
 //
 //	class transaction_internals : public dlink_t<transaction_internals, rcptr>, public object
 //	{
 //	public:
-//		segment_buffer_map<file_size_t>				m_writeMap;		// All contents writen.  Serialized in transaction_internals.
+//		segment_buffer_map<file_size_t> m_writeMap; // All contents writen.  Serialized in transaction_internals.
 //
 //		// read-map
 //		//
@@ -2871,22 +2871,22 @@
 //		//	Any transaction that contains writes to a segment that has been read by a locking_transaction,
 //		//	will be blocked until the locking_transaction is complete.  If a transaction contains writes
 //		//  to a segment read by a failable_transaction, the failable_transaction is aborted.
-//		segment_map<file_size_t>					m_readMap;		// Issued read map.  Serialized in synchronized_file_impl.
-//		bool										m_wasEofRead;	// Whether or not transaction has read the current EOF position.
+//		segment_map<file_size_t> m_readMap; // Issued read map.  Serialized in synchronized_file_impl.
+//		bool m_wasEofRead; // Whether or not transaction has read the current EOF position.
 //
-//		rcptr<reader>								m_firstReader;	// list of deferred high level readers
-//		rcptr<reader>								m_lastReader;
+//		rcptr<reader> m_firstReader; // list of deferred high level readers
+//		rcptr<reader> m_lastReader;
 //
-//		rcptr<writer>								m_firstWriter;	// list of deferred high level writers
-//		rcptr<writer>								m_lastWriter;
+//		rcptr<writer> m_firstWriter; // list of deferred high level writers
+//		rcptr<writer> m_lastWriter;
 //
-//		rcptr<size_reader>							m_firstSizeReader;	// list of deferred high level size readers
-//		rcptr<size_reader>							m_lastSizeReader;	
+//		rcptr<size_reader> m_firstSizeReader; // list of deferred high level size readers
+//		rcptr<size_reader> m_lastSizeReader;
 //
-//		rcptr<size_writer>							m_firstSizeWriter;	// list of deferred high level size writers
-//		rcptr<size_writer>							m_lastSizeWriter;
+//		rcptr<size_writer> m_firstSizeWriter; // list of deferred high level size writers
+//		rcptr<size_writer> m_lastSizeWriter;
 //
-//		submit_delegate_t							m_submitDelegate;
+//		submit_delegate_t m_submitDelegate;
 //
 //		rcref<synchronized_file_impl<file_size_t> >	m_synchronizedFileImpl;
 //
@@ -2895,28 +2895,28 @@
 //		// A transaction (transaction_internals) extends the scope of the high level reader and/or writer.
 //		// An operation issued on a transaction will extend the scope of the transaction.
 //
-//		rcptr<synchronized_file<read_access> >		m_syncReadable;	// Just here to extend scope if readable this transaction was created for.
-//		rcptr<synchronized_file<write_access> >		m_syncWritable;	// Just here to extend scope if writable this transaction was created for.
+//		rcptr<synchronized_file<read_access> > m_syncReadable; // Just here to extend scope if readable this transaction was created for.
+//		rcptr<synchronized_file<write_access> > m_syncWritable; // Just here to extend scope if writable this transaction was created for.
 //
-//		rcptr<file<read_access> >					m_rawReadable;	// Coped from the readable this transaction was created for.
-//		rcptr<file<write_access> >					m_rawWritable	// Coped from the writable this transaction was created for.
+//		rcptr<file<read_access> > m_rawReadable; // Coped from the readable this transaction was created for.
+//		rcptr<file<write_access> > m_rawWritable; // Coped from the writable this transaction was created for.
 //
-//		file_mask<file_size_t>						m_writeMask;	// If locking_transaction, identifies target write mask.
+//		file_mask<file_size_t> m_writeMask; // If locking_transaction, identifies target write mask.
 //
 //		enum state
 //		{
-//			pending							= 0x00,	// 0000
-//			submit_initiated_bit			= 0x01, // 0001
-//			submit_issued_bit				= 0x02, // 0010
+//			pending              = 0x00,          // 0000
+//			submit_initiated_bit = 0x01,          // 0001
+//			submit_issued_bit    = 0x02,          // 0010
 //
-//			abort_initiated_bit				= 0x04,	// 0100
-//			abort_issued_bit				= 0x08,	// 1000
+//			abort_initiated_bit  = 0x04,          // 0100
+//			abort_issued_bit     = 0x08,          // 1000
 //
-//			abort_or_submit_initiated_mask	= 0x05,	// 0101
+//			abort_or_submit_initiated_mask = 0x05 // 0101
 //		};
 //
-//		volatile number<int_type, void, thread_safe>	m_state;
-//		bool m_submitCompleted;	// only accessed while serialized in submit delegates, so not voltaile.
+//		volatile number<int_type, void, thread_safe> m_state;
+//		bool m_submitCompleted; // only accessed while serialized in submit delegates, so not voltaile.
 //
 //		// Serializes the following operations:
 //		//	Aborting	- draining the reader and writer lists
@@ -2926,68 +2926,68 @@
 //		rcref<delegate_chain>						m_serialQueue;
 //
 //		transaction_internals(const submit_delegate_t& submitDelegate, const rcref<synchronized_file<read_access, file_size_t> >& syncReable, const rcref<file<read_access> >& rawReader, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitDelegate(submitDelegate),
-//				m_state(0),
-//				m_serialQueue(delegate_chain::create()),
-//				m_synchronizedFileImpl(impl),
-//				m_rawReader(rawReader),
-//				m_syncReadable(syncReadable),
-//				m_submitCompleted(false)
+//			: m_submitDelegate(submitDelegate),
+//			m_state(0),
+//			m_serialQueue(delegate_chain::create()),
+//			m_synchronizedFileImpl(impl),
+//			m_rawReader(rawReader),
+//			m_syncReadable(syncReadable),
+//			m_submitCompleted(false)
 //		{ }
 //
 //		transaction_internals(const submit_delegate_t& submitDelegate, const rcref<synchronized_file<write_access, file_size_t> >& syncWritable, const rcref<file<write_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitDelegate(submitDelegate),
-//				m_state(0),
-//				m_serialQueue(delegate_chain::create()),
-//				m_syncWritable(syncWritable),
-//				m_rawWritable(rawWritable),
-//				m_synchronizedFileImpl(impl),
-//				m_submitCompleted(false)
+//			: m_submitDelegate(submitDelegate),
+//			m_state(0),
+//			m_serialQueue(delegate_chain::create()),
+//			m_syncWritable(syncWritable),
+//			m_rawWritable(rawWritable),
+//			m_synchronizedFileImpl(impl),
+//			m_submitCompleted(false)
 //		{ }
 //
 //		transaction_internals(const submit_delegate_t& submitDelegate, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_write_access> >& rawFile, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitDelegate(submitDelegate),
-//				m_state(0),
-//				m_serialQueue(delegate_chain::create()),
-//				m_syncReadable(syncFile),
-//				m_syncWritable(syncFile),
-//				m_rawReadable(rawFile),
-//				m_rawWritable(rawFile),
-//				m_synchronizedFileImpl(impl),
-//				m_submitCompleted(false)
+//			: m_submitDelegate(submitDelegate),
+//			m_state(0),
+//			m_serialQueue(delegate_chain::create()),
+//			m_syncReadable(syncFile),
+//			m_syncWritable(syncFile),
+//			m_rawReadable(rawFile),
+//			m_rawWritable(rawFile),
+//			m_synchronizedFileImpl(impl),
+//			m_submitCompleted(false)
 //		{ }
 //
 //		transaction_internals(const submit_delegate_t& submitDelegate, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_access> >& rawReadable, const rcref<file<write_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitDelegate(submitDelegate),
-//				m_state(0),
-//				m_serialQueue(delegate_chain::create()),
-//				m_syncReadable(syncFile),
-//				m_syncWritable(syncFile),
-//				m_rawReadable(rawReadable),
-//				m_rawWritable(rawWritable),
-//				m_synchronizedFileImpl(impl),
-//				m_submitCompleted(false)
+//			: m_submitDelegate(submitDelegate),
+//			m_state(0),
+//			m_serialQueue(delegate_chain::create()),
+//			m_syncReadable(syncFile),
+//			m_syncWritable(syncFile),
+//			m_rawReadable(rawReadable),
+//			m_rawWritable(rawWritable),
+//			m_synchronizedFileImpl(impl),
+//			m_submitCompleted(false)
 //		{ }
 //
-//		void set_write_mask(const file_mask<file_size_t>& fm)	{ m_writeMask = fm; }
+//		void set_write_mask(const file_mask<file_size_t>& fm) { m_writeMask = fm; }
 //
-//		bool was_submit_initiated() const			{ return (m_state.get_int<int>() & submit_initiated_bit) != 0; }
-//		bool was_submit_issued() const				{ return (m_state.get_int<int>() & submit_issued_bit) != 0; }
-//		bool was_submit_completed() const			{ return m_submitCompleted; }
+//		bool was_submit_initiated() const { return (m_state.get_int<int>() & submit_initiated_bit) != 0; }
+//		bool was_submit_issued() const { return (m_state.get_int<int>() & submit_issued_bit) != 0; }
+//		bool was_submit_completed() const { return m_submitCompleted; }
 //
-//		bool was_abort_initiated() const			{ return (m_state.get_int<int>() & abort_initiated_bit) != 0; }
-//		bool was_abort_issued() const				{ return (m_state.get_int<int>() & abort_issued_bit) != 0; }
+//		bool was_abort_initiated() const { return (m_state.get_int<int>() & abort_initiated_bit) != 0; }
+//		bool was_abort_issued() const { return (m_state.get_int<int>() & abort_issued_bit) != 0; }
 //
-//		bool was_submit_or_abort_initiated() const	{ return (m_state.get_int<int>() & (submit_initiated_bit | abort_initiated_bit)) != 0; }
-//		bool was_submit_or_abort_issued() const		{ return (m_state.get_int<int>() & (submit_issued_bit | abort_issued_bit)) != 0; }
+//		bool was_submit_or_abort_initiated() const { return (m_state.get_int<int>() & (submit_initiated_bit | abort_initiated_bit)) != 0; }
+//		bool was_submit_or_abort_issued() const { return (m_state.get_int<int>() & (submit_issued_bit | abort_issued_bit)) != 0; }
 //
 //		void register_failable_transaction()
-//		{	// Because this is called from a constructor, we know it's first in the queue
+//		{ // Because this is called from a constructor, we know it's first in the queue
 //			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_failable_transaction2, this_rcref, strong));
 //		}
 //
 //		void register_locking_transaction()
-//		{	// Because this is called from a constructor, we know it's first in the queue
+//		{ // Because this is called from a constructor, we know it's first in the queue
 //			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_locking_transaction2, this_rcref, strong));
 //		}
 //
@@ -3001,13 +3001,13 @@
 //			m_synchronizedFileImpl->m_serialQueue->submit(delegate(transaction_arg_delegate_t(&synchronized_file_impl<file_size_t>::register_locking_transaction, m_synchronizedFileImpl), this_rcref));
 //		}
 //
-//		void abort()	// defers abort, if not already initiated
+//		void abort() // defers abort, if not already initiated
 //		{
 //			number<int_type> oldState = m_state;
 //			for (;;)
 //			{
 //				if ((oldState.get_internal().get_int() & abort_initiated_bit) != 0)
-//					break;	// serializes parallel calls to abort()
+//					break; // serializes parallel calls to abort()
 //
 //				number<int_type> newState = (oldState.get_internal().get_int() | abort_initiated_bit);
 //				if (m_state.compare_exchange(newState, oldState, oldState))
@@ -3031,7 +3031,7 @@
 //					{
 //						abort_queued();
 //						m_synchronizedFileImpl = 0;
-//						m_submitDelegate.release();	// releases reference to impl
+//						m_submitDelegate.release(); // releases reference to impl
 //					}
 //					m_serialQueue->run_next();
 //					break;
@@ -3039,16 +3039,16 @@
 //			}
 //		}
 //
-//		void submit()	// submit() will only be called once, so no need to check if already initiated
+//		void submit() // submit() will only be called once, so no need to check if already initiated
 //		{
 //			number<int_type> newState;
 //			number<int_type> oldState = m_state;
 //			for (;;)
 //			{
 //				if ((oldState.get_internal().get_int() & abort_issued_bit) != 0)
-//					break;	// Abort was already issued, don't bother submitting.
+//					break; // Abort was already issued, don't bother submitting.
 //
-//				newState = oldState.get_internal().get_int() | submit_initiated_bit;	// set initiated bit
+//				newState = oldState.get_internal().get_int() | submit_initiated_bit; // set initiated bit
 //				if (m_state.compare_exchange(newState, oldState, oldState))
 //				{
 //					m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::submit2, this_rcref, strong));
@@ -3071,18 +3071,18 @@
 //				{
 //					m_synchronizedFileImpl->m_serialQueue->submit(delegate(m_submitDelegate, this_rcref));
 //					m_synchronizedFileImpl = 0;
-//					m_submitDelegate.release();	// releases reference to impl
+//					m_submitDelegate.release(); // releases reference to impl
 //					break;
 //				}
 //			}
 //		}
 //
-//		void submit_queued()	// Serialized by fileImpl, so should not be in aborted state
+//		void submit_queued() // Serialized by fileImpl, so should not be in aborted state
 //		{
 //			;
 //		}
 //
-//		void abort_queued()		// Serialized by fileImpl if submitted, so should not conflict with submit_queued().
+//		void abort_queued() // Serialized by fileImpl if submitted, so should not conflict with submit_queued().
 //		{
 //			rcptr<reader> r = m_firstReader;
 //			m_firstReader = 0;
@@ -3121,7 +3121,7 @@
 //			m_serialQueue->submit(delegate(reader_arg_delegate_t(&transaction_internals::issue_failable_read2, this_rcref), r));
 //		}
 //
-//		bool prefill_read_inner(const rcref<reader>& r)	// returns true if completed using only data in m_writeMap
+//		bool prefill_read_inner(const rcref<reader>& r) // returns true if completed using only data in m_writeMap
 //		{
 //			r->get_buffers()->read_overlap(m_writeMap, *(r->get_unread_segments()));
 //			return r->get_unread_segments().is_empty();
@@ -3129,8 +3129,8 @@
 //
 //		void issue_locking_read2(const rcref<reader>& r)
 //		{
-//			if (was_submit_or_abort_issued()	// It's OK to abort a locking read immediately
-//				||	prefill_read_inner(r))
+//			if (was_submit_or_abort_issued() // It's OK to abort a locking read immediately
+//				|| prefill_read_inner(r))
 //			{
 //				r->complete();
 //				m_serialQueue->run_next();
@@ -3144,10 +3144,10 @@
 //
 //		void issue_failable_read2(const rcref<reader>& r)
 //		{
-//			if (was_submit_or_abort_issued()	// It's OK to abort a failable read immediately
-//				||	prefill_read_inner(r))
+//			if (was_submit_or_abort_issued() // It's OK to abort a failable read immediately
+//				|| prefill_read_inner(r))
 //			{
-//				r->complete();	
+//				r->complete();
 //				m_serialQueue->run_next();
 //			}
 //			else
@@ -3169,7 +3169,7 @@
 //		void queue_read2(const rcref<reader>& r)
 //		{
 //			if (was_submit_or_abort_issued()
-//				||	prefill_read_inner(r))
+//				|| prefill_read_inner(r))
 //				r->complete();
 //			else
 //				queue_read3(r);
@@ -3220,7 +3220,7 @@
 //		while (!!cur)
 //		{
 //			rcptr<transaction_internals> next = t->get_next_link();
-//			if (cur != t.get())	// In case this is a failable_transaction
+//			if (cur != t.get()) // In case this is a failable_transaction
 //			{
 //				if (!t->m_writeMap.does_overlap(cur->m_readMap))
 //					prev = cur;
@@ -3231,7 +3231,7 @@
 //						m_failableTransactions = next;
 //					else
 //						prev->set_next_link(next);
-//				}				
+//				}
 //			}
 //			cur = next.get();
 //		}
@@ -3241,7 +3241,7 @@
 //	{
 //		rcref<segment_map<file_size_t> > segmentMap = r->get_unread_segments();
 //		segment_map<file_size_t>::iterator itor = segmentMap->get_first();
-//		ptr<concurrency_state>	firstNodeInInnerRead;	// Keep track of the first node that we need to issue an inner read for.
+//		ptr<concurrency_state> firstNodeInInnerRead; // Keep track of the first node that we need to issue an inner read for.
 //		ptr<concurrency_state> lastNodeInInnerRead;
 //		while (!!itor)
 //		{
@@ -3252,11 +3252,11 @@
 //			concurrency_state* curNode = m_concurrencyMap.split_create(curSegment);
 //			for (;;)
 //			{
-//				if (!!curNode->m_buffer)	// Write in progress, or cached. Grab buffer.
+//				if (!!curNode->m_buffer) // Write in progress, or cached. Grab buffer.
 //				{
 //					r->get_buffers()->add(segment_buffer<file_size_t>(curNode->get_start(), curNode->m_buffer));
 //				}
-//				else if (!!curNode->m_initialized)	// Read in progress.  Wait for it to complete.
+//				else if (!!curNode->m_initialized) // Read in progress.  Wait for it to complete.
 //				{
 //					waiting_read_segment* waitingSegment = new (default_allocator::get()) waiting_read_segment(*r);
 //
@@ -3266,7 +3266,7 @@
 //					waitingSegment->m_nextWaitingReadSegment = curNode->m_firstWaitingReadSegment;
 //					curNode->m_firstWaitingReadSegment = waitingSegment;
 //				}
-//				else	// Brand new node, queue up for inner read
+//				else // Brand new node, queue up for inner read
 //				{
 //					curNode->m_initialized = true;
 //					if (!firstNodeInInnerRead)
@@ -3280,7 +3280,7 @@
 //						lastNodeInInnerRead = curNode;
 //					}
 //
-//					if (!!retainSegment)	// If someone else claimed itor, we need to add a new one
+//					if (!!retainSegment) // If someone else claimed itor, we need to add a new one
 //						itor = segmentMap->add(curNode->m_segment);
 //					else // If the first to want to retain itor.
 //					{
@@ -3301,17 +3301,17 @@
 //			itor = nextItor;
 //		}
 //		
-//		if (!!firstNodeInInnerRead)	// If something is left, issue an inner read
+//		if (!!firstNodeInInnerRead) // If something is left, issue an inner read
 //		{
 //			++(r->m_numWaitingReads);
-//			r->m_firstInReadThread = firstNodeInInnerRead;		
+//			r->m_firstInReadThread = firstNodeInInnerRead;
 //			rcref<segment_map<file_size_t> > segmentMapCopy = rcnew(segment_map<file_size_t>);
-//			segmentMapCopy.exchange(segmentMap);	// exchange contents
+//			segmentMapCopy.exchange(segmentMap); // exchange contents
 //			typedef file<read_access, file_size_t>::reader::dispatch_t dispatch_t;
 //			r->m_transaction->m_rawReadable->read(segmentMapCopy)->dispatch(dispatch_t(&synchronized_file_impl<file_size_t>::reader::done_inner_read, r));
 //		}
 //		else if (!r->m_numWaitingReads)
-//			r->complete();	// Must be done already!
+//			r->complete(); // Must be done already!
 //	}
 //
 //	void issue_write(const rcref<writer>& w)
@@ -3332,8 +3332,8 @@
 //				// Set m_buffer to our buffer, regardless of what it had been before.
 //				curNode->m_buffer = curSegmentBuffer.get_buffer().get_leading(curNode->get_length());
 //
-//				if (!!curNode->m_initialized)	// if existing read or write.
-//				{	// If read or write in progress.  Queue ours up for later.  (TBD: What about caching?)
+//				if (!!curNode->m_initialized) // if existing read or write.
+//				{ // If read or write in progress.  Queue ours up for later.  (TBD: What about caching?)
 //					waiting_write_segment* waitingSegment = new (default_allocator::get()) waiting_write_segment(*w);
 //
 //					++(w->m_numWaitingWrites);
@@ -3342,7 +3342,7 @@
 //					waitingSegment->m_nextWaitingWriteSegment = curNode->m_firstWaitingWriteSegment;
 //					curNode->m_firstWaitingWriteSegment = waitingSegment;
 //				}
-//				else	// Brand new node, queue up for inner write.
+//				else // Brand new node, queue up for inner write.
 //				{
 //					curNode->m_initialized = true;
 //					if (!firstNodeInInnerWrite)
@@ -3356,7 +3356,7 @@
 //						lastNodeInInnerWrite = curNode;
 //					}
 //
-//					if (!!retainSegment)	// If someone else claimed itor, we need to add a new one
+//					if (!!retainSegment) // If someone else claimed itor, we need to add a new one
 //						itor = segmentBufferMap->add(curNode->m_segment.get_start(), curNode->m_buffer);
 //					else // If the first to want to retain itor.
 //					{
@@ -3376,11 +3376,11 @@
 //			}
 //			itor = nextItor;
 //		}
-//		if (!!firstNodeInInnerWrite)	// If something is left, issue an inner read
+//		if (!!firstNodeInInnerWrite) // If something is left, issue an inner read
 //		{
 //			w->m_firstInWriteThread = firstNodeInInnerWrite;
 //			rcref<segment_buffer_map<file_size_t> > segmentBufferMapCopy = rcnew(segment_buffer_map<file_size_t>);
-//			segmentBufferMapCopy.exchange(segmentBufferMap);	// exchange contents
+//			segmentBufferMapCopy.exchange(segmentBufferMap); // exchange contents
 //			typedef file<write_access, file_size_t>::writer::dispatch_t dispatch_t;
 //			w->m_transaction->m_rawWritable->write(segmentBufferMapCopy)->dispatch(dispatch_t(&synchronized_file_impl<file_size_t>::writer::done_inner_write, w));
 //		}
@@ -3432,10 +3432,10 @@
 //
 //	void commit_locking_read(const rcref<reader>& r)
 //	{
-//		r->m_transaction->m_readMap.add(*(r->get_unread_segments()));	// Lock out writes to this region.
+//		r->m_transaction->m_readMap.add(*(r->get_unread_segments())); // Lock out writes to this region.
 //
 //		if (m_firstDeferredLockingTransaction != r->m_transaction)
-//			r->m_transaction->queue_read3(r);	// If not the current locking transaction, queue the read.
+//			r->m_transaction->queue_read3(r); // If not the current locking transaction, queue the read.
 //		else
 //			issue_read(r);
 //		r->m_transaction->m_serialQueue->run_next();
@@ -3444,7 +3444,7 @@
 //
 //	void commit_transaction_inner(const rcref<transaction_internals>& t)
 //	{
-//		issue_transaction(t);	//Issue both reads and writers directly to issued-map
+//		issue_transaction(t); //Issue both reads and writers directly to issued-map
 //		t->m_submitCompleted = true;
 //	}
 //
@@ -3452,7 +3452,7 @@
 //	{
 //		if (!!m_firstDeferredLockingTransaction && t->m_writeMap.does_overlap(m_firstDeferredLockingTransaction->m_readMap))
 //			return false;
-//		run_write_notifications(t);	// Next check for overlaps with pending failable_transactions and abort if necessary.
+//		run_write_notifications(t); // Next check for overlaps with pending failable_transactions and abort if necessary.
 //		commit_transaction_inner(t);
 //		return true;
 //	}
@@ -3492,12 +3492,12 @@
 //
 //	void commit_failable(const rcref<transaction_internals>& t)
 //	{
-//		if (!t->was_abort_initiated())	// Need to check again if aborted, because we can't issue its write if
-//		{								// something has aborted it since submitted.
+//		if (!t->was_abort_initiated()) // Need to check again if aborted, because we can't issue its write if
+//		{                              // something has aborted it since submitted.
 //			if (m_failableTransactions == t)
 //			{
 //				m_failableTransactions = t->get_next_link();
-//				m_failableTransactions->set_prev_link(0);	// needed?
+//				m_failableTransactions->set_prev_link(0); // needed?
 //			}
 //			else
 //			{
@@ -3518,15 +3518,15 @@
 //		rcref<transaction_internals> t = tIn;
 //		COGS_ASSERT(m_firstDeferredLockingTransaction != 0);
 //		t->m_submitCompleted = true;
-//		if (m_firstDeferredLockingTransaction == t)	// If not the current transaction, queue it.
+//		if (m_firstDeferredLockingTransaction == t) // If not the current transaction, queue it.
 //		{
 //			for (;;)
 //			{
-//				run_write_notifications(t);	// Next check for overlaps with pending failable_transactions and abort if necessary.
+//				run_write_notifications(t); // Next check for overlaps with pending failable_transactions and abort if necessary.
 //			
 //				issue_writes(t);
 //
-//				m_firstDeferredLockingTransaction = 0;	// Temporarily unset locking transactions, and let all pending failable and composed transactions through.
+//				m_firstDeferredLockingTransaction = 0; // Temporarily unset locking transactions, and let all pending failable and composed transactions through.
 //
 //				// If a deferred transaction had been blocked trying to write to a portion the current locking transaction had read,
 //				// It will be waiting in a list.  Issue everything in that list.
@@ -3551,7 +3551,7 @@
 //					commit_composed(t2.get_ref());
 //				}
 //
-//				m_firstDeferredLockingTransaction = t->get_next_link();	// Start the next m_waitingLockingTransactions
+//				m_firstDeferredLockingTransaction = t->get_next_link(); // Start the next m_waitingLockingTransactions
 //				if (!m_firstDeferredLockingTransaction)
 //				{
 //					m_lastDeferredLockingTransaction = 0;
@@ -3597,8 +3597,8 @@
 //		// is submitted, an abort() will not complete() pending reads/write until
 //		// after the transaction is submitted (at whch point they are aborted -
 //		// completed with no buffers read/written).
-//		volatile rcptr<transaction_internals>	m_transaction;
-//		transaction_submit_type					m_submitType;
+//		volatile rcptr<transaction_internals> m_transaction;
+//		transaction_submit_type m_submitType;
 //
 //		void register_transaction()
 //		{
@@ -3612,23 +3612,23 @@
 //		friend class synchronized_file_impl<file_size_t>;
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_access, file_size_t> >& syncReable, const rcref<file<read_access> >& rawReadable, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitType(submitType),
-//				m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncReable, rawReadable, impl))
+//			: m_submitType(submitType),
+//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncReable, rawReadable, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<write_access, file_size_t> >& syncWritable, const rcref<file<write_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitType(submitType),
-//				m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncWritable, rawWritable, impl))
+//			: m_submitType(submitType),
+//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncWritable, rawWritable, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_write_access> >& rawFile, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitType(submitType),
-//				m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawFile, impl))
+//			: m_submitType(submitType),
+//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawFile, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_access> >& rawReadable, const rcref<file<read_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
-//			:	m_submitType(submitType),
-//				m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawReadable, rawWritable, impl))
+//			: m_submitType(submitType),
+//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawReadable, rawWritable, impl))
 //		{ register_transaction(); }
 //
 //		void set_write_mask(const file_mask<file_size_t>& fm)
@@ -3644,7 +3644,7 @@
 //			m_transaction.exchange(t);
 //			if (!!t)
 //				t->submit();
-//		}						
+//		}
 //
 //		void abort()
 //		{
@@ -3653,7 +3653,7 @@
 //				t->abort();
 //		}
 //
-//		bool was_submitted() const				{ return !m_transaction; }
+//		bool was_submitted() const { return !m_transaction; }
 //		bool was_submitted_or_aborted() const
 //		{
 //			rcptr<transaction_internals> t = m_transaction;
@@ -3744,7 +3744,7 @@
 //
 //public:
 //	synchronized_file_impl()
-//		:	m_serialQueue(delegate_chain::create())
+//		: m_serialQueue(delegate_chain::create())
 //	{ }
 //};
 //
@@ -3766,9 +3766,9 @@
 //	this_t& operator=(const this_t&);
 //
 //protected:
-//	rcref<synchronized_file_impl<file_size_t> >	m_impl;
-//	rcref<file<read_access> >						m_rawReadable;
-//	weak_rcptr<this_t>							m_selfRef;
+//	rcref<synchronized_file_impl<file_size_t> > m_impl;
+//	rcref<file<read_access> > m_rawReadable;
+//	weak_rcptr<this_t> m_selfRef;
 //
 //	virtual rcref<typename file<read_access, file_size_t>::reader> begin_read(const rcref<segment_map<file_size_t> >& sm)
 //	{
@@ -3777,11 +3777,11 @@
 //	}
 //
 //	explicit synchronized_file(const rcref<file<read_access, file_size_t> >& rawReadable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
-//		:	m_rawReadable(rawReadable),
-//			m_impl(impl)
+//		: m_rawReadable(rawReadable),
+//		m_impl(impl)
 //	{ }
 //
-//	void set_self_ref(const rcref<synchronized_file<read_access, file_size_t> >& selfRef)	{ m_selfRef = selfRef; }
+//	void set_self_ref(const rcref<synchronized_file<read_access, file_size_t> >& selfRef) { m_selfRef = selfRef; }
 //
 //public:
 //	virtual rcref<size_reader> get_size()
@@ -3797,7 +3797,7 @@
 //		return syncFile;
 //	}
 //
-//	template <file_transaction_type type>	// read-only transaction
+//	template <file_transaction_type type> // read-only transaction
 //	class transaction : public file<read_access, file_size_t>
 //	{
 //	private:
@@ -3806,21 +3806,21 @@
 //		transaction(const this_t&);
 //		this_t& operator=(const this_t&);
 //
-//		rcref<typename synchronized_file_impl<file_size_t>::transaction<type> >	m_transaction;
+//		rcref<typename synchronized_file_impl<file_size_t>::transaction<type> > m_transaction;
 //
 //	protected:
 //		explicit transaction(const rcref<typename synchronized_file_impl<file_size_t>::transaction<type> >& t)
-//			:	m_transaction(t)
+//			: m_transaction(t)
 //		{ }
 //
-//		virtual rcref<typename file<read_access, file_size_t>::reader> begin_read(const rcref<segment_map<file_size_t> >& sm)	{ return m_transaction->read(sm); }
+//		virtual rcref<typename file<read_access, file_size_t>::reader> begin_read(const rcref<segment_map<file_size_t> >& sm) { return m_transaction->read(sm); }
 //
 //	public:
-//		void submit()	{ m_transaction->submit(); }
-//		void abort()	{ m_transaction->abort(); }
+//		void submit() { m_transaction->submit(); }
+//		void abort() { m_transaction->abort(); }
 //
-//		bool was_submitted() const					{ return m_transaction->was_submitted(); }
-//		bool was_submitted_or_aborted() const		{ return m_transaction->was_submitted_or_aborted(); }
+//		bool was_submitted() const { return m_transaction->was_submitted(); }
+//		bool was_submitted_or_aborted() const { return m_transaction->was_submitted_or_aborted(); }
 //	};
 //
 //	template <file_transaction_type type>
@@ -3840,9 +3840,9 @@
 //	synchronized_file(const this_t&);
 //	this_t& operator=(const this_t&);
 //
-//	rcref<synchronized_file_impl<file_size_t> >	m_impl;
-//	rcref<file<write_access, file_size_t> >		m_rawWritable;
-//	weak_rcptr<this_t>							m_selfRef;
+//	rcref<synchronized_file_impl<file_size_t> > m_impl;
+//	rcref<file<write_access, file_size_t> > m_rawWritable;
+//	weak_rcptr<this_t> m_selfRef;
 //
 //	virtual rcref<typename file<write_access, file_size_t>::writer> begin_write(const rcref<segment_buffer_map<file_size_t> >& sbm)
 //	{
@@ -3851,11 +3851,11 @@
 //	}
 //
 //	explicit synchronized_file(const rcref<file<write_access, file_size_t> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
-//		:	m_rawWritable(rawWritable),
-//			m_impl(impl)
+//		: m_rawWritable(rawWritable),
+//		m_impl(impl)
 //	{ }
 //
-//	void set_self_ref(const rcref<synchronized_file<write_access, file_size_t> >& selfRef)	{ m_selfRef = selfRef; }
+//	void set_self_ref(const rcref<synchronized_file<write_access, file_size_t> >& selfRef) { m_selfRef = selfRef; }
 //
 //public:
 //	virtual rcref<size_writer> set_size(const file_size_t& sz)
@@ -3871,7 +3871,7 @@
 //		return syncFile;
 //	}
 //
-//	template <file_transaction_type type>	// write-only transaction
+//	template <file_transaction_type type> // write-only transaction
 //	class transaction : public file<write_access, file_size_t>
 //	{
 //	private:
@@ -3884,17 +3884,17 @@
 //
 //	protected:
 //		explicit transaction(const rcref<typename synchronized_file_impl<file_size_t>::transaction<type> >& t)
-//			:	m_transaction(t)
+//			: m_transaction(t)
 //		{ }
 //
 //		virtual rcref<typename file<write_access, file_size_t>::writer> begin_write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return m_transaction->write(sbm); }
 //
 //	public:
-//		void submit()	{ m_transaction->submit(); }
-//		void abort()	{ m_transaction->abort(); }
+//		void submit() { m_transaction->submit(); }
+//		void abort() { m_transaction->abort(); }
 //
-//		bool was_submitted() const					{ return m_transaction->was_submitted(); }
-//		bool was_submitted_or_aborted() const		{ return m_transaction->was_submitted_or_aborted(); }
+//		bool was_submitted() const { return m_transaction->was_submitted(); }
+//		bool was_submitted_or_aborted() const { return m_transaction->was_submitted_or_aborted(); }
 //	};
 //
 //	template <file_transaction_type type>
@@ -3913,20 +3913,20 @@
 //	synchronized_file(const this_t&);
 //	this_t& operator=(const this_t&);
 //
-//	virtual rcref<typename file<read_access, file_size_t>::reader> begin_read(const rcref<segment_map<file_size_t> >& sm)			{ return synchronized_file<read_access, file_size_t>::begin_read(sm); }
-//	virtual rcref<typename file<write_access, file_size_t>::writer> begin_write(const rcref<segment_buffer_map<file_size_t> >& sbm)	{ return synchronized_file<write_access, file_size_t>::begin_write(sbm); }
+//	virtual rcref<typename file<read_access, file_size_t>::reader> begin_read(const rcref<segment_map<file_size_t> >& sm) { return synchronized_file<read_access, file_size_t>::begin_read(sm); }
+//	virtual rcref<typename file<write_access, file_size_t>::writer> begin_write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return synchronized_file<write_access, file_size_t>::begin_write(sbm); }
 //
 //	explicit synchronized_file(const rcref<file<read_write_access, file_size_t> >& rawFile,
 //		const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
-//		:	synchronized_file<read_access, file_size_t>(rawFile, impl),
-//			synchronized_file<write_access, file_size_t>(rawFile, impl)
+//		: synchronized_file<read_access, file_size_t>(rawFile, impl),
+//		synchronized_file<write_access, file_size_t>(rawFile, impl)
 //	{ }
 //
 //	explicit synchronized_file(const rcref<file<read_access, file_size_t> >& rawReadable,
 //		const rcref<file<write_access, file_size_t> >& rawWritable,
 //		const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
-//		:	synchronized_file<read_access, file_size_t>(rawReadable, impl),
-//			synchronized_file<write_access, file_size_t>(rawWritable, impl)
+//		: synchronized_file<read_access, file_size_t>(rawReadable, impl),
+//		synchronized_file<write_access, file_size_t>(rawWritable, impl)
 //	{ }
 //
 //	void set_self_ref(const rcref<synchronized_file<read_write_access, file_size_t> >& selfRef)
@@ -3936,8 +3936,8 @@
 //	}
 //
 //public:
-//	virtual rcref<typename file<read_access, file_size_t>::size_reader> get_size()						{ return synchronized_file<read_access, file_size_t>::get_size(); }
-//	virtual rcref<typename file<write_access, file_size_t>::size_writer> set_size(const file_size_t& sz)	{ return synchronized_file<write_access, file_size_t>::set_size(sz); }
+//	virtual rcref<typename file<read_access, file_size_t>::size_reader> get_size() { return synchronized_file<read_access, file_size_t>::get_size(); }
+//	virtual rcref<typename file<write_access, file_size_t>::size_writer> set_size(const file_size_t& sz) { return synchronized_file<write_access, file_size_t>::set_size(sz); }
 //
 //	static rcref<synchronized_file<read_write_access, file_size_t> > create(const rcref<file<read_access, file_size_t> >& rawReadable, const rcref<file<write_access, file_size_t> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
 //	{
@@ -3951,7 +3951,7 @@
 //		return create(rawFile, rawFile, impl);
 //	}
 //
-//	template <file_transaction_type type>	// read-write transaction
+//	template <file_transaction_type type> // read-write transaction
 //	class transaction : public file<read_access, file_size_t>::transaction<type>, public file<write_access, file_size_t>::transaction<type>, public file<read_write_access, file_size_t>
 //	{
 //	private:
@@ -3962,16 +3962,16 @@
 //
 //	protected:
 //		explicit transaction(const rcref<typename synchronized_file_impl<file_size_t>::transaction<type> >& t)
-//			:	file<read_access, file_size_t>::transaction<type>(t),
-//				file<write_access, file_size_t>::transaction<type>(t)
+//			: file<read_access, file_size_t>::transaction<type>(t),
+//			file<write_access, file_size_t>::transaction<type>(t)
 //		{ }
 //
 //	public:
-//		void submit()	{ m_transaction->submit(); }
-//		void abort()	{ m_transaction->abort(); }
+//		void submit() { m_transaction->submit(); }
+//		void abort() { m_transaction->abort(); }
 //
-//		bool was_submitted() const					{ return m_transaction->was_submitted(); }
-//		bool was_submitted_or_aborted() const		{ return m_transaction->was_submitted_or_aborted(); }
+//		bool was_submitted() const { return m_transaction->was_submitted(); }
+//		bool was_submitted_or_aborted() const { return m_transaction->was_submitted_or_aborted(); }
 //	};
 //
 //	template <file_transaction_type type>
@@ -3986,15 +3986,16 @@
 //	}
 //
 //	// redefined here to resolve multiple base class ambiguity
-//	rcref<writer> write(file_size_t offset, void* b, size_t n)			{ return file<read_write_access, file_size_t>::write(offset, b, n); }
-//	rcref<writer> write(file_size_t offset, const const_buffer& b)		{ return file<read_write_access, file_size_t>::write(offset, b); }
-//	rcref<writer> write(file_size_t offset, const composite_buffer& b)			{ return file<read_write_access, file_size_t>::write(offset, b); }
-//	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm)	{ return file<read_write_access, file_size_t>::write(sbm); }
+//	rcref<writer> write(file_size_t offset, void* b, size_t n) { return file<read_write_access, file_size_t>::write(offset, b, n); }
+//	rcref<writer> write(file_size_t offset, const const_buffer& b) { return file<read_write_access, file_size_t>::write(offset, b); }
+//	rcref<writer> write(file_size_t offset, const composite_buffer& b) { return file<read_write_access, file_size_t>::write(offset, b); }
+//	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return file<read_write_access, file_size_t>::write(sbm); }
 //
 //	rcref<reader> read(file_size_t offset, typename file<read_write_access, file_size_t>::buffer_size_t n)
-//																		{ return file<read_write_access, file_size_t>::read(offset, n); }
-//	rcref<reader> read(const segment<file_size_t>& s)						{ return file<read_write_access, file_size_t>::read(s); }
-//	rcref<reader> read(const rcref<segment_map<file_size_t> >& sm)			{ return file<read_write_access, file_size_t>::read(sm); }
+//	{ return file<read_write_access, file_size_t>::read(offset, n); }
+//
+//	rcref<reader> read(const segment<file_size_t>& s) { return file<read_write_access, file_size_t>::read(s); }
+//	rcref<reader> read(const rcref<segment_map<file_size_t> >& sm) { return file<read_write_access, file_size_t>::read(sm); }
 //};
 //
 //
@@ -4004,21 +4005,21 @@
 //	class cursor : public datasource, public object
 //	{
 //	protected:
-//		const weak_rcptr<file<read_access, file_size_t> >	m_source;
-//		file_size_t									m_curPos;
+//		const weak_rcptr<file<read_access, file_size_t> > m_source;
+//		file_size_t m_curPos;
 //
-//		const rcref<queue>& get_io_queue() const	{ return m_ioQueue; }
+//		const rcref<queue>& get_io_queue() const { return m_ioQueue; }
 //
 //	private:
 //		class cursor_reader : public datasource::reader
 //		{
 //		protected:
-//			const weak_rcptr<cursor>	m_cursor;
+//			const weak_rcptr<cursor> m_cursor;
 //
 //		public:
 //			cursor_reader(const rcref<cursor>& c)
-//				:	m_cursor(c),
-//					datasource::reader(c)
+//				: m_cursor(c),
+//				datasource::reader(c)
 //			{ }
 //
 //			virtual void reading()
@@ -4062,20 +4063,20 @@
 //		protected:
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			file_size_t							m_position;
-//			bool								m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			file_size_t m_position;
+//			bool m_succeeded;
 //
 //			seeker(file_size_t pos, const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_position(pos),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_position(pos),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -4090,7 +4091,7 @@
 //			}
 //
 //		public:
-//			bool succeeded() const	{ return m_succeeded; }
+//			bool succeeded() const { return m_succeeded; }
 //		};
 //
 //		class teller : public queue::operation
@@ -4099,19 +4100,19 @@
 //			friend class file<read_access>;
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			file_size_t							m_position;
-//			bool								m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			file_size_t m_position;
+//			bool m_succeeded;
 //
 //			teller(const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -4141,8 +4142,8 @@
 //		{
 //		public:
 //			eof_seeker(const rcref<read_only_cursor>& c)
-//				:	seeker(0, c)
-//			{ } 		
+//				: seeker(0, c)
+//			{ }
 //
 //			virtual void execute()
 //			{
@@ -4162,13 +4163,13 @@
 //					}
 //				}
 //			}
-//		};		
+//		};
 //		
 //		class eof_teller : public teller
 //		{
 //		public:
 //			eof_teller(const rcref<read_only_cursor>& c)
-//				:	teller(c)
+//				: teller(c)
 //			{ }
 //
 //			virtual void execute()
@@ -4221,8 +4222,8 @@
 //
 //	protected:
 //		read_only_cursor(const rcref<file>& f, const rcref<queue>& ioQueue = queue::create())
-//			:	datasource(ioQueue),
-//				m_file(f)
+//			: datasource(ioQueue),
+//			m_file(f)
 //		{ }
 //	};
 //
@@ -4253,9 +4254,9 @@
 //	// The only way to switch modes between inclusion and exclusion mode, is to call either
 //	// set_to_all(), or clear().
 //
-//	segment_map<file_size_t>	m_segments;
-//	bool						m_excludeMode;	// otherwise in include mode
-//	bool						m_pastEof;		// true if mask considers the (unknown) EOF position
+//	segment_map<file_size_t> m_segments;
+//	bool m_excludeMode; // otherwise in include mode
+//	bool m_pastEof; // true if mask considers the (unknown) EOF position
 //
 //	template <bool exclude>
 //	void add_remove(const segment<file_size_t>& s)
@@ -4290,19 +4291,19 @@
 //	}
 //
 //	file_mask(bool excludeMode, bool spanPastEof)
-//		:	m_excludeMode(excludeMode),
-//			m_pastEof(spanPastEof)
+//		: m_excludeMode(excludeMode),
+//		m_pastEof(spanPastEof)
 //	{ }
 //
 //public:
 //	file_mask()
-//		:	m_excludeMode(false),
-//			m_pastEof(false)
+//		: m_excludeMode(false),
+//		m_pastEof(false)
 //	{ }
 //
-//	static this_t all(bool spanPastEof = true)	{ return this_t(true, !spanPastEof); }
-//	static this_t contents()					{ return this_t(true, true); }
-//	static this_t eof()							{ return this_t(false, true); }
+//	static this_t all(bool spanPastEof = true) { return this_t(true, !spanPastEof); }
+//	static this_t contents() { return this_t(true, true); }
+//	static this_t eof() { return this_t(false, true); }
 //		
 //	void clear()
 //	{
@@ -4332,32 +4333,32 @@
 //		m_segments.clear();
 //	}
 //
-//	void include(const segment<file_size_t>& s)			{ add_remove<false>(s); }
-//	void exclude(const segment<file_size_t>& s)			{ add_remove<true>(s); }
+//	void include(const segment<file_size_t>& s) { add_remove<false>(s); }
+//	void exclude(const segment<file_size_t>& s) { add_remove<true>(s); }
 //		
-//	void include(const segment_map<file_size_t>& sm)	{ add_remove<false>(sm); }
-//	void exclude(const segment_map<file_size_t>& sm)	{ add_remove<true>(sm); }
+//	void include(const segment_map<file_size_t>& sm) { add_remove<false>(sm); }
+//	void exclude(const segment_map<file_size_t>& sm) { add_remove<true>(sm); }
 //
-//	void include_past_eof()								{ m_pastEof = !m_excludeMode; }
-//	void exclude_past_eof()								{ m_pastEof = m_excludeMode; }
+//	void include_past_eof() { m_pastEof = !m_excludeMode; }
+//	void exclude_past_eof() { m_pastEof = m_excludeMode; }
 //
 //	// does_overlap assumes both masks are of the same file.
 //	bool does_overlap(const this_t& fm, const file_size_t& currentEof) const
 //	{
 //		if (m_excludeMode && !fm.m_excludeMode)
-//			return fm.does_overlap(*this, currentEof);	// Flip to ensures rest of algoritm doesn't need to worry about (m_excludeMode && !fm.m_excludeMode)
+//			return fm.does_overlap(*this, currentEof); // Flip to ensures rest of algoritm doesn't need to worry about (m_excludeMode && !fm.m_excludeMode)
 //		
 //		if (!m_excludeMode)
 //		{
 //			if (!fm.m_excludeMode) // && (!m_excludeMode) 
-//			{							// both in include mode.
+//			{ // both in include mode.
 //				if (!!m_pastEof)
 //				{
 //					if (!!fm.m_pastEof)
 //						return true;
 //					segment_map<file_size_t>::iterator lastItor = fm.m_segments.get_last();
 //					if (!lastItor)
-//						return false;	// no overlap if nothing is in there.
+//						return false; // no overlap if nothing is in there.
 //					if (lastItor->get_end() > currentEof)
 //						return true;
 //				}
@@ -4365,21 +4366,21 @@
 //				{
 //					segment_map<file_size_t>::iterator lastItor = m_segments.get_last();
 //					if (!lastItor)
-//						return false;	// no overlap if nothing is in there.
+//						return false; // no overlap if nothing is in there.
 //					if (lastItor->get_end() > currentEof)
 //						return true;
 //				}
 //
 //				return m_segments.does_overlap(fm.m_segments);
 //			}
-//			else // if ((!m_excludeMode) && (!!fm.m_excludeMode))	// If one is in include mode and the other is in exclude mode.
+//			else // if ((!m_excludeMode) && (!!fm.m_excludeMode)) // If one is in include mode and the other is in exclude mode.
 //			{
-//				if (!fm.m_pastEof)	// if excluding one does not exclude past EOF, there is overlap.
+//				if (!fm.m_pastEof) // if excluding one does not exclude past EOF, there is overlap.
 //				{
 //					if (!!m_pastEof)
 //						return true;
 //					segment_map<file_size_t>::iterator lastItor = m_segments.get_last();
-//					if (!lastItor)		// nothing in list and doesn't care about pastEof, so empty.  No overlap.
+//					if (!lastItor) // nothing in list and doesn't care about pastEof, so empty.  No overlap.
 //						return false;
 //					if (lastItor->get_end() > currentEof)
 //						return true;
@@ -4392,7 +4393,7 @@
 //					if (curSegment.get_start() >= currentEof)
 //						return false;
 //					
-//					file_size_t curSegmentEnd = curSegment.get_end();	// Clip end if necessary
+//					file_size_t curSegmentEnd = curSegment.get_end(); // Clip end if necessary
 //					if (curSegmentEnd > currentEof)
 //						curSegment.m_length -= (curSegmentEnd - currentEof);
 //
@@ -4404,29 +4405,29 @@
 //			}
 //		}
 //		else // if ((!!m_excludeMode) && (!!fm.m_excludeMode))
-//		{										// Both masks are in exclude mode.
-//			if (!m_pastEof && !fm.m_pastEof)	// If both don't exclude past the EOF, they overlap.
+//		{ // Both masks are in exclude mode.
+//			if (!m_pastEof && !fm.m_pastEof) // If both don't exclude past the EOF, they overlap.
 //				return true;
-//			if (!currentEof)	// empty file, don't care about segments
+//			if (!currentEof) // empty file, don't care about segments
 //				true false;
 //
 //			file_size_t curPos = 0;
-//			segment_map<file_size_t>::iterator itor = m_segments.get_first();		// Overlaps are fine.  Adjacent are fine.
-//			segment_map<file_size_t>::iterator itor2 = fm.m_segments.get_first();	// But any gaps imply an overlap.
-//			if (!itor)		// Empty itor means nothing is excluded, so any gaps in itor2 before EOF implies an overlap.		
-//				return ((!itor2)							// If no itor2 either, nothing is excluded from either.  So they overlap.
-//					|| (itor2->get_start() > curPos)		// gap found before.
-//					|| (itor2->get_end() < currentEof));	// gap found after
+//			segment_map<file_size_t>::iterator itor = m_segments.get_first(); // Overlaps are fine.  Adjacent are fine.
+//			segment_map<file_size_t>::iterator itor2 = fm.m_segments.get_first(); // But any gaps imply an overlap.
+//			if (!itor) // Empty itor means nothing is excluded, so any gaps in itor2 before EOF implies an overlap.		
+//				return ((!itor2) // If no itor2 either, nothing is excluded from either.  So they overlap.
+//					|| (itor2->get_start() > curPos) // gap found before.
+//					|| (itor2->get_end() < currentEof)); // gap found after
 //
-//			if (!itor2)	// Empty itor2 means nothing is excluded, so any gaps in itor before EOF implies an overlap.
-//				return ((itor->get_start() > curPos)		// gap found before.
-//					|| (itor->get_end() < currentEof));		// gap found after
+//			if (!itor2) // Empty itor2 means nothing is excluded, so any gaps in itor before EOF implies an overlap.
+//				return ((itor->get_start() > curPos) // gap found before.
+//					|| (itor->get_end() < currentEof)); // gap found after
 //
 //			for (;;)
 //			{
-//				if (itor->get_start() <= itor2->get_start())	// itor starts first
+//				if (itor->get_start() <= itor2->get_start()) // itor starts first
 //				{
-//					if (itor->get_start() > curPos)	// found a gap
+//					if (itor->get_start() > curPos) // found a gap
 //						return true;
 //					file_size_t itorEnd = itor->get_end();
 //					if (itorEnd > curPos)
@@ -4438,9 +4439,9 @@
 //					if (!++itor)
 //						return (itor2->get_end() < currentEof);
 //				}
-//				else // if (itor2->get_start() < itor->get_start())	// itor2 starts first
+//				else // if (itor2->get_start() < itor->get_start()) // itor2 starts first
 //				{
-//					if (itor2->get_start() > curPos)	// found a gap
+//					if (itor2->get_start() > curPos) // found a gap
 //						return true;
 //					file_size_t itor2End = itor2->get_end();
 //					if (itor2End > curPos)
@@ -4463,10 +4464,10 @@
 //class file<read_write_access> : public file<read_access, file_size_t>, public file<write_access, file_size_t>
 //{
 //public:
-//	typedef file<read_access>::reader					reader;
-//	typedef file<read_access>::writer					writer;
-////	typedef file<read_access>::locking_transaction		locking_transaction;
-////	typedef file<read_access>::failable_transaction	failable_transaction;
+//	typedef file<read_access>::reader reader;
+//	typedef file<read_access>::writer writer;
+////	typedef file<read_access>::locking_transaction locking_transaction;
+////	typedef file<read_access>::failable_transaction failable_transaction;
 //
 //	class composed_transaction : public file<read_access>::composed_transaction
 //	{
@@ -4474,7 +4475,7 @@
 //		friend class file<read_write_access>;
 //
 //		composed_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::composed_transaction(f)
+//			: file<read_access>::composed_transaction(f)
 //		{ }
 //
 //	public:
@@ -4498,7 +4499,7 @@
 //		friend class file<read_write_access>;
 //
 //		failable_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::failable_transaction(f)
+//			: file<read_access>::failable_transaction(f)
 //		{ }
 //
 //	public:
@@ -4522,7 +4523,7 @@
 //		friend class file<read_write_access>;
 //
 //		locking_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::locking_transaction(f)
+//			: file<read_access>::locking_transaction(f)
 //		{ }
 //
 //	public:
@@ -4542,14 +4543,14 @@
 //
 //	enum create_mode
 //	{
-//		open_if_exists			= 0x01,
-//		create_only				= 0x02,
-//		open_or_create			= 0x03,
-//		open_truncate_or_create	= 0x07,
+//		open_if_exists = 0x01,
+//		create_only = 0x02,
+//		open_or_create = 0x03,
+//		open_truncate_or_create = 0x07,
 //
-////		open_mask				= 0x01,
-////		create_mask				= 0x02,
-////		truncate_mask			= 0x04,
+////		open_mask = 0x01,
+////		create_mask = 0x02,
+////		truncate_mask = 0x04,
 //	};
 //
 //	// Implemented at cogs::os level, to use os::file derived class.
@@ -4602,7 +4603,7 @@
 //			m_list.insert(new (default_allocator::get()) node(sb));
 //		}
 //
-//		~segment_list_base()			{ clear_inner(); }
+//		~segment_list_base() { clear_inner(); }
 //
 //		void clear()
 //		{
@@ -4610,8 +4611,8 @@
 //			m_list.clear();
 //		}
 //
-//		bool is_empty() const			{ return !m_list; }
-//		bool operator!() const			{ return !m_list; }
+//		bool is_empty() const { return !m_list; }
+//		bool operator!() const { return !m_list; }
 //
 //		// An iterator is guaranteed to remain valid until the element reference to had been removed,
 //		// completely overwritten (segment_buffer_map), or if a segment is added (to a segment_map) that
@@ -4622,33 +4623,33 @@
 //			ptr<node> m_node;
 //
 //		protected:
-//			iterator(const ptr<node>& n)	:	m_node(n)	{ }
+//			iterator(const ptr<node>& n) : m_node(n) { }
 //
 //			friend class segment_map_base;
 //
 //		public:
-//			iterator()	{ }
+//			iterator() { }
 //
-//			iterator(const iterator& i)	:	m_node(i.m_node)	{ }
+//			iterator(const iterator& i) : m_node(i.m_node) { }
 //
-//			iterator& operator++()		{ if (!!m_node) m_node = node::get_next(m_node); return *this; }
-//			iterator& operator--()		{ if (!!m_node) m_node = node::get_prev(m_node); return *this; }
+//			iterator& operator++() { if (!!m_node) m_node = node::get_next(m_node); return *this; }
+//			iterator& operator--() { if (!!m_node) m_node = node::get_prev(m_node); return *this; }
 //
-//			bool operator!() const						{ return !m_node; }
+//			bool operator!() const { return !m_node; }
 //
-//			bool operator==(const iterator& i) const	{ return m_node == i.m_node; }
-//			bool operator!=(const iterator& i) const	{ return m_node != i.m_node; }
+//			bool operator==(const iterator& i) const { return m_node == i.m_node; }
+//			bool operator!=(const iterator& i) const { return m_node != i.m_node; }
 //
-//			segment_buffer* get() const					{ return (!m_node) ? (segment_t*)0 : &(m_node->m_contents); }
-//			segment_buffer& operator*() const			{ return m_node->m_contents; }
-//			segment_buffer* operator->() const			{ return &(m_node->m_contents); }
+//			segment_buffer* get() const { return (!m_node) ? (segment_t*)0 : &(m_node->m_contents); }
+//			segment_buffer& operator*() const { return m_node->m_contents; }
+//			segment_buffer* operator->() const { return &(m_node->m_contents); }
 //			
-//			void clear()								{ m_node = 0; }
+//			void clear() { m_node = 0; }
 //
-//			iterator& operator=(const iterator& i)		{ m_node = i.m_node; return *this; }
+//			iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //		};
 //		
-//		void add_segment(const segment& s) const	// Only called from segment_map.  Ignores buffers
+//		void add_segment(const segment& s) const // Only called from segment_map.  Ignores buffers
 //		{
 //			file_size_t trailingEnd;
 //
@@ -4665,17 +4666,17 @@
 ////				++m_count;
 //				m_list.insert(new (default_allocator::get()) node(s));
 //			}
-//			else	// trailingEnd will be set
+//			else // trailingEnd will be set
 //			{
 //				bool doneMerge = false;
 //				if ((trailingEnd != s.m_start) && (s.m_start < trailingNode->m_start))
 //				{
-//					node* leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start);	// We know leadingNode != trailingNode
+//					node* leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start); // We know leadingNode != trailingNode
 //					if (!leadingNode)
-//						leadingNode = m_list.get_first();				// Might be some cruft overlapping, so start at beginning cleaning stuff out.
-//					else if (leadingNode->get_end() < s.m_start)	// If leadingNode is well before us.
+//						leadingNode = m_list.get_first(); // Might be some cruft overlapping, so start at beginning cleaning stuff out.
+//					else if (leadingNode->get_end() < s.m_start) // If leadingNode is well before us.
 //						++leadingNode;
-//					else											// If leadingNode overlaps or is adjacent
+//					else // If leadingNode overlaps or is adjacent
 //					{
 //						leadingNode->m_segment.merge(s);
 //						trailingNode->m_segment.merge(leadingNode);
@@ -4697,7 +4698,7 @@
 //		}
 //
 //		// add_buffer() 
-//		iterator add_buffer(const segment_buffer& sb) const	// Only called from segment_buffer_map
+//		iterator add_buffer(const segment_buffer& sb) const // Only called from segment_buffer_map
 //		{
 //			;
 //		}
@@ -4705,7 +4706,7 @@
 //		// split_create() ensures there are blocks encompassing the entirety of the specified segment.
 //		// If any blocks are found that span the borders, they are split such that the start and end
 //		// positions of the specified segment will corespond with the start and end of blocks.
-//		iterator split_create(const segment& s) const	// Only called from file_state_map
+//		iterator split_create(const segment& s) const // Only called from file_state_map
 //		{
 //			;
 //		}
@@ -4718,18 +4719,18 @@
 //			//--m_count;
 //		}
 //
-//		iterator get_first() const												{ return iterator(m_list.get_first()); }
-//		iterator get_last() const												{ return iterator(m_list.get_last()); }
+//		iterator get_first() const { return iterator(m_list.get_first()); }
+//		iterator get_last() const { return iterator(m_list.get_last()); }
 //
-//		iterator find(const file_size_t& n) const							{ return iterator(m_list.find_any_equal(n)); }
-//		iterator find_any_before(const file_size_t& n) const				{ return iterator(m_list.find_any_less_than(n)); }
-//		iterator find_any_after(const file_size_t& n) const					{ return iterator(m_list.find_any_greater_than(n)); }
-//		iterator find_equal_or_any_before(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_less_than(n)); }
-//		iterator find_equal_or_any_after(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_greater_than(n)); }
-//		iterator find_nearest_before(const file_size_t& n) const			{ return iterator(m_list.find_nearest_less_than(n)); }
-//		iterator find_nearest_after(const file_size_t& n) const				{ return iterator(m_list.find_nearest_greater_than(n)); }
-//		iterator find_equal_or_nearest_before(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
-//		iterator find_equal_or_nearest_after(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
+//		iterator find(const file_size_t& n) const { return iterator(m_list.find_any_equal(n)); }
+//		iterator find_any_before(const file_size_t& n) const { return iterator(m_list.find_any_less_than(n)); }
+//		iterator find_any_after(const file_size_t& n) const { return iterator(m_list.find_any_greater_than(n)); }
+//		iterator find_equal_or_any_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_less_than(n)); }
+//		iterator find_equal_or_any_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_greater_than(n)); }
+//		iterator find_nearest_before(const file_size_t& n) const { return iterator(m_list.find_nearest_less_than(n)); }
+//		iterator find_nearest_after(const file_size_t& n) const { return iterator(m_list.find_nearest_greater_than(n)); }
+//		iterator find_equal_or_nearest_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
+//		iterator find_equal_or_nearest_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
 //	};
 //
 //public:
@@ -4747,35 +4748,35 @@
 //		class iterator
 //		{
 //		private:
-//			segment_map_base::iterator	m_itor;
+//			segment_map_base::iterator m_itor;
 //
 //		protected:
 //			friend class segment_map;
 //
-//			iterator(const segment_map_base::iterator& i)	:	m_itor(i)	{ }
+//			iterator(const segment_map_base::iterator& i) : m_itor(i) { }
 //
 //		public:
-//			iterator()												{ }
-//			iterator(const iterator& i)		:	m_itor(i.m_itor)	{ }
+//			iterator() { }
+//			iterator(const iterator& i) : m_itor(i.m_itor) { }
 //
-//			iterator& operator=(const iterator& i)		{ m_itor = i.m_itor; return *this; }
+//			iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
 //
-//			iterator& operator++()						{ ++m_itor; return *this; }
-//			iterator operator++(int)					{ return m_itor++; }
+//			iterator& operator++() { ++m_itor; return *this; }
+//			iterator operator++(int) { return m_itor++; }
 //
-//			iterator operator--()						{ return --m_itor; }
-//			iterator operator--(int)					{ return m_itor--; }
+//			iterator operator--() { return --m_itor; }
+//			iterator operator--(int) { return m_itor--; }
 //
-//			bool operator!() const						{ return !m_itor; }
+//			bool operator!() const { return !m_itor; }
 //		
-//			bool operator==(const iterator& i) const	{ return m_itor == i.m_itor; }
-//			bool operator!=(const iterator& i) const	{ return !operator==(i); }
+//			bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
+//			bool operator!=(const iterator& i) const { return !operator==(i); }
 //
-//			const segment* get() const					{ return &(m_itor->get_segment()); }
-//			const segment& operator*() const			{ return (m_itor->get_segment()); }
-//			const segment* operator->() const			{ return &(m_itor->get_segment()); }
+//			const segment* get() const { return &(m_itor->get_segment()); }
+//			const segment& operator*() const { return (m_itor->get_segment()); }
+//			const segment* operator->() const { return &(m_itor->get_segment()); }
 //
-//			void clear()								{ m_itor.clear(); }
+//			void clear() { m_itor.clear(); }
 //		};
 //	};
 //
@@ -4793,35 +4794,35 @@
 //		class iterator
 //		{
 //		private:
-//			segment_map_base::iterator	m_itor;
+//			segment_map_base::iterator m_itor;
 //
 //		protected:
 //			friend class segment_buffer_map;
 //
-//			iterator(const segment_map_base::iterator& i)	:	m_itor(i)	{ }
+//			iterator(const segment_map_base::iterator& i) : m_itor(i) { }
 //
 //		public:
-//			iterator()												{ }
-//			iterator(const iterator& i)		:	m_itor(i.m_itor)	{ }
+//			iterator() { }
+//			iterator(const iterator& i) : m_itor(i.m_itor) { }
 //
-//			iterator& operator=(const iterator& i)		{ m_itor = i.m_itor; return *this; }
+//			iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
 //
-//			iterator& operator++()						{ ++m_itor; return *this; }
-//			iterator operator++(int)					{ return m_itor++; }
+//			iterator& operator++() { ++m_itor; return *this; }
+//			iterator operator++(int) { return m_itor++; }
 //
-//			iterator operator--()						{ return --m_itor; }
-//			iterator operator--(int)					{ return m_itor--; }
+//			iterator operator--() { return --m_itor; }
+//			iterator operator--(int) { return m_itor--; }
 //
-//			bool operator!() const						{ return !m_itor; }
+//			bool operator!() const { return !m_itor; }
 //		
-//			bool operator==(const iterator& i) const	{ return m_itor == i.m_itor; }
-//			bool operator!=(const iterator& i) const	{ return !operator==(i); }
+//			bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
+//			bool operator!=(const iterator& i) const { return !operator==(i); }
 //
-//			const segment_buffer* get() const			{ return m_itor->get(); }
-//			const segment_buffer& operator*() const		{ return *m_itor; }
-//			const segment_buffer* operator->() const	{ return m_itor->get(); }
+//			const segment_buffer* get() const { return m_itor->get(); }
+//			const segment_buffer& operator*() const { return *m_itor; }
+//			const segment_buffer* operator->() const { return m_itor->get(); }
 //
-//			void clear()								{ m_itor.clear(); }
+//			void clear() { m_itor.clear(); }
 //		};
 //	};
 //};
@@ -4865,20 +4866,20 @@
 //			
 //		private:
 //			length_aux_t(const file_size_t& length)
-//				:	m_length(length)
+//				: m_length(length)
 //			{ }
 //
 //			// The following defines the minimum interface for any classes used with segment_base<>.
 //
-//			length_aux_t(const length_aux_t& src)	// copy constructor
-//				:	m_length(src.m_length)
+//			length_aux_t(const length_aux_t& src) // copy constructor
+//				: m_length(src.m_length)
 //			{ }
 //
-//			length_aux_t& operator=(const length_aux_t& src)	{ m_length = src.m_length; }
+//			length_aux_t& operator=(const length_aux_t& src) { m_length = src.m_length; }
 //
-//			file_size_t get_length() const	{ return m_length; }
+//			file_size_t get_length() const { return m_length; }
 //
-//			length_aux_t split_off_before(file_size_t n)	{ return length_aux_t(n); }
+//			length_aux_t split_off_before(file_size_t n) { return length_aux_t(n); }
 //
 //			length_aux_t split_off_after(file_size_t n)
 //			{
@@ -4887,33 +4888,33 @@
 //				return result;
 //			}
 //
-//			void advance(file_size_t n)					{ m_length -= n; }
+//			void advance(file_size_t n) { m_length -= n; }
 //		};
 //
 //		typedef std::conditional_t<std::is_same_v<aux_t, file_size_t>, length_aux_t, aux_t>	internal_t;
 //
 //	public:
-//		file_size_t	m_start;
-//		internal_t	m_aux;
+//		file_size_t m_start;
+//		internal_t m_aux;
 //
 //		segment_base()
 //		{ }
 //
 //		segment_base(const this_t& s)
-//			:	m_start(s.m_start),
-//				m_aux(s.m_aux)
+//			: m_start(s.m_start),
+//			m_aux(s.m_aux)
 //		{ }
 //
 //		segment_base(const file_size_t& start, const aux_t& aux)
-//			:	m_start(start),
-//				m_aux(aux)
+//			: m_start(start),
+//			m_aux(aux)
 //		{ }
 //		
-//		const file_size_t get_start() const				{ return m_start; }
-//		const file_size_t get_length() const			{ return m_aux.get_length(); }
-//		const file_size_t get_end() const				{ return m_start + get_length(); }
+//		const file_size_t get_start() const { return m_start; }
+//		const file_size_t get_length() const { return m_aux.get_length(); }
+//		const file_size_t get_end() const { return m_start + get_length(); }
 //
-//		const segment<file_size_t> get_segment() const	{ return segment<file_size_t>(get_start(), get_length()); }
+//		const segment<file_size_t> get_segment() const { return segment<file_size_t>(get_start(), get_length()); }
 //
 //		this_t split_off_after(file_size_t n)
 //		{
@@ -4945,7 +4946,7 @@
 //			if (s.m_start <= m_start)
 //			{
 //				file_size_t gap = m_start - s.m_start;
-//				if (!!gap)	// At this point, s starts before this.  We need to add the portion of s that starts before us.
+//				if (!!gap) // At this point, s starts before this.  We need to add the portion of s that starts before us.
 //				{
 //					;
 //
@@ -4969,28 +4970,28 @@
 //		}
 //	};
 //	
-//	template <typename aux_t>	// aux_t can be buffer, composite_buffer, or void
+//	template <typename aux_t> // aux_t can be buffer, composite_buffer, or void
 //	class segment_base
 //	{
 //	public:
-//		file_size_t	m_start;
-//		composite_buffer	m_buffer;
+//		file_size_t m_start;
+//		composite_buffer m_buffer;
 //
 //		segment_buffer()
 //		{ }
 //
 //		segment_buffer(const segment_buffer& sb)
-//			:	m_start(sb.m_start),
-//				m_buffer(sb.m_buffer)
+//			: m_start(sb.m_start),
+//			m_buffer(sb.m_buffer)
 //		{ }
 //
 //		segment_buffer(const file_size_t start, const composite_buffer& buffer)
-//			:	m_start(start),
-//				m_buffer(buffer)
+//			: m_start(start),
+//			m_buffer(buffer)
 //		{ }
 //
-//		const segment get_segment() const	{ return segment(m_start, m_buffer.size()); }
-//		const file_size_t get_end() const	{ return m_start + m_buffer.size(); }
+//		const segment get_segment() const { return segment(m_start, m_buffer.size()); }
+//		const file_size_t get_end() const { return m_start + m_buffer.size(); }
 //
 //		// merge() stores the union of both segment_buffers.  It's an error to use merge() with
 //		// segment_buffers that are not overlaping or adjacent.
@@ -4999,7 +5000,7 @@
 //			composite_buffer newBuffer;
 //			if (s.m_start <= m_start)
 //			{
-//				file_size_t gap = m_start - s.m_start;	// will be <= s.m_buffer.size()
+//				file_size_t gap = m_start - s.m_start; // will be <= s.m_buffer.size()
 //				m_start = s.m_start;
 //				newBuffer = s.m_buffer;
 //				if (s.m_buffer.size() < gap + m_buffer.size())
@@ -5062,14 +5063,14 @@
 //		class node : public sorted_list_node<false, node>
 //		{
 //		public:
-//			segment_t	m_segment;
+//			segment_t m_segment;
 //
 //			node(const segment_t& s)
-//				:	m_segment(s)
+//				: m_segment(s)
 //			{ }
 //		};
 //
-//		typedef sorted_list<file_size_t, false, node>	list_t;
+//		typedef sorted_list<file_size_t, false, node> list_t;
 //		list_t m_list;
 //		size_t m_count;
 //
@@ -5093,39 +5094,39 @@
 //			ptr<node> m_node;
 //
 //		protected:
-//			iterator(const ptr<node>& n)	:	m_node(n)	{ }
+//			iterator(const ptr<node>& n) : m_node(n) { }
 //
 //			friend class segment_list_base<hasBufferList>;
 //
 //		public:
-//			iterator()	{ }
+//			iterator() { }
 //
-//			iterator(const iterator& i)	:	m_node(i.m_node)	{ }
+//			iterator(const iterator& i) : m_node(i.m_node) { }
 //
-//			iterator& operator++()		{ if (!!m_node) m_node = node::get_next(m_node); return *this; }
-//			iterator& operator--()		{ if (!!m_node) m_node = node::get_prev(m_node); return *this; }
+//			iterator& operator++() { if (!!m_node) m_node = node::get_next(m_node); return *this; }
+//			iterator& operator--() { if (!!m_node) m_node = node::get_prev(m_node); return *this; }
 //
-//			bool operator!() const						{ return !m_node; }
+//			bool operator!() const { return !m_node; }
 //
-//			bool operator==(const iterator& i) const	{ return m_node == i.m_node; }
-//			bool operator!=(const iterator& i) const	{ return m_node != i.m_node; }
+//			bool operator==(const iterator& i) const { return m_node == i.m_node; }
+//			bool operator!=(const iterator& i) const { return m_node != i.m_node; }
 //
-//			segment_t* get() const						{ return (!m_node) ? (segment_t*)0 : &(m_node->m_contents); }
-//			segment_t& operator*() const				{ return m_node->m_contents; }
-//			segment_t* operator->() const				{ return &(m_node->m_contents); }
+//			segment_t* get() const { return (!m_node) ? (segment_t*)0 : &(m_node->m_contents); }
+//			segment_t& operator*() const { return m_node->m_contents; }
+//			segment_t* operator->() const { return &(m_node->m_contents); }
 //
-//			void clear()								{ m_node = 0; }
+//			void clear() { m_node = 0; }
 //
-//			iterator& operator=(const iterator& i)		{ m_node = i.m_node; return *this; }
+//			iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //		};
 //
-//		segment_list_base()						:	m_count(0)	{ }
-//		segment_list_base(const segment_t& s)	:	m_count(1)	{ m_list.insert(new (default_allocator::get()) node(s)); }
+//		segment_list_base() : m_count(0) { }
+//		segment_list_base(const segment_t& s) : m_count(1) { m_list.insert(new (default_allocator::get()) node(s)); }
 //
-//		~segment_list_base()			{ clear_inner(); }
+//		~segment_list_base() { clear_inner(); }
 //
-//		const size_t count() const		{ return m_count; }
-//		bool is_empty() const			{ return !m_count; }
+//		const size_t count() const { return m_count; }
+//		bool is_empty() const { return !m_count; }
 //
 //		void clear()
 //		{
@@ -5177,17 +5178,17 @@
 //				++m_count;
 //				m_list.insert(new (default_allocator::get()) node(s));
 //			}
-//			else	// trailingEnd will be set
+//			else // trailingEnd will be set
 //			{
 //				bool doneMerge = false;
 //				if ((trailingEnd != s.m_start) && (s.m_start < trailingNode->m_start))
 //				{
-//					node* leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start);	// We know leadingNode != trailingNode
+//					node* leadingNode = m_list.find_any_equal_or_nearest_less_than(s.m_start); // We know leadingNode != trailingNode
 //					if (!leadingNode)
-//						leadingNode = m_list.get_first();				// Might be some cruft overlapping, so start at beginning cleaning stuff out.
-//					else if (leadingNode->get_end() < s.m_start)	// If leadingNode is well before us.
+//						leadingNode = m_list.get_first(); // Might be some cruft overlapping, so start at beginning cleaning stuff out.
+//					else if (leadingNode->get_end() < s.m_start) // If leadingNode is well before us.
 //						++leadingNode;
-//					else											// If leadingNode overlaps or is adjacent
+//					else // If leadingNode overlaps or is adjacent
 //					{
 //						leadingNode->m_segment.merge(s);
 //						trailingNode->m_segment.merge(leadingNode);
@@ -5216,18 +5217,18 @@
 //			--m_count;
 //		}
 //
-//		iterator get_first() const												{ return iterator(m_list.get_first()); }
-//		iterator get_last() const												{ return iterator(m_list.get_last()); }
+//		iterator get_first() const { return iterator(m_list.get_first()); }
+//		iterator get_last() const { return iterator(m_list.get_last()); }
 //
-//		iterator find(const file_size_t& n) const							{ return iterator(m_list.find_any_equal(n)); }
-//		iterator find_any_before(const file_size_t& n) const				{ return iterator(m_list.find_any_less_than(n)); }
-//		iterator find_any_after(const file_size_t& n) const					{ return iterator(m_list.find_any_greater_than(n)); }
-//		iterator find_equal_or_any_before(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_less_than(n)); }
-//		iterator find_equal_or_any_after(const file_size_t& n) const		{ return iterator(m_list.find_any_equal_or_greater_than(n)); }
-//		iterator find_nearest_before(const file_size_t& n) const			{ return iterator(m_list.find_nearest_less_than(n)); }
-//		iterator find_nearest_after(const file_size_t& n) const				{ return iterator(m_list.find_nearest_greater_than(n)); }
-//		iterator find_equal_or_nearest_before(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
-//		iterator find_equal_or_nearest_after(const file_size_t& n) const	{ return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
+//		iterator find(const file_size_t& n) const { return iterator(m_list.find_any_equal(n)); }
+//		iterator find_any_before(const file_size_t& n) const { return iterator(m_list.find_any_less_than(n)); }
+//		iterator find_any_after(const file_size_t& n) const { return iterator(m_list.find_any_greater_than(n)); }
+//		iterator find_equal_or_any_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_less_than(n)); }
+//		iterator find_equal_or_any_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_greater_than(n)); }
+//		iterator find_nearest_before(const file_size_t& n) const { return iterator(m_list.find_nearest_less_than(n)); }
+//		iterator find_nearest_after(const file_size_t& n) const { return iterator(m_list.find_nearest_greater_than(n)); }
+//		iterator find_equal_or_nearest_before(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_less_than(n)); }
+//		iterator find_equal_or_nearest_after(const file_size_t& n) const { return iterator(m_list.find_any_equal_or_nearest_greater_than(n)); }
 //	};
 //
 //	template <typename content_t>
@@ -5237,24 +5238,24 @@
 //		class map_segment : public segment, public sorted_list_node<true, map_segment>
 //		{
 //		public:
-//			content_t	m_contents;
+//			content_t m_contents;
 //
 //		protected:
 //			friend class segment_map_base<content_t>;
 //
 //			map_segment(const segment& s, const content_t& c)
-//				:	segment(s),
-//					m_contents(c)
+//				: segment(s),
+//				m_contents(c)
 //			{ }
 //
 //			map_segment(const segment& s)
-//				:	segment(s)
+//				: segment(s)
 //			{ }
 //		};
 //
 //	private:
 //		typedef sorted_list<file_size_t, true, map_segment> list_t;
-//		list_t	m_list;
+//		list_t m_list;
 //
 //		map_segment* split_off_after_at(map_segment& ss, file_size_t p)
 //		{
@@ -5300,7 +5301,7 @@
 //			return result;
 //		}
 //
-//		map_segment* add(const segment& s)	// returns first in new range
+//		map_segment* add(const segment& s) // returns first in new range
 //		{
 //			map_segment* ss = m_list.find_nearest_less_than(s.m_end);
 //			if ((!ss) || (ss->m_end <= s.m_start))
@@ -5310,25 +5311,25 @@
 //			}
 //			else
 //			{
-//				if (ss->m_end < s.m_end)		// If extending past the new range, create a new block to bridge the gap
+//				if (ss->m_end < s.m_end) // If extending past the new range, create a new block to bridge the gap
 //					m_list.insert(new (default_allocator::get()) map_segment(segment(ss->m_end, s.m_end)));
-//				else if (s.m_end < ss->m_end)	// If splitting the block at the end
+//				else if (s.m_end < ss->m_end) // If splitting the block at the end
 //					split_off_after_at(ss, s.m_end);
-//				for (;;)	// just to use break/continue as goto labels
+//				for (;;) // just to use break/continue as goto labels
 //				{
-//					if (ss->m_start < s.m_start)	// trim leading, then done.
+//					if (ss->m_start < s.m_start) // trim leading, then done.
 //						ss = split_off_after_at(ss, s.m_start);
-//					else if (s.m_start < ss->m_start)	// block starts before curSubrange.  We need to look for prev blocks.
+//					else if (s.m_start < ss->m_start) // block starts before curSubrange.  We need to look for prev blocks.
 //					{
 //						map_segment* prev = map_segment::get_prev(ss);
-//						if ((!prev) || (prev->m_end <= s.m_start)) 	// Nothing prior within this segment, create 1 new segment
+//						if ((!prev) || (prev->m_end <= s.m_start)) // Nothing prior within this segment, create 1 new segment
 //						{
 //							ss = new (default_allocator::get()) map_segment(segment(s.m_start, ss->m_start));
 //							m_list.insert(ss);
 //						}
-//						else // (s.m_start < prev->m_end)	// If prev ends within our block
+//						else // (s.m_start < prev->m_end) // If prev ends within our block
 //						{
-//							if (prev->m_end < ss->m_start)	// If prev ends before subsequent block starts, fill the gap
+//							if (prev->m_end < ss->m_start) // If prev ends before subsequent block starts, fill the gap
 //								m_list.insert(new (default_allocator::get()) map_segment(segment(prev->m_end, ss->m_start)));
 //							ss = prev;
 //							continue;
@@ -5348,11 +5349,11 @@
 //	};
 //
 //public:
-//	typedef segment_base<void>	segment;
+//	typedef segment_base<void> segment;
 //
-//	typedef segment_base<buffer>	segment_buffer;
+//	typedef segment_base<buffer> segment_buffer;
 //
-//	typedef segment_base<composite_buffer>	segment_composite_buffer;
+//	typedef segment_base<composite_buffer> segment_composite_buffer;
 //
 //	typedef segment_list_base<false> segment_list;
 //
@@ -5366,10 +5367,10 @@
 //	class transaction_internals
 //	{
 //	public:
-//		rcptr<reader>					m_firstReader;
-//		rcptr<writer>					m_firstWriter;
-//		segment_list					m_writeMask;
-//		rcptr<transaction_internals>	m_nextTransaction;
+//		rcptr<reader> m_firstReader;
+//		rcptr<writer> m_firstWriter;
+//		segment_list m_writeMask;
+//		rcptr<transaction_internals> m_nextTransaction;
 //	};
 //
 //public:
@@ -5386,27 +5387,27 @@
 //	protected:
 //		friend class file<read_access>;
 //
-//		event								m_event;
-//		segment_list						m_requestedSegments;
-//		vector_buffer						m_vectorBuffer;
-//		rcptr<reader>						m_nextReader;
-//		size_t								m_numInnerReaders;
-//		weak_rcptr<transaction_internals>	m_transaction;
+//		event m_event;
+//		segment_list m_requestedSegments;
+//		vector_buffer m_vectorBuffer;
+//		rcptr<reader> m_nextReader;
+//		size_t m_numInnerReaders;
+//		weak_rcptr<transaction_internals> m_transaction;
 //
-//		reader()	:	m_numInnerReaders(0)	{ self_acquire(); }
+//		reader() : m_numInnerReaders(0) { self_acquire(); }
 //
-//		void complete()		{ m_event.set(); self_release(); }
-//		virtual void reading()	{ complete(); }
+//		void complete() { m_event.set(); self_release(); }
+//		virtual void reading() { complete(); }
 //
 //	public:
-//		const segment_list& get_segments() const	{ return m_requestedSegments; }
-//		const vector_buffer& get_buffers() const	{ return m_vectorBuffer; }
+//		const segment_list& get_segments() const { return m_requestedSegments; }
+//		const vector_buffer& get_buffers() const { return m_vectorBuffer; }
 //
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile				{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const						{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	class read_only_cursor : public datasource, public object
@@ -5414,20 +5415,20 @@
 //	protected:
 //		friend class file<read_access>;
 //
-//		const weak_rcptr<file<read_access> >	m_file;
-//		file_size_t									m_curPos;
+//		const weak_rcptr<file<read_access> > m_file;
+//		file_size_t m_curPos;
 //
-//		const rcref<queue>& get_io_queue() const	{ return m_ioQueue; }
+//		const rcref<queue>& get_io_queue() const { return m_ioQueue; }
 //
 //		class cursor_reader : public datasource::reader
 //		{
 //		protected:
-//			const weak_rcptr<read_only_cursor>				m_cursor;
+//			const weak_rcptr<read_only_cursor> m_cursor;
 //
 //		public:
 //			cursor_reader(const rcref<read_only_cursor>& c)
-//				:	m_cursor(c),
-//					datasource::reader(c)
+//				: m_cursor(c),
+//				datasource::reader(c)
 //			{ }
 //
 //			virtual void reading()
@@ -5471,20 +5472,20 @@
 //		protected:
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			file_size_t							m_position;
-//			bool								m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			file_size_t m_position;
+//			bool m_succeeded;
 //
 //			seeker(file_size_t pos, const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_position(pos),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_position(pos),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -5499,7 +5500,7 @@
 //			}
 //
 //		public:
-//			bool succeeded() const	{ return m_succeeded; }
+//			bool succeeded() const { return m_succeeded; }
 //		};
 //
 //		class teller : public queue::operation
@@ -5508,19 +5509,19 @@
 //			friend class file<read_access>;
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			file_size_t							m_position;
-//			bool								m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			file_size_t m_position;
+//			bool m_succeeded;
 //
 //			teller(const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -5550,8 +5551,8 @@
 //		{
 //		public:
 //			eof_seeker(const rcref<read_only_cursor>& c)
-//				:	seeker(0, c)
-//			{ } 		
+//				: seeker(0, c)
+//			{ }
 //
 //			virtual void execute()
 //			{
@@ -5571,13 +5572,13 @@
 //					}
 //				}
 //			}
-//		};		
+//		};
 //		
 //		class eof_teller : public teller
 //		{
 //		public:
 //			eof_teller(const rcref<read_only_cursor>& c)
-//				:	teller(c)
+//				: teller(c)
 //			{ }
 //
 //			virtual void execute()
@@ -5630,8 +5631,8 @@
 //
 //	protected:
 //		read_only_cursor(const rcref<file>& f, const rcref<queue>& ioQueue = queue::create())
-//			:	datasource(ioQueue),
-//				m_file(f)
+//			: datasource(ioQueue),
+//			m_file(f)
 //		{ }
 //	};
 //
@@ -5646,37 +5647,37 @@
 //		friend class file<read_access>;
 //		friend class file<read_write_access>;
 //
-//		event								m_event;
-//		vector_buffer						m_unwrittenBuffers;
-//		rcptr<writer>						m_nextWriter;
-//		size_t								m_numInnerWriters;
-//		weak_rcptr<transaction_internals>	m_transaction;
+//		event m_event;
+//		vector_buffer m_unwrittenBuffers;
+//		rcptr<writer> m_nextWriter;
+//		size_t m_numInnerWriters;
+//		weak_rcptr<transaction_internals> m_transaction;
 //
-//		writer()	:	m_numInnerWriters(0)	{ self_acquire(); }
+//		writer() : m_numInnerWriters(0) { self_acquire(); }
 //
-//		void complete()			{ m_event.set(); self_release(); }
-//		virtual void writing()	{ complete(); }
+//		void complete() { m_event.set(); self_release(); }
+//		virtual void writing() { complete(); }
 //
 //	public:
-//		const composite_buffer& get_unwritten_buffers() const	{ return m_unwrittenBuffers; }
+//		const composite_buffer& get_unwritten_buffers() const { return m_unwrittenBuffers; }
 //
 //		typedef delegate_t<void, const rcref<const writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile				{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d) const						{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	class inner_reader : public reader
 //	{
 //	public:
-//		rcptr<reader>	m_firstWaitingOuterReader;
+//		rcptr<reader> m_firstWaitingOuterReader;
 //	};
 //
 //	class inner_writer : public writer
 //	{
 //	public:
-//		rcptr<writer>	m_firstWaitingOuterWriter;
+//		rcptr<writer> m_firstWaitingOuterWriter;
 //	};
 //
 //	// segment_state_map_t is a helper class representing N ranges, which may potentially overlap.
@@ -5689,25 +5690,25 @@
 //		class state_segment : public segment, public sorted_list_node<true, state_segment>
 //		{
 //		public:
-//			state_t		m_state;
-//			composite_buffer	m_buffer;
+//			state_t m_state;
+//			composite_buffer m_buffer;
 //
 //		protected:
 //			friend class segment_state_map_t<state_t>;
 //
 //			state_segment(const state_segment& ss, const segment& s, const composite_buffer& b)
-//				:	segment(s),
-//					m_state(ss.m_state)
+//				: segment(s),
+//				m_state(ss.m_state)
 //			{ }
 //
 //			state_segment(const segment& s)
-//				:	segment(s)
+//				: segment(s)
 //			{ }
 //		};
 //
 //	private:
 //		typedef sorted_list<file_size_t, true, state_segment> state_list_t;
-//		state_list_t	m_stateList;
+//		state_list_t m_stateList;
 //
 //		state_segment* split_off_after_at(state_segment& ss, file_size_t p)
 //		{
@@ -5753,7 +5754,7 @@
 //			return result;
 //		}
 //
-//		state_segment* create_state(const segment& s)	// returns first in new range
+//		state_segment* create_state(const segment& s) // returns first in new range
 //		{
 //			state_segment* ss = m_subrangeList.find_nearest_less_than(s.m_end);
 //			if ((!ss) || (ss->m_end <= s.m_start))
@@ -5763,25 +5764,25 @@
 //			}
 //			else
 //			{
-//				if (ss->m_end < s.m_end)		// If extending past the new range, create a new block to bridge the gap
+//				if (ss->m_end < s.m_end) // If extending past the new range, create a new block to bridge the gap
 //					m_subrangeList.insert(new (default_allocator::get()) state_segment(segment(ss->m_end, s.m_end)));
-//				else if (s.m_end < ss->m_end)	// If splitting the block at the end
+//				else if (s.m_end < ss->m_end) // If splitting the block at the end
 //					split_off_after_at(ss, s.m_end);
-//				for (;;)	// just to use break/continue as goto labels
+//				for (;;) // just to use break/continue as goto labels
 //				{
-//					if (ss->m_start < s.m_start)	// trim leading, then done.
+//					if (ss->m_start < s.m_start) // trim leading, then done.
 //						ss = split_off_after_at(ss, s.m_start);
-//					else if (s.m_start < ss->m_start)	// block starts before curSubrange.  We need to look for prev blocks.
+//					else if (s.m_start < ss->m_start) // block starts before curSubrange.  We need to look for prev blocks.
 //					{
 //						state_segment* prev = state_segment::get_prev(ss);
-//						if ((!prev) || (prev->m_end <= s.m_start)) 	// Nothing prior within this segment, create 1 new segment
+//						if ((!prev) || (prev->m_end <= s.m_start)) // Nothing prior within this segment, create 1 new segment
 //						{
 //							ss = new (default_allocator::get()) state_segment(segment(s.m_start, ss->m_start));
 //							m_subrangeList.insert(ss);
 //						}
-//						else // (s.m_start < prev->m_end)	// If prev ends within our block
+//						else // (s.m_start < prev->m_end) // If prev ends within our block
 //						{
-//							if (prev->m_end < ss->m_start)	// If prev ends before subsequent block starts, fill the gap
+//							if (prev->m_end < ss->m_start) // If prev ends before subsequent block starts, fill the gap
 //								m_subrangeList.insert(new (default_allocator::get()) state_segment(segment(prev->m_end, ss->m_start)));
 //							ss = prev;
 //							continue;
@@ -5806,21 +5807,21 @@
 //	class issued_segment_state_t
 //	{
 //	public:
-//		rcptr<inner_reader>	m_issuedReader;		// Set if a reader is issued in this segment.  Removed when it completes.
-//		rcptr<inner_writer>	m_issuedWriter;		// Set if a writer is issued in this segment.  Removed when it completes.
+//		rcptr<inner_reader> m_issuedReader; // Set if a reader is issued in this segment.  Removed when it completes.
+//		rcptr<inner_writer> m_issuedWriter; // Set if a writer is issued in this segment.  Removed when it completes.
 //	};
 //
-//	typedef segment_state_map_t<issued_segment_state_t>	issued_state_map_t;
+//	typedef segment_state_map_t<issued_segment_state_t> issued_state_map_t;
 //
-//	issued_state_map_t	m_issuedStateMap;
+//	issued_state_map_t m_issuedStateMap;
 //
 //	void issue_read(const rcref<reader>& r)
 //	{
-//		rcptr<inner_reader>	innerReader = 0;
+//		rcptr<inner_reader> innerReader = 0;
 //		segment_list::iterator itor = r->m_requestedSegments.get_first();
 //		while (!!itor)
 //		{
-//			do {			
+//			do {
 //				issued_state_map_t::state_segment* ss = m_issuedStateMap.create_state(*itor);
 //				if (!!ss->m_buffer)
 //					r->m_vectorBuffer.add(segment_buffer(ss->m_start, ss->m_buffer));
@@ -5850,7 +5851,7 @@
 //
 //	void issue_write(const rcref<writer>& w)
 //	{
-//		rcptr<inner_writer>	innerWriter;
+//		rcptr<inner_writer> innerWriter;
 //		segment_list::iterator itor = w->m_unwrittenBuffers.get_first();
 //		while (!!itor)
 //		{
@@ -5858,9 +5859,9 @@
 //				issued_state_map_t::state_segment* ss = m_issuedStateMap.create_state(*itor);
 //				ss->m_buffer = itor->m_buffer;
 //
-//				if (!!ss->m_start.m_issuedWriter)	// If there is another writer, then this is a collision.
-//				{									// It's valid to err in favor of the existing write, so, the new write
-//					if (ss->m_state.m_issuedWriter->m_firstWaitingOuterWriter)	// need only wait for completion.
+//				if (!!ss->m_start.m_issuedWriter) // If there is another writer, then this is a collision.
+//				{ // It's valid to err in favor of the existing write, so, the new write
+//					if (ss->m_state.m_issuedWriter->m_firstWaitingOuterWriter) // need only wait for completion.
 //						w->m_firstWaitingOuterWriter = ss->m_state.m_issuedWriter->m_firstWaitingOuterWriter;
 //					ss->m_state.m_issuedWriter->m_firstWaitingOuterWriter = w;
 //				}
@@ -5914,14 +5915,14 @@
 //	}
 //
 //	//	If any of these segments are written to before the failable_transaction completes, it fails.
-//	collection<rcref<class failable_transaction_internals> >	m_failableTransactions;
+//	collection<rcref<class failable_transaction_internals> > m_failableTransactions;
 //
 //	class failable_transaction_internals : public transaction_internals
 //	{
 //	public:
-//		typename collection<rcref<failable_transaction_internals> >::remove_token	m_removeToken;
-//		segment_list	m_readRanges;
-//		bool			m_aborted;
+//		typename collection<rcref<failable_transaction_internals> >::remove_token m_removeToken;
+//		segment_list m_readRanges;
+//		bool m_aborted;
 //		
 //		void abort()
 //		{
@@ -5949,7 +5950,7 @@
 //	class locking_transaction_internals : public transaction_internals
 //	{
 //	public:
-//		collection<rcref<reader> >	m_deferredReaders;	// Will be populated if this locking_transaction is not the active one.
+//		collection<rcref<reader> > m_deferredReaders; // Will be populated if this locking_transaction is not the active one.
 //	};
 //
 //	class coalesced_transaction_state
@@ -5958,16 +5959,16 @@
 //		ptr<coalesced_transaction_state> m_nextCoalescedTransactionState;
 //		ptr<coalesced_transaction_state> m_prevCoalescedTransactionState;
 //
-//		rcptr<reader>	m_outerReader;
+//		rcptr<reader> m_outerReader;
 //
 //		coalesced_transaction_state()
 //		{
 //		}
 //
 //		coalesced_transaction_state(const coalesced_transaction_state& src)
-//			:	m_outerReader(src.m_outerReader),
-//				m_prevCoalescedTransactionState(src),
-//				m_nextCoalescedTransactionState(src.m_nextCoalescedTransactionState)
+//			: m_outerReader(src.m_outerReader),
+//			m_prevCoalescedTransactionState(src),
+//			m_nextCoalescedTransactionState(src.m_nextCoalescedTransactionState)
 //		{
 //			src.m_nextCoalescedTransactionState = this;
 //			if (m_nextCoalescedTransactionState)
@@ -5977,14 +5978,14 @@
 //
 //	typedef segment_state_map_t<coalesced_transaction_state> coalesced_transaction_map;
 //
-//	coalesced_transaction_map	m_coalescedTransactionMap;
+//	coalesced_transaction_map m_coalescedTransactionMap;
 //
 //	void coalesc_deferred_reader(const rcref<reader>& r)
 //	{
 //		segment_list::iterator itor = r->m_requestedSegments.get_first();
 //		while (!!itor)
 //		{
-//			do {			
+//			do {
 //				coalesced_transaction_map::state_segment* ss = m_coalescedTransactionMap.create_state(*itor);
 //				if (!!ss->m_buffer)
 //					r->m_vectorBuffer.add(segment_buffer(ss->m_start, ss->m_buffer));
@@ -6039,15 +6040,15 @@
 //	}
 //
 //	// The locking_transaction currently in progress
-//	rcptr<locking_transaction_internals>	m_currentLockingTransaction;
+//	rcptr<locking_transaction_internals> m_currentLockingTransaction;
 //
 //	// A link-list of deferred locking transactions
-//	rcptr<locking_transaction_internals>	m_deferredLockingTransactions;
+//	rcptr<locking_transaction_internals> m_deferredLockingTransactions;
 //
 //	// A link-list of composed_transactions and/or failable_transactions containg writes that overlapped
 //	// with the current locking_transaction.  This list is processed between locking_transaction's.
-//	rcptr<transaction_internals>			m_deferredComposedTransactions;
-//	rcptr<failable_transaction_internals>	m_deferredFailableTransactions;
+//	rcptr<transaction_internals> m_deferredComposedTransactions;
+//	rcptr<failable_transaction_internals> m_deferredFailableTransactions;
 //
 //	// lock-mask
 //	//
@@ -6055,9 +6056,9 @@
 //	//	Any transaction that contains writes to a segment that has been read by the locking_transaction,
 //	//	will be blocked until the locking_transaction is complete (and issued before the next locking_transaction
 //	//	is issued).
-//	segment_list	m_lockMask;
+//	segment_list m_lockMask;
 //
-//	delegate_serial_defer_guard		m_deferGuard;
+//	delegate_serial_defer_guard m_deferGuard;
 //
 //	void commit_failable_read(rcref<reader>& r)
 //	{
@@ -6066,8 +6067,8 @@
 //			r->reading()
 //		else
 //		{
-//			t->m_readRange.add(m_firstReader->m_requestedSegments);	// Register the segment in the write_notification_map
-//			issue_read(r);	//Issue read directly to issued_map
+//			t->m_readRange.add(m_firstReader->m_requestedSegments); // Register the segment in the write_notification_map
+//			issue_read(r); //Issue read directly to issued_map
 //		}
 //	};
 //
@@ -6075,8 +6076,8 @@
 //	{
 //		if (m_lockMask.does_overlap(t->m_writeMask))
 //			return false;
-//		run_write_notifications(t->m_writeMask);	// Next check for overlaps with the write notifications, aborting failable_transactions if necessary.
-//		issue_transaction(t);	//Issue both reads and writers directly to issued-map
+//		run_write_notifications(t->m_writeMask); // Next check for overlaps with the write notifications, aborting failable_transactions if necessary.
+//		issue_transaction(t); //Issue both reads and writers directly to issued-map
 //		return true;
 //	};
 //
@@ -6091,8 +6092,8 @@
 //
 //	void commit_failable(const rcref<failable_transaction_internals>& t)
 //	{
-//		if (t->m_aborted)	//check if transaction was interrupted. 
-//		{					// If so, complete the writes without issuing them and return.
+//		if (t->m_aborted) //check if transaction was interrupted. 
+//		{                 // If so, complete the writes without issuing them and return.
 //			// TODO: Abort all writers
 //		}
 //		m_failableTransactions.remove(t->m_removeToken);
@@ -6110,7 +6111,7 @@
 //		// Checks writes against write_notification_map, but NOT the lock_map
 //		run_write_notifications(t->m_writeMask);
 //		
-//		issue_writes(t);	// Issue the writes.
+//		issue_writes(t); // Issue the writes.
 //		m_lockMask.clear();
 //
 //		// issue everything in m_waitingComposedTransactions and clean it out.
@@ -6143,12 +6144,12 @@
 //		friend class file<read_access>;
 //		friend class file<read_write_access>;
 //
-//		weak_rcptr<file<read_access> >	m_file;
-//		rcref<locking_transaction_internals>	m_transaction;
+//		weak_rcptr<file<read_access> > m_file;
+//		rcref<locking_transaction_internals> m_transaction;
 //
 //		locking_transaction(const rcref<file<read_access> >& f)
-//			:	m_file(f),
-//				m_transaction(rcnew(locking_transaction_internals))
+//			: m_file(f),
+//			m_transaction(rcnew(locking_transaction_internals))
 //		{ }
 //
 //	public:
@@ -6183,8 +6184,8 @@
 //			}
 //			return r;
 //		}
-//		rcref<reader> read(const segment& s)				{ return read(segment_list(s)); }
-//		rcref<reader> read(file_size_t offset, size_t n)	{ return read(segment(offset, n)); }
+//		rcref<reader> read(const segment& s) { return read(segment_list(s)); }
+//		rcref<reader> read(file_size_t offset, size_t n) { return read(segment(offset, n)); }
 //
 //
 //	};
@@ -6199,12 +6200,12 @@
 //		friend class file<read_access>;
 //		friend class file<read_write_access>;
 //
-//		weak_rcptr<file<read_access> >	m_file;
-//		rcref<failable_transaction_internals>	m_transaction;
+//		weak_rcptr<file<read_access> > m_file;
+//		rcref<failable_transaction_internals> m_transaction;
 //
 //		failable_transaction(const rcref<file<read_access> >& f)
-//			:	m_file(f),
-//				m_transaction(rcnew(failable_transaction_internals))
+//			: m_file(f),
+//			m_transaction(rcnew(failable_transaction_internals))
 //		{ }
 //
 //	public:
@@ -6253,12 +6254,12 @@
 //		friend class file<read_access>;
 //		friend class file<read_write_access>;
 //
-//		weak_rcptr<file<read_access> >	m_file;
-//		rcref<transaction_internals>	m_transaction;
+//		weak_rcptr<file<read_access> > m_file;
+//		rcref<transaction_internals> m_transaction;
 //
 //		composed_transaction(const rcref<file<read_access> >& f)
-//			:	m_file(f),
-//				m_transaction(rcnew(transaction_internals))
+//			: m_file(f),
+//			m_transaction(rcnew(transaction_internals))
 //		{ }
 //
 //	public:
@@ -6327,10 +6328,10 @@
 //class file<read_write_access> : public file<read_access>
 //{
 //public:
-//	typedef file<read_access>::reader					reader;
-//	typedef file<read_access>::writer					writer;
-////	typedef file<read_access>::locking_transaction		locking_transaction;
-////	typedef file<read_access>::failable_transaction	failable_transaction;
+//	typedef file<read_access>::reader reader;
+//	typedef file<read_access>::writer writer;
+////	typedef file<read_access>::locking_transaction locking_transaction;
+////	typedef file<read_access>::failable_transaction failable_transaction;
 //
 //	class composed_transaction : public file<read_access>::composed_transaction
 //	{
@@ -6338,7 +6339,7 @@
 //		friend class file<read_write_access>;
 //
 //		composed_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::composed_transaction(f)
+//			: file<read_access>::composed_transaction(f)
 //		{ }
 //
 //	public:
@@ -6362,7 +6363,7 @@
 //		friend class file<read_write_access>;
 //
 //		failable_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::failable_transaction(f)
+//			: file<read_access>::failable_transaction(f)
 //		{ }
 //
 //	public:
@@ -6386,7 +6387,7 @@
 //		friend class file<read_write_access>;
 //
 //		locking_transaction(const rcref<file<read_write_access> >& f)
-//			:	file<read_access>::locking_transaction(f)
+//			: file<read_access>::locking_transaction(f)
 //		{ }
 //
 //	public:
@@ -6406,14 +6407,14 @@
 //
 //	enum create_mode
 //	{
-//		open_if_exists			= 0x01,
-//		create_only				= 0x02,
-//		open_or_create			= 0x03,
-//		open_truncate_or_create	= 0x07,
+//		open_if_exists = 0x01,
+//		create_only = 0x02,
+//		open_or_create = 0x03,
+//		open_truncate_or_create = 0x07,
 //
-////		open_mask				= 0x01,
-////		create_mask				= 0x02,
-////		truncate_mask			= 0x04,
+////		open_mask = 0x01,
+////		create_mask = 0x02,
+////		truncate_mask = 0x04,
 //	};
 //
 //	// Implemented at cogs::os level, to use os::file derived class.
@@ -6424,31 +6425,31 @@
 //};
 //
 //
-//typedef file<read_access>	file_ro;
-//typedef file<read_write_access>	file_wr;
+//typedef file<read_access> file_ro;
+//typedef file<read_write_access> file_wr;
 //*/
 ///*
 //
 //class byte_segment_t
 //{
 //protected:
-//	uint64_t	m_start;
-//	uint64_t	m_end;
+//	uint64_t m_start;
+//	uint64_t m_end;
 //
 //public:
 //	byte_segment_t()
-//		:	m_start(0),
-//			m_end(0)
+//		: m_start(0),
+//		m_end(0)
 //	{ }
 //
 //	byte_segment_t(const byte_segment_t& src)
-//		:	m_start(src.m_start),
-//			m_end(src.m_end)
+//		: m_start(src.m_start),
+//		m_end(src.m_end)
 //	{ }
 //	
 //	byte_segment_t(uint64_t start, size_t n)
-//		:	m_start(start),
-//			m_end(start + n)
+//		: m_start(start),
+//		m_end(start + n)
 //	{ }
 //
 //	byte_segment_t& operator=(const byte_segment_t& src)
@@ -6458,8 +6459,8 @@
 //		return *this;
 //	}
 //
-//	const uint64_t start() const	{ return m_start; }
-//	const uint64_t end() const		{ return m_end; }
+//	const uint64_t start() const { return m_start; }
+//	const uint64_t end() const { return m_end; }
 //
 //	byte_segment_t split_off_after_at(uint64_t midpoint)
 //	{
@@ -6479,8 +6480,8 @@
 //		return result;
 //	}
 //
-//	byte_segment_t split_off_after(uint64_t n)	{ return split_off_after_at(m_start + n); }
-//	byte_segment_t split_off_before(uint64_t n)	{ return split_off_before_at(m_start + n); }
+//	byte_segment_t split_off_after(uint64_t n) { return split_off_after_at(m_start + n); }
+//	byte_segment_t split_off_before(uint64_t n) { return split_off_before_at(m_start + n); }
 //};
 //
 //
@@ -6503,19 +6504,19 @@
 //		friend class byte_range_t;
 //
 //		block_t(const byte_segment_t& src)
-//			:	byte_segment_t(src)
+//			: byte_segment_t(src)
 //		{ }
 //
 //	public:
 //
-//		uint64_t& start()				{ return m_start; }
-//		const uint64_t start() const	{ return m_start; }
+//		uint64_t& start() { return m_start; }
+//		const uint64_t start() const { return m_start; }
 //
-//		uint64_t& end()					{ return m_end; }
-//		const uint64_t end() const		{ return m_end; }
+//		uint64_t& end() { return m_end; }
+//		const uint64_t end() const { return m_end; }
 //
 //		// sorted_list_node interface
-//		uint64_t get_key() const		{ return start(); }
+//		uint64_t get_key() const { return start(); }
 //	};
 //		
 //private:
@@ -6526,51 +6527,51 @@
 //	class iterator
 //	{
 //	private:
-//		block_list_t::iterator	m_itor;
+//		block_list_t::iterator m_itor;
 //
 //	protected:
 //		friend class byte_range_t;
 //
-//		iterator(const block_list_t::iterator& i)	:	m_itor(i)	{ }
+//		iterator(const block_list_t::iterator& i) : m_itor(i) { }
 //
 //	public:
-//		iterator()													{ }
-//		iterator(const iterator& i)			:	m_itor(i.m_itor)	{ }
-//		iterator(const volatile iterator& i):	m_itor(i.m_itor)	{ }
+//		iterator() { }
+//		iterator(const iterator& i) : m_itor(i.m_itor) { }
+//		iterator(const volatile iterator& i) : m_itor(i.m_itor) { }
 //
-//		iterator& operator=(const iterator& i)				{ m_itor = i.m_itor; return *this; }
-//		iterator& operator=(const volatile iterator& i)		{ m_itor = i.m_itor; return *this; }
-//		void operator=(const iterator& i) volatile			{ m_itor = i.m_itor; }
-//		void operator=(const volatile iterator& i) volatile	{ m_itor = i.m_itor; }
+//		iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
+//		iterator& operator=(const volatile iterator& i) { m_itor = i.m_itor; return *this; }
+//		void operator=(const iterator& i) volatile { m_itor = i.m_itor; }
+//		void operator=(const volatile iterator& i) volatile { m_itor = i.m_itor; }
 //
-//		iterator& operator++()				{ ++m_itor; return *this; }
-//		iterator operator++(int)			{ return m_itor++; }
+//		iterator& operator++() { ++m_itor; return *this; }
+//		iterator operator++(int) { return m_itor++; }
 //
-//		iterator operator--()				{ return --m_itor; }
-//		iterator operator--(int)			{ return m_itor--; }
+//		iterator operator--() { return --m_itor; }
+//		iterator operator--(int) { return m_itor--; }
 //
-//		bool operator!() const				{ return !m_itor; }
-//		bool operator!() const volatile		{ return !m_itor; }
+//		bool operator!() const { return !m_itor; }
+//		bool operator!() const volatile { return !m_itor; }
 //		
-//		bool operator==(const iterator& i) const					{ return m_itor == i.m_itor; }
-//		bool operator==(const volatile iterator& i) const			{ return m_itor == i.m_itor; }
-//		bool operator==(const iterator& i) const volatile			{ return m_itor == i.m_itor; }
-//		bool operator==(const volatile iterator& i) const volatile	{ return m_itor == i.m_itor; }
+//		bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
+//		bool operator==(const volatile iterator& i) const { return m_itor == i.m_itor; }
+//		bool operator==(const iterator& i) const volatile { return m_itor == i.m_itor; }
+//		bool operator==(const volatile iterator& i) const volatile { return m_itor == i.m_itor; }
 //		
-//		bool operator!=(const iterator& i) const					{ return !operator==(i); }
-//		bool operator!=(const volatile iterator& i) const			{ return !operator==(i); }
-//		bool operator!=(const iterator& i) const volatile			{ return !operator==(i); }
-//		bool operator!=(const volatile iterator& i) const volatile	{ return !operator==(i); }
+//		bool operator!=(const iterator& i) const { return !operator==(i); }
+//		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
+//		bool operator!=(const iterator& i) const volatile { return !operator==(i); }
+//		bool operator!=(const volatile iterator& i) const volatile { return !operator==(i); }
 //
-//		block_t* get() const							{ return m_itor.get(); }
-//		block_t* get() const volatile					{ return m_itor.get(); }
-//		block_t& operator*() const						{ return *m_itor; }
-//		block_t& operator*() const volatile				{ return *m_itor; }
-//		block_t* operator->() const						{ return m_itor.get(); }
-//		block_t* operator->() const volatile			{ return m_itor.get(); }
+//		block_t* get() const { return m_itor.get(); }
+//		block_t* get() const volatile { return m_itor.get(); }
+//		block_t& operator*() const { return *m_itor; }
+//		block_t& operator*() const volatile { return *m_itor; }
+//		block_t* operator->() const { return m_itor.get(); }
+//		block_t* operator->() const volatile { return m_itor.get(); }
 //
-//		void clear()									{ m_itor.clear(); }
-//		void clear() volatile							{ m_itor.clear(); }
+//		void clear() { m_itor.clear(); }
+//		void clear() volatile { m_itor.clear(); }
 //	};
 //
 //	byte_range_t()
@@ -6587,26 +6588,26 @@
 //		}
 //	}
 //
-//	iterator get_first() const	{ return m_blockList.get_first(); }
+//	iterator get_first() const { return m_blockList.get_first(); }
 //
 //	void add_range(const byte_segment_t& s)
 //	{
 //		block_t* trailingBlock = m_blockList.find_any_equal_or_nearest_less_than(s.end());
-//		for (;;)	// just for a goto label using break.
+//		for (;;) // just for a goto label using break.
 //		{
-//			if (!!trailingBlock)	
+//			if (!!trailingBlock)
 //			{
 //				uint64_t trailingEnd = trailingBlock->end();
 //				if (trailingEnd >= s.start())
 //				{
 //					uint64_t tmpEnd = s.end();
 //					if (trailingEnd != s.start())
-//					{						// Here, we know trailingBlock ends after the start of this new range.  Use the later end.
-//						if (tmpEnd < trailingEnd)	// start is before the end of trailingEnd.
+//					{ // Here, we know trailingBlock ends after the start of this new range.  Use the later end.
+//						if (tmpEnd < trailingEnd) // start is before the end of trailingEnd.
 //							tmpEnd = trailingEnd;
-//						if (s.start() < trailingBlock->start())	// if we start within it, just extend it.  Otherwise, if we started before it...
+//						if (s.start() < trailingBlock->start()) // if we start within it, just extend it.  Otherwise, if we started before it...
 //						{
-//							block_t* leadingBlock = m_blockList.find_any_equal_or_nearest_less_than(s.start());	// We know leadingBlock != trailingBlock
+//							block_t* leadingBlock = m_blockList.find_any_equal_or_nearest_less_than(s.start()); // We know leadingBlock != trailingBlock
 //							if (!!leadingBlock)
 //								trailingBlock->start() = leadingBlock->start();
 //							else
@@ -6650,11 +6651,11 @@
 //		friend class file<read_write_access>;
 //		friend class transaction_operation;
 //
-//		rcptr<transaction_operation>	m_transactionOperation;
-//		event							m_event;
-//		uint64_t						m_offset;
-//		size_t							m_requestedSize;		// Just to remind caller how much their original request was for.
-//		composite_buffer						m_unwrittenBufferList;	// On Entry: Buffer to write.  On Exit: whatever couldn't be written
+//		rcptr<transaction_operation> m_transactionOperation;
+//		event m_event;
+//		uint64_t m_offset;
+//		size_t m_requestedSize; // Just to remind caller how much their original request was for.
+//		composite_buffer m_unwrittenBufferList; // On Entry: Buffer to write.  On Exit: whatever couldn't be written
 //
 //		file_writer()
 //		{
@@ -6674,17 +6675,17 @@
 //		}
 //
 //	public:
-//		const size_t get_requested_size() const					{ return m_requestedSize; }
-//		const composite_buffer& get_unwritten_buffer() const	{ return m_unwrittenBufferList; }
-//		const size_t get_write_size() const						{ return m_requestedSize - m_unwrittenBufferList.size(); } // m_writeSize; }
-//		const uint64_t get_offset() const						{ return m_offset; }
-//		bool was_any_written() const							{ return m_requestedSize != m_unwrittenBufferList.size(); }
+//		const size_t get_requested_size() const { return m_requestedSize; }
+//		const composite_buffer& get_unwritten_buffer() const { return m_unwrittenBufferList; }
+//		const size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.size(); } // m_writeSize; }
+//		const uint64_t get_offset() const { return m_offset; }
+//		bool was_any_written() const { return m_requestedSize != m_unwrittenBufferList.size(); }
 //
 //		typedef delegate_t<void, const rcref<const file_writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile				{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d) const					{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //	
 //public:
@@ -6698,11 +6699,11 @@
 //		friend class file<read_access>;
 //		friend class transaction_operation;
 //
-//		rcptr<transaction_operation>	m_transactionOperation;
-//		event							m_event;
-//		uint64_t						m_offset;
-//		size_t							m_requestedSize;
-//		composite_buffer						m_bufferList;	// all read results.
+//		rcptr<transaction_operation> m_transactionOperation;
+//		event m_event;
+//		uint64_t m_offset;
+//		size_t m_requestedSize;
+//		composite_buffer m_bufferList; // all read results.
 //
 //		file_reader()
 //		{
@@ -6722,16 +6723,16 @@
 //		}
 //
 //	public:
-//		const size_t get_requested_size() const		{ return m_requestedSize; }
-//		const size_t get_read_size() const			{ return m_bufferList.size(); }
-//		const uint64_t get_offset() const			{ return m_offset; }
-//		const composite_buffer& get_composite_buffer() const	{ return m_bufferList; }
+//		const size_t get_requested_size() const { return m_requestedSize; }
+//		const size_t get_read_size() const { return m_bufferList.size(); }
+//		const uint64_t get_offset() const { return m_offset; }
+//		const composite_buffer& get_composite_buffer() const { return m_bufferList; }
 //
 //		typedef delegate_t<void, const rcref<const file_reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile				{ m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const						{ m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //private:
@@ -6741,24 +6742,24 @@
 //		class deferred_add_range_t
 //		{
 //		public:
-//			byte_segment_t	m_segment;
-//			uint64_t		m_lastWritePosition;	// 0 means it's a read operation
-//			file_writer*	m_writer;
-//			file_reader*	m_reader;
+//			byte_segment_t m_segment;
+//			uint64_t m_lastWritePosition; // 0 means it's a read operation
+//			file_writer* m_writer;
+//			file_reader* m_reader;
 //
 //			deferred_add_range_t()
 //			{ }
 //
 //			deferred_add_range_t(file_writer* w, const byte_segment_t& s)
-//				:	m_segment(s),
-//					m_writer(w),
-//					m_lastWritePosition(s.end())
+//				: m_segment(s),
+//				m_writer(w),
+//				m_lastWritePosition(s.end())
 //			{ }
 //
 //			deferred_add_range_t(file_reader* r, const byte_segment_t& s)
-//				:	m_segment(s),
-//					m_reader(r),
-//					m_lastWritePosition(0)
+//				: m_segment(s),
+//				m_reader(r),
+//				m_lastWritePosition(0)
 //			{ }
 //
 //		};
@@ -6789,26 +6790,26 @@
 //		}
 //
 //	public:
-//		weak_rcptr<file<read_access> >	m_file;
+//		weak_rcptr<file<read_access> > m_file;
 //
 //		// Range of the transaction currently being composed (not yet committed, not immediate)
-//		byte_range_t	m_rangeMask;		
-//		size_t			m_countDown;		// count-down until issued
-//		uint64_t		m_lastWritePosition;
+//		byte_range_t m_rangeMask;
+//		size_t m_countDown; // count-down until issued
+//		uint64_t m_lastWritePosition;
 //
 //		// When the transaction completes, it issues these readers and writers.
 //		// These are operations not yet issued.
-//		vector<rcptr<transaction_operation> >	m_waitingWriters;
-//		vector<rcptr<transaction_operation> >	m_waitingReaders;	// empty if a read transaction
+//		vector<rcptr<transaction_operation> > m_waitingWriters;
+//		vector<rcptr<transaction_operation> > m_waitingReaders; // empty if a read transaction
 //			
-//		collection<file_reader*>	m_myReaders;
-//		collection<file_writer*>	m_myWriters;
+//		collection<file_reader*> m_myReaders;
+//		collection<file_writer*> m_myWriters;
 //
 //		transaction_operation(const weak_rcptr<file<read_access> >& f)
-//			:	m_file(f),
-//				m_numOperations(0),
-//				m_countDown(0),
-//				m_lastWritePosition(0)
+//			: m_file(f),
+//			m_numOperations(0),
+//			m_countDown(0),
+//			m_lastWritePosition(0)
 //		{ }
 //
 //		void add_reader(file_reader* r, const byte_segment_t& s)
@@ -6821,7 +6822,7 @@
 //			add_range(deferred_add_range_t(w, s));
 //		}
 //
-//		bool is_write_transaction() const	{ return m_lastWritePosition != 0; }
+//		bool is_write_transaction() const { return m_lastWritePosition != 0; }
 //
 //		void issue()
 //		{
@@ -6850,7 +6851,7 @@
 //			}
 //		}
 //
-//		uint64_t get_key() const			{ return m_lastWritePosition; }
+//		uint64_t get_key() const { return m_lastWritePosition; }
 //		typedef dlink_t<transaction_operation>::ref_t ref_t;
 //	};
 //
@@ -6865,8 +6866,8 @@
 //		rcref<transaction_operation> m_transactionOperation;
 //
 //		explicit read_only_transaction(const rcref<file<read_access> >& f)
-//			:	m_transactionOperation(rcnew(transaction_operation)(f)),
-//				m_file(f)
+//			: m_transactionOperation(rcnew(transaction_operation)(f)),
+//			m_file(f)
 //		{ }
 //
 //	public:
@@ -6891,7 +6892,7 @@
 //	};
 //
 //protected:
-//	uint64_t	m_eof;	// only used when writing.  read-only access will use API each time eof is requested.
+//	uint64_t m_eof; // only used when writing.  read-only access will use API each time eof is requested.
 //
 //private:
 //	// A file manages concurrent and pending read/write operations against sets of ranges.
@@ -6901,19 +6902,19 @@
 //	// new EOF and need to be released.  If the file size is reduced, non-EOF pending writes may need
 //	// to be added to EOF queue.  Unfortunately, if the EOF is changed by another process, that is not
 //	// currently supported (it may(?) function properly, but not perform optimally).
-//	sorted_list<uint64_t, true, transaction_operation> m_allWritesByEndPos;	// All pending writes, sorted by m_lastWritePosition.
-//	ptr<transaction_operation> m_allWritesInPostedOrder;						// circular double-link list of writes, in posted order.
+//	sorted_list<uint64_t, true, transaction_operation> m_allWritesByEndPos; // All pending writes, sorted by m_lastWritePosition.
+//	ptr<transaction_operation> m_allWritesInPostedOrder; // circular double-link list of writes, in posted order.
 //
 //	class subrange_t : public byte_segment_t, public sorted_list_node<true, subrange_t>
 //	{
 //	public:
-//		size_t								m_readCount;			// number of reads concurrently executing
-//		size_t								m_pendingReadCount;		// 
-//		rcptr<transaction_operation>		m_lastWaitingWriter;	// Tail of the queue of pending writers.
-//		vector<rcref<transaction_operation> >	m_waitingReaders;		// waiting readers not yet issued.
+//		size_t m_readCount; // number of reads concurrently executing
+//		size_t m_pendingReadCount; // 
+//		rcptr<transaction_operation> m_lastWaitingWriter; // Tail of the queue of pending writers.
+//		vector<rcref<transaction_operation> > m_waitingReaders; // waiting readers not yet issued.
 //
 //		subrange_t(uint64_t startPos, uint64_t endPos, bool writeMode, const rcref<transaction_operation>& t)
-//			:	m_readCount(0)
+//			: m_readCount(0)
 //		{
 //			start() = startPos;
 //			end() = endPos;
@@ -6927,17 +6928,17 @@
 //		}
 //
 //		subrange_t(const byte_segment_t& s, const subrange_t& src)
-//			:	byte_segment_t(s),
-//				m_readCount(src.m_readCount),
-//				m_pendingReadCount(src.m_pendingReadCount),
-//				m_lastWaitingWriter(src.m_lastWaitingWriter),
-//				m_waitingReaders(src.m_waitingReaders)
+//			: byte_segment_t(s),
+//			m_readCount(src.m_readCount),
+//			m_pendingReadCount(src.m_pendingReadCount),
+//			m_lastWaitingWriter(src.m_lastWaitingWriter),
+//			m_waitingReaders(src.m_waitingReaders)
 //		{
 //			for (size_t i = 0; i < m_waitingReaders.size(); i++)
 //				++(m_waitingReaders[i]->m_countDown);
 //		}
 //				
-//		bool operator<(const subrange_t& cmp) const	{ return start() < cmp.start(); }
+//		bool operator<(const subrange_t& cmp) const { return start() < cmp.start(); }
 //
 //		void register_waiter(bool writeMode, const rcref<transaction_operation>& t)
 //		{
@@ -6945,7 +6946,7 @@
 //				++m_pendingReadCount;
 //			else // if (writeMode) // write mode
 //			{
-//				if (!m_lastWaitingWriter)	
+//				if (!m_lastWaitingWriter)
 //					m_lastWaitingWriter = t;
 //				else
 //				{
@@ -6955,14 +6956,14 @@
 //			}
 //		}
 //
-//		uint64_t& start()				{ return m_start; }
-//		const uint64_t start() const	{ return m_start; }
+//		uint64_t& start() { return m_start; }
+//		const uint64_t start() const { return m_start; }
 //
-//		uint64_t& end()					{ return m_end; }
-//		const uint64_t end() const		{ return m_end; }
+//		uint64_t& end() { return m_end; }
+//		const uint64_t end() const { return m_end; }
 //
 //		// sorted_list_node interface
-//		uint64_t get_key() const				{ return start(); }
+//		uint64_t get_key() const { return start(); }
 //	};
 //
 //	typedef sorted_list<uint64_t, true, subrange_t> subrange_list_t; 
@@ -7013,37 +7014,37 @@
 //			uint64_t blockEnd = itor->end();
 //
 //			subrange_t* curSubrange = m_subrangeList.find_nearest_less_than(blockEnd);
-//			for (;;)	// just to use break/continue as goto labels
+//			for (;;) // just to use break/continue as goto labels
 //			{
-//				if (!!curSubrange)	
+//				if (!!curSubrange)
 //				{
 //					uint64_t curEnd = curSubrange->end();
 //					if (blockStart < curEnd)
 //					{
-//						if (curEnd < blockEnd)	// If extending past the curSubrange, need to create a new block from curEnd to blockEnd
+//						if (curEnd < blockEnd) // If extending past the curSubrange, need to create a new block from curEnd to blockEnd
 //							insert_new_subrange(curEnd, blockEnd, writeMode, t);
-//						else if (blockEnd < curEnd)	// If splitting the curSubrange at the end
+//						else if (blockEnd < curEnd) // If splitting the curSubrange at the end
 //							split_off_after_at(curSubrange, curEnd);
 //
 //						uint64_t curStart = curSubrange->start();
-//						for (;;)	// just to use break/continue as goto labels
+//						for (;;) // just to use break/continue as goto labels
 //						{
-//							if (curStart < blockStart)	// trim leading, then done.
+//							if (curStart < blockStart) // trim leading, then done.
 //								split_off_before_at(curSubrange, blockStart);
-//							else if (blockStart < curStart)	// block starts before curSubrange.  We need to look for prev blocks.
+//							else if (blockStart < curStart) // block starts before curSubrange.  We need to look for prev blocks.
 //							{
 //								subrange_t* prev = subrange_t::get_prev(curSubrange);
-//								if (!prev)	// Everything prior is free, create 1 new block
+//								if (!prev) // Everything prior is free, create 1 new block
 //									insert_new_subrange(blockStart, curStart, writeMode, t);
 //								else // if (!!prev)
 //								{
 //									uint64_t prevStart = prev->start();
 //									uint64_t prevEnd = prev->end();
-//									if (prevEnd <= blockStart)	// If only prev ends before we start, create 1 new block
+//									if (prevEnd <= blockStart) // If only prev ends before we start, create 1 new block
 //										insert_new_subrange(blockStart, curStart, writeMode, t);
-//									else // if (prevEnd > pos)	// If prev ends within our block
+//									else // if (prevEnd > pos) // If prev ends within our block
 //									{
-//										if (prevEnd < curStart)	// If prev ends before subsequent block starts
+//										if (prevEnd < curStart) // If prev ends before subsequent block starts
 //											insert_new_subrange(prevEnd, curStart, writeMode, t);
 //
 //										curSubrange->register_waiter(writeMode, t);
@@ -7068,7 +7069,7 @@
 //
 //		if (t->m_countDown == 0)
 //		{
-//			if (!writeMode)	// read mode
+//			if (!writeMode) // read mode
 //				issue_read(t);
 //			else
 //				t->issue();
@@ -7082,7 +7083,7 @@
 //		{
 //			uint64_t i = itor->start();
 //			subrange_t* curSubrange = m_subrangeList.find_nearest_less_than(itor->end());
-//			for (;;)	// just to use break/continue as goto labels
+//			for (;;) // just to use break/continue as goto labels
 //			{
 //				curSubrange->m_pendingReadCount--;
 //				curSubrange->m_readCount++;
@@ -7107,26 +7108,26 @@
 //
 //			subrange_t* sr = m_subrangeList.find_any_equal(itor->start());
 //			uint64_t curEnd;
-//			if (!writeMode)		// read mode
+//			if (!writeMode) // read mode
 //			{
 //				for (;;)
 //				{
 //					curEnd = sr->end();
 //					subrange_t* next = subrange_t::get_next(sr);
-//					if (!--(sr->m_readCount))	// Last reader to release this block.
-//					{	
-//						if (!sr->m_lastWaitingWriter)	// If no waiting writers, remove the block
+//					if (!--(sr->m_readCount)) // Last reader to release this block.
+//					{
+//						if (!sr->m_lastWaitingWriter) // If no waiting writers, remove the block
 //						{
 //							m_subrangeList.remove(sr);
 //							default_allocator::destruct_deallocate_type(sr);
 //						}
 //					}
 //					if (blockEnd == curEnd)
-//						break;	// this will be hit
+//						break; // this will be hit
 //					sr = next;
 //				}
 //			}
-//			else // if (writeMode)		// write mode
+//			else // if (writeMode) // write mode
 //			{
 //				for (;;)
 //				{
@@ -7141,7 +7142,7 @@
 //						}
 //						else
 //						{
-//						 	for (size_t i = 0; i < sr->m_waitingReaders.size(); i++)
+//							for (size_t i = 0; i < sr->m_waitingReaders.size(); i++)
 //							{
 //								rcref<transaction_operation>& t2 = sr->m_waitingReaders[i];
 //								if (!--(t2->m_countDown))
@@ -7150,7 +7151,7 @@
 //						}
 //					}
 //					if (blockEnd == curEnd)
-//						break;	// this will be hit
+//						break; // this will be hit
 //					sr = next;
 //				}
 //			}
@@ -7177,20 +7178,20 @@
 //	protected:
 //		friend class file<read_access>;
 //
-//		const weak_rcptr<file<read_access> >	m_file;
-//		uint64_t									m_curPos;
+//		const weak_rcptr<file<read_access> > m_file;
+//		uint64_t m_curPos;
 //
-//		const rcref<queue>& get_io_queue() const	{ return m_ioQueue; }
+//		const rcref<queue>& get_io_queue() const { return m_ioQueue; }
 //
 //		class cursor_reader : public datasource::reader
 //		{
 //		protected:
-//			const weak_rcptr<read_only_cursor>				m_cursor;
+//			const weak_rcptr<read_only_cursor> m_cursor;
 //
 //		public:
 //			cursor_reader(const rcref<read_only_cursor>& c)
-//				:	m_cursor(c),
-//					datasource::reader(c)
+//				: m_cursor(c),
+//				datasource::reader(c)
 //			{ }
 //
 //			virtual void reading()
@@ -7227,20 +7228,20 @@
 //		protected:
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			uint64_t						m_position;
-//			bool							m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			uint64_t m_position;
+//			bool m_succeeded;
 //
 //			seeker(uint64_t pos, const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_position(pos),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_position(pos),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -7255,7 +7256,7 @@
 //			}
 //
 //		public:
-//			bool succeeded() const	{ return m_succeeded; }
+//			bool succeeded() const { return m_succeeded; }
 //		};
 //
 //		class teller : public queue::operation
@@ -7264,19 +7265,19 @@
 //			friend class file<read_access>;
 //			friend class read_only_cursor;
 //
-//			const weak_rcptr<read_only_cursor>	m_cursor;
-//			uint64_t							m_position;
-//			bool								m_succeeded;
+//			const weak_rcptr<read_only_cursor> m_cursor;
+//			uint64_t m_position;
+//			bool m_succeeded;
 //
 //			teller(const rcref<read_only_cursor>& c)
-//				:	queue::operation(c->get_io_queue()),
-//					m_cursor(c),
-//					m_succeeded(false)
+//				: queue::operation(c->get_io_queue()),
+//				m_cursor(c),
+//				m_succeeded(false)
 //			{ }
 //
-//			void complete()		{ m_succeeded = true; queue::operation::complete(); }
-//			void close()		{ queue::operation::close(); }
-//			void enqueue()		{ queue::operation::enqueue(); }
+//			void complete() { m_succeeded = true; queue::operation::complete(); }
+//			void close() { queue::operation::close(); }
+//			void enqueue() { queue::operation::enqueue(); }
 //
 //			virtual void execute()
 //			{
@@ -7306,8 +7307,8 @@
 //		{
 //		public:
 //			eof_seeker(const rcref<read_only_cursor>& c)
-//				:	seeker(0, c)
-//			{ } 		
+//				: seeker(0, c)
+//			{ }
 //
 //			virtual void execute()
 //			{
@@ -7327,13 +7328,13 @@
 //					}
 //				}
 //			}
-//		};		
+//		};
 //		
 //		class eof_teller : public teller
 //		{
 //		public:
 //			eof_teller(const rcref<read_only_cursor>& c)
-//				:	teller(c)
+//				: teller(c)
 //			{ }
 //
 //			virtual void execute()
@@ -7386,8 +7387,8 @@
 //
 //	protected:
 //		read_only_cursor(const rcref<file>& f, const rcref<queue>& ioQueue = queue::create())
-//			:	datasource(ioQueue),
-//				m_file(f)
+//			: datasource(ioQueue),
+//			m_file(f)
 //		{ }
 //	};
 //
@@ -7430,12 +7431,12 @@
 //		class cursor_writer : public datasink::writer
 //		{
 //		protected:
-//			const weak_rcptr<read_write_cursor>		m_cursor;
+//			const weak_rcptr<read_write_cursor> m_cursor;
 //
 //		public:
 //			cursor_writer(const rcref<read_write_cursor>& c)
-//				:	m_cursor(c),
-//					datasink::writer(c)
+//				: m_cursor(c),
+//				datasink::writer(c)
 //			{ }
 //				
 //			virtual void writing()
@@ -7484,8 +7485,8 @@
 //
 //	public:
 //		read_write_cursor(const rcref<file>& f, const rcref<queue>& ioQueue = queue::create())
-//			:	datasink(ioQueue),
-//				read_only_cursor(f, ioQueue)
+//			: datasink(ioQueue),
+//			read_only_cursor(f, ioQueue)
 //		{ }
 //	};
 //
@@ -7495,7 +7496,7 @@
 //		friend class file<read_write_access>;
 //
 //		explicit read_write_transaction(const rcref<file<read_write_access> >& f)
-//			:	read_only_transaction(f)
+//			: read_only_transaction(f)
 //		{ }
 //
 //	public:
@@ -7515,14 +7516,14 @@
 //
 //	enum create_mode
 //	{
-//		open_if_exists			= 0x01,
-//		create_only				= 0x02,
-//		open_or_create			= 0x03,
-//		open_truncate_or_create	= 0x07,
+//		open_if_exists = 0x01,
+//		create_only = 0x02,
+//		open_or_create = 0x03,
+//		open_truncate_or_create = 0x07,
 //
-////		open_mask				= 0x01,
-////		create_mask				= 0x02,
-////		truncate_mask			= 0x04,
+////		open_mask = 0x01,
+////		create_mask = 0x02,
+////		truncate_mask = 0x04,
 //	};
 //
 //	// Implemented at cogs::os level, to use os::file derived class.

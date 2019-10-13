@@ -16,8 +16,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 template <size_t n, typename type>
@@ -767,9 +767,9 @@ public:
 		}
 	}
 
-	template <typename type2 = type> this_t& operator+=(const vec<n, type2>& src)			{ add(src.get_const_ptr(), src.get_length()); return *this; }
-	template <typename type2 = type> this_t& operator+=(const volatile vec<n, type2>& src)	{ vec<n, type2> tmp(src); return *this += tmp; }
-	
+	template <typename type2 = type> this_t& operator+=(const vec<n, type2>& src) { add(src.get_const_ptr(), src.get_length()); return *this; }
+	template <typename type2 = type> this_t& operator+=(const volatile vec<n, type2>& src) { vec<n, type2> tmp(src); return *this += tmp; }
+
 	template <typename type2 = type>
 	typename return_type_binary_operator_add<vec<n, type>, vec<n, type2> >::type operator+(const vec<n, type2>& src) const
 	{
@@ -803,8 +803,8 @@ public:
 					dstPtr[i][j] = src1Ptr[i][j];
 		}
 		return result;
-	}	
-	
+	}
+
 	template <typename type2 = type> typename return_type_binary_operator_add<vec<n, type>, vec<n, type2> >::type operator+(const volatile vec<n, type2>& src) const { vec<n, type2> tmp(src); return operator+(tmp); }
 	template <typename type2 = type> typename return_type_binary_operator_add<vec<n, type>, vec<n, type2> >::type operator+(const vec<n, type2>& src) const volatile { vec<n, type2> tmp(*this); return tmp + src; }
 

@@ -16,20 +16,20 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 template <class link_t, template <typename> class ref_type = ptr>
 class default_slink_iterator
 {
 public:
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return l.get_next_link(); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return l.get_next_link(); }
+	static const ref_t& get_next(const link_t& l) { return l.get_next_link(); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return l.get_next_link(); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ l.set_next_link(src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ l.set_next_link(src); }
+	static void set_next(link_t& l, const ref_t& src) { l.set_next_link(src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { l.set_next_link(src); }
 };
 
 
@@ -37,13 +37,13 @@ template <class link_t, template <typename> class ref_type = ptr, class link_ite
 class slink_methods
 {
 public:
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ link_iterator::set_next_link(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ link_iterator::set_next_link(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next_link(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next_link(l, src); }
 
 	static void insert_next(link_t& ths, const ref_t& l)
 	{
@@ -82,7 +82,7 @@ public:
 
 	static ref_t insert_list(link_t& ths, const ref_t& l, const ref_t& terminator = ref_t())
 	{
-		ref_t last(find_last(l, terminator));	// supports terminator or full circular
+		ref_t last(find_last(l, terminator)); // supports terminator or full circular
 		set_next(*last, get_next(ths));
 		set_next(ths, l);
 		return last;
@@ -250,27 +250,27 @@ template <class derived_t, template <typename> class ref_type = ptr, class link_
 class slink_base
 {
 public:
-	typedef slink_base<derived_t, ref_type, link_iterator>						this_t;
-	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
-	typedef ref_type<link_t>													ref_t;
-	typedef slink_methods<link_t, ref_type, link_iterator>						slink_methods_t;
+	typedef slink_base<derived_t, ref_type, link_iterator> this_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
+	typedef ref_type<link_t> ref_t;
+	typedef slink_methods<link_t, ref_type, link_iterator> slink_methods_t;
 
 	// non-volatile misc
-	void insert_next(const ref_t& l)														{ slink_methods_t::insert_next(*(derived_t*)this, l); }
-	ref_t remove_next()																		{ return  slink_methods_t::remove_next(*(derived_t*)this); }
-	void insert_segment(const ref_t& seq_start, const ref_t& seq_end)						{ slink_methods_t::insert_segment(*(derived_t*)this, seq_start, seq_end); }
-	ref_t insert_terminated_list(const ref_t& l, const ref_t& terminator = ref_t())			{ return slink_methods_t::insert_terminated_list(*(derived_t*)this, l, terminator); }
-	ref_t insert_circular_list(const ref_t& l)												{ return slink_methods_t::insert_circular_list(*(derived_t*)this, l); }
-	ref_t insert_list(const ref_t& l, const ref_t& terminator = ref_t())					{ return slink_methods_t::insert_list(*(derived_t*)this, l, terminator); }
-	
-	bool is_circular(const ref_t& terminator = ref_t()) const								{ return slink_methods_t::is_circular(*(derived_t*)this, terminator); }
-	bool is_full_circular(const ref_t& terminator = ref_t()) const							{ return slink_methods_t::is_full_circular(*(derived_t*)this, terminator); }
-	bool is_tail_circular(const ref_t& terminator = ref_t()) const							{ return slink_methods_t::is_tail_circular(*(derived_t*)this, terminator); }
+	void insert_next(const ref_t& l) { slink_methods_t::insert_next(*(derived_t*)this, l); }
+	ref_t remove_next() { return  slink_methods_t::remove_next(*(derived_t*)this); }
+	void insert_segment(const ref_t& seq_start, const ref_t& seq_end) { slink_methods_t::insert_segment(*(derived_t*)this, seq_start, seq_end); }
+	ref_t insert_terminated_list(const ref_t& l, const ref_t& terminator = ref_t()) { return slink_methods_t::insert_terminated_list(*(derived_t*)this, l, terminator); }
+	ref_t insert_circular_list(const ref_t& l) { return slink_methods_t::insert_circular_list(*(derived_t*)this, l); }
+	ref_t insert_list(const ref_t& l, const ref_t& terminator = ref_t()) { return slink_methods_t::insert_list(*(derived_t*)this, l, terminator); }
 
-	static ref_t find_last(const ref_t& l, const ref_t& terminator = ref_t())				{ return slink_methods_t::find_last(l, terminator); }
-	static ref_t find_last_terminated(const ref_t& l, const ref_t& terminator = ref_t())	{ return slink_methods_t::find_last_terminated(l, terminator); }
-	static ref_t find_last_circular(const ref_t& l)											{ return slink_methods_t::find_last_circular(l); }
-	static ref_t reverse(const ref_t& l)													{ return slink_methods_t::reverse(l); }
+	bool is_circular(const ref_t& terminator = ref_t()) const { return slink_methods_t::is_circular(*(derived_t*)this, terminator); }
+	bool is_full_circular(const ref_t& terminator = ref_t()) const { return slink_methods_t::is_full_circular(*(derived_t*)this, terminator); }
+	bool is_tail_circular(const ref_t& terminator = ref_t()) const { return slink_methods_t::is_tail_circular(*(derived_t*)this, terminator); }
+
+	static ref_t find_last(const ref_t& l, const ref_t& terminator = ref_t()) { return slink_methods_t::find_last(l, terminator); }
+	static ref_t find_last_terminated(const ref_t& l, const ref_t& terminator = ref_t()) { return slink_methods_t::find_last_terminated(l, terminator); }
+	static ref_t find_last_circular(const ref_t& l) { return slink_methods_t::find_last_circular(l); }
+	static ref_t reverse(const ref_t& l) { return slink_methods_t::reverse(l); }
 };
 
 
@@ -284,9 +284,9 @@ template <class derived_t = void, template <typename> class ref_type = ptr, clas
 class slink_t : public slink_base<derived_t, ref_type, link_iterator>
 {
 public:
-	typedef slink_t<derived_t, ref_type, link_iterator>							this_t;
-	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
-	typedef ref_type<link_t>													ref_t;
+	typedef slink_t<derived_t, ref_type, link_iterator> this_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
+	typedef ref_type<link_t> ref_t;
 
 	typedef default_slink_iterator<this_t, ref_type> default_link_iterator;
 
@@ -311,15 +311,15 @@ public:
 		return *this;
 	}
 
-	               ref_t& get_next_link()					{ return m_next; }
-	const          ref_t& get_next_link() const				{ return m_next; }
-	      volatile ref_t& get_next_link()       volatile	{ return m_next; }
-	const volatile ref_t& get_next_link() const volatile	{ return m_next; }
+	ref_t& get_next_link() { return m_next; }
+	const ref_t& get_next_link() const { return m_next; }
+	volatile ref_t& get_next_link() volatile { return m_next; }
+	const volatile ref_t& get_next_link() const volatile { return m_next; }
 
-	void set_next_link(const          ref_t& n)				{ m_next = n; }
-	void set_next_link(const volatile ref_t& n)				{ m_next = n; }
-	void set_next_link(const          ref_t& n) volatile	{ m_next = n; }
-	void set_next_link(const volatile ref_t& n) volatile	{ m_next = n; }
+	void set_next_link(const ref_t& n) { m_next = n; }
+	void set_next_link(const volatile ref_t& n) { m_next = n; }
+	void set_next_link(const ref_t& n) volatile { m_next = n; }
+	void set_next_link(const volatile ref_t& n) volatile { m_next = n; }
 };
 
 
@@ -339,4 +339,3 @@ typedef slink_t<void> slink;
 
 
 #endif
-

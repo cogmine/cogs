@@ -26,9 +26,9 @@ namespace os {
 // If an allocation cannot be extended, try_reallocate() should not change usableSize.
 
 // Given these combination of behaviors, the proper behavior of calling code that might reallocate a buffer is:
-//	- Preserve the usableSize from the initial call to allocate().
-//	- Only if that size needs to be exceeded, use try_reallocate(), updating the usableSize if successful
-	
+//    - Preserve the usableSize from the initial call to allocate().
+//    - Only if that size needs to be exceeded, use try_reallocate(), updating the usableSize if successful
+
 
 class allocator
 {
@@ -45,9 +45,9 @@ public:
 		return buf;
 	}
 
-	static void deallocate(const ptr<void>& p)												{ free(p.get_ptr()); }
-	static bool try_reallocate(const ptr<void>& p, size_t n)								{ return false; }
-	static size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize)	{ return knownSize; }
+	static void deallocate(const ptr<void>& p) { free(p.get_ptr()); }
+	static bool try_reallocate(const ptr<void>& p, size_t n) { return false; }
+	static size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize) { return knownSize; }
 };
 
 

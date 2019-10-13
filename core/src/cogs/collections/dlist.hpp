@@ -26,23 +26,23 @@ class dlist_t
 {
 public:
 	typedef dlist_t<link_t, ref_type, link_iterator> this_t;
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
 private:
-	ref_t	m_first;
-	ref_t	m_last;
+	ref_t m_first;
+	ref_t m_last;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static const          ref_t& get_prev(const          link_t& l)	{ return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l)	{ return link_iterator::get_prev(l); }
-	
-	static void set_next(         link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
+	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
 
-	static void set_prev(         link_t& l, const ref_t& src)		{ return link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+
+	static void set_prev(link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
 
 	dlist_t(const this_t& src) = delete;
 	this_t& operator=(const this_t& src) = delete;
@@ -63,10 +63,10 @@ public:
 		return *this;
 	}
 
-	bool operator!() const				{ return !m_first; }
-	bool operator!() const volatile		{ return !m_first; }
-	bool is_empty() const				{ return !m_first; }
-	bool is_empty() const volatile		{ return !m_first; }
+	bool operator!() const { return !m_first; }
+	bool operator!() const volatile { return !m_first; }
+	bool is_empty() const { return !m_first; }
+	bool is_empty() const volatile { return !m_first; }
 
 	void append(const ref_t& l)
 	{
@@ -154,25 +154,25 @@ class circular_dlist_t
 {
 public:
 	typedef circular_dlist_t<link_t, ref_type, link_iterator> this_t;
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
 private:
-	ref_t	m_first;
+	ref_t m_first;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static const          ref_t& get_prev(const          link_t& l)	{ return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l)	{ return link_iterator::get_prev(l); }
-	
-	static void set_next(         link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
+	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
 
-	static void set_prev(         link_t& l, const ref_t& src)		{ return link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+
+	static void set_prev(link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
 
 	circular_dlist_t(const ref_t& setTo)
-		:	m_first(setTo)
+		: m_first(setTo)
 	{ }
 
 	circular_dlist_t(const this_t& src) = delete;
@@ -192,11 +192,10 @@ public:
 		return *this;
 	}
 
-
-	bool operator!() const				{ return !m_first; }
-	bool operator!() const volatile		{ return !m_first; }
-	bool is_empty() const				{ return !m_first; }
-	bool is_empty() const volatile		{ return !m_first; }
+	bool operator!() const { return !m_first; }
+	bool operator!() const volatile { return !m_first; }
+	bool is_empty() const { return !m_first; }
+	bool is_empty() const volatile { return !m_first; }
 
 	void advance()
 	{
@@ -204,7 +203,7 @@ public:
 			m_first = get_next(*m_first);
 	}
 
-	void append(const ref_t& l)		// put before first
+	void append(const ref_t& l) // put before first
 	{
 		if (!m_first)
 		{
@@ -222,7 +221,7 @@ public:
 		}
 	}
 
-	void prepend(const ref_t& l)	// put before first, update first.
+	void prepend(const ref_t& l) // put before first, update first.
 	{
 		if (!m_first)
 		{

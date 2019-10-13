@@ -37,10 +37,11 @@ template <size_t n>
 class size_to_alignment
 {
 public:
-	static constexpr size_t value =	(n == 1) ? 1 : 
-								(n == 2) ? 2 : 
-								(n == 4) ? 4 : 
-								(n == 8) ? 8 : 0;
+	static constexpr size_t value =
+		(n == 1) ? 1 :
+		(n == 2) ? 2 :
+		(n == 4) ? 4 :
+		(n == 8) ? 8 : 0;
 };
 
 

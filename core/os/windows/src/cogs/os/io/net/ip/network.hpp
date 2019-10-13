@@ -28,7 +28,7 @@ protected:
 	network()
 	{
 		WSAData wsaData;
-		int result = WSAStartup(MAKEWORD(2, 2), &wsaData);	// assume this won't fail, for now
+		int result = WSAStartup(MAKEWORD(2, 2), &wsaData); // assume this won't fail, for now
 		COGS_ASSERT(!result);
 	}
 

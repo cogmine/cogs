@@ -21,7 +21,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -43,16 +43,16 @@ public:
 		double m_length = 0.0;
 
 	public:
-		linear::range m_range;
 		double m_default = 0.0;
-		
+		linear::range m_range;
+
 		cell()
 		{ }
-		
+
 		cell(double defaultSize, const linear::range& r)
-			:	m_default(defaultSize),
-				m_range(r)
-		{}
+			: m_default(defaultSize),
+			m_range(r)
+		{ }
 
 		double get_length() const { return m_length; }
 	};
@@ -80,16 +80,16 @@ public:
 		m_maxProportions.clear();
 	}
 
-	const linear::range& get_range() const	{ return m_range; }
-	double get_default() const		{ return m_default; }
-	double get_length() const		{ return m_length; }
+	const linear::range& get_range() const { return m_range; }
+	double get_default() const { return m_default; }
+	double get_length() const { return m_length; }
 
 	void add_cell(const rcref<cell>& cellRef)
 	{
 		cell& c = *cellRef;
 		m_range += c.m_range;
 		double tmpDefault = c.m_default;
-			
+
 		if (c.m_range.has_max() && (tmpDefault > c.m_range.get_max()))
 			tmpDefault = c.m_range.get_max();
 		else if (tmpDefault < c.m_range.get_min())
@@ -99,7 +99,7 @@ public:
 		double maxProportions = 0;
 		if (c.m_range.has_max())
 			maxProportions = c.m_range.get_max() / tmpDefault;
-		
+
 		m_maxProportions.insert(maxProportions, cellRef);
 		m_minProportions.insert(c.m_range.get_min() / tmpDefault, cellRef);
 	}
@@ -112,10 +112,10 @@ public:
 			m_length = 0;
 			return;
 		}
-		if (proposedSize <= m_range.get_min())	// size to min
+		if (proposedSize <= m_range.get_min()) // size to min
 		{
 			m_length = m_range.get_min();
-			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first();	// doesn't matter which map we use to iterate through all cells
+			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
 				cell& c = (**itor);
@@ -123,10 +123,10 @@ public:
 				++itor;
 			}
 		}
-		else if (proposedSize == m_default)		// size to default
+		else if (proposedSize == m_default) // size to default
 		{
 			m_length = m_default;
-			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first();	// doesn't matter which map we use to iterate through all cells
+			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
 				cell& c = (**itor);
@@ -139,7 +139,7 @@ public:
 			m_length = 0;
 			double remaining = proposedSize;
 			double remainingDefault = m_default;
-			if (proposedSize < m_default)		// shrink proportionally to default size
+			if (proposedSize < m_default) // shrink proportionally to default size
 			{
 				typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_last();
 				while (!!itor)
@@ -158,7 +158,7 @@ public:
 					--itor;
 				}
 			}
-			else // if (proposedSize > m_default)	// grow proportionally to default size
+			else // if (proposedSize > m_default) // grow proportionally to default size
 			{
 				typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_maxProportions.get_last();
 				while (!!itor)
@@ -197,32 +197,32 @@ public:
 	{
 	protected:
 		friend class equal_sizing_group;
-			
+
 		double m_length = 0.0;
 
 	public:
-		linear::range m_range;
 		double m_default = 0;
-		
+		linear::range m_range;
+
 		cell()
 		{ }
-		
-		cell(double defaultSize, const linear::range& r)
-			:	m_default(defaultSize),
-				m_range(r)
-		{}
 
-		double get_length() const		{ return m_length; }
+		cell(double defaultSize, const linear::range& r)
+			: m_default(defaultSize),
+			m_range(r)
+		{ }
+
+		double get_length() const { return m_length; }
 	};
 
 private:
 	linear::range m_range;
 	double m_default = 0.0;
 	double m_length = 0.0;
-				
-	nonvolatile_multimap<linear::range, rcref<cell>, false>	m_sortedByDefaultMaxRange;
-	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByMinDefaultGap;
-		
+
+	nonvolatile_multimap<linear::range, rcref<cell>, false> m_sortedByDefaultMaxRange;
+	nonvolatile_multimap<double, rcref<cell>, false> m_sortedByMinDefaultGap;
+
 public:
 	equal_sizing_group()
 	{
@@ -238,9 +238,9 @@ public:
 		m_sortedByDefaultMaxRange.clear();
 	}
 
-	const linear::range& get_range() const		{ return m_range; }
-	double get_default() const		{ return m_default; }
-	double get_length() const		{ return m_length; }
+	const linear::range& get_range() const { return m_range; }
+	double get_default() const { return m_default; }
+	double get_length() const { return m_length; }
 
 	void add_cell(const rcref<cell>& cellRef)
 	{
@@ -267,7 +267,7 @@ public:
 			m_length = 0;
 			return;
 		}
-		if (proposedSize == m_default)	// use default size
+		if (proposedSize == m_default) // use default size
 		{
 			m_length = m_default;
 
@@ -276,11 +276,11 @@ public:
 			while (!!itor)
 			{
 				cell& c = (**itor);
-				c.m_length = c.m_default;	// use pre-calculated default clipped to range
+				c.m_length = c.m_default; // use pre-calculated default clipped to range
 				++itor;
 			}
 		}
-		else if (proposedSize <= m_range.get_min())	// use min size
+		else if (proposedSize <= m_range.get_min()) // use min size
 		{
 			m_length = m_range.get_min();
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
@@ -291,7 +291,7 @@ public:
 				++itor;
 			}
 		}
-		else if (m_range.has_max() && (m_range.get_max() <= proposedSize))	// use max size
+		else if (m_range.has_max() && (m_range.get_max() <= proposedSize)) // use max size
 		{
 			m_length = m_range.get_max();
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
@@ -305,7 +305,7 @@ public:
 		else
 		{
 			m_length = proposedSize;
-			if (proposedSize > m_default)	// stretching beyond default
+			if (proposedSize > m_default) // stretching beyond default
 			{
 				double growBy = proposedSize;
 				growBy -= m_default;
@@ -384,7 +384,7 @@ public:
 	}
 };
 
-	
+
 // fair_sizing_group allocates space to smaller cells, or removes from larger cells, until all cells are equal.
 // Cells are then sized equally.
 class fair_sizing_group
@@ -404,35 +404,35 @@ public:
 		double m_length = 0.0;
 
 	public:
-		linear::range m_range;
 		double m_default = 0.0;
+		linear::range m_range;
 
 		cell()
 		{ }
 
 		cell(double defaultSize, const linear::range& r)
-			:	m_default(defaultSize),
-				m_range(r)
+			: m_default(defaultSize),
+			m_range(r)
 		{}
 
-		double get_length() const		{ return m_length; }
+		double get_length() const { return m_length; }
 	};
 
 private:
 	linear::range m_range;
 	double m_default = 0.0;
 	double m_length = 0.0;
-		
-	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::maximum_comparator>	m_sortedByMaximumSize;
-	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::minimum_comparator>	m_sortedByMinimumSize;
 
-	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByDefaultSize;
+	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::maximum_comparator> m_sortedByMaximumSize;
+	nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::minimum_comparator> m_sortedByMinimumSize;
 
-	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByHighWaterTotal;
-	nonvolatile_multimap<double, rcref<cell>, false>	m_sortedByLowWaterTotal;
+	nonvolatile_multimap<double, rcref<cell>, false> m_sortedByDefaultSize;
+
+	nonvolatile_multimap<double, rcref<cell>, false> m_sortedByHighWaterTotal;
+	nonvolatile_multimap<double, rcref<cell>, false> m_sortedByLowWaterTotal;
 
 	bool m_updated = false;
-	
+
 public:
 	fair_sizing_group()
 	{
@@ -449,9 +449,9 @@ public:
 		m_sortedByMinimumSize.clear();
 	}
 
-	const linear::range& get_range() const	{ return m_range; }
-	double get_default() const		{ return m_default; }
-	double get_length() const		{ return m_length; }
+	const linear::range& get_range() const { return m_range; }
+	double get_default() const { return m_default; }
+	double get_length() const { return m_length; }
 
 	void add_cell(const rcref<cell>& cellRef)
 	{
@@ -482,18 +482,18 @@ public:
 			return;
 		}
 		typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor;
-		if (proposedSize == m_default)	// use default size
+		if (proposedSize == m_default) // use default size
 		{
 			m_length = m_default;
-			itor = m_sortedByDefaultSize.get_first();	// doesn't matter which map we use to iterate through all cells
+			itor = m_sortedByDefaultSize.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
 				cell& c = (**itor);
-				c.m_length = itor.get_key();	// use pre-calculated default clipped to range
+				c.m_length = itor.get_key(); // use pre-calculated default clipped to range
 				++itor;
 			}
 		}
-		else if (proposedSize <= m_range.get_min())	// use min size
+		else if (proposedSize <= m_range.get_min()) // use min size
 		{
 			m_length = m_range.get_min();
 			itor = m_sortedByDefaultSize.get_first();
@@ -504,7 +504,7 @@ public:
 				++itor;
 			}
 		}
-		else if (m_range.has_max() && (m_range.get_max() <= proposedSize))	// use max size
+		else if (m_range.has_max() && (m_range.get_max() <= proposedSize)) // use max size
 		{
 			m_length = m_range.get_max();
 
@@ -512,15 +512,15 @@ public:
 			while (!!itor)
 			{
 				cell& c = (**itor);
-				c.m_length = c.m_range.get_max();	// use pre-calculated default clipped to range
+				c.m_length = c.m_range.get_max(); // use pre-calculated default clipped to range
 				++itor;
-			}		
+			}
 		}
 		else
 		{
 			if (m_updated)
 			{
-				m_updated = false;	
+				m_updated = false;
 				size_t cellPosition = 0;
 				double prevSize = 0;
 				double numElementsBefore = 0;
@@ -561,7 +561,7 @@ public:
 					++numElementsBefore;
 					++itor;
 				}
-					
+
 				cellPosition = 0;
 				prevSize = 0;
 				numElementsBefore = 0;
@@ -571,7 +571,7 @@ public:
 				while (!!itor)
 				{
 					cell& c = (**itor);
-							
+
 					double additionalSpace = 0;
 					if (numElementsBefore > 0)
 					{
@@ -609,13 +609,13 @@ public:
 			double remaining = proposedSize;
 			m_length = proposedSize;
 
-			if (proposedSize > m_default)	// stretching beyond default
+			if (proposedSize > m_default) // stretching beyond default
 			{
 				double growBy = proposedSize;
 				growBy -= m_default;
 
 				itor = m_sortedByHighWaterTotal.find_first_equal_or_nearest_greater_than(growBy);
-				if (!!itor)	// Set cells above the water line to defaults
+				if (!!itor) // Set cells above the water line to defaults
 				{
 					typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor2 = itor;
 					do {
@@ -627,7 +627,7 @@ public:
 				}
 				else
 					itor = m_sortedByHighWaterTotal.get_last();
-	
+
 				size_t numLeft = (*itor)->m_cellPosition;
 				typename nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::maximum_comparator>::iterator maxItor = m_sortedByMaximumSize.get_first();
 				do {
@@ -641,7 +641,7 @@ public:
 					remaining -= cellRange.get_max();
 					--numLeft;
 				} while (!!++maxItor);
-					
+
 				do {
 					cell& c = (**itor);
 					double targetSize = remaining;
@@ -661,7 +661,7 @@ public:
 				shrinkBy -= proposedSize;
 
 				itor = m_sortedByLowWaterTotal.find_first_equal_or_nearest_greater_than(shrinkBy);
-				if (!!itor)	// Set cells below the water line to defaults
+				if (!!itor) // Set cells below the water line to defaults
 				{
 					typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor2 = itor;
 					do {

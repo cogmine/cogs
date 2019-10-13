@@ -66,9 +66,9 @@ private:
 		}
 	};
 
-	rcref<filter>		m_sourceFilter;
-	rcref<filter>		m_sinkFilter;
-	rcref<datastream>	m_datastream;
+	rcref<datastream> m_datastream;
+	rcref<filter> m_sourceFilter;
+	rcref<filter> m_sinkFilter;
 
 protected:
 	virtual composite_buffer filtering_source(composite_buffer& src) = 0;
@@ -88,17 +88,17 @@ public:
 		couple(m_sinkFilter, m_datastream);
 	}
 
-	const rcref<filter>& get_source_filter() const	{ return m_sourceFilter; }
-	const rcref<filter>& get_sink_filter() const	{ return m_sinkFilter; }
+	const rcref<filter>& get_source_filter() const { return m_sourceFilter; }
+	const rcref<filter>& get_sink_filter() const { return m_sinkFilter; }
 
-	const rcref<datastream>& get_datastream() const	{ return m_datastream; }
+	const rcref<datastream>& get_datastream() const { return m_datastream; }
 
 	// datastream overrides
 
-	virtual void abort_source()	{ datastream::abort_source(); m_datastream->abort_source(); }
-	virtual void abort_sink()	{ datastream::abort_sink(); m_datastream->abort_sink(); }
+	virtual void abort_source() { datastream::abort_source(); m_datastream->abort_source(); }
+	virtual void abort_sink() { datastream::abort_sink(); m_datastream->abort_sink(); }
 
-	virtual void abort()		{ datastream::abort(); m_datastream->abort(); }
+	virtual void abort() { datastream::abort(); m_datastream->abort(); }
 };
 
 

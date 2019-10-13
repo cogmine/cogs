@@ -45,9 +45,9 @@ private:
 			abort_task = 1
 		};
 
-		volatile container_queue<task_type>	m_completionSerializer;
+		volatile container_queue<task_type> m_completionSerializer;
 
-		bool immediate_read(int s, size_t n)	// for now just returns false on failure, to trigger generic socket close.  More error handling later.
+		bool immediate_read(int s, size_t n) // for now just returns false on failure, to trigger generic socket close.  More error handling later.
 		{
 			ssize_t i = recv(s, (char*)(m_currentBuffer.get_ptr()) + m_progress, n, 0);
 			if (i == -1)
@@ -62,14 +62,14 @@ private:
 
 	public:
 		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
-			:	reader(desc, proxy),
-				m_tcp(t),
-				m_socket(t->m_socket)
+			: reader(desc, proxy),
+			m_tcp(t),
+			m_socket(t->m_socket)
 		{ }
 
 		~tcp_reader()
 		{ }
-		
+
 		virtual void reading()
 		{
 			m_adjustedRequestedSize = get_unread_size();
@@ -77,9 +77,9 @@ private:
 			read_more();
 		}
 
-		void read_more()		{ read_more_or_abort(read_task); }
+		void read_more() { read_more_or_abort(read_task); }
 
-		virtual void aborting()	{ read_more_or_abort(abort_task); }
+		virtual void aborting() { read_more_or_abort(abort_task); }
 
 		// Some socket implementations (Winsock, being one, not sure about sockets with kqueue)
 		// may incur significant overhead just checking how many bytes of data are available,
@@ -115,7 +115,7 @@ private:
 				get_buffer().append(m_currentBuffer);
 				m_currentBuffer.release();
 				m_complete = true;
-				complete(true);	// closes the read channel
+				complete(true); // closes the read channel
 			}
 		}
 
@@ -165,19 +165,19 @@ private:
 			abort_task = 1
 		};
 
-		volatile container_queue<task_type>	m_completionSerializer;
+		volatile container_queue<task_type> m_completionSerializer;
 
 		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
-			:	writer(desc, proxy),
-				m_tcp(t),
-				m_socket(t->m_socket)
+			: writer(desc, proxy),
+			m_tcp(t),
+			m_socket(t->m_socket)
 		{ }
-		
-		virtual void writing()	{ write_more(); }
 
-		void write_more()		{ write_more_or_abort(write_task); }
+		virtual void writing() { write_more(); }
 
-		virtual void aborting()	{ write_more_or_abort(abort_task); }
+		void write_more() { write_more_or_abort(write_task); }
+
+		virtual void aborting() { write_more_or_abort(abort_task); }
 
 		void write_more_or_abort(task_type taskType)
 		{
@@ -228,7 +228,7 @@ private:
 					{
 						buffer b = get_buffer().get_inner(0);
 						size_t sent = send(m_socket->get(), (uint8_t*)(b.get_const_ptr()), b.get_length(), 0);
-						if (sent == b.get_length())	// complete buffer, write again immediately
+						if (sent == b.get_length()) // complete buffer, write again immediately
 						{
 							get_buffer().advance_array();
 							continue;
@@ -236,11 +236,11 @@ private:
 						if (sent > 0)
 						{
 							get_buffer().advance(sent);
-							continue;	// Go ahead and try a write again immediately.  Maybe the underlying layer is breaking it up, but is ready now.
+							continue; // Go ahead and try a write again immediately.  Maybe the underlying layer is breaking it up, but is ready now.
 						}
 						else
 						{
-							COGS_ASSERT(sent == -1);	// Don't think we'll ever get an actual zero here.
+							COGS_ASSERT(sent == -1); // Don't think we'll ever get an actual zero here.
 							if ((errno != EAGAIN) && (errno != EWOULDBLOCK))
 							{
 								m_complete = true;
@@ -282,7 +282,7 @@ public:
 		m_socket(rcnew(socket, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
 	{ }
 
-	~tcp()	
+	~tcp()
 	{
 		abort();
 	}
@@ -291,12 +291,10 @@ public:
 	{
 	protected:
 		rcref<os::io::kqueue_pool> m_kqueuePool;
-
+		os::io::kqueue_pool::remove_token m_waiterRemoveToken;
 		rcptr<tcp> m_tcp;
 		vector<address> m_addresses;
 		unsigned short m_remotePort;
-
-		os::io::kqueue_pool::remove_token m_waiterRemoveToken;
 		bool m_aborted = false;
 
 		enum task_type
@@ -313,7 +311,7 @@ public:
 			{
 				if (m_addresses.is_empty())
 				{
-					m_tcp.release();	// failure to connect is indicated by complete connecter with null tcp object
+					m_tcp.release(); // failure to connect is indicated by complete connecter with null tcp object
 					signal();
 					self_release();
 					break;
@@ -333,16 +331,16 @@ public:
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
-				if (i != 0)	// bind failed?
+				if (i != 0) // bind failed?
 				{
-					m_tcp.release();	// failure to connect is indicated by complete connecter with null tcp object
+					m_tcp.release(); // failure to connect is indicated by complete connecter with null tcp object
 					signal();
 					self_release();
 					break;
 				}
 
 				i = ::connect(m_tcp->m_socket->get(), (sockaddr*)&sa, addr.get_sockaddr_size());
-				if (i == 0)	// immediately connected??
+				if (i == 0) // immediately connected??
 				{
 					signal();
 					self_release();
@@ -378,7 +376,7 @@ public:
 							socklen_t len = sizeof(errnum);
 							int i = getsockopt(m_tcp->m_socket->get(), SOL_SOCKET, SO_ERROR, &errnum, &len);
 							COGS_ASSERT(i != -1);
-							if (errnum == 0)	 //connected
+							if (errnum == 0) //connected
 							{
 								m_tcp->m_socket->read_endpoints();
 								signal();
@@ -397,7 +395,7 @@ public:
 						{
 							m_aborted = true;
 							m_kqueuePool->abort_write_waiter(m_waiterRemoveToken);
-							m_tcp.release();	// failure to connect is indicated by complete connecter with null tcp object
+							m_tcp.release(); // failure to connect is indicated by complete connecter with null tcp object
 							signal();
 							self_release();
 						}
@@ -411,7 +409,7 @@ public:
 			}
 		}
 
-		void complete()	{ complete_or_abort(complete_task); }
+		void complete() { complete_or_abort(complete_task); }
 
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
@@ -440,7 +438,7 @@ public:
 
 		virtual rcref<task<bool> > cancel() volatile
 		{
-			auto t = signallable_task_base<connecter>::cancel();	// will complete immediately
+			auto t = signallable_task_base<connecter>::cancel(); // will complete immediately
 			if (t->get())
 				((connecter*)this)->complete_or_abort(abort_task);
 			return t;
@@ -457,9 +455,9 @@ public:
 		return rcnew(connecter, addr, port, kq);
 	}
 
-	virtual void abort()			{ datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
-	virtual void abort_source()		{ datasource::abort_source(); m_socket->close_source(); }
-	virtual void abort_sink()		{ datasink::abort_sink(); m_socket->close_sink(); }
+	virtual void abort() { datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
+	virtual void abort_source() { datasource::abort_source(); m_socket->close_source(); }
+	virtual void abort_sink() { datasink::abort_sink(); m_socket->close_sink(); }
 
 	typedef function<void(const rcref<tcp>&)> accept_delegate_t;
 
@@ -472,12 +470,10 @@ public:
 			rcref<os::io::kqueue_pool> m_kqueuePool;
 			os::io::kqueue_pool::remove_token m_listenerRemoveToken;
 
-			accept_delegate_t m_acceptDelegate;
-			address_family m_addressFamily;
-
 			weak_rcptr<listener> m_listener;
 			rcptr<tcp> m_listenSocket;
-
+			accept_delegate_t m_acceptDelegate;
+			address_family m_addressFamily;
 			bool m_closed = false;
 
 			enum task_type
@@ -490,11 +486,11 @@ public:
 
 			accept_helper(const ptr<rc_obj_base>& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 				: object(desc),
+				m_kqueuePool(kq),
 				m_listener(l),
-				m_acceptDelegate(acceptDelegate),
 				m_listenSocket(rcnew(tcp, addressFamily, kq)),
-				m_addressFamily(addressFamily),
-				m_kqueuePool(kq)
+				m_acceptDelegate(acceptDelegate),
+				m_addressFamily(addressFamily)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -519,9 +515,9 @@ public:
 				}
 			}
 
-			void close()	{ close_or_accept_connection(close_task); }
+			void close() { close_or_accept_connection(close_task); }
 
-			void accept_connection()	{ close_or_accept_connection(accept_task); }
+			void accept_connection() { close_or_accept_connection(accept_task); }
 
 			void close_or_accept_connection(task_type taskType)
 			{
@@ -581,10 +577,10 @@ public:
 
 		};
 
-		unsigned short			m_port;
-		rcptr<accept_helper>	m_acceptHelper;
-		single_fire_event		m_closeEvent;
-				
+		rcptr<accept_helper> m_acceptHelper;
+		single_fire_event m_closeEvent;
+		unsigned short m_port;
+
 		listener() = delete;
 		listener(listener&&) = delete;
 		listener(const listener&) = delete;
@@ -610,9 +606,11 @@ public:
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, kq);
 		}
 
-		~listener()									{ close(); }
+		~listener() { close(); }
 
-		const waitable& get_close_event() const		{ return m_closeEvent; }
+		const waitable& get_close_event() const { return m_closeEvent; }
+
+		unsigned short get_port() const { return m_port; }
 	};
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
@@ -628,8 +626,8 @@ public:
 		}, port, addressFamily);
 	}
 
-	virtual rcref<const net::endpoint> get_local_endpoint() const	{ return m_socket->get_local_endpoint_ref(); }
-	virtual rcref<const net::endpoint> get_remote_endpoint() const	{ return m_socket->get_remote_endpoint_ref(); }
+	virtual rcref<const net::endpoint> get_local_endpoint() const { return m_socket->get_local_endpoint_ref(); }
+	virtual rcref<const net::endpoint> get_remote_endpoint() const { return m_socket->get_remote_endpoint_ref(); }
 };
 
 

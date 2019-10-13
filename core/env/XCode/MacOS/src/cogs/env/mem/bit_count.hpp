@@ -52,7 +52,7 @@ bit_count(const int_t& bits)
 {
 	return __builtin_popcountll((unsigned long long)bits);
 }
-	
+
 
 template <typename int_t>
 inline std::enable_if_t<

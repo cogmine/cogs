@@ -30,7 +30,7 @@ namespace cogs {
 
 //static constexpr size_t num_random_bits = env::num_random_bits;
 //typedef env::random_int_t random_int_t;
-//inline random_int_t get_random()	{ return env::get_random(); }
+//inline random_int_t get_random() { return env::get_random(); }
 
 
 /// @ingroup Math
@@ -59,7 +59,7 @@ inline uint_t get_random_int()
 	static_assert(!has_sign);
 	const size_t bits = sizeof(uint_t) * 8;
 	const bool evenlyDivisible = ((bits % num_random_bits) == 0);
-	const size_t digits = (bits / num_random_bits) + (evenlyDivisible ? 0 : 1);	// > 1
+	const size_t digits = (bits / num_random_bits) + (evenlyDivisible ? 0 : 1); // > 1
 	uint_t result;
 	if (bits <= num_random_bits)
 		result = (uint_t)get_random();

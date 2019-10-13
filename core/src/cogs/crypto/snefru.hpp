@@ -25,7 +25,7 @@ template <size_t bits>
 class snefru : public hash
 {
 private:
-	snefru() = delete;	// Not allowed.  This template is specialized for supported bit sizes};
+	snefru() = delete; // Not allowed.  This template is specialized for supported bit sizes};
 };
 
 
@@ -37,8 +37,8 @@ private:
 	typedef serial_hash<digest_bits, digest_bits, 32, endian_t::big, stride_bits> base_t;
 	typedef snefru_base<digest_bits, stride_bits> this_t;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[base_t::stride_digits];
+	uint64_t m_bitCount;
+	uint32_t m_state[base_t::stride_digits];
 
 	void process_digit()
 	{
@@ -49,7 +49,7 @@ private:
 	void process_block()
 	{
 		static constexpr uint32_t sboxes[4096] = {
-			/* Start of S Box 0  */
+			/* Start of S Box 0 */
 			/*   0*/ 0x64f9001bL, 0xfeddcdf6L, 0x7c8ff1e2L, 0x11d71514L, 0x8b8c18d3L,
 			/*   5*/ 0xdddf881eL, 0x6eab5056L, 0x88ced8e1L, 0x49148959L, 0x69c56fd5L,
 			/*  10*/ 0xb7994f03L, 0x0fbcee3eL, 0x3c264940L, 0x21557e58L, 0xe14b3fc2L,
@@ -102,8 +102,8 @@ private:
 			/* 245*/ 0x1a82a373L, 0x0896aa49L, 0x42233681L, 0xf62c55cbL, 0x9f1c5404L,
 			/* 250*/ 0xf74fb15cL, 0xc06e4312L, 0x6ffe5d72L, 0x8aa8678bL, 0x337cd129L,
 			/* 255*/ 0x8211cefdL,
-			/* End   of S Box 0  */
-			/* Start of S Box 1  */
+			/* End   of S Box 0 */
+			/* Start of S Box 1 */
 			/*   0*/ 0x074a1d09L, 0x52a10e5aL, 0x9275a3f8L, 0x4b82506cL, 0x37df7e1bL,
 			/*   5*/ 0x4c78b3c5L, 0xcefab1daL, 0xf472267eL, 0xb63045f6L, 0xd66a1fc0L,
 			/*  10*/ 0x400298e3L, 0x27e60c94L, 0x87d2f1b8L, 0xdf9e56ccL, 0x45cd1803L,
@@ -156,8 +156,8 @@ private:
 			/* 245*/ 0x3c8cf495L, 0xbefceebdL, 0xfd25b714L, 0xc498d83dL, 0x0d2e1a8dL,
 			/* 250*/ 0xe9f966acL, 0x0e387445L, 0x435419e5L, 0x5e7ebec4L, 0xaa90b8d9L,
 			/* 255*/ 0xff1a3a96L,
-			/* End   of S Box 1  */
-			/* Start of S Box 2  */
+			/* End   of S Box 1 */
+			/* Start of S Box 2 */
 			/*   0*/ 0x4a8fe4e3L, 0xf27d99cdL, 0xd04a40caL, 0xcb5ff194L, 0x3668275aL,
 			/*   5*/ 0xff4816beL, 0xa78b394cL, 0x4c6be9dbL, 0x4eec38d2L, 0x4296ec80L,
 			/*  10*/ 0xcdce96f8L, 0x888c2f38L, 0xe75508f5L, 0x7b916414L, 0x060aa14aL,
@@ -210,8 +210,8 @@ private:
 			/* 245*/ 0x2184bb6eL, 0x70c43c1eL, 0x4d435915L, 0xae7b8523L, 0xb6fb06bcL,
 			/* 250*/ 0x5431ee76L, 0xfdbc5d26L, 0xed77493dL, 0xc5712ee4L, 0xa8380437L,
 			/* 255*/ 0x2eef261aL,
-			/* End   of S Box 2  */
-			/* Start of S Box 3  */
+			/* End   of S Box 2 */
+			/* Start of S Box 3 */
 			/*   0*/ 0x5a79392bL, 0xb8af32c2L, 0x41f7720aL, 0x833a61ecL, 0x13dfedacL,
 			/*   5*/ 0xc4990bc4L, 0xdc0f54bcL, 0xfedd5e88L, 0x80da1881L, 0x4dea1afdL,
 			/*  10*/ 0xfd402cc6L, 0xae67cc7aL, 0xc5238525L, 0x8ea01254L, 0xb56b9bd5L,
@@ -264,8 +264,8 @@ private:
 			/* 245*/ 0x674a6bf1L, 0x5b5d587fL, 0x4772deaaL, 0x4a63968fL, 0x0be68686L,
 			/* 250*/ 0x513d6426L, 0x939a4787L, 0xbba89296L, 0x4ec20007L, 0x818d0d08L,
 			/* 255*/ 0xff64dfd6L,
-			/* End   of S Box 3  */
-			/* Start of S Box 4  */
+			/* End   of S Box 3 */
+			/* Start of S Box 4 */
 			/*   0*/ 0xcb2297cbL, 0xdb48a144L, 0xa16cbe4bL, 0xbbea1d6cL, 0x5af6b6b7L,
 			/*   5*/ 0x8a8110b6L, 0xf9236ef9L, 0xc98f83e6L, 0x0f9c65b8L, 0x252d4a89L,
 			/*  10*/ 0xa497f068L, 0xa5d7ed2dL, 0x94c22845L, 0x9da1c8c4L, 0xe27c2e2eL,
@@ -318,8 +318,8 @@ private:
 			/* 245*/ 0xecc963cfL, 0x3c6984aaL, 0x4ed056efL, 0x9ca56976L, 0x8f3e80d4L,
 			/* 250*/ 0xb5bae7c5L, 0x30b5caf5L, 0x63f33a64L, 0xa9e4bbdeL, 0xf6b82298L,
 			/* 255*/ 0x4d673c1dL,
-			/* End   of S Box 4  */
-			/* Start of S Box 5  */
+			/* End   of S Box 4 */
+			/* Start of S Box 5 */
 			/*   0*/ 0x4b4f1121L, 0xba183081L, 0xc784f41fL, 0xd17d0bacL, 0x083d2267L,
 			/*   5*/ 0x37b1361eL, 0x3581ad05L, 0xfda2f6bcL, 0x1e892cddL, 0xb56d3c3aL,
 			/*  10*/ 0x32140e46L, 0x138d8aabL, 0xe14773d4L, 0x5b0e71dfL, 0x5d1fe055L,
@@ -372,8 +372,8 @@ private:
 			/* 245*/ 0x485918fcL, 0xd635d04cL, 0xdf96ac33L, 0x66f2d303L, 0x247056aeL,
 			/* 250*/ 0xa1a7b2a8L, 0x27d8cc9cL, 0x17b6e998L, 0x7bf5590fL, 0xfe97f557L,
 			/* 255*/ 0x5471d8a2L,
-			/* End   of S Box 5  */
-			/* Start of S Box 6  */
+			/* End   of S Box 5 */
+			/* Start of S Box 6 */
 			/*   0*/ 0x83a327a1L, 0x9f379f51L, 0x40a7d007L, 0x11307423L, 0x224587c1L,
 			/*   5*/ 0xac27d63bL, 0x3b7e64eaL, 0x2e1cbfa6L, 0x09996000L, 0x03bc0e2cL,
 			/*  10*/ 0xd4c4478aL, 0x4542e0abL, 0xfeda26d4L, 0xc1d10fcbL, 0x8252f596L,
@@ -426,8 +426,8 @@ private:
 			/* 245*/ 0xdf81b4d8L, 0xd7809e55L, 0xd6d883d9L, 0x2cc7978cL, 0x5e787cc5L,
 			/* 250*/ 0xdd0033d1L, 0xa050c937L, 0x97f75dcdL, 0x299de580L, 0x41e2b261L,
 			/* 255*/ 0xea5a54f1L,
-			/* End   of S Box 6  */
-			/* Start of S Box 7  */
+			/* End   of S Box 6 */
+			/* Start of S Box 7 */
 			/*   0*/ 0x7e672590L, 0xbea513bbL, 0x2c906fe6L, 0x86029c2bL, 0x55dc4f74L,
 			/*   5*/ 0x0553398eL, 0x63e09647L, 0xcafd0babL, 0x264c37dfL, 0x8272210fL,
 			/*  10*/ 0x67afa669L, 0x12d98a5fL, 0x8cab23c4L, 0x75c68bd1L, 0xc3370470L,
@@ -480,8 +480,8 @@ private:
 			/* 245*/ 0x4d01f931L, 0x34edf760L, 0xb45f266bL, 0xd5d4de14L, 0x52d8ac35L,
 			/* 250*/ 0x15cfd885L, 0xcbc5cd21L, 0x4cd76d4dL, 0x7c80ef54L, 0xbc92ee75L,
 			/* 255*/ 0x1e56a1f6L,
-			/* End   of S Box 7  */
-			/* Start of S Box 8  */
+			/* End   of S Box 7 */
+			/* Start of S Box 8 */
 			/*   0*/ 0xbaa20b6cL, 0x9ffbad26L, 0xe1f7d738L, 0x794aec8dL, 0xc9e9cf3cL,
 			/*   5*/ 0x8a9a7846L, 0xc57c4685L, 0xb9a92fedL, 0x29cb141fL, 0x52f9ddb7L,
 			/*  10*/ 0xf68ba6bcL, 0x19ccc020L, 0x4f584aaaL, 0x3bf6a596L, 0x003b7cf7L,
@@ -534,8 +534,8 @@ private:
 			/* 245*/ 0xf796f168L, 0x71492c84L, 0x33c0f5a6L, 0x3144f6ecL, 0x25dc412eL,
 			/* 250*/ 0xb16c5743L, 0x83a1fa7eL, 0x0997b101L, 0xb627e6e8L, 0xcf33905cL,
 			/* 255*/ 0x8456fb65L,
-			/* End   of S Box 8  */
-			/* Start of S Box 9  */
+			/* End   of S Box 8 */
+			/* Start of S Box 9 */
 			/*   0*/ 0xb29bea74L, 0xc35da605L, 0x305c1ca3L, 0xd2e9f5bcL, 0x6fd5bff4L,
 			/*   5*/ 0xff347703L, 0xfc45b163L, 0xf498e068L, 0xb71229fcL, 0x81acc3fbL,
 			/*  10*/ 0x78538a8bL, 0x984ecf81L, 0xa5da47a4L, 0x8f259eefL, 0x6475dc65L,
@@ -588,8 +588,8 @@ private:
 			/* 245*/ 0xb1ae572aL, 0x7c0d7bc1L, 0xe1c37eb2L, 0xf542aa60L, 0xf1a48ea0L,
 			/* 250*/ 0xd067b89fL, 0xbbfa195dL, 0x1a049b0dL, 0x315946aaL, 0x36d1b447L,
 			/* 255*/ 0x6d2ebdf0L,
-			/* End   of S Box 9  */
-			/* Start of S Box 10  */
+			/* End   of S Box 9 */
+			/* Start of S Box 10 */
 			/*   0*/ 0x0d188a6dL, 0x12cea0dbL, 0x7e63740eL, 0x6a444821L, 0x253d234fL,
 			/*   5*/ 0x6ffc6597L, 0x94a6bdefL, 0x33ee1b2fL, 0x0a6c00c0L, 0x3aa336b1L,
 			/*  10*/ 0x5af55d17L, 0x265fb3dcL, 0x0e89cf4dL, 0x0786b008L, 0xc80055b8L,
@@ -642,8 +642,8 @@ private:
 			/* 245*/ 0x3fd80f52L, 0x4290a8beL, 0x75ff44c7L, 0xa554e546L, 0xe1023499L,
 			/* 250*/ 0xbf2652e3L, 0x7d20399eL, 0xa1df7e82L, 0x177092eeL, 0x217dd3f1L,
 			/* 255*/ 0x7c1ff8d9L,
-			/* End   of S Box 10  */
-			/* Start of S Box 11  */
+			/* End   of S Box 10 */
+			/* Start of S Box 11 */
 			/*   0*/ 0x12113f2eL, 0xbfbd0785L, 0xf11793fbL, 0xa5bff566L, 0x83c7b0e5L,
 			/*   5*/ 0x72fb316bL, 0x75526a9aL, 0x41e0e612L, 0x7156ba09L, 0x53ce7deeL,
 			/*  10*/ 0x0aa26881L, 0xa43e0d7dL, 0x3da73ca3L, 0x182761edL, 0xbd5077ffL,
@@ -696,8 +696,8 @@ private:
 			/* 245*/ 0x9ee7d7c8L, 0xf9f24fa9L, 0xdb04b35dL, 0x9ab0c9e0L, 0x651f4417L,
 			/* 250*/ 0x028f8b07L, 0x6e28d9aaL, 0xfba96319L, 0x8ed66687L, 0xfecbc58dL,
 			/* 255*/ 0x954ddb44L,
-			/* End   of S Box 11  */
-			/* Start of S Box 12  */
+			/* End   of S Box 11 */
+			/* Start of S Box 12 */
 			/*   0*/ 0x7b0bdffeL, 0x865d16b1L, 0x49a058c0L, 0x97abaa3fL, 0xcaacc75dL,
 			/*   5*/ 0xaba6c17dL, 0xf8746f92L, 0x6f48aeedL, 0x8841d4b5L, 0xf36a146aL,
 			/*  10*/ 0x73c390abL, 0xe6fb558fL, 0x87b1019eL, 0x26970252L, 0x246377b2L,
@@ -750,8 +750,8 @@ private:
 			/* 245*/ 0x19831810L, 0xc670d518L, 0xb05b51d8L, 0x0f3a1ce5L, 0x6caa1f9cL,
 			/* 250*/ 0xaacc31beL, 0x949ed050L, 0x1ead07e7L, 0xa8479abdL, 0xd6cffcd5L,
 			/* 255*/ 0x936993efL,
-			/* End   of S Box 12  */
-			/* Start of S Box 13  */
+			/* End   of S Box 12 */
+			/* Start of S Box 13 */
 			/*   0*/ 0x472e91cbL, 0x5444b5b6L, 0x62be5861L, 0x1be102c7L, 0x63e4b31eL,
 			/*   5*/ 0xe81f71b7L, 0x9e2317c9L, 0x39a408aeL, 0x518024f4L, 0x1731c66fL,
 			/*  10*/ 0x68cbc918L, 0x71fb0c9eL, 0xd03b7fddL, 0x7d6222ebL, 0x9057eda3L,
@@ -804,8 +804,8 @@ private:
 			/* 245*/ 0x169d9229L, 0x887761dfL, 0x00b667d5L, 0xdb425e59L, 0xb72f2844L,
 			/* 250*/ 0x9b0ac1f5L, 0x9c737e3aL, 0x2b85476cL, 0x6722add6L, 0x44a63297L,
 			/* 255*/ 0x0d688cedL,
-			/* End   of S Box 13  */
-			/* Start of S Box 14  */
+			/* End   of S Box 13 */
+			/* Start of S Box 14 */
 			/*   0*/ 0xabc59484L, 0x4107778aL, 0x8ad94c6fL, 0xfe83df90L, 0x0f64053fL,
 			/*   5*/ 0xd1292e9dL, 0xc5744356L, 0x8dd1abb4L, 0x4c4e7667L, 0xfb4a7fc1L,
 			/*  10*/ 0x74f402cbL, 0x70f06afdL, 0xa82286f2L, 0x918dd076L, 0x7a97c5ceL,
@@ -858,8 +858,8 @@ private:
 			/* 245*/ 0xca0041d8L, 0xbbea3aafL, 0xda628291L, 0x9d5c95d4L, 0xadd504a6L,
 			/* 250*/ 0xc39ab482L, 0x5e9e14a4L, 0x2be065f0L, 0x2a13fc3aL, 0x9052e8ecL,
 			/* 255*/ 0xaf6f5afcL,
-			/* End   of S Box 14  */
-			/* Start of S Box 15  */
+			/* End   of S Box 14 */
+			/* Start of S Box 15 */
 			/*   0*/ 0x519aa8b5L, 0xbb303da9L, 0xe00e2b10L, 0xdfa6c1dbL, 0x2e6b952eL,
 			/*   5*/ 0xee10dc23L, 0x37936d09L, 0x1fc42e92L, 0x39b25a9fL, 0x13ff89f4L,
 			/*  10*/ 0xc8f53feaL, 0x18500bc7L, 0x95a0379dL, 0x98f751c2L, 0x2289c42fL,
@@ -912,13 +912,13 @@ private:
 			/* 245*/ 0x869222f0L, 0x6ef21769L, 0x839d20a5L, 0xd03b24c9L, 0xf412601eL,
 			/* 250*/ 0x6d72a243L, 0x0e018dfdL, 0x89f3721aL, 0xc94f4134L, 0x2f992f20L,
 			/* 255*/ 0x4d87253cL
-			/* End   of S Box 15  */
+			/* End   of S Box 15 */
 		};
 
 		m_bitCount += stride_bits;
 
 		uint32_t w[16];
-		
+
 		for (size_t i = 0; i < base_t::digest_digits; i++)
 			w[i] = base_t::m_result[i];
 
@@ -1057,9 +1057,9 @@ private:
 	typedef snefru<128> this_t;
 
 public:
-	snefru()								{ }
-	snefru(const this_t& src) : base_t(src)	{ }
-	this_t& operator=(const this_t& src)	{ base_t::operator=(src); return *this; }
+	snefru() { }
+	snefru(const this_t& src) : base_t(src) { }
+	this_t& operator=(const this_t& src) { base_t::operator=(src); return *this; }
 };
 
 
@@ -1071,9 +1071,9 @@ private:
 	typedef snefru<256> this_t;
 
 public:
-	snefru()								{ }
-	snefru(const this_t& src) : base_t(src)	{ }
-	this_t& operator=(const this_t& src)	{ base_t::operator=(src); return *this; }
+	snefru() { }
+	snefru(const this_t& src) : base_t(src) { }
+	this_t& operator=(const this_t& src) { base_t::operator=(src); return *this; }
 };
 
 

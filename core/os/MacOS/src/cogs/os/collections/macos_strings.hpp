@@ -40,7 +40,7 @@ inline NSString* string_to_NSString(const composite_string& s)
 inline string NSString_to_string(const NSString* nsString)
 {
 	string result;
-	
+
 	NSData* asData = [nsString dataUsingEncoding:kEncoding_wchar_t];
 	result.append((wchar_t*)[asData bytes], [asData length] /  sizeof(wchar_t));
 

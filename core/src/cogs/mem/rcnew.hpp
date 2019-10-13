@@ -82,7 +82,7 @@ rcnew_inner(
 	typedef rc_obj<type, allocator_t> rc_obj_t;
 	rc_obj_t* desc = rc_obj_t::allocate().get_ptr();
 	type* obj = desc->get_obj();
-	
+
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	desc->set_type_name(typeid(type).name());
 	desc->set_debug_str(debugStr);

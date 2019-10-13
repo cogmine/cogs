@@ -35,7 +35,7 @@ class button : public pane_bridge
 public:
 	typedef function<void(const rcref<button>&)> action_delegate_t;
 
-private:	
+private:
 	action_delegate_t m_action;
 	composite_string m_text;
 	gfx::font m_font;
@@ -77,7 +77,7 @@ public:
 		m_action = newAction;
 	}
 
-	const composite_string& get_text() const	{ return m_text; }
+	const composite_string& get_text() const { return m_text; }
 	void set_text(const composite_string& text)
 	{
 		m_text = text;
@@ -88,7 +88,7 @@ public:
 		}
 	}
 
-	bool is_enabled() const			{ return m_isEnabled; }
+	bool is_enabled() const { return m_isEnabled; }
 	void set_enabled(bool b)
 	{
 		m_isEnabled = b;
@@ -99,7 +99,7 @@ public:
 		}
 	}
 
-	bool is_default() const			{ return m_isDefault; }
+	bool is_default() const { return m_isDefault; }
 	void set_default(bool b)
 	{
 		m_isDefault = b;
@@ -110,7 +110,7 @@ public:
 		}
 	}
 
-	const gfx::font& get_font() const	{ return m_font; }
+	const gfx::font& get_font() const { return m_font; }
 	void set_font(const gfx::font& fnt)
 	{
 		m_font = fnt;

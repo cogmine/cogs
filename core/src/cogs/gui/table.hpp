@@ -54,11 +54,11 @@
 //		rcref<frame> m_userReshaper;
 //
 //		cell_frame(size_t row, size_t column, size_t rowHeight, size_t columnWidth, const rcref<frame>& userReshaper)
-//			:	m_row(row),
-//				m_column(column),
-//				m_rowHeight(rowHeight),
-//				m_columnWidth(columnWidth),
-//				m_userReshaper(userReshaper)
+//			: m_row(row),
+//			m_column(column),
+//			m_rowHeight(rowHeight),
+//			m_columnWidth(columnWidth),
+//			m_userReshaper(userReshaper)
 //		{ }
 //
 //		virtual void reshape(frame& p, const point& oldOrigin = point(0, 0))
@@ -124,8 +124,8 @@
 //	table(int numRows, int numColumns)
 //	{ }
 //
-//	size_t get_num_rows() const		{ return m_rows.size(); }
-//	size_t get_num_columns() const	{ return m_columns.size(); }
+//	size_t get_num_rows() const { return m_rows.size(); }
+//	size_t get_num_columns() const { return m_columns.size(); }
 //
 //	// row and column are 0-based
 //	void nest(const rcref<frame>& child, size_t row, size_t column, size_t numRows = 1, size_t numColumns = 1)

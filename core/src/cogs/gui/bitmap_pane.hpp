@@ -60,10 +60,10 @@ public:
 
 	virtual range get_range() const
 	{
-		range r;	// unset, no limits.  Image can be stretched by default.
+		range r; // unset, no limits.  Image can be stretched by default.
 		return r;
 	}
-	
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		pane::reshape(b, oldOrigin);

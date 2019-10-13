@@ -30,14 +30,14 @@ private:
 	class tcp_reader : public reader
 	{
 	private:
-		const rcref<socket>						m_socket;
-		const weak_rcptr<tcp>					m_tcp;
-		os::io::completion_port::overlapped_t*	m_overlapped;
-		buffer									m_currentBuffer;
-		size_t									m_progress;
-		size_t									m_adjustedRequestedSize;
-		volatile fixed_integer<false, 2>		m_abortStateBits;	// bit 0=aborted, bit 1=started
-		
+		const weak_rcptr<tcp> m_tcp;
+		const rcref<socket> m_socket;
+		os::io::completion_port::overlapped_t* m_overlapped;
+		buffer m_currentBuffer;
+		size_t m_progress;
+		size_t m_adjustedRequestedSize;
+		volatile fixed_integer<false, 2> m_abortStateBits; // bit 0=aborted, bit 1=started
+
 		enum task_type
 		{
 			read_task = 0,
@@ -46,7 +46,7 @@ private:
 
 		volatile container_queue<task_type> m_completionSerializer;
 
-		bool immediate_read(SOCKET s, size_t n)	// for now just returns false on failure, to trigger generic socket close.  More error handling later.
+		bool immediate_read(SOCKET s, size_t n) // for now just returns false on failure, to trigger generic socket close.  More error handling later.
 		{
 			int i = recv(s, (char*)(m_currentBuffer.get_ptr()) + m_progress, (int)n, 0);
 			if (i == SOCKET_ERROR)
@@ -64,20 +64,20 @@ private:
 		virtual void aborting()
 		{
 			fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(0);
-			if (resultingValue.test_bit(1))		// if it has already been started			
+			if (resultingValue.test_bit(1)) // if it has already been started
 				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
 		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
-			:	reader(desc, proxy),
-				m_tcp(t),
-				m_socket(t->m_socket),
-				m_overlapped(0),
-				m_progress(0),
-				m_abortStateBits(0)
+			: reader(desc, proxy),
+			m_tcp(t),
+			m_socket(t->m_socket),
+			m_overlapped(0),
+			m_progress(0),
+			m_abortStateBits(0)
 		{
 		}
-		
+
 		void execute_in_completion_port_thread()
 		{
 			read_or_complete(read_task);
@@ -132,7 +132,7 @@ private:
 
 		// Need to serialize the async read and its completion to address race condition on abort
 		// This is only needed for reads, because they may be restarted.  Writes do not need this synchronization.
-		void read_or_complete(task_type taskType)	
+		void read_or_complete(task_type taskType)
 		{
 			rcptr<tcp> ds = m_tcp;
 			if (m_completionSerializer.append(taskType))
@@ -150,7 +150,6 @@ private:
 								if (!m_abortStateBits.test_bit(0))
 								{
 									int i;
-									int err = 0;
 									if (!!m_overlapped)
 										m_overlapped->clear();
 									else
@@ -162,11 +161,11 @@ private:
 												r2->read_done();
 										});
 									}
-									
+
 									WSABUF buf;
 									buf.buf = (char*)(m_currentBuffer.get_ptr()) + m_progress;
 									if (get_read_mode() == read_some)
-										buf.len = 1;		// Only wait on 1 byte if partial read
+										buf.len = 1; // Only wait on 1 byte if partial read
 									else
 										buf.len = (ULONG)(m_adjustedRequestedSize - m_progress);
 
@@ -178,7 +177,7 @@ private:
 									else
 									{
 										fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(1);
-										if (resultingValue.test_bit(0))									// if it had already been aborted
+										if (resultingValue.test_bit(0)) // if it had already been aborted
 											CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 										break;
 									}
@@ -231,24 +230,24 @@ private:
 	class tcp_writer : public writer
 	{
 	public:
-		const rcref<socket>						m_socket;
-		const weak_rcptr<tcp>					m_tcp;
-		os::io::completion_port::overlapped_t*	m_overlapped;
-		vector<WSABUF>							m_wsaBuffers;
-		volatile fixed_integer<false, 2>		m_abortStateBits;	// bit 0=aborted, bit 1=started
-		
+		const weak_rcptr<tcp> m_tcp;
+		const rcref<socket> m_socket;
+		os::io::completion_port::overlapped_t* m_overlapped;
+		vector<WSABUF> m_wsaBuffers;
+		volatile fixed_integer<false, 2> m_abortStateBits; // bit 0=aborted, bit 1=started
+
 		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
-			:	writer(desc, proxy),
-				m_tcp(t),
-				m_socket(t->m_socket),
-				m_overlapped(0),
-				m_wsaBuffers(0)
+			: writer(desc, proxy),
+			m_tcp(t),
+			m_socket(t->m_socket),
+			m_overlapped(0),
+			m_wsaBuffers(0)
 		{ }
 
 		virtual void aborting()
 		{
 			fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(0);
-			if (resultingValue.test_bit(1))	// if it has already been started
+			if (resultingValue.test_bit(1)) // if it has already been started
 				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
@@ -270,7 +269,7 @@ private:
 
 					DWORD numSent = 0;
 
-					int i = WSASend(m_socket->get(), wsaBuf, (DWORD)(m_wsaBuffers.get_length()), &numSent, 0, 0, 0);
+					WSASend(m_socket->get(), wsaBuf, (DWORD)(m_wsaBuffers.get_length()), &numSent, 0, 0, 0);
 
 					// TBD, abort connection here if error.  Currently handled later in completion port thread.  not much harm there.
 
@@ -288,7 +287,7 @@ private:
 								wsaBuf->buf += numSent;
 								break;
 							}
-							//else // if (len <= numSent)					
+							//else // if (len <= numSent)
 							numSent -= len;
 							m_wsaBuffers.advance(1);
 						}
@@ -320,7 +319,6 @@ private:
 					if (!!ds)
 					{
 						int i;
-						int err = 0;
 						m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
 						{
 							rcptr<tcp_writer> r2 = r;
@@ -334,7 +332,7 @@ private:
 						else
 						{
 							fixed_integer<false, 2> resultingValue = m_abortStateBits.pre_set_bit(1);
-							if (resultingValue.test_bit(0))									// if it has already been aborted
+							if (resultingValue.test_bit(0)) // if it has already been aborted
 								CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 							break;
 						}
@@ -345,7 +343,7 @@ private:
 				break;
 			}
 		}
-		
+
 		void write_done()
 		{
 			size_t n = m_overlapped->m_numTransferred;
@@ -386,13 +384,13 @@ public:
 	class connecter : public signallable_task_base<connecter>
 	{
 	protected:
-		rcref<network>						m_network;
-		rcref<os::io::completion_port>			m_completionPort;
-		os::io::completion_port::overlapped_t*	m_overlapped;
+		rcref<network> m_network;
+		rcref<os::io::completion_port> m_completionPort;
+		os::io::completion_port::overlapped_t* m_overlapped;
 
-		rcptr<tcp>								m_tcp;
-		vector<address>							m_addresses;
-		unsigned short							m_remotePort;
+		rcptr<tcp> m_tcp;
+		vector<address> m_addresses;
+		unsigned short m_remotePort;
 
 		void execute_in_completion_port_thread()
 		{
@@ -401,7 +399,7 @@ public:
 				if (m_addresses.is_empty())
 				{
 					default_allocator::destruct_deallocate_type(m_overlapped);
-					m_tcp.release();	// failure to connect is indicated by complete connecter with null tcp object
+					m_tcp.release(); // failure to connect is indicated by complete connecter with null tcp object
 					signal();
 					self_release();
 					break;
@@ -419,7 +417,7 @@ public:
 				m_tcp = rcnew(tcp, addr.get_address_family(), m_completionPort, m_network);
 
 				// Bind local port to any address.
-				int i = m_tcp->m_socket->bind_any();
+				m_tcp->m_socket->bind_any();
 
 				// Query for ptr to ConnectEx
 				LPFN_CONNECTEX m_lpfnConnectEx = 0;
@@ -434,7 +432,7 @@ public:
 									NULL,
 									NULL); 
 				if (dwErr == SOCKET_ERROR)
-				{							// Another address might actually have a different socket type, so try again
+				{ // Another address might actually have a different socket type, so try again
 					m_addresses.erase(0, 1);
 					continue;
 				}
@@ -450,19 +448,19 @@ public:
 				}
 
 				if (!!m_lpfnConnectEx(m_tcp->m_socket->get(), (sockaddr*)&sa, (int)(addr.get_sockaddr_size()), NULL, 0, NULL, m_overlapped->get()))
-					break;	// completed synchronously
+					break; // completed synchronously
 
 				DWORD err = WSAGetLastError();
 				if (err == WSA_IO_PENDING)
-					break;	// completing asynchronously
-					
+					break; // completing asynchronously
+
 				m_addresses.erase(0, 1);
 			}
 		}
 
 		void connect_done()
 		{
-			if (!m_overlapped->m_success)	// on failure
+			if (!m_overlapped->m_success) // on failure
 			{
 				m_addresses.erase(0, 1);
 				m_completionPort->dispatch([r{ this_rcref }]()
@@ -484,11 +482,11 @@ public:
 	public:
 		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
 			: signallable_task_base<connecter>(desc),
+			m_network(n),
+			m_completionPort(cp),
 			m_overlapped(0),
 			m_addresses(addresses),
-			m_network(n),
-			m_remotePort(port),
-			m_completionPort(cp)
+			m_remotePort(port)
 		{
 			self_acquire();
 
@@ -503,10 +501,10 @@ public:
 
 		connecter(const ptr<rc_obj_base>& desc, const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
 			: signallable_task_base<connecter>(desc),
-			m_overlapped(0),
 			m_network(n),
-			m_remotePort(port),
-			m_completionPort(cp)
+			m_completionPort(cp),
+			m_overlapped(0),
+			m_remotePort(port)
 		{
 			m_addresses.append(1, addr);
 			self_acquire();
@@ -520,9 +518,9 @@ public:
 			});
 		}
 
-		const rcptr<tcp>& get_tcp() const				{ return m_tcp; }
-		
-		unsigned short get_remote_port() const			{ return m_remotePort; }
+		const rcptr<tcp>& get_tcp() const { return m_tcp; }
+
+		unsigned short get_remote_port() const { return m_remotePort; }
 
 		// TODO: cancel does not yet abort the connection operation, just prevent it from completing successfully
 		virtual rcref<task<bool> > cancel() volatile
@@ -541,9 +539,9 @@ public:
 		return rcnew(connecter, addr, port, cp, n);
 	}
 
-	virtual void abort()			{ datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
-	virtual void abort_source()		{ datasource::abort_source(); m_socket->close_source(); }
-	virtual void abort_sink()		{ datasink::abort_sink(); m_socket->close_sink(); }
+	virtual void abort() { datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
+	virtual void abort_source() { datasource::abort_source(); m_socket->close_source(); }
+	virtual void abort_sink() { datasink::abort_sink(); m_socket->close_sink(); }
 
 	typedef function<void(const rcref<tcp>&)> accept_delegate_t;
 
@@ -553,29 +551,28 @@ public:
 		class accept_helper : public object
 		{
 		public:
-			rcref<network>					m_network;
-			rcref<os::io::completion_port>			m_completionPort;
-			os::io::completion_port::overlapped_t*	m_overlapped;
+			rcref<network> m_network;
+			rcref<os::io::completion_port> m_completionPort;
+			os::io::completion_port::overlapped_t* m_overlapped;
 
-			accept_delegate_t					m_acceptDelegate;
-			address_family						m_addressFamily;
-
-			weak_rcptr<listener>				m_listener;
-			rcptr<tcp>							m_listenSocket;
-			rcptr<tcp>							m_acceptSocket;
-			LPFN_ACCEPTEX						m_lpfnAcceptEx;
-			LPFN_GETACCEPTEXSOCKADDRS			m_lpfnGetAcceptExSockaddrs;
-			char								m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
+			weak_rcptr<listener> m_listener;
+			accept_delegate_t m_acceptDelegate;
+			rcptr<tcp> m_listenSocket;
+			rcptr<tcp> m_acceptSocket;
+			address_family m_addressFamily;
+			LPFN_ACCEPTEX m_lpfnAcceptEx;
+			LPFN_GETACCEPTEXSOCKADDRS m_lpfnGetAcceptExSockaddrs;
+			char m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
 			accept_helper(const ptr<rc_obj_base>& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 				: object(desc),
+				m_network(n),
+				m_completionPort(cp),
 				m_listener(l),
 				m_acceptDelegate(acceptDelegate),
 				m_listenSocket(rcnew(tcp, addressFamily, cp, n)),
 				m_acceptSocket(rcnew(tcp, addressFamily, cp, n)),
-				m_addressFamily(addressFamily),
-				m_completionPort(cp),
-				m_network(n)
+				m_addressFamily(addressFamily)
 			{
 				l->m_acceptHelper = this_rcref;
 				for (;;)
@@ -618,7 +615,7 @@ public:
 									{
 										r->connection_accepted();
 									});
-									
+
 									m_listenSocket->m_socket->get_pool().dispatch([r{ this_rcref }]()
 									{
 										r->accept();
@@ -695,8 +692,8 @@ public:
 							{
 								r->m_acceptDelegate(s);
 							});
-							m_acceptSocket = rcnew(tcp, m_addressFamily, m_completionPort, m_network);	// replace accept-socket
-							accept();	// accepted, start another
+							m_acceptSocket = rcnew(tcp, m_addressFamily, m_completionPort, m_network); // replace accept-socket
+							accept(); // accepted, start another
 							break;
 						}
 					}
@@ -706,9 +703,9 @@ public:
 			}
 		};
 
-		unsigned short			m_port;
-		rcptr<accept_helper>	m_acceptHelper;
-		single_fire_event		m_closeEvent;
+		rcptr<accept_helper> m_acceptHelper;
+		single_fire_event m_closeEvent;
+		unsigned short m_port;
 
 		listener() = delete;
 		listener(listener&&) = delete;
@@ -735,9 +732,11 @@ public:
 			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
 		}
 
-		~listener()									{ close(); }
+		~listener() { close(); }
 
-		const waitable& get_close_event() const		{ return m_closeEvent; }
+		const waitable& get_close_event() const { return m_closeEvent; }
+
+		unsigned short get_port() const { return m_port; }
 	};
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)

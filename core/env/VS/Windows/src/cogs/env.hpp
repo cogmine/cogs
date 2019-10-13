@@ -26,17 +26,17 @@
 
 namespace cogs {
 
-template <>	class bytes_to_int<sizeof(unsigned char), false> { public: typedef unsigned char type; };
-template <>	class bytes_to_int<sizeof(char), true> { public: typedef char type; };
+template <> class bytes_to_int<sizeof(unsigned char), false> { public: typedef unsigned char type; };
+template <> class bytes_to_int<sizeof(char), true> { public: typedef char type; };
 
-template <>	class bytes_to_int<sizeof(unsigned short), false> { public: typedef unsigned short type; };
-template <>	class bytes_to_int<sizeof(signed short), true> { public: typedef signed short type; };
+template <> class bytes_to_int<sizeof(unsigned short), false> { public: typedef unsigned short type; };
+template <> class bytes_to_int<sizeof(signed short), true> { public: typedef signed short type; };
 
-template <>	class bytes_to_int<sizeof(unsigned long), false> { public: typedef unsigned long type; };
-template <>	class bytes_to_int<sizeof(signed long), true> { public: typedef signed long type; };
+template <> class bytes_to_int<sizeof(unsigned long), false> { public: typedef unsigned long type; };
+template <> class bytes_to_int<sizeof(signed long), true> { public: typedef signed long type; };
 
-template <>	class bytes_to_int<sizeof(unsigned __int64), false> { public: typedef unsigned __int64 type; };
-template <>	class bytes_to_int<sizeof(signed __int64), true> { public: typedef signed __int64 type; };
+template <> class bytes_to_int<sizeof(unsigned __int64), false> { public: typedef unsigned __int64 type; };
+template <> class bytes_to_int<sizeof(signed __int64), true> { public: typedef signed __int64 type; };
 
 #define COGS_LONGEST_INT (8)
 

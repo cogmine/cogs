@@ -22,8 +22,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 
@@ -54,10 +54,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -72,10 +72,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -93,10 +93,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -114,10 +114,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -135,10 +135,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -156,10 +156,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -177,10 +177,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -198,10 +198,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 /// @ingroup Time
@@ -219,10 +219,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)	{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 

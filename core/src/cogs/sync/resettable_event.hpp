@@ -52,7 +52,7 @@ private:
 				;
 		}
 	};
-	
+
 	enum state
 	{
 		unset_state = 0,
@@ -63,23 +63,23 @@ private:
 	class content_t
 	{
 	public:
-		state					m_state;
-		rcptr<os::semaphore>	m_osSemaphore;
-		size_t					m_stallCount;
-		size_t					m_delegateCount;
-		rcptr<delegates_t>		m_delegates;
+		state m_state;
+		rcptr<os::semaphore> m_osSemaphore;
+		size_t m_stallCount;
+		size_t m_delegateCount;
+		rcptr<delegates_t> m_delegates;
 
 		content_t()
-			:	m_state(unset_state),
-				m_stallCount(0),
-				m_delegateCount(0)
+			: m_state(unset_state),
+			m_stallCount(0),
+			m_delegateCount(0)
 		{ }
 	};
 
 	typedef transactable<content_t>::read_token read_token;
 	typedef transactable<content_t>::write_token write_token;
 
-	mutable transactable<content_t>	m_contents;
+	mutable transactable<content_t> m_contents;
 
 	resettable_event(const resettable_event&) = delete;
 	resettable_event& operator=(const resettable_event&) = delete;
@@ -95,7 +95,7 @@ private:
 			m_contents.begin_read(rt);
 			if (insertedToExisting)
 			{
-				if (rt->m_delegates != lastSeenDelegates)	// state has changed sufficiently to already have dispatched.
+				if (rt->m_delegates != lastSeenDelegates) // state has changed sufficiently to already have dispatched.
 					break;
 			}
 			else if (rt->m_state == set_state)
@@ -194,7 +194,7 @@ public:
 		return result;
 	}
 
-	// returns true if the event was not 'unset'	(set or triggered)
+	// returns true if the event was not 'unset' (set or triggered)
 	bool reset() volatile
 	{
 		bool wasUnset;
@@ -215,7 +215,7 @@ public:
 		return !wasUnset;
 	}
 
-	bool pulse_all() volatile	// returns true if any waiters woken/dispatched 
+	bool pulse_all() volatile // returns true if any waiters woken/dispatched 
 	{
 		bool wokeAny = false;
 		for (;;)
@@ -255,14 +255,14 @@ public:
 		return wokeAny;
 	}
 
-	bool wake_next() volatile	// returns true if event delivered before return.
+	bool wake_next() volatile // returns true if event delivered before return.
 	{
 		bool wokeAny = false;
 		for (;;)
 		{
 			read_token rt;
 			m_contents.begin_read(rt);
-			if (rt->m_state == trigger_state)	// if trigger, already done
+			if (rt->m_state == trigger_state) // if trigger, already done
 				break;
 			write_token wt;
 			if (!m_contents.promote_read_token(rt, wt))
@@ -384,7 +384,7 @@ public:
 				break;
 			}
 
-			if (rt->m_state == unset_state)	// else trigger_state
+			if (rt->m_state == unset_state) // else trigger_state
 			{
 				if (!timeout)
 				{
@@ -426,14 +426,14 @@ public:
 		if (!!osSemaphore)
 		{
 			result = osSemaphore->acquire(timeout);
-			if (!result)	// not yet conclusive
+			if (!result) // not yet conclusive
 			{
 				// Need to remove self from stallCount.
 				for (;;)
 				{
 					read_token rt2;
 					m_contents.begin_read(rt2);
-					if (rt2->m_osSemaphore != osSemaphore)	// If our sync token is not present, we don't need to dec, we're definitely signaled.
+					if (rt2->m_osSemaphore != osSemaphore) // If our sync token is not present, we don't need to dec, we're definitely signaled.
 					{
 						rt2.release();
 						osSemaphore->acquire();

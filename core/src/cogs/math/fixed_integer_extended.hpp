@@ -31,8 +31,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 template <bool has_sign, size_t bits>
@@ -64,8 +64,8 @@ public:
 	typedef fixed_integer_extended_content<has_sign_in, n_bits_in> this_t;
 
 	static constexpr bool has_sign = has_sign_in;
-	static constexpr size_t bits = n_bits_in;	// should never be <= sizeof(longest)
-	static constexpr size_t n_digits = (bits / (sizeof(longest) * 8)) + ((bits % (sizeof(longest) * 8) == 0) ? 0 : 1);	// will be >0
+	static constexpr size_t bits = n_bits_in; // should never be <= sizeof(longest)
+	static constexpr size_t n_digits = (bits / (sizeof(longest) * 8)) + ((bits % (sizeof(longest) * 8) == 0) ? 0 : 1); // will be >0
 
 	static constexpr size_t bits_used = (sizeof(ulongest) * 8) * n_digits;
 	typedef fixed_integer_native_const<false, (const_bit_scan_reverse_v<bits_used>+1), (bits_to_int_t<(const_bit_scan_reverse_v<bits_used>+1), false>)bits_used> bits_used_t;
@@ -83,7 +83,7 @@ private:
 public:
 	// index 0 is LSB, index (n_digits-1) is MSB
 	// This is the same order used by dynamic_integer
-	std::array<ulongest, n_digits>	m_digits;
+	std::array<ulongest, n_digits> m_digits;
 
 	fixed_integer_extended_content() { }
 
@@ -230,7 +230,7 @@ public:
 				if (!cogs::is_exponent_of_two(tmp))
 					return false;
 				++i;
-				for (; i < n_digits; i++)	// ensure the rest are zeros
+				for (; i < n_digits; i++) // ensure the rest are zeros
 				{
 					if (m_digits[i] != 0)
 						return false;
@@ -385,14 +385,14 @@ public:
 	void set_bit(size_t i)
 	{
 		size_t digitIndex = i / (sizeof(ulongest) * 8);
-		size_t   bitIndex = i % (sizeof(ulongest) * 8);
+		size_t bitIndex = i % (sizeof(ulongest) * 8);
 		m_digits[digitIndex] |= (ulongest)1 << bitIndex;
 	}
 
 	void set_bit(size_t i, bool b)
 	{
 		size_t digitIndex = i / (sizeof(ulongest) * 8);
-		size_t   bitIndex = i % (sizeof(ulongest) * 8);
+		size_t bitIndex = i % (sizeof(ulongest) * 8);
 		if (b)
 			m_digits[digitIndex] |= (ulongest)1 << bitIndex;
 		else
@@ -402,21 +402,21 @@ public:
 	void reset_bit(size_t i)
 	{
 		size_t digitIndex = i / (sizeof(ulongest) * 8);
-		size_t   bitIndex = i % (sizeof(ulongest) * 8);
+		size_t bitIndex = i % (sizeof(ulongest) * 8);
 		m_digits[digitIndex] &= ~((ulongest)1 << bitIndex);
 	}
 
 	void invert_bit(size_t i)
 	{
 		size_t digitIndex = i / (sizeof(ulongest) * 8);
-		size_t   bitIndex = i % (sizeof(ulongest) * 8);
+		size_t bitIndex = i % (sizeof(ulongest) * 8);
 		m_digits[digitIndex] ^= (ulongest)1 << bitIndex;
 	}
 
 	bool test_bit(size_t i) const
 	{
 		size_t digitIndex = i / (sizeof(ulongest) * 8);
-		size_t   bitIndex = i % (sizeof(ulongest) * 8);
+		size_t bitIndex = i % (sizeof(ulongest) * 8);
 		return m_digits[digitIndex] & (ulongest)1 << bitIndex;
 	}
 
@@ -516,7 +516,7 @@ public:
 					if (thisIsLonger)
 					{
 						if (src.is_negative())
-							m_digits[i++] = ~(ulongest)0 - 1;	// -1 - 1
+							m_digits[i++] = ~(ulongest)0 - 1; // -1 - 1
 						for (; i < n_digits; i++)
 							m_digits[i] = ~(ulongest)0;
 					}
@@ -609,21 +609,23 @@ public:
 		if (!n)
 			return;
 		bool exceeded = (n >= bits);
-		size_t skippedDigits = exceeded ? n_digits : (n / (sizeof(ulongest) * 8));	// Will never be > n_digits
+		size_t skippedDigits = exceeded ? n_digits : (n / (sizeof(ulongest) * 8)); // Will never be > n_digits
 		if (!exceeded)
 		{
 			size_t bitsPerDigitShift = n % (sizeof(ulongest) * 8);
-			if (!bitsPerDigitShift)	// use more efficient algorithm if shift is digit-aligned
-			{						// skippedDigits will be >0
-									// Need to copy in reverse, in case the destination is also the source			
+			if (!bitsPerDigitShift)
+			{
+				// use more efficient algorithm if shift is digit-aligned
+				// skippedDigits will be >0
+				// Need to copy in reverse, in case the destination is also the source
 				for (size_t i = n_digits - 1; i >= skippedDigits; i--)
 					m_digits[i] = src.m_digits[i - skippedDigits];
 			}
 			else
-			{	// skippedDigits will be < n_digits
+			{ // skippedDigits will be < n_digits
 				size_t lowToHighShift = (sizeof(ulongest) * 8) - bitsPerDigitShift;
 				ulongest carryOver = 0;
-				// Need to copy in reverse, in case the destination is also the source	
+				// Need to copy in reverse, in case the destination is also the source
 				for (size_t i = n_digits - 1; i > skippedDigits; i--)
 				{
 					ulongest srcValue = src.m_digits[i - skippedDigits];
@@ -643,18 +645,20 @@ public:
 		if (!n)
 			return;
 		bool exceeded = (n >= bits);
-		size_t skippedDigits = exceeded ? n_digits : (n / (sizeof(ulongest) * 8));	// Will never be > n_digits
+		size_t skippedDigits = exceeded ? n_digits : (n / (sizeof(ulongest) * 8)); // Will never be > n_digits
 		if (!exceeded)
 		{
 			size_t endIndex = n_digits - skippedDigits;
 			size_t bitsPerDigitShift = n % (sizeof(ulongest) * 8);
-			if (!bitsPerDigitShift)	// use more efficient algorithm if shift is digit-aligned
-			{						// skippedDigits will be >0
+			if (!bitsPerDigitShift)
+			{
+				// use more efficient algorithm if shift is digit-aligned
+				// skippedDigits will be >0
 				for (size_t i = 0; i < endIndex; i++)
 					m_digits[i] = src.m_digits[i + skippedDigits];
 			}
 			else
-			{		// skippedDigits will be <n_digits
+			{ // skippedDigits will be <n_digits
 				size_t i = 0;
 				ulongest srcValue = src.m_digits[skippedDigits];
 				size_t bitsPerDigitShiftBack = (sizeof(ulongest) * 8) - bitsPerDigitShift;
@@ -706,7 +710,7 @@ public:
 					m_digits[i] = src1.m_digits[i];
 		}
 	}
-	
+
 	template <bool has_sign2, size_t bits2>
 	void assign_bit_or(const this_t& src1, const fixed_integer_native<has_sign2, bits2>& src2)
 	{
@@ -939,8 +943,8 @@ public:
 		{
 			if (!src2.is_negative()) // if not negative, handle normal overflow
 				increment_copy(src1, i, overflow);
-			else	// if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
-			{		// which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 + 1 = +0 overflow (if so, ignore negative src)
+			else // if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
+			{    // which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 + 1 = +0 overflow (if so, ignore negative src)
 				if (overflow)
 					copy_from(src1, i);
 				else
@@ -983,8 +987,8 @@ public:
 		bool overflow = newDigit < digit1;
 		if (!src2.is_negative()) // if not negative, handle normal overflow
 			increment_copy(src1, 1, overflow);
-		else	// if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
-		{		// which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 +1 = +0 overflow (if so, ignore negative src)
+		else // if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
+		{    // which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 +1 = +0 overflow (if so, ignore negative src)
 			if (overflow)
 				copy_from(src1, 1);
 			else
@@ -1064,8 +1068,8 @@ public:
 				if (overflow)
 					increment_from(i);
 			}
-			else	// if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
-			{		// which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 + 1 = +0 overflow (if so, ignore negative src)
+			else // if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
+			{    // which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 + 1 = +0 overflow (if so, ignore negative src)
 				if (!overflow)
 				{
 					for (;;)
@@ -1093,8 +1097,8 @@ public:
 			if (overflow)
 				increment_from(1);
 		}
-		else	// if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
-		{		// which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 +1 = +0 overflow (if so, ignore negative src)
+		else // if negative, handle an implicit '+ ~(ulongest)0' (-1) overflow on all digits only if NOT overflowing,
+		{    // which would add one to all the overflow.  + ~(ulongest)0 + 1 = -1 +1 = +0 overflow (if so, ignore negative src)
 			if (!overflow)
 			{
 				size_t i = 1;
@@ -1168,7 +1172,7 @@ public:
 		ulongest newDigit = digit1 - src2.m_digits[0];
 		bool overflow = newDigit > digit1;
 		m_digits[0] = newDigit;
-		if (src1.is_negative())	// value is implicitly -1 for src digit
+		if (src1.is_negative()) // value is implicitly -1 for src digit
 		{
 			size_t i = 1;
 			for (; i < fixed_integer_extended<has_sign3, bits3>::n_digits; i++)
@@ -1180,19 +1184,19 @@ public:
 				m_digits[i] = newDigit;
 			}
 
-			if (firstIsLonger)	// one more digit
+			if (firstIsLonger) // one more digit
 			{
 				if (src2.is_negative())
 				{
 					if (!overflow)
-						m_digits[i] = 0;			// ~(ulongest)0 - ~(ulongest)0 = 0
+						m_digits[i] = 0; // ~(ulongest)0 - ~(ulongest)0 = 0
 					else
-						m_digits[i] = ~(ulongest)0;	// ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
+						m_digits[i] = ~(ulongest)0; // ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
 				}
 				else if (!overflow)
-					m_digits[i] = ~(ulongest)0;		// ~(ulongest)0 - 0 = ~(ulongest)0
+					m_digits[i] = ~(ulongest)0; // ~(ulongest)0 - 0 = ~(ulongest)0
 				else
-					m_digits[i] = ~(ulongest)0 - 1;	// ~(ulongest)0 - 0 - 1 = -2 = ~(ulongest)0 - 1;
+					m_digits[i] = ~(ulongest)0 - 1; // ~(ulongest)0 - 0 - 1 = -2 = ~(ulongest)0 - 1;
 			}
 		}
 		else
@@ -1208,12 +1212,12 @@ public:
 			for (; i < fixed_integer_extended<has_sign3, bits3>::n_digits; i++)
 				m_digits[i] = (ulongest)-(longest)src2.m_digits[i] - 1;
 
-			if (firstIsLonger)	// one more digit
+			if (firstIsLonger) // one more digit
 			{
 				if (src2.is_negative())
-					m_digits[i] = 0;			// 0 - ~(ulongest)0 -1 = 0
+					m_digits[i] = 0; // 0 - ~(ulongest)0 -1 = 0
 				else
-					m_digits[i] = ~(ulongest)0;	// 0 - 0 -1 = -1 = ~(ulongest)0
+					m_digits[i] = ~(ulongest)0; // 0 - 0 -1 = -1 = ~(ulongest)0
 			}
 		}
 	}
@@ -1243,10 +1247,10 @@ public:
 
 		if (firstIsLonger)
 		{
-			if (!src2.is_negative())	 // if not negative, handle normal overflow
+			if (!src2.is_negative()) // if not negative, handle normal overflow
 				decrement_copy(src1, 1, overflow);
-			else	// if negative, handle an implicit '- ~(ulongest)0' (+1) overflow on all digits only if NOT overflowing,
-			{		// which would add one to all the overflow.  - ~(ulongest)0 = +1 -1 = 0 overflow (if so, ignore negative src)
+			else // if negative, handle an implicit '- ~(ulongest)0' (+1) overflow on all digits only if NOT overflowing,
+			{    // which would add one to all the overflow.  - ~(ulongest)0 = +1 -1 = 0 overflow (if so, ignore negative src)
 				for (;;)
 				{
 					if (overflow)
@@ -1255,25 +1259,25 @@ public:
 						break;
 					}
 
-					ulongest newDigit = src1.m_digits[i] + 1;	// - ~(ulongest)0 = + 1
+					ulongest newDigit = src1.m_digits[i] + 1; // - ~(ulongest)0 = + 1
 					m_digits[i] = newDigit;
-					overflow = (newDigit != 0);	// The only way it did NOT overflow is if original digit was already ~(ulongest)0
+					overflow = (newDigit != 0); // The only way it did NOT overflow is if original digit was already ~(ulongest)0
 					if (++i == fixed_integer_extended<has_sign2, bits2>::n_digits)
 					{
-						if (resultIsLonger)	// one more digit
+						if (resultIsLonger) // one more digit
 						{
 							ulongest newDigit;
 							if (is_negative())
 							{
 								if (!overflow)
-									newDigit = 0;				// ~(ulongest)0 - ~(ulongest)0 = 0
+									newDigit = 0; // ~(ulongest)0 - ~(ulongest)0 = 0
 								else
-									newDigit = ~(ulongest)0;	// ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
+									newDigit = ~(ulongest)0; // ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
 							}
 							else if (!overflow)
-								newDigit = 1;					// 0 - ~(ulongest)0 = 1
+								newDigit = 1; // 0 - ~(ulongest)0 = 1
 							else
-								newDigit = 0;					// 0 - ~(ulongest)0 - 1 = 0;
+								newDigit = 0; // 0 - ~(ulongest)0 - 1 = 0;
 							m_digits[i] = newDigit;
 						}
 						break;
@@ -1282,7 +1286,7 @@ public:
 			}
 		}
 		else if (fixed_integer_extended<has_sign2, bits2>::n_digits != fixed_integer_extended<has_sign3, bits3>::n_digits)
-		{							// src2 is longer
+		{ // src2 is longer
 			if (src1.is_negative())
 			{
 				if (overflow)
@@ -1291,7 +1295,7 @@ public:
 					{
 						ulongest newDigit = (~(ulongest)0 - 1) - src2.m_digits[i];
 						m_digits[i] = newDigit;
-						overflow = newDigit == ~(ulongest)0;	// only one possible way to continue overflowing, if src digit is -1
+						overflow = newDigit == ~(ulongest)0; // only one possible way to continue overflowing, if src digit is -1
 						if (!overflow)
 						{
 							++i;
@@ -1303,20 +1307,20 @@ public:
 				for (; i < fixed_integer_extended<has_sign3, bits3>::n_digits; i++)
 					m_digits[i] = ~(ulongest)0 - src2.m_digits[i];
 
-				if (resultIsLonger)	// one more digit
+				if (resultIsLonger) // one more digit
 				{
 					ulongest newDigit;
 					if (src2.is_negative())
 					{
 						if (!overflow)
-							newDigit = 0;				// ~(ulongest)0 - ~(ulongest)0 = 0
+							newDigit = 0; // ~(ulongest)0 - ~(ulongest)0 = 0
 						else
-							newDigit = ~(ulongest)0;	// ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
+							newDigit = ~(ulongest)0; // ~(ulongest)0 - ~(ulongest)0 - 1 = -1 = ~(ulongest)0
 					}
 					else if (!overflow)
-						newDigit = ~(ulongest)0;		// ~(ulongest)0 - 0 = ~(ulongest)0
+						newDigit = ~(ulongest)0; // ~(ulongest)0 - 0 = ~(ulongest)0
 					else
-						newDigit = ~(ulongest)0 - 1;	// ~(ulongest)0 - 0 - 1 = ~(ulongest)0 - 1 = -2
+						newDigit = ~(ulongest)0 - 1; // ~(ulongest)0 - 0 - 1 = ~(ulongest)0 - 1 = -2
 					m_digits[i] = newDigit;
 				}
 			}
@@ -1337,23 +1341,23 @@ public:
 					}
 				}
 
-				for (; i < fixed_integer_extended<has_sign3, bits3>::n_digits; i++)	// all overflow
+				for (; i < fixed_integer_extended<has_sign3, bits3>::n_digits; i++) // all overflow
 					m_digits[i] = (ulongest)-(longest)src2.m_digits[i] - 1;
 
-				if (resultIsLonger)	// one more digit
+				if (resultIsLonger) // one more digit
 				{
 					ulongest newDigit;
 					if (src2.is_negative())
 					{
 						if (!overflow)
-							newDigit = 1;			// 0 - ~(ulongest)0 = 1
+							newDigit = 1; // 0 - ~(ulongest)0 = 1
 						else
-							newDigit = 0;			// 0 - ~(ulongest)0 - 1 = 0
+							newDigit = 0; // 0 - ~(ulongest)0 - 1 = 0
 					}
 					else if (!overflow)
-						newDigit = 0;				// 0 - 0 = 0
+						newDigit = 0; // 0 - 0 = 0
 					else
-						newDigit = ~(ulongest)0;	// 0 - 0 -1 = -1 = ~(ulongest)0
+						newDigit = ~(ulongest)0; // 0 - 0 -1 = -1 = ~(ulongest)0
 					m_digits[i] = newDigit;
 				}
 			}
@@ -1367,10 +1371,10 @@ public:
 		ulongest newDigit = digit1 - src.get_int();
 		m_digits[0] = newDigit;
 		bool overflow = newDigit > digit1;
-		if (!src.is_negative())	 // if not negative, handle normal overflow
+		if (!src.is_negative()) // if not negative, handle normal overflow
 			decrement_copy(src1, 1, overflow);
-		else	// if negative, handle an implicit '- ~(ulongest)0' (+1) overflow on all digits only if NOT overflowing,
-		{		// which would add one to all the overflow.  - ~(ulongest)0 = +1 -1 = 0 overflow (if so, ignore negative src)
+		else // if negative, handle an implicit '- ~(ulongest)0' (+1) overflow on all digits only if NOT overflowing,
+		{    // which would add one to all the overflow.  - ~(ulongest)0 = +1 -1 = 0 overflow (if so, ignore negative src)
 			size_t i = 1;
 			for (;;)
 			{
@@ -1388,7 +1392,7 @@ public:
 		}
 	}
 
-	void subtract(const ulongest* srcDigits, size_t srcLength)	// needed by divide_whole_and_assign_modulo().  src is positive.
+	void subtract(const ulongest* srcDigits, size_t srcLength) // needed by divide_whole_and_assign_modulo().  src is positive.
 	{
 		bool thisIsLonger = n_digits > srcLength;
 		size_t lesserSize = thisIsLonger ? srcLength : n_digits;
@@ -1467,8 +1471,8 @@ public:
 		{
 			size_t i = 1;
 			do {
-				if (0 != ++(m_digits[i]))	// - ~(ulongest)0 = + 1 
-					break;					// The only way it did NOT overflow is if original digit was already ~(ulongest)0
+				if (0 != ++(m_digits[i])) // - ~(ulongest)0 = + 1 
+					break; // The only way it did NOT overflow is if original digit was already ~(ulongest)0
 			} while (++i < n_digits);
 		}
 	}
@@ -1536,7 +1540,7 @@ public:
 			size_t src1LengthNext = src1Length - 1;
 			if (src1.m_digits[src1LengthNext] != 0)
 				break;
-			if (!src1LengthNext)	// src1 is zero
+			if (!src1LengthNext) // src1 is zero
 			{
 				clear();
 				return;
@@ -1612,7 +1616,7 @@ public:
 						{
 							m_digits[dstIndex] = newDigit + overflow;
 							if (src2Index == n_digits - 1)
-								return;						// break out of both loops.  We're done.
+								return; // break out of both loops.  We're done.
 							break;
 						}
 
@@ -1647,7 +1651,7 @@ public:
 			size_t src1LengthNext = src1Length - 1;
 			if (src1.m_digits[src1LengthNext] != 0)
 				break;
-			if (!src1LengthNext)	// src1 is zero
+			if (!src1LengthNext) // src1 is zero
 			{
 				clear();
 				return;
@@ -1681,7 +1685,7 @@ public:
 			size_t src2LengthNext = src2Length - 1;
 			if (src2.m_digits[src2LengthNext] != 0)
 				break;
-			if (!src2LengthNext)	// src2 is zero
+			if (!src2LengthNext) // src2 is zero
 			{
 				clear();
 				return;
@@ -1711,10 +1715,10 @@ public:
 				oneIsNegative = !src2.is_negative();
 				if (oneIsNegative)
 				{
-					tmp1 = src1.get_int();	// negative value is in tmp1
+					tmp1 = src1.get_int(); // negative value is in tmp1
 					tmp2 = src2.get_int();
 				}
-				else	// Both are negative, negate them both
+				else // Both are negative, negate them both
 				{
 					tmp1 = (ulongest)-(longest)src1.get_int();
 					tmp2 = (ulongest)-(longest)src2.get_int();
@@ -1723,7 +1727,7 @@ public:
 			else
 			{
 				oneIsNegative = src2.is_negative();
-				tmp1 = src2.get_int();	// negative value is in tmp1, if any negative
+				tmp1 = src2.get_int(); // negative value is in tmp1, if any negative
 				tmp2 = src1.get_int();
 			}
 
@@ -1904,8 +1908,8 @@ public:
 		{
 			size_t moduloDigits = denomLength;
 			size_t bitShift = cogs::bit_scan_forward(denomHighDigitValue);
-			if (!bitShift)		// No bit shifting necessary, just digit shifting
-				--moduloDigits;	// Will be >0 because denom is known != 1
+			if (!bitShift) // No bit shifting necessary, just digit shifting
+				--moduloDigits; // Will be >0 because denom is known != 1
 			size_t divideDigits = thisLength - moduloDigits;
 			if (!!resultDigits)
 			{
@@ -1954,7 +1958,7 @@ public:
 			// We special case a high divisor digit of max value, as +1 causes it to overflow into an additional digit.
 			if (denomHighDigitValue >= highMask)
 			{
-				if (highIndex == denomHighIndex)	// denominator is so large, there can only possibly be 1
+				if (highIndex == denomHighIndex) // denominator is so large, there can only possibly be 1
 				{
 					subtract(denomDigits, denomLength);
 					if (!!resultDigits)
@@ -2054,7 +2058,7 @@ public:
 				ulongest denomHighDigitValueHigh = 1 + ((denomHighDigitValue & highMask) >> (sizeof(half_unsigned_t) * 8));
 
 				if (denomHighIndex != 0)
-					denomHighDigitValue++;	// Was not 0.  Will not become 0
+					denomHighDigitValue++; // Was not 0.  Will not become 0
 
 				size_t i = highIndex - denomHighIndex;
 				for (;;)
@@ -2075,7 +2079,7 @@ public:
 								--highIndex;
 								continue;
 							}
-							onBoundary = true;	// (highRemainder < denomHighDigitValue) && (highRemainder != 0)
+							onBoundary = true; // (highRemainder < denomHighDigitValue) && (highRemainder != 0)
 						}
 					}
 					else if (highRemainder == 0)
@@ -2171,7 +2175,7 @@ public:
 			denomDigits = &absDenom.m_digits[0];
 			denomLength = fixed_integer_extended_content<false, bits2>::n_digits;
 			while (denomDigits[denomLength - 1] == 0)
-				--denomLength;	// denom was negative, so won't be zero
+				--denomLength; // denom was negative, so won't be zero
 		}
 		else
 		{
@@ -2263,10 +2267,10 @@ public:
 	//{
 	//	if (!!result)
 	//		result->clear();
-
+	//
 	//	ulongest* denomDigits = denom.get_const_ptr();
 	//	size_t denomLength = denom.get_length();
-
+	//
 	//	bool wasNegative = is_negative();
 	//	if (wasNegative)
 	//		assign_negative();
@@ -2302,20 +2306,20 @@ public:
 				bool restIsZero = test_sign_extension(false, 1);
 				if (restIsZero)
 				{
-					COGS_ASSERT(false);	// no recip of 0
+					COGS_ASSERT(false); // no recip of 0
 					return false;
 				}
 			}
 			else if (lowDigit == 1)
 			{
 				bool restIsZero = test_sign_extension(false, 1);
-				if (restIsZero)	// if full value is 1, leave intact
+				if (restIsZero) // if full value is 1, leave intact
 					return false;
 			}
 			else if (has_sign && (lowDigit == (ulongest)-1))
 			{
 				bool restIsNegOne = test_sign_extension(true, 1);
-				if (restIsNegOne)	// if full value is -1, leave intact
+				if (restIsNegOne) // if full value is -1, leave intact
 					return false;
 			}
 
@@ -2385,7 +2389,7 @@ public:
 					}
 					t2Length = i;
 				}
-				for (size_t i = 0; i < t2Length; i++)	// clear result for next iteration
+				for (size_t i = 0; i < t2Length; i++) // clear result for next iteration
 					scratch.m_digits[i] = 0;
 			}
 			else
@@ -2403,7 +2407,7 @@ public:
 					}
 					t1Length = i;
 				}
-				for (size_t i = 0; i < t1Length; i++)	// clear result for next iteration
+				for (size_t i = 0; i < t1Length; i++) // clear result for next iteration
 					scratch.m_digits[i] = 0;
 			}
 			flip = !flip;
@@ -2423,10 +2427,10 @@ public:
 			int cmpValue = t1.compare(n_digits, &digit, 1);
 			if (cmpValue == 0)
 				result = one_t();
-			else if (cmpValue == -1)	// If a positive fixed_integer_extended is less than a fixed_integer_native, it must be <=1 digits
+			else if (cmpValue == -1) // If a positive fixed_integer_extended is less than a fixed_integer_native, it must be <=1 digits
 				result = t2.gcd(t1.m_digits.get_const_ptr()[0]);
 			else
-			{			// Since remainder will fit within fixed_integer_native after the first round, just do one round and pass it on.
+			{ // Since remainder will fit within fixed_integer_native after the first round, just do one round and pass it on.
 				ulongest tmpResult;
 				t1.divide_whole_and_assign_modulo(&digit, 1, &tmpResult, 1);
 				if (!t1)
@@ -2635,7 +2639,7 @@ public:
 			if (!i)
 				break;
 		}
-		return 0;	// they are equal	
+		return 0; // they are equal
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -2700,7 +2704,7 @@ public:
 			if (!i)
 				break;
 		}
-		return 0;	// they are equal
+		return 0; // they are equal
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -2709,10 +2713,10 @@ public:
 		if (is_negative())
 		{
 			if (!cmp.is_negative())
-				return -1;		// else, cmp is negative, therefore signed
+				return -1; // else, cmp is negative, therefore signed
 			if (!test_sign_extension(true, 1))
 				return -1;
-			if ((longest)(m_digits[0]) >= 0)	// Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
+			if ((longest)(m_digits[0]) >= 0) // Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
 				return -1;
 			if ((longest)(m_digits[0]) > (typename fixed_integer_native<has_sign2, bits2>::signed_int_t)cmp.get_int())
 				return 1;
@@ -2818,7 +2822,7 @@ public:
 			if (!i)
 				break;
 		}
-		return false;	// they are equal
+		return false; // they are equal
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -2830,7 +2834,7 @@ public:
 				return true;
 			if (!test_sign_extension(true, 1))
 				return true;
-			if ((longest)(m_digits[0]) >= 0)	// Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
+			if ((longest)(m_digits[0]) >= 0) // Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
 				return true;
 			return ((longest)(m_digits[0]) < cmp.get_int());
 		}
@@ -2930,7 +2934,7 @@ public:
 			if (!i)
 				break;
 		}
-		return false;	// they are equal	
+		return false; // they are equal
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -2942,7 +2946,7 @@ public:
 				return false;
 			if (!test_sign_extension(true, 1))
 				return false;
-			if ((longest)(m_digits[0]) >= 0)	// Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
+			if ((longest)(m_digits[0]) >= 0) // Sign boundary condition: If lowest digit does NOT have its highest bit set, we are less
 				return false;
 			return ((longest)(m_digits[0]) > cmp.get_int());
 		}
@@ -2958,19 +2962,19 @@ public:
 
 
 // Extended representation breaks the value into two parts, a high int and a low array of ulongest
-template <bool has_sign_in, size_t n_bits_in>	// n_bits_in should never be <= sizeof(longest)
+template <bool has_sign_in, size_t n_bits_in> // n_bits_in should never be <= sizeof(longest)
 class fixed_integer_extended
 {
-public:	
+public:
 	typedef fixed_integer_extended<has_sign_in, n_bits_in> this_t;
 
-	static constexpr bool   has_sign	= has_sign_in;
-	static constexpr size_t bits		= n_bits_in;	// should never be <= sizeof(longest)
-	static constexpr size_t n_digits	= (bits / (sizeof(longest)*8)) + ((bits % (sizeof(longest)*8) == 0) ? 0 : 1);	// will be >0
+	static constexpr bool has_sign = has_sign_in;
+	static constexpr size_t bits = n_bits_in; // should never be <= sizeof(longest)
+	static constexpr size_t n_digits = (bits / (sizeof(longest)*8)) + ((bits % (sizeof(longest)*8) == 0) ? 0 : 1); // will be >0
 
-	typedef longest		signed_int_t;
-	typedef ulongest	unsigned_int_t;
-	typedef ulongest	int_t;
+	typedef longest signed_int_t;
+	typedef ulongest unsigned_int_t;
+	typedef ulongest int_t;
 
 private:
 	static_assert(bits > (sizeof(longest) * 8));
@@ -2989,8 +2993,8 @@ private:
 	typedef transactable<content_t> transactable_t;
 	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	read_token begin_read() const volatile { return m_contents.begin_read(); }
 	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt); }
@@ -3073,10 +3077,10 @@ public:
 	}
 
 
-	fixed_integer_extended()	{ }
+	fixed_integer_extended() { }
 
 	fixed_integer_extended(const dynamic_integer& src); //{ operator=(src); }
-		
+
 	fixed_integer_extended(const volatile dynamic_integer& src); //{ operator=(src); }
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -3091,7 +3095,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	fixed_integer_extended(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src)
 	{ operator=(src); }
-	
+
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	fixed_integer_extended(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src)
 	{ operator=(src); }
@@ -3112,7 +3116,7 @@ public:
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	fixed_integer_extended(const int_t2& src)
 	{ operator=(src); }
-	
+
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	fixed_integer_extended(const volatile int_t2& src)
 	{ operator=(src); }
@@ -3127,7 +3131,7 @@ public:
 	template <typename numerator_t, typename denominator_t>
 	fixed_integer_extended(const volatile fraction<numerator_t, denominator_t>& src)
 	{ operator=(src); }
-	
+
 	this_t& operator=(const dynamic_integer& src);
 	//{
 	//	if (src.is_negative())
@@ -3320,111 +3324,111 @@ public:
 		return operator=(src.floor());
 	}
 
-	int_t get_int() const			{ return m_contents->m_digits[0]; }
-	int_t get_int() const volatile	{ return begin_read()->m_digits[0]; }
+	int_t get_int() const { return m_contents->m_digits[0]; }
+	int_t get_int() const volatile { return begin_read()->m_digits[0]; }
 
 	operator int_t() const { return m_contents->m_digits[0]; }
 	operator int_t() const volatile { return begin_read()->m_digits[0]; }
 
-	const this_t& simplify_type() const						{ return *this; }
-	const volatile this_t& simplify_type() const volatile	{ return *this; }
+	const this_t& simplify_type() const { return *this; }
+	const volatile this_t& simplify_type() const volatile { return *this; }
 
-	int_t* get_digits()				{ return &(m_contents->m_digits[0]); }
+	int_t* get_digits() { return &(m_contents->m_digits[0]); }
 	const int_t* get_digits() const { return &(m_contents->m_digits[0]); }
 
-	int_t& get_digit(size_t i)					{ return m_contents->m_digits[i]; }
-	const int_t& get_digit(size_t i) const		{ return m_contents->m_digits[i]; }
-	int_t get_digit(size_t i) const volatile	{ return begin_read()->m_digits[i]; }
+	int_t& get_digit(size_t i) { return m_contents->m_digits[i]; }
+	const int_t& get_digit(size_t i) const { return m_contents->m_digits[i]; }
+	int_t get_digit(size_t i) const volatile { return begin_read()->m_digits[i]; }
 
-	void set_digit(size_t i, const int_t& src)			{ m_contents->set_digit(i, src); }
-	void set_digit(size_t i, const int_t& src) volatile	{ write_retry_loop([&](content_t& c) { c.set_digit(i, src); }); }
+	void set_digit(size_t i, const int_t& src) { m_contents->set_digit(i, src); }
+	void set_digit(size_t i, const int_t& src) volatile { write_retry_loop([&](content_t& c) { c.set_digit(i, src); }); }
 
-	void clear()			{ m_contents->clear(); }
-	void clear() volatile	{ *this = zero_t(); }
+	void clear() { m_contents->clear(); }
+	void clear() volatile { *this = zero_t(); }
 
-	bool operator!() const			{ return !*m_contents; }
-	bool operator!() const volatile	{ return !*begin_read(); }
+	bool operator!() const { return !*m_contents; }
+	bool operator!() const volatile { return !*begin_read(); }
 
-	this_t operator~() const					{ this_t result; result.assign_bit_not(*m_contents); return result; }
-	this_t operator~() const volatile			{ this_t result; result.assign_bit_not(*begin_read()); return result; }
-	void assign_bit_not()						{ m_contents->assign_bit_not(*m_contents); }
-	void assign_bit_not() volatile				{ write_retry_loop([&](content_t& c) { c.assign_bit_not(c); }); }
-	this_t& pre_assign_bit_not() const			{ m_contents->assign_bit_not(*m_contents); return *this; }
-	this_t pre_assign_bit_not() const volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_bit_not(c); }); }
-	this_t post_assign_bit_not() const			{ this_t result(*this); m_contents->assign_bit_not(*m_contents); return result; }
-	this_t post_assign_bit_not() const volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_bit_not(c); }); }
+	this_t operator~() const { this_t result; result.assign_bit_not(*m_contents); return result; }
+	this_t operator~() const volatile { this_t result; result.assign_bit_not(*begin_read()); return result; }
+	void assign_bit_not() { m_contents->assign_bit_not(*m_contents); }
+	void assign_bit_not() volatile { write_retry_loop([&](content_t& c) { c.assign_bit_not(c); }); }
+	this_t& pre_assign_bit_not() const { m_contents->assign_bit_not(*m_contents); return *this; }
+	this_t pre_assign_bit_not() const volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_not(c); }); }
+	this_t post_assign_bit_not() const { this_t result(*this); m_contents->assign_bit_not(*m_contents); return result; }
+	this_t post_assign_bit_not() const volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_not(c); }); }
 
-	bool is_negative() const			{ return m_contents->is_negative(); }
-	bool is_negative() const volatile	{ return begin_read()->is_negative(); }
+	bool is_negative() const { return m_contents->is_negative(); }
+	bool is_negative() const volatile { return begin_read()->is_negative(); }
 
-	bool is_exponent_of_two() const				{ return m_contents->is_exponent_of_two(); }
-	bool is_exponent_of_two() const volatile	{ return begin_read()->is_exponent_of_two(); }
+	bool is_exponent_of_two() const { return m_contents->is_exponent_of_two(); }
+	bool is_exponent_of_two() const volatile { return begin_read()->is_exponent_of_two(); }
 
 	constexpr bool has_fractional_part() const volatile { return false; }
 
-	auto abs() const					{ fixed_integer_extended<false, bits> result; result.m_contents->assign_abs(*m_contents); return result; }
-	auto abs() const volatile			{ fixed_integer_extended<false, bits> result; result.m_contents->assign_abs(*begin_read()); return result; }
-	auto abs_inner() const					{ fixed_integer_extended<false, bits> result; result.m_contents->assign_negative(*m_contents); return result; }
-	auto abs_inner() const volatile			{ fixed_integer_extended<false, bits> result; result.m_contents->assign_negative(*begin_read()); return result; }
-	void assign_abs()					{ if (has_sign) m_contents->assign_abs(); }
-	void assign_abs() volatile			{ if (has_sign) try_write_retry_loop([&](content_t& c) { return c.assign_abs(); }); }
-	this_t& pre_assign_abs()			{ if (has_sign) m_contents->assign_abs(); return *this; }
-	this_t pre_assign_abs() volatile	{ if (has_sign) return try_write_retry_loop_pre([&](content_t& c) { return c.assign_abs(); }); return *this; }
-	this_t post_assign_abs()			{ if (has_sign) { this_t result(*this); m_contents->assign_abs(); return result; } return *this; }
-	this_t post_assign_abs() volatile	{ return try_write_retry_loop_post([&](content_t& c) { return c.assign_abs(); }); return *this; }
+	auto abs() const { fixed_integer_extended<false, bits> result; result.m_contents->assign_abs(*m_contents); return result; }
+	auto abs() const volatile { fixed_integer_extended<false, bits> result; result.m_contents->assign_abs(*begin_read()); return result; }
+	auto abs_inner() const { fixed_integer_extended<false, bits> result; result.m_contents->assign_negative(*m_contents); return result; }
+	auto abs_inner() const volatile { fixed_integer_extended<false, bits> result; result.m_contents->assign_negative(*begin_read()); return result; }
+	void assign_abs() { if (has_sign) m_contents->assign_abs(); }
+	void assign_abs() volatile { if (has_sign) try_write_retry_loop([&](content_t& c) { return c.assign_abs(); }); }
+	this_t& pre_assign_abs() { if (has_sign) m_contents->assign_abs(); return *this; }
+	this_t pre_assign_abs() volatile { if (has_sign) return try_write_retry_loop_pre([&](content_t& c) { return c.assign_abs(); }); return *this; }
+	this_t post_assign_abs() { if (has_sign) { this_t result(*this); m_contents->assign_abs(); return result; } return *this; }
+	this_t post_assign_abs() volatile { return try_write_retry_loop_post([&](content_t& c) { return c.assign_abs(); }); return *this; }
 
-	auto operator-() const					{ fixed_integer_extended<true, bits + 1> result; result.m_contents->assign_negative(*m_contents); return result; }
-	auto operator-() const volatile			{ fixed_integer_extended<true, bits + 1> result; result.m_contents->assign_negative(*begin_read()); return result; }
-	void assign_negative()					{ m_contents->assign_negative(); }
-	void assign_negative() volatile			{ write_retry_loop([&](content_t& c) { c.assign_negative(); }); }
-	this_t& pre_assign_negative()			{ m_contents->assign_negative(); return *this; }
-	this_t pre_assign_negative() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_negative(); }); }
-	this_t post_assign_negative()			{ this_t result(*this); m_contents->assign_negative(); return result; }
-	this_t post_assign_negative() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_negative(); }); }
+	auto operator-() const { fixed_integer_extended<true, bits + 1> result; result.m_contents->assign_negative(*m_contents); return result; }
+	auto operator-() const volatile { fixed_integer_extended<true, bits + 1> result; result.m_contents->assign_negative(*begin_read()); return result; }
+	void assign_negative() { m_contents->assign_negative(); }
+	void assign_negative() volatile { write_retry_loop([&](content_t& c) { c.assign_negative(); }); }
+	this_t& pre_assign_negative() { m_contents->assign_negative(); return *this; }
+	this_t pre_assign_negative() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_negative(); }); }
+	this_t post_assign_negative() { this_t result(*this); m_contents->assign_negative(); return result; }
+	this_t post_assign_negative() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_negative(); }); }
 
-	size_t bit_count() const				{ return m_contents->bit_count(); }
-	size_t bit_count() const volatile		{ return begin_read()->bit_count(); }
-	void assign_bit_count()					{ m_contents->assign_bit_count(); }
-	void assign_bit_count() volatile		{ write_retry_loop([&](content_t& c) { c.assign_bit_count(); }); }
-	this_t& pre_assign_bit_count()			{ m_contents->assign_bit_count(); return *this; }
-	this_t pre_assign_bit_count() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_bit_count(); }); }
-	this_t post_assign_bit_count()			{ this_t result(*this); m_contents->assign_bit_count(); return result; }
-	this_t post_assign_bit_count() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_bit_count(); }); }
+	size_t bit_count() const { return m_contents->bit_count(); }
+	size_t bit_count() const volatile { return begin_read()->bit_count(); }
+	void assign_bit_count() { m_contents->assign_bit_count(); }
+	void assign_bit_count() volatile { write_retry_loop([&](content_t& c) { c.assign_bit_count(); }); }
+	this_t& pre_assign_bit_count() { m_contents->assign_bit_count(); return *this; }
+	this_t pre_assign_bit_count() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_count(); }); }
+	this_t post_assign_bit_count() { this_t result(*this); m_contents->assign_bit_count(); return result; }
+	this_t post_assign_bit_count() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_count(); }); }
 
-	size_t bit_scan_forward() const					{ return m_contents->bit_scan_forward(); }
-	size_t bit_scan_forward() const volatile		{ return begin_read()->bit_scan_forward(); }
-	void assign_bit_scan_forward()					{ m_contents->assign_bit_scan_forward(); }
-	void assign_bit_scan_forward() volatile			{ write_retry_loop([&](content_t& c) { c.assign_bit_scan_forward(); }); }
-	this_t& pre_assign_bit_scan_forward()			{ m_contents->assign_bit_scan_forward(); return *this; }
-	this_t pre_assign_bit_scan_forward() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_bit_scan_forward(); }); }
-	this_t post_assign_bit_scan_forward()			{ this_t result(*this); m_contents->assign_bit_scan_forward(); return result; }
-	this_t post_assign_bit_scan_forward() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_bit_scan_forward(); }); }
+	size_t bit_scan_forward() const { return m_contents->bit_scan_forward(); }
+	size_t bit_scan_forward() const volatile { return begin_read()->bit_scan_forward(); }
+	void assign_bit_scan_forward() { m_contents->assign_bit_scan_forward(); }
+	void assign_bit_scan_forward() volatile { write_retry_loop([&](content_t& c) { c.assign_bit_scan_forward(); }); }
+	this_t& pre_assign_bit_scan_forward() { m_contents->assign_bit_scan_forward(); return *this; }
+	this_t pre_assign_bit_scan_forward() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_scan_forward(); }); }
+	this_t post_assign_bit_scan_forward() { this_t result(*this); m_contents->assign_bit_scan_forward(); return result; }
+	this_t post_assign_bit_scan_forward() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_scan_forward(); }); }
 
-	size_t bit_scan_reverse() const					{ return m_contents->bit_scan_reverse(); }
-	size_t bit_scan_reverse() const volatile		{ return begin_read()->bit_scan_reverse(); }
-	void assign_bit_scan_reverse()					{ m_contents->assign_bit_scan_reverse(); }
-	void assign_bit_scan_reverse() volatile			{ write_retry_loop([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
-	this_t& pre_assign_bit_scan_reverse()			{ m_contents->assign_bit_scan_reverse(); return *this; }
-	this_t pre_assign_bit_scan_reverse() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
-	this_t post_assign_bit_scan_reverse()			{ this_t result(*this); m_contents->assign_bit_scan_reverse(); return result; }
-	this_t post_assign_bit_scan_reverse() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
+	size_t bit_scan_reverse() const { return m_contents->bit_scan_reverse(); }
+	size_t bit_scan_reverse() const volatile { return begin_read()->bit_scan_reverse(); }
+	void assign_bit_scan_reverse() { m_contents->assign_bit_scan_reverse(); }
+	void assign_bit_scan_reverse() volatile { write_retry_loop([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
+	this_t& pre_assign_bit_scan_reverse() { m_contents->assign_bit_scan_reverse(); return *this; }
+	this_t pre_assign_bit_scan_reverse() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
+	this_t post_assign_bit_scan_reverse() { this_t result(*this); m_contents->assign_bit_scan_reverse(); return result; }
+	this_t post_assign_bit_scan_reverse() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_scan_reverse(); }); }
 
-	this_t next() const				{ this_t tmp(*this); tmp.m_contents->increment(); return tmp; }
-	this_t next() const volatile	{ this_t tmp(*this); tmp.m_contents->increment(); return tmp; }
-	void assign_next()				{ m_contents->increment(); }
-	void assign_next() volatile		{ write_retry_loop([&](content_t& c) { c.increment(); }); }
-	const this_t& operator++()		{ assign_next(); return *this; }
-	this_t operator++() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.increment(); }); }
-	this_t operator++(int)			{ this_t result(*this); m_contents->increment(); return result; }
+	this_t next() const { this_t tmp(*this); tmp.m_contents->increment(); return tmp; }
+	this_t next() const volatile { this_t tmp(*this); tmp.m_contents->increment(); return tmp; }
+	void assign_next() { m_contents->increment(); }
+	void assign_next() volatile { write_retry_loop([&](content_t& c) { c.increment(); }); }
+	const this_t& operator++() { assign_next(); return *this; }
+	this_t operator++() volatile { return write_retry_loop_pre([&](content_t& c) { c.increment(); }); }
+	this_t operator++(int) { this_t result(*this); m_contents->increment(); return result; }
 	this_t operator++(int) volatile { return write_retry_loop_post([&](content_t& c) { c.increment(); }); }
 
-	this_t prev() const				{ this_t tmp(*this); tmp.m_contents->decrement(); return tmp; }
-	this_t prev() const volatile	{ this_t tmp(*this); tmp.m_contents->decrement(); return tmp; }
-	void assign_prev()				{ m_contents->decrement(); }
-	void assign_prev() volatile		{ write_retry_loop([&](content_t& c) { c.decrement(); }); }
-	const this_t& operator--()		{ assign_prev(); return *this; }
-	this_t operator--() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.decrement(); }); }
-	this_t operator--(int)			{ this_t result(*this); m_contents->decrement(); return result; }
+	this_t prev() const { this_t tmp(*this); tmp.m_contents->decrement(); return tmp; }
+	this_t prev() const volatile { this_t tmp(*this); tmp.m_contents->decrement(); return tmp; }
+	void assign_prev() { m_contents->decrement(); }
+	void assign_prev() volatile { write_retry_loop([&](content_t& c) { c.decrement(); }); }
+	const this_t& operator--() { assign_prev(); return *this; }
+	this_t operator--() volatile { return write_retry_loop_pre([&](content_t& c) { c.decrement(); }); }
+	this_t operator--(int) { this_t result(*this); m_contents->decrement(); return result; }
 	this_t operator--(int) volatile { return write_retry_loop_post([&](content_t& c) { c.decrement(); }); }
 
 
@@ -4034,7 +4038,7 @@ public:
 	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const fixed_integer_native<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c.assign_bit_or(src); }); return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator|=(const volatile fixed_integer_native<has_sign2, bits2>& src) { fixed_integer_native<has_sign2, bits2> tmp(src); return operator|=(tmp); }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return operator|=(tmp); }
-	template <bool has_sign2, size_t bits2> this_t& operator|=(const fixed_integer_extended<has_sign2, bits2>& src)  { m_contents->assign_bit_or(*(src.m_contents)); return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator|=(const fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_or(*(src.m_contents)); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const fixed_integer_extended<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c.assign_bit_or(*(src.m_contents)); }); return *this; }
 	template <bool has_sign2, size_t bits2> this_t& operator|=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_or(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c.assign_bit_or(*(src.begin_read())); }); return *this; }
@@ -5549,7 +5553,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
- 	auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
+  auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const volatile { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
@@ -5869,11 +5873,11 @@ public:
 
 	//   signed/signed  :  127 / -1 = -127 (8 bits, signed)
 	//   signed/signed  :  127 /  1 =  127 (8 bits, signed)
-	//   signed/signed  : -128 / -1 =  128 (9 bits, signed)	***
+	//   signed/signed  : -128 / -1 =  128 (9 bits, signed) ***
 	//   signed/signed  : -128 /  1 = -128 (8 bits, signed)
 	//
-	// unsigned/signed  :  255 / -1 = -255 (9 bits, signed)	***
-	// unsigned/signed  :  255 /  1 =  255 (9 bits, signed)	***
+	// unsigned/signed  :  255 / -1 = -255 (9 bits, signed) ***
+	// unsigned/signed  :  255 /  1 =  255 (9 bits, signed) ***
 	//
 	//   signed/unsigned:  127 /  1 =  127 (8 bits, signed)
 	//   signed/unsigned: -127 /  1 = -127 (8 bits, signed)
@@ -6348,7 +6352,7 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) { assign_inverse_divide(src); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) volatile { return write_retry_loop_pre([&](content_t& c) { c = src.divide_whole(c); }); }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return pre_assign_inverse_divide_whole(src); }
-	
+
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) { assign_inverse_divide(src); return *this; }
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { assign_inverse_divide(src); return *this; }
 
@@ -6364,7 +6368,7 @@ public:
 			remainder = src;
 		});
 	}
-	
+
 	template <bool has_sign2, size_t bits2>
 	this_t pre_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile
 	{
@@ -6377,7 +6381,7 @@ public:
 			remainder = src;
 		});
 	}
-	
+
 	const this_t& pre_assign_inverse_divide_whole(const dynamic_integer& src);// { assign_inverse_divide(src); return *this; }
 	const this_t& pre_assign_inverse_divide_whole(const volatile dynamic_integer& src);// { assign_inverse_divide(src); return *this; }
 	this_t pre_assign_inverse_divide_whole(const dynamic_integer& src) volatile;// { return write_retry_loop_pre([&](content_t& c) { c = src.divide_whole(c); }); }
@@ -6449,7 +6453,7 @@ public:
 
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_inverse_divide(src); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); assign_inverse_divide(src); return tmp; }
-	
+
 	template <bool has_sign2, size_t bits2>
 	this_t post_assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile
 	{
@@ -6841,7 +6845,7 @@ public:
 		fixed_integer_native<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0)) > result(remainder);
 		return result;
 	}
-	
+
 	template <bool has_sign2, size_t bits2>
 	auto modulo_and_assign_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) volatile
 	{
@@ -6854,7 +6858,7 @@ public:
 		fixed_integer_native<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0)) > result = remainder;
 		return result;
 	}
-	
+
 	template <bool has_sign2, size_t bits2> auto modulo_and_assign_divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) { fixed_integer_native<has_sign2, bits2> tmp(src); return modulo_and_assign_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2> auto modulo_and_assign_divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return modulo_and_assign_divide_whole(tmp); }
 
@@ -7060,7 +7064,7 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_native<has_sign2, bits2>& src) { *this = gcd(src); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_native<has_sign2, bits2>& src) { fixed_integer_native<has_sign2, bits2> tmp(src); assign_gcd(tmp); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_native<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c = c.gcd(src); }); }
-	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile  { fixed_integer_native<has_sign2, bits2> tmp(src); return assign_gcd(tmp); }
+	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return assign_gcd(tmp); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) { *this = gcd(*(src.m_contents)); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) { *this = gcd(*(src.begin_read())); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c = c.gcd(*(src.m_contents)); }); }
@@ -7954,10 +7958,10 @@ public:
 	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	// exchange
-	this_t exchange(const this_t& src)						{ this_t rtn; m_contents.exchange(src.m_contents, rtn.m_contents); return rtn; }
-	this_t exchange(const this_t& src) volatile				{ this_t rtn; m_contents.exchange(src.m_contents, rtn.m_contents); return rtn; }
+	this_t exchange(const this_t& src) { this_t rtn; m_contents.exchange(src.m_contents, rtn.m_contents); return rtn; }
+	this_t exchange(const this_t& src) volatile { this_t rtn; m_contents.exchange(src.m_contents, rtn.m_contents); return rtn; }
 
-	this_t exchange(const volatile this_t& src)				{ this_t tmpSrc(src); this_t rtn; m_contents.exchange(tmpSrc.m_contents, rtn.m_contents); return rtn; }
+	this_t exchange(const volatile this_t& src) { this_t tmpSrc(src); this_t rtn; m_contents.exchange(tmpSrc.m_contents, rtn.m_contents); return rtn; }
 	this_t exchange(const volatile this_t& src) volatile
 	{
 		this_t rtn;
@@ -7971,10 +7975,10 @@ public:
 		return rtn;
 	}
 
-	void exchange(const this_t& src, this_t& rtn)			{ COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
-	void exchange(const this_t& src, this_t& rtn) volatile	{ m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const this_t& src, this_t& rtn) { COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const this_t& src, this_t& rtn) volatile { m_contents.exchange(src.m_contents, rtn.m_contents); }
 
-	void exchange(const volatile this_t& src, this_t& rtn)			{ COGS_ASSERT(this != &rtn); this_t tmpSrc(src); m_contents.exchange(tmpSrc.m_contents, rtn.m_contents); }
+	void exchange(const volatile this_t& src, this_t& rtn) { COGS_ASSERT(this != &rtn); this_t tmpSrc(src); m_contents.exchange(tmpSrc.m_contents, rtn.m_contents); }
 	void exchange(const volatile this_t& src, this_t& rtn) volatile
 	{
 		if (this == &src)
@@ -7986,14 +7990,13 @@ public:
 		}
 	}
 
-	void exchange(const this_t& src, volatile this_t& rtn)			{ m_contents.exchange(src.m_contents, rtn.m_contents); }
-	void exchange(const this_t& src, volatile this_t& rtn) volatile	{ COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const this_t& src, volatile this_t& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const this_t& src, volatile this_t& rtn) volatile { COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
 
-	void exchange(const volatile this_t& src, volatile this_t& rtn)				{ m_contents.exchange(src.m_contents, rtn.m_contents); }
-	void exchange(const volatile this_t& src, volatile this_t& rtn) volatile	{ COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const volatile this_t& src, volatile this_t& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
+	void exchange(const volatile this_t& src, volatile this_t& rtn) volatile { COGS_ASSERT(this != &rtn); m_contents.exchange(src.m_contents, rtn.m_contents); }
 
 
-	
 	template <typename R>
 	void exchange(const this_t& src, R& rtn)
 	{
@@ -8141,36 +8144,36 @@ public:
 		return m_contents.compare_exchange(*(tmpSrc.m_contents), *(tmpCmp.m_contents));
 	}
 
-	void set_bit(size_t i)					{ m_contents->set_bit(i); }
-	void set_bit(size_t i) volatile			{ write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
-	const this_t& pre_set_bit(size_t i)		{ m_contents->set_bit(i); return *this; }
-	this_t pre_set_bit(size_t i) volatile	{ return pre_write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
-	this_t post_set_bit(size_t i)			{ this_t tmp(*this); m_contents->set_bit(i); return tmp; }
-	this_t post_set_bit(size_t i) volatile	{ return post_write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
+	void set_bit(size_t i) { m_contents->set_bit(i); }
+	void set_bit(size_t i) volatile { write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
+	const this_t& pre_set_bit(size_t i) { m_contents->set_bit(i); return *this; }
+	this_t pre_set_bit(size_t i) volatile { return pre_write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
+	this_t post_set_bit(size_t i) { this_t tmp(*this); m_contents->set_bit(i); return tmp; }
+	this_t post_set_bit(size_t i) volatile { return post_write_retry_loop([&](content_t& c) { c.set_bit(i); }); }
 
-	void set_bit(size_t i, bool b)					{ if (b) set_bit(i); else reset_bit(i); }
-	void set_bit(size_t i, bool b) volatile			{ if (b) set_bit(i); else reset_bit(i); }
-	const this_t& pre_set_bit(size_t i, bool b)		{ if (b) return pre_set_bit(i); else return pre_reset_bit(i); }
-	this_t pre_set_bit(size_t i, bool b) volatile	{ if (b) return pre_set_bit(i); else return pre_reset_bit(i); }
-	this_t post_set_bit(size_t i, bool b)			{ if (b) return post_set_bit(i); else return post_reset_bit(i); }
-	this_t post_set_bit(size_t i, bool b) volatile	{ if (b) return post_set_bit(i); else return post_reset_bit(i); }
+	void set_bit(size_t i, bool b) { if (b) set_bit(i); else reset_bit(i); }
+	void set_bit(size_t i, bool b) volatile { if (b) set_bit(i); else reset_bit(i); }
+	const this_t& pre_set_bit(size_t i, bool b) { if (b) return pre_set_bit(i); else return pre_reset_bit(i); }
+	this_t pre_set_bit(size_t i, bool b) volatile { if (b) return pre_set_bit(i); else return pre_reset_bit(i); }
+	this_t post_set_bit(size_t i, bool b) { if (b) return post_set_bit(i); else return post_reset_bit(i); }
+	this_t post_set_bit(size_t i, bool b) volatile { if (b) return post_set_bit(i); else return post_reset_bit(i); }
 
-	void reset_bit(size_t i)					{ m_contents->reset_bit(i); }
-	void reset_bit(size_t i) volatile			{ write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
-	const this_t& pre_reset_bit(size_t i)		{ m_contents->reset_bit(i); return *this; }
-	this_t pre_reset_bit(size_t i) volatile		{ return pre_write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
-	this_t post_reset_bit(size_t i)				{ this_t tmp(*this); m_contents->reset_bit(i); return tmp; }
-	this_t post_reset_bit(size_t i) volatile	{ return post_write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
+	void reset_bit(size_t i) { m_contents->reset_bit(i); }
+	void reset_bit(size_t i) volatile { write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
+	const this_t& pre_reset_bit(size_t i) { m_contents->reset_bit(i); return *this; }
+	this_t pre_reset_bit(size_t i) volatile { return pre_write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
+	this_t post_reset_bit(size_t i) { this_t tmp(*this); m_contents->reset_bit(i); return tmp; }
+	this_t post_reset_bit(size_t i) volatile { return post_write_retry_loop([&](content_t& c) { c.reset_bit(i); }); }
 
-	void invert_bit(size_t i)					{ m_contents->invert_bit(i); }
-	void invert_bit(size_t i) volatile			{ write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
-	const this_t& pre_invert_bit(size_t i)		{ m_contents->invert_bit(i); return *this; }
-	this_t pre_invert_bit(size_t i) volatile	{ return pre_write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
-	this_t post_invert_bit(size_t i)			{ this_t tmp(*this); m_contents->invert_bit(i); return tmp; }
-	this_t post_invert_bit(size_t i) volatile	{ return post_write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
+	void invert_bit(size_t i) { m_contents->invert_bit(i); }
+	void invert_bit(size_t i) volatile { write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
+	const this_t& pre_invert_bit(size_t i) { m_contents->invert_bit(i); return *this; }
+	this_t pre_invert_bit(size_t i) volatile { return pre_write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
+	this_t post_invert_bit(size_t i) { this_t tmp(*this); m_contents->invert_bit(i); return tmp; }
+	this_t post_invert_bit(size_t i) volatile { return post_write_retry_loop([&](content_t& c) { c.invert_bit(i); }); }
 
-	bool test_bit(size_t i) const			{ return m_contents->test_bit(i); }
-	bool test_bit(size_t i) const volatile	{ return begin_read()->test_bit(i); }
+	bool test_bit(size_t i) const { return m_contents->test_bit(i); }
+	bool test_bit(size_t i) const volatile { return begin_read()->test_bit(i); }
 
 	bool test_sign_extension(bool negative, size_t startIndex) const
 	{
@@ -8235,7 +8238,7 @@ public:
 			radix = 36;
 
 		static constexpr char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		static constexpr size_t maxLength = (n_digits * sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
+		static constexpr size_t maxLength = (n_digits * sizeof(int_t) * 8) + 2; // Enough space for largest possible value, i.e. binary radix
 
 		char tempBufferStorage[512];
 		ptr<char> tempBuffer = tempBufferStorage;
@@ -8335,7 +8338,7 @@ public:
 		return result;
 	}
 
-	void randomize()			{ set_random_bits<ulongest>(get_digits(), n_digits); }
+	void randomize() { set_random_bits<ulongest>(get_digits(), n_digits); }
 };
 
 

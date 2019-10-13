@@ -26,10 +26,10 @@ class text_editor : public hwnd_pane, public text_editor_interface
 private:
 	//color m_defaultTextColor;
 	//color m_defaultBackgroundColor;
-	rcptr<gfx::os::gdi::device_context::font>	m_cachedFont;
+	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
 
 public:
-	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)		// | WS_BORDER
+	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem,system_drawn_direct)
 	{
 	}
@@ -54,7 +54,7 @@ public:
 		colorRef = GetTextColor(hDC);
 		//m_defaultTextColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
 		ReleaseDC(get_HWND(), hDC);
-	
+
 		set_text_color(color::black);
 
 		hwnd_pane::installing();
@@ -62,7 +62,7 @@ public:
 
 	virtual void set_text(const composite_string& text)
 	{
-		int i = Edit_SetText(get_HWND(), text.composite().cstr());
+		Edit_SetText(get_HWND(), text.composite().cstr());
 	}
 
 	virtual void set_max_length(size_t numChars)
@@ -77,7 +77,7 @@ public:
 		{
 			int len = GetWindowTextLength(get_HWND()) + 2;
 			s.resize(len);
-			int recvLen = GetWindowText(get_HWND(), s.get_ptr(), len);	// Does not NOT stall calling thread if not UI thread
+			int recvLen = GetWindowText(get_HWND(), s.get_ptr(), len); // Does not NOT stall calling thread if not UI thread
 
 			// Because we are providing space for 2 more than necessary, if we detect that this many was
 			// received, it's possible there is now more data there (set by another thread).  Read again.
@@ -91,7 +91,7 @@ public:
 
 	virtual void set_enabled(bool isEnabled = true)
 	{
-		BOOL b = Edit_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
+		Edit_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
 	}
 
 	virtual void set_font(const gfx::font& fnt)
@@ -123,9 +123,9 @@ public:
 		return call_default_window_proc(msg, wParam, lParam);
 	}
 
-	virtual bool is_focusable() const	{ return true; }
+	virtual bool is_focusable() const { return true; }
 
-	virtual size get_default_size() const	{ return size(100, 100); }
+	virtual size get_default_size() const { return size(100, 100); }
 
 	virtual LRESULT render_native_control(HDC dc)
 	{

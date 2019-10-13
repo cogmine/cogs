@@ -14,7 +14,7 @@
 
 namespace cogs {
 
-	
+
 // env/bit_scan.hpp provides env level implementation of bit_scan_forward and bit_scan_reverse.
 // Exposes the BSR/BSF instructions
 

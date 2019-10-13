@@ -20,7 +20,7 @@ namespace cogs {
 class uieditor
 {
 public:
-	
+
 };
 
 
@@ -28,4 +28,3 @@ public:
 
 
 #endif
-

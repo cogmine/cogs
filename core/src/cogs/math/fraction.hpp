@@ -26,9 +26,9 @@
 namespace cogs {
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
-#pragma warning (disable: 4307)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
+#pragma warning (disable: 4307) // multiple copy constructors specified
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
@@ -75,8 +75,8 @@ public:
 	template <typename, typename>
 	friend class fraction_content;
 
-	numerator_t		m_numerator;
-	denominator_t	m_denominator;
+	numerator_t m_numerator;
+	denominator_t m_denominator;
 
 	fraction_content()
 	{ }
@@ -1656,7 +1656,7 @@ private:
 		static constexpr bool is_fract = false;
 		static constexpr bool is_simplifiable = true;
 	};
-	
+
 	template <bool has_sign, size_t bits, ulongest... values, size_t bits2>
 	class simplification_helper<
 		fixed_integer_extended_const<has_sign, bits, values...>,
@@ -2159,8 +2159,8 @@ private:
 	typedef transactable<content_t> transactable_t;
 	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	read_token begin_read() const volatile { return m_contents.begin_read(); }
 	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt); }
@@ -2273,7 +2273,7 @@ private:
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_type(volatile fraction<numerator_t2, denominator_t2>& f, read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
-	
+
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2300,7 +2300,7 @@ private:
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t>
 	simplify_type(fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
-	
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
@@ -2403,7 +2403,7 @@ private:
 		&& is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f, const read_token& rt = read_token()) { rt = f.begin_read(); return rt->m_numerator; }
-	
+
 	// Assumes the return type will not survive the duration of the expression containing the function call.  Do not forward using auto.
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2432,7 +2432,7 @@ private:
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
 	simplify_content_type(fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t::content_t(); }
-	
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
@@ -2450,7 +2450,7 @@ private:
 		&& is_const_type_v<denominator_t2>,
 		typename fraction<numerator_t2, denominator_t2>::simplified_t::content_t>
 	simplify_content_type(volatile fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t::content_t(); }
-	
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		simplification_helper<numerator_t2, denominator_t2>::is_simplifiable
@@ -2519,7 +2519,7 @@ private:
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
 		const fraction_content<numerator_t2, denominator_t2>&>
 	simplify_content_type(fraction_content<numerator_t2, denominator_t2>& f) { return f; }
-	
+
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
@@ -2741,7 +2741,7 @@ public:
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	fraction(const volatile fraction<numerator_t2, denominator_t2>& src)
 		: m_contents(typename transactable_t::construct_embedded_t(), simplify_content_type(src))
-	{ }	
+	{ }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2835,11 +2835,11 @@ public:
 		return *this;
 	}
 
-	bool operator!() const			{ return !get_numerator(); }
-	bool operator!() const volatile	{ return !get_numerator(); }
+	bool operator!() const { return !get_numerator(); }
+	bool operator!() const volatile { return !get_numerator(); }
 
-	bool is_negative() const			{ return m_contents->is_negative(); }
-	bool is_negative() const volatile	{ return begin_read()->is_negative(); }
+	bool is_negative() const { return m_contents->is_negative(); }
+	bool is_negative() const volatile { return begin_read()->is_negative(); }
 
 	bool is_exponent_of_two() const { return cogs::is_exponent_of_two(simplify_content_type(*this)); }
 	bool is_exponent_of_two() const volatile { return cogs::is_exponent_of_two(simplify_content_type(*this)); }
@@ -2848,43 +2848,43 @@ public:
 	bool has_fractional_part() const volatile { return begin_read()->has_fractional_part(); }
 
 	// absolute
-	auto abs() const					{ return simplify_type(cogs::abs(simplify_content_type(*this))); }
-	auto abs() const volatile			{ return simplify_type(cogs::abs(simplify_content_type(*this))); }
-	void assign_abs()					{ m_contents->assign_abs(); }
-	void assign_abs() volatile			{ if (has_sign) write_retry_loop([&](content_t& c) { c.assign_abs(); }); }
-	const this_t& pre_assign_abs()		{ if (has_sign) m_contents->assign_abs(); return *this; }
-	this_t pre_assign_abs() volatile	{ if (has_sign) return write_retry_loop_pre([&](content_t& c) { c.assign_abs(); }); return *this; }
-	this_t post_assign_abs()			{ if (has_sign) { this_t result(*this); if (has_sign) m_contents->assign_abs(); return result; } return *this;}
-	this_t post_assign_abs() volatile	{ if (has_sign) return write_retry_loop_post([&](content_t& c) { c.assign_abs(); }); return *this; }
+	auto abs() const { return simplify_type(cogs::abs(simplify_content_type(*this))); }
+	auto abs() const volatile { return simplify_type(cogs::abs(simplify_content_type(*this))); }
+	void assign_abs() { m_contents->assign_abs(); }
+	void assign_abs() volatile { if (has_sign) write_retry_loop([&](content_t& c) { c.assign_abs(); }); }
+	const this_t& pre_assign_abs() { if (has_sign) m_contents->assign_abs(); return *this; }
+	this_t pre_assign_abs() volatile { if (has_sign) return write_retry_loop_pre([&](content_t& c) { c.assign_abs(); }); return *this; }
+	this_t post_assign_abs() { if (has_sign) { this_t result(*this); if (has_sign) m_contents->assign_abs(); return result; } return *this;}
+	this_t post_assign_abs() volatile { if (has_sign) return write_retry_loop_post([&](content_t& c) { c.assign_abs(); }); return *this; }
 
-	auto operator-() const					{ return simplify_type(-*m_contents); }
-	auto operator-() const volatile			{ return simplify_type(-(*begin_read())); }
-	void assign_negative()					{ m_contents->assign_negative(); }
-	void assign_negative() volatile			{ write_retry_loop([&](content_t& c) { c.assign_negative(); }); }
-	const this_t& pre_assign_negative()		{ m_contents->assign_negative(); return *this; }
-	this_t pre_assign_negative() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_negative(); }); }
-	this_t post_assign_negative()			{ this_t result(*this); m_contents->assign_negative(); return result; }
-	this_t post_assign_negative() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_negative(); }); }
+	auto operator-() const { return simplify_type(-*m_contents); }
+	auto operator-() const volatile { return simplify_type(-(*begin_read())); }
+	void assign_negative() { m_contents->assign_negative(); }
+	void assign_negative() volatile { write_retry_loop([&](content_t& c) { c.assign_negative(); }); }
+	const this_t& pre_assign_negative() { m_contents->assign_negative(); return *this; }
+	this_t pre_assign_negative() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_negative(); }); }
+	this_t post_assign_negative() { this_t result(*this); m_contents->assign_negative(); return result; }
+	this_t post_assign_negative() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_negative(); }); }
 
 
-	auto next() const				{ return simplify_type(cogs::next(simplify_content_type(*this))); }
-	auto next() const volatile		{ return simplify_type(cogs::next(simplify_content_type(*this))); }
-	void assign_next()				{ m_contents->assign_next(); }
-	void assign_next() volatile		{ write_retry_loop([&](content_t& c) { c.assign_next(); }); }
-	const this_t& operator++()		{ m_contents->assign_next(); return *this; }
-	this_t operator++() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_next(); }); }
-	this_t operator++(int)			{ this_t result(*this); m_contents->assign_next(); return result; }
-	this_t operator++(int) volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_next(); }); }
+	auto next() const { return simplify_type(cogs::next(simplify_content_type(*this))); }
+	auto next() const volatile { return simplify_type(cogs::next(simplify_content_type(*this))); }
+	void assign_next() { m_contents->assign_next(); }
+	void assign_next() volatile { write_retry_loop([&](content_t& c) { c.assign_next(); }); }
+	const this_t& operator++() { m_contents->assign_next(); return *this; }
+	this_t operator++() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_next(); }); }
+	this_t operator++(int) { this_t result(*this); m_contents->assign_next(); return result; }
+	this_t operator++(int) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_next(); }); }
 
-	
-	auto prev() const				{ return simplify_type(cogs::prev(simplify_content_type(*this))); }
-	auto prev() const volatile		{ return simplify_type(cogs::prev(simplify_content_type(*this))); }
-	void assign_prev()				{ m_contents->assign_prev(); }
-	void assign_prev() volatile		{ write_retry_loop([&](content_t& c) { c.assign_prev(); }); }
-	const this_t& operator--()		{ m_contents->assign_prev(); return *this; }
-	this_t operator--() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_prev(); }); }
-	this_t operator--(int)			{ this_t result(*this); m_contents->assign_prev(); return result; }
-	this_t operator--(int) volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_prev(); }); }
+
+	auto prev() const { return simplify_type(cogs::prev(simplify_content_type(*this))); }
+	auto prev() const volatile { return simplify_type(cogs::prev(simplify_content_type(*this))); }
+	void assign_prev() { m_contents->assign_prev(); }
+	void assign_prev() volatile { write_retry_loop([&](content_t& c) { c.assign_prev(); }); }
+	const this_t& operator--() { m_contents->assign_prev(); return *this; }
+	this_t operator--() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_prev(); }); }
+	this_t operator--(int) { this_t result(*this); m_contents->assign_prev(); return result; }
+	this_t operator--(int) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_prev(); }); }
 
 
 	// add
@@ -3273,12 +3273,12 @@ public:
 	// reciprocal
 	auto reciprocal() const;
 	auto reciprocal() const volatile;
-	void assign_reciprocal()					{ m_contents->assign_reciprocal(); }
-	void assign_reciprocal() volatile			{ write_retry_loop([&](content_t& c) { c.assign_reciprocal(); }); }
-	const this_t& pre_assign_reciprocal()		{ m_contents->assign_reciprocal(); return *this; }
-	this_t pre_assign_reciprocal() volatile		{ return write_retry_loop_pre([&](content_t& c) { c.assign_reciprocal(); }); }
-	this_t post_assign_reciprocal()				{ this_t result(*this); m_contents->assign_reciprocal(); return result; }
-	this_t post_assign_reciprocal() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_reciprocal(); }); }
+	void assign_reciprocal() { m_contents->assign_reciprocal(); }
+	void assign_reciprocal() volatile { write_retry_loop([&](content_t& c) { c.assign_reciprocal(); }); }
+	const this_t& pre_assign_reciprocal() { m_contents->assign_reciprocal(); return *this; }
+	this_t pre_assign_reciprocal() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_reciprocal(); }); }
+	this_t post_assign_reciprocal() { this_t result(*this); m_contents->assign_reciprocal(); return result; }
+	this_t post_assign_reciprocal() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_reciprocal(); }); }
 
 	// inverse_divide
 	template <typename T>
@@ -3359,14 +3359,14 @@ public:
 	this_t post_assign_ceil() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_ceil(); }); }
 
 	// fractional_part
-	auto fractional_part() const					{ return cogs::fractional_part(simplify_content_type(*this)); }
-	auto fractional_part() const volatile			{ return cogs::fractional_part(simplify_content_type(*this)); }
-	void assign_fractional_part()					{ m_contents->assign_fractional_part(); }
-	void assign_fractional_part() volatile			{ write_retry_loop([&](content_t& c) { c.assign_fractional_part(); }); }
-	const this_t& pre_assign_fractional_part()		{ m_contents->assign_fractional_part(); return *this; }
-	this_t pre_assign_fractional_part() volatile	{ return write_retry_loop_pre([&](content_t& c) { c.assign_fractional_part(); }); }
-	this_t post_assign_fractional_part()			{ this_t result(*this); m_contents->assign_fractional_part(); return result; }
-	this_t post_assign_fractional_part() volatile	{ return write_retry_loop_post([&](content_t& c) { c.assign_fractional_part(); }); }
+	auto fractional_part() const { return cogs::fractional_part(simplify_content_type(*this)); }
+	auto fractional_part() const volatile { return cogs::fractional_part(simplify_content_type(*this)); }
+	void assign_fractional_part() { m_contents->assign_fractional_part(); }
+	void assign_fractional_part() volatile { write_retry_loop([&](content_t& c) { c.assign_fractional_part(); }); }
+	const this_t& pre_assign_fractional_part() { m_contents->assign_fractional_part(); return *this; }
+	this_t pre_assign_fractional_part() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_fractional_part(); }); }
+	this_t post_assign_fractional_part() { this_t result(*this); m_contents->assign_fractional_part(); return result; }
+	this_t post_assign_fractional_part() volatile { return write_retry_loop_post([&](content_t& c) { c.assign_fractional_part(); }); }
 
 
 	// divide_whole
@@ -3845,9 +3845,9 @@ public:
 
 
 	// swap
-	void swap(this_t& wth)			{ m_contents.swap(wth.m_contents); }
-	void swap(this_t& wth) volatile	{ m_contents.swap(wth.m_contents); }
-	void swap(volatile this_t& wth)	{ wth.swap(*this); }
+	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
+	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	// exchange
 	this_t exchange(const this_t& src)
@@ -4004,17 +4004,17 @@ public:
 	}
 
 
-	void clear()			{ m_contents->clear(); }
-	void clear() volatile	{ m_contents.assign(zero_t(), one_t()); }
+	void clear() { m_contents->clear(); }
+	void clear() volatile { m_contents.assign(zero_t(), one_t()); }
 
-	const numerator_t& get_numerator() const	{ return m_contents->m_numerator; }
-	numerator_t get_numerator() const volatile	{ return begin_read()->m_numerator; }
+	const numerator_t& get_numerator() const { return m_contents->m_numerator; }
+	numerator_t get_numerator() const volatile { return begin_read()->m_numerator; }
 
-	const denominator_t& get_denominator() const	{ return m_contents->m_denominator; }
-	denominator_t get_denominator() const volatile	{ return begin_read()->m_denominator; }
+	const denominator_t& get_denominator() const { return m_contents->m_denominator; }
+	denominator_t get_denominator() const volatile { return begin_read()->m_denominator; }
 
-	auto factor() const				{ return simplify_content_type(*this).factor(); }
-	auto factor() const volatile	{ return simplify_content_type(*this).factor(); }
+	auto factor() const { return simplify_content_type(*this).factor(); }
+	auto factor() const volatile { return simplify_content_type(*this).factor(); }
 };
 
 
@@ -4081,7 +4081,7 @@ template <typename numerator_type, typename denominator_type>
 auto fraction<numerator_type, denominator_type>::reciprocal() const
 { return cogs::reciprocal(simplify_content_type(*this)); }
 
-	
+
 template <typename numerator_type, typename denominator_type>
 auto fraction<numerator_type, denominator_type>::reciprocal() const volatile
 { return cogs::reciprocal(simplify_content_type(*this)); }

@@ -30,24 +30,24 @@ public:
 	double m_thumbSize;
 
 	scroll_bar_state()
-		:	m_max(0),
-			m_thumbSize(0)
+		: m_max(0),
+		m_thumbSize(0)
 	{ }
 
 	scroll_bar_state(const scroll_bar_state& s)
-		:	m_max(s.m_max),
-			m_thumbSize(s.m_thumbSize)
+		: m_max(s.m_max),
+		m_thumbSize(s.m_thumbSize)
 	{ }
 
 	scroll_bar_state(double max, double thumbSize)
-		:	m_max(max),
-			m_thumbSize(thumbSize)
+		: m_max(max),
+		m_thumbSize(thumbSize)
 	{ }
 
-	scroll_bar_state& operator=(const scroll_bar_state& s)	{ m_max = s.m_max; m_thumbSize = s.m_thumbSize; return *this; }
+	scroll_bar_state& operator=(const scroll_bar_state& s) { m_max = s.m_max; m_thumbSize = s.m_thumbSize; return *this; }
 
-	bool operator==(const scroll_bar_state& s) const		{ return m_max == s.m_max && m_thumbSize == s.m_thumbSize; }
-	bool operator!=(const scroll_bar_state& s) const		{ return m_max != s.m_max || m_thumbSize != s.m_thumbSize; }
+	bool operator==(const scroll_bar_state& s) const { return m_max == s.m_max && m_thumbSize == s.m_thumbSize; }
+	bool operator!=(const scroll_bar_state& s) const { return m_max != s.m_max || m_thumbSize != s.m_thumbSize; }
 };
 
 
@@ -56,7 +56,7 @@ public:
 class scroll_bar : public pane_bridge
 {
 public:
-	typedef function<void(const rcref<scroll_bar>&)>	scrolled_delegate_t;
+	typedef function<void(const rcref<scroll_bar>&)> scrolled_delegate_t;
 
 private:
 	const dimension m_dimension;
@@ -125,9 +125,9 @@ public:
 		})
 	{
 	}
-	
-	dimension get_dimension() const	{ return m_dimension; }
-	bool is_hidden_when_inactive() const	{ return m_isHiddenWhenInactive; }
+
+	dimension get_dimension() const { return m_dimension; }
+	bool is_hidden_when_inactive() const { return m_isHiddenWhenInactive; }
 
 	virtual void installing()
 	{

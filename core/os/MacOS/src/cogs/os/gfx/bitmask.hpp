@@ -26,7 +26,7 @@ namespace os {
 class bitmask : public canvas::bitmask, public graphics_context
 {
 protected:
-    __strong NSBitmapImageRep* m_imageRep;
+	__strong NSBitmapImageRep* m_imageRep;
 	//__strong NSGraphicsContext* m_graphicsContext;
 	canvas::size m_size;
 	mutable CGImageRef m_mask;
@@ -111,7 +111,7 @@ private:
 
 public:
 	// creates bitmask from monochome image format
-	bitmask(const composite_string& name, bool resource = false)	// !resource implies filename
+	bitmask(const composite_string& name, bool resource = false) // !resource implies filename
 	{
 		__strong NSString* n = string_to_NSString(name);
 		__strong NSString* imageName;
@@ -119,9 +119,9 @@ public:
 			imageName = [[NSBundle mainBundle] pathForResource:n ofType:@"bmp"]; 
 		else
 			imageName = n;
-		
+
 		m_imageRep = [NSBitmapImageRep imageRepWithData:[NSData dataWithContentsOfFile:imageName]];
-		
+
 		//m_graphicsContext = [NSGraphicsContext graphicsContextWithBitmapImageRep: m_imageRep];
 
 		m_size = canvas::size([m_imageRep pixelsWide], [m_imageRep pixelsHigh]);
@@ -132,17 +132,17 @@ public:
 	{
 		m_cgContextRef = CGBitmapContextCreate(NULL, std::lround(sz.get_width()), std::lround(sz.get_height()), 8, 0, CGColorSpaceCreateDeviceGray(), 0);
 
-		// m_imageRep = [[NSBitmapImageRep alloc]
-		// 	initWithBitmapDataPlanes: NULL
-        //     pixelsWide: std::lround(sz.get_width())
-        //     pixelsHigh: std::lround(sz.get_height())
-		// 	bitsPerSample: 8
-		// 	samplesPerPixel: 1
-		// 	hasAlpha: NO
-		// 	isPlanar: NO
-		// 	colorSpaceName: NSCalibratedWhiteColorSpace
-		// 	bytesPerRow: 0
-		// 	bitsPerPixel: 0];
+		//m_imageRep = [[NSBitmapImageRep alloc]
+		//	initWithBitmapDataPlanes: NULL
+		//	pixelsWide: std::lround(sz.get_width())
+		//	pixelsHigh: std::lround(sz.get_height())
+		//	bitsPerSample: 8
+		//	samplesPerPixel: 1
+		//	hasAlpha: NO
+		//	isPlanar: NO
+		//	colorSpaceName: NSCalibratedWhiteColorSpace
+		//	bytesPerRow: 0
+		//	bitsPerPixel: 0];
 
 		//m_graphicsContext = [NSGraphicsContext graphicsContextWithBitmapImageRep: m_imageRep];
 
@@ -286,7 +286,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& src, const can
 
 	state_token token;
 	auto& ctx = token.get_CGContent();
-	
+
 	CGContextTranslateCTM(ctx, dstBounds.get_x(), dstBounds.get_y() + dstBounds.get_height());
 	CGContextScaleCTM(ctx, 1.0, -1.0);
 
@@ -350,7 +350,7 @@ inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src
 	//CGRect srcRect = graphics_context::make_CGRect(srcBounds);
 	CGRect mskRect = graphics_context::make_CGRect(mskBounds);
 	CGRect dstRect = graphics_context::make_CGRect(dstBounds.get_size());
-	
+
 	state_token token;
 	auto& ctx = token.get_CGContent();
 
@@ -365,7 +365,7 @@ inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src
 
 	NSRect srcRect2 = NSMakeRect(srcBounds.get_x(), srcBounds.get_y(), srcBounds.get_width(), srcBounds.get_height());
 	CGImageRef adjustedSrc = [src2->get_NSImage() CGImageForProposedRect: &srcRect2 context: token.get_NSGraphicsContext() hints: nil];
-	
+
 	//CGImageRef adjustedSrc = CGImageCreateWithImageInRect(src2->get_CGImageRef(), srcRect);
 	CGContextDrawImage(ctx, dstRect, adjustedSrc);
 

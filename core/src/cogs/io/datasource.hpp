@@ -34,7 +34,7 @@
 /// http://support.microsoft.com/kb/192599
 /// This approach involves allocating buffers that may be unnecessarily large for the
 /// contained data.  Generally, buffers should be very short-lived.
-#define COGS_DEFAULT_BLOCK_SIZE	(1024 * 8) 
+#define COGS_DEFAULT_BLOCK_SIZE (1024 * 8)
 #endif
 
 
@@ -73,21 +73,21 @@ public:
 		/// If no data is available, a result of 0 bytes is returned.
 		/// An empty read does not indicate the datasource is no longer readable (closed, or EOF).
 		/// If there is data available, a read of this type must not complete with a result of 0 bytes.
-		read_now = 1,	// 01
+		read_now = 1, // 01
 
 		/// @brief Read some data
 		///
 		/// The read will wait for data to become available before completing.
 		/// It may complete with less than the requested number of bytes, but will wait until at least 1 byte is available.
 		/// If not aborted, an empty read would indicate the datasource is no longer readable (closed, or EOF).
-		read_some = 2,	// 10
+		read_some = 2, // 10
 
 		/// @brief Read all data requested
 		///
 		/// The read will wait for all requested data to be available before returning.
 		/// Fewer bytes may be returned if the read is aborted or the datasource is no longer readable (closed, or EOF)
 		/// If not aborted, an empty read would indicate the datasource is no longer readable (closed, or EOF).
-		read_all = 3,	// 11
+		read_all = 3, // 11
 	}; 
 
 private:
@@ -98,17 +98,17 @@ private:
 
 	friend class reader;
 
-	rcptr<io::queue>	m_ioQueue;		// OK that the rcptr is not volatile, since it's set on construction, and cleared in destructor
+	rcptr<io::queue> m_ioQueue; // OK that the rcptr is not volatile, since it's set on construction, and cleared in destructor
 
 	// m_overflow is not thread-safe.  It can be prepended to by a reader, to return data
 	// to the datasource, only if there are no readers and no reads in progress.
-	const rcref<composite_buffer>	m_overflow;
+	const rcref<composite_buffer> m_overflow;
 
 	// Storage for read buffers, if needed by a derived class.
 	// Splits smaller buffers from a larger buffer, reducing allocations and allowing multiple consecutive
 	// reads to be coalesced if appended to a composite_buffer.
-	buffer	m_internalBuffer;
-	size_t	m_internalBufferSize;
+	buffer m_internalBuffer;
+	size_t m_internalBufferSize;
 
 public:
 	/// @brief Base class for datasource I/O tasks
@@ -122,7 +122,7 @@ public:
 		datasource_task& operator=(datasource_task&&) = delete;
 		datasource_task& operator=(const datasource_task&) = delete;
 
-		const weak_rcptr<datasource>		m_source;
+		const weak_rcptr<datasource> m_source;
 
 	protected:
 		/// @brief Constructor
@@ -163,7 +163,7 @@ public:
 		flusher& operator=(flusher&&) = delete;
 		flusher& operator=(const flusher&) = delete;
 
-		virtual void executing()	{ flushing(); }
+		virtual void executing() { flushing(); }
 
 	protected:
 		/// @brief Constructor
@@ -204,7 +204,7 @@ public:
 		closer& operator=(closer&&) = delete;
 		closer& operator=(const closer&) = delete;
 
-		virtual void executing()	{ closing(); }
+		virtual void executing() { closing(); }
 
 	protected:
 		/// @brief Constructor
@@ -237,10 +237,10 @@ public:
 	private:
 		friend class datasource;
 
-		size_t						m_requestedSize;
-		composite_buffer			m_readBuffer;	// all read results.
-		rcref<composite_buffer>		m_overflow;
-		read_mode					m_mode;
+		size_t m_requestedSize;
+		composite_buffer m_readBuffer; // all read results.
+		rcref<composite_buffer> m_overflow;
+		read_mode m_mode;
 
 		reader() = delete;
 		reader(reader&&) = delete;
@@ -274,15 +274,15 @@ public:
 
 	protected:
 		reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds)
-			:	datasource_task<reader>(desc, ds),
-				m_overflow(ds->m_overflow),
-				m_mode(read_all)
+			: datasource_task<reader>(desc, ds),
+			m_overflow(ds->m_overflow),
+			m_mode(read_all)
 		{ }
 
 		/// @brief Derived readers should implement reading() to perform the read operation
 		/// 
 		/// When the read is complete, the derived class should call complete().
-		virtual void reading()				{ complete(); }
+		virtual void reading() { complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a reader that has not yet been executed. 
 		virtual void canceling() { datasource_task<reader>::canceling(); }
@@ -340,30 +340,30 @@ public:
 			return result;
 		}
 
-		composite_buffer& get_buffer()	 { return m_readBuffer; }
+		composite_buffer& get_buffer() { return m_readBuffer; }
 
 		virtual const reader& get() const volatile { return *(const reader*)this; }
 
 	public:
 		/// @brief Gets the read mode of the read operation
 		/// @return The read mode of the reader
-		read_mode get_read_mode() const					{ return m_mode; }
+		read_mode get_read_mode() const { return m_mode; }
 
 		/// @brief Gets the requested size of the read operation
 		/// @return The requested size of the read operation
-		size_t get_requested_size() const				{ return m_requestedSize; }
+		size_t get_requested_size() const { return m_requestedSize; }
 
 		/// @brief Gets the number of bytes succesfully read.  This is intended to be called after the read operation has completed.
 		/// @return The number of bytes successfully read.
-		size_t get_read_size() const					{ return m_readBuffer.get_length(); }
+		size_t get_read_size() const { return m_readBuffer.get_length(); }
 
 		/// @brief Gets the remaining number of bytes not yet read.  This is intended to be called after the read operation has completed.
 		/// @return The number of bytes successfully read.
-		size_t get_unread_size() const					{ return m_requestedSize - m_readBuffer.get_length(); }
+		size_t get_unread_size() const { return m_requestedSize - m_readBuffer.get_length(); }
 
 		/// @brief Gets the buffer that was read.  This is intended to be called after ther ead operaiton has completed.
 		/// @return The buffer that was read.
-		const composite_buffer& get_read_buffer() const	{ return m_readBuffer; }
+		const composite_buffer& get_read_buffer() const { return m_readBuffer; }
 	};
 
 	/// @brief Issues a flush of the datasource
@@ -386,7 +386,7 @@ public:
 
 	/// @brief Reads some data
 	/// @return A rcref to a reader
-	rcref<reader> read()	{ return read(COGS_DEFAULT_BLOCK_SIZE, read_some); }
+	rcref<reader> read() { return read(COGS_DEFAULT_BLOCK_SIZE, read_some); }
 
 	/// @brief Reads data
 	/// @param n Number of bytes to read
@@ -425,11 +425,11 @@ public:
 	}
 
 	/// @brief Cancels any pending I/O operations on the datasource and closes it immediately.
-	virtual void abort_source()				{ m_ioQueue->close(); }
+	virtual void abort_source() { m_ioQueue->close(); }
 
 	/// @brief Gets the close event associated with the datasource.
 	/// @return A rcref to a waitable that will become signaled when the datasource is closed.
-	const waitable& get_source_close_event() const	{ return m_ioQueue->get_close_event(); }
+	const waitable& get_source_close_event() const { return m_ioQueue->get_close_event(); }
 
 	bool is_source_closed() const
 	{
@@ -562,19 +562,19 @@ protected:
 	/// @param ds A datasource reference to encapsulate in the flusher.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds)		{ return rcnew(bypass_constructor_permission<flusher>, ds); }
+	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<flusher>, ds); }
 
 	/// @brief Create a datasource::closer.  Used by derived datasources to create derived closer
 	/// @param ds A datasource reference to encapsulate in the closer.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds)			{ return rcnew(bypass_constructor_permission<closer>, ds); }
+	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<closer>, ds); }
 
 	/// @brief Create a datasource::reader.  Used by derived datasources to create derived reader
 	/// @param ds A datasource reference to encapsulate in the reader.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new writer
-	virtual rcref<reader> create_reader(const rcref<datasource>& ds)				{ return rcnew(bypass_constructor_permission<reader>, ds); }
+	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<reader>, ds); }
 
 };
 
@@ -597,7 +597,8 @@ public:
 	};
 
 private:
-	const weak_rcptr<datasource>	m_source;
+	const weak_rcptr<datasource> m_source;
+	volatile boolean m_started;
 
 	// This IO task represents the entire transaction.
 	// It posts to the original datasource, and does not complete until
@@ -614,7 +615,7 @@ private:
 				: io::queue::io_task<plug>(desc)
 			{ }
 
-			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
+			volatile boolean m_transactionRunning; // Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::io_task<plug>::complete;
 
@@ -624,12 +625,12 @@ private:
 					io::queue::io_task<plug>::complete();
 			}
 
-			virtual void aborting()		{ io::queue::io_task<plug>::complete(true); }
+			virtual void aborting() { io::queue::io_task<plug>::complete(true); }
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
 
-		rcptr<io::queue> m_transactionIoQueue;	// extends the scope of the transaction's io queue
+		rcptr<io::queue> m_transactionIoQueue; // extends the scope of the transaction's io queue
 		volatile rcptr<plug> m_plug;
 		volatile boolean m_completeOrAbortGuard;
 		const close_propagation_mode m_closePropagationMode;
@@ -704,7 +705,7 @@ private:
 			}
 		}
 
-		virtual void canceling()	// transaction_task got canceled before anything executed.
+		virtual void canceling() // transaction_task got canceled before anything executed.
 		{
 			m_transactionIoQueue->close();
 			io::queue::io_task<transaction_task>::canceling();
@@ -720,16 +721,16 @@ private:
 	class terminator : public io::queue::io_task<terminator>
 	{
 	public:
-		rcref<transaction_task>	m_transactionTask;
-		
+		rcref<transaction_task> m_transactionTask;
+
 		terminator(const ptr<rc_obj_base>& desc, const rcref<transaction_task>& t)
 			: io::queue::io_task<terminator>(desc),
 			m_transactionTask(t)
 		{ }
-		
+
 		virtual void executing()
 		{
-			rcref<transaction_task>	tt = m_transactionTask;
+			rcref<transaction_task> tt = m_transactionTask;
 			io::queue::io_task<terminator>::complete();
 			tt->complete();
 		}
@@ -737,7 +738,7 @@ private:
 		virtual void canceling()
 		{
 			// queue was closed, pass along close.
-			rcref<transaction_task>	tt = m_transactionTask;
+			rcref<transaction_task> tt = m_transactionTask;
 			io::queue::io_task<terminator>::canceling();
 			tt->abort();
 		}
@@ -759,7 +760,7 @@ private:
 		rcptr<datasource> ds = m_source;
 		if (!!ds)
 			return ds->create_source_flusher(proxy);
-		abort_source();	
+		abort_source();
 		return datasource::create_source_flusher(proxy);
 	}
 
@@ -779,10 +780,8 @@ private:
 		datasource::source_enqueue(t);
 	}
 
-	volatile boolean m_started;
-
 public:
-	friend class datasource;	
+	friend class datasource;
 
 	/// @brief Transaction constructor.
 	/// @param ds Target datasource
@@ -790,10 +789,10 @@ public:
 	/// at some point to queue the transaction to the datasource.
 	/// @param closePropagationMode Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
 	transaction(const ptr<rc_obj_base>& desc, const rcref<datasource>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
-		:	datasource(desc, ds->m_overflow),
-			m_source(ds),
-			m_started(startImmediately),
-			m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
+		: datasource(desc, ds->m_overflow),
+		m_source(ds),
+		m_started(startImmediately),
+		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
 	{
 		if (startImmediately)
 			ds->source_enqueue(m_transactionTask);
@@ -831,7 +830,7 @@ public:
 			m_ioQueue->try_enqueue(t);
 		}
 
-		m_ioQueue.release();	// Prevents datasource destructor from closing it yet.
+		m_ioQueue.release(); // Prevents datasource destructor from closing it yet.
 	}
 };
 
@@ -841,7 +840,7 @@ class datasource::default_coupler : public signallable_task_base<void>
 private:
 	friend class datasource;
 
-	const weak_rcptr<datasource>	m_source;
+	const weak_rcptr<datasource> m_source;
 
 	const bool m_closeSinkOnSourceClose;
 	const bool m_closeSourceOnSinkClose;
@@ -849,7 +848,7 @@ private:
 	rcptr<datasource::transaction> m_coupledRead;
 	rcptr<datasink::transaction> m_coupledWrite;
 	size_t m_bufferBlockSize;
-	
+
 	dynamic_integer m_remaining;
 	bool m_hasMaxLength;
 
@@ -862,12 +861,12 @@ private:
 	bool m_writeClosed = false;
 	volatile boolean m_decoupling;
 
-	rcptr<task<void> >	m_onSourceAbortTask;
-	rcptr<task<void> >	m_onSinkAbortTask;
-	
+	rcptr<task<void> > m_onSourceAbortTask;
+	rcptr<task<void> > m_onSinkAbortTask;
+
 	typedef bool (default_coupler::*task_f)();
 
-	volatile container_queue<task_f>	m_completionSerializer;
+	volatile container_queue<task_f> m_completionSerializer;
 
 	void process(task_f t)
 	{
@@ -915,7 +914,7 @@ private:
 				return true;
 			}
 
-			m_writing = true;	// data was read, and no write was in progress.  Issue the write.
+			m_writing = true; // data was read, and no write was in progress.  Issue the write.
 			m_currentWriter = m_coupledWrite->write(m_pendingBuffers);
 			m_pendingBuffers.clear();
 			m_currentWriter->dispatch([this]()
@@ -931,7 +930,7 @@ private:
 			{
 				if (m_hasMaxLength && (m_remaining < readSize))
 					readSize = (size_t)m_remaining.get_int();
-				if (!!readSize)	// else limit reached, allow write to complete the coupler when it's done.
+				if (!!readSize) // else limit reached, allow write to complete the coupler when it's done.
 				{
 					m_reading = true;
 					m_currentReader = m_coupledRead->read(readSize, datasource::read_some);
@@ -959,7 +958,7 @@ private:
 		{
 			if (m_writeClosed)
 			{
-				m_pendingBuffers.prepend(unwrittenBufferList);		
+				m_pendingBuffers.prepend(unwrittenBufferList);
 				if (m_closeSourceOnSinkClose)
 					m_coupledRead->close_source();
 				else
@@ -997,7 +996,7 @@ private:
 
 		if (!m_decoupling)
 		{
-			if (!!unwrittenBufferList)		// Don't combine with m_pendingBuffers.  Functionality may depend on a separation point between message blocks.
+			if (!!unwrittenBufferList) // Don't combine with m_pendingBuffers.  Functionality may depend on a separation point between message blocks.
 				m_writing = true;
 			else if (!!m_pendingBuffers)
 			{
@@ -1013,7 +1012,7 @@ private:
 				{
 					if (m_hasMaxLength && (m_remaining < readSize))
 						readSize = (size_t)m_remaining.get_int();
-					if (!!readSize)	// else limit reached, allow write to complete the coupler when it's done.
+					if (!!readSize) // else limit reached, allow write to complete the coupler when it's done.
 					{
 						m_reading = true;
 						m_currentReader = m_coupledRead->read(readSize, datasource::read_some);
@@ -1047,7 +1046,7 @@ private:
 	bool process_source_aborted()
 	{
 		m_readClosed = true;
-		if (!!m_writing)	// Because the source was aborted, it's unnecessary to flush what was read to the writer.  Abort writer.
+		if (!!m_writing) // Because the source was aborted, it's unnecessary to flush what was read to the writer.  Abort writer.
 			m_currentWriter->abort();
 		return false;
 	}
@@ -1055,7 +1054,7 @@ private:
 	bool process_sink_aborted()
 	{
 		m_writeClosed = true;
-		if (!!m_reading)	// Nothing to write to, must cancel read regardless of whether we will close the source because it's decoupling.
+		if (!!m_reading) // Nothing to write to, must cancel read regardless of whether we will close the source because it's decoupling.
 			m_currentReader->abort();
 		return false;
 	}
@@ -1072,7 +1071,7 @@ private:
 
 	void decouple()
 	{
-		self_acquire();	// Ensure we don't go out of scope if decoupling() arrives at an inopportune time.
+		self_acquire(); // Ensure we don't go out of scope if decoupling() arrives at an inopportune time.
 		m_onSinkAbortTask->cancel();
 		m_onSourceAbortTask->cancel();
 		process(&default_coupler::process_decouple);
@@ -1097,17 +1096,17 @@ protected:
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 		: signallable_task_base<void>(desc),
+		m_source(src),
+		m_closeSinkOnSourceClose(closeSinkOnSourceClose),
+		m_closeSourceOnSinkClose(closeSourceOnSinkClose),
 		m_coupledRead(rcnew(datasource::transaction, src)),
 		m_coupledWrite(rcnew(datasink::transaction, snk)),
 		m_bufferBlockSize((bufferBlockSize == 0) ? COGS_DEFAULT_BLOCK_SIZE : bufferBlockSize),
-		m_hasMaxLength(!!maxLength),
 		m_remaining(maxLength),
-		m_source(src),
-		m_closeSinkOnSourceClose(closeSinkOnSourceClose),
-		m_closeSourceOnSinkClose(closeSourceOnSinkClose)
+		m_hasMaxLength(!!maxLength)
 	{
 	}
-	
+
 	void start_coupler()
 	{
 		self_acquire();

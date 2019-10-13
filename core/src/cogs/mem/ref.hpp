@@ -20,10 +20,10 @@ namespace cogs {
 
 
 template <typename T>
-class ref;	// not nullable
+class ref; // not nullable
 
 template <typename type>
-class ptr;	// nullable
+class ptr; // nullable
 
 
 // forward declared for to_string().
@@ -35,8 +35,8 @@ class composite_string_t;
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 /// @defgroup ReferenceContainerTypes Reference Container Types
@@ -100,9 +100,9 @@ private:
 	/// @{
 	/// @brief Sets the value to only the specified marked bit, clearing the original pointer value.
 	/// @param mark Bitmask of bits to set.
-	void set_to_mark(size_t mark)					{ set((type*)(mark & mark_mask())); }
+	void set_to_mark(size_t mark) { set((type*)(mark & mark_mask())); }
 	/// @brief Thread-safe versions of set_to_mark()
-	void set_to_mark(size_t mark) volatile			{ set((type*)(mark & mark_mask())); }
+	void set_to_mark(size_t mark) volatile { set((type*)(mark & mark_mask())); }
 	/// @}
 
 public:
@@ -112,9 +112,9 @@ public:
 	template <typename type2>
 	ref(type2& src) : m_value(&src) { }
 
-	ref(const this_t& src)			: m_value(src.get_ptr())	{ }
+	ref(const this_t& src) : m_value(src.get_ptr()) { }
 
-	ref(const volatile this_t& src)	: m_value(src.get_ptr())	{ }
+	ref(const volatile this_t& src) : m_value(src.get_ptr()) { }
 
 	/// @brief Initializes reference to specified value.
 	///
@@ -149,26 +149,26 @@ public:
 	/// @brief Sets this ref to the specified reference value
 	/// @param r Value to set
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void set(type2& r)			{ set(&r); }
+	void set(type2& r) { set(&r); }
 	/// @brief Thread-safe implementation of set().
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void set(type2& r) volatile	{ set(&r); }
+	void set(type2& r) volatile { set(&r); }
 	/// @}
 
 	/// @{
 	/// @brief Assignment
 	/// @param src Value to set
-	/// @return	A reference to this
-	this_t& operator=(type& src)													{ set(src);           return *this; }
-	this_t& operator=(const this_t& src)											{ set(src.get_ptr()); return *this; }
-	this_t& operator=(const volatile this_t& src)									{ set(src.get_ptr()); return *this; }
+	/// @return A reference to this
+	this_t& operator=(type& src) { set(src); return *this; }
+	this_t& operator=(const this_t& src) { set(src.get_ptr()); return *this; }
+	this_t& operator=(const volatile this_t& src) { set(src.get_ptr()); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const ref<type2>& src)			{ set(src.get_ptr()); return *this; }
+	this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const volatile ref<type2>& src)	{ set(src.get_ptr()); return *this; }
+	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type& src) volatile		{ set(src); return *this; }
+	volatile this_t& operator=(type& src) volatile { set(src); return *this; }
 	/// @brief Thread-safe implementation of operator=()
 	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
@@ -184,7 +184,7 @@ public:
 	/// @{
 	/// @brief Gets the pointer value
 	/// @return A native pointer to the encapsulated value
-	type* get_ptr() const			{ return m_value; }
+	type* get_ptr() const { return m_value; }
 	/// @brief Thread-safe implementation of get_ptr()
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
 	/// @}
@@ -192,203 +192,203 @@ public:
 	/// @{
 	/// @brief Gets a const reference to the internal encapsulated pointer value.
 	/// @return A const reference to the internal encapsulated pointer value
-	type* const& get_ptr_ref() const			{ return m_value; }
+	type* const& get_ptr_ref() const { return m_value; }
 	/// @brief Thread-safe implementation of get_ptr_ref()
-	type* const volatile& get_ptr_ref() const volatile	{ return m_value; }
+	type* const volatile& get_ptr_ref() const volatile { return m_value; }
 	/// @}
 
 	/// @{
 	/// @brief Dereference operator
 	/// @return The encapsulated value
-	type* operator->() const			{ type* result = get_ptr(); COGS_ASSERT(!!result); return result; }
+	type* operator->() const { type* result = get_ptr(); COGS_ASSERT(!!result); return result; }
 	/// @brief Thread-safe implementation of operator*()
-	type* operator->() const volatile	{ type* result = get_ptr(); COGS_ASSERT(!!result); return result; }
+	type* operator->() const volatile { type* result = get_ptr(); COGS_ASSERT(!!result); return result; }
 	/// @}
 
 	/// @{
 	/// @brief Dereference operator
 	/// @return The encapsulated value
-	type& operator*() const				{ type* result = get_ptr(); COGS_ASSERT(!!result); return *result; }
+	type& operator*() const { type* result = get_ptr(); COGS_ASSERT(!!result); return *result; }
 	/// @brief Thread-safe implementation of operator*()
-	type& operator*() const volatile	{ type* result = get_ptr(); COGS_ASSERT(!!result); return *result; }
+	type& operator*() const volatile { type* result = get_ptr(); COGS_ASSERT(!!result); return *result; }
 	/// @}
 
 	/// @{
 	/// @brief Tests if the pointer value is NULL
 	/// @return True if the pointer value is NULL.
-	bool is_empty() const			{ return false; }
+	bool is_empty() const { return false; }
 	/// @brief Thread-safe implementation of operator!()
-	bool is_empty() const volatile	{ return false; }
+	bool is_empty() const volatile { return false; }
 	/// @}
-	
+
 	/// @{
 	/// @brief Tests if the pointer value is NULL.  An alias for is_empty()
 	/// @return True if the pointer value is NULL.
-	bool operator!() const			{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
 	/// @brief Thread-safe implementation of operator!()
-	bool operator!() const volatile	{ return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 	/// @}
 
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
 	/// @return True if the values are equal
-	template <typename type2>	bool operator==(type2* cmp) const							{ return get_ptr() == cmp; }
-	template <typename type2>	bool operator==(const ptr<type2>& cmp) const				{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& cmp) const				{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& cmp) const		{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& cmp) const		{ return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(type2* cmp) const { return get_ptr() == cmp; }
+	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2>	bool operator==(type2* cmp) const volatile					{ return get_ptr() == cmp; }
+	template <typename type2> bool operator==(type2* cmp) const volatile { return get_ptr() == cmp; }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2>	bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2>	bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2>	bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2>	bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Inequality operator
 	/// @param cmp Pointer to test against
 	/// @return True if the values are inequal
-	template <typename type2>	bool operator!=(type2* cmp) const							{ return get_ptr() != cmp; }
-	template <typename type2>	bool operator!=(const ptr<type2>& cmp) const				{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& cmp) const				{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& cmp) const		{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& cmp) const		{ return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(type2* cmp) const { return get_ptr() != cmp; }
+	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2>	bool operator!=(type2* cmp) const volatile					{ return get_ptr() != cmp; }
+	template <typename type2> bool operator!=(type2* cmp) const volatile { return get_ptr() != cmp; }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2>	bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2>	bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2>	bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	template <typename type2>	bool operator>(type2* cmp) const							{ return get_ptr() > cmp; }
-	template <typename type2>	bool operator>(const ptr<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& cmp) const		{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& cmp) const		{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
+	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2>	bool operator>(type2* cmp) const volatile					{ return get_ptr() > cmp; }
+	template <typename type2> bool operator>(type2* cmp) const volatile { return get_ptr() > cmp; }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2>	bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2>	bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2>	bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2>	bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Less-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is less than the parameter
-	template <typename type2>	bool operator<(type2* cmp) const							{ return get_ptr() < cmp; }
-	template <typename type2>	bool operator<(const ptr<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& cmp) const		{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& cmp) const		{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(type2* cmp) const { return get_ptr() < cmp; }
+	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2>	bool operator<(type2* cmp) const volatile					{ return get_ptr() < cmp; }
+	template <typename type2> bool operator<(type2* cmp) const volatile { return get_ptr() < cmp; }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2>	bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2>	bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2>	bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2>	bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Greather-than-or-equal operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than or equal to the parameter
-	template <typename type2>	bool operator>=(type2* cmp) const							{ return get_ptr() >= cmp; }
-	template <typename type2>	bool operator>=(const ptr<type2>& cmp) const				{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& cmp) const				{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& cmp) const		{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& cmp) const		{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(type2* cmp) const { return get_ptr() >= cmp; }
+	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2>	bool operator>=(type2* cmp) const volatile					{ return get_ptr() >= cmp; }
+	template <typename type2> bool operator>=(type2* cmp) const volatile { return get_ptr() >= cmp; }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2>	bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2>	bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2>	bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Less-than-or-equal operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is less than or equal to the parameter
-	template <typename type2>	bool operator<=(type2* cmp) const							{ return get_ptr() <= cmp; }
-	template <typename type2>	bool operator<=(const ptr<type2>& cmp) const				{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& cmp) const				{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& cmp) const		{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& cmp) const		{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(type2* cmp) const { return get_ptr() <= cmp; }
+	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2>	bool operator<=(type2* cmp) const volatile					{ return get_ptr() <= cmp; }
+	template <typename type2> bool operator<=(type2* cmp) const volatile { return get_ptr() <= cmp; }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2>	bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2>	bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2>	bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief static_cast the encapsulated pointer
 	/// @tparam type2 Secondary data type
 	/// @return Result of the cast, as a ref
-	template <typename type2> ref<type2> static_cast_to() const					{ return static_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> static_cast_to() const { return static_cast<type2*>(get_ptr()); }
 	/// @brief Thread-safe implementation of static_cast_to()
-	template <typename type2> ref<type2> static_cast_to() const volatile		{ return static_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> static_cast_to() const volatile { return static_cast<type2*>(get_ptr()); }
 	/// @}
 
 	/// @{
 	/// @brief dynamic_cast the encapsulated pointer
 	/// @tparam type2 Secondary data type
 	/// @return Result of the cast, as a ref
-	template <typename type2> ptr<type2> dynamic_cast_to() const				{ return dynamic_cast<type2*>(get_ptr()); }
+	template <typename type2> ptr<type2> dynamic_cast_to() const { return dynamic_cast<type2*>(get_ptr()); }
 	/// @brief Thread-safe implementation of dynamic_cast_to()
-	template <typename type2> ptr<type2> dynamic_cast_to() const volatile		{ return dynamic_cast<type2*>(get_ptr()); }
+	template <typename type2> ptr<type2> dynamic_cast_to() const volatile { return dynamic_cast<type2*>(get_ptr()); }
 	/// @}
 
 	/// @{
 	/// @brief reinterpret_cast the encapsulated pointer
 	/// @tparam type2 Secondary data type
 	/// @return Result of the cast, as a ref
-	template <typename type2> ref<type2> reinterpret_cast_to() const			{ return reinterpret_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> reinterpret_cast_to() const { return reinterpret_cast<type2*>(get_ptr()); }
 	/// @brief Thread-safe implementation of reinterpret_cast_to()
-	template <typename type2> ref<type2> reinterpret_cast_to() const volatile	{ return reinterpret_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> reinterpret_cast_to() const volatile { return reinterpret_cast<type2*>(get_ptr()); }
 	/// @}
 
 	/// @{
 	/// @brief const_cast the encapsulated pointer
 	/// @tparam type2 Secondary data type
 	/// @return Result of the cast, as a ref
-	template <typename type2> ref<type2> const_cast_to() const					{ return const_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> const_cast_to() const { return const_cast<type2*>(get_ptr()); }
 	/// @brief Thread-safe implementation of const_cast_to()
-	template <typename type2> ref<type2> const_cast_to() const volatile			{ return const_cast<type2*>(get_ptr()); }
+	template <typename type2> ref<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 	/// @}
 
 
@@ -495,10 +495,6 @@ public:
 
 
 
-
-
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -508,7 +504,7 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-	
+
 
 
 	template <typename type2>
@@ -715,18 +711,18 @@ public:
 	/// - Alignment of 4 indicates there is 2.
 	/// - Alignment of 8 indicates there is 3.
 	/// @return The number of bits available to be marked on the pointer.
-	static size_t mark_bits()					{ return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
+	static size_t mark_bits() { return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
 
 	/// @brief Gets a mask with all available mark bits sets.
 	/// @return A mask containing all available mark bits set.
-	static size_t mark_mask()					{ return (1 << mark_bits()) - 1; }
+	static size_t mark_mask() { return (1 << mark_bits()) - 1; }
 
 	/// @{
 	/// @brief Gets marked bits on the pointer, if any
 	/// @return The marked bits, if any
-	size_t get_mark() const						{ return ((size_t)(get_ptr()) & mark_mask()); }
+	size_t get_mark() const { return ((size_t)(get_ptr()) & mark_mask()); }
 	/// @brief Thread-safe versions of get_mark()
-	size_t get_mark() const volatile			{ return ((size_t)(get_ptr()) & mark_mask()); }
+	size_t get_mark() const volatile { return ((size_t)(get_ptr()) & mark_mask()); }
 	/// @}
 
 	/// @{
@@ -735,23 +731,23 @@ public:
 	/// If marked bits are set, direct use of the pointer value will include the marked bits.
 	/// get_unmarked() must be used instead.
 	/// @return The unmarked pointer value
-	type* get_unmarked() const					{ return (type*)((size_t)get_ptr() & (size_t)~mark_mask()); }
+	type* get_unmarked() const { return (type*)((size_t)get_ptr() & (size_t)~mark_mask()); }
 	/// @brief Thread-safe versions of get_unmarked()
-	type* get_unmarked() const volatile			{ return (type*)((size_t)get_ptr() & (size_t)~mark_mask()); }
+	type* get_unmarked() const volatile { return (type*)((size_t)get_ptr() & (size_t)~mark_mask()); }
 	/// @}
 
 	/// @{
 	/// @brief Gets the pointer value with the specified bitmask applied
 	/// @param mark Bitmask of bits to mark
 	/// @return The pointer value with the mark applied.
-	type* get_marked(size_t mark) const				{ return (type*)((size_t)get_unmarked() | (mark & mark_mask())); }
+	type* get_marked(size_t mark) const { return (type*)((size_t)get_unmarked() | (mark & mark_mask())); }
 	/// @brief Thread-safe versions of get_marked()
-	type* get_marked(size_t mark) const volatile	{ return (type*)((size_t)get_unmarked() | (mark & mark_mask())); }
+	type* get_marked(size_t mark) const volatile { return (type*)((size_t)get_unmarked() | (mark & mark_mask())); }
 	/// @}
 
 	/// @{
 	/// @brief Clears any marked bits.
-	void clear_mark()							{ set(get_unmarked()); }
+	void clear_mark() { set(get_unmarked()); }
 	/// @brief Thread-safe versions of clear_mark()
 	void clear_mark() volatile
 	{
@@ -767,7 +763,7 @@ public:
 	/// @{
 	/// @brief Sets marked bits.
 	/// @param mark Bitmask of bits to set
-	void set_mark(size_t mark)						{ set((type*)((size_t)get_unmarked() | (mark & mark_mask()))); }
+	void set_mark(size_t mark) { set((type*)((size_t)get_unmarked() | (mark & mark_mask()))); }
 	/// @brief Thread-safe versions of set_mark()
 	void set_mark(size_t mark) volatile
 	{
@@ -784,46 +780,46 @@ public:
 	/// @brief Set to the pointer value specified, and applied the speficied marked bits.
 	/// @param p Value to set.
 	/// @param mark Bitmask of bits to set.
-	void set_marked(type* p, size_t mark)			{ set((type*)((size_t)p | (mark & mark_mask()))); }
+	void set_marked(type* p, size_t mark) { set((type*)((size_t)p | (mark & mark_mask()))); }
 	/// @brief Thread-safe versions of set_marked()
-	void set_marked(type* p, size_t mark) volatile	{ set((type*)((size_t)p | (mark & mark_mask()))); }
+	void set_marked(type* p, size_t mark) volatile { set((type*)((size_t)p | (mark & mark_mask()))); }
 	/// @}
 
 	/// @{
 	/// @brief Index operator
 	/// @param i Index value.
 	/// @return a reference to the element at that index
-	type& operator[](size_t i) const						{ return get_ptr()[i]; }
+	type& operator[](size_t i) const { return get_ptr()[i]; }
 	/// @brief Thread-safe versions of type& operator[]()
-	type& operator[](size_t i) const volatile				{ return get_ptr()[i]; }
+	type& operator[](size_t i) const volatile { return get_ptr()[i]; }
 	/// @}
 
 private:
-	this_t next() const				{ return cogs::next(get_ptr_ref()); }
-	this_t next() const volatile	{ return cogs::next(get_ptr_ref()); }
-	void assign_next()				{ cogs::assign_next(get_ptr_ref()); }
-	void assign_next() volatile		{ cogs::assign_next(get_ptr_ref()); }
-	const this_t& operator++()		{ cogs::assign_next(get_ptr_ref()); return *this; }
-	this_t operator++() volatile	{ return cogs::pre_assign_next(get_ptr_ref()); }
-	this_t operator++(int)			{ return cogs::post_assign_next(get_ptr_ref()); }
+	this_t next() const { return cogs::next(get_ptr_ref()); }
+	this_t next() const volatile { return cogs::next(get_ptr_ref()); }
+	void assign_next() { cogs::assign_next(get_ptr_ref()); }
+	void assign_next() volatile { cogs::assign_next(get_ptr_ref()); }
+	const this_t& operator++() { cogs::assign_next(get_ptr_ref()); return *this; }
+	this_t operator++() volatile { return cogs::pre_assign_next(get_ptr_ref()); }
+	this_t operator++(int) { return cogs::post_assign_next(get_ptr_ref()); }
 	this_t operator++(int) volatile { return cogs::post_assign_next(get_ptr_ref()); }
 
-	this_t prev() const				{ return cogs::prev(get_ptr_ref()); }
-	this_t prev() const volatile	{ return cogs::prev(get_ptr_ref()); }
-	void assign_prev()				{ cogs::assign_prev(get_ptr_ref()); }
-	void assign_prev() volatile		{ cogs::assign_prev(get_ptr_ref()); }
-	const this_t& operator--()		{ cogs::assign_prev(get_ptr_ref()); return *this; }
-	this_t operator--() volatile	{ return cogs::pre_assign_prev(get_ptr_ref()); }
-	this_t operator--(int)			{ return cogs::post_assign_prev(get_ptr_ref()); }
+	this_t prev() const { return cogs::prev(get_ptr_ref()); }
+	this_t prev() const volatile { return cogs::prev(get_ptr_ref()); }
+	void assign_prev() { cogs::assign_prev(get_ptr_ref()); }
+	void assign_prev() volatile { cogs::assign_prev(get_ptr_ref()); }
+	const this_t& operator--() { cogs::assign_prev(get_ptr_ref()); return *this; }
+	this_t operator--() volatile { return cogs::pre_assign_prev(get_ptr_ref()); }
+	this_t operator--(int) { return cogs::post_assign_prev(get_ptr_ref()); }
 	this_t operator--(int) volatile { return cogs::post_assign_prev(get_ptr_ref()); }
 
 
 	/// @{
 	/// @brief Gets a reference to the internal encapsulated pointer value.
 	/// @return A reference to the internal encapsulated pointer value
-	type*& get_ptr_ref()					{ return m_value; }
+	type*& get_ptr_ref() { return m_value; }
 	/// @brief Thread-safe version of get_ptr_ref()
-	type* volatile& get_ptr_ref() volatile	{ return m_value; }
+	type* volatile& get_ptr_ref() volatile { return m_value; }
 	/// @}
 };
 
@@ -859,8 +855,8 @@ private:
 	void set(std::nullptr_t) volatile { atomic::store(m_value, (type*)0); }
 	ref(std::nullptr_t) : m_value(nullptr) { }
 
-	type*& get_ptr_ref()					{ return m_value; }
-	type* volatile& get_ptr_ref() volatile	{ return m_value; }
+	type*& get_ptr_ref() { return m_value; }
+	type* volatile& get_ptr_ref() volatile { return m_value; }
 
 	ref() : m_value(0) { }
 	ref(type* r) : m_value(r) { }
@@ -869,32 +865,32 @@ public:
 	ref(const this_t& r) : m_value(r.get_ptr()) { }
 	ref(const volatile this_t& r) : m_value(r.get_ptr()) { }
 
-	template <typename type2>	ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
-	template <typename type2>	ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
 
 
 	ref(ref<type>&& src) : m_value(src.m_value) { src.m_value = 0; }
-	template <typename type2>	ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
+	template <typename type2> ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
 	this_t& operator=(ref<type>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
-	template <typename type2>	this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
+	template <typename type2> this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
 
 
 
 	this_t& operator=(const this_t& src) { set(src.get_ptr()); return *this; }
 	this_t& operator=(const volatile this_t& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
 	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
 
-	type* get_ptr() const			{ return m_value; }
+	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
 
-	type* const& get_ptr_ref() const			{ return m_value; }
-	type* const volatile& get_ptr_ref() const volatile	{ return m_value; }
+	type* const& get_ptr_ref() const { return m_value; }
+	type* const volatile& get_ptr_ref() const volatile { return m_value; }
 
 	bool is_empty() const { return false; }
 	bool is_empty() const volatile { return false; }
@@ -902,77 +898,77 @@ public:
 	bool operator!() const { return is_empty(); }
 	bool operator!() const volatile { return is_empty(); }
 
-	template <typename type2>	bool operator==(type2* p) const { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator==(type2* p) const volatile { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const volatile { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const volatile { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const volatile { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const volatile { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const volatile { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const volatile { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const volatile { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
 
 
 	template <typename type2> ref<type2> static_cast_to() const { return static_cast<type2*>(get_ptr()); }
@@ -1323,7 +1319,7 @@ private:
 
 
 	type*& get_ptr_ref() { return m_value; }
-	type* volatile& get_ptr_ref()       volatile { return m_value; }
+	type* volatile& get_ptr_ref() volatile { return m_value; }
 
 	ref() : m_value(0) { }
 	ref(type* r) : m_value(r) { }
@@ -1332,29 +1328,29 @@ public:
 	ref(const this_t& r) : m_value(r.get_ptr()) { }
 	ref(const volatile this_t& r) : m_value(r.get_ptr()) { }
 
-	template <typename type2>	ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
-	template <typename type2>	ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
 
 	ref(ref<type>&& src) : m_value(src.m_value) { src.m_value = 0; }
-	template <typename type2>	ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
+	template <typename type2> ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
 	this_t& operator=(ref<type>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
-	template <typename type2>	this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
+	template <typename type2> this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
 
 
 	this_t& operator=(const this_t& src) { set(src.get_ptr()); return *this; }
 	this_t& operator=(const volatile this_t& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
 	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
 
-	type* const         & get_ptr_ref() const { return m_value; }
+	type* const& get_ptr_ref() const { return m_value; }
 	type* const volatile& get_ptr_ref() const volatile { return m_value; }
 
 	bool is_empty() const { return false; }
@@ -1363,77 +1359,77 @@ public:
 	bool operator!() const { return is_empty(); }
 	bool operator!() const volatile { return is_empty(); }
 
-	template <typename type2>	bool operator==(type2* p) const { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator==(type2* p) const volatile { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const volatile { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const volatile { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const volatile { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const volatile { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const volatile { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const volatile { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const volatile { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
 
 
 	template <typename type2> ref<type2> static_cast_to() const { return static_cast<type2*>(get_ptr()); }
@@ -1787,7 +1783,7 @@ private:
 
 
 	type*& get_ptr_ref() { return m_value; }
-	type* volatile& get_ptr_ref()       volatile { return m_value; }
+	type* volatile& get_ptr_ref() volatile { return m_value; }
 
 	ref() : m_value(0) { }
 	ref(type* r) : m_value(r) { }
@@ -1796,29 +1792,29 @@ public:
 	ref(const this_t& r) : m_value(r.get_ptr()) { }
 	ref(const volatile this_t& r) : m_value(r.get_ptr()) { }
 
-	template <typename type2>	ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
-	template <typename type2>	ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
 
 	ref(ref<type>&& src) : m_value(src.m_value) { src.m_value = 0; }
-	template <typename type2>	ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
+	template <typename type2> ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
 	this_t& operator=(ref<type>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
-	template <typename type2>	this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
+	template <typename type2> this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
 
 
 	this_t& operator=(const this_t& src) { set(src.get_ptr()); return *this; }
 	this_t& operator=(const volatile this_t& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
 	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
 
-	type* const         & get_ptr_ref() const { return m_value; }
+	type* const & get_ptr_ref() const { return m_value; }
 	type* const volatile& get_ptr_ref() const volatile { return m_value; }
 
 	bool is_empty() const { return false; }
@@ -1827,77 +1823,77 @@ public:
 	bool operator!() const { return is_empty(); }
 	bool operator!() const volatile { return is_empty(); }
 
-	template <typename type2>	bool operator==(type2* p) const { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator==(type2* p) const volatile { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const volatile { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const volatile { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const volatile { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const volatile { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const volatile { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const volatile { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const volatile { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
 
 
 	template <typename type2> ref<type2> static_cast_to() const { return static_cast<type2*>(get_ptr()); }
@@ -2261,24 +2257,24 @@ public:
 	ref(const this_t& r) : m_value(r.get_ptr()) { }
 	ref(const volatile this_t& r) : m_value(r.get_ptr()) { }
 
-	template <typename type2>	ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
-	template <typename type2>	ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const ref<type2>& src) : m_value(src.get_ptr()) { }
+	template <typename type2> ref(const volatile ref<type2>& src) : m_value(src.get_ptr()) { }
 
 	ref(ref<type>&& src) : m_value(src.m_value) { src.m_value = 0; }
-	template <typename type2>	ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
+	template <typename type2> ref(ref<type2>&& src) : m_value(src.m_value) { src.m_value = 0; }
 	this_t& operator=(ref<type>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
-	template <typename type2>	this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
+	template <typename type2> this_t& operator=(ref<type2>&& src) { m_value = src.m_value; src.m_value = 0; return *this; }
 
 
 	this_t& operator=(const this_t& src) { set(src.get_ptr()); return *this; }
 	this_t& operator=(const volatile this_t& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
-	template <typename type2>	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
+	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
 	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2>	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
@@ -2292,77 +2288,77 @@ public:
 	bool operator!() const { return is_empty(); }
 	bool operator!() const volatile { return is_empty(); }
 
-	template <typename type2>	bool operator==(type2* p) const { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator==(type2* p) const volatile { return get_ptr() == p; }
-	template <typename type2>	bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
-	template <typename type2>	bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(type2* p) const volatile { return get_ptr() == p; }
+	template <typename type2> bool operator==(const ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& p) const volatile { return get_ptr() == p.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& r) const volatile { return get_ptr() == r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator!=(type2* p) const volatile { return get_ptr() != p; }
-	template <typename type2>	bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
-	template <typename type2>	bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(type2* p) const volatile { return get_ptr() != p; }
+	template <typename type2> bool operator!=(const ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& p) const volatile { return get_ptr() != p.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& r) const volatile { return get_ptr() != r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator>(type2* p) const volatile { return get_ptr() > p; }
-	template <typename type2>	bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
-	template <typename type2>	bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(type2* p) const volatile { return get_ptr() > p; }
+	template <typename type2> bool operator>(const ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& p) const volatile { return get_ptr() > p.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& r) const volatile { return get_ptr() > r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator<(type2* p) const volatile { return get_ptr() < p; }
-	template <typename type2>	bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
-	template <typename type2>	bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(type2* p) const volatile { return get_ptr() < p; }
+	template <typename type2> bool operator<(const ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& p) const volatile { return get_ptr() < p.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& r) const volatile { return get_ptr() < r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
-	template <typename type2>	bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
-	template <typename type2>	bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(type2* p) const volatile { return get_ptr() >= p; }
+	template <typename type2> bool operator>=(const ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& p) const volatile { return get_ptr() >= p.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& r) const volatile { return get_ptr() >= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const { return get_ptr() <= r.get_ptr(); }
 
-	template <typename type2>	bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
-	template <typename type2>	bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
-	template <typename type2>	bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(type2* p) const volatile { return get_ptr() <= p; }
+	template <typename type2> bool operator<=(const ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& p) const volatile { return get_ptr() <= p.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& r) const volatile { return get_ptr() <= r.get_ptr(); }
 
 
 	template <typename type2> ref<type2> static_cast_to() const { return static_cast<type2*>(get_ptr()); }

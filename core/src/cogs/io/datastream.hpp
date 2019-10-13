@@ -58,7 +58,7 @@ public:
 		{
 		}
 
-		void closing()	{ m_event.count_down(); }
+		void closing() { m_event.count_down(); }
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
@@ -66,9 +66,9 @@ public:
 		}
 
 	public:
-		const weak_rcptr<datastream>& get_datastream() const				{ return m_stream; }
+		const weak_rcptr<datastream>& get_datastream() const { return m_stream; }
 
-		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile			{ return m_event.timed_wait(timeout, spinCount); }
+		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
 	};
 
 	virtual void abort()
@@ -95,7 +95,7 @@ public:
 	}
 
 protected:
-	virtual rcref<closer> create_closer(const rcref<datastream>& proxy)	{ return rcnew(bypass_constructor_permission<closer>, proxy); }
+	virtual rcref<closer> create_closer(const rcref<datastream>& proxy) { return rcnew(bypass_constructor_permission<closer>, proxy); }
 };
 
 

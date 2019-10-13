@@ -31,9 +31,9 @@ class quit_dispatcher;
 class thread : public object
 {
 private:
-	rcptr<os::thread>			m_osThread;
-	mutable single_fire_event	m_joinSync;
-	
+	rcptr<os::thread> m_osThread;
+	mutable single_fire_event m_joinSync;
+
 	// Some OSes will kill other threads when the main thread exits.
 	// In order to allow cleanup, such as graceful thread exit, we provide
 	// a cleanup phase that occurs in the main thread before static/global
@@ -47,7 +47,7 @@ private:
 	// s_threadWaiters is used to wait on all threads to terminate before quitting.
 	class thread_waiters_t : public container_dlist<rcref<thread> > { };
 
-	container_dlist<rcref<thread> >::volatile_remove_token	m_removeToken;
+	container_dlist<rcref<thread> >::volatile_remove_token m_removeToken;
 	mutable volatile boolean m_deregisteredWaiter;
 
 	static void register_waiter(const rcref<thread>& t);
@@ -77,7 +77,7 @@ public:
 		return threadRef;
 	}
 
-	static void join_all(const timeout_t& timeout = timeout_t::infinite());	// To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
+	static void join_all(const timeout_t& timeout = timeout_t::infinite()); // To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
 
 	// returns -1 indicating a timeout
 	// returns 0 indicating this is the current thread
@@ -96,7 +96,7 @@ public:
 				{
 					if (m_deregisteredWaiter.compare_exchange(true, false))
 					{
-						deregister_waiter();	// make sure only 1 thread can call deregister_waiter
+						deregister_waiter(); // make sure only 1 thread can call deregister_waiter
 						m_joinSync.signal();
 					}
 					else
@@ -107,10 +107,10 @@ public:
 		return result;
 	}
 
-	bool is_current() const		{ return m_osThread->is_current(); }
+	bool is_current() const { return m_osThread->is_current(); }
 
 	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once()		{ return os::thread::spin_once(); }
+	static bool spin_once() { return os::thread::spin_once(); }
 };
 
 

@@ -48,12 +48,12 @@
 //		DWORD m_nFileIndexHigh;
 //		DWORD m_nFileIndexLow;
 //
-//		rcptr<file<io::read_access> >	m_readable;
-//		rcptr<file<io::write_access> >	m_writable;
+//		rcptr<file<io::read_access> > m_readable;
+//		rcptr<file<io::write_access> > m_writable;
 //
 //		bool operator<(const file_id& cmp) const
 //		{
-//			if (m_nFileIndexLow < cmp.m_nFileIndexLow)	// First compare field most likely to be different.
+//			if (m_nFileIndexLow < cmp.m_nFileIndexLow) // First compare field most likely to be different.
 //				return true;
 //			if (m_nFileIndexLow > cmp.m_nFileIndexLow)
 //				return false;
@@ -74,21 +74,21 @@
 //	typedef map<file_id, weak_rcptr<class file_info>, true> file_id_map_t;
 //	typedef io::default_file_size_t file_size_t;
 //
-//	rcref<delegate_chain>	m_serialQueue;
-//	file_id_map_t		m_fileIdMap;
+//	rcref<delegate_chain> m_serialQueue;
+//	file_id_map_t m_fileIdMap;
 //
 //	class file_release_info
 //	{
 //	public:
-//		file_id_map_t::iterator		m_itor;
-//		weak_rcptr<class file_info>	m_fileInfo;
+//		file_id_map_t::iterator m_itor;
+//		weak_rcptr<class file_info> m_fileInfo;
 //	};
 //
-//	inline static placement<rcptr<file_globals> >	s_globals;
+//	inline static placement<rcptr<file_globals> > s_globals;
 //
 //
 //	file_globals()
-//		:	m_serialQueue(delegate_chain::create())
+//		: m_serialQueue(delegate_chain::create())
 //	{ }
 //
 //protected:
@@ -99,11 +99,11 @@
 //	class file_info : public object
 //	{
 //	public:
-//		weak_rcptr<file<io::read_access> >				m_rawReadFile;
-//		weak_rcptr<file<io::write_access> >				m_rawWriteFile;
-//		file_id_map_t::iterator							m_itor;
+//		weak_rcptr<file<io::read_access> > m_rawReadFile;
+//		weak_rcptr<file<io::write_access> > m_rawWriteFile;
+//		file_id_map_t::iterator m_itor;
 //		
-//		rcptr<io::synchronized_file_impl<file_size_t> >	m_syncImpl;
+//		rcptr<io::synchronized_file_impl<file_size_t> > m_syncImpl;
 //		
 //		~file_info()
 //		{
@@ -127,10 +127,10 @@
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
 //
-//		single_fire_event	m_event;
+//		single_fire_event m_event;
 //
-//		rcptr<auto_HANDLE>	m_handle;
-//		file_id				m_fileId;
+//		rcptr<auto_HANDLE> m_handle;
+//		file_id m_fileId;
 //
 //		template <io::access_mode accessMode>
 //		friend class file_opener;
@@ -138,25 +138,25 @@
 //	protected:
 //		friend class file_globals;
 //
-//		rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >			m_readFile;
-//		rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >		m_writeFile;
-//		rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >	m_readWriteFile;
+//		rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> > m_readFile;
+//		rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> > m_writeFile;
+//		rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> > m_readWriteFile;
 //
-//		void complete()			{ m_event.signal(); self_release(); }
+//		void complete() { m_event.signal(); self_release(); }
 //
-//		opener()	{ self_acquire(); }
+//		opener() { self_acquire(); }
 //
-//		void set_file(const rcref<io::synchronized_file<io::read_access, io::default_file_size_t> >& f)		{ m_readFile = f; }
-//		void set_file(const rcref<io::synchronized_file<io::write_access, io::default_file_size_t> >& f)		{ m_writeFile = f; }
-//		void set_file(const rcref<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& f)	{ m_readWriteFile = f; m_readFile = f;  m_writeFile = f; }
+//		void set_file(const rcref<io::synchronized_file<io::read_access, io::default_file_size_t> >& f) { m_readFile = f; }
+//		void set_file(const rcref<io::synchronized_file<io::write_access, io::default_file_size_t> >& f) { m_writeFile = f; }
+//		void set_file(const rcref<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& f) { m_readWriteFile = f; m_readFile = f; m_writeFile = f; }
 //
 //	public:
-//		const rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >& get_read_file() const				{ return m_readFile; }
-//		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_write_file() const				{ return m_writeFile; }
-//		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_read_write_file() const	{ return m_readWriteFile; }
+//		const rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >& get_read_file() const { return m_readFile; }
+//		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_write_file() const { return m_writeFile; }
+//		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_read_write_file() const { return m_readWriteFile; }
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile		{ m_event.dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d); }
 //	};
 //
 //	template <io::access_mode accessMode>
@@ -174,7 +174,7 @@
 //		// If all three are equal they both point to the same file.
 //		
 //		DWORD dwDesiredAccess = GENERIC_READ;
-//		if (accessMode == io::write_access)			// If opening for read_write_access, open read separately, first.
+//		if (accessMode == io::write_access) // If opening for read_write_access, open read separately, first.
 //			dwDesiredAccess = GENERIC_WRITE;
 //
 //		DWORD dwCreationDisposition = OPEN_EXISTING;
@@ -216,13 +216,13 @@
 //	template <io::access_mode accessMode>
 //	void find_match(const rcref<opener>& o)
 //	{
-//		bool											collision;
-//		rcptr<file<io::read_access> >					rawReadFile;
-//		rcptr<file<io::write_access> >					rawWriteFile;
+//		bool collision;
+//		rcptr<file<io::read_access> > rawReadFile;
+//		rcptr<file<io::write_access> > rawWriteFile;
 //
-//		rcptr<file_info>			fileInfo	= rcnew(file_info);
-//		file_id_map_t::iterator		itor		= m_fileIdMap.try_insert(o->m_fileId, fileInfo, collision);
-//		for (;;)	// just for a goto using break.
+//		rcptr<file_info> fileInfo = rcnew(file_info);
+//		file_id_map_t::iterator itor = m_fileIdMap.try_insert(o->m_fileId, fileInfo, collision);
+//		for (;;) // just for a goto using break.
 //		{
 //			if (collision)
 //			{
@@ -244,26 +244,26 @@
 //			break;
 //		}
 //
-//		for (;;)	// just for a goto using break.
+//		for (;;) // just for a goto using break.
 //		{
 //			if (((accessMode & io::write_access) != 0) && !rawWriteFile)
 //			{
 //				rcptr<auto_HANDLE> writeHandle;
 //				if (accessMode == io::write_access)
 //					writeHandle = o->m_handle;
-//				else	// open write channel now
+//				else // open write channel now
 //				{
 //					FILE_ID_DESCRIPTOR fileIdDesc;
 //					fileIdDesc.dwSize = sizeof(FILE_ID_DESCRIPTOR);
-//					fileIdDesc.Type = FileIdType;	// 0
+//					fileIdDesc.Type = FileIdType; // 0
 //					fileIdDesc.FileId.HighPart = o->m_fileId.m_nFileIndexHigh;
 //					fileIdDesc.FileId.LowPart = o->m_fileId.m_nFileIndexLow;
 //					HANDLE h = OpenFileById(o->m_handle->get(), &fileIdDesc, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, FILE_FLAG_OVERLAPPED);
-//					if (h == INVALID_HANDLE_VALUE)	// Couldn't open for write access, gotta abort.
+//					if (h == INVALID_HANDLE_VALUE) // Couldn't open for write access, gotta abort.
 //					{
-//						if (!collision)	// If we just added it, remove it.
+//						if (!collision) // If we just added it, remove it.
 //							m_fileIdMap.remove(itor);
-//						break;	// go to end
+//						break; // go to end
 //					}
 //					writeHandle = rcnew(auto_HANDLE, h);
 //				}
@@ -344,13 +344,13 @@
 //		rcref<file<io::read_access> > m_file;
 //
 //		reader(const rcref<io::segment_map<file_size_t> >& sm, const rcref<file<io::read_access> >& f)
-//			:	io::file<io::read_access, file_size_t>::reader(sm),
-//				m_file(f)
+//			: io::file<io::read_access, file_size_t>::reader(sm),
+//			m_file(f)
 //		{ }
 //	};
 //
-//	rcref<auto_HANDLE>				m_readHandle;
-//	rcref<file_globals::file_info>	m_fileInfo;
+//	rcref<auto_HANDLE> m_readHandle;
+//	rcref<file_globals::file_info> m_fileInfo;
 //
 // 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
 //	{
@@ -361,10 +361,10 @@
 //	{
 //	public:
 //		size_reader(io::default_file_size_t sz)
-//			:	io::file<io::read_access, file_size_t>::size_reader(sz)
+//			: io::file<io::read_access, file_size_t>::size_reader(sz)
 //		{ }
 //
-//		void complete()	{ io::file<io::read_access, file_size_t>::size_reader::complete(); }
+//		void complete() { io::file<io::read_access, file_size_t>::size_reader::complete(); }
 //	};
 //
 //	virtual rcref<io::file<io::read_access, file_size_t>::size_reader> get_size()
@@ -381,8 +381,8 @@
 //	friend class file_globals;
 //
 //	file(const rcref<auto_HANDLE>& ah, const rcref<file_globals::file_info>& fileInfo)
-//		:	m_readHandle(ah),
-//			m_fileInfo(fileInfo)
+//		: m_readHandle(ah),
+//		m_fileInfo(fileInfo)
 //	{ }
 //
 //public:
@@ -392,20 +392,20 @@
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
 //
-//		rcref<file_globals::opener>	m_openerInternals;
+//		rcref<file_globals::opener> m_openerInternals;
 //
 //	protected:
 //		friend class file;
 //
 //		opener(const rcref<file_globals::opener>& o)
-//			:	m_openerInternals(o)
+//			: m_openerInternals(o)
 //		{ }
 //
 //	public:
-//		const rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >& get_file() const	{ return m_openerInternals->get_read_file(); }
+//		const rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_read_file(); }
 //	
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_openerInternals->timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile		{ m_openerInternals->dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //	};
 //
 //	static rcref<opener> open(const string& location)
@@ -426,10 +426,10 @@
 //
 //	typedef io::default_file_size_t file_size_t;
 //
-//	rcref<auto_HANDLE>				m_writeHandle;
-//	rcref<file_globals::file_info>	m_fileInfo;
+//	rcref<auto_HANDLE> m_writeHandle;
+//	rcref<file_globals::file_info> m_fileInfo;
 //
-//	volatile number<int_to_fixed_integer_t<file_size_t> >	m_eof;
+//	volatile number<int_to_fixed_integer_t<file_size_t> > m_eof;
 //
 //	class writer : public io::file<io::write_access, file_size_t>::writer
 //	{
@@ -437,8 +437,8 @@
 //		rcref<file<io::write_access> > m_file;
 //
 //		writer(const rcref<io::segment_buffer_map<file_size_t> >& sbm, const rcref<file<io::write_access> >& f)
-//			:	io::file<io::write_access, file_size_t>::writer(sbm),
-//				m_file(f)
+//			: io::file<io::write_access, file_size_t>::writer(sbm),
+//			m_file(f)
 //		{ }
 //	};
 //
@@ -451,10 +451,10 @@
 //	{
 //	public:
 //		size_writer(io::default_file_size_t sz)
-//			:	io::file<io::write_access, file_size_t>::size_writer(sz)
+//			: io::file<io::write_access, file_size_t>::size_writer(sz)
 //		{ }
 //
-//		void complete()	{ io::file<io::write_access, file_size_t>::size_writer::complete(); }
+//		void complete() { io::file<io::write_access, file_size_t>::size_writer::complete(); }
 //	};
 //
 //	virtual rcref<io::file<io::write_access, file_size_t>::size_writer> set_size(const io::default_file_size_t& sz)
@@ -473,9 +473,9 @@
 //	friend class file_globals;
 //
 //	file(const rcref<auto_HANDLE>& ah, const rcref<file_globals::file_info>& fileInfo, const file_size_t& eof)
-//		:	m_writeHandle(ah),
-//			m_fileInfo(fileInfo),
-//			m_eof(eof)
+//		: m_writeHandle(ah),
+//		m_fileInfo(fileInfo),
+//		m_eof(eof)
 //	{ }
 //
 //public:
@@ -485,20 +485,20 @@
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
 //
-//		rcref<file_globals::opener>	m_openerInternals;
+//		rcref<file_globals::opener> m_openerInternals;
 //
 //	protected:
 //		friend class file;
 //
 //		opener(const rcref<file_globals::opener>& o)
-//			:	m_openerInternals(o)
+//			: m_openerInternals(o)
 //		{ }
 //
 //	public:
-//		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_file() const	{ return m_openerInternals->get_write_file(); }
+//		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_write_file(); }
 //	
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_openerInternals->timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile		{ m_openerInternals->dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //	};
 //
 //	static rcref<opener> open(const string& location, bool createIfNotPresent = false)
@@ -527,27 +527,27 @@
 //	private:
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
-//		
-//		rcref<file_globals::opener>	m_openerInternals;
+//
+//		rcref<file_globals::opener> m_openerInternals;
 //
 //	protected:
 //		friend class file;
 //
 //		opener(const rcref<file_globals::opener>& o)
-//			:	file<io::read_access>::opener(o),
-//				file<io::write_access>::opener(o),
-//				m_openerInternals(o)
+//			: file<io::read_access>::opener(o),
+//			file<io::write_access>::opener(o),
+//			m_openerInternals(o)
 //		{ }
 //
 //	public:
-//		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_file() const	{ return m_openerInternals->get_read_write_file(); }
+//		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_read_write_file(); }
 //	
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_openerInternals->timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile		{ m_openerInternals->dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //
-//		bool test() const		{ return timed_wait(timeout_t::none()); }
-//		bool operator!() const	{ return !test(); }
-//		void wait() const		{ timed_wait(timeout_t::infinite()); }
+//		bool test() const { return timed_wait(timeout_t::none()); }
+//		bool operator!() const { return !test(); }
+//		void wait() const { timed_wait(timeout_t::infinite()); }
 //	};
 //
 //	static rcref<opener> open(const string& location, bool createIfNotPresent = true)
@@ -573,8 +573,8 @@
 //		rcref<file> m_file;
 //
 //		reader(const rcref<io::segment_map<file_size_t> >& sm, const rcref<file>& f)
-//			:	io::file<io::read_access, io::default_file_size_t>::reader(sm),
-//				m_file(f)
+//			: io::file<io::read_access, io::default_file_size_t>::reader(sm),
+//			m_file(f)
 //		{ }
 //	};
 //
@@ -584,19 +584,19 @@
 //		rcref<file> m_file;
 //
 //		writer(const rcref<io::segment_buffer_map<file_size_t> >& sbm, const rcref<file>& f)
-//			:	io::file<io::write_access, file_size_t>::writer(sbm),
-//				m_file(f)
+//			: io::file<io::write_access, file_size_t>::writer(sbm),
+//			m_file(f)
 //		{ }
 //	};
 //
-//	rcref<auto_HANDLE>		m_readHandle;
-//	weak_rcptr<auto_HANDLE>	m_writeHandle;
+//	rcref<auto_HANDLE> m_readHandle;
+//	weak_rcptr<auto_HANDLE> m_writeHandle;
 //
-//	size_t	m_writeCount;
+//	size_t m_writeCount;
 //
 //	file(const rcref<auto_HANDLE>& readHandle)
-//		:	m_readHandle(readHandle),
-//			m_writeCount(0)
+//		: m_readHandle(readHandle),
+//		m_writeCount(0)
 //	{ }
 //
 // 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
@@ -619,12 +619,12 @@
 //		DWORD m_nFileIndexHigh;
 //		DWORD m_nFileIndexLow;
 //
-//		rcptr<file>												m_rawFile;
-//		weak_rcptr<io::synchronized_file_impl<file_size_t> >	m_synchronizedFileImpl;
+//		rcptr<file> m_rawFile;
+//		weak_rcptr<io::synchronized_file_impl<file_size_t> > m_synchronizedFileImpl;
 //
 //		bool operator<(const file_id& cmp) const
 //		{
-//			if (m_nFileIndexLow < cmp.m_nFileIndexLow)	// First compare field most likely to be different.
+//			if (m_nFileIndexLow < cmp.m_nFileIndexLow) // First compare field most likely to be different.
 //				return true;
 //			if (m_nFileIndexLow > cmp.m_nFileIndexLow)
 //				return false;
@@ -646,15 +646,15 @@
 //	class globals
 //	{
 //	public:
-//		file_id_map_t		m_fileIdMap;
-//		rcref<delegate_chain>	m_serialQueue;
+//		file_id_map_t m_fileIdMap;
+//		rcref<delegate_chain> m_serialQueue;
 //
 //		globals()
-//			:	m_serialQueue(delegate_chain::create())
+//			: m_serialQueue(delegate_chain::create())
 //		{ }
 //	};
 //
-//	static placement<rcptr<globals> >	s_globals;
+//	static placement<rcptr<globals> > s_globals;
 //
 //	template<io::access_mode accessMode>
 //	class synchronized_file : public io::synchronized_file<accessMode, io::default_file_size_t>
@@ -662,32 +662,32 @@
 //	public:
 //		struct content_with_handle
 //		{
-//			file_id_map_t::iterator	m_itor;
-//			rcref<auto_HANDLE>		m_writeHandle;
+//			file_id_map_t::iterator m_itor;
+//			rcref<auto_HANDLE> m_writeHandle;
 //
 //#error still a problem.  If all high level references go away, we're still disposing of the m_writeHandle will still in use.
 //#error need a way for the write handle to life as long as all write operations.
 //
-//			void set_write_handle(const rcref<m_writeHandle>& ah)	{ m_writeHandle = ah; }
-//			rcptr<m_writeHandle> get_write_handle()	const		{ return m_writeHandle; }
+//			void set_write_handle(const rcref<m_writeHandle>& ah) { m_writeHandle = ah; }
+//			rcptr<m_writeHandle> get_write_handle() const { return m_writeHandle; }
 //		};
 //
 //		struct content_without_handle
 //		{
-//			file_id_map_t::iterator	m_itor;
+//			file_id_map_t::iterator m_itor;
 //
-//			void set_write_handle(const rcref<m_writeHandle>& ah)	{ }
-//			rcptr<m_writeHandle> get_write_handle()	const		{ return 0; }
+//			void set_write_handle(const rcref<m_writeHandle>& ah) { }
+//			rcptr<m_writeHandle> get_write_handle() const { return 0; }
 //		};
 //		typedef conditional<((accessMode & write_access) != 0), content_with_handle, content_without_handle> m_content;
 //
 //		synchronized_file(const rcref<io::synchronized_file_impl<io::default_file_size_t> >& impl, const file_id_map_t::iterator& itor)
-//			:	io::synchronized_file<io::read_write_access, io::default_file_size_t>(impl),
-//				m_itor(itor)
+//			: io::synchronized_file<io::read_write_access, io::default_file_size_t>(impl),
+//			m_itor(itor)
 //		{ }
 //
-//		void set_write_handle(const rcref<m_writeHandle>& ah)	{ m_contents.set_write_handle(ah); }
-//		rcptr<m_writeHandle> get_write_handle()	const		{ return m_contents.get_write_handle(); }
+//		void set_write_handle(const rcref<m_writeHandle>& ah) { m_contents.set_write_handle(ah); }
+//		rcptr<m_writeHandle> get_write_handle() const { return m_contents.get_write_handle(); }
 //	};
 //
 //	class synchronized_file_impl : public io::synchronized_file_impl<io::default_file_size_t>
@@ -730,31 +730,31 @@
 //	protected:
 //		friend class file;
 //
-//		opener()			{ self_acquire(); }
+//		opener() { self_acquire(); }
 //
-//		file_id				m_fileId;
-//		rcptr<auto_HANDLE>	m_handle;
+//		file_id m_fileId;
+//		rcptr<auto_HANDLE> m_handle;
 //
-//		void complete()		{ m_event.signal(); self_release(); }
+//		void complete() { m_event.signal(); self_release(); }
 //
 //	public:
-//		const rcptr<io::synchronized_file<mode, io::default_file_size_t> >& get_file() const	{ return m_file; }
+//		const rcptr<io::synchronized_file<mode, io::default_file_size_t> >& get_file() const { return m_file; }
 //	
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile		{ return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile		{ m_event.dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d); }
 //	
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
-//		void dispatch(const dispatch_t& d) const				{ dispatch(delegate(d, this_rcref)); }
+//		void dispatch(const dispatch_t& d) const { dispatch(delegate(d, this_rcref)); }
 //	};
 //
 //	enum create_mode
 //	{
-//		open_if_exists			= 0x01,
-//		create_only				= 0x02,
-//		open_or_create			= 0x03,
+//		open_if_exists = 0x01,
+//		create_only = 0x02,
+//		open_or_create = 0x03,
 //
-//	//	open_mask				= 0x01,
-//	//	create_mask				= 0x02,
+//	//	open_mask = 0x01,
+//	//	create_mask = 0x02,
 //	};
 //
 //
@@ -841,7 +841,7 @@
 //		HANDLE writeHandle = INVALID_HANDLE_VALUE;
 //		rcptr<globals> g = get_globals();
 //		file_id_map_t::iterator itor = g->m_fileIdMap.try_insert(o->m_fileId, collision);
-//		if (collision)	// Update existing file_id in the map to include write access, in case we just added that.
+//		if (collision) // Update existing file_id in the map to include write access, in case we just added that.
 //		{
 //			synchronizedFileImpl = itor->m_synchronizedFileImpl;
 //			if (!!synchronizedFileImpl)	
@@ -852,22 +852,22 @@
 //					writeAlreadyOpen = !!(rawFile->m_writeHandle);
 //			}
 //			// else // If it has been released (there would be an operation pending to remove this, but we opened the file first.)
-//		}			// That pending operation will only remove it, if it doesn't point to a new synchronizedFile
+//		}           // That pending operation will only remove it, if it doesn't point to a new synchronizedFile
 //		for (;;)
 //		{
-//			if ((accessMode & io::write_access) != 0)	// If we just opened for write access ...
+//			if ((accessMode & io::write_access) != 0) // If we just opened for write access ...
 //			{
-//				if (!writeAlreadyOpen)	// ... and it doesn't have a write handle yet, open one.
-//				{						// At least we can use OpenFileById() to avoid hitting the directory structure again.
+//				if (!writeAlreadyOpen) // ... and it doesn't have a write handle yet, open one.
+//				{ // At least we can use OpenFileById() to avoid hitting the directory structure again.
 //					FILE_ID_DESCRIPTOR fileIdDesc;
 //					fileIdDesc.dwSize = sizeof(FILE_ID_DESCRIPTOR);
-//					fileIdDesc.Type = FileIdType;	// 0
+//					fileIdDesc.Type = FileIdType; // 0
 //					fileIdDesc.FileId.HighPart = o->m_fileId.m_nFileIndexHigh;
 //					fileIdDesc.FileId.LowPart = o->m_fileId.m_nFileIndexLow;
 //					writeHandle = OpenFileById(o->m_handle->get(), &fileIdDesc, GENERIC_WRITE, FILE_SHARE_READ, NULL, FILE_FLAG_OVERLAPPED);
-//					if (writeHandle == INVALID_HANDLE_VALUE)	// Couldn't open for write access, gotta abort.
+//					if (writeHandle == INVALID_HANDLE_VALUE) // Couldn't open for write access, gotta abort.
 //					{
-//						if (!collision)	// If we just added it, remove it.
+//						if (!collision) // If we just added it, remove it.
 //							g->m_fileIdMap.remove(itor);
 //						break;
 //					}
@@ -899,7 +899,7 @@
 //		rcptr<globals> g = get_globals();
 //		rcptr<file> f = itor->m_rawFile;
 //		if (!--(f->m_writeCount))
-//			f->m_writeHandle = 0;	// if the last write closing, close write handle.
+//			f->m_writeHandle = 0; // if the last write closing, close write handle.
 //		g->m_serialQueue->run_next();
 //	}
 //
@@ -908,8 +908,8 @@
 //	{
 //		rcptr<globals> g = get_globals();
 //		rcptr<file> f = itor->m_rawFile;
-//		if (!((accessMode & io::write_access) != 0) && !--(f->m_writeCount))	
-//			m_rawFile->m_writeHandle = 0;	// if the last write closing, close write handle.
+//		if (!((accessMode & io::write_access) != 0) && !--(f->m_writeCount))
+//			m_rawFile->m_writeHandle = 0; // if the last write closing, close write handle.
 //		g->m_serialQueue->run_next();
 //	}
 //
@@ -992,16 +992,16 @@
 //	class file_reader : public io::file<io::read_access>::reader
 //	{
 //	protected:
-//		weak_rcptr<auto_HANDLE>			m_handle;
-//		rcref<completion_port>			m_completionPort;
-//		buffer							m_currentBuffer;
-//		completion_port::overlapped_t*	m_overlapped;
+//		weak_rcptr<auto_HANDLE> m_handle;
+//		rcref<completion_port> m_completionPort;
+//		buffer m_currentBuffer;
+//		completion_port::overlapped_t* m_overlapped;
 //
 //	public:
 //		file_reader(const weak_rcptr<auto_HANDLE>& h, const rcref<completion_port>& cp = completion_port::get())
-//			:	m_handle(h),
-//				m_overlapped(0),
-//				m_completionPort(cp)
+//			: m_handle(h),
+//			m_overlapped(0),
+//			m_completionPort(cp)
 //		{ }
 //
 //		virtual void reading()
@@ -1047,19 +1047,19 @@
 //	class file_writer : public io::file<io::read_write_access>::writer
 //	{
 //	protected:
-//		weak_rcptr<auto_HANDLE>			m_handle;
-//		rcref<completion_port>			m_completionPort;
-//		completion_port::overlapped_t*	m_overlapped;
-//		buffer					m_currentBuffer;
-//		uint64_t						m_curOffset;
+//		weak_rcptr<auto_HANDLE> m_handle;
+//		rcref<completion_port> m_completionPort;
+//		completion_port::overlapped_t* m_overlapped;
+//		buffer m_currentBuffer;
+//		uint64_t m_curOffset;
 //
 //	public:
 //		file_writer(const weak_rcptr<auto_HANDLE>& h, const rcref<completion_port>& cp = completion_port::get())
-//			:	m_handle(h),
-//				m_overlapped(0),
-//				m_completionPort(cp)
+//			: m_handle(h),
+//			m_overlapped(0),
+//			m_completionPort(cp)
 //		{ }
-//				
+//
 //		virtual void writing()
 //		{
 //			// Defer initiating the actual read to the completion port thread.
@@ -1122,7 +1122,7 @@
 //	};
 //
 //	file(HANDLE h)
-//		:	m_handle(rcnew(auto_HANDLE, h))
+//		: m_handle(rcnew(auto_HANDLE, h))
 //	{ }
 //
 //	virtual rcref<io::file<io::read_write_access>::reader> create_reader()
@@ -1143,7 +1143,7 @@
 //	}
 //
 //private:
-//	rcref<auto_HANDLE>	m_handle;
+//	rcref<auto_HANDLE> m_handle;
 //
 //	friend inline rcptr<io::file<io::read_access> > io::file<io::read_access>::open(const string& location);
 //	friend inline rcptr<io::file<io::read_write_access> > io::file<io::read_write_access>::open(const string& location, io::file<io::read_write_access>::create_mode mode);

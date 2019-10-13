@@ -48,24 +48,24 @@ public:
 		connection(const connection&) = delete;
 		connection& operator=(const connection&) = delete;
 
-		const weak_rcptr<server>		m_server;
-		const rcref<net::connection>	m_netConnection;
-		volatile boolean				m_closed;
-		const rcref<single_fire_timer>	m_inactivityTimer;
-		volatile timeout_t::period_t	m_inactivityTimeoutPeriod;
+		const weak_rcptr<server> m_server;
+		const rcref<net::connection> m_netConnection;
+		volatile boolean m_closed;
+		const rcref<single_fire_timer> m_inactivityTimer;
+		volatile timeout_t::period_t m_inactivityTimeoutPeriod;
 
 		connection_list_t::volatile_remove_token m_removeToken;
 
 	protected:
 		friend class server;
 
-		void abort()	// immediate close - does not wait for data to be completely written (though underlying protocol might).
+		void abort() // immediate close - does not wait for data to be completely written (though underlying protocol might).
 		{
 			if (m_closed.compare_exchange(true, false))
 			{
 				rcptr<server> srvr = m_server;
 				if (!!srvr)
-					srvr->m_connections.remove(m_removeToken);	// closes datastream by releasing it from scope
+					srvr->m_connections.remove(m_removeToken); // closes datastream by releasing it from scope
 				m_netConnection->abort();
 			}
 		}
@@ -75,20 +75,20 @@ public:
 			restart_inactivity_timer();
 		}
 
-		virtual void inactivity_timeout_expired()		{ abort(); }
+		virtual void inactivity_timeout_expired() { abort(); }
 
-	public:		
-		const rcref<net::connection>& get_net_connection() const	{ return m_netConnection; }
+	public:
+		const rcref<net::connection>& get_net_connection() const { return m_netConnection; }
 
-		virtual rcref<datasource> get_datasource() const	{ return m_netConnection; }
-		virtual rcref<datasink> get_datasink() const		{ return m_netConnection; }
+		virtual rcref<datasource> get_datasource() const { return m_netConnection; }
+		virtual rcref<datasink> get_datasink() const { return m_netConnection; }
 
 		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
 			: object(desc),
-			m_netConnection(c),
 			m_server(srvr),
-			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod),
-			m_inactivityTimer(rcnew(single_fire_timer, timeout_t::infinite()))
+			m_netConnection(c),
+			m_inactivityTimer(rcnew(single_fire_timer, timeout_t::infinite())),
+			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod)
 		{
 			m_removeToken = srvr->m_connections.append(this_rcref);
 			m_inactivityTimer->dispatch([c{ this_weak_rcptr }]()
@@ -99,9 +99,9 @@ public:
 			});
 		}
 
-		bool set_inactivity_timout_period(const timeout_t::period_t& t) volatile	{ m_inactivityTimeoutPeriod = t; return restart_inactivity_timer(); }
-		bool cancel_inactivity_timer() volatile										{ return m_inactivityTimer->abort(); }
-		
+		bool set_inactivity_timout_period(const timeout_t::period_t& t) volatile { m_inactivityTimeoutPeriod = t; return restart_inactivity_timer(); }
+		bool cancel_inactivity_timer() volatile { return m_inactivityTimer->abort(); }
+
 		bool restart_inactivity_timer() volatile
 		{
 			timeout_t::period_t t1 = m_inactivityTimeoutPeriod;
@@ -113,7 +113,7 @@ public:
 			bool notAborted = m_inactivityTimer->reschedule(newTimeout);
 			if (!notAborted)
 				return false;
-			timeout_t::period_t t2 = m_inactivityTimeoutPeriod;	// If changed since what we set it to, one more try should ensure reasonable ordering.
+			timeout_t::period_t t2 = m_inactivityTimeoutPeriod; // If changed since what we set it to, one more try should ensure reasonable ordering.
 			if (t1 == t2)
 				return true;
 			if (!t2)
@@ -123,7 +123,7 @@ public:
 			return m_inactivityTimer->reschedule(newTimeout);
 		}
 
-		const weak_rcptr<server>& get_server() const					{ return m_server; }
+		const weak_rcptr<server>& get_server() const { return m_server; }
 
 		void release()
 		{
@@ -131,7 +131,7 @@ public:
 			{
 				rcptr<server> srvr = m_server;
 				if (!!srvr)
-					srvr->m_connections.remove(m_removeToken);	// closes datastream by releasing it from scope
+					srvr->m_connections.remove(m_removeToken); // closes datastream by releasing it from scope
 			}
 		}
 	};
@@ -143,8 +143,8 @@ public:
 
 	virtual void connecting(const rcref<net::connection>& c)
 	{
-		create_connection(c)->start();	// scope added to server in connection base constructor
-	}	
+		create_connection(c)->start(); // scope added to server in connection base constructor
+	}
 
 protected:
 	virtual rcref<connection> create_connection(const rcref<net::connection>& c) = 0;
@@ -196,8 +196,8 @@ public:
 			m_reuse(supportMultipleRequests)
 		{ }
 
-		void set_connection_reuse(bool reuse)	{ m_reuse = reuse; }
-		bool is_connection_reusable() const		{ return !!m_reuse; }
+		void set_connection_reuse(bool reuse) { m_reuse = reuse; }
+		bool is_connection_reusable() const { return !!m_reuse; }
 
 		virtual void recycle()
 		{
@@ -234,9 +234,9 @@ public:
 			friend class server;
 			friend class connection;
 
-			const weak_rcptr<connection>			m_connection;
-			const rcref<datasource::transaction>	m_transaction;
-			volatile boolean						m_completed;
+			const weak_rcptr<connection> m_connection;
+			const rcref<datasource::transaction> m_transaction;
+			volatile boolean m_completed;
 
 			request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
 				: object(desc),
@@ -251,9 +251,9 @@ public:
 			}
 
 		public:
-			const weak_rcptr<connection> get_connection() const	{ return m_connection; }
+			const weak_rcptr<connection> get_connection() const { return m_connection; }
 
-			virtual rcref<datasource> get_datasource() const	{ return m_transaction; }
+			virtual rcref<datasource> get_datasource() const { return m_transaction; }
 
 			bool abort()
 			{
@@ -268,7 +268,7 @@ public:
 				return false;
 			}
 
-			bool complete()	// If a response object is used, complete it instead of the request.
+			bool complete() // If a response object is used, complete it instead of the request.
 			{
 				if (m_completed.compare_exchange(true, false))
 				{
@@ -280,19 +280,18 @@ public:
 				return false;
 			}
 
-			virtual void completing()	{ }
+			virtual void completing() { }
 		};
 
 		class response : public object
 		{
 		private:
-			const weak_rcptr<connection>		m_connection;
-			const rcref<datasink::transaction>	m_transaction;
-			const rcref<request>				m_request;	// response extends scope of request. response is gone before request.
+			const rcref<request> m_request; // response extends scope of request. response is gone before request.
+			const weak_rcptr<connection> m_connection;
+			const rcref<datasink::transaction> m_transaction;
 
 		protected:
 			friend class request;
-
 
 			response(const ptr<rc_obj_base>& desc, const rcref<request>& r)
 				: object(desc),
@@ -307,11 +306,11 @@ public:
 				m_transaction->start();
 			}
 
-			const weak_rcptr<connection> get_connection() const	{ return m_connection; }
+			const weak_rcptr<connection> get_connection() const { return m_connection; }
 
-			virtual rcref<datasink> get_datasink() const		{ return m_transaction; }
+			virtual rcref<datasink> get_datasink() const { return m_transaction; }
 
-			const rcref<request>& get_request() const			{ return m_request; }
+			const rcref<request>& get_request() const { return m_request; }
 
 			bool complete()
 			{
@@ -334,7 +333,7 @@ public:
 
 			~response()
 			{
-				m_request->abort();	// aborts if not completed
+				m_request->abort(); // aborts if not completed
 			}
 		};
 

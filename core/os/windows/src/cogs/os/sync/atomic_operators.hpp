@@ -392,8 +392,8 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 // next
 
 // We fall back to the default (compare_exchange), if:
-//	1 byte, since there is no InterlockedIncrement8
-//	It's a floating point, as there is no intrinsic for it.
+//   1 byte, since there is no InterlockedIncrement8
+//   It's a floating point, as there is no intrinsic for it.
 
 template <typename T>
 inline std::enable_if_t<
@@ -501,8 +501,8 @@ post_assign_next(T& t)
 // prev
 
 // We fall back to the default (compare_exchange), if:
-//	1 byte, since there is no InterlockedDecrement8
-//	It's a floating point, as there is no intrinsic for it.
+//   1 byte, since there is no InterlockedDecrement8
+//   It's a floating point, as there is no intrinsic for it.
 
 template <typename T>
 inline std::enable_if_t<

@@ -134,7 +134,7 @@ public:
 		color c = m_textColor;
 		draw_text(txt, m_textExtent, f.dereference(), c);
 	}
-		
+
 	rcref<dependency_property<composite_string> > get_text_property() { return get_self_rcref(&m_textProperty); }
 	rcref<dependency_property<gfx::font> > get_font_property() { return get_self_rcref(&m_fontProperty); }
 	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty); }

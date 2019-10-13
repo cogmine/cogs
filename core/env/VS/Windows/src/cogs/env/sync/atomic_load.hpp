@@ -36,7 +36,7 @@ load(const volatile T& src, T& rtn)
 	int_t tmpRtn;
 	cogs::atomic::compare_exchange(*(volatile int_t*)(unsigned char*)&src, (int_t)0, (int_t)0, tmpRtn);
 	bypass_strict_aliasing(tmpRtn, rtn);
-	
+
 	// Full barrier doesn't seem to be enough...
 	//full_barrier();
 	//rtn = src;

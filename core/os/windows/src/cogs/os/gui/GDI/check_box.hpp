@@ -69,12 +69,12 @@ public:
 	virtual void set_text(const composite_string& text)
 	{
 		m_caption = text;
-		int i = Button_SetText(get_HWND(), m_caption.composite().cstr());
+		Button_SetText(get_HWND(), m_caption.composite().cstr());
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
 	{
-		BOOL b = Button_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
+		Button_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
 	}
 
 	virtual void set_checked(bool isChecked = true)
@@ -129,7 +129,7 @@ public:
 				}
 			}
 			break;
-		case WM_LBUTTONDBLCLK:	// Let Windows handle all types of clicks
+		case WM_LBUTTONDBLCLK: // Let Windows handle all types of clicks
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 		case WM_MBUTTONDBLCLK:
@@ -139,9 +139,9 @@ public:
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONUP:
 			return call_default_window_proc(msg, wParam, lParam);
-		case WM_PAINT:			// hwnd_pane's default WM_PAINT accounts for controls that accept HDC in wParam of WM_PAINT
+		case WM_PAINT: // hwnd_pane's default WM_PAINT accounts for controls that accept HDC in wParam of WM_PAINT
 		default:
-			break;	
+			break;
 		}
 
 		return call_default_window_proc(msg, wParam, lParam);

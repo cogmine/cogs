@@ -16,8 +16,8 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 namespace cogs {
@@ -42,14 +42,14 @@ protected:
 	friend class composite_buffer_content;
 	friend class composite_buffer;
 
-	typedef vector_descriptor<char>	desc_t;
-	typedef vector_content<char>	content_t;
+	typedef vector_descriptor<char> desc_t;
+	typedef vector_content<char> content_t;
 
 	typedef transactable<content_t> transactable_t;
-	transactable_t	m_contents;
+	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	// null desc, used for literals or caller owned buffers
 	buffer(size_t n, void* p) : m_contents(typename transactable_t::construct_embedded_t(), (char*)p, n) { }
@@ -115,15 +115,15 @@ protected:
 		}
 	}
 
-	void set(desc_t* d, void* p, size_t n)	{ m_contents->set(d, (char*)p, n); }
+	void set(desc_t* d, void* p, size_t n) { m_contents->set(d, (char*)p, n); }
 
-	void disown()	{ m_contents->m_desc = 0; }
+	void disown() { m_contents->m_desc = 0; }
 
-	desc_t* get_desc() const	{ return m_contents->m_desc; }
+	desc_t* get_desc() const { return m_contents->m_desc; }
 
 public:
 	operator const vector<char>() const { return get_vector(); }
-	operator const cstring() const		{ return get_cstring(); }
+	operator const cstring() const { return get_cstring(); }
 
 	const vector<char>& get_vector(unowned_t<vector<char> >& storage = unowned_t<vector<char> >().get_unowned()) const
 	{
@@ -174,8 +174,8 @@ public:
 	class iterator
 	{
 	protected:
-		buffer*	m_buffer;
-		size_t	m_index;
+		buffer* m_buffer;
+		size_t m_index;
 
 		iterator(buffer* v, size_t i)
 			: m_buffer(v),
@@ -185,10 +185,10 @@ public:
 		friend class buffer;
 
 	public:
-		iterator()																{ }
-		iterator(const iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index)	{ }
+		iterator() { }
+		iterator(const iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index) { }
 
-		void release()									{ m_buffer = 0; }
+		void release() { m_buffer = 0; }
 
 		iterator& operator++()
 		{
@@ -215,34 +215,34 @@ public:
 			return *this;
 		}
 
-		iterator operator++(int)					{ iterator i(*this); ++*this; return i; }
-		iterator operator--(int)					{ iterator i(*this); --*this; return i; }
+		iterator operator++(int) { iterator i(*this); ++* this; return i; }
+		iterator operator--(int) { iterator i(*this); --* this; return i; }
 
-		bool operator!() const						{ return !m_buffer || (m_index >= m_buffer->get_length()); }
+		bool operator!() const { return !m_buffer || (m_index >= m_buffer->get_length()); }
 
-		bool operator==(const iterator& i) const	{ return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
-		bool operator!=(const iterator& i) const	{ return !operator==(i); }
-		iterator& operator=(const iterator& i)		{ m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
+		bool operator==(const iterator& i) const { return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		iterator& operator=(const iterator& i) { m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
 
-		char* get() const					{ return m_buffer->get_ptr() + m_index; }
-		char& operator*() const			{ return *get(); }
-		char* operator->() const			{ return get(); }
+		char* get() const { return m_buffer->get_ptr() + m_index; }
+		char& operator*() const { return *get(); }
+		char* operator->() const { return get(); }
 
-		size_t get_position() const					{ return m_index; }
+		size_t get_position() const { return m_index; }
 
-		iterator next() const	{ iterator result(*this); ++result; return result; }
-		iterator prev() const	{ iterator result(*this); --result; return result; }
+		iterator next() const { iterator result(*this); ++result; return result; }
+		iterator prev() const { iterator result(*this); --result; return result; }
 	};
 
-	iterator get_first_iterator()			{ size_t sz = get_length(); return iterator(!!sz ? this : 0, 0); }
-	iterator get_last_iterator()			{ size_t sz = get_length(); return iterator(!!sz ? this : 0, sz - 1); }
+	iterator get_first_iterator() { size_t sz = get_length(); return iterator(!!sz ? this : 0, 0); }
+	iterator get_last_iterator() { size_t sz = get_length(); return iterator(!!sz ? this : 0, sz - 1); }
 
 	/// @brief A buffer const data iterator
 	class const_iterator
 	{
 	protected:
-		const buffer*	m_buffer;
-		size_t			m_index;
+		const buffer* m_buffer;
+		size_t m_index;
 
 		const_iterator(const buffer* v, size_t i)
 			: m_buffer(v),
@@ -252,11 +252,11 @@ public:
 		friend class buffer;
 
 	public:
-		const_iterator()																	{ }
-		const_iterator(const const_iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index)	{ }
-		const_iterator(const iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index)		{ }
+		const_iterator() { }
+		const_iterator(const const_iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index) { }
+		const_iterator(const iterator& i) : m_buffer(i.m_buffer), m_index(i.m_index) { }
 
-		void release()									{ m_buffer = 0; }
+		void release() { m_buffer = 0; }
 
 		const_iterator& operator++()
 		{
@@ -283,33 +283,33 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int)						{ const_iterator i(*this); ++*this; return i; }
-		const_iterator operator--(int)						{ const_iterator i(*this); --*this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
 
-		bool operator!() const								{ return !m_buffer || (m_index >= m_buffer->get_length()); }
+		bool operator!() const { return !m_buffer || (m_index >= m_buffer->get_length()); }
 
-		bool operator==(const const_iterator& i) const		{ return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
-		bool operator==(const iterator& i) const			{ return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
-		bool operator!=(const const_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const iterator& i) const			{ return !operator==(i); }
-		const_iterator& operator=(const const_iterator& i)	{ m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
-		const_iterator& operator=(const iterator& i)		{ m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
+		bool operator==(const const_iterator& i) const { return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
+		bool operator==(const iterator& i) const { return (m_buffer == i.m_buffer) && (!m_buffer || (m_index == i.m_index)); }
+		bool operator!=(const const_iterator& i) const { return !operator==(i); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		const_iterator& operator=(const const_iterator& i) { m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
+		const_iterator& operator=(const iterator& i) { m_buffer = i.m_buffer; m_index = i.m_index; return *this; }
 
-		const char* get() const					{ return (m_buffer->get_const_ptr() + m_index); }
-		const char& operator*() const				{ return *get(); }
-		const char* operator->() const				{ return get(); }
+		const char* get() const { return (m_buffer->get_const_ptr() + m_index); }
+		const char& operator*() const { return *get(); }
+		const char* operator->() const { return get(); }
 
-		size_t get_position() const					{ return m_index; }
+		size_t get_position() const { return m_index; }
 
-		const_iterator next() const	{ const_iterator result(*this); ++result; return result; }
-		const_iterator prev() const	{ const_iterator result(*this); --result; return result; }
+		const_iterator next() const { const_iterator result(*this); ++result; return result; }
+		const_iterator prev() const { const_iterator result(*this); --result; return result; }
 	};
 
-	const_iterator get_first_const_iterator() const	{ size_t sz = get_length(); return const_iterator(!!sz ? this : 0, 0); }
-	const_iterator get_last_const_iterator() const	{ size_t sz = get_length(); return const_iterator(!!sz ? this : 0, sz - 1); }
+	const_iterator get_first_const_iterator() const { size_t sz = get_length(); return const_iterator(!!sz ? this : 0, 0); }
+	const_iterator get_last_const_iterator() const { size_t sz = get_length(); return const_iterator(!!sz ? this : 0, sz - 1); }
 
 	// contains specified buffer (allocates if ptr is NULL)
-	static buffer contain(const void* ptr, size_t sz)		{ return buffer(sz, ptr); }
+	static buffer contain(const void* ptr, size_t sz) { return buffer(sz, ptr); }
 
 	buffer()
 	{ }
@@ -320,7 +320,7 @@ public:
 	}
 
 	buffer(const volatile buffer& src)
-		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read()))	// takes ownership of guarded desc reference
+		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) // takes ownership of guarded desc reference
 	{ }
 
 	explicit buffer(size_t n)
@@ -347,7 +347,7 @@ public:
 	}
 
 	buffer(const volatile buffer& src, size_t i)
-		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read()))	// takes ownership of guarded desc reference
+		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) // takes ownership of guarded desc reference
 	{
 		set_to_subrange(i);
 	}
@@ -359,32 +359,32 @@ public:
 	}
 
 	buffer(const volatile buffer& src, size_t i, size_t n)
-		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read()))	// takes ownership of guarded desc reference
+		: m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) // takes ownership of guarded desc reference
 	{
 		set_to_subrange(i, n);
 	}
 
-	~buffer()				{ m_contents->release(); }
+	~buffer() { m_contents->release(); }
 
-	size_t get_length() const						{ return m_contents->m_length; }
-	size_t get_length() const volatile				{ return m_contents.begin_read()->m_length; }
+	size_t get_length() const { return m_contents->m_length; }
+	size_t get_length() const volatile { return m_contents.begin_read()->m_length; }
 
-	size_t get_capacity() const						{ return m_contents->get_capacity(); }
-	size_t get_reverse_capacity() const				{ return m_contents->get_reverse_capacity(); }
+	size_t get_capacity() const { return m_contents->get_capacity(); }
+	size_t get_reverse_capacity() const { return m_contents->get_reverse_capacity(); }
 
-	bool is_empty() const							{ return m_contents->m_length == 0; }
-	bool is_empty() const volatile					{ return m_contents.begin_read()->m_length == 0; }
+	bool is_empty() const { return m_contents->m_length == 0; }
+	bool is_empty() const volatile { return m_contents.begin_read()->m_length == 0; }
 
-	bool operator!() const							{ return m_contents->m_length == 0; }
-	bool operator!() const volatile					{ return m_contents.begin_read()->m_length == 0; }
+	bool operator!() const { return m_contents->m_length == 0; }
+	bool operator!() const volatile { return m_contents.begin_read()->m_length == 0; }
 
-	const char* get_const_ptr() const		{ return m_contents->m_ptr; }
+	const char* get_const_ptr() const { return m_contents->m_ptr; }
 
 	// caller error to pass index >= length
-	const char& operator[](size_t i) const	{ return get_const_ptr()[i]; }
+	const char& operator[](size_t i) const { return get_const_ptr()[i]; }
 
-	const char& get_first_const() const	{ return get_const_ptr()[0]; }
-	const char& get_last_const() const		{ return get_const_ptr()[get_length() - 1]; }
+	const char& get_first_const() const { return get_const_ptr()[0]; }
+	const char& get_last_const() const { return get_const_ptr()[get_length() - 1]; }
 
 
 	const buffer& subrange(size_t i, size_t n = const_max_int_v<size_t>, unowned_t<buffer>& storage = unowned_t<buffer>().get_unowned()) const
@@ -408,213 +408,213 @@ public:
 	}
 
 
-	int compare(size_t n, const char& cmp) const			{ return m_contents->template compare<char, default_comparator>(n, cmp); }
+	int compare(size_t n, const char& cmp) const { return m_contents->template compare<char, default_comparator>(n, cmp); }
 
-	int compare(size_t n, const char& cmp) const volatile	{ buffer tmp(*this); return tmp.compare(n, cmp); }
+	int compare(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.compare(n, cmp); }
 
-	int compare(const char* cmp, size_t n) const			{ return m_contents->template compare<char, default_comparator>(cmp, n); }
+	int compare(const char* cmp, size_t n) const { return m_contents->template compare<char, default_comparator>(cmp, n); }
 
-	int compare(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.compare(cmp, n); }
+	int compare(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.compare(cmp, n); }
 
-	int compare(const buffer& cmp) const			{ return compare(cmp.get_const_ptr(), cmp.get_length()); }
+	int compare(const buffer& cmp) const { return compare(cmp.get_const_ptr(), cmp.get_length()); }
 
-	int compare(const buffer& cmp) const volatile	{ return compare(cmp.get_const_ptr(), cmp.get_length()); }
+	int compare(const buffer& cmp) const volatile { return compare(cmp.get_const_ptr(), cmp.get_length()); }
 
-	int compare(const volatile buffer& cmp) const			{ buffer tmp(cmp); return compare(tmp); }
+	int compare(const volatile buffer& cmp) const { buffer tmp(cmp); return compare(tmp); }
 
 
 
 
-	bool equals(size_t n, const char& cmp) const			{ return m_contents->template equals<char, default_comparator>(n, cmp); }
+	bool equals(size_t n, const char& cmp) const { return m_contents->template equals<char, default_comparator>(n, cmp); }
 
-	bool equals(size_t n, const char& cmp) const volatile	{ buffer tmp(*this); return tmp.equals(n, cmp); }
+	bool equals(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.equals(n, cmp); }
 
-	bool equals(const char* cmp, size_t n) const			{ return m_contents->template equals<char, default_comparator>(cmp, n); }
+	bool equals(const char* cmp, size_t n) const { return m_contents->template equals<char, default_comparator>(cmp, n); }
 
-	bool equals(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.equals(cmp, n); }
+	bool equals(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.equals(cmp, n); }
 
-	bool equals(const buffer& cmp) const			{ return equals(cmp.get_const_ptr(), cmp.get_length()); }
+	bool equals(const buffer& cmp) const { return equals(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool equals(const buffer& cmp) const volatile	{ return equals(cmp.get_const_ptr(), cmp.get_length()); }
+	bool equals(const buffer& cmp) const volatile { return equals(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool equals(const volatile buffer& cmp) const			{ buffer tmp(cmp); return equals(tmp); }
+	bool equals(const volatile buffer& cmp) const { buffer tmp(cmp); return equals(tmp); }
 
 
 
-	bool operator==(const buffer& cmp) const					{ return equals(cmp); }
+	bool operator==(const buffer& cmp) const { return equals(cmp); }
 
-	bool operator==(const buffer& cmp) const volatile			{ return equals(cmp); }
+	bool operator==(const buffer& cmp) const volatile { return equals(cmp); }
 
-	bool operator==(const volatile buffer& cmp) const					{ return equals(cmp); }
+	bool operator==(const volatile buffer& cmp) const { return equals(cmp); }
 
-	bool operator!=(const buffer& cmp) const					{ return !equals(cmp); }
+	bool operator!=(const buffer& cmp) const { return !equals(cmp); }
 
-	bool operator!=(const buffer& cmp) const volatile			{ return !equals(cmp); }
+	bool operator!=(const buffer& cmp) const volatile { return !equals(cmp); }
 
-	bool operator!=(const volatile buffer& cmp) const					{ return !equals(cmp); }
+	bool operator!=(const volatile buffer& cmp) const { return !equals(cmp); }
 
 
-	bool starts_with(size_t n, const char& cmp) const			{ return m_contents->template starts_with<char, default_comparator>(n, cmp); }
+	bool starts_with(size_t n, const char& cmp) const { return m_contents->template starts_with<char, default_comparator>(n, cmp); }
 
-	bool starts_with(size_t n, const char& cmp) const volatile	{ buffer tmp(*this); return tmp.starts_with(n, cmp); }
+	bool starts_with(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.starts_with(n, cmp); }
 
-	bool starts_with(const char* cmp, size_t n) const			{ return m_contents->template starts_with<char, default_comparator>(cmp, n); }
+	bool starts_with(const char* cmp, size_t n) const { return m_contents->template starts_with<char, default_comparator>(cmp, n); }
 
-	bool starts_with(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.starts_with(cmp, n); }
+	bool starts_with(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.starts_with(cmp, n); }
 
-	bool starts_with(const buffer& cmp) const			{ return starts_with(cmp.get_const_ptr(), cmp.get_length()); }
+	bool starts_with(const buffer& cmp) const { return starts_with(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool starts_with(const buffer& cmp) const volatile	{ return starts_with(cmp.get_const_ptr(), cmp.get_length()); }
+	bool starts_with(const buffer& cmp) const volatile { return starts_with(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool starts_with(const volatile buffer& cmp) const			{ buffer tmp(cmp); return starts_with(tmp); }
+	bool starts_with(const volatile buffer& cmp) const { buffer tmp(cmp); return starts_with(tmp); }
 
 
 
-	bool ends_with(size_t n, const char& cmp) const			{ return m_contents->template ends_with<char, default_comparator>(n, cmp); }
+	bool ends_with(size_t n, const char& cmp) const { return m_contents->template ends_with<char, default_comparator>(n, cmp); }
 
-	bool ends_with(size_t n, const char& cmp) const volatile	{ buffer tmp(*this); return tmp.ends_with(n, cmp); }
+	bool ends_with(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.ends_with(n, cmp); }
 
-	bool ends_with(const char* cmp, size_t n) const			{ return m_contents->template ends_with<char, default_comparator>(cmp, n); }
+	bool ends_with(const char* cmp, size_t n) const { return m_contents->template ends_with<char, default_comparator>(cmp, n); }
 
-	bool ends_with(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.ends_with(cmp, n); }
+	bool ends_with(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.ends_with(cmp, n); }
 
-	bool ends_with(const buffer& cmp) const				{ return ends_with(cmp.get_const_ptr(), cmp.get_length()); }
+	bool ends_with(const buffer& cmp) const { return ends_with(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool ends_with(const buffer& cmp) const volatile	{ return ends_with(cmp.get_const_ptr(), cmp.get_length()); }
+	bool ends_with(const buffer& cmp) const volatile { return ends_with(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool ends_with(const volatile buffer& cmp) const				{ buffer tmp(cmp); return ends_with(tmp); }
+	bool ends_with(const volatile buffer& cmp) const { buffer tmp(cmp); return ends_with(tmp); }
 
 
 
-	bool is_less_than(const char* cmp, size_t n) const				{ return m_contents->template is_less_than<char, default_comparator>(cmp, n); }
+	bool is_less_than(const char* cmp, size_t n) const { return m_contents->template is_less_than<char, default_comparator>(cmp, n); }
 
-	bool is_less_than(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.is_less_than(cmp, n); }
+	bool is_less_than(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.is_less_than(cmp, n); }
 
-	bool is_less_than(const buffer& cmp) const				{ return is_less_than(cmp.get_const_ptr(), cmp.get_length()); }
+	bool is_less_than(const buffer& cmp) const { return is_less_than(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool is_less_than(const buffer& cmp) const volatile		{ return is_less_than(cmp.get_const_ptr(), cmp.get_length()); }
+	bool is_less_than(const buffer& cmp) const volatile { return is_less_than(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool is_less_than(const volatile buffer& cmp) const				{ buffer tmp(cmp); return is_less_than(tmp); }
+	bool is_less_than(const volatile buffer& cmp) const { buffer tmp(cmp); return is_less_than(tmp); }
 
 
 
-	bool is_greater_than(const char* cmp, size_t n) const			{ return m_contents->template is_greater_than<char, default_comparator>(cmp, n); }
+	bool is_greater_than(const char* cmp, size_t n) const { return m_contents->template is_greater_than<char, default_comparator>(cmp, n); }
 
-	bool is_greater_than(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.is_greater_than(cmp, n); }
+	bool is_greater_than(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.is_greater_than(cmp, n); }
 
-	bool is_greater_than(const buffer& cmp) const			{ return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); }
+	bool is_greater_than(const buffer& cmp) const { return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool is_greater_than(const buffer& cmp) const volatile	{ return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); }
+	bool is_greater_than(const buffer& cmp) const volatile { return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); }
 
-	bool is_greater_than(const volatile buffer& cmp) const			{ buffer tmp(cmp); return is_greater_than(tmp); }
+	bool is_greater_than(const volatile buffer& cmp) const { buffer tmp(cmp); return is_greater_than(tmp); }
 
 
 
-	bool operator<(const buffer& cmp) const				{ return is_less_than(cmp); }
+	bool operator<(const buffer& cmp) const { return is_less_than(cmp); }
 
-	bool operator<(const buffer& cmp) const volatile	{ return is_less_than(cmp); }
+	bool operator<(const buffer& cmp) const volatile { return is_less_than(cmp); }
 
-	bool operator<(const volatile buffer& cmp) const				{ return is_less_than(cmp); }
+	bool operator<(const volatile buffer& cmp) const { return is_less_than(cmp); }
 
-	bool operator>=(const buffer& cmp) const			{ return !is_less_than(cmp); }
+	bool operator>=(const buffer& cmp) const { return !is_less_than(cmp); }
 
-	bool operator>=(const buffer& cmp) const volatile	{ return !is_less_than(cmp); }
+	bool operator>=(const buffer& cmp) const volatile { return !is_less_than(cmp); }
 
-	bool operator>=(const volatile buffer& cmp) const			{ return !is_less_than(cmp); }
+	bool operator>=(const volatile buffer& cmp) const { return !is_less_than(cmp); }
 
-	bool operator>(const buffer& cmp) const				{ return is_greater_than(cmp); }
+	bool operator>(const buffer& cmp) const { return is_greater_than(cmp); }
 
-	bool operator>(const buffer& cmp) const volatile	{ return is_greater_than(cmp); }
+	bool operator>(const buffer& cmp) const volatile { return is_greater_than(cmp); }
 
-	bool operator>(const volatile buffer& cmp) const				{ return is_greater_than(cmp); }
+	bool operator>(const volatile buffer& cmp) const { return is_greater_than(cmp); }
 
-	bool operator<=(const buffer& cmp) const			{ return !is_greater_than(cmp); }
+	bool operator<=(const buffer& cmp) const { return !is_greater_than(cmp); }
 
-	bool operator<=(const buffer& cmp) const volatile	{ return !is_greater_than(cmp); }
+	bool operator<=(const buffer& cmp) const volatile { return !is_greater_than(cmp); }
 
-	bool operator<=(const volatile buffer& cmp) const			{ return !is_greater_than(cmp); }
+	bool operator<=(const volatile buffer& cmp) const { return !is_greater_than(cmp); }
 
 
 
-	size_t index_of(const char& cmp) const						{ return m_contents->template index_of<char, default_comparator>(0, cmp); }
+	size_t index_of(const char& cmp) const { return m_contents->template index_of<char, default_comparator>(0, cmp); }
 
-	size_t index_of(const char& cmp) const volatile			{ buffer tmp(*this); return tmp.index_of(cmp); }
+	size_t index_of(const char& cmp) const volatile { buffer tmp(*this); return tmp.index_of(cmp); }
 
-	size_t index_of(size_t i, const char& cmp) const			{ return m_contents->template index_of<char, default_comparator>(i, cmp); }
+	size_t index_of(size_t i, const char& cmp) const { return m_contents->template index_of<char, default_comparator>(i, cmp); }
 
-	size_t index_of(size_t i, const char& cmp) const volatile	{ buffer tmp(*this); return tmp.index_of(i, cmp); }
+	size_t index_of(size_t i, const char& cmp) const volatile { buffer tmp(*this); return tmp.index_of(i, cmp); }
 
 
-	size_t index_of_any(const char* cmp, size_t n) const				{ return m_contents->template index_of_any<char, default_comparator>(0, cmp, n); }
+	size_t index_of_any(const char* cmp, size_t n) const { return m_contents->template index_of_any<char, default_comparator>(0, cmp, n); }
 
-	size_t index_of_any(const char* cmp, size_t n) const volatile		{ buffer tmp(*this); return tmp.index_of_any(cmp, n); }
+	size_t index_of_any(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_any(cmp, n); }
 
-	size_t index_of_any(size_t i, const char* cmp, size_t n) const			{ return m_contents->template index_of_any<char, default_comparator>(i, cmp, n); }
+	size_t index_of_any(size_t i, const char* cmp, size_t n) const { return m_contents->template index_of_any<char, default_comparator>(i, cmp, n); }
 
-	size_t index_of_any(size_t i, const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.index_of_any(i, cmp, n); }
+	size_t index_of_any(size_t i, const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_any(i, cmp, n); }
 
 
-	size_t index_of_segment(const char* cmp, size_t n) const			{ return m_contents->template index_of_segment<char, default_comparator>(0, cmp, n); }
+	size_t index_of_segment(const char* cmp, size_t n) const { return m_contents->template index_of_segment<char, default_comparator>(0, cmp, n); }
 
-	size_t index_of_segment(const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.index_of_segment(cmp, n); }
+	size_t index_of_segment(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_segment(cmp, n); }
 
-	size_t index_of_segment(const buffer& cmp) const			{ return index_of_segment(cmp.get_const_ptr(), cmp.get_length()); }
+	size_t index_of_segment(const buffer& cmp) const { return index_of_segment(cmp.get_const_ptr(), cmp.get_length()); }
 
-	size_t index_of_segment(const buffer& cmp) const volatile	{ return index_of_segment(cmp.get_const_ptr(), cmp.get_length()); }
+	size_t index_of_segment(const buffer& cmp) const volatile { return index_of_segment(cmp.get_const_ptr(), cmp.get_length()); }
 
-	size_t index_of_segment(const volatile buffer& cmp) const			{ buffer tmp(cmp); return index_of_segment(tmp); }
+	size_t index_of_segment(const volatile buffer& cmp) const { buffer tmp(cmp); return index_of_segment(tmp); }
 
 
-	size_t index_of_segment(size_t i, const char* cmp, size_t n) const				{ return m_contents->template index_of_segment<char, default_comparator>(i, cmp, n); }
+	size_t index_of_segment(size_t i, const char* cmp, size_t n) const { return m_contents->template index_of_segment<char, default_comparator>(i, cmp, n); }
 
-	size_t index_of_segment(size_t i, const char* cmp, size_t n) const volatile	{ buffer tmp(*this); return tmp.index_of_segment(cmp, n); }
+	size_t index_of_segment(size_t i, const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_segment(cmp, n); }
 
-	size_t index_of_segment(size_t i, const buffer& cmp) const				{ return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
+	size_t index_of_segment(size_t i, const buffer& cmp) const { return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
 
-	size_t index_of_segment(size_t i, const buffer& cmp) const volatile		{ return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
+	size_t index_of_segment(size_t i, const buffer& cmp) const volatile { return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
 
-	size_t index_of_segment(size_t i, const volatile buffer& cmp) const				{ buffer tmp(cmp); return index_of_segment(i, tmp); }
+	size_t index_of_segment(size_t i, const volatile buffer& cmp) const { buffer tmp(cmp); return index_of_segment(i, tmp); }
 
 
 
-	bool contains(const char& cmp) const					{ return index_of(cmp) != const_max_int_v<size_t>; }
+	bool contains(const char& cmp) const { return index_of(cmp) != const_max_int_v<size_t>; }
 
-	bool contains(const char& cmp) const volatile			{ return index_of(cmp) != const_max_int_v<size_t>; }
+	bool contains(const char& cmp) const volatile { return index_of(cmp) != const_max_int_v<size_t>; }
 
-	//bool contains(size_t i, const char& cmp) const			{ return index_of(i, cmp) != const_max_int_v<size_t>; }
+	//bool contains(size_t i, const char& cmp) const { return index_of(i, cmp) != const_max_int_v<size_t>; }
 
-	//bool contains(size_t i, const char& cmp) const volatile	{ return index_of(i, cmp) != const_max_int_v<size_t>; }
+	//bool contains(size_t i, const char& cmp) const volatile { return index_of(i, cmp) != const_max_int_v<size_t>; }
 
 
-	bool contains_any(const char* cmp, size_t n) const						{ return index_of_any(cmp, n) != const_max_int_v<size_t>; }
+	bool contains_any(const char* cmp, size_t n) const { return index_of_any(cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_any(const char* cmp, size_t n) const volatile				{ return index_of_any(cmp, n) != const_max_int_v<size_t>; }
+	bool contains_any(const char* cmp, size_t n) const volatile { return index_of_any(cmp, n) != const_max_int_v<size_t>; }
 
-	//bool contains_any(size_t i, const char* cmp, size_t n) const			{ return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
+	//bool contains_any(size_t i, const char* cmp, size_t n) const { return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
 
-	//bool contains_any(size_t i, const char* cmp, size_t n) const volatile	{ return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
+	//bool contains_any(size_t i, const char* cmp, size_t n) const volatile { return index_of_any(i, cmp, n) != const_max_int_v<size_t>; }
 
 
-	bool contains_segment(const char* cmp, size_t n) const			{ return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
+	bool contains_segment(const char* cmp, size_t n) const { return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const char* cmp, size_t n) const volatile	{ return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
+	bool contains_segment(const char* cmp, size_t n) const volatile { return index_of_segment(cmp, n) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const buffer& cmp) const					{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
+	bool contains_segment(const buffer& cmp) const { return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const buffer& cmp) const volatile			{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
+	bool contains_segment(const buffer& cmp) const volatile { return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
-	bool contains_segment(const volatile buffer& cmp) const			{ return index_of_segment(cmp) != const_max_int_v<size_t>; }
+	bool contains_segment(const volatile buffer& cmp) const { return index_of_segment(cmp) != const_max_int_v<size_t>; }
 
 
-	char* get_ptr() 						{ return m_contents->m_ptr; }
-	char& get_first()						{ return m_contents->m_ptr[0]; }
-	char& get_last()						{ return m_contents->m_ptr[m_contents->m_length - 1]; }
+	char* get_ptr() { return m_contents->m_ptr; }
+	char& get_first() { return m_contents->m_ptr[0]; }
+	char& get_last() { return m_contents->m_ptr[m_contents->m_length - 1]; }
 
-	void set_index(size_t i, const char& src)	{ get_ptr()[i] = src; }
+	void set_index(size_t i, const char& src) { get_ptr()[i] = src; }
 
-	void reverse()								{ m_contents->reverse(); }
+	void reverse() { m_contents->reverse(); }
 
-	void set_to_subrange(size_t i)				{ m_contents->advance(i); }
+	void set_to_subrange(size_t i) { m_contents->advance(i); }
 	void set_to_subrange(size_t i) volatile
 	{
 		write_token wt;
@@ -630,7 +630,7 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void set_to_subrange(size_t i, size_t n)	{ m_contents->set_to_subrange(i, n); }
+	void set_to_subrange(size_t i, size_t n) { m_contents->set_to_subrange(i, n); }
 
 	void set_to_subrange(size_t i, size_t n) volatile
 	{
@@ -732,13 +732,13 @@ public:
 		return *this;
 	}
 
-	void advance(size_t n = 1)					{ m_contents->advance(n); }
+	void advance(size_t n = 1) { m_contents->advance(n); }
 
-	void truncate_to(size_t n)					{ m_contents->truncate_to(n); }
+	void truncate_to(size_t n) { m_contents->truncate_to(n); }
 
-	void truncate(size_t n)						{ m_contents->truncate(n); }
+	void truncate(size_t n) { m_contents->truncate(n); }
 
-	void truncate_to_right(size_t n)			{ m_contents->truncate_to_right(n); }
+	void truncate_to_right(size_t n) { m_contents->truncate_to_right(n); }
 
 
 	void replace(size_t i, size_t replaceLength, const char& src)
@@ -773,11 +773,11 @@ public:
 	//}
 
 
-	void swap(buffer& wth)				{ m_contents.swap(wth.m_contents); }
+	void swap(buffer& wth) { m_contents.swap(wth.m_contents); }
 
-	void swap(buffer& wth) volatile		{ m_contents.swap(wth.m_contents); }
+	void swap(buffer& wth) volatile { m_contents.swap(wth.m_contents); }
 
-	void swap(volatile buffer& wth)		{ wth.swap(*this); }
+	void swap(volatile buffer& wth) { wth.swap(*this); }
 
 	buffer split_off_before(size_t i)
 	{
@@ -809,7 +809,7 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				result.m_contents->m_desc = desc;
 				result.m_contents->m_ptr = wt->m_ptr;
 				size_t length = wt->m_length;
@@ -817,7 +817,7 @@ public:
 				{
 					result.m_contents->m_length = length;
 					wt->clear_inner();
-					if (desc)			// Ok to release now.  If commit succeeds, we know it remained valid up until then.
+					if (desc) // Ok to release now.  If commit succeeds, we know it remained valid up until then.
 						desc->release();
 					desc = 0;
 				}
@@ -829,7 +829,7 @@ public:
 				}
 				if (!!m_contents.end_write(wt))
 					break;
-				if (desc)							// if commit unsuccessful, and i < length, we need to release 1 reference
+				if (desc) // if commit unsuccessful, and i < length, we need to release 1 reference
 					desc->release();
 				result.m_contents->m_desc = 0;
 			}
@@ -860,12 +860,12 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc_t* desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc_t* desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				size_t length = wt->m_length;
-				if (i >= length)	// nop.  If nothing to split off back, we don't need to write at all.
+				if (i >= length) // nop.  If nothing to split off back, we don't need to write at all.
 				{
 					result.set(0, 0, 0);
-					if (desc)			// Release our copy from guard
+					if (desc) // Release our copy from guard
 						desc->release();
 					break;
 				}
@@ -882,9 +882,9 @@ public:
 		return result;
 	}
 
-	buffer split_off_front(size_t n)						{ return split_off_before(n); }
+	buffer split_off_front(size_t n) { return split_off_before(n); }
 
-	buffer split_off_front(size_t n) volatile				{ return split_off_before(n); }
+	buffer split_off_front(size_t n) volatile { return split_off_before(n); }
 
 	buffer split_off_back(size_t n)
 	{
@@ -915,7 +915,7 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				result.m_contents->m_ptr = wt->m_ptr;
 				result.m_contents->m_desc = desc;
 				size_t length = wt->m_length;
@@ -923,7 +923,7 @@ public:
 				{
 					result.m_contents->m_length = length;
 					wt->clear_inner();
-					if (desc)			// Ok to release now.  If commit succeeds, we know it remained valid up until then.
+					if (desc) // Ok to release now.  If commit succeeds, we know it remained valid up until then.
 						desc->release();
 					desc = 0;
 				}
@@ -936,7 +936,7 @@ public:
 				}
 				if (!!m_contents.end_write(wt))
 					break;
-				if (desc)							// if commit unsuccessful, and i < length, we need to release 1 reference
+				if (desc) // if commit unsuccessful, and i < length, we need to release 1 reference
 					desc->release();
 				result.m_contents->m_desc = 0;
 			}
@@ -1120,8 +1120,8 @@ public:
 		return result;
 	}
 
-	string to_string() const	{ return to_string_t<wchar_t>(); }
-	cstring to_cstring() const	{ return to_string_t<char>(); }
+	string to_string() const { return to_string_t<wchar_t>(); }
+	cstring to_cstring() const { return to_string_t<char>(); }
 };
 
 
@@ -1153,8 +1153,6 @@ inline io::buffer fixed_integer_native<has_sign, n_bits>::to_buffer() const vola
 	this_t tmp(*this);
 	return to_buffer(tmp);
 }
-
-
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>

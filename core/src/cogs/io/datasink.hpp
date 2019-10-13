@@ -53,8 +53,8 @@ private:
 	datasink& operator=(datasink&&) = delete;
 	datasink& operator=(const datasink&) = delete;
 
-	rcptr<io::queue>	m_ioQueue;	// OK that the rcptr is not volatile, since it's set on construction, and cleared in destructor
-	
+	rcptr<io::queue> m_ioQueue; // OK that the rcptr is not volatile, since it's set on construction, and cleared in destructor
+
 	typedef function<rcref<task<bool> >(composite_buffer&)> write_func_t;
 	write_func_t m_writeFunc;
 
@@ -72,7 +72,7 @@ public:
 		datasink_task& operator=(datasink_task&&) = delete;
 		datasink_task& operator=(const datasink_task&) = delete;
 
-		const weak_rcptr<datasink>		m_sink;
+		const weak_rcptr<datasink> m_sink;
 
 	protected:
 		/// @brief Constructor
@@ -98,7 +98,7 @@ public:
 	public:
 		/// @brief Gets a weak reference to the datasink associated with this task
 		/// @return A weak reference to the datasink associated with this task
-		const weak_rcptr<datasink>& get_datasink() const	{ return m_sink; }
+		const weak_rcptr<datasink>& get_datasink() const { return m_sink; }
 	};
 
 	/// @brief A flush task
@@ -113,18 +113,18 @@ public:
 		flusher& operator=(flusher&&) = delete;
 		flusher& operator=(const flusher&) = delete;
 
-		virtual void executing()	{ flushing(); }
+		virtual void executing() { flushing(); }
 
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this flusher
-		flusher(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds)	{ }
+		flusher(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds) { }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
 		/// It's unlikely that the default behavior needs to be changed.  A flush operation is
 		/// simply a NOP that asynchronously notifies when all prior queued writes have completed.
-		virtual void flushing()		{ complete(); }
+		virtual void flushing() { complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
 		virtual void canceling() { io::queue::io_task<flusher>::canceling(); }
@@ -138,7 +138,7 @@ public:
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
 		/// @param closeQueue If true the datasink is also closed and all subsequent tasks are canceled.  Default: false
 		void complete(bool closeQueue = false) { io::queue::io_task<flusher>::complete(closeQueue); }
-		
+
 		virtual const flusher& get() const volatile { return *(const flusher*)this; }
 	};
 
@@ -154,11 +154,11 @@ public:
 		closer& operator=(closer&&) = delete;
 		closer& operator=(const closer&) = delete;
 
-		virtual void executing()	{ closing(); }
+		virtual void executing() { closing(); }
 
 	protected:
 		/// @brief Constructor
-		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds)	{ }
+		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds) { }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
@@ -187,8 +187,8 @@ public:
 	private:
 		friend class datasink;
 
-		size_t				m_requestedSize;		// Just to remind caller how much their original request was for.
-		composite_buffer	m_unwrittenBufferList;	// On Entry: Buffer to write.  On Exit: whatever couldn't be written
+		size_t m_requestedSize; // Just to remind caller how much their original request was for.
+		composite_buffer m_unwrittenBufferList; // On Entry: Buffer to write.  On Exit: whatever couldn't be written
 
 		writer() = delete;
 		writer(writer&&) = delete;
@@ -207,12 +207,12 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this writer
-		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds)	{ }
+		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds) { }
 
 		/// @brief Derived writers should implement writing() to perform the write operation
 		/// 
 		/// When the write is complete, the derived class should call complete().
-		virtual void writing()		{ complete(); }
+		virtual void writing() { complete(); }
 
 		/// @brief Derived class implements canceling() to cancel a writer that has not yet been executed. 
 		virtual void canceling() { io::queue::io_task<writer>::canceling(); }
@@ -236,19 +236,19 @@ public:
 	public:
 		/// @brief Gets the unwritten portion of the buffer, if any.  Intended to be called after the writer completes.
 		/// @return The unwritten portion of the buffer, if any.
-		const composite_buffer& get_unwritten_buffer() const			{ return m_unwrittenBufferList; }
+		const composite_buffer& get_unwritten_buffer() const { return m_unwrittenBufferList; }
 
 		/// @brief Gets the requested size of the write operation.
 		/// @return The requested size of the write operation.
-		size_t get_requested_size() const								{ return m_requestedSize; }
+		size_t get_requested_size() const { return m_requestedSize; }
 
 		/// @brief Gets the actual number of bytes writen.  Intended to be called after the writer completes.
 		/// @return The actaul number of bytes written.
-		const size_t get_write_size() const								{ return m_requestedSize - m_unwrittenBufferList.get_length(); }
+		const size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.get_length(); }
 
 		/// @brief Tests if any bytes were written.  Intended to be called after the writer completes.
 		/// @return True if any bytes were written.
-		bool was_any_written() const									{ return m_requestedSize != m_unwrittenBufferList.get_length(); }
+		bool was_any_written() const { return m_requestedSize != m_unwrittenBufferList.get_length(); }
 	};
 
 	/// @brief Issues a write.
@@ -280,11 +280,11 @@ public:
 	}
 
 	/// @brief Cancels any pending I/O operations on the datasink and closes it immediately.
-	virtual void abort_sink()				{ m_ioQueue->close(); }
+	virtual void abort_sink() { m_ioQueue->close(); }
 
 	/// @brief Gets the close event associated with the datasink.
 	/// @return A rcref to a waitable that will become signaled when the datasink is closed.
-	const waitable& get_sink_close_event() const	{ return m_ioQueue->get_close_event(); }
+	const waitable& get_sink_close_event() const { return m_ioQueue->get_close_event(); }
 
 	bool is_sink_closed() const
 	{
@@ -342,7 +342,7 @@ protected:
 
 	/// @brief Arbitrarily enqueues an io::queue::io_task in the datasink's IO queue
 	/// @param t A reference to the io::queue::io_task to enqueue
-	virtual void sink_enqueue(const rcref<io::queue::task_base>& t)	{ m_ioQueue->enqueue(t); }
+	virtual void sink_enqueue(const rcref<io::queue::task_base>& t) { m_ioQueue->enqueue(t); }
 
 	/// @brief Associate the specified buffer with the specified writer and enqueue it on the datasink's IO queue
 	/// @param compBuf Buffer to write
@@ -353,18 +353,18 @@ protected:
 		w->m_requestedSize = compBuf.get_length();
 		sink_enqueue(w);
 	}
-	
+
 	/// @brief Create a datasink::flusher.  Used by derived datasinks to create derived flushers
 	/// @param ds A datasink reference to encapsulate in the flusher.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds)	{ return rcnew(bypass_constructor_permission<flusher>, ds); }
+	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds) { return rcnew(bypass_constructor_permission<flusher>, ds); }
 
 	/// @brief Create a datasink::closer.  Used by derived datasinks to create derived closer
 	/// @param ds A datasink reference to encapsulate in the closer.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds)		{ return rcnew(bypass_constructor_permission<closer>, ds); }
+	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds) { return rcnew(bypass_constructor_permission<closer>, ds); }
 
 	/// @brief Create a datasink::writer.  Used by derived datasinks to create derived writer
 	/// @param ds A datasink reference to encapsulate in the writer.  This may different from this datasink, if
@@ -393,7 +393,7 @@ public:
 
 
 /// @brief A transaction on a datasink
-class datasink::transaction	: public datasink
+class datasink::transaction : public datasink
 {
 public:
 	/// @brief Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
@@ -410,7 +410,8 @@ public:
 	};
 
 private:
-	const weak_rcptr<datasink>	m_sink;
+	const weak_rcptr<datasink> m_sink;
+	volatile boolean m_started;
 
 	// This IO task represents the entire transaction.
 	// It posts to the original datasink, and does not complete until
@@ -427,7 +428,7 @@ private:
 				: io::queue::io_task<plug>(desc)
 			{ }
 
-			volatile boolean m_transactionRunning;	// Which of the 2 fails to set from false to true, completes the operation.
+			volatile boolean m_transactionRunning; // Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::io_task<plug>::complete;
 
@@ -437,12 +438,12 @@ private:
 					io::queue::io_task<plug>::complete();
 			}
 
-			virtual void aborting()		{ io::queue::io_task<plug>::complete(true); }
+			virtual void aborting() { io::queue::io_task<plug>::complete(true); }
 
 			virtual const plug& get() const volatile { return *(const plug*)this; }
 		};
 
-		rcptr<io::queue> m_transactionIoQueue;	// extends the scope of the transaction's io queue
+		rcptr<io::queue> m_transactionIoQueue; // extends the scope of the transaction's io queue
 		volatile rcptr<plug> m_plug;
 		volatile boolean m_completeOrAbortGuard;
 		const close_propagation_mode m_closePropagationMode;
@@ -517,7 +518,7 @@ private:
 			}
 		}
 
-		virtual void canceling()	// transaction_task got canceled before anything executed.
+		virtual void canceling() // transaction_task got canceled before anything executed.
 		{
 			m_transactionIoQueue->close();
 			io::queue::io_task<transaction_task>::canceling();
@@ -533,16 +534,16 @@ private:
 	class terminator : public io::queue::io_task<terminator>
 	{
 	public:
-		rcref<transaction_task>	m_transactionTask;
-		
+		rcref<transaction_task> m_transactionTask;
+
 		terminator(const ptr<rc_obj_base>& desc, const rcref<transaction_task>& t)
 			: io::queue::io_task<terminator>(desc),
 			m_transactionTask(t)
 		{ }
-		
+
 		virtual void executing()
 		{
-			rcref<transaction_task>	tt = m_transactionTask;
+			rcref<transaction_task> tt = m_transactionTask;
 			io::queue::io_task<terminator>::complete();
 			tt->complete();
 		}
@@ -550,7 +551,7 @@ private:
 		virtual void canceling()
 		{
 			// queue was closed, pass along close.
-			rcref<transaction_task>	tt = m_transactionTask;
+			rcref<transaction_task> tt = m_transactionTask;
 			io::queue::io_task<terminator>::canceling();
 			tt->abort();
 		}
@@ -591,8 +592,6 @@ private:
 		m_transactionTask->queue_plug();
 		datasink::sink_enqueue(t);
 	}
-
-	volatile boolean m_started;
 
 public:
 	/// @brief Transaction constructor.
@@ -642,7 +641,7 @@ public:
 			m_ioQueue->try_enqueue(t);
 		}
 
-		m_ioQueue.release();	// Prevents datasink destructor from closing it yet.
+		m_ioQueue.release(); // Prevents datasink destructor from closing it yet.
 	}
 };
 

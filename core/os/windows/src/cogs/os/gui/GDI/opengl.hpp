@@ -32,15 +32,15 @@
 //class opengl : public hwnd_pane
 //{
 //private:
-//	HGLRC	m_hGLRC;
-//	HDC		m_hDC;
+//	HGLRC m_hGLRC;
+//	HDC m_hDC;
 //
-//	HGLRC	hOldRC;
-//	HDC		hOldDC;
+//	HGLRC hOldRC;
+//	HDC hOldDC;
 //
 //public:
 //	opengl()
-//		:	hwnd_pane(composite_string(), WS_EX_NOPARENTNOTIFY, uiSubsystem)
+//		: hwnd_pane(composite_string(), WS_EX_NOPARENTNOTIFY, uiSubsystem)
 //	{ }
 //
 //	~opengl()
@@ -48,7 +48,7 @@
 //		wglDeleteContext(m_hGLRC);
 //	}
 //
-//	//virtual color get_background_color() const	{ return color::green; }
+//	//virtual color get_background_color() const { return color::green; }
 //
 //	virtual void installing()
 //	{
@@ -56,13 +56,12 @@
 //		memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR)); 
 //		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR); 
 //		pfd.nVersion = 1; 
-//		pfd.dwFlags =	PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW; 
+//		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW; 
 //		pfd.iPixelType = PFD_TYPE_RGBA; 
 //		pfd.cColorBits = 32;
 //		//pfd.cDepthBits = 32;
 //		pfd.iLayerType = PFD_MAIN_PLANE; 
 //		int nPixelFormat = ChoosePixelFormat(get_HDC(), &pfd);
-//		DWORD err = GetLastError();
 //		COGS_ASSERT(nPixelFormat != 0);
 //		BOOL bResult = SetPixelFormat (get_HDC(), nPixelFormat, &pfd); 
 //		COGS_ASSERT(bResult);
@@ -208,12 +207,12 @@
 //
 //	virtual rcptr<console> get_default_console()
 //	{
-//		return rcptr<console>();	// TBD
+//		return rcptr<console>(); // TBD
 //	}
 //
 //	virtual rcptr<console> create_console()
 //	{
-//		return rcptr<console>();	// TBD
+//		return rcptr<console>(); // TBD
 //	}
 //
 //	virtual void message(const composite_string& msg)
@@ -250,10 +249,10 @@
 //	}
 //
 //	// TBD - Create frame buffer objects for nested canvas's
-////	virtual rcptr<view> create_canvas	(const rcref<canvas_panel>& cf) volatile	{ return rcptr<view>(); }
-////	virtual rcptr<view> create_canvas	(const rcref<canvas_frame>& cf) volatile	{ return rcptr<view>(); }
+////	virtual rcptr<view> create_canvas(const rcref<canvas_panel>& cf) volatile { return rcptr<view>(); }
+////	virtual rcptr<view> create_canvas(const rcref<canvas_frame>& cf) volatile { return rcptr<view>(); }
 //
-////	virtual rcptr<view> create_canvas3D	(const rcref<canvas3D_frame>& cf) volatile	{ return rcptr<view>(); }
+////	virtual rcptr<view> create_canvas3D(const rcref<canvas3D_frame>& cf) volatile { return rcptr<view>(); }
 //};
 //
 //}

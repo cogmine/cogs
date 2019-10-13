@@ -31,8 +31,8 @@ public:
 	typedef wait_container_queue<type, coalesc_equal, allocator_type> this_t;
 
 private:
-	semaphore												m_semaphore;
-	container_queue<type, coalesc_equal, allocator_type>	m_queue;
+	semaphore m_semaphore;
+	container_queue<type, coalesc_equal, allocator_type> m_queue;
 
 	wait_container_queue(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -42,7 +42,7 @@ public:
 	{ }
 
 	explicit wait_container_queue(volatile allocator_type& al)
-		:	m_queue(al)
+		: m_queue(al)
 	{ }
 
 	void insert(const type& t, size_t n = 1) volatile
@@ -71,8 +71,8 @@ public:
 	typedef wait_container_queue<type, false, allocator_type> this_t;
 
 private:
-	semaphore										m_semaphore;
-	container_queue<type, false, allocator_type>	m_queue;
+	semaphore m_semaphore;
+	container_queue<type, false, allocator_type> m_queue;
 
 	wait_container_queue(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -82,7 +82,7 @@ public:
 	{ }
 
 	explicit wait_container_queue(volatile allocator_type& al)
-		:	m_queue(al)
+		: m_queue(al)
 	{ }
 
 	void insert(const type& t) volatile

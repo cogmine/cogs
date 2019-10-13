@@ -16,7 +16,7 @@
 
 namespace cogs {
 
-	
+
 /// @ingroup Math
 /// @brief Computes the extended multiplication of two integers
 /// @tparam uint_t Unsigned int type
@@ -32,7 +32,7 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	// E 1
 	//----------
 	// F E 0 1
-	
+
 	uint_t l1 = get_low_part(src1);
 	uint_t l2 = get_low_part(src2);
 	uint_t h1 = get_high_part(src1);
@@ -52,9 +52,8 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	//----------
 	// F E 0 1
 
-	
 	uint_t llh = get_high_part(ll);
-	lh += llh;				// will not overflow
+	lh += llh; // will not overflow
 
 	//     F F
 	//     F F
@@ -64,8 +63,8 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	//----------
 	// F E 0 1
 
-	uint_t mid = lh + hl;	// might overflow
-	if (mid < lh)			// if overflow
+	uint_t mid = lh + hl; // might overflow
+	if (mid < lh) // if overflow
 		hh += make_const_high_part_v<uint_t, 1>;
 
 	uint_t mh = get_high_part(mid);
@@ -74,8 +73,8 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	uint_t lll = get_low_part(ll);
 
 	uint_t low = ml_shifted | lll;
-	uint_t high = hh + mh;	// will not overflow
-	
+	uint_t high = hh + mh; // will not overflow
+
 	highPartRtn = high;
 	return low;
 }

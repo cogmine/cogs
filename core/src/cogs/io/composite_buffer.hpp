@@ -2,12 +2,11 @@
 //  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-
-// Status: Good
-	
 #ifndef COGS_HEADER_IO_COMPOSITE_BUFFER
 #define COGS_HEADER_IO_COMPOSITE_BUFFER
 
+
+// Status: Good
 
 #include "cogs/collections/composite_vector.hpp"
 #include "cogs/collections/composite_string.hpp"
@@ -16,8 +15,8 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 namespace cogs {
@@ -32,8 +31,8 @@ class composite_buffer_content
 private:
 	friend class composite_buffer;
 
-	vector<vector<char> >	m_vectorVector;
-	size_t					m_length;
+	vector<vector<char> > m_vectorVector;
+	size_t m_length;
 
 public:
 	class position_t
@@ -80,7 +79,7 @@ public:
 			return (m_innerIndex == cmp.m_innerIndex) && (m_outerIndex == cmp.m_outerIndex);
 		}
 
-		bool operator!=(const position_t& cmp) const	{ return !operator==(cmp); }
+		bool operator!=(const position_t& cmp) const { return !operator==(cmp); }
 
 		bool operator<(const position_t& cmp) const
 		{
@@ -92,8 +91,8 @@ public:
 			return ((m_outerIndex > cmp.m_outerIndex) || ((m_outerIndex == cmp.m_outerIndex) && (m_innerIndex > cmp.m_innerIndex)));
 		}
 
-		bool operator<=(const position_t& cmp) const	{ return !operator>(cmp); }
-		bool operator>=(const position_t& cmp) const	{ return !operator<(cmp); }
+		bool operator<=(const position_t& cmp) const { return !operator>(cmp); }
+		bool operator>=(const position_t& cmp) const { return !operator<(cmp); }
 
 		size_t get_outer_index() const { return m_outerIndex; }
 		size_t get_inner_index() const { return m_innerIndex; }
@@ -329,7 +328,7 @@ public:
 	{
 		size_t newVectorLength = m_vectorVector.get_length();
 		size_t resultVectorLength = dst.m_vectorVector.get_length();
-		if (resultVectorLength <= newVectorLength)	// slight optimization to count the shorter side
+		if (resultVectorLength <= newVectorLength) // slight optimization to count the shorter side
 		{
 			size_t resultLength = 0;
 			for (size_t i = 0; i < resultVectorLength; i++)
@@ -483,7 +482,7 @@ public:
 			dst.m_vectorVector = m_vectorVector.split_off_before(pos.m_outerIndex);
 		else
 		{
-			dst.m_vectorVector = m_vectorVector;	// Copy whole vector.  A 1-level deep copy will need to take place when modified.
+			dst.m_vectorVector = m_vectorVector; // Copy whole vector.  A 1-level deep copy will need to take place when modified.
 			dst.m_vectorVector.truncate_to(pos.m_outerIndex + 1);
 			dst.m_vectorVector.get_ptr()[pos.m_outerIndex].truncate_to(pos.m_innerIndex);
 			m_vectorVector.advance(pos.m_outerIndex);
@@ -514,7 +513,7 @@ public:
 			dst.m_vectorVector = m_vectorVector.split_off_after(pos.m_outerIndex);
 		else
 		{
-			dst.m_vectorVector = m_vectorVector;	// Copy whole vector.  A 1-level deep copy will need to take place when modified.
+			dst.m_vectorVector = m_vectorVector; // Copy whole vector.  A 1-level deep copy will need to take place when modified.
 			m_vectorVector.truncate_to(pos.m_outerIndex + 1);
 			m_vectorVector.get_ptr()[pos.m_outerIndex].truncate_to(pos.m_innerIndex);
 			dst.m_vectorVector.advance(pos.m_outerIndex);
@@ -1238,12 +1237,12 @@ public:
 
 		size_t cmpLength = cmp.get_length();
 		if (!cmpLength)
-			return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+			return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
 		if (lengthAdjusted > n)
 			lengthAdjusted = n;
-		if (cmpLength > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLength > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return const_max_int_v<size_t>;
 
 		position_t pos = calculate_position(i);
@@ -1256,10 +1255,10 @@ public:
 		size_t i = calculate_index(pos);
 		size_t cmpLength = cmp.get_length();
 		if (!cmpLength)
-			return get_end_position();	// validate cmpLength and cmdLengthAdjusted
+			return get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
-		if (cmpLength > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLength > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return get_end_position();
 
 		position_t newPos = pos;
@@ -1275,12 +1274,12 @@ public:
 
 		size_t cmpLengthAdjusted = cmp.validate_length_from(cmpIndex, cmpLength);
 		if (!cmpLengthAdjusted)
-			return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+			return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
 		if (lengthAdjusted > n)
 			lengthAdjusted = n;
-		if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return const_max_int_v<size_t>;
 
 		position_t pos = calculate_position(i);
@@ -1293,12 +1292,12 @@ public:
 		size_t i = calculate_index(pos);
 		size_t cmpLengthAdjusted = cmp.validate_length_from(cmpIndex, cmpLength);
 		if (!cmpLengthAdjusted)
-			return get_end_position();	// validate cmpLength and cmdLengthAdjusted
+			return get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
 		if (lengthAdjusted > n)
 			lengthAdjusted = n;
-		if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return get_end_position();
 
 		position_t newPos = pos;
@@ -1314,12 +1313,12 @@ public:
 
 		size_t cmpLengthAdjusted = cmp.validate_length_from(cmpPos, cmpLength);
 		if (!cmpLengthAdjusted)
-			return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+			return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
 		if (lengthAdjusted > n)
 			lengthAdjusted = n;
-		if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return const_max_int_v<size_t>;
 
 		position_t pos = calculate_position(i);
@@ -1331,12 +1330,12 @@ public:
 		size_t i = calculate_index(pos);
 		size_t cmpLengthAdjusted = cmp.validate_length_from(cmpPos, cmpLength);
 		if (!cmpLengthAdjusted)
-			return get_end_position();	// validate cmpLength and cmdLengthAdjusted
+			return get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
 		if (lengthAdjusted > n)
 			lengthAdjusted = n;
-		if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+		if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return get_end_position();
 
 		position_t newPos = pos;
@@ -1469,7 +1468,7 @@ public:
 class composite_buffer
 {
 public:
-	typedef composite_buffer	this_t;
+	typedef composite_buffer this_t;
 
 	typedef buffer inner_t;
 
@@ -1514,10 +1513,10 @@ public:
 
 protected:
 	typedef transactable<composite_buffer_content> transactable_t;
-	transactable_t	m_contents;
+	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	composite_buffer(const vector<vector<char> >& src, size_t n)
 	{
@@ -1554,8 +1553,8 @@ public:
 	class const_iterator
 	{
 	protected:
-		const this_t*	m_array;
-		position_t		m_position;
+		const this_t* m_array;
+		position_t m_position;
 
 		const_iterator(const this_t* v, const position_t& pos)
 			: m_array(v),
@@ -1578,7 +1577,7 @@ public:
 			m_position(i.m_position)
 		{ }
 
-		void release()	{ m_array = 0; }
+		void release() { m_array = 0; }
 
 		const_iterator& operator++()
 		{
@@ -1633,21 +1632,21 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int)						{ const_iterator i(*this); ++*this; return i; }
-		const_iterator operator--(int)						{ const_iterator i(*this); --*this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
 
-		bool operator!() const								{ return !m_array || (m_position >= m_array->get_end_position()); }
+		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
-		bool operator==(const const_iterator& i) const		{ return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		//bool operator==(const iterator& i) const			{ return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator!=(const const_iterator& i) const		{ return !operator==(i); }
-		//bool operator!=(const iterator& i) const			{ return !operator==(i); }
-		const_iterator& operator=(const const_iterator& i)	{ m_array = i.m_array; m_position = i.m_position; return *this; }
-		//const_iterator& operator=(const iterator& i)		{ m_array = i.m_array; m_position = i.m_position; return *this; }
+		bool operator==(const const_iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
+		//bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
+		bool operator!=(const const_iterator& i) const { return !operator==(i); }
+		//bool operator!=(const iterator& i) const { return !operator==(i); }
+		const_iterator& operator=(const const_iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
+		//const_iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
 
-		const char* get() const					{ return m_array->get_inner_array(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
-		const char& operator*() const				{ return *get(); }
-		const char* operator->() const				{ return get(); }
+		const char* get() const { return m_array->get_inner_array(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
+		const char& operator*() const { return *get(); }
+		const char* operator->() const { return get(); }
 
 		position_t get_position() const
 		{
@@ -1656,12 +1655,11 @@ public:
 			return m_position;
 		}
 
-		const_iterator next() const	{ const_iterator result(*this); ++result; return result; }
-		const_iterator prev() const	{ const_iterator result(*this); --result; return result; }
-
+		const_iterator next() const { const_iterator result(*this); ++result; return result; }
+		const_iterator prev() const { const_iterator result(*this); --result; return result; }
 	};
 
-	const_iterator get_first_const_iterator() const	{ size_t sz = get_length(); return const_iterator((!!sz ? this : 0), 0, 0); }
+	const_iterator get_first_const_iterator() const { size_t sz = get_length(); return const_iterator((!!sz ? this : 0), 0, 0); }
 
 	const_iterator get_last_const_iterator() const
 	{
@@ -1672,19 +1670,19 @@ public:
 		return const_iterator(this, lastSubVectorIndex, get_inner_array(lastSubVectorIndex).get_length() - 1);
 	}
 
-	position_t get_first_position() const			{ return position_t(0, 0); }
-	position_t get_first_position() const volatile	{ return position_t(0, 0); }
-	position_t get_last_position() const			{ return m_contents->get_last_position(); }
-	position_t get_last_position() const volatile	{ return m_contents.begin_read()->get_last_position(); }
-	position_t get_end_position() const				{ return m_contents->get_end_position(); }
-	position_t get_end_position() const volatile	{ return m_contents.begin_read()->get_end_position(); }
+	position_t get_first_position() const { return position_t(0, 0); }
+	position_t get_first_position() const volatile { return position_t(0, 0); }
+	position_t get_last_position() const { return m_contents->get_last_position(); }
+	position_t get_last_position() const volatile { return m_contents.begin_read()->get_last_position(); }
+	position_t get_end_position() const { return m_contents->get_end_position(); }
+	position_t get_end_position() const volatile { return m_contents.begin_read()->get_end_position(); }
 
-	position_t get_next_position(const position_t& pos) const			{ return m_contents->get_next_position(pos.m_pos); }
-	position_t get_next_position(const position_t& pos) const volatile	{ return m_contents.begin_read()->get_next_position(pos.m_pos); }
+	position_t get_next_position(const position_t& pos) const { return m_contents->get_next_position(pos.m_pos); }
+	position_t get_next_position(const position_t& pos) const volatile { return m_contents.begin_read()->get_next_position(pos.m_pos); }
 
 	// Caller error to call with (pos == 0, 0)
-	position_t get_prev_position(const position_t& pos) const			{ return m_contents->get_prev_position(pos.m_pos); }
-	position_t get_prev_position(const position_t& pos) const volatile	{ return m_contents.begin_read()->get_prev_position(pos.m_pos); }
+	position_t get_prev_position(const position_t& pos) const { return m_contents->get_prev_position(pos.m_pos); }
+	position_t get_prev_position(const position_t& pos) const volatile { return m_contents.begin_read()->get_prev_position(pos.m_pos); }
 
 	// Caller error to call with i >= length
 	position_t calculate_position(size_t i, bool countFromFront = true) const
@@ -1741,35 +1739,35 @@ public:
 	{ }
 
 
-	size_t get_length() const					{ return m_contents->m_length; }
-	size_t get_length() const volatile			{ return m_contents.begin_read()->m_length; }
+	size_t get_length() const { return m_contents->m_length; }
+	size_t get_length() const volatile { return m_contents.begin_read()->m_length; }
 
-	bool is_empty() const						{ return m_contents->m_length == 0; }
-	bool is_empty() const volatile				{ return m_contents.begin_read()->m_length == 0; }
+	bool is_empty() const { return m_contents->m_length == 0; }
+	bool is_empty() const volatile { return m_contents.begin_read()->m_length == 0; }
 
-	bool operator!() const						{ return m_contents->m_length == 0; }
-	bool operator!() const volatile				{ return m_contents.begin_read()->m_length == 0; }
+	bool operator!() const { return m_contents->m_length == 0; }
+	bool operator!() const volatile { return m_contents.begin_read()->m_length == 0; }
 
 
-	bool equals(const char* cmp, size_t cmpLength) const						{ return m_contents->equals(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(const char* cmp, size_t cmpLength) const { return m_contents->equals(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(size_t i, const char* cmp, size_t cmpLength) const				{ return m_contents->equals(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->equals(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(size_t i, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->equals(i, n, buffer::contain(cmp, cmpLength)); }
+	bool equals(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->equals(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(const position_t& pos, const char* cmp, size_t cmpLength) const		{ return m_contents->equals(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(const position_t& pos, const char* cmp, size_t cmpLength) const { return m_contents->equals(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->equals(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool equals(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->equals(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(const char* cmp, size_t cmpLength) const volatile				{ return m_contents.begin_read()->equals(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->equals(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->equals(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->equals(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->equals(i, n, buffer::contain(cmp, cmpLength)); }
+	bool equals(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->equals(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->equals(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool equals(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->equals(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool equals(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->equals(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool equals(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->equals(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 	bool equals(const buffer& cmp) const
 	{
@@ -2024,58 +2022,53 @@ public:
 
 
 
+	bool operator==(const buffer& cmp) const { return equals(cmp); }
+
+	bool operator==(const composite_buffer& cmp) const { return equals(cmp); }
+
+	bool operator==(const buffer& cmp) const volatile { return equals(cmp); }
+
+	bool operator==(const composite_buffer& cmp) const volatile { return equals(cmp); }
+
+	bool operator==(const volatile buffer& cmp) const { return equals(cmp); }
+
+	bool operator==(const volatile composite_buffer& cmp) const { return equals(cmp); }
 
 
 
-	bool operator==(const buffer& cmp) const						{ return equals(cmp); }
+	bool operator!=(const buffer& cmp) const { return !operator==(cmp); }
 
-	bool operator==(const composite_buffer& cmp) const				{ return equals(cmp); }
+	bool operator!=(const composite_buffer& cmp) const { return !operator==(cmp); }
 
-	bool operator==(const buffer& cmp) const volatile				{ return equals(cmp); }
+	bool operator!=(const buffer& cmp) const volatile { return !operator==(cmp); }
 
-	bool operator==(const composite_buffer& cmp) const volatile		{ return equals(cmp); }
+	bool operator!=(const composite_buffer& cmp) const volatile { return !operator==(cmp); }
 
-	bool operator==(const volatile buffer& cmp) const				{ return equals(cmp); }
+	bool operator!=(const volatile buffer& cmp) const { return !operator==(cmp); }
 
-	bool operator==(const volatile composite_buffer& cmp) const		{ return equals(cmp); }
-
-
-
-	bool operator!=(const buffer& cmp) const						{ return !operator==(cmp); }
-
-	bool operator!=(const composite_buffer& cmp) const				{ return !operator==(cmp); }
-
-	bool operator!=(const buffer& cmp) const volatile				{ return !operator==(cmp); }
-
-	bool operator!=(const composite_buffer& cmp) const volatile		{ return !operator==(cmp); }
-
-	bool operator!=(const volatile buffer& cmp) const				{ return !operator==(cmp); }
-
-	bool operator!=(const volatile composite_buffer& cmp) const		{ return !operator==(cmp); }
+	bool operator!=(const volatile composite_buffer& cmp) const { return !operator==(cmp); }
 
 
 
+	int compare(const char* cmp, size_t cmpLength) const { return m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
+	int compare(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	int compare(const char* cmp, size_t cmpLength) const						{ return m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	int compare(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	int compare(size_t i, const char* cmp, size_t cmpLength) const				{ return m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	int compare(const position_t& pos, const char* cmp, size_t cmpLength) const { return m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	int compare(size_t i, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
+	int compare(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	int compare(const position_t& pos, const char* cmp, size_t cmpLength) const		{ return m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	int compare(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	int compare(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	int compare(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	int compare(const char* cmp, size_t cmpLength) const volatile				{ return m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	int compare(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	int compare(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	int compare(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	int compare(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
-
-	int compare(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
-
-	int compare(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	int compare(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 	int compare(const buffer& cmp) const
 	{
@@ -2336,25 +2329,25 @@ public:
 
 
 
-	bool is_less_than(const char* cmp, size_t cmpLength) const						{ return 0 > m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(size_t i, const char* cmp, size_t cmpLength) const				{ return 0 > m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const	{ return 0 > m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(const position_t& pos, const char* cmp, size_t cmpLength) const		{ return 0 > m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return 0 > m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(const char* cmp, size_t cmpLength) const volatile				{ return 0 > m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const char* cmp, size_t cmpLength) const volatile { return 0 > m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return 0 > m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, const char* cmp, size_t cmpLength) const volatile { return 0 > m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return 0 > m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return 0 > m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return 0 > m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return 0 > m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_less_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return 0 > m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return 0 > m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 	bool is_less_than(const buffer& cmp) const
 	{
@@ -2615,25 +2608,25 @@ public:
 
 
 
-	bool is_greater_than(const char* cmp, size_t cmpLength) const						{ return 0 < m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(size_t i, const char* cmp, size_t cmpLength) const			{ return 0 < m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const	{ return 0 < m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(const position_t& pos, const char* cmp, size_t cmpLength) const		{ return 0 < m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return 0 < m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(const char* cmp, size_t cmpLength) const volatile				{ return 0 < m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const char* cmp, size_t cmpLength) const volatile { return 0 < m_contents.begin_read()->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return 0 < m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, const char* cmp, size_t cmpLength) const volatile { return 0 < m_contents.begin_read()->compare(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return 0 < m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return 0 < m_contents.begin_read()->compare(i, n, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return 0 < m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return 0 < m_contents.begin_read()->compare(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool is_greater_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return 0 < m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return 0 < m_contents.begin_read()->compare(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 	bool is_greater_than(const buffer& cmp) const
 	{
@@ -2893,69 +2886,69 @@ public:
 
 
 
-	bool operator<(const buffer& cmp) const						{ return is_less_than(cmp); }
+	bool operator<(const buffer& cmp) const { return is_less_than(cmp); }
 
-	bool operator<(const buffer& cmp) const volatile			{ return is_less_than(cmp); }
+	bool operator<(const buffer& cmp) const volatile { return is_less_than(cmp); }
 
-	bool operator<(const volatile buffer& cmp) const				{ return is_less_than(cmp); }
+	bool operator<(const volatile buffer& cmp) const { return is_less_than(cmp); }
 
-	bool operator<(const composite_buffer& cmp) const			{ return is_less_than(cmp); }
+	bool operator<(const composite_buffer& cmp) const { return is_less_than(cmp); }
 
-	bool operator<(const composite_buffer& cmp) const volatile	{ return is_less_than(cmp); }
+	bool operator<(const composite_buffer& cmp) const volatile { return is_less_than(cmp); }
 
-	bool operator<(const volatile composite_buffer& cmp) const	{ return is_less_than(cmp); }
-
-
-
-	bool operator>(const buffer& cmp) const						{ return is_greater_than(cmp); }
-
-	bool operator>(const buffer& cmp) const volatile			{ return is_greater_than(cmp); }
-
-	bool operator>(const volatile buffer& cmp) const				{ return is_greater_than(cmp); }
-
-	bool operator>(const composite_buffer& cmp) const			{ return is_greater_than(cmp); }
-
-	bool operator>(const composite_buffer& cmp) const volatile	{ return is_greater_than(cmp); }
-
-	bool operator>(const volatile composite_buffer& cmp) const	{ return is_greater_than(cmp); }
+	bool operator<(const volatile composite_buffer& cmp) const { return is_less_than(cmp); }
 
 
 
-	bool operator<=(const buffer& cmp) const					{ return !operator>(cmp); }
+	bool operator>(const buffer& cmp) const { return is_greater_than(cmp); }
 
-	bool operator<=(const buffer& cmp) const volatile			{ return !operator>(cmp); }
+	bool operator>(const buffer& cmp) const volatile { return is_greater_than(cmp); }
 
-	bool operator<=(const volatile buffer& cmp) const				{ return !operator>(cmp); }
+	bool operator>(const volatile buffer& cmp) const { return is_greater_than(cmp); }
 
-	bool operator<=(const composite_buffer& cmp) const			{ return !operator>(cmp); }
+	bool operator>(const composite_buffer& cmp) const { return is_greater_than(cmp); }
 
-	bool operator<=(const composite_buffer& cmp) const volatile	{ return !operator>(cmp); }
+	bool operator>(const composite_buffer& cmp) const volatile { return is_greater_than(cmp); }
 
-	bool operator<=(const volatile composite_buffer& cmp) const	{ return !operator>(cmp); }
-
-
-
-	bool operator>=(const buffer& cmp) const					{ return !operator<(cmp); }
-
-	bool operator>=(const buffer& cmp) const volatile			{ return !operator<(cmp); }
-
-	bool operator>=(const volatile buffer& cmp) const				{ return !operator<(cmp); }
-
-	bool operator>=(const composite_buffer& cmp) const			{ return !operator<(cmp); }
-
-	bool operator>=(const composite_buffer& cmp) const volatile	{ return !operator<(cmp); }
-
-	bool operator>=(const volatile composite_buffer& cmp) const	{ return !operator<(cmp); }
+	bool operator>(const volatile composite_buffer& cmp) const { return is_greater_than(cmp); }
 
 
 
-	bool starts_with(const char* cmp, size_t cmpLength) const						{ return equals(0, cmpLength, cmp, cmpLength); }
+	bool operator<=(const buffer& cmp) const { return !operator>(cmp); }
 
-	bool starts_with(const char* cmp, size_t cmpLength) const volatile					{ return equals(0, cmpLength, cmp, cmpLength); }
+	bool operator<=(const buffer& cmp) const volatile { return !operator>(cmp); }
 
-	bool starts_with(const buffer& cmp) const			{ return equals(0, cmp.get_length(), cmp); }
-	bool starts_with(const buffer& cmp) const volatile	{ return equals(0, cmp.get_length(), cmp); }
-	bool starts_with(const volatile buffer& cmp) const	{ return equals(0, cmp.get_length(), cmp); }
+	bool operator<=(const volatile buffer& cmp) const { return !operator>(cmp); }
+
+	bool operator<=(const composite_buffer& cmp) const { return !operator>(cmp); }
+
+	bool operator<=(const composite_buffer& cmp) const volatile { return !operator>(cmp); }
+
+	bool operator<=(const volatile composite_buffer& cmp) const { return !operator>(cmp); }
+
+
+
+	bool operator>=(const buffer& cmp) const { return !operator<(cmp); }
+
+	bool operator>=(const buffer& cmp) const volatile { return !operator<(cmp); }
+
+	bool operator>=(const volatile buffer& cmp) const { return !operator<(cmp); }
+
+	bool operator>=(const composite_buffer& cmp) const { return !operator<(cmp); }
+
+	bool operator>=(const composite_buffer& cmp) const volatile { return !operator<(cmp); }
+
+	bool operator>=(const volatile composite_buffer& cmp) const { return !operator<(cmp); }
+
+
+
+	bool starts_with(const char* cmp, size_t cmpLength) const { return equals(0, cmpLength, cmp, cmpLength); }
+
+	bool starts_with(const char* cmp, size_t cmpLength) const volatile { return equals(0, cmpLength, cmp, cmpLength); }
+
+	bool starts_with(const buffer& cmp) const { return equals(0, cmp.get_length(), cmp); }
+	bool starts_with(const buffer& cmp) const volatile { return equals(0, cmp.get_length(), cmp); }
+	bool starts_with(const volatile buffer& cmp) const { return equals(0, cmp.get_length(), cmp); }
 
 
 	bool starts_with(const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2995,9 +2988,9 @@ public:
 	bool ends_with(const char* cmp, size_t cmpLength) const { return m_contents->ends_with(buffer::contain(cmp, cmpLength)); }
 	bool ends_with(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->ends_with(buffer::contain(cmp, cmpLength)); }
 
-	bool ends_with(const buffer& cmp) const				{ return m_contents->ends_with(cmp); }
-	bool ends_with(const buffer& cmp) const volatile	{ return m_contents.begin_read()->ends_with(cmp); }
-	bool ends_with(const volatile buffer& cmp) const	{ buffer tmp = cmp; return ends_with(tmp); }
+	bool ends_with(const buffer& cmp) const { return m_contents->ends_with(cmp); }
+	bool ends_with(const buffer& cmp) const volatile { return m_contents.begin_read()->ends_with(cmp); }
+	bool ends_with(const volatile buffer& cmp) const { buffer tmp = cmp; return ends_with(tmp); }
 
 
 
@@ -3034,70 +3027,70 @@ public:
 	}
 
 
-	size_t index_of(const char& cmp) const						{ return m_contents->index_of(0, const_max_int_v<size_t>, cmp); }
+	size_t index_of(const char& cmp) const { return m_contents->index_of(0, const_max_int_v<size_t>, cmp); }
 
-	size_t index_of(const char& cmp) const volatile			{ return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp); }
+	size_t index_of(const char& cmp) const volatile { return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp); }
 
-	size_t index_of(size_t i, const char& cmp) const			{ return m_contents->index_of(i, const_max_int_v<size_t>, cmp); }
+	size_t index_of(size_t i, const char& cmp) const { return m_contents->index_of(i, const_max_int_v<size_t>, cmp); }
 
-	size_t index_of(size_t i, const char& cmp) const volatile	{ return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp); }
+	size_t index_of(size_t i, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp); }
 
-	size_t index_of(size_t i, size_t n, const char& cmp) const			{ return m_contents->index_of(i, n, cmp); }
+	size_t index_of(size_t i, size_t n, const char& cmp) const { return m_contents->index_of(i, n, cmp); }
 
-	size_t index_of(size_t i, size_t n, const char& cmp) const volatile	{ return m_contents.begin_read()->index_of(i, n, cmp); }
-
-
-	position_t position_of(const position_t& pos, const char& cmp) const			{ return m_contents->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
-
-	position_t position_of(const position_t& pos, const char& cmp) const volatile	{ return m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
-
-	position_t position_of(const position_t& pos, size_t n, const char& cmp) const			{ return m_contents->position_of(pos.m_pos, n, cmp); }
-
-	position_t position_of(const position_t& pos, size_t n, const char& cmp) const volatile	{ return m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
+	size_t index_of(size_t i, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, n, cmp); }
 
 
+	position_t position_of(const position_t& pos, const char& cmp) const { return m_contents->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
+
+	position_t position_of(const position_t& pos, const char& cmp) const volatile { return m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
+
+	position_t position_of(const position_t& pos, size_t n, const char& cmp) const { return m_contents->position_of(pos.m_pos, n, cmp); }
+
+	position_t position_of(const position_t& pos, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
 
 
-	size_t index_of_any(const char* cmp, size_t cmpLength) const						{ return m_contents->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
-
-	size_t index_of_any(const char* cmp, size_t cmpLength) const volatile				{ return m_contents.begin_read()->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
-
-	size_t index_of_any(size_t i, const char* cmp, size_t cmpLength) const				{ return m_contents->index_of_any(i, const_max_int_v<size_t>, cmp, cmpLength); }
-
-	size_t index_of_any(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_any(i, const_max_int_v<size_t>, cmp, cmpLength); }
 
 
-	size_t index_of_any(size_t i, size_t n, const char* cmp, size_t cmpLength) const			{ return m_contents->index_of_any(i, n, cmp, cmpLength); }
+	size_t index_of_any(const char* cmp, size_t cmpLength) const { return m_contents->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
 
-	size_t index_of_any(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_any(i, n, cmp, cmpLength); }
+	size_t index_of_any(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
 
+	size_t index_of_any(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->index_of_any(i, const_max_int_v<size_t>, cmp, cmpLength); }
 
-	position_t position_of_any(const position_t& pos, const char* cmp, size_t cmpLength) const			{ return m_contents->position_of_any(pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
-
-	position_t position_of_any(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->position_of_any(pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
-
-
-	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const			{ return m_contents->position_of_any(pos.m_pos, n, cmp, cmpLength); }
-
-	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->position_of_any(pos.m_pos, n, cmp, cmpLength); }
+	size_t index_of_any(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_any(i, const_max_int_v<size_t>, cmp, cmpLength); }
 
 
+	size_t index_of_any(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->index_of_any(i, n, cmp, cmpLength); }
+
+	size_t index_of_any(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_any(i, n, cmp, cmpLength); }
+
+
+	position_t position_of_any(const position_t& pos, const char* cmp, size_t cmpLength) const { return m_contents->position_of_any(pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
+
+	position_t position_of_any(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->position_of_any(pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
+
+
+	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->position_of_any(pos.m_pos, n, cmp, cmpLength); }
+
+	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->position_of_any(pos.m_pos, n, cmp, cmpLength); }
 
 
 
 
 
-	size_t index_of_segment(const char* cmp, size_t cmpLength) const						{ return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	size_t index_of_segment(size_t i, const char* cmp, size_t cmpLength) const				{ return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	size_t index_of_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)); }
+	size_t index_of_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	size_t index_of_segment(const char* cmp, size_t cmpLength) const volatile				{ return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	size_t index_of_segment(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	size_t index_of_segment(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	size_t index_of_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)); }
 
-	size_t index_of_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)); }
+	size_t index_of_segment(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+
+	size_t index_of_segment(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+
+	size_t index_of_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)); }
 
 	size_t index_of_segment(const buffer& cmp) const
 	{
@@ -3243,13 +3236,13 @@ public:
 	}
 
 
-	position_t position_of_segment(const position_t& pos, const char* cmp, size_t cmpLength) const	{ return m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, const char* cmp, size_t cmpLength) const { return m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	position_t position_of_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return m_contents->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	position_t position_of_segment(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	position_t position_of_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 
 	position_t position_of_segment(const position_t& pos, const buffer& cmp) const
@@ -3350,52 +3343,52 @@ public:
 	}
 
 
-	bool contains(const char& cmp) const					{ return m_contents->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const char& cmp) const { return m_contents->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
 
-	bool contains(const char& cmp) const volatile			{ return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const char& cmp) const volatile { return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
 
-	bool contains(size_t i, const char& cmp) const			{ return m_contents->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const char& cmp) const { return m_contents->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
 
-	bool contains(size_t i, const char& cmp) const volatile				{ return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
 
-	bool contains(const position_t& pos, const char& cmp) const			{ return get_end_position() != m_contents->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
+	bool contains(const position_t& pos, const char& cmp) const { return get_end_position() != m_contents->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
 
-	bool contains(const position_t& pos, const char& cmp) const volatile	{ return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
-
-
-
-
-	bool contains(size_t i, size_t n, const char& cmp) const						{ return m_contents->index_of(i, n, cmp) != -1; }
-
-	bool contains(size_t i, size_t n, const char& cmp) const volatile				{ return m_contents.begin_read()->index_of(i, n, cmp) != -1; }
-
-	bool contains(const position_t& pos, size_t n, const char& cmp) const			{ return get_end_position() != m_contents->position_of(pos.m_pos, n, cmp); }
-
-	bool contains(const position_t& pos, size_t n, const char& cmp) const volatile	{ return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
+	bool contains(const position_t& pos, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 
 
 
+	bool contains(size_t i, size_t n, const char& cmp) const { return m_contents->index_of(i, n, cmp) != -1; }
 
-	bool contains_segment(const char* cmp, size_t cmpLength) const						{ return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains(size_t i, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, n, cmp) != -1; }
 
-	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const				{ return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains(const position_t& pos, size_t n, const char& cmp) const { return get_end_position() != m_contents->position_of(pos.m_pos, n, cmp); }
 
-	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const		{ return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains(const position_t& pos, size_t n, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
 
-	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const	{ return get_end_position() != m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
-	bool contains_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const	{ return get_end_position() != m_contents->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	bool contains_segment(const char* cmp, size_t cmpLength) const volatile				{ return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
 
-	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
 
-	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
 
-	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const volatile	{ return get_end_position() != m_contents.begin_read()->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
 
-	bool contains_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile	{ return get_end_position() != m_contents.begin_read()->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+
+	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const { return get_end_position() != m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+
+	bool contains_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return get_end_position() != m_contents->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
+
+	bool contains_segment(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+
+	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+
+	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+
+	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return get_end_position() != m_contents.begin_read()->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
+
+	bool contains_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return get_end_position() != m_contents.begin_read()->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
 
 	bool contains_segment(const buffer& cmp) const
@@ -3501,7 +3494,7 @@ public:
 
 	bool contains_segment(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
 	}
 
 	bool contains_segment(const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -3517,7 +3510,7 @@ public:
 
 	bool contains_segment(size_t i, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
 	}
 
 	bool contains_segment(size_t i, const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -3534,7 +3527,7 @@ public:
 
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -3641,11 +3634,11 @@ public:
 		return get_end_position() != m_contents->position_of_segment(pos.m_pos, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
 
-	size_t get_inner_count() const					{ return m_contents->m_vectorVector.get_length(); }
-	size_t get_inner_count() const volatile			{ return m_contents.begin_read()->m_vectorVector.get_length(); }
+	size_t get_inner_count() const { return m_contents->m_vectorVector.get_length(); }
+	size_t get_inner_count() const volatile { return m_contents.begin_read()->m_vectorVector.get_length(); }
 
-	const vector<char>& get_inner_array(size_t i) const			{ return m_contents->m_vectorVector.get_const_ptr()[i]; }
-	const vector<char> get_inner_array(size_t i) const volatile	{ return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
+	const vector<char>& get_inner_array(size_t i) const { return m_contents->m_vectorVector.get_const_ptr()[i]; }
+	const vector<char> get_inner_array(size_t i) const volatile { return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
 
 	const buffer& get_inner_buffer(size_t i, unowned_t<buffer>& storage = unowned_t<buffer>().get_unowned()) const
 	{
@@ -3667,20 +3660,20 @@ public:
 		return buffer::from_vector(get_inner_array(i), storage);
 	}
 
-	void reserve_sub_buffers(size_t n)				{ return m_contents->m_vectorVector.reserve(n); }
+	void reserve_sub_buffers(size_t n) { return m_contents->m_vectorVector.reserve(n); }
 
 
-	void reset()										{ m_contents->reset(); }
-	void reset() volatile								{ this_t tmp; swap(tmp); }
+	void reset() { m_contents->reset(); }
+	void reset() volatile { this_t tmp; swap(tmp); }
 
-	void clear()										{ m_contents->clear(); }
+	void clear() { m_contents->clear(); }
 	void clear() volatile
 	{
 		this_t tmp;
 		swap(tmp);
 	}
 
-	const char& operator[](const position_t& pos) const			{ return get_inner_array(pos.get_outer_index())[pos.get_inner_index()]; }
+	const char& operator[](const position_t& pos) const { return get_inner_array(pos.get_outer_index())[pos.get_inner_index()]; }
 
 
 	composite_buffer subrange(size_t i, size_t n = const_max_int_v<size_t>) const
@@ -3726,49 +3719,49 @@ public:
 	}
 
 
-	void assign(size_t n, const char& src)				{ assign(buffer(n, src)); }
+	void assign(size_t n, const char& src) { assign(buffer(n, src)); }
 
-	void assign(size_t n, const char& src) volatile		{ assign(buffer(n, src)); }
+	void assign(size_t n, const char& src) volatile { assign(buffer(n, src)); }
 
-	void assign(const char* src, size_t n)				{ assign(buffer(src, n)); }
+	void assign(const char* src, size_t n) { assign(buffer(src, n)); }
 
-	void assign(const char* src, size_t n) volatile		{ assign(buffer(src, n)); }
+	void assign(const char* src, size_t n) volatile { assign(buffer(src, n)); }
 
-	void assign(const composite_buffer& src)			{ *m_contents = *(src.m_contents); }
+	void assign(const composite_buffer& src) { *m_contents = *(src.m_contents); }
 
-	void assign(const volatile composite_buffer& src)	{ *m_contents = *(src.m_contents.begin_read()); }
+	void assign(const volatile composite_buffer& src) { *m_contents = *(src.m_contents.begin_read()); }
 
-	void assign(const composite_buffer& src) volatile	{ m_contents.set(*(src.m_contents)); }
+	void assign(const composite_buffer& src) volatile { m_contents.set(*(src.m_contents)); }
 
-	void assign(const buffer& src)						{ *m_contents = src; }
+	void assign(const buffer& src) { *m_contents = src; }
 
-	void assign(const volatile buffer& src)				{ *m_contents = src; }
+	void assign(const volatile buffer& src) { *m_contents = src; }
 
-	void assign(const buffer& src) volatile				{ m_contents.set(src); }
+	void assign(const buffer& src) volatile { m_contents.set(src); }
 
-	this_t& operator=(const composite_buffer& src)			{ assign(src); return *this; }
-	this_t& operator=(const volatile composite_buffer& src)	{ assign(src); return *this; }
-	void operator=(const composite_buffer& src) volatile		{ assign(src); }
+	this_t& operator=(const composite_buffer& src) { assign(src); return *this; }
+	this_t& operator=(const volatile composite_buffer& src) { assign(src); return *this; }
+	void operator=(const composite_buffer& src) volatile { assign(src); }
 
-	this_t& operator=(const buffer& src)				{ assign(src); return *this; }
+	this_t& operator=(const buffer& src) { assign(src); return *this; }
 
-	this_t& operator=(const volatile buffer& src)	{ assign(src); return *this; }
+	this_t& operator=(const volatile buffer& src) { assign(src); return *this; }
 
-	void operator=(const buffer& src) volatile		{ assign(src); }
+	void operator=(const buffer& src) volatile { assign(src); }
 
-	void append(size_t n, const char& src)				{ m_contents->append(buffer(n, src)); }
+	void append(size_t n, const char& src) { m_contents->append(buffer(n, src)); }
 
-	void append(const char* src, size_t n)				{ m_contents->append(buffer(src, n)); }
-
-
-	void append(const volatile composite_buffer& src)				{ m_contents->append(*(src.m_contents.begin_read())); }
-
-	void append(const composite_buffer& src)			{ m_contents->append(*(src.m_contents)); }
+	void append(const char* src, size_t n) { m_contents->append(buffer(src, n)); }
 
 
-	void append(const buffer& src)			{ m_contents->append(src); }
+	void append(const volatile composite_buffer& src) { m_contents->append(*(src.m_contents.begin_read())); }
 
-	void append(const volatile buffer& src)			{ m_contents->append(src); }
+	void append(const composite_buffer& src) { m_contents->append(*(src.m_contents)); }
+
+
+	void append(const buffer& src) { m_contents->append(src); }
+
+	void append(const volatile buffer& src) { m_contents->append(src); }
 
 
 	this_t& operator+=(const composite_buffer& src)
@@ -3828,24 +3821,24 @@ public:
 
 
 
-	void prepend(const composite_buffer& src)	{ m_contents->prepend(*(src.m_contents)); }
+	void prepend(const composite_buffer& src) { m_contents->prepend(*(src.m_contents)); }
 
-	void prepend(const volatile composite_buffer& src)					{ m_contents->prepend(*(src.m_contents.begin_read())); }
-
-
-	void prepend(const buffer& src)				{ m_contents->prepend(src); }
-
-	void prepend(const volatile buffer& src)				{ m_contents->prepend(src); }
+	void prepend(const volatile composite_buffer& src) { m_contents->prepend(*(src.m_contents.begin_read())); }
 
 
+	void prepend(const buffer& src) { m_contents->prepend(src); }
 
-	void swap(composite_buffer& wth)			{ m_contents.swap(wth.m_contents); }
-
-	void swap(composite_buffer& wth) volatile	{ m_contents.swap(wth.m_contents); }
-	void swap(volatile composite_buffer& wth)	{ wth.m_contents.swap(m_contents); }
+	void prepend(const volatile buffer& src) { m_contents->prepend(src); }
 
 
-	void advance_arrays(size_t n)				{ m_contents->advance_arrays(n); }
+
+	void swap(composite_buffer& wth) { m_contents.swap(wth.m_contents); }
+
+	void swap(composite_buffer& wth) volatile { m_contents.swap(wth.m_contents); }
+	void swap(volatile composite_buffer& wth) { wth.m_contents.swap(m_contents); }
+
+
+	void advance_arrays(size_t n) { m_contents->advance_arrays(n); }
 	void advance_arrays(size_t n) volatile
 	{
 		write_token wt;
@@ -3855,7 +3848,7 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void truncate_arrays(size_t n)				{ m_contents->truncate_arrays(n); }
+	void truncate_arrays(size_t n) { m_contents->truncate_arrays(n); }
 
 	void truncate_arrays(size_t n) volatile
 	{
@@ -3867,7 +3860,7 @@ public:
 	}
 
 
-	void truncate_arrays_to(size_t n)			{ m_contents->truncate_arrays_to(n); }
+	void truncate_arrays_to(size_t n) { m_contents->truncate_arrays_to(n); }
 
 	void truncate_arrays_to(size_t n) volatile
 	{
@@ -3881,7 +3874,7 @@ public:
 	void advance_array() { advance_arrays(1); }
 	void truncate_array() { truncate_arrays(1); }
 
-	buffer pop_first_array()		{ return buffer::from_vector(m_contents->pop_first_array()); }
+	buffer pop_first_array() { return buffer::from_vector(m_contents->pop_first_array()); }
 
 	buffer pop_first_array() volatile
 	{
@@ -3900,7 +3893,7 @@ public:
 		return buffer::from_vector(result);
 	}
 
-	buffer pop_last_array()		{ return buffer::from_vector(m_contents->pop_last_array()); }
+	buffer pop_last_array() { return buffer::from_vector(m_contents->pop_last_array()); }
 
 	buffer pop_last_array() volatile
 	{
@@ -3934,7 +3927,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_arrays_before(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -3958,7 +3951,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_arrays_after(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -3984,7 +3977,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_before(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -4008,7 +4001,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_before(pos.m_pos, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -4033,7 +4026,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_after(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -4058,7 +4051,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_after(pos.m_pos, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -4093,7 +4086,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			wt->split_off_back(n, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -4261,8 +4254,8 @@ public:
 		return result;
 	}
 
-	composite_string to_string() const		{ return to_string_t<wchar_t>(); }
-	composite_cstring to_cstring() const	{ return to_string_t<char>(); }
+	composite_string to_string() const { return to_string_t<wchar_t>(); }
+	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
 
 

@@ -72,7 +72,7 @@ enum compositing_behavior
 	/// Uses a backing buffer for the drawing operation of this pane as well as its child panes.
 	/// Overlapping invalidates from child panes would cause redraws of the parent, so the parent and
 	/// then children can re-render themselves to a common backing buffer.  But, overlapping invalidates
-	/// from sibling panes would not trigger calls to draw().   This is useful to allow one hierachy
+	/// from sibling panes would not trigger calls to draw().  This is useful to allow one hierachy
 	/// of panes to render independently of another.
 	buffer_self_and_children = 2,
 };
@@ -110,7 +110,7 @@ public:
 private:
 	weak_rcptr<pane> m_parent;
 	container_dlist<rcref<pane> > m_children;
-	container_dlist<rcref<pane> >::remove_token m_siblingIterator;	// our element in our parent's list of children panes
+	container_dlist<rcref<pane> >::remove_token m_siblingIterator; // our element in our parent's list of children panes
 
 	// Changes to the UI subsystem are serialized using the pane's dispatcher.
 
@@ -144,7 +144,7 @@ private:
 	range m_currentRange;
 	size m_currentDefaultSize = { 0, 0 };
 
-	container_dlist<rcref<pane> >::iterator	m_childInstallItor;
+	container_dlist<rcref<pane> >::iterator m_childInstallItor;
 	rcptr<pane> m_parentInstalling;
 	bool m_topmostUninstall = false;
 
@@ -227,7 +227,7 @@ private:
 	class serial_dispatch_state
 	{
 	public:
-		int	m_scheduledPriority;
+		int m_scheduledPriority;
 		unsigned int m_flags;
 	};
 
@@ -238,11 +238,11 @@ private:
 
 	enum serial_dispatch_state_flags
 	{
-		busy_flag		= 0x01,	// 00001
-		dirty_flag		= 0x02,	// 00010
-		scheduled_flag	= 0x04,	// 00100
-		expired_flag	= 0x08,	// 01000
-		hand_off_flag	= 0x10,	// 10000
+		busy_flag = 0x01,      // 00001
+		dirty_flag = 0x02,     // 00010
+		scheduled_flag = 0x04, // 00100
+		expired_flag = 0x08,   // 01000
+		hand_off_flag = 0x10,  // 10000
 	};
 
 	void serial_dispatch() volatile
@@ -260,17 +260,17 @@ private:
 				newState.m_flags |= busy_flag;
 			else
 				newState.m_flags |= dirty_flag;
-				
+
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
-			
+
 			if (!own)
 				break;
 
 			get_next_dispatcher()->dispatch([r{ this_rcref }]()
 			{
 				r->serial_update();
-			}, const_min_int_v<int>);	// best possible priority
+			}, const_min_int_v<int>); // best possible priority
 			break;
 		}
 	}
@@ -287,7 +287,7 @@ private:
 		{
 			COGS_ASSERT((oldState.m_flags & expired_flag) == 0);
 			serial_dispatch_state newState = oldState;
-			newState.m_flags &= ~scheduled_flag & ~hand_off_flag & ~dirty_flag;	// remove scheduled flag, and hand_off_flag if it was present
+			newState.m_flags &= ~scheduled_flag & ~hand_off_flag & ~dirty_flag; // remove scheduled flag, and hand_off_flag if it was present
 			newState.m_flags |= busy_flag | expired_flag;
 			bool own = ((oldState.m_flags & busy_flag) == 0) || ((oldState.m_flags & hand_off_flag) != 0);
 			if (!own)
@@ -311,7 +311,7 @@ private:
 		for (;;)
 		{
 			COGS_ASSERT((oldState.m_flags & hand_off_flag) == 0);
-			if ((oldState.m_flags & dirty_flag) != 0)	// Immediately remove the retry tripwire
+			if ((oldState.m_flags & dirty_flag) != 0) // Immediately remove the retry tripwire
 			{
 				newState = oldState;
 				newState.m_flags &= ~dirty_flag;
@@ -325,7 +325,7 @@ private:
 			bool removeScheduled = false;
 			if (!vt)
 			{
-				if ((oldState.m_flags & scheduled_flag) == 0)	// Nothing scheduled, done if we can transition out
+				if ((oldState.m_flags & scheduled_flag) == 0) // Nothing scheduled, done if we can transition out
 				{
 					newState = oldState;
 					newState.m_flags &= ~busy_flag & ~expired_flag;
@@ -341,7 +341,7 @@ private:
 				priority = vt.get_key();
 				if ((oldState.m_flags & scheduled_flag) != 0)
 				{
-					if (priority == oldState.m_scheduledPriority)	// Something the same priority is already scheduled, done if we can transition out
+					if (priority == oldState.m_scheduledPriority) // Something the same priority is already scheduled, done if we can transition out
 					{
 						newState = oldState;
 						newState.m_flags &= ~busy_flag;
@@ -360,30 +360,30 @@ private:
 				{
 					m_expireTask->cancel();
 					m_expireTask.release();
-					for (;;)	// Nothing is scheduled now.  Remove scheduled bit foracbly.
+					for (;;) // Nothing is scheduled now.  Remove scheduled bit foracbly.
 					{
 						newState = oldState;
 						newState.m_flags &= ~scheduled_flag;
-						newState.m_flags &= ~dirty_flag;	// slight efficiency
+						newState.m_flags &= ~dirty_flag; // slight efficiency
 						if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 							continue;
 						oldState.m_flags = newState.m_flags;
 						break;
 					}
-					continue;	// Start from the beginning, in case other flags have changed
+					continue; // Start from the beginning, in case other flags have changed
 				}
-				for (;;)	// Try to release update to expiring thread, if it doesn't expire before we get the chance
+				for (;;) // Try to release update to expiring thread, if it doesn't expire before we get the chance
 				{
 					newState = oldState;
 					newState.m_flags |= hand_off_flag;
-					newState.m_flags &= ~dirty_flag;	// slight efficiency
+					newState.m_flags &= ~dirty_flag; // slight efficiency
 					if (atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 						return;
-					if (((oldState.m_flags & expired_flag) != 0))	// Already expired
+					if (((oldState.m_flags & expired_flag) != 0)) // Already expired
 						break;
 					//continue;
 				}
-				continue;	// Start from the beginning, in case other flags have changed
+				continue; // Start from the beginning, in case other flags have changed
 			}
 
 			if ((oldState.m_flags & expired_flag) != 0)
@@ -404,17 +404,17 @@ private:
 					return;
 				}
 
-				for (;;)	// Expired, but too soon.  Need to reschedule anyway.  Remove expired bit foracbly.
+				for (;;) // Expired, but too soon.  Need to reschedule anyway.  Remove expired bit foracbly.
 				{
 					newState = oldState;
 					newState.m_flags &= ~expired_flag;
-					newState.m_flags &= ~dirty_flag;	// slight efficiency
+					newState.m_flags &= ~dirty_flag; // slight efficiency
 					if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 						continue;
 					oldState.m_flags = newState.m_flags;
 					break;
 				}
-				continue;	// Start from the beginning, in case other flags have changed
+				continue; // Start from the beginning, in case other flags have changed
 			}
 
 			COGS_ASSERT(!!vt);
@@ -424,7 +424,7 @@ private:
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
 
-			((pane*)this)->m_expireDone = false;	// don't need to set with atomicity, so cast away
+			((pane*)this)->m_expireDone = false; // don't need to set with atomicity, so cast away
 			m_expireTask = get_next_dispatcher()->dispatch([r{ this_rcref }]()
 			{
 				r->serial_expire();
@@ -450,7 +450,7 @@ private:
 			get_next_dispatcher()->dispatch([r{ this_rcref }]()
 			{
 				r->serial_update();
-			}, const_min_int_v<int>);	// highest possible priority
+			}, const_min_int_v<int>); // highest possible priority
 			break;
 		}
 	}
@@ -509,7 +509,7 @@ protected:
 
 	void set_externally_drawn(const rcref<gfx::canvas>& externalCanvas)
 	{
-		COGS_ASSERT(m_installing);	// This function should also be called when installing
+		COGS_ASSERT(m_installing); // This function should also be called when installing
 		COGS_ASSERT(!m_bridgedCanvas);
 		m_bridgedCanvas = externalCanvas;
 	}
@@ -665,7 +665,7 @@ protected:
 			});
 		});
 	}
-	
+
 	void uninstall()
 	{
 		dispatch_async([r{ this_rcref }]()
@@ -673,7 +673,7 @@ protected:
 			r->uninstall_inner();
 		});
 	}
-	
+
 	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
 	{
 		child->m_parent = this_rcref;
@@ -732,13 +732,13 @@ protected:
 					(*itor)->hiding();
 				detaching_child(*itor);
 			} while (!!++itor);
-			if (get_desc()->get_strong_count() > 0)	// Don't recompose if we're called from destructor
+			if (get_desc()->get_strong_count() > 0) // Don't recompose if we're called from destructor
 				recompose();
 		}
 	}
 
-	compositing_behavior get_compositing_behavior() const		{ return m_compositingBehavior; }
-	
+	compositing_behavior get_compositing_behavior() const { return m_compositingBehavior; }
+
 	void set_compositing_behavior(compositing_behavior cb)
 	{
 		if (m_compositingBehavior != cb)
@@ -750,9 +750,9 @@ protected:
 				if (cb == no_buffer)
 					m_offScreenBuffer.release();
 
-				if (cb == buffer_self)	// invalidate before, to ensure children get invalidated.
+				if (cb == buffer_self) // invalidate before, to ensure children get invalidated.
 					invalidate(get_size());
-				
+
 				m_compositingBehavior = cb;
 
 				if (cb != buffer_self)
@@ -770,7 +770,7 @@ protected:
 				if (!is_externally_drawn())
 				{
 					COGS_ASSERT(!!m_offScreenBuffer);
-					point offset;
+					point offset(0, 0);
 					bounds visibleBounds;
 					rcptr<pane> p = get_ancestor_render_pane(offset, visibleBounds);
 					COGS_ASSERT(!!p);
@@ -785,17 +785,17 @@ protected:
 			};
 
 			prepare_offscreen_buffer();
-			if (!!m_offScreenBuffer && !m_needsDraw)					// --- Buffer already available:
+			if (!!m_offScreenBuffer && !m_needsDraw)      // --- Buffer already available:
 			{
-				composite_offscreen_buffer();							// Fully clip, Blit, Unclip
-				if (m_compositingBehavior == buffer_self)				// If buffering only this pane,
-					draw_children();									// Draw children (they clip themselves)
+				composite_offscreen_buffer();             // Fully clip, Blit, Unclip
+				if (m_compositingBehavior == buffer_self) // If buffering only this pane,
+					draw_children();                      // Draw children (they clip themselves)
 			}
 			else
 			{
 				m_needsDraw = false;
-				if (m_compositingBehavior == no_buffer)					// --- Not buffering:
-				{														// Fully clip
+				if (m_compositingBehavior == no_buffer)   // --- Not buffering:
+				{                                         // Fully clip
 					point offset(0, 0);
 					bounds visibleBounds;
 					rcptr<pane> p = get_render_pane(offset, visibleBounds);
@@ -805,35 +805,35 @@ protected:
 					if (!is_externally_drawn())
 						p->clip_opaque_after(*this, offset, visibleBounds);
 					p->clip_opaque_descendants(*this, offset, visibleBounds);
-					drawing();											// Draw this pane
-					p->restore_clip();									// Unclip
-					draw_children();									// Draw children (they clip themselves)
+					drawing();                            // Draw this pane
+					p->restore_clip();                    // Unclip
+					draw_children();                      // Draw children (they clip themselves)
 				}
-				else if (m_compositingBehavior == buffer_self)			// --- Only buffering this pane:
+				else if (m_compositingBehavior == buffer_self) // --- Only buffering this pane:
 				{
 					size sz = get_size();
 					bounds b = sz;
 					save_clip();
-					clip_to(b);											// Clip to bounds
+					clip_to(b);                           // Clip to bounds
 					fill(b, color::transparent, false);
-					drawing();											// Draw this pane
-					restore_clip();										// Unclip
-					composite_offscreen_buffer();						// Fully clip, Blit, Unclip
-					draw_children();									// Draw children (they clip themselves)
+					drawing();                            // Draw this pane
+					restore_clip();                       // Unclip
+					composite_offscreen_buffer();         // Fully clip, Blit, Unclip
+					draw_children();                      // Draw children (they clip themselves)
 				}
-				else //if (m_compositingBehavior == buffer_self_and_children)	// --- Buffer this pane and children:
+				else //if (m_compositingBehavior == buffer_self_and_children) // --- Buffer this pane and children:
 				{
 					size sz = get_size();
 					bounds b = sz;
 					save_clip();
-					clip_to(b);											// Clip to bounds
+					clip_to(b);                                // Clip to bounds
 					point offset(0, 0);
-					clip_opaque_descendants(*this, offset, b);			// Clip descendants
+					clip_opaque_descendants(*this, offset, b); // Clip descendants
 					fill(sz, color::transparent, false);
-					drawing();											// Draw this pane
-					restore_clip();										// Unclip
-					draw_children();									// Draw children (they clip themselves)
-					composite_offscreen_buffer();						// Fully clip, Blit, Unclip
+					drawing();                                 // Draw this pane
+					restore_clip();                            // Unclip
+					draw_children();                           // Draw children (they clip themselves)
+					composite_offscreen_buffer();              // Fully clip, Blit, Unclip
 				}
 			}
 		}
@@ -869,24 +869,24 @@ protected:
 		}
 	}
 
-	//	A pane may have focus, but it may also contain a child pane that has subfocus.
+	// A pane may have focus, but it may also contain a child pane that has subfocus.
 	//
-	//	has_focus()			<- indicates true if focused, regardless of subfocus.
-	//	has_primary_focus()	<- indicates true only if focused with no subfocus.
+	// has_focus()         <- indicates true if focused, regardless of subfocus.
+	// has_primary_focus() <- indicates true only if focused with no subfocus.
 
-	bool has_focus() const			{ return m_hasFocus; }
+	bool has_focus() const { return m_hasFocus; }
 
-	bool has_primary_focus() const	{ return (m_hasFocus && !m_subFocus); }	// if false, a child has the primary focus
+	bool has_primary_focus() const { return (m_hasFocus && !m_subFocus); } // if false, a child has the primary focus
 
-	bool is_focusable() const		{ return is_focusable(0); }
+	bool is_focusable() const { return is_focusable(0); }
 
 	// A call to focus should be synchronous.  If focusing() is overridden, it should call
 	// pane::focusing() before returning.
-	void focus(int direction = 0)	// direction: -1 = prev/shift-tab, 0 = restore focus, 1 = next/tab
+	void focus(int direction = 0) // direction: -1 = prev/shift-tab, 0 = restore focus, 1 = next/tab
 	{
 		if (!!m_hasFocus)
 		{
-			if (!m_subFocus)	// Maybe we're being prompted to notice a new subFocus
+			if (!m_subFocus) // Maybe we're being prompted to notice a new subFocus
 				focus_children(direction);
 		}
 		else
@@ -920,7 +920,7 @@ protected:
 			dispatch([r{ this_rcref }, recomposeDescendants]()
 			{
 				r->recomposing(recomposeDescendants);
-			}, 1);	// slightly lower priority, so recompose happens after whatever else is done
+			}, 1); // slightly lower priority, so recompose happens after whatever else is done
 		}
 	}
 
@@ -928,7 +928,7 @@ protected:
 	{
 		COGS_ASSERT(!m_installing);
 		COGS_ASSERT(!m_uninstalling);
-		m_recomposing = false;	// only works to guard redundant calls to recompose() while in queue
+		m_recomposing = false; // only works to guard redundant calls to recompose() while in queue
 		cell& r = get_outermost_cell();
 		rcptr<pane> parent = m_parent;
 		if (!parent)
@@ -945,22 +945,22 @@ protected:
 			cell::calculate_range(r);
 			m_recomposeDescendants = true;
 			range newParentRange = r.get_range();
-			if (newParentRange == oldParentRange)	// if parent would be unaffected
+			if (newParentRange == oldParentRange) // if parent would be unaffected
 				cell::reshape(r, r.propose_size(get_size()));
 			else
 				parent->recompose();
 		}
 	}
 
-	void invalidate(const bounds& b)	// b in local coords
+	void invalidate(const bounds& b) // b in local coords
 	{
-		bounds b2 = b & bounds(get_size());	// clip
+		bounds b2 = b & bounds(get_size()); // clip
 		if (!!b2.get_height() && !!b2.get_width())
 		{
 			m_needsDraw = true;
 			invalidating(b2);
 			invalidating_up(b2);
-			if (m_compositingBehavior != buffer_self)	// no need to invalidate children if we're buffering only ourselves.
+			if (m_compositingBehavior != buffer_self) // no need to invalidate children if we're buffering only ourselves.
 				invalidating_children(b2);
 		}
 	}
@@ -980,7 +980,7 @@ protected:
 					++itor;
 				else
 					--itor;
-				if (!itor)	// hit end of the list
+				if (!itor) // hit end of the list
 					break;
 				if ((*itor)->is_focusable())
 					return (*itor);
@@ -1147,7 +1147,7 @@ protected:
 			m_bridgedCanvas->fill(b, c, blendAlpha);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1166,7 +1166,7 @@ protected:
 			m_bridgedCanvas->invert(b);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1185,7 +1185,7 @@ protected:
 			m_bridgedCanvas->draw_line(startPt, endPt, width, c, blendAlpha);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1207,7 +1207,7 @@ protected:
 			return m_bridgedCanvas->load_font(fnt);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->load_font(fnt);
 	}
 
@@ -1220,7 +1220,7 @@ protected:
 			return m_bridgedCanvas->get_default_font();
 
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->get_default_font();
 	}
 
@@ -1232,7 +1232,7 @@ protected:
 			m_bridgedCanvas->draw_text(s, b, fnt, c);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1251,7 +1251,7 @@ protected:
 			m_bridgedCanvas->draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1270,7 +1270,7 @@ protected:
 			m_bridgedCanvas->draw_bitmask(msk, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1289,7 +1289,7 @@ protected:
 			m_bridgedCanvas->mask_out(msk, mskBounds, dstBounds, inverted);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1308,7 +1308,7 @@ protected:
 			m_bridgedCanvas->draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
 		else
 		{
-			point offset;
+			point offset(0, 0);
 			rcptr<pane> parent = get_ancestor_render_pane(offset);
 			if (!!parent)
 			{
@@ -1328,7 +1328,7 @@ protected:
 			return m_bridgedCanvas->create_bitmap(sz, fillColor);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->create_bitmap(sz, fillColor);
 	}
 
@@ -1341,7 +1341,7 @@ protected:
 			return m_bridgedCanvas->load_bitmap(location);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->load_bitmap(location);
 	}
 
@@ -1354,7 +1354,7 @@ protected:
 			return m_bridgedCanvas->create_bitmask(sz, value);
 
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->create_bitmask(sz, value);
 	}
 
@@ -1365,9 +1365,9 @@ protected:
 
 		if (!!m_bridgedCanvas)
 			return m_bridgedCanvas->load_bitmask(location);
-		
+
 		rcptr<pane> parent = get_ancestor_render_pane();
-		COGS_ASSERT(!!parent);	// Top level should have bridged canvas.  Should not be called if not installed.
+		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
 		return parent->load_bitmask(location);
 	}
 
@@ -1469,7 +1469,7 @@ protected:
 		else
 		{
 			COGS_ASSERT(!((*m_childInstallItor)->m_parentInstalling));
-			(*m_childInstallItor)->m_parentInstalling = this_rcref;	// extends reference through installation of child pane
+			(*m_childInstallItor)->m_parentInstalling = this_rcref; // extends reference through installation of child pane
 			(*m_childInstallItor)->m_parentUISubSystem = get_subsystem();
 			(*m_childInstallItor)->dispatch_async([r{ m_childInstallItor->dereference() }]()
 			{
@@ -1647,13 +1647,13 @@ protected:
 	// Override focusing()/defocusing() to customize on-focus behavior.
 	// Calling the base pane::focusing() or pane::defocusing() will cause
 	// focus propogation to continue.
-	virtual void focusing(int direction)	{ focus_children(direction); }
+	virtual void focusing(int direction) { focus_children(direction); }
 
-	virtual void defocusing()	{ }
+	virtual void defocusing() { }
 
 	// pane interface - notifications
 
-	virtual void invalidating(const bounds&)	 { }
+	virtual void invalidating(const bounds&) { }
 
 	// A parent pane that keeps additional information about nested panes may need to override detaching_child(),
 	// to refresh that data when a pane is removed.
@@ -1673,7 +1673,7 @@ protected:
 		size newSize = get_size();
 		bool sizeChanged = oldSize != newSize;
 
-		point renderOffset;
+		point renderOffset(0, 0);
 		bounds newVisibleBounds;
 		rcptr<pane> p = get_ancestor_render_pane(renderOffset, newVisibleBounds);
 		if (!m_initialReshapeDone)
@@ -1904,17 +1904,17 @@ private:
 		}
 	}
 
-	void invalidating_children(const bounds& b)	// b is in own coords
+	void invalidating_children(const bounds& b) // b is in own coords
 	{
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		if (!!itor)
 			do {
 				rcref<pane>& child = (*itor);
-				if (!child->is_opaque())		// Only invalidate along with parent if child is self-drawn and not opaque
+				if (!child->is_opaque()) // Only invalidate along with parent if child is self-drawn and not opaque
 				{
 					bounds r2 = b;
-					r2 -= child->get_position();			// convert to child coords
-					r2 &= bounds(child->get_size());	// intersections of child and invalid
+					r2 -= child->get_position(); // convert to child coords
+					r2 &= bounds(child->get_size()); // intersections of child and invalid
 					if (!!r2.get_height() && !!r2.get_width())
 					{
 						if (child->is_externally_drawn())
@@ -1983,7 +1983,7 @@ private:
 		}
 	}
 
-	bool is_focusable(const pane* skipChild) const	// override to indicate capable of receiving focus
+	bool is_focusable(const pane* skipChild) const // override to indicate capable of receiving focus
 	{
 		if (this == skipChild)
 			return false;
@@ -2004,7 +2004,7 @@ private:
 
 	void focus_children(int direction)
 	{
-		if ((direction == 0) && (!!m_subFocus))	// restore previously focused sub-frame
+		if ((direction == 0) && (!!m_subFocus)) // restore previously focused sub-frame
 			m_subFocus->focus(0);
 		else
 		{
@@ -2070,7 +2070,7 @@ private:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			if (!f(*itor))	// return false to stop processing
+			if (!f(*itor)) // return false to stop processing
 				break;
 			++itor;
 		}
@@ -2082,7 +2082,7 @@ private:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_last();
 		while (!!itor)
 		{
-			if (!f(*itor))	// return false to stop processing
+			if (!f(*itor)) // return false to stop processing
 				break;
 			--itor;
 		}
@@ -2175,7 +2175,7 @@ public:
 	//
 	// is_hidden() will indicate true, if this specific frame has been hidden.
 	// is_hidden() will indicate false, if this specific frame has not been hidden,
-	//									even if it is not visible due to a parent pane being hidden.
+	// even if it is not visible due to a parent pane being hidden.
 	//
 	// is_visible() will indicate true, if not hidden and all parent panes are not hidden.
 	// is_visible() will indicate false, if not visible due to being hidden or a parent pane being hidden.
@@ -2192,7 +2192,7 @@ public:
 
 	virtual void hide()
 	{
-		if (m_hideShowState-- == 0)	// if it is becoming hidden
+		if (m_hideShowState-- == 0) // if it is becoming hidden
 		{
 			rcptr<pane> parent = get_parent();
 			if (!parent)
@@ -2207,8 +2207,8 @@ public:
 
 	virtual void show()
 	{
-		COGS_ASSERT(m_hideShowState != 0);	// It's an error to show something already visible.  Counting is only for hiding.
-		if (++m_hideShowState == 0)	// if it is becoming visible
+		COGS_ASSERT(m_hideShowState != 0); // It's an error to show something already visible.  Counting is only for hiding.
+		if (++m_hideShowState == 0) // if it is becoming visible
 		{
 			m_closeEvent.reset();
 			rcptr<pane> parent = get_parent();
@@ -2263,14 +2263,14 @@ public:
 			if (itor != itorToSkip)
 			{
 				size newProposed = (*itor)->get_outermost_cell().propose_lengths(d, currentProposed);
-				if (currentProposed != newProposed)	// If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
+				if (currentProposed != newProposed) // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
 				{
 					if (!newProposed.get_height() || !newProposed.get_width())
-						break;			// give up
+						break; // give up
 					currentProposed = newProposed;
 					itorToSkip = itor;
 					itor = m_children.get_first();
-					continue;	// skip the ++itor
+					continue; // skip the ++itor
 				}
 			}
 			++itor;
@@ -2292,14 +2292,14 @@ public:
 			if (itor != itorToSkip)
 			{
 				size newProposed = (*itor)->get_outermost_cell().propose_size(currentProposed);
-				if (currentProposed != newProposed)	// If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
+				if (currentProposed != newProposed) // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
 				{
 					if (!newProposed.get_height() || !newProposed.get_width())
-						break;			// give up
+						break; // give up
 					currentProposed = newProposed;
 					itorToSkip = itor;
 					itor = m_children.get_first();
-					continue;	// skip the ++itor
+					continue; // skip the ++itor
 				}
 			}
 			++itor;
@@ -2327,14 +2327,14 @@ public:
 				else // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
 				{
 					if (!rtn)
-					{								// give up
+					{ // give up
 						rtnOtherRange.set_empty();
 						break;
 					}
-					rtnOtherRange.clear();	// clean rtnOtherRange and start over
+					rtnOtherRange.clear(); // clean rtnOtherRange and start over
 					itorToSkip = itor;
 					itor = m_children.get_first();
-					continue;	// skip the ++itor
+					continue; // skip the ++itor
 				}
 			}
 			++itor;
@@ -2343,7 +2343,7 @@ public:
 		return rtn;
 	}
 
-	const rcptr<frame>& get_outermost_frame() const { return m_frame; }	// will return null if not nested in a parent frame
+	const rcptr<frame>& get_outermost_frame() const { return m_frame; } // will return null if not nested in a parent frame
 
 	const cell& get_outermost_cell() const
 	{

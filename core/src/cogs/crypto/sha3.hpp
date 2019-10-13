@@ -75,7 +75,7 @@ private:
 		uint64_t BCo = Abo ^ Ago ^ Ako ^ Amo ^ Aso;
 		uint64_t BCu = Abu ^ Agu ^ Aku ^ Amu ^ Asu;
 
-		// thetaRhoPiChiIotaPrepareTheta(round  , A, E)
+		// thetaRhoPiChiIotaPrepareTheta(round, A, E)
 		uint64_t Da = BCu ^ bit_rotate_left(BCe, 1);
 		uint64_t De = BCa ^ bit_rotate_left(BCi, 1);
 		uint64_t Di = BCe ^ bit_rotate_left(BCo, 1);
@@ -353,7 +353,7 @@ template <size_t bits = 512>
 class sha3 : public keccak<bits, 0x06>
 {
 public:
-	sha3()	{ }
+	sha3() { }
 
 	sha3(const sha3<bits>& src)
 		: keccak<bits, 0x06>(src)
@@ -373,7 +373,7 @@ template <size_t bits>
 class shake128 : public keccak<bits, 0x1F, 1344>
 {
 public:
-	shake128()	{ }
+	shake128() { }
 
 	shake128(const shake128<bits>& src)
 		: keccak<bits, 0x1F, 1344>(src)
@@ -393,7 +393,7 @@ template <size_t bits>
 class shake256 : public keccak<bits, 0x1F, 1088>
 {
 public:
-	shake256()	{ }
+	shake256() { }
 
 	shake256(const shake256<bits>& src)
 		: keccak<bits, 0x1F, 1088>(src)

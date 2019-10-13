@@ -20,7 +20,7 @@
 namespace cogs {
 namespace ui {
 namespace os {
-	inline void beep()	{ NSBeep(); }
+	inline void beep() { NSBeep(); }
 }
 }
 }

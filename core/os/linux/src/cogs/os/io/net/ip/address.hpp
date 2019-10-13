@@ -54,8 +54,8 @@ enum address_family
 class address : public net::address
 {
 private:
-	sockaddr_storage	m_sockAddr;
-	socklen_t			m_sockAddrSize;
+	sockaddr_storage m_sockAddr;
+	socklen_t m_sockAddrSize;
 
 	class dns_thread_pool : public thread_pool { };
 
@@ -154,9 +154,9 @@ public:
 	class lookup_result : public signallable_task_base<lookup_result>
 	{
 	private:
-		composite_string	m_inputString;
-		vector<address>		m_addresses;
-		rcptr<task<void> >	m_poolTask;
+		composite_string m_inputString;
+		vector<address> m_addresses;
+		rcptr<task<void> > m_poolTask;
 
 	protected:
 		friend class address;
@@ -189,14 +189,14 @@ public:
 					freeaddrinfo(ai);
 				}
 			}
-			m_inputString.clear();	// not needed anymore, free it
+			m_inputString.clear(); // not needed anymore, free it
 			signal();
 		}
 
 		virtual const lookup_result& get() const volatile { return *(const lookup_result*)this; }
 
 	public:
-		const vector<address>& get_hosts() const		{ return m_addresses; }
+		const vector<address>& get_hosts() const { return m_addresses; }
 
 		virtual rcref<task<bool> > cancel() volatile
 		{
@@ -209,8 +209,8 @@ public:
 	class reverse_lookup_result : public net::address::reverse_lookup_result
 	{
 	private:
-		sockaddr_storage	m_sockAddr;
-		socklen_t			m_sockAddrSize;
+		sockaddr_storage m_sockAddr;
+		socklen_t m_sockAddrSize;
 
 	protected:
 		friend class address;
@@ -237,23 +237,23 @@ public:
 				str.truncate_to(str.index_of(0));
 			else
 				str.clear();
-			complete(cstring_to_string(str));	// TBD, IdnToUnicode conversion
+			complete(cstring_to_string(str)); // TBD, IdnToUnicode conversion
 		}
 	};
 
 	address()
-		:	m_sockAddrSize(0)
+		: m_sockAddrSize(0)
 	{ }
 
 	address(const address& addr)
-		:	m_sockAddrSize(addr.m_sockAddrSize)
+		: m_sockAddrSize(addr.m_sockAddrSize)
 	{
 		memcpy(&m_sockAddr, &addr.m_sockAddr, addr.m_sockAddrSize);
 	}
 
 	// Does NOT support host names and FQDN.  Supports only numeric ipv4, ipv6
 	// For host names and FQDN, use lookup() instead, as they may have multiple associated numeric addresses.
-	address(const composite_string& str, address_family addressFamily = inetv4)	// AF_INET6 for ipv6
+	address(const composite_string& str, address_family addressFamily = inetv4) // AF_INET6 for ipv6
 	{
 		int err = inet_pton(addressFamily, string_to_cstring(str).cstr(), &m_sockAddr);
 		if (!err)
@@ -262,8 +262,8 @@ public:
 			m_sockAddrSize = sizeof(m_sockAddr);
 	}
 
-	static address ipv4(const composite_string& str)	{ return address(str, inetv4); }
-	static address ipv6(const composite_string& str)	{ return address(str, inetv6); }
+	static address ipv4(const composite_string& str) { return address(str, inetv4); }
+	static address ipv6(const composite_string& str) { return address(str, inetv6); }
 
 	address& operator=(const address& addr)
 	{
@@ -296,13 +296,13 @@ public:
 		return result;
 	}
 
-	sockaddr* get_sockaddr()				{ return (sockaddr*)&m_sockAddr; }
-	const sockaddr* get_sockaddr() const	{ return (const sockaddr*)&m_sockAddr; }
+	sockaddr* get_sockaddr() { return (sockaddr*)&m_sockAddr; }
+	const sockaddr* get_sockaddr() const { return (const sockaddr*)&m_sockAddr; }
 
-	socklen_t get_sockaddr_size() const		{ return m_sockAddrSize; }
-	void set_sockaddr_size(socklen_t sz)	{ m_sockAddrSize = sz; }
+	socklen_t get_sockaddr_size() const { return m_sockAddrSize; }
+	void set_sockaddr_size(socklen_t sz) { m_sockAddrSize = sz; }
 
-	address_family get_address_family() const		{ return (!m_sockAddrSize) ? (address_family)AF_UNSPEC : (address_family)m_sockAddr.ss_family; }
+	address_family get_address_family() const { return (!m_sockAddrSize) ? (address_family)AF_UNSPEC : (address_family)m_sockAddr.ss_family; }
 
 	virtual composite_cstring to_cstring() const
 	{
@@ -319,7 +319,7 @@ public:
 					result.resize(result.index_of(0));
 				else
 				{
-					if ((errno == ENOSPC) && (bufSize > prevBufSize))	// only retry if buffer was insufficient
+					if ((errno == ENOSPC) && (bufSize > prevBufSize)) // only retry if buffer was insufficient
 						continue;
 					result.clear();
 				}

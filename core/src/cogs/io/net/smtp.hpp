@@ -31,8 +31,8 @@ namespace smtp {
 
 
 class client;
-//class client::request;	// client request	
-//class client::response;	// client response
+//class client::request; // client request
+//class client::response; // client response
 
 class server;
 //class server::connection;
@@ -51,7 +51,7 @@ public:
 
 	typedef function<void(const rcref<request>&)> command_delegate_t;
 
-	typedef nonvolatile_map<composite_cstring, command_delegate_t, true>	command_handler_map_t;
+	typedef nonvolatile_map<composite_cstring, command_delegate_t, true> command_handler_map_t;
 
 private:
 	server(const server&) = delete;
@@ -66,9 +66,9 @@ public:
 		friend class response;
 
 		// Since SMTP is state-based, the connection holds the current email state
-		composite_cstring				m_reversePath;
-		vector<composite_cstring>		m_recipientList;
-		
+		composite_cstring m_reversePath;
+		vector<composite_cstring> m_recipientList;
+
 		connection() = delete;
 		connection(const connection&) = delete;
 		connection& operator=(const connection&) = delete;
@@ -92,7 +92,7 @@ public:
 			net::request_response_server::connection::start();
 		}
 
-		virtual rcref<net::request_response_server::request> create_request()	{ return server::default_create_request(this_rcref); }
+		virtual rcref<net::request_response_server::request> create_request() { return server::default_create_request(this_rcref); }
 
 		// Since SMTP is state-based, the connection holds the current email state
 		void clear_mail_state()
@@ -135,7 +135,7 @@ public:
 			reply_exceeded_storage_limit = 552,
 			reply_mailbox_name_not_allowed = 553,
 			reply_transaction_failed = 554,
-			reply_parameter_error = 555				// MAIL FROM/RCPT TO parameters not recognized or not implemented
+			reply_parameter_error = 555 // MAIL FROM/RCPT TO parameters not recognized or not implemented
 		};
 
 	protected:
@@ -173,7 +173,7 @@ public:
 		friend class connection;
 		friend class server;
 
-		static constexpr size_t max_request_length = 64 * 1024;	// 64K
+		static constexpr size_t max_request_length = 64 * 1024; // 64K
 
 		composite_buffer m_bufferedWrite;
 		bool m_gotCR = false;
@@ -215,7 +215,7 @@ public:
 					}
 					else
 					{
-						m_currentCommand.append(c);					
+						m_currentCommand.append(c);
 						if (m_currentCommand.get_length() > max_request_length)
 						{
 							begin_response(response::reply_syntax_error, cstring::literal("Command too long"))->complete();
@@ -295,13 +295,13 @@ public:
 			});
 		}
 
-		composite_cstring get_command_params() const	{ return m_commandParams; }
+		composite_cstring get_command_params() const { return m_commandParams; }
 	};
 
 private:
-	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c)	{ return rcnew(request, c); }
+	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c) { return rcnew(request, c); }
 
-	rcref<command_handler_map_t>	m_commandHandlerMap;
+	rcref<command_handler_map_t> m_commandHandlerMap;
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
@@ -349,7 +349,7 @@ public:
 	static void default_MAIL_handler(const rcref<request>& r)
 	{
 		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
-		if (!!c)	// otherwise, connection is shutting down
+		if (!!c) // otherwise, connection is shutting down
 		{
 			if (!!c->m_reversePath)
 				r->begin_response(response::reply_bad_command_sequence, cstring::literal("Sender already specified"))->complete();
@@ -373,7 +373,7 @@ public:
 	static void default_RCPT_handler(const rcref<request>& r)
 	{
 		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
-		if (!!c)	// otherwise, connection is shutting down
+		if (!!c) // otherwise, connection is shutting down
 		{
 			if (!c->m_reversePath)
 				r->begin_response(response::reply_bad_command_sequence, cstring::literal("Need MAIL before RCPT"))->complete();
@@ -426,7 +426,7 @@ public:
 		m_commandHandlerMap(commandHandlers)
 	{ }
 
-	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
+	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2; // 2 minute inactivity timeout
 	// The inactivity timeout must be extended by a handler that does something appropriate to extend
 	// the lifetime of the connection.  Care should be taken to prevent denial-of-service attacks,
 	// such as clients establishing unnecessary connections and leaving them connected, to try to
@@ -438,12 +438,12 @@ public:
 class client
 {
 private:
-	rcptr<ip::tcp>	m_tcpSocket;
-	unsigned short	m_port;
+	rcptr<ip::tcp> m_tcpSocket;
+	unsigned short m_port;
 
 public:
 	explicit client(unsigned short port = 25)
-		:	m_port(port)
+		: m_port(port)
 	{ }
 
 
@@ -458,7 +458,7 @@ public:
 //		addresses.append(addr);
 //		return connect(addresses, port, cp);
 //	}
-	
+
 };
 */
 

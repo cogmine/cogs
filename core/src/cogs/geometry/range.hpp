@@ -20,7 +20,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -57,12 +57,12 @@ public:
 				result = true;
 			else if (!t2)
 				result = false;
-			else if (!t1.has_max())	// If invalid/empty range, its min
-				result = false;		// If we don't have a max, put us last (or equal to others that are last)
+			else if (!t1.has_max()) // If invalid/empty range, its min
+				result = false; // If we don't have a max, put us last (or equal to others that are last)
 			else if (!t2.has_max())
-				result = true;		// If we have a max, and they don't, we are definitely lesser.
+				result = true; // If we have a max, and they don't, we are definitely lesser.
 			else
-				result = t1.get_max() < t2.get_max();	// Both have max.  Compare their maxes.
+				result = t1.get_max() < t2.get_max(); // Both have max.  Compare their maxes.
 			return result;
 		}
 	};
@@ -79,9 +79,9 @@ public:
 				result = t1.get_min() < t2.get_min();
 			else if (!t2.has_max())
 				result = t1.get_min() <= t2.get_min();
-			else if (t1.get_min() > t1.get_max())		// t1 is invalid/empty, put it first.
+			else if (t1.get_min() > t1.get_max()) // t1 is invalid/empty, put it first.
 				result = true;
-			else if (t2.get_min() > t2.get_max())	// t2 is invalid/empty, put it first.
+			else if (t2.get_min() > t2.get_max()) // t2 is invalid/empty, put it first.
 				result = false;
 			else if (t1.get_min() == t2.get_min())
 				result = t1.get_max() < t2.get_max();
@@ -103,8 +103,8 @@ public:
 	{ }
 
 	range(const range& src)
-		: m_min(src.m_min),
-		m_max(src.m_max),
+		: m_max(src.m_max),
+		m_min(src.m_min),
 		m_hasMax(src.m_hasMax)
 	{ }
 
@@ -162,10 +162,10 @@ public:
 	const double get_max() const { return m_max; }
 
 	// empty/not
-	bool is_empty() const						{ return (m_hasMax && (m_min > m_max)); }
-	bool operator!() const						{ return is_empty(); }
+	bool is_empty() const { return (m_hasMax && (m_min > m_max)); }
+	bool operator!() const { return is_empty(); }
 
-	bool is_fixed() const						{ return m_hasMax && (m_min == m_max); }
+	bool is_fixed() const { return m_hasMax && (m_min == m_max); }
 
 	// equality
 	bool operator==(const range& cmp) const
@@ -199,9 +199,12 @@ public:
 	}
 
 	// less than
-	bool operator<(const range& cmp) const		// lesser is the one with the least difference between min and max.
-	{											// If neither have a max, the lesser is the one with the highest min.
-		bool result = false;					// Invalid/empty ranges are considered equal and least.
+	bool operator<(const range& cmp) const
+	{
+		// lesser is the one with the least difference between min and max.
+		// If neither have a max, the lesser is the one with the highest min.
+		// Invalid/empty ranges are considered equal and least.
+		bool result = false; 
 		if (&cmp != this)
 		{
 			if (!m_hasMax)
@@ -462,7 +465,7 @@ public:
 		return *this;
 	}
 
-	// range | range = range		(union)
+	// range | range = range (union)
 	range operator|(const range& r) const
 	{
 		range result;
@@ -564,9 +567,7 @@ public:
 		return *this;
 	}
 
-	// range overlap range = range	(overlap)
-	////	Hijack the XOR operator
-	////	Like intersection, but maximum is extended to the larger type
+	// range overlap range = range (overlap)
 	range operator^(const range& r) const
 	{
 		range result;
@@ -759,7 +760,7 @@ public:
 	}
 
 	void set_max_width(double w) { m_hasMaxWidth = true; m_maxSize.set_width(w); }
-	void set_max_height(double h) { m_hasMaxHeight = true;  m_maxSize.set_height(h); }
+	void set_max_height(double h) { m_hasMaxHeight = true; m_maxSize.set_height(h); }
 
 	void set_max(const size& maxSize) { m_hasMaxWidth = true; m_hasMaxHeight = true; m_maxSize = maxSize; }
 
@@ -773,9 +774,9 @@ public:
 			set_max_height(n);
 	}
 
-	void clear_max_width()	{ m_hasMaxWidth = false; }
-	void clear_max_height()	{ m_hasMaxHeight = false; }
-	void clear_max()		{ m_hasMaxHeight = false; m_hasMaxWidth = false; }
+	void clear_max_width() { m_hasMaxWidth = false; }
+	void clear_max_height() { m_hasMaxHeight = false; }
+	void clear_max() { m_hasMaxHeight = false; m_hasMaxWidth = false; }
 
 	void clear_max(dimension d)
 	{
@@ -785,9 +786,9 @@ public:
 			clear_max_height();
 	}
 
-	void clear_min_width()	{ m_minSize.set_width(0); }
-	void clear_min_height()	{ m_minSize.set_height(0); }
-	void clear_min()		{ m_minSize.set(0, 0); }
+	void clear_min_width() { m_minSize.set_width(0); }
+	void clear_min_height() { m_minSize.set_height(0); }
+	void clear_min() { m_minSize.set(0, 0); }
 
 	void clear_min(dimension d)
 	{
@@ -798,10 +799,10 @@ public:
 	}
 
 	// Sets to an unlimited range
-	void clear()			{ clear_min(); clear_max(); }
+	void clear() { clear_min(); clear_max(); }
 
-	void clear_width()		{ clear_min_width(); clear_max_width(); }
-	void clear_height()		{ clear_min_height(); clear_max_height(); }
+	void clear_width() { clear_min_width(); clear_max_width(); }
+	void clear_height() { clear_min_height(); clear_max_height(); }
 
 	void clear(dimension d)
 	{
@@ -812,7 +813,7 @@ public:
 	}
 
 	// Sets to an invalid/empty range, which can contain nothing.
-	void set_empty()			{ set_empty_height(); set_empty_width(); }
+	void set_empty() { set_empty_height(); set_empty_width(); }
 
 	static range make_empty()
 	{
@@ -820,10 +821,10 @@ public:
 		return r;
 	}
 
-	
-	void set_empty_width()		{ set_min_width(1); set_max_width(0); m_hasMaxWidth = true; }
-	void set_empty_height()		{ set_min_height(1); set_max_height(0); m_hasMaxHeight = true; }
-	
+
+	void set_empty_width() { set_min_width(1); set_max_width(0); m_hasMaxWidth = true; }
+	void set_empty_height() { set_min_height(1); set_max_height(0); m_hasMaxHeight = true; }
+
 	void set_width(double mn, double mx)
 	{
 		m_hasMaxWidth = true;
@@ -937,12 +938,12 @@ public:
 	const linear::range operator[](dimension d) const { return (d == dimension::horizontal) ? get_width() : get_height(); }
 
 	// empty/not
-	bool is_height_empty() const				{ return m_hasMaxHeight && (get_min_height() > get_max_height()); }
-	bool is_width_empty() const					{ return m_hasMaxWidth && (get_min_width() > get_max_width()); }
-	bool is_empty(dimension d) const			{ return (d == dimension::horizontal) ? is_width_empty() : is_height_empty(); }
+	bool is_height_empty() const { return m_hasMaxHeight && (get_min_height() > get_max_height()); }
+	bool is_width_empty() const { return m_hasMaxWidth && (get_min_width() > get_max_width()); }
+	bool is_empty(dimension d) const { return (d == dimension::horizontal) ? is_width_empty() : is_height_empty(); }
 
-	bool is_empty() const						{ return is_height_empty() || is_width_empty(); }
-	bool operator!() const						{ return is_empty(); }
+	bool is_empty() const { return is_height_empty() || is_width_empty(); }
+	bool operator!() const { return is_empty(); }
 
 	bool is_fixed() const
 	{
@@ -964,7 +965,7 @@ public:
 			&& (!m_hasMaxWidth || (sz.get_width() <= get_max_width()))
 			&& (!m_hasMaxHeight || (sz.get_height() <= get_max_height()))));
 	}
-	
+
 	// equality
 	bool operator==(const range& r) const
 	{
@@ -974,7 +975,7 @@ public:
 			|| (m_hasMaxWidth && (get_max_width() != r.get_max_width()))
 			|| (m_hasMaxHeight && (get_max_height() != r.get_max_height())))
 			return false;
-	
+
 		return true;
 	}
 
@@ -1006,8 +1007,8 @@ public:
 				else
 					get_max_width() += r.get_max_width();
 			}
-		}		
-			
+		}
+
 		if (!is_height_empty())
 		{
 			get_min_height() += r.get_min_height();
@@ -1450,7 +1451,7 @@ public:
 	}
 
 
-	// range | range = range	(union)
+	// range | range = range (union)
 	range operator|(const range& r) const
 	{
 		range result;
@@ -1539,8 +1540,8 @@ public:
 				else if (has_max_width() && (get_max_width() < r.get_max_width()))
 					get_max_width() = r.get_max_width();
 			}
-		}		
-		
+		}
+
 		if (r.is_height_empty())
 		{
 			if (is_height_empty())
@@ -1565,7 +1566,7 @@ public:
 	}
 
 
-	// range & range = range	(intersection)
+	// range & range = range (intersection)
 	range operator&(const range& r) const
 	{
 		range result;
@@ -1639,7 +1640,7 @@ public:
 			if (has_max_width() && (get_max_width() < get_min_width()))
 				get_max_width() = get_min_width();
 		}
-		
+
 		if (r.is_height_empty())
 			set_empty_height();
 		else if (!is_height_empty())
@@ -1661,7 +1662,7 @@ public:
 	}
 
 
-	// range ^ range = range	(overlap)
+	// range ^ range = range (overlap)
 	range operator^(const range& r) const
 	{
 		range result;
@@ -1673,7 +1674,7 @@ public:
 				result.get_min_width() = r.get_min_width();
 			else
 				result.get_min_width() = get_min_width();
-	
+
 			result.has_max_width() = (r.has_max_width() && has_max_width());
 			if (result.has_max_width())
 			{
@@ -1691,7 +1692,7 @@ public:
 				result.get_min_height() = r.get_min_height();
 			else
 				result.get_min_height() = get_min_height();
-	
+
 			result.has_max_height() = (r.has_max_height() && has_max_height());
 			if (result.has_max_height())
 			{
@@ -1701,7 +1702,7 @@ public:
 					result.get_max_height() = get_max_height();
 			}
 		}
-	
+
 		return result;
 	}
 
@@ -1773,11 +1774,11 @@ public:
 	composite_string_t<char_t> to_string_t() const
 	{
 		composite_string_t<char_t> result;
-	
+
 		static constexpr char_t part1 = (char_t)'{';
 		static constexpr char_t part2 = (char_t)',';
 		static constexpr char_t part3 = (char_t)'}';
-	
+
 		result = string_t<char_t>::contain(&part1, 1);
 		result += get_width().template to_string_t<char_t>();
 		result += string_t<char_t>::contain(&part2, 1);
@@ -1785,9 +1786,9 @@ public:
 		result += string_t<char_t>::contain(&part3, 1);
 		return result;
 	}
-	
-	composite_string to_string() const		{ return to_string_t<wchar_t>(); }
-	composite_cstring to_cstring() const	{ return to_string_t<char>(); }
+
+	composite_string to_string() const { return to_string_t<wchar_t>(); }
+	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
 
 

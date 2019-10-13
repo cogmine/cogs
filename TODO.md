@@ -1,7 +1,11 @@
 ## TODO
 
+* Drag and flick scrolling
+* Single/static dependency property for preferred scroll bar style
+* scroll_pane::scroll_to()
+* Console UI subsystem
+* Revisit DNS - Are there proper async APIs for it now?
 * Replace hide/show state with visibile/invisible/collapsed
-* Pass snapshot of keyboard state with each keyboard and mouse event (i.e. control, shift, alt, etc.)
 * Finish porting all UI elements to MacOS
 * Implement open_window_full_screen
 * Implement support for setting full screen video resolution and modes
@@ -22,7 +26,7 @@
 * Add/rework gui::list
 * Add/rework gui::labeled_list
 * Add/rework gui::button_box
-* Add any missing cryptographic hashes (GOST?)
+* Add any missing cryptographic hashes (GOST? LLVM?)
 * Add cryptographic ciphers (all)
 * Implement SSL/TLS IO classes
 * Implement HTTP related classes

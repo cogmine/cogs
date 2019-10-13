@@ -31,8 +31,8 @@ namespace io
 }
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 enum split_options
@@ -63,44 +63,43 @@ private:
 	// These vars do not need to be volatile.  They are read-only.
 	// Only an owning thread will ever write to them.
 
-	size_t	m_capacity;		// Full length of allocation.  We know the full buffer is at least this large.
-	size_t	m_length;		// Length of constructed portion of the buffer
-	type*	m_start;		// Starting position of constructed elements
-	//    There may be some number of purged elements at the start of the buffer
+	size_t m_capacity; // Full length of allocation.  We know the full buffer is at least this large.
+	size_t m_length; // Length of constructed portion of the buffer
+	type* m_start; // Starting position of constructed elements
+	// There may be some number of purged elements at the start of the buffer
 
-	virtual void released()	{ placement_destruct_multiple(m_start, m_length); }
+	virtual void released() { placement_destruct_multiple(m_start, m_length); }
 
 public:
-	virtual void dispose()	{ default_allocator::destruct_deallocate_type(this); }
+	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }
 
 	vector_descriptor(size_t length, size_t capacity)
-	{
-		m_capacity = capacity;
-		m_length = length;
-		m_start = get_true_base();
-	}
+		: m_capacity(capacity),
+		m_length(length),
+		m_start(get_true_base())
+	{ }
 
-	size_t get_capacity() const					{ return m_capacity; }
+	size_t get_capacity() const { return m_capacity; }
 
-	size_t get_capacity_before(type* p) const	{ return p - get_true_base(); }
-	size_t get_capacity_after(type* p) const	{ return m_capacity - get_capacity_before(p); }
+	size_t get_capacity_before(type* p) const { return p - get_true_base(); }
+	size_t get_capacity_after(type* p) const { return m_capacity - get_capacity_before(p); }
 
-	void set_constructed_range(type* p, size_t length)	{ m_start = p; m_length = length; }
+	void set_constructed_range(type* p, size_t length) { m_start = p; m_length = length; }
 
-	type* get_true_base() const						{ return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
-	type* get_ptr() const							{ return m_start; }
-	size_t get_constructed_length() const			{ return m_length; }
-	size_t get_constructed_length(type* p) const	{ return m_length - get_index_of(p); }
-	void set_constructed_length(size_t newLength)	{ m_length = newLength; }
+	type* get_true_base() const { return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
+	type* get_ptr() const { return m_start; }
+	size_t get_constructed_length() const { return m_length; }
+	size_t get_constructed_length(type* p) const { return m_length - get_index_of(p); }
+	void set_constructed_length(size_t newLength) { m_length = newLength; }
 
-	void advance(size_t n = 1)						{ m_start += n; m_length -= n; }
-	void trim_unconstructed_trailing(size_t n)		{ m_length -= n; }
-	size_t get_gap() const							{ return m_start - get_true_base(); }
+	void advance(size_t n = 1) { m_start += n; m_length -= n; }
+	void trim_unconstructed_trailing(size_t n) { m_length -= n; }
+	size_t get_gap() const { return m_start - get_true_base(); }
 
-	size_t get_index_of(type* p) const				{ return p - m_start; }
+	size_t get_index_of(type* p) const { return p - m_start; }
 
 	// Only call with n <= get_gap()
-	void add_leading(size_t n)						{ m_start -= n; m_length += n; }
+	void add_leading(size_t n) { m_start -= n; m_length += n; }
 
 	void destruct_all()
 	{
@@ -158,41 +157,40 @@ private:
 	// These vars do not need to be volatile.  They are read-only.
 	// Only an owning thread will ever write to them.
 
-	size_t	m_capacity;
+	size_t m_capacity;
 
-	virtual void released()	{ }
+	virtual void released() { }
 
 public:
-	virtual void dispose()	{ default_allocator::destruct_deallocate_type(this); }
-	
+	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }
+
 	explicit vector_descriptor(size_t capacity)
-	{
-		m_capacity = capacity;
-	}
+		: m_capacity(capacity)
+	{ }
 
-	size_t get_capacity() const					{ return m_capacity; }
+	size_t get_capacity() const { return m_capacity; }
 
-	size_t get_capacity_before(type* p) const	{ return p - get_true_base(); }
-	size_t get_capacity_after(type* p) const	{ return m_capacity - get_capacity_before(p); }
+	size_t get_capacity_before(type* p) const { return p - get_true_base(); }
+	size_t get_capacity_after(type* p) const { return m_capacity - get_capacity_before(p); }
 
-	size_t get_index_of(type* p) const			{ return p - get_true_base(); }
+	size_t get_index_of(type* p) const { return p - get_true_base(); }
 
-	void set_constructed_range(type* p, size_t length)	{ }
+	void set_constructed_range(type* p, size_t length) { }
 
-	type* get_true_base() const						{ return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
-	type* get_ptr() const							{ return get_true_base(); }
-	size_t get_constructed_length() const			{ return m_capacity; }
-	size_t get_constructed_length(type* p) const	{ return get_capacity_after(p); }
-	void set_constructed_length(size_t newLength)	{ }
+	type* get_true_base() const { return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
+	type* get_ptr() const { return get_true_base(); }
+	size_t get_constructed_length() const { return m_capacity; }
+	size_t get_constructed_length(type* p) const { return get_capacity_after(p); }
+	void set_constructed_length(size_t newLength) { }
 
-	void advance(size_t n = 1)						{ }
-	void trim_unconstructed_trailing(size_t n)		{ }
-	size_t get_gap() const							{ return 0; }
+	void advance(size_t n = 1) { }
+	void trim_unconstructed_trailing(size_t n) { }
+	size_t get_gap() const { return 0; }
 
 	// Only call with n <= get_gap()
-	void add_leading(size_t n)						{ }
+	void add_leading(size_t n) { }
 
-	void destruct_all()								{ }
+	void destruct_all() { }
 
 	bool try_reallocate(size_t n)
 	{
@@ -235,13 +233,9 @@ public:
 	typedef vector_content<type> this_t;
 	typedef vector_descriptor<type> desc_t;
 
-	vector_content()
-		: m_desc(0), m_ptr(0), m_length(0)
-	{ }
-
-	type*	m_ptr;
-	desc_t*	m_desc;
-	size_t	m_length;
+	type* m_ptr;
+	desc_t* m_desc;
+	size_t m_length;
 
 	const type* get_const_ptr() const { return m_ptr; }
 
@@ -251,6 +245,10 @@ public:
 	type* get_ptr() { copy_on_write(); return m_ptr; }
 
 	size_t get_length() const { return m_length; }
+
+	vector_content()
+		: m_ptr(0), m_desc(0), m_length(0)
+	{ }
 
 	vector_content(this_t&& src)
 	{
@@ -270,13 +268,13 @@ public:
 		return *this;
 	}
 
-	vector_content(const this_t& src)	// does not acquire
+	vector_content(const this_t& src) // does not acquire
 		: m_ptr(src.m_ptr),
 		m_desc(src.m_desc),
 		m_length(src.m_length)
 	{ }
 
-	vector_content(const this_t& src, size_t i)		// does not acquire
+	vector_content(const this_t& src, size_t i) // does not acquire
 	{
 		if (i >= src.m_length)
 			clear_inner();
@@ -289,7 +287,7 @@ public:
 		}
 	}
 
-	vector_content(const this_t& src, size_t i, size_t n)	// does not acquire
+	vector_content(const this_t& src, size_t i, size_t n) // does not acquire
 	{
 		if (!n || (i >= src.m_length))
 			clear_inner();
@@ -306,26 +304,26 @@ public:
 
 	template <typename type2 = type>
 	vector_content(size_t n, const type2& src)
-		: m_desc(0), m_ptr(0), m_length(0)
+		: m_ptr(0), m_desc(0), m_length(0)
 	{
 		allocate(n, src);
 	}
 
 	template <typename type2 = type>
 	vector_content(type2* src, size_t n)
-		: m_desc(0), m_ptr(0), m_length(0)
+		: m_ptr(0), m_desc(0), m_length(0)
 	{
 		allocate(src, n);
 	}
 
-	this_t& operator=(const this_t& src)	// does not acquire
+	this_t& operator=(const this_t& src) // does not acquire
 	{
 		m_ptr = src.m_ptr;
 		m_desc = src.m_desc;
 		m_length = src.m_length;
 		return *this;
 	}
-	
+
 	size_t get_capacity() const
 	{
 		if (!m_desc || (!m_desc->is_owned()))
@@ -469,7 +467,7 @@ public:
 	{
 		if (!m_desc)
 			m_ptr = 0;
-		else if (m_desc->is_owned())	// If we own the buffer, try to reuse it to preserve reserved space
+		else if (m_desc->is_owned()) // If we own the buffer, try to reuse it to preserve reserved space
 		{
 			m_desc->destruct_all();
 			m_ptr = m_desc->get_true_base();
@@ -599,7 +597,7 @@ public:
 			{
 				m_ptr += n;
 				m_length -= n;
-				if ((!std::is_trivially_destructible_v<type>) && !!m_desc && m_desc->is_owned())		// If non-pod data, and some are constructed before the current start, destruct them.
+				if ((!std::is_trivially_destructible_v<type>) && !!m_desc && m_desc->is_owned()) // If non-pod data, and some are constructed before the current start, destruct them.
 					trim_leading_lingering();
 			}
 		}
@@ -654,7 +652,7 @@ public:
 		else
 		{
 			type* oldPtr = m_ptr;
-			allocate_inner(newLength);			// a reallocation was necessary.
+			allocate_inner(newLength); // a reallocation was necessary.
 			placement_copy_construct_array(m_ptr, oldPtr, oldLength);
 			if (!!oldDesc)
 				oldDesc->release();
@@ -672,7 +670,7 @@ public:
 	void append(size_t n, const type& src)
 	{
 		if (n == 1)
-			append(&src, 1);	// in case src is a ptr to something already in the vector, avoid duplicating the buffer.
+			append(&src, 1); // in case src is a ptr to something already in the vector, avoid duplicating the buffer.
 		else
 		{
 			size_t oldLength = m_length;
@@ -693,7 +691,7 @@ public:
 	{
 		size_t oldLength = m_length;
 		if (src == m_ptr + oldLength)
-			m_length += n;	// in case src is already in the vector, avoid duplicating the buffer.
+			m_length += n; // in case src is already in the vector, avoid duplicating the buffer.
 		else
 		{
 			prepare_append(n);
@@ -709,7 +707,7 @@ public:
 		placement_copy_construct_array(m_ptr + oldLength, src, n);
 	}
 
-	void prepare_prepend(size_t n)	// >0
+	void prepare_prepend(size_t n) // >0
 	{
 		size_t oldLength = m_length;
 		size_t newLength = n + oldLength;
@@ -721,7 +719,7 @@ public:
 			size_t gap = m_ptr - trueBase;
 			if (n <= gap)
 				m_ptr -= n;
-			else		// Implies the contents will be moving forward
+			else // Implies the contents will be moving forward
 			{
 				placement_move(trueBase + n, m_ptr, oldLength);
 				m_ptr = trueBase;
@@ -731,7 +729,7 @@ public:
 		else
 		{
 			type* oldPtr = m_ptr;
-			allocate_inner(newLength);			// a reallocation was necessary.
+			allocate_inner(newLength); // a reallocation was necessary.
 			placement_copy_construct_array(m_ptr + n, oldPtr, oldLength);
 			if (!!oldDesc)
 				oldDesc->release();
@@ -748,7 +746,7 @@ public:
 	void prepend(size_t n, const type& src)
 	{
 		if (n == 1)
-			prepend(&src, 1);	// in case src is a ptr to something already in the vector, avoid duplicating the buffer.
+			prepend(&src, 1); // in case src is a ptr to something already in the vector, avoid duplicating the buffer.
 		else
 		{
 			prepare_prepend(n);
@@ -765,7 +763,7 @@ public:
 
 	void prepend(const type* src, size_t n)
 	{
-		if (m_ptr == src + n)	// in case src is already in the vector, avoid duplicating the buffer.
+		if (m_ptr == src + n) // in case src is already in the vector, avoid duplicating the buffer.
 		{
 			m_ptr -= n;
 			m_length += n;
@@ -858,7 +856,7 @@ public:
 				{
 					if (!!trailingLargeEnough)
 					{
-						shiftBack = i <= secondSegmentLength;	// Shrink in the direction requiring the least transplanting
+						shiftBack = i <= secondSegmentLength; // Shrink in the direction requiring the least transplanting
 						shiftForward = !shiftBack;
 						if (shiftBack)
 							m_ptr -= growingBy;
@@ -882,7 +880,7 @@ public:
 					m_ptr = trueBase;
 				}
 
-				if (shiftForward)				// Just need to scoot secondSegment forward a bit.
+				if (shiftForward) // Just need to scoot secondSegment forward a bit.
 					placement_move(pastFirstSegment + n, pastFirstSegment + replaceLength, secondSegmentLength);
 				if (shiftBack)
 					placement_move(m_ptr, src, i);
@@ -892,7 +890,7 @@ public:
 		else
 		{
 			type* oldPtr = m_ptr;
-			allocate_inner(newLength);			// a reallocation was necessary.
+			allocate_inner(newLength); // a reallocation was necessary.
 			placement_copy_construct_array(m_ptr, oldPtr, i);
 			placement_copy_construct_array(m_ptr + n, oldPtr + replaceLength, secondSegmentLength);
 			if (!!oldDesc)
@@ -901,7 +899,7 @@ public:
 		m_length = newLength;
 	}
 
-	void insert(size_t i, size_t insertLength)	// insertLength > 0
+	void insert(size_t i, size_t insertLength) // insertLength > 0
 	{
 		if (i > m_length)
 			i = m_length;
@@ -910,7 +908,7 @@ public:
 	}
 
 	template <typename type2 = type>
-	void insert(size_t i, size_t insertLength, const type2& src)	// insertLength > 0
+	void insert(size_t i, size_t insertLength, const type2& src) // insertLength > 0
 	{
 		if (i > m_length)
 			i = m_length;
@@ -919,7 +917,7 @@ public:
 	}
 
 	template <typename type2 = type>
-	void insert(size_t i, const type2* src, size_t insertLength)	// insertLength > 0
+	void insert(size_t i, const type2* src, size_t insertLength) // insertLength > 0
 	{
 		if (i > m_length)
 			i = m_length;
@@ -954,7 +952,7 @@ public:
 	}
 
 	template <typename type2 = type>
-	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type2& src)	// insertLength > 0
+	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type2& src) // insertLength > 0
 	{
 		if (i > m_length)
 			i = m_length;
@@ -963,7 +961,7 @@ public:
 	}
 
 	template <typename type2 = type>
-	void insert_replace(size_t i, size_t replaceLength, const type2* src, size_t insertLength)	// insertLength > 0
+	void insert_replace(size_t i, size_t replaceLength, const type2* src, size_t insertLength) // insertLength > 0
 	{
 		if (i > m_length)
 			i = m_length;
@@ -1396,7 +1394,7 @@ private:
 
 public:
 	typedef T type;
-	typedef vector<type>	this_t;
+	typedef vector<type> this_t;
 
 protected:
 	template <typename>
@@ -1405,13 +1403,13 @@ protected:
 	friend class io::composite_buffer_content;
 	friend class io::buffer;
 
-	typedef vector_descriptor<type>	desc_t;
-	typedef vector_content<type>	content_t;
+	typedef vector_descriptor<type> desc_t;
+	typedef vector_content<type> content_t;
 	typedef transactable<content_t> transactable_t;
-	transactable_t	m_contents;
+	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	// null desc, used for literals or caller owned buffers
 	vector(size_t n, type* p) : m_contents(typename transactable_t::construct_embedded_t(), p, n) { }
@@ -1489,8 +1487,8 @@ public:
 	class iterator
 	{
 	protected:
-		this_t*	m_vector;
-		size_t	m_index;
+		this_t* m_vector;
+		size_t m_index;
 
 		iterator(this_t* v, size_t i)
 			: m_vector(v),
@@ -1557,8 +1555,8 @@ public:
 	class const_iterator
 	{
 	protected:
-		const this_t*	m_vector;
-		size_t			m_index;
+		const this_t* m_vector;
+		size_t m_index;
 
 		const_iterator(const this_t* v, size_t i)
 			: m_vector(v),
@@ -1653,9 +1651,9 @@ public:
 	vector(const this_t& src, size_t i) : m_contents(typename transactable_t::construct_embedded_t(), *(src.m_contents), i) { m_contents->acquire(); }
 	vector(const this_t& src, size_t i, size_t n) : m_contents(typename transactable_t::construct_embedded_t(), *(src.m_contents), i, n) { m_contents->acquire(); }
 
-	vector(const volatile this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { }	// takes ownership of guarded desc reference
-	vector(const volatile this_t& src, size_t i) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { set_to_subrange(i); }	// takes ownership of guarded desc reference
-	vector(const volatile this_t& src, size_t i, size_t n) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { set_to_subrange(i, n); }	// takes ownership of guarded desc reference
+	vector(const volatile this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { } // takes ownership of guarded desc reference
+	vector(const volatile this_t& src, size_t i) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { set_to_subrange(i); } // takes ownership of guarded desc reference
+	vector(const volatile this_t& src, size_t i, size_t n) : m_contents(typename transactable_t::construct_embedded_t(), *(src.guarded_begin_read())) { set_to_subrange(i, n); } // takes ownership of guarded desc reference
 
 	template <typename type2 = type>
 	vector(const vector<type2>& src) { m_contents->allocate(src.get_const_ptr(), src.get_length()); }
@@ -1811,7 +1809,7 @@ public:
 	template <typename type2 = type, class comparator_t = default_comparator >
 	int compare(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return compare<type2, comparator_t>(tmp); }
 
-	
+
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool equals(size_t n, const type2& cmp) const { return m_contents->template equals<type2, comparator_t>(n, cmp); }
 
@@ -1897,7 +1895,6 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool ends_with(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return ends_with<type2, comparator_t>(tmp); }
-	
 
 
 
@@ -1936,7 +1933,7 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool is_greater_than(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return is_greater_than<type2, comparator_t>(tmp); }
-	
+
 
 
 	template <typename type2>
@@ -1987,7 +1984,6 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	size_t index_of(size_t i, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template index_of<type2, comparator_t>(i, cmp); }
-	
 
 
 
@@ -2602,7 +2598,7 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				result.m_contents->m_desc = desc;
 				result.m_contents->m_ptr = wt->m_ptr;
 				size_t length = wt->m_length;
@@ -2610,7 +2606,7 @@ public:
 				{
 					result.m_contents->m_length = length;
 					wt->clear_inner();
-					if (desc)			// Ok to release now.  If commit succeeds, we know it remained valid up until then.
+					if (desc) // Ok to release now.  If commit succeeds, we know it remained valid up until then.
 						desc->release();
 					desc = 0;
 				}
@@ -2622,7 +2618,7 @@ public:
 				}
 				if (!!m_contents.end_write(wt))
 					break;
-				if (desc)							// if commit unsuccessful, and i < length, we need to release 1 reference
+				if (desc) // if commit unsuccessful, and i < length, we need to release 1 reference
 					desc->release();
 				result.m_contents->m_desc = 0;
 			}
@@ -2653,13 +2649,13 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc_t* desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc_t* desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				size_t length = wt->m_length;
-				if (i >= length)	// nop.  If nothing to split off back, we don't need to write at all.
+				if (i >= length) // nop.  If nothing to split off back, we don't need to write at all.
 				{
 					result.m_ptr = 0;
 					result.m_length = 0;
-					if (desc)			// Release our copy from guard
+					if (desc) // Release our copy from guard
 						desc->release();
 					break;
 				}
@@ -2709,7 +2705,7 @@ public:
 			for (;;)
 			{
 				guarded_begin_write(wt);
-				desc = wt->m_desc;	// acquired, regardless of whether the commit succeeds.
+				desc = wt->m_desc; // acquired, regardless of whether the commit succeeds.
 				result.m_contents->m_ptr = wt->m_ptr;
 				result.m_contents->m_desc = desc;
 				size_t length = wt->m_length;
@@ -2717,7 +2713,7 @@ public:
 				{
 					result.m_contents->m_length = length;
 					wt->clear_inner();
-					if (desc)			// Ok to release now.  If commit succeeds, we know it remained valid up until then.
+					if (desc) // Ok to release now.  If commit succeeds, we know it remained valid up until then.
 						desc->release();
 					desc = 0;
 				}
@@ -2730,7 +2726,7 @@ public:
 				}
 				if (!!m_contents.end_write(wt))
 					break;
-				if (desc)							// if commit unsuccessful, and i < length, we need to release 1 reference
+				if (desc) // if commit unsuccessful, and i < length, we need to release 1 reference
 					desc->release();
 				result.m_contents->m_desc = 0;
 			}

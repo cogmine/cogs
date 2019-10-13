@@ -54,7 +54,7 @@ protected:
 	{
 		size remaining = originalBounds.get_size() - calculatedSize;
 		size newChildPosition = remaining * a;
-		point childOldPosition = get_child_position();	// not set first time called, but oldOrigin is undefined then anyway.
+		point childOldPosition = get_child_position(); // not set first time called, but oldOrigin is undefined then anyway.
 		bounds b(originalBounds.get_position() + newChildPosition, calculatedSize);
 		frame::reshape(b, oldOrigin + (childOldPosition - b.get_position()));
 	}
@@ -67,7 +67,7 @@ public:
 		rcptr<const frame> f = this;
 		rcptr<cell> r = m_cell;
 		while (!!r && r->is_frame())
-		{			
+		{
 			f = r.template static_cast_to<frame>();
 			r = f->get_cell();
 		}
@@ -176,7 +176,7 @@ public:
 		m_defaultSize(defaultSize)
 	{ }
 
-	virtual size get_default_size() const	{ return propose_size(m_defaultSize); }
+	virtual size get_default_size() const { return propose_size(m_defaultSize); }
 };
 
 
@@ -754,8 +754,8 @@ public:
 
 
 // Maybe need 2 separate classes?
-//	propose_aspect_ratio_frame - Proposes new size with aspect ratio, but allows content cell to decide
-//	maintain_aspect_ratio_frame2? - Alway maintains the aspect ratio (based on default size), and aligns contents if necessary.
+// propose_aspect_ratio_frame - Proposes new size with aspect ratio, but allows content cell to decide
+// maintain_aspect_ratio_frame2? - Alway maintains the aspect ratio (based on default size), and aligns contents if necessary.
 
 class propose_aspect_ratio_frame : public frame
 {
@@ -820,7 +820,7 @@ public:
 				r.has_max_width() = true;
 			}
 		}
-		
+
 		return r;
 	}
 

@@ -41,13 +41,10 @@ inline constexpr ulongest const_gcd_v = const_gcd<x, y>::value;
 
 template <ulongest x> class const_gcd<x, 0> { public: static constexpr ulongest value = 0; };
 template <ulongest y> class const_gcd<0, y> { public: static constexpr ulongest value = 0; };
-template <>           class const_gcd<0, 0> { public: static constexpr ulongest value = 0; };
-
-
+template <> class const_gcd<0, 0> { public: static constexpr ulongest value = 0; };
 
 
 }
 
 
 #endif
-

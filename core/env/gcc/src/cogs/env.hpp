@@ -40,9 +40,9 @@ template <> class bytes_to_int<sizeof(uint64_t), false> { public: typedef uint64
 template <> class bytes_to_int<sizeof(int64_t), true> { public: typedef int64_t type; };
 
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
+template <> class bytes_to_int<sizeof(unsigned __int128), false> { public: typedef unsigned __int128 type; };
+template <> class bytes_to_int<sizeof(__int128), true> { public: typedef __int128 type; };
 #define COGS_LONGEST_INT (16)
-template <> class bytes_to_int<sizeof(__uint128_t), false> { public: typedef __uint128_t type; };
-template <> class bytes_to_int<sizeof(__int128_t), true> { public: typedef __int128_t type; };
 #else
 #define COGS_LONGEST_INT (8)
 #endif

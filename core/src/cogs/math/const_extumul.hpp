@@ -15,7 +15,7 @@
 
 namespace cogs {
 
-	
+
 /// @ingroup ConstMath
 /// @brief Meta template to compute the extended multiplication of two constant integers
 /// @tparam x Value to multiply
@@ -33,8 +33,8 @@ private:
 	static constexpr ulongest hl = high_x * low_y;
 	static constexpr ulongest hh = high_x * high_y;
 	static constexpr ulongest llh = get_const_high_part_v<ulongest, ll>;
-	static constexpr ulongest lh2 = lh + llh;				// will not overflow
-	static constexpr ulongest mid = lh2 + hl;				// might overflow
+	static constexpr ulongest lh2 = lh + llh; // will not overflow
+	static constexpr ulongest mid = lh2 + hl; // might overflow
 	static constexpr ulongest carry = (mid < lh2) ? 1 : 0;
 	static constexpr ulongest hh2 = hh + make_const_high_part_v<ulongest, carry>;
 	static constexpr ulongest mh = get_const_high_part_v<ulongest, mid>;
@@ -42,7 +42,7 @@ private:
 	static constexpr ulongest lll = get_const_low_part_v<ulongest, ll>;
 
 public:
-	static constexpr ulongest high_part = hh2 + mh;			// will not overflow
+	static constexpr ulongest high_part = hh2 + mh; // will not overflow
 	static constexpr ulongest low_part = ml_shifted | lll;
 
 	static constexpr ulongest value = low_part;

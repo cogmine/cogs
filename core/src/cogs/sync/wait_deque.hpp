@@ -31,8 +31,8 @@ public:
 	typedef wait_container_deque<type, coalesc_equal, allocator_type> this_t;
 
 private:
-	semaphore												m_semaphore;
-	container_deque<type, coalesc_equal, allocator_type>	m_deque;
+	semaphore m_semaphore;
+	container_deque<type, coalesc_equal, allocator_type> m_deque;
 
 	wait_container_deque(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -89,8 +89,8 @@ public:
 	typedef wait_container_deque<type, false, allocator_type> this_t;
 
 private:
-	semaphore										m_semaphore;
-	container_deque<type, false, allocator_type>	m_deque;
+	semaphore m_semaphore;
+	container_deque<type, false, allocator_type> m_deque;
 
 	wait_container_deque(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;

@@ -112,52 +112,52 @@ public:
 
 
 // Electronic Codebook
-//	Each block is encrypted/decrypted separately.
-//	Encryption and decryption can both be parallelized.
-//	Stream can recover from bad data, provided block length is not disrupted.
+//   Each block is encrypted/decrypted separately.
+//   Encryption and decryption can both be parallelized.
+//   Stream can recover from bad data, provided block length is not disrupted.
 template <class block_cipher_t>
 class ECB : public cipher_mode<ECB<block_cipher_t>, block_cipher_t>
 {
 };
 
 // Cipher Block Chaining
-//	The result of each cipher block is XOR'ed into the input of the next.
-//	Encryption cannot be parallelized, but decryption can be.
-//	Stream can recover from bad data, provided block length is not disrupted.
+//   The result of each cipher block is XOR'ed into the input of the next.
+//   Encryption cannot be parallelized, but decryption can be.
+//   Stream can recover from bad data, provided block length is not disrupted.
 template <class block_cipher_t>
 class CBC : public cipher_mode<CBC<block_cipher_t>, block_cipher_t>
 {
 };
 
 // Propagating Cipher Block Chaining
-//	The result of each cipher block is XOR'ed with its own input and into the input of the next.
-//	Neither Encryption nor decryption can be parallelized.
+//   The result of each cipher block is XOR'ed with its own input and into the input of the next.
+//   Neither Encryption nor decryption can be parallelized.
 template <class block_cipher_t>
 class PCBC : public cipher_mode<PCBC<block_cipher_t>, block_cipher_t>
 {
 };
 
 // Cipher Feedback
-//	IV is first state.  State is encryped, then input is XOR'ed with the state.  Repeated.
-//	Encryption cannot be parallelized, but decryption can be.
-//	Stream can recover from bad data, provided block length is not disrupted.
+//   IV is first state.  State is encryped, then input is XOR'ed with the state.  Repeated.
+//   Encryption cannot be parallelized, but decryption can be.
+//   Stream can recover from bad data, provided block length is not disrupted.
 template <class block_cipher_t>
 class CFB : public cipher_mode<CFB<block_cipher_t>, block_cipher_t>
 {
 };
 
 // Output Feedback
-//	IV is first state.  State is encrypted, state is saved, input is XOR'ed with state to generate cipher text, saved state becomes new state.
-//	Decryption is idential to encryption.
-//	Neither Encryption nor decryption can be parallelized.
+//   IV is first state.  State is encrypted, state is saved, input is XOR'ed with state to generate cipher text, saved state becomes new state.
+//   Decryption is idential to encryption.
+//   Neither Encryption nor decryption can be parallelized.
 template <class block_cipher_t>
 class OFB : public cipher_mode<OFB<block_cipher_t>, block_cipher_t>
 {
 };
 
 // Counter
-//	Similar to OFB, but encrypts an IV and Counter as the only direct input to the cipher.
-// Encryption and Decryption can both be parallized.
+//   Similar to OFB, but encrypts an IV and Counter as the only direct input to the cipher.
+//   Encryption and Decryption can both be parallized.
 template <class block_cipher_t, class counter_t>
 class CTR : public cipher_mode<CTR<block_cipher_t, counter_t>, block_cipher_t>
 {
@@ -167,7 +167,7 @@ class CTR : public cipher_mode<CTR<block_cipher_t, counter_t>, block_cipher_t>
 
 // CCM
 // OCB
-// GCM	- Galois/Counter Mode
+// GCM - Galois/Counter Mode
 // XEX/XTR
 
 
@@ -428,18 +428,18 @@ public:
 		uint32_t left = (input[0] << 24) | (input[1] << 16) | (input[2] << 8) | input[3];
 		uint32_t right = (input[4] << 24) | (input[5] << 16) | (input[6] << 8) | input[7];
 
-		uint32_t tmp = ((left >>  4) ^ right) & 0x0F0F0F0F;
+		uint32_t tmp = ((left >> 4) ^ right) & 0x0F0F0F0F;
 		right ^= tmp;
-		left ^= (tmp <<  4);
+		left ^= (tmp << 4);
 		tmp = ((left >> 16) ^ right) & 0x0000FFFF;
 		right ^= tmp;
 		left ^= (tmp << 16);
-		tmp = ((right >>  2) ^ left) & 0x33333333;
+		tmp = ((right >> 2) ^ left) & 0x33333333;
 		left ^= tmp;
-		right ^= (tmp <<  2);
-		tmp = ((right >>  8) ^ left) & 0x00FF00FF;
+		right ^= (tmp << 2);
+		tmp = ((right >> 8) ^ left) & 0x00FF00FF;
 		left ^= tmp;
-		right ^= (tmp <<  8);
+		right ^= (tmp << 8);
 		right = ((right << 1) | (right >> 31)) & 0xFFFFFFFF;
 		tmp = (left ^ right) & 0xAAAAAAAA;
 		right ^= tmp;
@@ -476,7 +476,7 @@ public:
 		tmp = ((right >> 4) ^ left) & 0x0F0F0F0F;
 		left ^= tmp;
 		right ^= (tmp << 4);
-		
+
 		output[0] = (unsigned char)(right >> 24);
 		output[1] = (unsigned char)(right >> 16);
 		output[2] = (unsigned char)(right >> 8);

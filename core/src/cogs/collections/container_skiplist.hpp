@@ -29,8 +29,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 /// @ingroup LockFreeCollections
@@ -42,7 +42,7 @@ class default_container_skiplist_payload
 private:
 	typedef default_container_skiplist_payload<key_t> this_t;
 
-	key_t	m_key;
+	key_t m_key;
 
 public:
 	default_container_skiplist_payload(const this_t& src)
@@ -59,7 +59,7 @@ public:
 		return *this;
 	}
 
-	const key_t& get_key() const	{ return m_key; }
+	const key_t& get_key() const { return m_key; }
 };
 
 
@@ -90,9 +90,9 @@ private:
 		class links_t
 		{
 		public:
-			link_mode		m_mode;
-			rcptr<link_t>	m_next;
-			rcptr<link_t>	m_prev;
+			link_mode m_mode;
+			rcptr<link_t> m_next;
+			rcptr<link_t> m_prev;
 		};
 
 		typedef transactable<links_t> transactable_t;
@@ -104,7 +104,7 @@ private:
 		link_t& operator=(const link_t&) = delete;
 
 	public:
-		ptr<transactable_t>	m_links;
+		ptr<transactable_t> m_links;
 		height_t m_height;
 
 		// Primary mode starts as link_mode::inserting at the start of a volatile insert.
@@ -113,8 +113,8 @@ private:
 		// If an insert finds the mode has been changed to link_mode::removing, the insert owns the removal.
 		alignas (atomic::get_alignment_v<link_mode>) link_mode m_primaryMode;
 
-		virtual       payload_t* get_payload()			{ return NULL; }
-		virtual const payload_t* get_payload() const	{ return NULL; }
+		virtual payload_t* get_payload() { return NULL; }
+		virtual const payload_t* get_payload() const { return NULL; }
 
 		link_t(const ptr<rc_obj_base>& desc, height_t height, link_mode linkMode)
 			: object(desc),
@@ -174,14 +174,14 @@ private:
 			}
 		}
 
-		virtual bool is_sentinel() const			{ return false; }
-		virtual bool is_sentinel() const volatile	{ return false; }
+		virtual bool is_sentinel() const { return false; }
+		virtual bool is_sentinel() const volatile { return false; }
 
-		bool is_removed()							{ return m_primaryMode == link_mode::removing; }
-		bool is_removed() volatile					{ link_mode primaryMode; atomic::load(m_primaryMode, primaryMode); return primaryMode == link_mode::removing; }
-		
-		bool is_removed(height_t height)			{ return m_links[height]->m_mode == link_mode::removing; }
-		bool is_removed(height_t height) volatile	{ read_token rt; return !begin_read_and_complete(height, rt, false); }
+		bool is_removed() { return m_primaryMode == link_mode::removing; }
+		bool is_removed() volatile { link_mode primaryMode; atomic::load(m_primaryMode, primaryMode); return primaryMode == link_mode::removing; }
+
+		bool is_removed(height_t height) { return m_links[height]->m_mode == link_mode::removing; }
+		bool is_removed(height_t height) volatile { read_token rt; return !begin_read_and_complete(height, rt, false); }
 
 		bool remove()
 		{
@@ -233,7 +233,7 @@ private:
 			{
 				if (oldLinkMode == link_mode::removing)
 				{
-					remove_from_level(wasLast, 0);	// Ensure removed at least from bottom level before return.
+					remove_from_level(wasLast, 0); // Ensure removed at least from bottom level before return.
 					break;
 				}
 
@@ -353,7 +353,7 @@ private:
 					wasLast = maybeLast;
 				result = true;
 				prev->m_links[level].begin_read(rt_prev);
-				if (rt_prev->m_mode == link_mode::removing_next)	// If not spontaneously completed by another thread.
+				if (rt_prev->m_mode == link_mode::removing_next) // If not spontaneously completed by another thread.
 					prev->complete_remove_next(level, rt_prev);
 				break;
 			}
@@ -394,7 +394,7 @@ private:
 			{
 				read_token rt_prev;
 				prev->m_links[level].begin_read(rt_prev);
-				if (rt_prev->m_next.get_ptr() == this)	// otherwise, we're done here.
+				if (rt_prev->m_next.get_ptr() == this) // otherwise, we're done here.
 				{
 					COGS_ASSERT(rt_prev->m_mode == link_mode::removing_next);
 					write_token wt_prev;
@@ -491,7 +491,7 @@ private:
 				complete_insert(level, rt);
 		}
 
-		bool begin_read_and_complete(height_t level, read_token& rt, bool returnTokenEvenIfRemoved) volatile	// returns false this link was removed.
+		bool begin_read_and_complete(height_t level, read_token& rt, bool returnTokenEvenIfRemoved) volatile // returns false this link was removed.
 		{
 			COGS_ASSERT(level <= m_height);
 			bool notRemoved = true;
@@ -543,15 +543,15 @@ private:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -604,15 +604,15 @@ private:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (!emptyList && (next.get_ptr() != sentinelPtr))	// if next is not sentinel
+					if (!emptyList && (next.get_ptr() != sentinelPtr)) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next.template const_cast_to<link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -680,7 +680,7 @@ private:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& prevCriteria = prev.template const_cast_to<link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(criteria, prevCriteria))
@@ -728,7 +728,7 @@ private:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (next != lastAdjacent)
 						{
@@ -783,7 +783,7 @@ private:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
@@ -850,7 +850,7 @@ private:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>()->get_payload()->get_key()))
 						{
@@ -864,7 +864,7 @@ private:
 					if (prev.get_ptr() != sentinelPtr)
 					{
 						// If at the bottom level, abort if there is a match
-						if (!comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria))	// if prev and arg are equal
+						if (!comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria)) // if prev and arg are equal
 						{
 							result = prev;
 							break;
@@ -978,7 +978,7 @@ private:
 			if (!atomic::compare_exchange(m_primaryMode, link_mode::normal, link_mode::inserting))
 			{
 				bool wasLast;
-				remove_from_all_levels(wasLast);	// could only fail because a remove was initiated.  Needs to be owned by this thread.
+				remove_from_all_levels(wasLast); // could only fail because a remove was initiated.  Needs to be owned by this thread.
 			}
 		}
 
@@ -1002,12 +1002,12 @@ private:
 		{
 			rcptr<volatile link_t> lastAdjacent;
 			rcptr<volatile link_t> result = insert_unique_inner(height, get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
-			if (!result)	// If no collision, and was inesrted.
+			if (!result) // If no collision, and was inesrted.
 			{
 				if (!atomic::compare_exchange(m_primaryMode, link_mode::normal, link_mode::inserting))
 				{
 					bool wasLast;
-					remove_from_all_levels(wasLast);	// could only fail because a remove was initiated.  Needs to be owned by this thread.
+					remove_from_all_levels(wasLast); // could only fail because a remove was initiated.  Needs to be owned by this thread.
 				}
 			}
 			return result;
@@ -1021,11 +1021,11 @@ private:
 	class payload_link_t : public link_t
 	{
 	private:
-		placement<payload_t>	m_value;
+		placement<payload_t> m_value;
 
 	public:
-		virtual       payload_t* get_payload()			{ return &m_value.get(); }
-		virtual const payload_t* get_payload() const	{ return &m_value.get(); }
+		virtual payload_t* get_payload() { return &m_value.get(); }
+		virtual const payload_t* get_payload() const { return &m_value.get(); }
 
 		explicit payload_link_t(const ptr<rc_obj_base>& desc)
 			: link_t(desc)
@@ -1040,7 +1040,7 @@ private:
 		}
 
 		payload_link_t(const ptr<rc_obj_base>& desc, height_t height)
-			:	link_t(desc, height)
+			: link_t(desc, height)
 		{
 			new (get_payload()) payload_t;
 		}
@@ -1051,9 +1051,9 @@ private:
 			new (get_payload()) payload_t(t);
 		}
 
-		~payload_link_t()				{ m_value.destruct(); }
+		~payload_link_t() { m_value.destruct(); }
 
-		rcref<payload_t>	get_obj()	{ return object::get_self_rcref(get_payload()); }
+		rcref<payload_t> get_obj() { return object::get_self_rcref(get_payload()); }
 	};
 
 	template <typename T>
@@ -1098,8 +1098,8 @@ private:
 			link_t::m_links[0]->m_next.release();
 		}
 
-		virtual bool is_sentinel() const			{ return true; }
-		virtual bool is_sentinel() const volatile	{ return true; }
+		virtual bool is_sentinel() const { return true; }
+		virtual bool is_sentinel() const volatile { return true; }
 	};
 
 	class height_and_count_t
@@ -1124,8 +1124,8 @@ private:
 		height_and_count_t oldHeightAndCount;
 		height_and_count_t newHeightAndCount;
 		atomic::load(m_heightAndCount, oldHeightAndCount);
-		do {				// might bounce below zero if something is removed in the middle of being added
-			newHeightAndCount.m_count = oldHeightAndCount.m_count - 1;	
+		do { // might bounce below zero if something is removed in the middle of being added
+			newHeightAndCount.m_count = oldHeightAndCount.m_count - 1;
 			ptrdiff_t minHeight = (ptrdiff_t)oldHeightAndCount.m_count;
 			if (minHeight < 0)
 				minHeight = 0;
@@ -1137,12 +1137,13 @@ private:
 	}
 
 	// 1) 1/2 chance the end bit is 1
-	// 2) 1/4 chance the end bits are 10		(not 00, 01, or 11)
-	// 3) 1/8 chance the end bits are 100		(not 000, 001, 010, 011, 101, 110, 111)
-	// 4) 1/16 chance the end bits are 1000		(etc.)
+	// 2) 1/4 chance the end bits are 10    (not 00, 01, or 11)
+	// 3) 1/8 chance the end bits are 100   (not 000, 001, 010, 011, 101, 110, 111)
+	// 4) 1/16 chance the end bits are 1000 (etc.)
 	static height_t generate_height(height_t currentHeight)
 	{
-		// Normalized to 1-based, then extend by 1	// 0 will not be returned, so normalizing back to 0-based
+		// Normalized to 1-based, then extend by 1
+		// 0 will not be returned, so normalizing back to 0-based
 		height_t h = (height_t)random_coin_flips<height_t>(currentHeight + 2);
 		COGS_ASSERT(!!h);
 		if (!!h)
@@ -1150,7 +1151,7 @@ private:
 		return h;
 	}
 
-	height_t generate_height() const	{ return generate_height(m_heightAndCount.m_currentHeight); }
+	height_t generate_height() const { return generate_height(m_heightAndCount.m_currentHeight); }
 
 	height_t generate_height() const volatile
 	{
@@ -1163,7 +1164,7 @@ private:
 	{
 		if (newHeight <= m_heightAndCount.m_currentHeight)
 			return m_heightAndCount.m_currentHeight;
-		
+
 		COGS_ASSERT(newHeight <= max_height);
 
 		rcptr<link_t>& sentinel = m_sentinel;
@@ -1189,7 +1190,7 @@ private:
 		atomic::load(m_heightAndCount.m_currentHeight, oldHeight);
 		if (newHeight <= oldHeight)
 			return oldHeight;
-		
+
 		COGS_ASSERT(newHeight <= max_height);
 
 		rcptr<volatile link_t> sentinel = m_sentinel;
@@ -1206,9 +1207,9 @@ private:
 			write_token wt;
 			if (!pos->promote_read_token(rt, wt))
 				break;
-			
+
 			wt->m_prev = wt->m_next = sentinel.template const_cast_to<link_t>();
-			pos->end_write(wt);	// no need to verify, the first write is always to set these.
+			pos->end_write(wt); // no need to verify, the first write is always to set these.
 			if (--pos == end)
 				break;
 		}
@@ -1287,19 +1288,19 @@ public:
 		friend class container_skiplist;
 		friend class remove_token;
 
-		iterator(const rcptr<link_t>& l) : m_link(l)	{ }
+		iterator(const rcptr<link_t>& l) : m_link(l) { }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		iterator()												{ }
-		iterator(const iterator& i)			: m_link(i.m_link)	{ }
-		iterator(const remove_token& rt) : m_link(rt.m_link)	{ if (is_removed()) release(); }
+		iterator() { }
+		iterator(const iterator& i) : m_link(i.m_link) { }
+		iterator(const remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
-		void release()				{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool is_active() const		{ return !!m_link && !m_link->is_removed(); }
-		bool is_removed() const		{ return !!m_link && m_link->is_removed(); }	// implies that it was in the list.  null m_link returns false
+		bool is_active() const { return !!m_link && !m_link->is_removed(); }
+		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
 
 		iterator& operator++()
 		{
@@ -1333,23 +1334,23 @@ public:
 			return *this;
 		}
 
-		iterator operator++(int)						{ iterator i(*this); ++*this; return i; }
-		iterator operator--(int)						{ iterator i(*this); --*this; return i; }
+		iterator operator++(int) { iterator i(*this); ++* this; return i; }
+		iterator operator--(int) { iterator i(*this); --* this; return i; }
 
-		bool operator!() const							{ return !m_link; }
+		bool operator!() const { return !m_link; }
 
-		bool operator==(const iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const remove_token& rt) const	{ return m_link == rt.m_link; }
+		bool operator==(const iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const remove_token& rt) const { return m_link == rt.m_link; }
 
-		bool operator!=(const iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const remove_token& rt) const	{ return !operator==(rt); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
 
-		iterator& operator=(const iterator& i)			{ m_link = i.m_link; return *this; }
-		iterator& operator=(const remove_token& rt)		{ m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		iterator& operator=(const iterator& i) { m_link = i.m_link; return *this; }
+		iterator& operator=(const remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
 
-		payload_t* get() const							{ return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
-		payload_t& operator*() const					{ return *(m_link->get_payload()); }
-		payload_t* operator->() const					{ return m_link->get_payload(); }
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
+		payload_t& operator*() const { return *(m_link->get_payload()); }
+		payload_t* operator->() const { return m_link->get_payload(); }
 
 		rcptr<payload_t> get_obj() const
 		{
@@ -1358,9 +1359,9 @@ public:
 				result = m_link.template static_cast_to<payload_link_t>()->get_obj();
 			return result;
 		}
-		
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
 		iterator next() const
 		{
@@ -1410,22 +1411,22 @@ public:
 		friend class container_skiplist;
 		friend class volatile_remove_token;
 
-		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l)	{ }
+		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l) { }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		volatile_iterator()																{ }
-		volatile_iterator(const volatile_iterator& i)				: m_link(i.m_link)	{ }
-		volatile_iterator(const volatile_remove_token& rt)			: m_link(rt.m_link)	{ if (is_removed()) release(); }
-		volatile_iterator(const volatile volatile_iterator& i)		: m_link(i.m_link)	{ }
-		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link)	{ if (is_removed()) release(); }
+		volatile_iterator() { }
+		volatile_iterator(const volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_iterator(const volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
+		volatile_iterator(const volatile volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
-		volatile_iterator& operator=(const volatile_iterator& i)					{ m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile_remove_token& rt)				{ m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		volatile_iterator& operator=(const volatile volatile_iterator& i)			{ m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile volatile_remove_token& rt)		{ m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		void operator=(const volatile_iterator& i) volatile							{ m_link = i.m_link; }
+		volatile_iterator& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_iterator& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		volatile_iterator& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_iterator& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
 		void operator=(const volatile_remove_token& rt) volatile
 		{
 			rcptr<volatile link_t> lnk = rt.m_link; 
@@ -1434,11 +1435,11 @@ public:
 			m_link = lnk;
 		}
 
-		bool is_active() const				{ return !!m_link && !m_link->is_removed(); }
-		bool is_active() const volatile		{ rcptr<volatile link_t> lnk = m_link; return !!lnk && !!lnk->is_removed(); }
+		bool is_active() const { return !!m_link && !m_link->is_removed(); }
+		bool is_active() const volatile { rcptr<volatile link_t> lnk = m_link; return !!lnk && !!lnk->is_removed(); }
 
-		bool is_removed() const				{ return !!m_link && m_link->is_removed(); }
-		bool is_removed() const volatile	{ rcptr<volatile link_t> lnk = m_link; return !!lnk && lnk->is_removed(); }
+		bool is_removed() const { return !!m_link && m_link->is_removed(); }
+		bool is_removed() const volatile { rcptr<volatile link_t> lnk = m_link; return !!lnk && lnk->is_removed(); }
 
 		const volatile_iterator& operator++()
 		{
@@ -1533,7 +1534,7 @@ public:
 							continue;
 						}
 						newLink = tmp;
-						break;	// but not done.
+						break; // but not done.
 					}
 					if (done)
 						break;
@@ -1581,7 +1582,7 @@ public:
 							continue;
 						}
 						newLink = tmp;
-						break;	// but not done.
+						break; // but not done.
 					}
 					if (done)
 						break;
@@ -1593,7 +1594,7 @@ public:
 			}
 		}
 
-		volatile_iterator operator++(int)			{ volatile_iterator i(*this); ++*this; return i; }
+		volatile_iterator operator++(int) { volatile_iterator i(*this); ++*this; return i; }
 
 		volatile_iterator operator++(int) volatile
 		{
@@ -1609,7 +1610,7 @@ public:
 			return original;
 		}
 
-		volatile_iterator operator--(int)			{ volatile_iterator i(*this); --*this; return i; }
+		volatile_iterator operator--(int) { volatile_iterator i(*this); --*this; return i; }
 
 		volatile_iterator operator--(int) volatile
 		{
@@ -1625,29 +1626,29 @@ public:
 			return original;
 		}
 
-		bool operator!() const											{ return !m_link; }
-		bool operator!() const volatile									{ return !m_link; }
+		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const				{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile		{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& rt) const			{ return m_link == rt.m_link; }
-		bool operator==(const volatile volatile_remove_token& rt) const	{ return m_link == rt.m_link; }
-		bool operator==(const volatile_remove_token& rt) const volatile	{ return m_link == rt.m_link; }
+		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& rt) const { return m_link == rt.m_link; }
+		bool operator==(const volatile volatile_remove_token& rt) const { return m_link == rt.m_link; }
+		bool operator==(const volatile_remove_token& rt) const volatile { return m_link == rt.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const				{ return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile		{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& rt) const			{ return !operator==(rt); }
-		bool operator!=(const volatile volatile_remove_token& rt) const	{ return !operator==(rt); }
-		bool operator!=(const volatile_remove_token& rt) const volatile	{ return !operator==(rt); }
+		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& rt) const { return !operator==(rt); }
+		bool operator!=(const volatile volatile_remove_token& rt) const { return !operator==(rt); }
+		bool operator!=(const volatile_remove_token& rt) const volatile { return !operator==(rt); }
 
-		payload_t* get() const											{ return (!m_link) ? (payload_t*)0 : m_link.template const_cast_to<link_t>()->get_payload(); }
-		payload_t& operator*() const									{ return *(get()); }
-		payload_t* operator->() const									{ return get(); }
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template const_cast_to<link_t>()->get_payload(); }
+		payload_t& operator*() const { return *(get()); }
+		payload_t* operator->() const { return get(); }
 
-		void release()													{ m_link.release(); }
-		void release() volatile											{ m_link.release(); }
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
 		rcptr<payload_t> get_obj() const
 		{
@@ -1657,11 +1658,11 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
-		volatile_iterator next() const	{ volatile_iterator result(this); ++result; return result; }
-		volatile_iterator prev() const	{ volatile_iterator result(this); --result; return result; }
+		volatile_iterator next() const { volatile_iterator result(this); ++result; return result; }
+		volatile_iterator prev() const { volatile_iterator result(this); --result; return result; }
 
 		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) volatile
 		{
@@ -1687,24 +1688,24 @@ public:
 		{ }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		preallocated_t()	{ }
+		preallocated_t() { }
 
 		preallocated_t(const preallocated_t& src)
 			: m_link(src.m_link)
 		{ }
 
-		void release()										{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool operator!() const								{ return !m_link; }
-		bool operator==(const preallocated_t& i) const		{ return m_link == i.m_link; }
-		bool operator!=(const preallocated_t& i) const		{ return !operator==(i); }
-		preallocated_t& operator=(const preallocated_t& i)	{ m_link = i.m_link; return *this; }
+		bool operator!() const { return !m_link; }
+		bool operator==(const preallocated_t & i) const { return m_link == i.m_link; }
+		bool operator!=(const preallocated_t & i) const { return !operator==(i); }
+		preallocated_t & operator=(const preallocated_t & i) { m_link = i.m_link; return *this; }
 
-		payload_t* get() const							{ return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
-		payload_t& operator*() const					{ return *(m_link->get_payload()); }
-		payload_t* operator->() const					{ return m_link->get_payload(); }
+		payload_t * get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
+		payload_t & operator*() const { return *(m_link->get_payload()); }
+		payload_t * operator->() const { return m_link->get_payload(); }
 
 		rcptr<payload_t> get_obj() const
 		{
@@ -1714,8 +1715,8 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 	};
 
 	/// @brief A container_skiplist element remove token
@@ -1728,26 +1729,26 @@ public:
 
 		friend class container_skiplist;
 	public:
-		remove_token()												{ }
-		remove_token(const preallocated_t& i)	: m_link(i.m_link)	{ }
-		remove_token(const iterator& i)			: m_link(i.m_link)	{ }
-		remove_token(const remove_token& rt)	: m_link(rt.m_link)	{ }
+		remove_token() { }
+		remove_token(const preallocated_t& i) : m_link(i.m_link) { }
+		remove_token(const iterator& i) : m_link(i.m_link) { }
+		remove_token(const remove_token& rt) : m_link(rt.m_link) { }
 
-		remove_token& operator=(const preallocated_t& i)		{ m_link = i.m_link; return *this; }
-		remove_token& operator=(const iterator& i)				{ m_link = i.m_link; return *this; }
-		remove_token& operator=(const remove_token& rt)			{ m_link = rt.m_link; return *this; }
+		remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const iterator& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const remove_token& rt) { m_link = rt.m_link; return *this; }
 
-		bool is_active() const									{ rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
-		void release()											{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool operator!() const									{ return !m_link; }
+		bool operator!() const { return !m_link; }
 
-		bool operator==(const iterator& i) const				{ return m_link == i.m_link; }
-		bool operator==(const remove_token& rt) const			{ return m_link == rt.m_link; }
+		bool operator==(const iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const remove_token& rt) const { return m_link == rt.m_link; }
 
-		bool operator!=(const iterator& i) const				{ return !operator==(i); }
-		bool operator!=(const remove_token& rt) const			{ return !operator==(rt); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
 	};
 
 	/// @brief A volatile container_skiplist element remove token
@@ -1760,44 +1761,44 @@ public:
 
 		friend class container_skiplist;
 	public:
-		volatile_remove_token()																{ }
-		volatile_remove_token(const             preallocated_t& i) : m_link(i.m_link)		{ }
-		volatile_remove_token(const          volatile_iterator& i) : m_link(i.m_link)		{ }
-		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link)		{ }
-		volatile_remove_token(const          volatile_remove_token& rt) : m_link(rt.m_link)	{ }
-		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link)	{ }
+		volatile_remove_token() { }
+		volatile_remove_token(const preallocated_t& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile_remove_token& rt) : m_link(rt.m_link) { }
+		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { }
 
-		volatile_remove_token& operator=(const preallocated_t& i)					{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_iterator& i)				{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_iterator& i)		{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_remove_token& rt)			{ m_link = rt.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_remove_token& rt)	{ m_link = rt.m_link; return *this; }
+		volatile_remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; return *this; }
 
-		void operator=(const volatile_iterator& i) volatile							{ m_link = i.m_link; }
-		void operator=(const volatile_remove_token& rt) volatile						{ m_link = rt.m_link; }
+		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
+		void operator=(const volatile_remove_token& rt) volatile { m_link = rt.m_link; }
 
-		bool is_active() const			{ rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
-		bool is_active() const volatile	{ rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
-		void release()									{ m_link.release(); }
-		void release() volatile							{ m_link.release(); }
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
-		bool operator!() const							{ return !m_link; }
-		bool operator!() const volatile					{ return !m_link; }
+		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const				{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile		{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& rt) const			{ return m_link == rt.m_link; }
-		bool operator==(const volatile volatile_remove_token& rt) const	{ return m_link == rt.m_link; }
-		bool operator==(const volatile_remove_token& rt) const volatile	{ return m_link == rt.m_link; }
+		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& rt) const { return m_link == rt.m_link; }
+		bool operator==(const volatile volatile_remove_token& rt) const { return m_link == rt.m_link; }
+		bool operator==(const volatile_remove_token& rt) const volatile { return m_link == rt.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const				{ return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile		{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& rt) const			{ return !operator==(rt); }
-		bool operator!=(const volatile volatile_remove_token& rt) const	{ return !operator==(rt); }
-		bool operator!=(const volatile_remove_token& rt) const volatile	{ return !operator==(rt); }
+		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& rt) const { return !operator==(rt); }
+		bool operator!=(const volatile volatile_remove_token& rt) const { return !operator==(rt); }
+		bool operator!=(const volatile_remove_token& rt) const volatile { return !operator==(rt); }
 	};
 
 
@@ -1872,17 +1873,17 @@ public:
 		return foundAny;
 	}
 
-	size_t size() const				{ return m_heightAndCount.m_count; }
+	size_t size() const { return m_heightAndCount.m_count; }
 	size_t size() const volatile
 	{
 		ptrdiff_t sz;
 		atomic::load(m_heightAndCount.m_count, sz);
-		if (sz < 0)	// The count can bounce below zero, if an item is added, removed, and dec'ed before inc'ed.
+		if (sz < 0) // The count can bounce below zero, if an item is added, removed, and dec'ed before inc'ed.
 			sz = 0;
 		return sz;
 	}
 
-	bool is_empty() const			{ return !m_heightAndCount.m_count; }
+	bool is_empty() const { return !m_heightAndCount.m_count; }
 	bool is_empty() const volatile
 	{
 		ptrdiff_t sz;
@@ -1890,8 +1891,8 @@ public:
 		return (sz <= 0);
 	}
 
-	bool operator!() const			{ return is_empty(); }
-	bool operator!() const volatile	{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
 	iterator get_first() const
 	{
@@ -1912,11 +1913,11 @@ public:
 			{
 				read_token rt;
 				bool b = sentinel->begin_read_and_complete(0, rt, false);
-				COGS_ASSERT(b);	// sentinel will not be removed
+				COGS_ASSERT(b); // sentinel will not be removed
 				lnk = rt->m_next;
 				if (lnk.get_ptr() == sentinel.get_ptr())
 					break;
-				if (!lnk->begin_read_and_complete(0, rt, false))	// just in case it needs help removing...
+				if (!lnk->begin_read_and_complete(0, rt, false)) // just in case it needs help removing...
 					continue;
 				i.m_link = lnk;
 				break;
@@ -1944,11 +1945,11 @@ public:
 			{
 				read_token rt;
 				bool b = sentinel->begin_read_and_complete(0, rt, false);
-				COGS_ASSERT(b);	// sentinel will not be removed
+				COGS_ASSERT(b); // sentinel will not be removed
 				lnk = rt->m_prev;
 				if (lnk.get_ptr() == sentinel.get_ptr())
 					break;
-				if (!lnk->begin_read_read_and_complete(0, rt, false))	// just in case it needs help removing...
+				if (!lnk->begin_read_read_and_complete(0, rt, false)) // just in case it needs help removing...
 					continue;
 				i.m_link = lnk;
 				break;
@@ -2195,7 +2196,7 @@ public:
 		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
 		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
 		if (!!i.m_link.template const_cast_to<link_t>()->insert_unique(height, sentinel))
-			i.m_link.release();	
+			i.m_link.release();
 		else
 			assign_next(m_heightAndCount.m_count);
 		return i;
@@ -2320,14 +2321,14 @@ public:
 			for (;;)
 			{
 				wasLast = false;
-				bool b = sentinel->begin_read_and_complete(0, rt_sentinel, false);	// sentinel won't get deleted, no need to check result
+				bool b = sentinel->begin_read_and_complete(0, rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				COGS_ASSERT(b);
 				rcptr<volatile link_t> prev = rt_sentinel->m_prev;
 
 				rcptr<volatile link_t> firstLink = rt_sentinel->m_next;
 				if (firstLink.get_ptr() == sentinel.get_ptr())
 					break;
-				if (firstLink->is_removed(0))	// also completes other states
+				if (firstLink->is_removed(0)) // also completes other states
 					continue;
 
 				write_token wt;
@@ -2343,15 +2344,14 @@ public:
 				if (!sentinel->m_links[0].end_write(wt))
 					continue;
 
-				sentinel->begin_read_and_complete(0, rt_sentinel, false);	// completes remove-next
+				sentinel->begin_read_and_complete(0, rt_sentinel, false); // completes remove-next
 				if (!firstLink->remove())
-					continue;	// someone else marked it first.
+					continue; // someone else marked it first.
 				dec_count();
 				itor.m_link = firstLink;
 				break;
 			}
 		}
-		
 		return itor;
 	}
 
@@ -2367,7 +2367,7 @@ public:
 			for (;;)
 			{
 				wasLast = false;
-				sentinel->begin_read_and_complete(0, rt_sentinel, false);	// sentinel won't get deleted, no need to check result
+				sentinel->begin_read_and_complete(0, rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				rcptr<volatile link_t> lastLink = rt_sentinel->m_prev;
 				if (lastLink.get_ptr() == sentinel.get_ptr())
 					break;
@@ -2396,7 +2396,7 @@ public:
 					}
 					if (outerContinue2)
 						continue;
-					break;	// and !outerContinue
+					break; // and !outerContinue
 				}
 				if (outerContinue)
 					continue;
@@ -2419,7 +2419,7 @@ public:
 				if (!prev->m_links[0].end_write(wt_prev))
 					continue;
 
-				prev->begin_read_and_complete(0, rt_prev, false);	// completes remove-next
+				prev->begin_read_and_complete(0, rt_prev, false); // completes remove-next
 				if (!lastLink->remove())
 					continue;
 				dec_count();
@@ -2430,7 +2430,7 @@ public:
 		return itor;
 	}
 
-	iterator find_any_equal(const key_t& criteria) const	
+	iterator find_any_equal(const key_t& criteria) const
 	{
 		iterator i;
 		link_t* sentinelPtr = m_sentinel.get_ptr();
@@ -2446,7 +2446,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
@@ -2494,7 +2494,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
 						{
@@ -2554,7 +2554,7 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if prev is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
 						const key_t& prevCriteria = prev->get_payload()->get_key();
 						bool advance = false;
@@ -2562,7 +2562,7 @@ public:
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
 						if (!advance)
 						{
-							if (!comparator_t::is_less_than(prevCriteria, criteria))	// if prev and arg are equal
+							if (!comparator_t::is_less_than(prevCriteria, criteria)) // if prev and arg are equal
 							{
 								advance = true;
 								nextWasEqual = true;
@@ -2606,15 +2606,15 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -2676,7 +2676,7 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if prev is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
 						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>()->get_payload()->get_key()))
 						{
@@ -2687,7 +2687,7 @@ public:
 				}
 				if (!level)
 				{
-					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria))	// if next and arg are equal
+					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria)) // if next and arg are equal
 						i.m_link = prev;
 					break;
 				}
@@ -2715,7 +2715,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
 						{
@@ -2775,15 +2775,15 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& prevCriteria = prev->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(prevCriteria, criteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(prevCriteria, criteria)) // if next and arg are equal
 							{
 								advance = true;
 								nextWasEqual = true;
@@ -2827,15 +2827,15 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -2893,11 +2893,11 @@ public:
 					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
-				}				
+				}
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if prev is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
 						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
 						{
@@ -2936,7 +2936,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
@@ -2988,7 +2988,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
@@ -2996,7 +2996,7 @@ public:
 							prev = next;
 							continue;
 						}
-						if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+						if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 						{
 							i.m_link = next;
 							break;
@@ -3036,7 +3036,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
 						{
@@ -3048,7 +3048,7 @@ public:
 				if (!level)
 				{
 					if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next->get_payload()->get_key()))
-						i.m_link = next;						
+						i.m_link = next;
 					else if (prev.get_ptr() != sentinelPtr)
 						i.m_link = prev;
 					break;
@@ -3098,15 +3098,15 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& prevCriteria = prev->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(prevCriteria, criteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(prevCriteria, criteria)) // if next and arg are equal
 							{
 								advance = true;
 								nextWasEqual = true;
@@ -3151,7 +3151,7 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
 						{
@@ -3211,15 +3211,15 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& prevCriteria = prev->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(prevCriteria, criteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(prevCriteria, criteria)) // if next and arg are equal
 							{
 								advance = true;
 								nextWasEqual = true;
@@ -3263,15 +3263,15 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -3297,7 +3297,7 @@ public:
 		}
 		return i; 
 	}
-	
+
 	volatile_iterator find_last_equal_or_nearest_less_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
@@ -3333,7 +3333,7 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
 						{
@@ -3373,15 +3373,15 @@ public:
 				if (next != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						const key_t& nextCriteria = next->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
-						if (!advance)	// Will skip this block if next is less than arg.
+						if (!advance) // Will skip this block if next is less than arg.
 						{
-							if (!comparator_t::is_less_than(criteria, nextCriteria))	// if next and arg are equal
+							if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 							{
 								advance = true;
 								prevWasEqual = true;
@@ -3445,7 +3445,7 @@ public:
 				if (prev != lastAdjacent)
 				{
 					lastAdjacent.release();
-					if (prev.get_ptr() != sentinelPtr)	// if next is not sentinel
+					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
 						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
 						{
@@ -3456,7 +3456,7 @@ public:
 				}
 				if (!level)
 				{
-					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev->get_payload()->get_key(), criteria))	// if prev and arg are equal
+					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev->get_payload()->get_key(), criteria)) // if prev and arg are equal
 						i.m_link = prev;
 					else if (next.get_ptr() != sentinelPtr)
 						i.m_link = next;

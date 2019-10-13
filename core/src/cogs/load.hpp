@@ -23,7 +23,7 @@ inline constexpr std::enable_if_t<
 	!std::is_volatile_v<std::remove_reference_t<T> >,
 	T&&
 >
-load(T&& src)	// Value may only persist for the expression containing the call, so do not store a reference.
+load(T&& src) // Value may only persist for the expression containing the call, so do not store a reference.
 {
 	return std::forward<T>(src);
 }
@@ -36,8 +36,8 @@ inline constexpr std::enable_if_t<
 >
 load(const T& src)
 {
-	std::remove_volatile_t<T> tmp(src);	// copy of a volatile object to get nonvolatile one
-	return tmp;	
+	std::remove_volatile_t<T> tmp(src); // copy of a volatile object to get nonvolatile one
+	return tmp;
 }
 
 template <typename T>

@@ -34,14 +34,14 @@ private:
 	// x
 	static constexpr size_t accumulator_width = ((sizeof(unsigned int) * 8) > width) ? width : (sizeof(unsigned int) * 8);
 
-	// y	// Will be smaller than the largest int, since sizeof(width) must be an int
+	// y // Will be smaller than the largest int, since sizeof(width) must be an int
 	static constexpr size_t register_width = (width > (sizeof(unsigned int) * 8)) ? (width / 2) : (accumulator_width / 2);
 
-	typedef bits_to_uint_t<width>					result_t;
-	typedef bits_to_uint_t<sum_width>				sum_t;
-	typedef bits_to_uint_t<register_width>			register_t;
-	typedef bits_to_uint_t<accumulator_width>		accumulator_t;
-	typedef bits_to_uint_t<accumulator_width * 2>	larger_t;
+	typedef bits_to_uint_t<width> result_t;
+	typedef bits_to_uint_t<sum_width> sum_t;
+	typedef bits_to_uint_t<register_width> register_t;
+	typedef bits_to_uint_t<accumulator_width> accumulator_t;
+	typedef bits_to_uint_t<accumulator_width * 2> larger_t;
 
 	static constexpr accumulator_t mod_by = ((ulongest)1 << sum_width) - 1;
 	static constexpr sum_t init_value = (sum_t)(((ulongest)1 << register_width) - 1);
@@ -62,7 +62,7 @@ private:
 	public:
 		// 2 ^ register_width
 		static constexpr ulongest y = (ulongest)1 << register_width;
-		
+
 		// 2 ^ width
 		static constexpr ulongest x = (ulongest)1 << accumulator_width;
 
@@ -71,16 +71,16 @@ private:
 
 		// Calculate max loop iterations before a mod is needed
 		//
-		//	n = (sqrt((y-1) * (8x + 25 * (y-1))) - (5 * (y-1))) / y
+		// n = (sqrt((y-1) * (8x + 25 * (y-1))) - (5 * (y-1))) / y
 
-		static constexpr ulongest a = y - 1;				// i.e. 0x0000FFFF
+		static constexpr ulongest a = y - 1; // i.e. 0x0000FFFF
 
-		//	n = (sqrt(a * (8x + 25a)) - 5a) / y
+		// n = (sqrt(a * (8x + 25a)) - 5a) / y
 
 		static constexpr ulongest high_b = (sizeof(ulongest) == (accumulator_width / 8)) ? 8 : 0;
-		static constexpr ulongest low_b = (a * 25) + ((sizeof(ulongest) == (accumulator_width / 8)) ? 0 : (8 * x));	// will not overflow
+		static constexpr ulongest low_b = (a * 25) + ((sizeof(ulongest) == (accumulator_width / 8)) ? 0 : (8 * x)); // will not overflow
 
-		//	n = (sqrt(ab) - 5a) / y
+		// n = (sqrt(ab) - 5a) / y
 
 		static constexpr ulongest high_ab = const_extumul2<high_b, low_b, 0, a>::high_part;
 		static constexpr ulongest low_ab = const_extumul2<high_b, low_b, 0, a>::low_part;
@@ -251,7 +251,7 @@ private:
 							//	if (sum2 >= mod_by)
 							//		sum2 -= mod_by;
 							//}
-								
+
 							break;
 						}
 						shiftBy >>= 1;
@@ -305,7 +305,7 @@ public:
 					if (++i == loop_max)
 					{
 						i = 0;
-						
+
 						// half the bit shifts until == sum_width
 						shiftBy = sizeof(accumulator_t) * 4;
 						for (;;)
@@ -344,7 +344,7 @@ public:
 		}
 	}
 
-	virtual bool can_terminate() const	{ return true; }
+	virtual bool can_terminate() const { return true; }
 
 	virtual bool was_block_terminated() const
 	{
@@ -362,7 +362,7 @@ public:
 		return ((result_t)sum2 << sum_width) | sum1;
 	}
 
-	virtual uint_t get_hash_int()
+	virtual uint_t get_hash_int() const
 	{ 
 		sum_t sum1;
 		sum_t sum2;

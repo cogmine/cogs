@@ -53,8 +53,8 @@ template <> class bytes_to_int<sizeof(__int64_t), true> { public: typedef __int6
 
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
 #define COGS_LONGEST_INT (16)
-template <> class bytes_to_int<sizeof(__uint128_t), false> { public: typedef __uint128_t type; };
-template <> class bytes_to_int<sizeof(__int128_t), true> { public: typedef __int128_t type; };
+template <> class bytes_to_int<sizeof(unsigned __int128), false> { public: typedef unsigned __int128 type; };
+template <> class bytes_to_int<sizeof(__int128), true> { public: typedef __int128 type; };
 #else
 #define COGS_LONGEST_INT (8)
 #endif

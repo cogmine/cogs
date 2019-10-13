@@ -30,8 +30,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 /// @ingroup LockFreeCollections
@@ -47,7 +47,7 @@ namespace cogs {
 ///
 /// @tparam link_t  Intrusive single-link element type.  Default: slink
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator	Helper type providing functions to get and set the next link.  Default: default_slink_iterator\<T, ref_type\>
+/// @tparam link_iterator Helper type providing functions to get and set the next link.  Default: default_slink_iterator\<T, ref_type\>
 template <class link_t = slink, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >
 class aba_stack
 {
@@ -61,11 +61,11 @@ public:
 private:
 	ref_t m_head;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
 
 	aba_stack(const ref_t& setTo)
 	{ m_head = setTo; }
@@ -76,7 +76,7 @@ private:
 public:
 	aba_stack()
 	{ }
-	
+
 	aba_stack(this_t&& s)
 		: m_head(std::move(s.m_head))
 	{
@@ -105,31 +105,31 @@ public:
 	/// @{
 	/// @brief Peek at the element at the head of the stack, without removing it.
 	/// @return An element reference pointing to the head element.
-	ref_t peek() const					{ return m_head; }
+	ref_t peek() const { return m_head; }
 	/// @brief Thread-safe implementation of peek().
-	ref_t peek() const volatile			{ return m_head; }
+	ref_t peek() const volatile { return m_head; }
 	/// @}
 
 	/// @{
 	/// @brief Checks if the stack is empty.
 	/// @return True if the stack is empty.
-	bool is_empty() const				{ return !m_head; }
+	bool is_empty() const { return !m_head; }
 	/// @brief Thread-safe implementation of is_empty().
-	bool is_empty() const volatile		{ return !m_head; }
+	bool is_empty() const volatile { return !m_head; }
 	/// @}
 
 	/// @{
 	/// @brief Checks if the stack is empty.  An alias for is_empty().
 	/// @return True if the stack is empty.
-	bool operator!() const				{ return !m_head; }
+	bool operator!() const { return !m_head; }
 	/// @brief Thread-safe implementation of operator!()
-	bool operator!() const volatile		{ return !m_head; }
+	bool operator!() const volatile { return !m_head; }
 	/// @}
 
 	/// @{
 	/// @brief Adds the specified element to the top of the stack.
 	/// @param e Element to add to the top of the stack.
-	/// @return	True if the stack had previously been empty, false if at least 1 other element was also present.
+	/// @return True if the stack had previously been empty, false if at least 1 other element was also present.
 	bool push(const ref_t& e)
 	{
 		if (!e)
@@ -159,9 +159,9 @@ public:
 
 	/// @{
 	/// @brief Removes the element from the top of the stack.
-	/// @param[out] wasLast	If specified, receives a value indicating whether the removed element
-	///						was the last remaining element in the stack at the time.
-	/// @return	An element reference, or null if the stack was empty.
+	/// @param[out] wasLast If specified, receives a value indicating whether the removed element
+	///                     was the last remaining element in the stack at the time.
+	/// @return An element reference, or null if the stack was empty.
 	ref_t pop(bool* wasLast = 0)
 	{
 		bool b = false;
@@ -196,11 +196,11 @@ public:
 	/// @{
 	/// @brief Removes the specified element if it is currently at the head of the stack.
 	/// @param e Element to remove, if at the head of the stack.
-	/// @param[out] oldHead	If specified, receives a reference to the element at the head of the stack,
-	///						regardless of whether or not removal is successful.
-	/// @param[out] wasLast	If specified, receives a value indicating whether the removed element
-	///						was the last remaining elements in the stack at the time.
-	/// @return	An element reference, or null if the specified element was not at the head of the stack.
+	/// @param[out] oldHead If specified, receives a reference to the element at the head of the stack,
+	///                     regardless of whether or not removal is successful.
+	/// @param[out] wasLast If specified, receives a value indicating whether the removed element
+	///                     was the last remaining elements in the stack at the time.
+	/// @return An element reference, or null if the specified element was not at the head of the stack.
 	ref_t pop_if_equals(ref_t& e, ref_t& oldHead, bool* wasLast = 0)
 	{
 		oldHead = m_head.get();
@@ -233,9 +233,9 @@ public:
 
 	/// @brief Removes the specified element if it is currently at the head of the stack.
 	/// @param e Element to remove, if at the head of the stack.
-	/// @param[out] wasLast	If specified, receives a value indicating whether the removed element
-	///						was the last remaining elements in the stack at the time.
-	/// @return	An element reference, or null if the specified element was not at the head of the stack.
+	/// @param[out] wasLast If specified, receives a value indicating whether the removed element
+	///                     was the last remaining elements in the stack at the time.
+	/// @return An element reference, or null if the specified element was not at the head of the stack.
 	ref_t pop_if_equals(ref_t& e, bool* wasLast = 0)
 	{
 		ref_t sl;
@@ -265,8 +265,8 @@ public:
 
 	/// @{
 	/// @brief Exchanges this contents of this stack with the specified stack.
-	/// @param[in,out] s	Stack to exchange the contents of this stack with.
-	/// 
+	/// @param[in,out] s Stack to exchange the contents of this stack with.
+	///
 	/// Note that the operation can only be considered atomic for one of the stacks involved.
 	void swap(this_t& s)
 	{

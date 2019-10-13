@@ -39,23 +39,23 @@ public:
 class text_editor : public pane_bridge
 {
 private:
-	composite_string		m_text;
-	size_t		m_maxLength;
-	bool		m_isEnabled;
-	bool		m_isMultiLine;
-	gfx::font	m_font;
-	color		m_textColor;
+	composite_string m_text;
+	size_t m_maxLength;
+	bool m_isEnabled;
+	bool m_isMultiLine;
+	gfx::font m_font;
+	color m_textColor;
 	rcptr<text_editor_interface> m_nativeTextEditor;
 
 public:
 	text_editor(const ptr<rc_obj_base>& desc, const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
-		:	pane_bridge(desc),
+		: pane_bridge(desc),
 		m_text(text),
 		m_maxLength(maxLength),
 		m_isEnabled(isEnabled),
 		m_isMultiLine(isMultiLine),
-		m_textColor(color::black),
-		m_font(fnt)
+		m_font(fnt),
+		m_textColor(color::black)
 	{
 	}
 
@@ -65,7 +65,7 @@ public:
 		m_nativeTextEditor = std::move(nativeTextEditor.second);
 		pane_bridge::install_bridged(std::move(nativeTextEditor.first));
 	}
-	
+
 	virtual void uninstalling()
 	{
 		if (!!m_nativeTextEditor)
@@ -86,7 +86,7 @@ public:
 			m_nativeTextEditor->set_text(text);
 	}
 
-	size_t get_max_length() const			{ return m_maxLength; }
+	size_t get_max_length() const { return m_maxLength; }
 	void set_max_length(size_t maxLength)
 	{
 		m_maxLength = maxLength;
@@ -94,7 +94,7 @@ public:
 			m_nativeTextEditor->set_max_length(maxLength);
 	}
 
-	bool is_enabled() const				{ return m_isEnabled; }
+	bool is_enabled() const { return m_isEnabled; }
 	void set_enabled(bool b)
 	{
 		m_isEnabled = b;
@@ -102,9 +102,9 @@ public:
 			m_nativeTextEditor->set_enabled(b);
 	}
 
-	bool is_multi_line() const			{ return m_isMultiLine; }
+	bool is_multi_line() const { return m_isMultiLine; }
 
-	const gfx::font& get_font() const	{ return m_font; }
+	const gfx::font& get_font() const { return m_font; }
 	void set_font(const gfx::font& fnt)
 	{
 		m_font = fnt;

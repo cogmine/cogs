@@ -35,7 +35,7 @@ class rc_object_base
 /// @tparam allocator_type Allocator type to use to allocate reference-counted object (and reference counts).  
 /// Default: default_allocator
 template <typename T, class allocator_type = default_allocator>
-class rc_obj : public rc_obj_base	// default is: rc_obj<type, allocator_type, false, true, false>
+class rc_obj : public rc_obj_base // default is: rc_obj<type, allocator_type, false, true, false>
 {
 public:
 	/// @brief Alies to encapsulated type
@@ -84,24 +84,24 @@ template <typename T,
 	class allocator_type = default_allocator,
 	bool is_static = allocator_type::is_static,
 	bool is_ptr_based = std::is_same_v<typename allocator_type::ref_t, ptr<void> > >
-class rc_obj : public rc_obj_base	// default is: rc_obj<type, allocator_type, true, false>
+class rc_obj : public rc_obj_base // default is: rc_obj<type, allocator_type, true, false>
 {
 public:
-	typedef rc_obj<T, allocator_type, true, false>	this_t;
+	typedef rc_obj<T, allocator_type, true, false> this_t;
 	typedef T type;
 	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
-	placement<type>	m_contents;
-	ref_t									m_selfReference;
+	placement<type> m_contents;
+	ref_t m_selfReference;
 #if COGS_DEBUG_RC_OBJ
-	type*									m_contentsPtrDebug;
+	type* m_contentsPtrDebug;
 #endif
 
 	virtual void released()
 	{
 		ptr<type> p = get_obj();
-		p.get_ptr()->~type();
+		p.get_ptr()->type::~type();
 	}
 
 	virtual void dispose()
@@ -161,22 +161,22 @@ template <typename T, class allocator_type>
 class rc_obj<T, allocator_type, false, false> : public rc_obj_base
 {
 public:
-	typedef rc_obj<T, allocator_type, false, false>	this_t;
+	typedef rc_obj<T, allocator_type, false, false> this_t;
 	typedef T type;
 	typedef typename allocator_type::ref_t::template cast_t<this_t> ref_t;
 
 private:
-	placement<type>	m_contents;
-	ref_t									m_selfReference;
+	placement<type> m_contents;
+	ref_t m_selfReference;
 #if COGS_DEBUG_RC_OBJ
-	type*									m_contentsPtrDebug;
+	type* m_contentsPtrDebug;
 #endif
 	allocator_container<allocator_type> m_allocator;
 
 	virtual void released()
 	{
 		ptr<type> p = get_obj();
-		p.get_ptr()->~type();
+		p.get_ptr()->type::~type();
 	}
 
 	virtual void dispose()
@@ -187,7 +187,7 @@ private:
 	}
 
 	rc_obj(const ref_t& selfReference, allocator& al)
-		:	m_selfReference(selfReference),
+		: m_selfReference(selfReference),
 		m_allocator(al)
 	{
 #if COGS_DEBUG_RC_OBJ
@@ -237,19 +237,19 @@ template <typename T, class allocator_type>
 class rc_obj<T, allocator_type, true, true> : public rc_obj_base
 {
 public:
-	typedef rc_obj<T, allocator_type, true, true>	this_t;
+	typedef rc_obj<T, allocator_type, true, true> this_t;
 	typedef T type;
 	typedef ptr<this_t> ref_t;
 
 private:
 #if COGS_DEBUG_RC_OBJ
-	type*									m_contentsPtrDebug;
+	type* m_contentsPtrDebug;
 #endif
 
 	virtual void released()
 	{
 		ptr<type> p = get_obj();
-		p.get_ptr()->~type();
+		p.get_ptr()->type::~type();
 	}
 
 	virtual void dispose()
@@ -300,20 +300,20 @@ template <typename T, class allocator_type>
 class rc_obj<T, allocator_type, false, true> : public rc_obj_base
 {
 public:
-	typedef rc_obj<T, allocator_type, false, true>	this_t;
+	typedef rc_obj<T, allocator_type, false, true> this_t;
 	typedef T type;
 	typedef ptr<this_t> ref_t;
 
 private:
 #if COGS_DEBUG_RC_OBJ
-	type*									m_contentsPtrDebug;
+	type* m_contentsPtrDebug;
 #endif
 	allocator_container<allocator_type> m_allocator;
 
 	virtual void released()
 	{
 		ptr<type> p = get_obj();
-		p.get_ptr()->~type();
+		p.get_ptr()->type::~type();
 	}
 
 	virtual void dispose()
@@ -365,19 +365,18 @@ template <typename T>
 class rc_obj<T, default_allocator, true, true> : public rc_obj_base
 {
 public:
-	typedef rc_obj<T, default_allocator, true, true>	this_t;
+	typedef rc_obj<T, default_allocator, true, true> this_t;
 	typedef T type;
 	typedef ref<this_t> ref_t;
 
 private:
 #if COGS_DEBUG_RC_OBJ
-	type*									m_contentsPtrDebug;
+	type* m_contentsPtrDebug;
 #endif
 
 	virtual void released()
 	{
-		ptr<type> p = get_obj();
-		p.get_ptr()->~type();
+		placement_destruct(get_obj());
 	}
 
 	virtual void dispose()
@@ -410,7 +409,7 @@ public:
 	volatile type* get_obj() volatile { return get_type_block_from_header<volatile this_t, volatile type>(this); }
 	const volatile type* get_obj() const volatile { return get_type_block_from_header<const volatile this_t, const volatile type>(this); }
 
-	static this_t* from_obj(type* obj)	{ return get_header_from_type_block<this_t, type>(obj); }
+	static this_t* from_obj(type* obj) { return get_header_from_type_block<this_t, type>(obj); }
 	static const this_t* from_obj(const type* obj) { return get_header_from_type_block<const this_t, const type>(obj); }
 	static volatile this_t* from_obj(volatile type* obj) { return get_header_from_type_block<volatile this_t, volatile type>(obj); }
 	static const volatile this_t* from_obj(const volatile type* obj) { return get_header_from_type_block<const volatile this_t, const volatile type>(obj); }

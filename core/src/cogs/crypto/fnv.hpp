@@ -25,7 +25,7 @@ template <size_t bits>
 class fnv0 : public hash_int<bits>
 {
 private:
-	fnv0() = delete;	// Not allowed.  This template is specialized for supported bit sizes
+	fnv0() = delete; // Not allowed.  This template is specialized for supported bit sizes
 };
 
 /// @ingroup Crypto
@@ -35,7 +35,7 @@ template <size_t bits>
 class fnv1 : public hash
 {
 private:
-	fnv1() = delete;	// Not allowed.  This template is specialized for supported bit sizes
+	fnv1() = delete; // Not allowed.  This template is specialized for supported bit sizes
 };
 
 /// @ingroup Crypto
@@ -45,7 +45,7 @@ template <size_t bits>
 class fnv1a : public hash
 {
 private:
-	fnv1a() = delete;	// Not allowed.  This template is specialized for supported bit sizes
+	fnv1a() = delete; // Not allowed.  This template is specialized for supported bit sizes
 };
 
 
@@ -79,11 +79,11 @@ public:
 		}
 	}
 
-	virtual uint_t get_hash_int()			{ return m_result; }
+	virtual uint_t get_hash_int() const { return m_result; }
 
-	fnv_int_base()							{ }
-	fnv_int_base(const this_t& src)			{ m_result = src.m_result; }
-	this_t& operator=(const this_t& src)	{ m_result = src.m_result; return *this; }
+	fnv_int_base() { }
+	fnv_int_base(const this_t& src) { m_result = src.m_result; }
+	this_t& operator=(const this_t& src) { m_result = src.m_result; return *this; }
 };
 
 template <class derived_t, size_t bits, bool a>
@@ -124,9 +124,9 @@ public:
 		return m_result.template to_buffer<endian_t::big>();
 	}
 
-	fnv_bigint_base()						{ }
-	fnv_bigint_base(const this_t& src)		{ m_result = src.m_result; }
-	this_t& operator=(const this_t& src)	{ m_result = src.m_result; return *this; }
+	fnv_bigint_base() { }
+	fnv_bigint_base(const this_t& src) { m_result = src.m_result; }
+	this_t& operator=(const this_t& src) { m_result = src.m_result; return *this; }
 };
 
 
@@ -139,9 +139,9 @@ private:
 public:
 	static uint32_t get_prime() { return 0x01000193; }
 
-	fnv0()										{ m_result = 0; }
-	fnv0(const fnv0<32>& src) : base_t(src)		{ }
-	fnv0<32>& operator=(const fnv0<32>& src)	{ base_t::operator=(src); return *this; }
+	fnv0() { m_result = 0; }
+	fnv0(const fnv0<32>& src) : base_t(src) { }
+	fnv0<32>& operator=(const fnv0<32>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -153,9 +153,9 @@ private:
 public:
 	static uint64_t get_prime() { return 0x00000100000001b3ULL; }
 
-	fnv0()										{ m_result = 0; }
-	fnv0(const fnv0<64>& src) : base_t(src)		{ }
-	fnv0<64>& operator=(const fnv0<64>& src)	{ base_t::operator=(src); return *this; }
+	fnv0() { m_result = 0; }
+	fnv0(const fnv0<64>& src) : base_t(src) { }
+	fnv0<64>& operator=(const fnv0<64>& src) { base_t::operator=(src); return *this; }
 };
 
 
@@ -168,9 +168,9 @@ private:
 public:
 	static uint32_t get_prime() { return 0x01000193; }
 
-	fnv1()										{ m_result = 0x811c9dc5; }
-	fnv1(const fnv1<32>& src) : base_t(src)		{ }
-	fnv1<32>& operator=(const fnv1<32>& src)	{ base_t::operator=(src); return *this; }
+	fnv1() { m_result = 0x811c9dc5; }
+	fnv1(const fnv1<32>& src) : base_t(src) { }
+	fnv1<32>& operator=(const fnv1<32>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -182,9 +182,9 @@ private:
 public:
 	static uint64_t get_prime() { return 0x00000100000001b3ULL; }
 
-	fnv1()										{ m_result = 0xcbf29ce484222325ULL; }
-	fnv1(const fnv1<64>& src) : base_t(src)		{ }
-	fnv1<64>& operator=(const fnv1<64>& src)	{ base_t::operator=(src); return *this; }
+	fnv1() { m_result = 0xcbf29ce484222325ULL; }
+	fnv1(const fnv1<64>& src) : base_t(src) { }
+	fnv1<64>& operator=(const fnv1<64>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -208,8 +208,8 @@ public:
 		m_result |= 0x62B821756295C58DULL;
 	}
 
-	fnv1(const fnv1<128>& src) : base_t(src)	{ }
-	fnv1<128>& operator=(const fnv1<128>& src)	{ base_t::operator=(src); return *this; }
+	fnv1(const fnv1<128>& src) : base_t(src) { }
+	fnv1<128>& operator=(const fnv1<128>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -242,8 +242,8 @@ public:
 		m_result |= 0x1023B4C8CAEE0535ULL;
 	}
 
-	fnv1(const fnv1<256>& src) : base_t(src)	{ }
-	fnv1<256>& operator=(const fnv1<256>& src)	{ base_t::operator=(src); return *this; }
+	fnv1(const fnv1<256>& src) : base_t(src) { }
+	fnv1<256>& operator=(const fnv1<256>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -284,8 +284,8 @@ public:
 		m_result |= 0xAC982AAC4AFE9FD9ULL;
 	}
 
-	fnv1(const fnv1<512>& src) : base_t(src)	{ }
-	fnv1<512>& operator=(const fnv1<512>& src)	{ base_t::operator=(src); return *this; }
+	fnv1(const fnv1<512>& src) : base_t(src) { }
+	fnv1<512>& operator=(const fnv1<512>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -330,8 +330,8 @@ public:
 		m_result |= 0xAFF4B16C71EE90B3ULL;
 	}
 
-	fnv1(const fnv1<1024>& src) : base_t(src)		{ }
-	fnv1<1024>& operator=(const fnv1<1024>& src)	{ base_t::operator=(src); return *this; }
+	fnv1(const fnv1<1024>& src) : base_t(src) { }
+	fnv1<1024>& operator=(const fnv1<1024>& src) { base_t::operator=(src); return *this; }
 };
 
 
@@ -344,9 +344,9 @@ private:
 public:
 	static uint32_t get_prime() { return 0x01000193; }
 
-	fnv1a()										{ m_result = 0x811c9dc5; }
-	fnv1a(const fnv1a<32>& src) : base_t(src)	{ }
-	fnv1a<32>& operator=(const fnv1a<32>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a() { m_result = 0x811c9dc5; }
+	fnv1a(const fnv1a<32>& src) : base_t(src) { }
+	fnv1a<32>& operator=(const fnv1a<32>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -358,9 +358,9 @@ private:
 public:
 	static uint64_t get_prime() { return 0x00000100000001b3ULL; }
 
-	fnv1a()										{ m_result = 0xcbf29ce484222325ULL; }
-	fnv1a(const fnv1a<64>& src) : base_t(src)	{ }
-	fnv1a<64>& operator=(const fnv1a<64>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a() { m_result = 0xcbf29ce484222325ULL; }
+	fnv1a(const fnv1a<64>& src) : base_t(src) { }
+	fnv1a<64>& operator=(const fnv1a<64>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -384,8 +384,8 @@ public:
 		m_result |= 0x62B821756295C58DULL;
 	}
 
-	fnv1a(const fnv1a<128>& src) : base_t(src)		{ }
-	fnv1a<128>& operator=(const fnv1a<128>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a(const fnv1a<128>& src) : base_t(src) { }
+	fnv1a<128>& operator=(const fnv1a<128>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -413,8 +413,8 @@ public:
 		m_result |= 0x1023B4C8CAEE0535ULL;
 	}
 
-	fnv1a(const fnv1a<256>& src) : base_t(src)		{ }
-	fnv1a<256>& operator=(const fnv1a<256>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a(const fnv1a<256>& src) : base_t(src) { }
+	fnv1a<256>& operator=(const fnv1a<256>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -450,8 +450,8 @@ public:
 		m_result |= 0xAC982AAC4AFE9FD9ULL;
 	}
 
-	fnv1a(const fnv1a<512>& src) : base_t(src)		{ }
-	fnv1a<512>& operator=(const fnv1a<512>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a(const fnv1a<512>& src) : base_t(src) { }
+	fnv1a<512>& operator=(const fnv1a<512>& src) { base_t::operator=(src); return *this; }
 };
 
 template <>
@@ -491,8 +491,8 @@ public:
 		m_result |= 0xAFF4B16C71EE90B3ULL;
 	}
 
-	fnv1a(const fnv1a<1024>& src) : base_t(src)		{ }
-	fnv1a<1024>& operator=(const fnv1a<1024>& src)	{ base_t::operator=(src); return *this; }
+	fnv1a(const fnv1a<1024>& src) : base_t(src) { }
+	fnv1a<1024>& operator=(const fnv1a<1024>& src) { base_t::operator=(src); return *this; }
 };
 
 

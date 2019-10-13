@@ -30,20 +30,20 @@ public:
 	class overlapped_t : public OVERLAPPED
 	{
 	protected:
-		function<void()>	m_delegate;
+		function<void()> m_delegate;
 
 	public:
-		size_t		m_numTransferred;
-		bool		m_success;
+		size_t m_numTransferred;
+		bool m_success;
 
 		explicit overlapped_t(const function<void()>& d)
-			:	m_delegate(d)
+			: m_delegate(d)
 		{
 			clear();
 		}
 
 		explicit overlapped_t(const function<void()>& d, DWORD offset, DWORD offsetHigh)
-			:	m_delegate(d)
+			: m_delegate(d)
 		{
 			set(offset, offsetHigh);
 			Internal = 0;
@@ -64,19 +64,19 @@ public:
 			InternalHigh = 0;
 		}
 
-		OVERLAPPED* get()	{ return this; }
+		OVERLAPPED* get() { return this; }
 
 		virtual void run()
 		{
 			m_delegate();
 		}
 	};
-	
+
 	class self_destructing_overlapped_t : public overlapped_t
 	{
 	public:
 		self_destructing_overlapped_t(const function<void()>& r)
-			:	overlapped_t(r)
+			: overlapped_t(r)
 		{ }
 
 		virtual void run()
@@ -87,17 +87,17 @@ public:
 	};
 
 private:
-	thread_pool			m_pool;
-	rcref<auto_HANDLE>	m_handle;
+	thread_pool m_pool;
+	rcref<auto_HANDLE> m_handle;
 
 	class task
 	{
 	private:
-		rcref<auto_HANDLE>	m_handle;
+		rcref<auto_HANDLE> m_handle;
 
 	public:
 		task(const rcref<auto_HANDLE>& h)
-			:	m_handle(h)
+			: m_handle(h)
 		{ }
 
 		void run()

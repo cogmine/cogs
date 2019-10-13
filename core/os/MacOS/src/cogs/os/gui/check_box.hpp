@@ -65,7 +65,7 @@ public:
 		__strong NSString* text2 = string_to_NSString(text);
 		[objcCheckBox setTitle:text2];
 	}
-	
+
 	virtual void set_checked(bool b)
 	{
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();

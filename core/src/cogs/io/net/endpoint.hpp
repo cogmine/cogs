@@ -2,7 +2,7 @@
 //  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-	
+
 // Status: Good
 
 #ifndef COGS_HEADER_IO_NET_ENDPOINT
@@ -50,7 +50,7 @@ public:
 		return composite_string_t<char_t>();
 	}
 
-	virtual       address& get_address()       = 0;
+	virtual address& get_address() = 0;
 	virtual const address& get_address() const = 0;
 };
 

@@ -24,10 +24,10 @@ namespace gdi {
 
 
 // On Windows 7 or later (WDDM 1.1), the following functions are hardware accelerated:
-//		AlphaBlend
-//		BitBlt
-//		StretchBlt
-//		TransparentBlt
+//     AlphaBlend
+//     BitBlt
+//     StretchBlt
+//     TransparentBlt
 // These are accelerated even for DIBs, as DIB contents are stored in aparture memory (video memory mapped to system memory).
 
 class bitmap : public device_context, public canvas::bitmap, public canvas::bitmask
@@ -79,7 +79,7 @@ private:
 			result.m_depth = bm.bmBitsPixel;
 			result.m_bits = (BYTE*)bm.bmBits;
 			result.m_widthBytes = bm.bmWidthBytes;
-			
+
 			return result;
 		}
 
@@ -240,18 +240,14 @@ private:
 		void blit(HDC dstDC, const BOUNDS& dstBounds, const POINT& srcPt, composite_mode compositeMode = composite_mode::copy_mode) const
 		{
 			DWORD rop = create_rop(compositeMode);
-			BOOL b = BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, rop);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
+			BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, rop);
 		}
 
 		void blit(HDC dstDC, const BOUNDS& dstBounds, const POINT& srcPt, const COLORREF& fore, const COLORREF& back) const
 		{
 			SetTextColor(dstDC, make_COLORREF(color::black));
 			SetBkColor(dstDC, make_COLORREF(color::white));
-			BOOL b = BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, SRCCOPY);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
+			BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, SRCCOPY);
 		}
 
 		void alpha_blend(HDC dstDC, const POINT& dstPt, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
@@ -262,17 +258,15 @@ private:
 			// Without it, blending with bitmaps without alpha channels (<32-bit) will result in an empty alpha channel.
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
 			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
-			BOOL b = AlphaBlend(
+			AlphaBlend(
 				dstDC, dstPt.x, dstPt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				blendFunc);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		void stretch_and_preserve_alpha(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
 		{
-			COGS_ASSERT(dstBounds.sz != srcBounds.sz);	// Will set alpha properly (not preserve it) if not resizing.
+			COGS_ASSERT(dstBounds.sz != srcBounds.sz); // Will set alpha properly (not preserve it) if not resizing.
 			SetStretchBltMode(dstDC, HALFTONE);
 			SetBrushOrgEx(dstDC, 0, 0, NULL);
 			BLENDFUNCTION blendFunc = { };
@@ -280,12 +274,10 @@ private:
 			blendFunc.BlendFlags = 1; // AC_USE_HIGHQUALITYFILTER.  Filters, but leaves alpha channel untouched.
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
 			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
-			BOOL b = AlphaBlend(
+			AlphaBlend(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				blendFunc);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		void alpha_blend_stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
@@ -297,12 +289,10 @@ private:
 			blendFunc.BlendFlags = 0;
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
 			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
-			BOOL b = AlphaBlend(
+			AlphaBlend(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				blendFunc);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		// Takes advantage of the fact that TransparentBlt will write 0 values to the alpha it writes, but leaves
@@ -315,26 +305,22 @@ private:
 				SetBkColor(dstDC, RGB(0, 0, 0));
 			else
 				SetTextColor(dstDC, RGB(0, 0, 0));
-			BOOL b = TransparentBlt(
+			TransparentBlt(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				transparentPlane ? RGB(255, 255, 255) : RGB(0, 0, 0));
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		void stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds) const
 		{
-			COGS_ASSERT(m_depth < 32);	// Sets alpha to 0, so shouldn't be used for 32-bit bitmaps
+			COGS_ASSERT(m_depth < 32); // Sets alpha to 0, so shouldn't be used for 32-bit bitmaps
 			int mode = ((m_depth == 1) || (dstBounds.sz == srcBounds.sz)) ? COLORONCOLOR : HALFTONE;
 			SetStretchBltMode(dstDC, mode);
 			SetBrushOrgEx(dstDC, 0, 0, NULL);
-			BOOL b = StretchBlt(
+			StretchBlt(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				SRCCOPY);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		void stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, const COLORREF& fore, const COLORREF& back) const
@@ -344,12 +330,10 @@ private:
 			SetTextColor(dstDC, back);
 			SetStretchBltMode(dstDC, COLORONCOLOR);
 			SetBrushOrgEx(dstDC, 0, 0, NULL);
-			BOOL b = StretchBlt(
+			StretchBlt(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				SRCCOPY);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
 		}
 
 		static DWORD create_rop(fill_mode fillMode)
@@ -370,9 +354,7 @@ private:
 		{
 			HANDLE oldBrush = SelectObject(m_hDC, (HANDLE)GetStockObject(WHITE_BRUSH));
 			DWORD rop = create_rop(fillMode);
-			BOOL b = PatBlt(m_hDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, rop);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b);
+			PatBlt(m_hDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, rop);
 			SelectObject(m_hDC, oldBrush);
 		}
 
@@ -527,10 +509,7 @@ public:
 		{
 			BOUNDS b2 = make_BOUNDS(b);
 			gdi_bitmap& tmpBmp = setup_scratch_24(b2.sz);
-			BOOL b3 = BitBlt(tmpBmp.get_HDC(), 0, 0, b2.sz.cx, b2.sz.cy, get_HDC(), b2.pt.x, b2.pt.y, NOTSRCCOPY);
-			DWORD err = GetLastError();
-			COGS_ASSERT(b3);
-
+			BitBlt(tmpBmp.get_HDC(), 0, 0, b2.sz.cx, b2.sz.cy, get_HDC(), b2.pt.x, b2.pt.y, NOTSRCCOPY);
 			BOUNDS tmpBounds{ { 0, 0 }, b2.sz };
 			tmpBmp.alpha_blend(get_HDC(), b2.pt, tmpBounds);
 		}
@@ -628,7 +607,7 @@ public:
 	virtual void draw_bitmask(const canvas::bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
 	{
 		const bitmap* srcImage = static_cast<const bitmap*>(&src);
-		
+
 		// masks don't vary in DPI
 		BOUNDS srcBounds2;
 		bounds b = srcBounds.normalized();

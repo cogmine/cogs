@@ -22,8 +22,8 @@ class count_down_event : public event_base, public object
 private:
 	static constexpr size_t doneValue = (size_t)-1;
 
-	volatile size_type m_count;
 	volatile single_fire_event m_event;
+	volatile size_type m_count;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
@@ -36,7 +36,7 @@ public:
 		m_event(desc),
 		m_count(n)
 	{
-		COGS_ASSERT(n != doneValue);	// max value is not supported (used internally to indicate fired, to allow init from 0)
+		COGS_ASSERT(n != doneValue); // max value is not supported (used internally to indicate fired, to allow init from 0)
 	}
 
 	count_down_event(const ptr<rc_obj_base>& desc, size_t n, const function<void()>& d)
@@ -44,11 +44,11 @@ public:
 		m_event(desc),
 		m_count(n)
 	{
-		COGS_ASSERT(n != doneValue);	// max value is not supported (used internally to indicate fired, to allow init from 0)
+		COGS_ASSERT(n != doneValue); // max value is not supported (used internally to indicate fired, to allow init from 0)
 		m_event.dispatch(d);
 	}
 
-	bool count_up(size_t n = 1) volatile	// Return false if already released/set, and did not count up.
+	bool count_up(size_t n = 1) volatile // Return false if already released/set, and did not count up.
 	{
 		size_type oldValue = m_count;
 		size_type newValue;
@@ -61,7 +61,7 @@ public:
 		return true;
 	}
 
-	bool count_down(size_t n = 1) volatile	// returns true if this was what released/set it
+	bool count_down(size_t n = 1) volatile // returns true if this was what released/set it
 	{
 		size_type oldValue = m_count;
 		size_type newValue;
@@ -100,11 +100,11 @@ public:
 		return count(waitFor);
 	}
 
-	bool operator--() volatile		{ return !count_down(); }
-	bool operator++() volatile		{ return count_up(); }
+	bool operator--() volatile { return !count_down(); }
+	bool operator++() volatile { return count_up(); }
 
-	bool operator--(int) volatile		{ return !count_down(); }
-	bool operator++(int) volatile		{ return count_up(); }
+	bool operator--(int) volatile { return !count_down(); }
+	bool operator++(int) volatile { return count_up(); }
 
 	class reference
 	{
@@ -116,7 +116,7 @@ public:
 			: m_countDownEvent(++*e ? rcptr<count_down_event>(e) : rcptr<count_down_event>())
 		{ }
 
-		bool operator!() const	{ return !!m_countDownEvent; }
+		bool operator!() const { return !!m_countDownEvent; }
 
 		~reference()
 		{
@@ -125,9 +125,9 @@ public:
 		}
 	};
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_event.timed_wait(timeout, spinCount); }
+	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
 
-	virtual bool signal() volatile	{ return count_down(); }
+	virtual bool signal() volatile { return count_down(); }
 };
 
 

@@ -25,13 +25,13 @@ class hash_int : public virtual hash
 public:
 	static constexpr size_t width_bits = bits;
 	static constexpr size_t width_bytes = bits_to_bytes_v<width_bits>;
-	typedef bits_to_uint_t<width_bits>	uint_t;
+	typedef bits_to_uint_t<width_bits> uint_t;
 
-	virtual bool is_hash_int()	{ return true; }
+	virtual bool is_hash_int() const { return true; }
 
-	virtual uint_t get_hash_int() = 0;
+	virtual uint_t get_hash_int() const = 0;
 
-	virtual io::buffer get_hash_int_as_buffer()
+	virtual io::buffer get_hash_int_as_buffer() const
 	{
 		fixed_integer<false, width_bits> n = get_hash_int();
 		return n.template to_buffer<endian_t::big>();

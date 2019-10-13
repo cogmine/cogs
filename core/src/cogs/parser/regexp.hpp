@@ -31,23 +31,25 @@ public:
 	typedef expression<num_tokens> this_t;
 
 private:
-	token_t m_tokenClassTable[num_tokens];			// token		-> tokenClass
+	token_t m_tokenClassTable[num_tokens]; // token -> tokenClass
 
-	array<token_t>			m_tokenClassCounts;		// tokenClass	-> token
+	array<token_t> m_tokenClassCounts; // tokenClass -> token
 
 	class state
 	{
 	public:
-		array<size_t>	m_table;
-		bool			m_possibleEndState;
+		array<size_t> m_table;
+		bool m_possibleEndState;
 
-		state()	:	m_possibleEndState(0)	{ }
+		state()
+			: m_possibleEndState(0)
+		{ }
 	};
 
-	array<state>	m_stateTables;
+	array<state> m_stateTables;
 
-	size_t get_num_token_classes() const	{ return m_tokenClassCounts.length(); }
-	size_t get_num_states() const			{ return m_stateTables.length(); }
+	size_t get_num_token_classes() const { return m_tokenClassCounts.length(); }
+	size_t get_num_states() const { return m_stateTables.length(); }
 
 	// illegal to pass duplicate tokens, n==0, or n>=num_tokens
 	static this_t literal_or_exclusion_set(token_t* t, size_t n, bool exclude)
@@ -59,18 +61,18 @@ private:
 		e.m_tokenClassCounts.append(n);
 		e.m_stateTables.grow(1);
 		e.m_stateTables[0].m_table.grow(2);
-		e.m_stateTables[0].m_table[exclude ? 1 : 0] = const_max_int_v<size_t>;	// default char class (0) is fail
-		e.m_stateTables[0].m_table[exclude ? 0 : 1] = 1;			// literal char class (1) is success
+		e.m_stateTables[0].m_table[exclude ? 1 : 0] = const_max_int_v<size_t>; // default char class (0) is fail
+		e.m_stateTables[0].m_table[exclude ? 0 : 1] = 1; // literal char class (1) is success
 		return e;
 	}
 
 	void add_literal_or_exclusion(token_t t, bool exclude)
 	{
 		token_t tokenClass = m_tokenClassTable[t];
-		if (m_tokenClassCounts[tokenClass] > 1)	// needs its own token class
+		if (m_tokenClassCounts[tokenClass] > 1) // needs its own token class
 		{
 			--(m_tokenClassCounts[tokenClass]);
-			size_t originalTokenClass = tokenClass;	// Will need this to stretch tables
+			size_t originalTokenClass = tokenClass; // Will need this to stretch tables
 			tokenClass = get_num_token_classes();
 			m_tokenClassTable[t] = tokenClass;
 			m_tokenClassCounts.append(1);
@@ -121,13 +123,13 @@ public:
 			m_tokenClassTable[i] = 0;
 	}
 
-	static this_t literal(token_t t)					{ return literal_or_exclusion_set(&t, 1, false); }
-	static this_t literal(token_t* t, size_t n)			{ return literal_or_exclusion_string(t, n, false); }
-	static this_t literal_set(token_t* t, size_t n)		{ return literal_or_exclusion_set(t, n, false); }
+	static this_t literal(token_t t) { return literal_or_exclusion_set(&t, 1, false); }
+	static this_t literal(token_t* t, size_t n) { return literal_or_exclusion_string(t, n, false); }
+	static this_t literal_set(token_t* t, size_t n) { return literal_or_exclusion_set(t, n, false); }
 
-	static this_t exclusion(token_t t)					{ return literal_or_exclusion_set(&t, 1, true); }
-	static this_t exclusion(token_t* t, size_t n)		{ return literal_or_exclusion_string(t, n, true); }
-	static this_t exclusion_set(token_t* t, size_t n)	{ return literal_or_exclusion_set(t, n, true); }
+	static this_t exclusion(token_t t) { return literal_or_exclusion_set(&t, 1, true); }
+	static this_t exclusion(token_t* t, size_t n) { return literal_or_exclusion_string(t, n, true); }
+	static this_t exclusion_set(token_t* t, size_t n) { return literal_or_exclusion_set(t, n, true); }
 
 	// OR is the next simplest operation.
 	// A character class is created for each unique combination of character classes (e1<->e2)
@@ -139,7 +141,7 @@ public:
 		// We do this by creating a map from each pair of e1/e2 classes, to new classes.
 
 		// We will traverse the new char class table, when combining state tables
-		array<pair<token_t, token_t> > newCharClassMap;	// maps back to char class
+		array<pair<token_t, token_t> > newCharClassMap; // maps back to char class
 	}
 
 	// concat

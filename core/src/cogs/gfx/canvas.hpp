@@ -39,12 +39,12 @@ namespace gfx {
 // A canvas is something that can be drawn to.
 class canvas;
 
-//class canvas::font;			// Base class for implementation dependent fonts.
-//class canvas::bitmap;			// Base class for implementation dependent pixel/raster images.
-//class canvas::bitmask;		// Base class for implementation dependent bit masks.  
-								// These are 1-bit/monochrome, and can have color values applied to each channel.
-//class canvas::alpha_mask;		// Base class for implementation dependent alpha masks.
-//class canvas::vector_image;	// Base class for implementation dependent vector images.
+//class canvas::font; // Base class for implementation dependent fonts.
+//class canvas::bitmap; // Base class for implementation dependent pixel/raster images.
+//class canvas::bitmask; // Base class for implementation dependent bit masks. 1-bit/monochrome. Color values can be applied to each channel.
+//
+//class canvas::alpha_mask; // Base class for implementation dependent alpha masks.
+//class canvas::vector_image; // Base class for implementation dependent vector images.
 
 /// @ingroup Graphics
 /// @ingroup UnitBases
@@ -62,10 +62,10 @@ public:
 	}
 
 	template <typename unit_t>
-	static composite_string to_string(const unit_t& n)		{ return to_string_t<wchar_t, unit_t>(); }
+	static composite_string to_string(const unit_t& n) { return to_string_t<wchar_t, unit_t>(); }
 
 	template <typename unit_t>
-	static composite_cstring to_cstring(const unit_t& n)	{ return to_string_t<char, unit_t>(); }
+	static composite_cstring to_cstring(const unit_t& n) { return to_string_t<char, unit_t>(); }
 };
 
 
@@ -135,7 +135,7 @@ public:
 			clear_mode,
 			or_mode,
 			and_mode,
-			xor_mode 
+			xor_mode
 		};
 
 		virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;

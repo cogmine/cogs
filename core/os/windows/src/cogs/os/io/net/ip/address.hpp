@@ -46,8 +46,8 @@ enum address_family
 class address : public net::address
 {
 private:
-	size_t				m_sockAddrSize;
-	SOCKADDR_STORAGE	m_sockAddr;
+	size_t m_sockAddrSize;
+	SOCKADDR_STORAGE m_sockAddr;
 
 	class dns_thread_pool : public thread_pool { };
 
@@ -60,7 +60,7 @@ private:
 		return result;
 	}
 
-	mutable rcptr<network>	m_network;
+	mutable rcptr<network> m_network;
 
 protected:
 	friend class socket;
@@ -96,13 +96,13 @@ protected:
 	}
 
 	void set_address_and_port(SOCKADDR* sockAddr, size_t sockAddrSize)
-	{	
+	{
 		m_sockAddrSize = sockAddrSize;
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
 
 	void set_address_and_port(sockaddr_in* sockAddr, size_t sockAddrSize)
-	{	
+	{
 		m_sockAddrSize = sockAddrSize;
 		memcpy(&m_sockAddr, sockAddr, sockAddrSize);
 	}
@@ -153,10 +153,10 @@ public:
 	class lookup_result : public signallable_task_base<lookup_result>
 	{
 	private:
-		rcref<network>	m_network;
-		string				m_inputString;
-		vector<address>		m_addresses;
-		rcptr<task<void> >	m_poolTask;
+		string m_inputString;
+		rcref<network> m_network;
+		vector<address> m_addresses;
+		rcptr<task<void> > m_poolTask;
 
 	protected:
 		friend class address;
@@ -179,7 +179,7 @@ public:
 			size_t requiredSize = m_inputString.get_length() * 4;
 			size_t currentSize;
 			do {
-				s.resize(requiredSize + 1);	// +1 because we know we'll need to add a null
+				s.resize(requiredSize + 1); // +1 because we know we'll need to add a null
 				currentSize = requiredSize;
 				requiredSize = (size_t)IdnToAscii(0, m_inputString.get_const_ptr(), (int)m_inputString.get_length(), s.get_ptr(), (int)requiredSize);
 			} while (requiredSize > currentSize);
@@ -187,7 +187,7 @@ public:
 
 			ADDRINFOW hints = { };
 			hints.ai_family = AF_UNSPEC;
-			hints.ai_flags = 0x00080000;// AI_DISABLE_IDN_ENCODING // We did the encoding already
+			hints.ai_flags = 0x00080000; // AI_DISABLE_IDN_ENCODING // We did the encoding already
 			ADDRINFOW* ai = &hints;
 			int err = GetAddrInfoW(s.cstr(), 0, 0, &ai);
 			if (!err)
@@ -203,14 +203,14 @@ public:
 				}
 			}
 			s.reset();
-			m_inputString.reset();	// not needed anymore, free it
+			m_inputString.reset(); // not needed anymore, free it
 			signal();
 		}
 
 		virtual const lookup_result& get() const volatile { return *(const lookup_result*)this; }
 
 	public:
-		const vector<address> & get_hosts() const		{ return m_addresses; }
+		const vector<address> & get_hosts() const { return m_addresses; }
 
 		virtual rcref<task<bool> > cancel() volatile
 		{
@@ -223,9 +223,9 @@ public:
 	class reverse_lookup_result : public net::address::reverse_lookup_result
 	{
 	private:
-		rcref<network>	m_network;
-		SOCKADDR_STORAGE	m_sockAddr;
-		size_t				m_sockAddrSize;
+		rcref<network> m_network;
+		SOCKADDR_STORAGE m_sockAddr;
+		size_t m_sockAddrSize;
 
 	protected:
 		friend class address;
@@ -256,7 +256,7 @@ public:
 
 			// Convert from punycode
 			string result;
-			size_t requiredSize = s.get_length();	// should only get shorter, right?
+			size_t requiredSize = s.get_length(); // should only get shorter, right?
 			size_t currentSize;
 			do {
 				result.resize(requiredSize);
@@ -272,31 +272,31 @@ public:
 	friend class reverse_lookup_result;
 
 	address()
-		:	m_sockAddrSize(0)
+		: m_sockAddrSize(0)
 	{ }
 
 	explicit address(const rcptr<network>& n)
-		:	m_sockAddrSize(0),
-			m_network(n)
+		: m_sockAddrSize(0),
+		m_network(n)
 	{ }
 
 //	address(address_family addressFamily)
-//		:	m_sockAddrSize(0)
+//		: m_sockAddrSize(0)
 //	{
 //		m_sockAddr.ss_family = (ADDRESS_FAMILY)addressFamily;
 //	}
-	
+
 	address(const address& addr)
-		:	m_sockAddrSize(addr.m_sockAddrSize),
-			m_network(addr.m_network)
+		: m_sockAddrSize(addr.m_sockAddrSize),
+		m_network(addr.m_network)
 	{
 		memcpy(&m_sockAddr, &addr.m_sockAddr, addr.m_sockAddrSize);
 	}
 
 	// Does NOT support host names and FQDN.  Supports only numeric ipv4, ipv6
 	// For host names and FQDN, use lookup() instead, as they may have multiple associated numeric addresses.
-	address(const composite_string& str, address_family addressFamily = inetv4, const rcref<network>& n = network::get_default() )	// AF_INET6 for ipv6
-		:	m_network(n)
+	address(const composite_string& str, address_family addressFamily = inetv4, const rcref<network>& n = network::get_default() ) // AF_INET6 for ipv6
+		: m_network(n)
 	{
 		INT i = sizeof(m_sockAddr);
 		INT err = WSAStringToAddress((LPWSTR)str.composite().cstr(), addressFamily, 0, (SOCKADDR*)&m_sockAddr, &i);
@@ -306,8 +306,8 @@ public:
 			m_sockAddrSize = 0;
 	}
 
-	static address ipv4(const composite_string& str)	{ return address(str, inetv4); }
-	static address ipv6(const composite_string& str)	{ return address(str, inetv6); }
+	static address ipv4(const composite_string& str) { return address(str, inetv4); }
+	static address ipv6(const composite_string& str) { return address(str, inetv6); }
 
 	address& operator=(const address& addr)
 	{
@@ -348,13 +348,13 @@ public:
 		return result;
 	}
 
-	SOCKADDR* get_sockaddr()				{ return (SOCKADDR*)&m_sockAddr; }
-	const SOCKADDR* get_sockaddr() const	{ return (SOCKADDR*)&m_sockAddr; }
+	SOCKADDR* get_sockaddr() { return (SOCKADDR*)&m_sockAddr; }
+	const SOCKADDR* get_sockaddr() const { return (SOCKADDR*)&m_sockAddr; }
 
-	size_t get_sockaddr_size() const				{ return m_sockAddrSize; }
-	void set_sockaddr_size(size_t sz)				{ m_sockAddrSize = sz; }
+	size_t get_sockaddr_size() const { return m_sockAddrSize; }
+	void set_sockaddr_size(size_t sz) { m_sockAddrSize = sz; }
 
-	address_family get_address_family() const		{ return (!m_sockAddrSize) ? (address_family)AF_UNSPEC : (address_family)m_sockAddr.ss_family; }
+	address_family get_address_family() const { return (!m_sockAddrSize) ? (address_family)AF_UNSPEC : (address_family)m_sockAddr.ss_family; }
 
 	virtual composite_cstring to_cstring() const
 	{
@@ -363,7 +363,7 @@ public:
 		{
 			if (!m_network)
 				m_network = network::get_default();
-			result.resize(NI_MAXHOST);	// slight waste of space, but safe
+			result.resize(NI_MAXHOST); // slight waste of space, but safe
 			int err = getnameinfo((sockaddr*)&m_sockAddr, (DWORD)m_sockAddrSize, result.get_ptr(), NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 			if (!err)
 				result.truncate_to(result.index_of(0));

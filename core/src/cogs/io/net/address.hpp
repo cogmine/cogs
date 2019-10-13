@@ -62,7 +62,7 @@ public:
 		const composite_string& get_name() const { return m_result; }
 	};
 
-	virtual rcref<reverse_lookup_result> reverse_lookup() const	= 0;
+	virtual rcref<reverse_lookup_result> reverse_lookup() const = 0;
 
 	virtual composite_string to_string() const = 0;
 	virtual composite_cstring to_cstring() const = 0;
@@ -78,7 +78,7 @@ public:
 		{
 			to_string();
 		}
-			
+
 		return composite_string_t<char_t>();
 	}
 };

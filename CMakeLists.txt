@@ -1,69 +1,60 @@
 cmake_minimum_required(VERSION 3.15)
 
+# This needs to be set before project()
+if (WIN32)
+  set(CMAKE_SYSTEM_VERSION 10.0.18362.0)
+endif()
+
 project (UISample)
 
-add_executable(UISample
-    ./apps/UISample/UISample.cpp
-)
-
+add_executable(UISample)
 set(EXECUTABLE_NAME "UISample")
 
+target_sources(${EXECUTABLE_NAME} PUBLIC
+  ./apps/UISample/UISample.cpp
+)
+
+target_compile_definitions(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:COGS_DEBUG>)
+
 include_directories(
-    core/src
+  core/src
 )
 
 # TODO: Add support for architetures other than x64 and x86
 if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
   message(STATUS "Configured for x64")
   include_directories(
-      core/arch/x64/src
+    core/arch/x64/src
   )
 elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)  # 32-bit
   message(STATUS "Configured for x86")
   include_directories(
-      core/arch/x86/src
+    core/arch/x86/src
   )
 else()
   message(ERROR ": Unknown target architecture")
 endif()
 
-if (WIN32) 
+if (WIN32)
+###################################################################### WIN32
   message(STATUS "Configured for Win32")
 
-  target_compile_definitions(${EXECUTABLE_NAME} PUBLIC -DUNICODE -D_UNICODE -DWIN32 -DWINDOWS -DCOGS_DEFAULT_GUI_SUBSYSTEM=GDI)
+  target_compile_definitions(${EXECUTABLE_NAME} PUBLIC -DUNICODE -D_UNICODE -DWIN32 -DWINDOWS -DCOGS_DEFAULT_UI_SUBSYSTEM=COGS_GUI -DCOGS_DEFAULT_GUI_SUBSYSTEM=COGS_GDI)
 
-  include_directories(
-      core/os/windows/src
+  target_sources(${EXECUTABLE_NAME} PUBLIC
+    ./apps/UISample/VS/UISample.manifest
+    ./apps/UISample/VS/UISample.rc
   )
-
-  target_link_libraries(${EXECUTABLE_NAME}
-    Shcore.lib
-    Gdiplus.lib
-    Normaliz.lib
-    Mswsock.lib
-    ws2_32.lib
-    dwmapi.lib
-    msimg32.lib
-    ComCtl32.lib
-    WINMM.LIB
-    kernel32.lib
-    user32.lib
-    gdi32.lib
-    winspool.lib
-    comdlg32.lib
-    advapi32.lib
-    shell32.lib
-    ole32.lib
-    oleaut32.lib
-    uuid.lib
-    odbc32.lib
-    odbccp32.lib
+  
+  include_directories(
+    core/os/windows/src
   )
 
 elseif (APPLE)
+###################################################################### MACOS
   message(STATUS "Configured for Apple")
   include_directories(
-      core/os/macos/src
+    core/os/macos/src
   )
 
   target_sources(${EXECUTABLE_NAME} PUBLIC
@@ -80,32 +71,62 @@ elseif (APPLE)
     BUNDLE TRUE
   )
 
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") 
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -x objective-c++) 
-  endif()
-
   target_link_libraries(${EXECUTABLE_NAME} "-framework CoreFoundation" "-framework CoreGraphics" "-framework Cocoa")
 
   configure_file("./apps/UISample/CMake/Info.plist.in" "./Info.plist")
   target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ./Info.plist")
 
 elseif (LINUX)
+###################################################################### LINUX
   message(STATUS "Configured for Linux")
   include_directories(
-      core/os/linux/src
+    core/os/linux/src
+    core/os/libs/pthreads
   )
+elseif (UNIX)
+###################################################################### UNIX
+  message(STATUS "Configured for Unix (same as Linux, for now)")
+  include_directories(
+    core/os/linux/src
+    core/os/libs/pthreads
+  )
+else()
+  message(ERROR ": Unknown Platform")
 
 endif()
+######################################################################
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+###################################################################### CLANG
   message(STATUS "Configured for Clang")
 
-  # using regular Clang or AppleClang
-  include_directories(
-      core/env/XCode/MacOS/src
-  )
-
-  target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fobjc-arc -fmodules -ObjC++) 
+  if (WIN32)
+  ################################################################ CLANG/MSVC WIN32
+    # TODO: Create a separate env layer for Clang on Win32?
+    include_directories(
+      core/env/VS/Windows/src
+    )
+    # On Windows, clang-cl and MSVC linker are used, so MSVC settings are used (below)
+  else()
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules)
+    if (APPLE)
+    ################################################################ CLANG MACOS
+      # TODO: Create a separate env layer for Clang on MacOS?
+      include_directories(
+        core/env/XCode/MacOS/src
+      )
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -fobjc-arc -ObjC++)
+    elseif (LINUX)
+    ################################################################ CLANG LINUX
+      # TODO: Create a separate env layer for Clang on Linux?
+      include_directories(
+        core/env/gcc/src
+      )
+      target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules) 
+    endif()
+  endif()
+  ################################################################
  
   if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16) 
@@ -113,15 +134,22 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
 
   # TODO
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ") 
-  #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ") 
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:>)
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:>)
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") 
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+###################################################################### GCC
   message(STATUS "Configured for GCC")
 
   include_directories(
-      core/env/gcc/src
+    core/env/gcc/src
   )
+
+  if (APPLE)
+  ################################################################ GCC MACOS
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -x objective-c++) 
+  endif()
+  ################################################################
 
   target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++17 -fmax-errors=1 -fzero-initialized-in-bss -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat-nonliteral -Wpointer-arith -fno-exceptions -g -lrt -pthread -latomic) 
 
@@ -130,10 +158,11 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)  # 32-bit
   endif()
 
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ") 
-  #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ") 
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:>)
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:>)
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel") 
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+###################################################################### INTEL
   message(STATUS "Configured for Intel")
 
   include_directories(
@@ -142,28 +171,53 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
   # TODO 
   message(ERROR ": Intel compiler not yet supported")
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ") 
-  #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ") 
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:>)
+  #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:>)
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") 
+###################################################################### MSVC
   message(STATUS "Configured for MSVC")
   
   include_directories(
-      core/env/VS/Windows/src
+    core/env/VS/Windows/src
   )
   if (WIN32)
     # Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
     #target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
-    
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /GS /Od")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL")
+    #target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+    #target_compile_options(${EXECUTABLE_NAME} PUBLIC /JMC /MP /W3 /Zc:wchar_t /Zi /Gm- /Ob0 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /Oy- /Oi /std:c++latest /FC /EHa /nologo /bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
 
-    target_link_options(${EXECUTABLE_NAME} PUBLIC /INCREMENTAL:NO /DEBUG /NXCOMPAT /DYNAMICBASE /OPT:REF /OPT:ICF)
+    #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
+    #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
+
+    #target_link_options(${EXECUTABLE_NAME} PUBLIC /NXCOMPAT /DYNAMICBASE /DEBUG /MACHINE:X64 /INCREMENTAL:NO /SUBSYSTEM:WINDOWS /TLBID:1)
   else()
     message(ERROR ": Unsupported target for MSVC")
   endif()
 
 endif()
+######################################################################
+
+###################################################################### MSVC OR CLANG/MSVC WIN32
+if ((("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang")) AND (WIN32))
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
+  target_link_options(${EXECUTABLE_NAME} PUBLIC /INCREMENTAL:NO /NXCOMPAT /DYNAMICBASE)
+endif()
+######################################################################
+
 
 set(CMAKE_VERBOSE_MAKEFILE on)
+
+get_target_property(INCS ${EXECUTABLE_NAME} INCLUDE_DIRECTORIES)
+message("Include directories: ${INCS}")
+
+get_target_property(DEFS ${EXECUTABLE_NAME} COMPILE_DEFINITIONS)
+message("Compile definitions: ${DEFS}")
+
+get_target_property(C_OPTS ${EXECUTABLE_NAME} COMPILE_OPTIONS)
+message("Compile options: ${C_OPTS}")
+
+get_target_property(LINK_OPTS ${EXECUTABLE_NAME} LINK_OPTIONS)
+message("Link options: ${LINK_OPTS}")

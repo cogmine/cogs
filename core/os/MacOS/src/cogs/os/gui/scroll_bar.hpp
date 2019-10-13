@@ -106,7 +106,7 @@ private:
 				double pos = newPos;
 				if (pos > maxPos)
 					pos = maxPos;
-			
+
 				[objcScrollBar setEnabled: YES] ;
 				[objcScrollBar setDoubleValue: (pos / maxPos) ];
 				[objcScrollBar setKnobProportion: (newState.m_thumbSize / newState.m_max) ];
@@ -329,7 +329,7 @@ public:
 
 		__strong objc_scroll_bar* objcScrollBar = [[objc_scroll_bar alloc] initWithFrame:bogusBounds];
 		objcScrollBar->m_cppScrollBar = this_rcptr;
-	
+
 		bogusBounds.origin.x = bogusBounds.origin.y = 0;
 
 		m_isKnobSlotVisible = true;
@@ -369,7 +369,7 @@ public:
 		transactable<scroll_bar_state>::read_token rt;
 		m_state.begin_read(rt);
 		bool setPosition = true;
-		
+
 		double oldPos = atomic::load(m_pos);
 		double pos = oldPos;
 		double max = rt->m_max;
@@ -633,7 +633,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 //+(CGFloat)scrollerWidthForScrollerStyle:(NSScrollerStyle)scrollerStyle
 //{
 //	if (scrollerStyle == NSScrollerStyleOverlay)
-//		return 10;	// BUG: +[NSScroller scrollerWidthForControlSize:scrollerStyle:] returns 15 for NSScrollerStyleOverlay...
+//		return 10; // BUG: +[NSScroller scrollerWidthForControlSize:scrollerStyle:] returns 15 for NSScrollerStyleOverlay...
 //	return[NSScroller scrollerWidth];
 //}
 //

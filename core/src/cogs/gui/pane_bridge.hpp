@@ -32,7 +32,7 @@ class bridgeable_pane
 private:
 	friend class pane_bridge;
 
-	weak_rcptr<pane>	m_paneBridge;
+	weak_rcptr<pane> m_paneBridge;
 
 protected:
 	const weak_rcptr<pane>& get_bridge() const { return m_paneBridge; }
@@ -234,14 +234,14 @@ protected:
 		COGS_ASSERT(!!paneBridge);
 		return paneBridge->pane::get_primary_flow_dimension();
 	}
-	
+
 	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		return paneBridge->pane::propose_length(d, proposed, rtnOtherRange);
 	}
-	
+
 	virtual size propose_lengths(dimension d, const size& proposedSize) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
@@ -286,7 +286,7 @@ protected:
 
 	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
 	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
-		
+
 	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
 	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
 	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
@@ -320,21 +320,21 @@ protected:
 		COGS_ASSERT(!!paneBridge);
 		paneBridge->pane::cursor_leaving();
 	}
-	
+
 	virtual void hiding()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		paneBridge->pane::hiding();
 	}
-	
+
 	virtual void showing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		paneBridge->pane::showing();
 	}
-	
+
 	virtual void drawing()
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
@@ -389,14 +389,14 @@ class pane_bridge : public pane
 private:
 	friend class bridgeable_pane;
 
-	rcptr<bridgeable_pane>	m_bridgedPane;
+	rcptr<bridgeable_pane> m_bridgedPane;
 
 protected:
 	explicit pane_bridge(const ptr<rc_obj_base>& desc)
 		: pane(desc)
 	{ }
 
-	const rcptr<bridgeable_pane>& get_bridged() const	{ return m_bridgedPane; }
+	const rcptr<bridgeable_pane>& get_bridged() const { return m_bridgedPane; }
 
 	void install_bridged(const rcref<bridgeable_pane>& bp)
 	{
@@ -568,13 +568,13 @@ protected:
 		COGS_ASSERT(!!m_bridgedPane);
 		m_bridgedPane->cursor_leaving();
 	}
-	
+
 	virtual void hiding()
 	{
 		COGS_ASSERT(!!m_bridgedPane);
 		m_bridgedPane->hiding();
 	}
-	
+
 	virtual void showing()
 	{
 		COGS_ASSERT(!!m_bridgedPane);

@@ -42,9 +42,9 @@ public:
 	virtual void update(const io::buffer& buf)
 	{
 		const uint8_t* p = (const uint8_t*)buf.get_const_ptr();
-		size_t bufLength = buf.get_length();		
+		size_t bufLength = buf.get_length();
 		while (bufLength > 0)
-		{	
+		{
 			size_t n = m_modCountDown;
 			if (n > bufLength)
 				n = bufLength;
@@ -65,11 +65,11 @@ public:
 		}
 	}
 
-	virtual uint_t get_hash_int()
+	virtual uint_t get_hash_int() const
 	{
-		m_sum1 %= 65521;
-		m_sum2 %= 65521;
-		return (m_sum2 << 16) | m_sum1;
+		uint32_t sum1 = m_sum1 % 65521;
+		uint32_t sum2 = m_sum2 % 65521;
+		return (sum2 << 16) | sum1;
 	}
 
 	adler32()

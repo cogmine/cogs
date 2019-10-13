@@ -66,12 +66,12 @@ private:
 	rcptr<window_interface> m_nativeWindow;
 	window_task m_windowTask;
 	volatile boolean m_closed;
-	composite_string m_title;
 	point m_initialScreenPosition;
 	size m_initialFrameSize;
 	bool m_hasInitialScreenPosition;
 	bool m_hasInitialFrameSize;
 	bool m_initialPositionCentered;
+	composite_string m_title;
 
 protected:
 	virtual void installing()
@@ -140,7 +140,7 @@ public:
 	{
 		dispatch([r{ this_rcref }]()
 		{
-			if (!r->is_hidden() || !r->m_closed)	// Allow hide and show operations to progress until it becomes hidden, if 'closed'
+			if (!r->is_hidden() || !r->m_closed) // Allow hide and show operations to progress until it becomes hidden, if 'closed'
 				r->pane_bridge::hide();
 		});
 	}
@@ -154,7 +154,7 @@ public:
 		});
 	}
 
-	const composite_string& get_title() const	{ return m_title; }
+	const composite_string& get_title() const { return m_title; }
 
 	void set_title(const composite_string& title)
 	{

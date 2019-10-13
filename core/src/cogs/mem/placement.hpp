@@ -19,7 +19,7 @@ namespace cogs {
 
 
 // placement is a non-instantiable template class provinging placement construction, destruction, and
-//	moving of objects or data in memory.
+// moving of objects or data in memory.
 //
 // If is_pod, objects will not be constructed or destruct.  memcpy() is be used,
 // as the compiler may directly optimize these functions.
@@ -40,7 +40,7 @@ class alignas (alignment) placement_storage
 public:
 	unsigned char m_bytes[n];
 
-	template <typename T> T& get()	{ return *reinterpret_cast<T*>(this); }
+	template <typename T> T& get() { return *reinterpret_cast<T*>(this); }
 	template <typename T> const T& get() const { return *reinterpret_cast<const T*>(this); }
 	template <typename T> volatile T& get() volatile { return *reinterpret_cast<volatile T*>(this); }
 	template <typename T> const volatile T& get() const volatile { return *reinterpret_cast<const volatile T*>(this); }
@@ -66,7 +66,7 @@ public:
 	>
 	construct(args_t&&... args)
 	{
-		new (get()) T(std::forward<args_t>(args)...);	// placement new
+		new (get()) T(std::forward<args_t>(args)...); // placement new
 	}
 
 	void destruct() { get().~T(); }
@@ -154,7 +154,7 @@ inline std::enable_if_t<
 >
 placement_destruct(T* t)
 {
-	t->~T();
+	t->T::~T();
 }
 
 
@@ -241,37 +241,37 @@ placement_move(T* dst, T* src, size_t n)
 {
 	if (!!n)
 	{
-		if (dst < src)					// move back
+		if (dst < src) // move back
 		{
-			size_t gap = src - dst;		// unconstructed portion
-			if (gap >= n)				// Scenario 1: dst < dst+n <= src < src+n
+			size_t gap = src - dst; // unconstructed portion
+			if (gap >= n) // Scenario 1: dst < dst+n <= src < src+n
 			{
 				placement_copy_construct_array(dst, src, n);
 				placement_destruct_multiple(src, n);
 			}
-			else // (gap < n)			// Scenario 2: dst < src < dst+n < src+n
+			else // (gap < n) // Scenario 2: dst < src < dst+n < src+n
 			{
 				placement_copy_construct_array(dst, src, gap);
 				size_t i = gap;
-				T* t2 = 0;	// gcc things this needs initializing.  It doesn't because i == gap, and gap is < n, so the loop will run.
+				T* t2 = 0; // gcc things this needs initializing.  It doesn't because i == gap, and gap is < n, so the loop will run.
 				for (; i < n; i++)
 				{
 					t2 = dst + i;
 					placement_destruct(t2);
 					placement_construct(t2, src[i]);
 				}
-				placement_destruct_multiple(t2, gap);	// t2 == dst + n
+				placement_destruct_multiple(t2, gap); // t2 == dst + n
 			}
 		}
-		else if (dst > src)				// move forward
+		else if (dst > src) // move forward
 		{
 			T* pastSrc = src + n;
-			if (dst >= pastSrc)			// Scenario 1: src < src+n <= dst < dst+n
+			if (dst >= pastSrc) // Scenario 1: src < src+n <= dst < dst+n
 			{
 				placement_copy_construct_array(dst, src, n);
 				placement_destruct_multiple(src, n);
 			}
-			else //  (dst < pastSrc)	// Scenario 2: src < dst < src+n < dst+n
+			else //  (dst < pastSrc) // Scenario 2: src < dst < src+n < dst+n
 			{
 				size_t outer = dst - src;
 				placement_copy_construct_array(pastSrc, pastSrc - outer, outer);

@@ -50,7 +50,7 @@ private:
 
 public:
 	serial_defer_guard_t()
-		:	m_count(0)
+		: m_count(0)
 	{ }
 
 	~serial_defer_guard_t()
@@ -60,27 +60,27 @@ public:
 	}
 
 	/// @{
-	///	@brief Acquires the guard.  release() must be called to release the guard.
+	/// @brief Acquires the guard.  release() must be called to release the guard.
 	/// @return True if the guard was previously unacquired by any thread.
-	bool begin_guard()								{ return (!(m_count++)); }
+	bool begin_guard() { return (!(m_count++)); }
 	/// @brief Thread-safe implementation of begin_guard().
-	bool begin_guard() volatile						{ return !post_assign_next(m_count); }
+	bool begin_guard() volatile { return !post_assign_next(m_count); }
 	/// @}
 
 	/// @{
 	/// @brief Gets the number of threads that currently hold the guard.
 	/// @return The number of threads currently holding the guard.
-	size_t get_count() const						{ return m_count; }
+	size_t get_count() const { return m_count; }
 	/// @brief Thread-safe implementation of get_count().
-	size_t get_count() const volatile				{ return atomic::load(m_count); }
+	size_t get_count() const volatile { return atomic::load(m_count); }
 	/// @}
 
 	/// @{
 	/// @brief Test if the guard is currently unacquired by any thread.
 	/// @return True if the guard is currently unacquired by any thread.
-	bool is_free() const							{ return !get_count(); }
+	bool is_free() const { return !get_count(); }
 	/// @brief Thread-safe implementation of is_free().
-	bool is_free() const volatile					{ return !get_count(); }
+	bool is_free() const volatile { return !get_count(); }
 	/// @}
 
 	/// @{
@@ -106,16 +106,16 @@ public:
 	/// @{
 	/// @brief Peeks at the next element in the guard.  The guard must be in the acquired state when peek() is called.
 	/// @return The next element in the guard, or NULL.
-	link_t* peek()							{ return m_head.get_ptr(); }
+	link_t* peek() { return m_head.get_ptr(); }
 	/// @brief Thread-safe implementation of peek().
-	link_t* peek() volatile					{ return m_head.get_ptr(); }
+	link_t* peek() volatile { return m_head.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Removes the next element in the guard.  The guard must be in the acquired state when remove() is called.
 	/// @param[in] wasLast If specified, receives a value indicating whether the element removed was the last element.
 	/// @return An element
-	link_t* remove(bool* wasLast = 0)		// only safe within a guard
+	link_t* remove(bool* wasLast = 0) // only safe within a guard
 	{
 		ptr<link_t> l = m_head;
 		if (!l)
@@ -128,7 +128,7 @@ public:
 		return l;
 	}
 	/// @brief Thread-safe implementation of remove().
-	link_t* remove(bool* wasLast = 0) volatile		// only safe within a guard
+	link_t* remove(bool* wasLast = 0) volatile // only safe within a guard
 	{
 		version_t oldVersion;
 		ptr<link_t> oldHead;
@@ -192,7 +192,7 @@ public:
 				oldHead.release();
 				break;
 			}
-			
+
 			// oldCount == 1
 			size_t oldCount2;
 			version_t oldVersion;
@@ -212,7 +212,7 @@ public:
 				}
 
 				// Having successfully decremented the count, someone else slipped in a link and released.
-				oldCount2 = pre_assign_next(m_count);	// Reclaim the guard.
+				oldCount2 = pre_assign_next(m_count); // Reclaim the guard.
 			}
 			if (oldCount2 != 1)
 			{
@@ -241,7 +241,7 @@ public:
 	///
 	/// May allow the caller to release the guard without having to process elements.
 	/// @return True if the guard was succesfully released.
-	bool try_release()	// Only released if NOT the last reference
+	bool try_release() // Only released if NOT the last reference
 	{
 		if (m_count == 1)
 			return false;

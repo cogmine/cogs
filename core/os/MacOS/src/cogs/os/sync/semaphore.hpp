@@ -34,7 +34,7 @@ namespace os {
 class semaphore : public object
 {
 private:
-	semaphore_t	m_semaphore;
+	semaphore_t m_semaphore;
 
 public:
 	semaphore(const ptr<rc_obj_base>& desc)
@@ -54,7 +54,7 @@ public:
 	{
 		kern_return_t result;
 		if (timeout.is_infinite())
-			result = semaphore_wait(m_semaphore); 
+			result = semaphore_wait(m_semaphore);
 		else
 		{
 			mach_timespec_t ts;

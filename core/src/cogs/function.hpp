@@ -16,14 +16,14 @@
 namespace cogs {
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple copy constructors specified
 
 // Only really need my own function class because std::function doesn't allow use of an allocator,
 // and I want to use my lock-free allocator.  Also, being able to encapsulate a callable that accepts fewer
 // args than specified, is useful.
 
-//template <typename signature, size_t n = sizeof(void*)*5>	// Enough space for 2x rcptr's, and a vtable ptr
+//template <typename signature, size_t n = sizeof(void*)*5> // Enough space for 2x rcptr's, and a vtable ptr
 //class function;
 
 template <typename T>
@@ -94,14 +94,14 @@ private:
 	class reverse3;
 
 	template <typename... A>
-	class reverse1	// 0 arg version
+	class reverse1 // 0 arg version
 	{
 	public:
-		static void invoke();	// Here to satisfy using.  Failure to match args would manifest as an error here.
+		static void invoke(); // Here to satisfy using.  Failure to match args would manifest as an error here.
 	};
 
 	template <typename... A>
-	class reverse2	// 0 args left.  
+	class reverse2 // 0 args left.
 	{
 	public:
 		// Done reversing the args.
@@ -152,7 +152,7 @@ private:
 	};
 
 	template <typename... A>
-	class reverse4	// 0 args left.  
+	class reverse4 // 0 args left.
 	{
 	public:
 		// Done reversing the args.  Provide the new version of invoke
@@ -183,10 +183,10 @@ private:
 	};
 
 	template <typename... A>
-	class reverse3	// not used
+	class reverse3 // not used
 	{
 	public:
-		static void invoke();	// not called, just here to satisfy using
+		static void invoke(); // not called, just here to satisfy using
 	};
 
 	template <typename T, typename... A>
@@ -228,7 +228,7 @@ private:
 		template <size_t n2> block(block<function<return_t(args_t...), n2> >&& f) = delete;
 		template <size_t n2> block(const block<function<return_t(args_t...), n2> >& f) = delete;
 
-		block(block<function<return_t(args_t...), n> >&& f) = delete;	//?
+		block(block<function<return_t(args_t...), n> >&& f) = delete; //?
 		block(const block<function<return_t(args_t...), n> >& f) = delete;
 
 		virtual ~block() { }
@@ -247,7 +247,7 @@ private:
 		{
 			return new (default_allocator::get()) block<F>(std::move(m_func));
 		}
-		
+
 		virtual void move(void* p)
 		{
 			new ((block<F>*)p) block<F>(std::move(m_func));
@@ -260,7 +260,7 @@ private:
 	};
 
 	unsigned char m_buffer[n];
-	size_t m_size;	// 0 = empty, <=n embedded, >n allocated
+	size_t m_size; // 0 = empty, <=n embedded, >n allocated
 
 	void release_inner()
 	{
@@ -321,17 +321,17 @@ private:
 			if (src.m_size <= n)
 			{
 				if (src.m_size <= n2)
-					((block_base*)&src.m_buffer)->move(&m_buffer);	// embedded to embedded
+					((block_base*)&src.m_buffer)->move(&m_buffer); // embedded to embedded
 				else
-					(*(block_base**)&src.m_buffer)->move(&m_buffer);	// allocated to embedded
+					(*(block_base**)&src.m_buffer)->move(&m_buffer); // allocated to embedded
 			}
 			else
 			{
 				if (src.m_size <= n2)
-					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->move();	// embedded to allocated
+					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->move(); // embedded to allocated
 				else
 				{
-					*(block_base**)&m_buffer = *(block_base**)&src.m_buffer;	// allocated to allocated
+					*(block_base**)&m_buffer = *(block_base**)&src.m_buffer; // allocated to allocated
 					src.m_size = 0;
 				}
 			}
@@ -347,16 +347,16 @@ private:
 			if (src.m_size <= n)
 			{
 				if (src.m_size <= n2)
-					((block_base*)&src.m_buffer)->copy(&m_buffer);	// embedded to embedded
+					((block_base*)&src.m_buffer)->copy(&m_buffer); // embedded to embedded
 				else
-					(*(block_base**)&src.m_buffer)->copy(&m_buffer);	// allocated to embedded
+					(*(block_base**)&src.m_buffer)->copy(&m_buffer); // allocated to embedded
 			}
 			else
 			{
 				if (src.m_size <= n2)
-					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->copy();	// embedded to allocated
+					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->copy(); // embedded to allocated
 				else
-					*(block_base**)&m_buffer = (*(block_base**)&src.m_buffer)->copy();	// allocated to allocated
+					*(block_base**)&m_buffer = (*(block_base**)&src.m_buffer)->copy(); // allocated to allocated
 			}
 		}
 	}
@@ -434,14 +434,14 @@ private:
 	class reverse3;
 
 	template <typename... A>
-	class reverse1	// 0 arg version
+	class reverse1 // 0 arg version
 	{
 	public:
-		static void invoke();	// Here to satisfy using.  Failure to match args would manifest as an error here.
+		static void invoke(); // Here to satisfy using.  Failure to match args would manifest as an error here.
 	};
 
 	template <typename... A>
-	class reverse2	// 0 args left.  
+	class reverse2 // 0 args left.
 	{
 	public:
 		// Done reversing the args.
@@ -492,7 +492,7 @@ private:
 	};
 
 	template <typename... A>
-	class reverse4	// 0 args left.  
+	class reverse4 // 0 args left.
 	{
 	public:
 		// Done reversing the args.  Provide the new version of invoke
@@ -523,10 +523,10 @@ private:
 	};
 
 	template <typename... A>
-	class reverse3	// not used
+	class reverse3 // not used
 	{
 	public:
-		static void invoke();	// not called, just here to satisfy using
+		static void invoke(); // not called, just here to satisfy using
 	};
 
 	template <typename T, typename... A>
@@ -565,10 +565,10 @@ private:
 			: m_func(f)
 		{ }
 
-		template <size_t n2> block(function<void(args_t...), n2>&& f) = delete;	// Should have been copied
+		template <size_t n2> block(function<void(args_t...), n2>&& f) = delete; // Should have been copied
 		template <size_t n2> block(const function<void(args_t...), n2>& f) = delete;
 
-		block(function<void(args_t...), n>&& f) = delete;	//?
+		block(function<void(args_t...), n>&& f) = delete; //?
 		block(const function<void(args_t...), n>& f) = delete;
 
 		virtual ~block() { }
@@ -597,7 +597,7 @@ private:
 	};
 
 	unsigned char m_buffer[n];
-	size_t m_size;	// 0 = empty, <=n embedded, >n allocated
+	size_t m_size; // 0 = empty, <=n embedded, >n allocated
 
 	void release_inner()
 	{
@@ -658,17 +658,17 @@ private:
 			if (src.m_size <= n)
 			{
 				if (src.m_size <= n2)
-					((block_base*)&src.m_buffer)->move(&m_buffer);	// embedded to embedded
+					((block_base*)&src.m_buffer)->move(&m_buffer); // embedded to embedded
 				else
-					(*(block_base**)&src.m_buffer)->move(&m_buffer);	// allocated to embedded
+					(*(block_base**)&src.m_buffer)->move(&m_buffer); // allocated to embedded
 			}
 			else
 			{
 				if (src.m_size <= n2)
-					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->move();	// embedded to allocated
+					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->move(); // embedded to allocated
 				else
 				{
-					*(block_base**)&m_buffer = *(block_base**)&src.m_buffer;	// allocated to allocated
+					*(block_base**)&m_buffer = *(block_base**)&src.m_buffer; // allocated to allocated
 					src.m_size = 0;
 				}
 			}
@@ -684,16 +684,16 @@ private:
 			if (src.m_size <= n)
 			{
 				if (src.m_size <= n2)
-					((block_base*)&src.m_buffer)->copy(&m_buffer);	// embedded to embedded
+					((block_base*)&src.m_buffer)->copy(&m_buffer); // embedded to embedded
 				else
-					(*(block_base**)&src.m_buffer)->copy(&m_buffer);	// allocated to embedded
+					(*(block_base**)&src.m_buffer)->copy(&m_buffer); // allocated to embedded
 			}
 			else
 			{
 				if (src.m_size <= n2)
-					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->copy();	// embedded to allocated
+					*(block_base**)&m_buffer = ((block_base*)&src.m_buffer)->copy(); // embedded to allocated
 				else
-					*(block_base**)&m_buffer = (*(block_base**)&src.m_buffer)->copy();	// allocated to allocated
+					*(block_base**)&m_buffer = (*(block_base**)&src.m_buffer)->copy(); // allocated to allocated
 			}
 		}
 	}

@@ -92,7 +92,7 @@ private:
 		return const_cast<const ui_thread*>(this)->m_controlQueue;
 	}
 
-	alignas (atomic::get_alignment_v<int>) int m_dispatchMode;	// 0 = idle, 1 = running, 2 = refresh
+	alignas (atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
 
 	void run_in_main_queue() volatile
 	{
@@ -218,7 +218,7 @@ public:
 		return singleton<nsview_subsystem>::get();
 	}
 
-	virtual bool is_ui_thread_current() const volatile	{ return [NSThread isMainThread]; }
+	virtual bool is_ui_thread_current() const volatile { return [NSThread isMainThread]; }
 
 	void remove_visible_window(visible_windows_list_t::volatile_remove_token& removeToken) volatile
 	{
@@ -257,7 +257,7 @@ public:
 	virtual vector<gfx::canvas::bounds> get_screens() volatile
 	{
 		vector<gfx::canvas::bounds> screens;
-		CGDirectDisplayID displayIDs[50];	// 50 monitors is enough
+		CGDirectDisplayID displayIDs[50]; // 50 monitors is enough
 		uint32_t numDisplays = 0;
 		CGGetActiveDisplayList(std::extent_v<decltype(displayIDs)>, displayIDs, &numDisplays);
 		for (size_t i = 0; i < numDisplays; i++)
@@ -289,8 +289,8 @@ private:
 protected:
 	bool m_isResizing = false;
 
-	rcref<volatile nsview_subsystem>& get_subsystem()			{ return m_uiSubsystem; }
-	const rcref<volatile nsview_subsystem>& get_subsystem() const	{ return m_uiSubsystem; }
+	rcref<volatile nsview_subsystem>& get_subsystem() { return m_uiSubsystem; }
+	const rcref<volatile nsview_subsystem>& get_subsystem() const { return m_uiSubsystem; }
 
 public:
 	nsview_pane(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
@@ -355,10 +355,10 @@ public:
 
 			container_dlist<rcref<pane> >::iterator itor;
 			rcptr<nsview_pane> lastFoundView;
-			if (m_parentView->m_childCount++ > 0)	// if was 0
+			if (m_parentView->m_childCount++ > 0) // if was 0
 			{
 				itor = get_bridge(*m_parentView)->get_children().get_first();
-				COGS_ASSERT(!!itor);	// should at least find this obj
+				COGS_ASSERT(!!itor); // should at least find this obj
 				container_dlist<rcref<pane> >::iterator nextItor;
 				// start at furthest last
 				for (;;)
@@ -376,7 +376,7 @@ public:
 						if (!!bridge)
 							foundView = get_bridged(*bridge).template dynamic_cast_to<nsview_pane>();
 
-						if (!!foundView)	// Don't descend beyond another NSView, move on to the next
+						if (!!foundView) // Don't descend beyond another NSView, move on to the next
 						{
 							lastFoundView = foundView;
 							break;
@@ -403,13 +403,13 @@ public:
 							break;
 						}
 						p = (*itor)->get_parent();
-						COGS_ASSERT(p != get_bridge(*m_parentView));	// Shouldn't get here.  We should have found this obj.
+						COGS_ASSERT(p != get_bridge(*m_parentView)); // Shouldn't get here.  We should have found this obj.
 						itor = p->get_sibling_iterator();
 					}
 				}
 			}
 
-			if (!lastFoundView)	// if none found, we were the last z-order NSView in this parent NSView
+			if (!lastFoundView) // if none found, we were the last z-order NSView in this parent NSView
 			{
 				if (!!m_parentView->m_lastChildView) // If any were present
 				{
@@ -462,7 +462,7 @@ public:
 			if (!!m_parentView) // if not a window
 			{
 				canvas::point positionInParentView = b.get_position();
-				rcptr<pane> p = get_bridge()->get_parent();	// find new coords in parent nsview
+				rcptr<pane> p = get_bridge()->get_parent(); // find new coords in parent nsview
 				for (;;)
 				{
 					if (!p || (p == m_parentView->get_bridge()))
@@ -623,9 +623,9 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 		{
 			__strong objc_view* nsView = [[objc_view alloc] init];
 			nsView->m_cppView = this_rcptr;
-		
+
 			[nsView setAutoresizesSubviews:NO];
-		
+
 			install_NSView(nsView);
 			nsview_pane::installing();
 		}

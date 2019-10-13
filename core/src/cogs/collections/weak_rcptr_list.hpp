@@ -70,7 +70,7 @@ public:
 		{
 			if (!m_itor.is_active())
 				return false;
-			if (!m_itor->m_removeToken)	// non rc obj
+			if (!m_itor->m_removeToken) // non rc obj
 				return true;
 			rc_obj_base* desc = m_itor->m_obj.get_desc();
 			if (!desc)
@@ -90,7 +90,7 @@ public:
 				return false;
 			if (m_itor.is_removed())
 				return true;
-			if (!m_itor->m_removeToken)	// non rc obj
+			if (!m_itor->m_removeToken) // non rc obj
 				return false;
 			rc_obj_base* desc = m_itor->m_obj.get_desc();
 			if (!desc)
@@ -311,7 +311,7 @@ public:
 			auto itor = m_list.remove_last();
 			if (!itor)
 				break;
-			if (!itor->m_removeToken)	// non rc obj
+			if (!itor->m_removeToken) // non rc obj
 				foundAny = true;
 			else
 			{

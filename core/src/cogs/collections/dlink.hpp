@@ -18,20 +18,20 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 template <class link_t, template <typename> class ref_type = ptr>
 class default_dlink_iterator : public default_slink_iterator<link_t, ref_type>
 {
 public:
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
-	static const          ref_t& get_prev(const          link_t& l)	{ return l.get_prev_link(); }
-	static const volatile ref_t& get_prev(const volatile link_t& l)	{ return l.get_prev_link(); }
+	static const ref_t& get_prev(const link_t& l) { return l.get_prev_link(); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return l.get_prev_link(); }
 
-	static void set_prev(         link_t& l, const link_t& src)		{ l.set_prev_link(src); }
-	static void set_prev(volatile link_t& l, const link_t& src)		{ l.set_prev_link(src); }
+	static void set_prev(link_t& l, const link_t& src) { l.set_prev_link(src); }
+	static void set_prev(volatile link_t& l, const link_t& src) { l.set_prev_link(src); }
 };
 
 
@@ -39,17 +39,17 @@ template <class link_t, template <typename> class ref_type = ptr, class link_ite
 class dlink_methods
 {
 public:
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
-	static const          ref_t& get_prev(const          link_t& l)	{ return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l)	{ return link_iterator::get_prev(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ link_iterator::set_next(l, src); }
-	static void set_prev(         link_t& l, const ref_t& src)		{ link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src)		{ link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
 
 	static void remove(link_t& ths, const ref_t& terminator = ref_t())
 	{
@@ -67,7 +67,7 @@ public:
 			ref_t nn = get_next(*next);
 			set_next(ths, nn);
 			if (nn != terminator)
-				set_prev(*nn, get_prev(*next));	// get proper ref_t to ths
+				set_prev(*nn, get_prev(*next)); // get proper ref_t to ths
 		}
 		return next;
 	}
@@ -80,7 +80,7 @@ public:
 			ref_t pp = get_prev(*prev);
 			set_prev(ths, pp);
 			if (pp != terminator)
-				set_next(*pp, get_next(*prev));	// get proper ref_t to ths
+				set_next(*pp, get_next(*prev)); // get proper ref_t to ths
 		}
 		return prev;
 	}
@@ -111,7 +111,7 @@ public:
 			ref_t pp = get_prev(*prev);
 			set_prev(*cur, pp);
 			if (pp != terminator)
-				set_next(*pp, cur);	// get proper ref_t to ths
+				set_next(*pp, cur); // get proper ref_t to ths
 		}
 		return prev;
 	}
@@ -121,7 +121,7 @@ public:
 		return next ? remove_next(cur, terminator) : remove_prev(cur, terminator);
 	}
 
-	static ref_t find_last_terminated(const ref_t& cur, const ref_t& terminator = ref_t())	
+	static ref_t find_last_terminated(const ref_t& cur, const ref_t& terminator = ref_t())
 	{
 		ref_t last(cur);
 		for (;;)
@@ -134,7 +134,7 @@ public:
 		return last;
 	}
 
-	static ref_t find_first_terminated(const ref_t& cur, const ref_t& terminator = ref_t())	
+	static ref_t find_first_terminated(const ref_t& cur, const ref_t& terminator = ref_t())
 	{
 		ref_t last(cur);
 		for (;;)
@@ -208,13 +208,13 @@ public:
 			insert_list_before(cur, first, last, terminator);
 	}
 
-	static void insert_terminated_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())			{ insert_list_after(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
-	static void insert_terminated_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())			{ insert_list_before(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
-	static void insert_terminated_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ insert_list(after, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_after(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_before(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list(after, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
 
-	static void insert_circular_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())		{ insert_list_after(cur, dl, dl->get_prev_link(), terminator); }
-	static void insert_circular_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())		{ insert_list_before(cur, dl, dl->get_prev_link(), terminator); }
-	static void insert_circular_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ insert_list(after, cur, dl, dl->get_prev_link(), terminator); }
+	static void insert_circular_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_after(cur, dl, dl->get_prev_link(), terminator); }
+	static void insert_circular_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_before(cur, dl, dl->get_prev_link(), terminator); }
+	static void insert_circular_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list(after, cur, dl, dl->get_prev_link(), terminator); }
 
 	static void insert_into_circular_after(const ref_t& cur, const ref_t& dl)
 	{
@@ -268,13 +268,13 @@ public:
 			insert_list_into_circular_before(cur, new_first, new_last);
 	}
 
-	static void insert_terminated_list_into_circular(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ insert_list_into_circular(after, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
-	static void insert_terminated_list_into_circular_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ insert_list_into_circular_after(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
-	static void insert_terminated_list_into_circular_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ insert_list_into_circular_before(cur, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list_into_circular(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_into_circular(after, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list_into_circular_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_into_circular_after(cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
+	static void insert_terminated_list_into_circular_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { insert_list_into_circular_before(cur, cur, find_first_terminated(dl, terminator), find_last_terminated(dl, terminator)); }
 
-	static void insert_circular_list_into_circular(bool after, const ref_t& cur, const ref_t& dl)	{ insert_list_into_circular(after, cur, dl, dl->get_prev_link()); }
-	static void insert_circular_list_into_circular_after(const ref_t& cur, const ref_t& dl)			{ insert_list_into_circular_after(cur, dl, dl->get_prev_link()); }
-	static void insert_circular_list_into_circular_before(const ref_t& cur, const ref_t& dl)		{ insert_list_into_circular_before(cur, dl, dl->get_prev_link()); }
+	static void insert_circular_list_into_circular(bool after, const ref_t& cur, const ref_t& dl) { insert_list_into_circular(after, cur, dl, dl->get_prev_link()); }
+	static void insert_circular_list_into_circular_after(const ref_t& cur, const ref_t& dl) { insert_list_into_circular_after(cur, dl, dl->get_prev_link()); }
+	static void insert_circular_list_into_circular_before(const ref_t& cur, const ref_t& dl) { insert_list_into_circular_before(cur, dl, dl->get_prev_link()); }
 };
 
 
@@ -282,58 +282,58 @@ template <class derived_t, template <typename> class ref_type = ptr, class link_
 class dlink_base
 {
 public:
-	typedef dlink_base<derived_t, ref_type, link_iterator>						this_t;
-	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
-	typedef ref_type<link_t>													ref_t;
-	typedef dlink_methods<link_t, ref_type, link_iterator>						dlink_methods_t;
+	typedef dlink_base<derived_t, ref_type, link_iterator> this_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
+	typedef ref_type<link_t> ref_t;
+	typedef dlink_methods<link_t, ref_type, link_iterator> dlink_methods_t;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
-	static const          ref_t& get_prev(const          link_t& l)	{ return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l)	{ return link_iterator::get_prev(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ link_iterator::set_next(l, src); }
-	static void set_prev(         link_t& l, const ref_t& src)		{ link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src)		{ link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
 
-	static void remove(link_t& ths, const ref_t& terminator = ref_t())					{ dlink_methods_t::remove(ths, terminator); }
+	static void remove(link_t& ths, const ref_t& terminator = ref_t()) { dlink_methods_t::remove(ths, terminator); }
 
-	static ref_t remove(link_t& ths, bool next, const ref_t& terminator = ref_t())		{ return dlink_methods_t::remove(ths, next, terminator); }
-	static ref_t remove_next(link_t& ths, const ref_t& terminator = ref_t())			{ return dlink_methods_t::remove_next(ths, terminator); }
-	static ref_t remove_prev(link_t& ths, const ref_t& terminator = ref_t())			{ return dlink_methods_t::remove_prev(ths. terminator); }
+	static ref_t remove(link_t& ths, bool next, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove(ths, next, terminator); }
+	static ref_t remove_next(link_t& ths, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove_next(ths, terminator); }
+	static ref_t remove_prev(link_t& ths, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove_prev(ths.terminator); }
 
-	static ref_t remove(const ref_t& cur, bool next, const ref_t& terminator = ref_t())				{ return dlink_methods_t::remove(cur, next, terminator); }
-	static ref_t remove_next(const ref_t& cur, const ref_t& terminator = ref_t())					{ return dlink_methods_t::remove_next(cur, terminator); }
-	static ref_t remove_prev(const ref_t& cur, const ref_t& terminator = ref_t())					{ return dlink_methods_t::remove_prev(cur, terminator); }
-	static ref_t find_terminated(bool after, const ref_t& cur, const ref_t& terminator = ref_t())	{ return dlink_methods_t::find_terminated(after, cur, terminator); }
-	static ref_t find_last_terminated(const ref_t& cur, const ref_t& terminator = ref_t())			{ return dlink_methods_t::find_last_terminated(cur, terminator); }
-	static ref_t find_first_terminated(const ref_t& cur, const ref_t& terminator = ref_t())			{ return dlink_methods_t::find_first_terminated(cur, terminator); }
+	static ref_t remove(const ref_t& cur, bool next, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove(cur, next, terminator); }
+	static ref_t remove_next(const ref_t& cur, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove_next(cur, terminator); }
+	static ref_t remove_prev(const ref_t& cur, const ref_t& terminator = ref_t()) { return dlink_methods_t::remove_prev(cur, terminator); }
+	static ref_t find_terminated(bool after, const ref_t& cur, const ref_t& terminator = ref_t()) { return dlink_methods_t::find_terminated(after, cur, terminator); }
+	static ref_t find_last_terminated(const ref_t& cur, const ref_t& terminator = ref_t()) { return dlink_methods_t::find_last_terminated(cur, terminator); }
+	static ref_t find_first_terminated(const ref_t& cur, const ref_t& terminator = ref_t()) { return dlink_methods_t::find_first_terminated(cur, terminator); }
 
-	static void insert(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ dlink_methods_t::insert(after, cur, dl, terminator); }
-	static void insert_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())			{ dlink_methods_t::insert_after(cur, dl, terminator); }
-	static void insert_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())			{ dlink_methods_t::insert_before(cur, dl, terminator); }
-	static void insert_list(bool after, const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t())	{ dlink_methods_t::insert_list(after, cur, first, last, terminator); }
-	static void insert_list_after(const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t())		{ dlink_methods_t::insert_list_after(cur, first, last, terminator); }
-	static void insert_list_before(const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t())		{ dlink_methods_t::insert_list_before(cur, first, last, terminator); }
-	static void insert_terminated_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())			{ dlink_methods_t::insert_terminated_list(after, cur, dl, terminator); }
-	static void insert_terminated_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())					{ dlink_methods_t::insert_terminated_list_after(cur, dl, terminator); }
-	static void insert_terminated_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())					{ dlink_methods_t::insert_terminated_list_before(cur, dl, terminator); }
-	static void insert_circular_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())				{ dlink_methods_t::insert_circular_list(after, cur, dl, terminator); }
-	static void insert_circular_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())					{ dlink_methods_t::insert_circular_list_after(cur, dl, terminator); }
-	static void insert_circular_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())					{ dlink_methods_t::insert_circular_list_before(cur, dl, terminator); }
-	static void insert_into_circular(bool after, const ref_t& cur, const ref_t& dl)													{ dlink_methods_t::insert_into_circular(after, cur, dl); }
-	static void insert_into_circular_after(const ref_t& cur, const ref_t& dl)														{ dlink_methods_t::insert_into_circular_after(cur, dl); }
-	static void insert_into_circular_before(const ref_t& cur, const ref_t& dl)														{ dlink_methods_t::insert_into_circular_before(cur, dl); }
-	static void insert_list_into_circular(bool after, const ref_t& cur, const ref_t& new_first, const ref_t& new_last)				{ dlink_methods_t::insert_list_into_circular(after, cur, new_first, new_last); }
-	static void insert_list_into_circular_after(const ref_t& cur, const ref_t& new_first, const ref_t& new_last)					{ dlink_methods_t::insert_list_into_circular_after(cur, new_first, new_last); }
-	static void insert_list_into_circular_before(const ref_t& cur, const ref_t& new_first, const ref_t& new_last)					{ dlink_methods_t::insert_list_into_circular_before(cur, new_first, new_last); }
-	static void insert_terminated_list_into_circular(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ dlink_methods_t::insert_terminated_list_into_circular(after, cur, dl, terminator); }
-	static void insert_terminated_list_into_circular_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ dlink_methods_t::insert_terminated_list_into_circular_after(cur, dl, terminator); }
-	static void insert_terminated_list_into_circular_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t())	{ dlink_methods_t::insert_terminated_list_into_circular_before(cur, dl, terminator); }
-	static void insert_circular_list_into_circular(bool after, const ref_t& cur, const ref_t& dl)									{ dlink_methods_t::insert_circular_list_into_circular(after, cur, dl); }
-	static void insert_circular_list_into_circular_after(const ref_t& cur, const ref_t& dl)											{ dlink_methods_t::insert_circular_list_into_circular_after(cur, dl); }
-	static void insert_circular_list_into_circular_before(const ref_t& cur, const ref_t& dl)										{ dlink_methods_t::insert_circular_list_into_circular_before(cur, dl); }
+	static void insert(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert(after, cur, dl, terminator); }
+	static void insert_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_after(cur, dl, terminator); }
+	static void insert_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_before(cur, dl, terminator); }
+	static void insert_list(bool after, const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_list(after, cur, first, last, terminator); }
+	static void insert_list_after(const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_list_after(cur, first, last, terminator); }
+	static void insert_list_before(const ref_t& cur, const ref_t& first, const ref_t& last, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_list_before(cur, first, last, terminator); }
+	static void insert_terminated_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list(after, cur, dl, terminator); }
+	static void insert_terminated_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list_after(cur, dl, terminator); }
+	static void insert_terminated_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list_before(cur, dl, terminator); }
+	static void insert_circular_list(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_circular_list(after, cur, dl, terminator); }
+	static void insert_circular_list_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_circular_list_after(cur, dl, terminator); }
+	static void insert_circular_list_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_circular_list_before(cur, dl, terminator); }
+	static void insert_into_circular(bool after, const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_into_circular(after, cur, dl); }
+	static void insert_into_circular_after(const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_into_circular_after(cur, dl); }
+	static void insert_into_circular_before(const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_into_circular_before(cur, dl); }
+	static void insert_list_into_circular(bool after, const ref_t& cur, const ref_t& new_first, const ref_t& new_last) { dlink_methods_t::insert_list_into_circular(after, cur, new_first, new_last); }
+	static void insert_list_into_circular_after(const ref_t& cur, const ref_t& new_first, const ref_t& new_last) { dlink_methods_t::insert_list_into_circular_after(cur, new_first, new_last); }
+	static void insert_list_into_circular_before(const ref_t& cur, const ref_t& new_first, const ref_t& new_last) { dlink_methods_t::insert_list_into_circular_before(cur, new_first, new_last); }
+	static void insert_terminated_list_into_circular(bool after, const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list_into_circular(after, cur, dl, terminator); }
+	static void insert_terminated_list_into_circular_after(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list_into_circular_after(cur, dl, terminator); }
+	static void insert_terminated_list_into_circular_before(const ref_t& cur, const ref_t& dl, const ref_t& terminator = ref_t()) { dlink_methods_t::insert_terminated_list_into_circular_before(cur, dl, terminator); }
+	static void insert_circular_list_into_circular(bool after, const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_circular_list_into_circular(after, cur, dl); }
+	static void insert_circular_list_into_circular_after(const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_circular_list_into_circular_after(cur, dl); }
+	static void insert_circular_list_into_circular_before(const ref_t& cur, const ref_t& dl) { dlink_methods_t::insert_circular_list_into_circular_before(cur, dl); }
 };
 
 
@@ -347,9 +347,9 @@ template <class derived_t = void, template <typename> class ref_type = ptr, clas
 class dlink_t : public dlink_base<derived_t, ref_type, link_iterator>
 {
 public:
-	typedef dlink_t<derived_t, ref_type, link_iterator>							this_t;
-	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t>	link_t;
-	typedef ref_type<link_t>													ref_t;
+	typedef dlink_t<derived_t, ref_type, link_iterator> this_t;
+	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
+	typedef ref_type<link_t> ref_t;
 
 private:
 	ref_t m_next;
@@ -381,35 +381,35 @@ public:
 		return *this;
 	}
 
-	               ref_t& get_next_link()						{ return m_next; }
-	const          ref_t& get_next_link() const					{ return m_next; }
-	      volatile ref_t& get_next_link()       volatile		{ return m_next; }
-	const volatile ref_t& get_next_link() const volatile		{ return m_next; }
-	
-		           ref_t& get_prev_link()						{ return m_prev; }
-	const          ref_t& get_prev_link() const					{ return m_prev; }
-	      volatile ref_t& get_prev_link() volatile				{ return m_prev; }
-	const volatile ref_t& get_prev_link() const volatile		{ return m_prev; }
+	ref_t& get_next_link() { return m_next; }
+	const ref_t& get_next_link() const { return m_next; }
+	volatile ref_t& get_next_link() volatile { return m_next; }
+	const volatile ref_t& get_next_link() const volatile { return m_next; }
 
-	void set_prev_link(const          ref_t& p)					{ m_prev = p; }
-	void set_prev_link(const volatile ref_t& p)					{ m_prev = p; }
-	void set_prev_link(const          ref_t& p) volatile		{ m_prev = p; }
-	void set_prev_link(const volatile ref_t& p) volatile		{ m_prev = p; }
+	ref_t& get_prev_link() { return m_prev; }
+	const ref_t& get_prev_link() const { return m_prev; }
+	volatile ref_t& get_prev_link() volatile { return m_prev; }
+	const volatile ref_t& get_prev_link() const volatile { return m_prev; }
 
-	void set_next_link(const          ref_t& n)					{ m_next = n; }
-	void set_next_link(const volatile ref_t& n)					{ m_next = n; }
-	void set_next_link(const          ref_t& n) volatile		{ m_next = n; }
-	void set_next_link(const volatile ref_t& n) volatile		{ m_next = n; }
+	void set_prev_link(const ref_t& p) { m_prev = p; }
+	void set_prev_link(const volatile ref_t& p) { m_prev = p; }
+	void set_prev_link(const ref_t& p) volatile { m_prev = p; }
+	void set_prev_link(const volatile ref_t& p) volatile { m_prev = p; }
 
-	void set_link(bool next, const          ref_t& n)			{ if (next) set_next_link(n); else set_prev_link(n); }
-	void set_link(bool next, const volatile ref_t& n)			{ if (next) set_next_link(n); else set_prev_link(n); }
-	void set_link(bool next, const          ref_t& n) volatile	{ if (next) set_next_link(n); else set_prev_link(n); }
-	void set_link(bool next, const volatile ref_t& n) volatile	{ if (next) set_next_link(n); else set_prev_link(n); }
+	void set_next_link(const ref_t& n) { m_next = n; }
+	void set_next_link(const volatile ref_t& n) { m_next = n; }
+	void set_next_link(const ref_t& n) volatile { m_next = n; }
+	void set_next_link(const volatile ref_t& n) volatile { m_next = n; }
 
-		           ref_t& get_link(bool next)					{ if (next) return get_next_link(); return get_prev_link(); }
-	const          ref_t& get_link(bool next) const				{ if (next) return get_next_link(); return get_prev_link(); }
-	      volatile ref_t& get_link(bool next) volatile			{ if (next) return get_next_link(); return get_prev_link(); }
-	const volatile ref_t& get_link(bool next) const volatile	{ if (next) return get_next_link(); return get_prev_link(); }
+	void set_link(bool next, const ref_t& n) { if (next) set_next_link(n); else set_prev_link(n); }
+	void set_link(bool next, const volatile ref_t& n) { if (next) set_next_link(n); else set_prev_link(n); }
+	void set_link(bool next, const ref_t& n) volatile { if (next) set_next_link(n); else set_prev_link(n); }
+	void set_link(bool next, const volatile ref_t& n) volatile { if (next) set_next_link(n); else set_prev_link(n); }
+
+	ref_t& get_link(bool next) { if (next) return get_next_link(); return get_prev_link(); }
+	const ref_t& get_link(bool next) const { if (next) return get_next_link(); return get_prev_link(); }
+	volatile ref_t& get_link(bool next) volatile { if (next) return get_next_link(); return get_prev_link(); }
+	const volatile ref_t& get_link(bool next) const volatile { if (next) return get_next_link(); return get_prev_link(); }
 };
 
 
@@ -429,4 +429,3 @@ typedef dlink_t<void> dlink;
 
 
 #endif
-

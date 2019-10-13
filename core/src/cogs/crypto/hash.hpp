@@ -38,12 +38,12 @@ public:
 
 	// Some hash algorithms can sign the end of a block, resulting in a constant known-good final value.
 	// i.e. CRC, fletcher
-	virtual bool can_terminate() const					{ return false; }
-	virtual bool was_block_terminated() const			{ return false; }
+	virtual bool can_terminate() const { return false; }
+	virtual bool was_block_terminated() const { return false; }
 
-	virtual bool is_hash_int() const					{ return false; }
+	virtual bool is_hash_int() const { return false; }
 
-	virtual io::buffer get_hash_int_as_buffer() const	{ return io::buffer(); }
+	virtual io::buffer get_hash_int_as_buffer() const { return io::buffer(); }
 };
 
 

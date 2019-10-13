@@ -26,8 +26,8 @@ namespace cogs {
 //
 // This implementation works around this problem but has some consequences on
 // performance.
-//  - When requesting 1 or equal refs at a time, native thread priority is honored.
-//  - When mixing requests of unequal # of refs, one may reserve some of those
+//	- When requesting 1 or equal refs at a time, native thread priority is honored.
+//	- When mixing requests of unequal # of refs, one may reserve some of those
 //		resources without yet waking, and block requests for fewer despite sufficient
 //		resources being available.  Larger requests will not be blocked.  This is
 //		rather 'fair'.  Assuming it is possible to satisfy the larger requests, no
@@ -50,21 +50,21 @@ namespace cogs {
 class semaphore
 {
 private:
-	const ptrdiff_t m_maxResources;
-
 	class content_t
 	{
 	public:
-		rcptr<os::semaphore>	m_osSemaphore;
-		size_t					m_stallCount;	// Number of threads stalled, inc'ed before waiting, dec'ed by woken threads
-		size_t					m_wakeCount;	// Number of threads waiting to wake, inc'ed by waker thread, dec's by woken thread
-												// .. helps ensure timeouts don't lead to false-wakes on os::semaphore
-		ptrdiff_t				m_resourceCount;// dec'ed by woken thread.
+		rcptr<os::semaphore> m_osSemaphore;
+		ptrdiff_t m_resourceCount;// dec'ed by woken thread.
+		size_t m_stallCount; // Number of threads stalled, inc'ed before waiting, dec'ed by woken threads
+
+		// Number of threads waiting to wake, inc'ed by waker thread, dec's by woken thread
+		// Helps ensure timeouts don't lead to false-wakes on os::semaphore
+		size_t m_wakeCount;
 
 		explicit content_t(ptrdiff_t n = 0)
-			:	m_stallCount(0),
-				m_wakeCount(0),
-				m_resourceCount(n)
+			: m_resourceCount(n),
+			 m_stallCount(0),
+			m_wakeCount(0)
 		{ }
 	};
 
@@ -73,6 +73,7 @@ private:
 	typedef transactable_t::write_token write_token;
 
 	mutable volatile transactable_t m_contents;
+	const ptrdiff_t m_maxResources;
 
 	semaphore(const semaphore&);
 	semaphore& operator=(const semaphore&);
@@ -89,7 +90,7 @@ private:
 		{
 			rcptr<os_semaphore_freelist_t> newFreeList = rcnew(os_semaphore_freelist_t);
 			if (freeList->compare_exchange(newFreeList, myFreeList, myFreeList))
-				myFreeList = newFreeList;		// Return the one we just created.
+				myFreeList = newFreeList; // Return the one we just created.
 		}
 		return myFreeList.dereference();
 	}
@@ -114,12 +115,12 @@ public:
 	}
 
 	semaphore()
-		:	m_maxResources(0)
+		: m_maxResources(0)
 	{ }
 
 	explicit semaphore(size_t n, size_t maxResources = 0)
-		:	m_contents(typename transactable_t::construct_embedded_t(), n),
-			m_maxResources(0)
+		: m_contents(typename transactable_t::construct_embedded_t(), n),
+		 m_maxResources(0)
 	{ }
 
 	// Waits for at least 1 to be available, but will acquire as many as present, if multiple.
@@ -182,10 +183,10 @@ public:
 
 					if (!expired)
 					{
-						if (!!wt->m_wakeCount)	// Otherwise, someone else took it, no need to dec it.
+						if (!!wt->m_wakeCount) // Otherwise, someone else took it, no need to dec it.
 							wt->m_wakeCount--;
 					}
-					else if (wt->m_wakeCount == wt->m_stallCount)	// wakeCount will/must never exceed stallCount
+					else if (wt->m_wakeCount == wt->m_stallCount) // wakeCount will/must never exceed stallCount
 					{
 						// This handles the race condition in which a timeout expired just as another thread was
 						// trying to release a resource to us.  Normally, we would let one of the other threads
@@ -193,17 +194,17 @@ public:
 						// It may leave a superfluous wake on the os::semaphore, but that's OK.
 						wt->m_wakeCount--;
 					}
-					
+
 					if (wt->m_resourceCount > 0)
 					{
 						result = (size_t)(wt->m_resourceCount);
 						wt->m_resourceCount = 0;
 					}
 
-					if (result || expired)			// If we're not going to wait again, dec the stallCount
+					if (result || expired) // If we're not going to wait again, dec the stallCount
 					{
 						size_t stallCount = --(wt->m_stallCount);
-						if (!stallCount)			// If no more stalled threads, release the osSemaphore
+						if (!stallCount) // If no more stalled threads, release the osSemaphore
 							wt->m_osSemaphore = 0;
 					}
 
@@ -218,9 +219,9 @@ public:
 		if (n <= 0)
 		{
 			if (n < 0)
-				release(-n);	
+				release(-n);
 			return true;
-		}	// ensure n is positive
+		} // ensure n is positive
 
 		unsigned int spinsLeft = (os::thread::get_processor_count() == 1) ? 0 : spinCount;
 		bool result = false;
@@ -251,7 +252,7 @@ public:
 					size_t available = (size_t)(wt->m_resourceCount);
 					if (available > wt->m_stallCount)
 					{
-						available -= wt->m_stallCount;		// Leave one resource per thread currently stalled
+						available -= wt->m_stallCount; // Leave one resource per thread currently stalled
 						if (available >= (size_t)n)
 						{
 							wt->m_resourceCount -= n;
@@ -289,10 +290,10 @@ public:
 					m_contents.begin_write(wt);
 					if (!expired)
 					{
-						if (!!wt->m_wakeCount)	// Otherwise, someone else took it, no need to dec it.
+						if (!!wt->m_wakeCount) // Otherwise, someone else took it, no need to dec it.
 							wt->m_wakeCount--;
 					}
-					else if (wt->m_wakeCount == wt->m_stallCount)	// wakeCount will/must never exceed stallCount
+					else if (wt->m_wakeCount == wt->m_stallCount) // wakeCount will/must never exceed stallCount
 					{
 						// This handles the race condition in which a timeout expired just as another thread was
 						// trying to release a resource to us.  Normally, we would let one of the other threads
@@ -301,16 +302,16 @@ public:
 						wt->m_wakeCount--;
 					}
 
-					if (wt->m_resourceCount >= n)	// If enough resources, we take them.
-					{								// Doesn't matter if our waking was intentional or an expiration.
+					if (wt->m_resourceCount >= n) // If enough resources, we take them.
+					{ // Doesn't matter if our waking was intentional or an expiration.
 						result = true;
 						wt->m_resourceCount -= n;
 					}
 
-					if (result || expired)			// If we're not going to wait again, dec the stallCount
+					if (result || expired) // If we're not going to wait again, dec the stallCount
 					{
 						size_t stallCount = --(wt->m_stallCount);
-						if (!stallCount)			// If no more stalled threads, release the osSemaphore
+						if (!stallCount) // If no more stalled threads, release the osSemaphore
 							wt->m_osSemaphore = 0;
 
 						// If this waiter is done, and had been waiting on multiple resources, it's possible a condition
@@ -367,8 +368,8 @@ public:
 
 					numToWake = rt->m_stallCount - rt->m_wakeCount;
 					if (numToWake > numToAdd)
-						numToWake = numToAdd;	// Wake however many are really stalled, or however many res we are adding, whichever is lesser.
-					
+						numToWake = numToAdd; // Wake however many are really stalled, or however many res we are adding, whichever is lesser.
+
 					if (!m_contents.promote_read_token(rt, wt))
 						continue;
 
@@ -385,7 +386,7 @@ public:
 
 					numToWake = wt->m_stallCount - wt->m_wakeCount;
 					if (numToWake > n)
-						numToWake = n;	// Wake however many are really stalled, or however many res we are adding, whichever is lesser.
+						numToWake = n; // Wake however many are really stalled, or however many res we are adding, whichever is lesser.
 
 					wt->m_wakeCount += numToWake;
 					wt->m_resourceCount += n;
@@ -418,23 +419,23 @@ public:
 class auto_semaphore
 {
 private:
-	rcptr<semaphore>	m_semaphore;
-	unsigned int		m_count;
+	rcptr<semaphore> m_semaphore;
+	unsigned int m_count;
 
 	auto_semaphore(const auto_semaphore&);
 	auto_semaphore& operator=(const auto_semaphore&);
 
 public:
 	auto_semaphore()
-		:	m_count(0)
+		: m_count(0)
 	{ }
 
 	explicit auto_semaphore(const rcref<semaphore>& s, unsigned int n = 1)
-		:	m_semaphore(s), m_count(n)
+		: m_semaphore(s), m_count(n)
 	{
 		s->acquire(n);
 	}
-	
+
 	~auto_semaphore()
 	{
 		if (m_count)

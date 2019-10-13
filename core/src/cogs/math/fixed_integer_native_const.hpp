@@ -29,9 +29,9 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
-#pragma warning (disable: 4307)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
+#pragma warning (disable: 4307) // multiple copy constructors specified
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in>
@@ -180,7 +180,7 @@ public:
 	typedef std::conditional_t<is_const_negative, negative_t, reduced_t> abs_t;
 
 	fixed_integer_native_const() { }
-	
+
 	fixed_integer_native_const(const this_t&) { }
 	fixed_integer_native_const(const volatile this_t&) { }
 
@@ -717,7 +717,7 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator*(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return src * tmp; }
 	template <bool has_sign2, size_t bits2> auto operator*(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return src * tmp; }
 	template <bool has_sign2, size_t bits2> auto operator*(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return src * tmp; }
-	
+
 	auto operator*(const dynamic_integer& src) const volatile;// { return src.operator*(*this); }
 	auto operator*(const volatile dynamic_integer& src) const volatile;// { return src.operator*(*this); }
 

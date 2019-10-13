@@ -40,11 +40,11 @@ public:
 	versioned_t()
 	{
 	}
-	
+
 	versioned_t(const type& t)
 	{
 		m_contents.m_data = t;
-		//m_contents.m_version = 0;	// Doesn't matter what # the version counter actually starts on
+		//m_contents.m_version = 0; // Doesn't matter what # the version counter actually starts on
 	}
 
 	void get(type& t) const { t = m_contents.m_data; }
@@ -71,13 +71,13 @@ public:
 		get_version(oldVersion);
 		do { } while (!atomic::compare_exchange(m_contents.m_version, oldVersion + 1, oldVersion, oldVersion));
 	}
-	
+
 	version_t set(const type& src)
 	{
 		m_contents.m_data = src;
 		return ++(m_contents.m_version);
 	}
-	
+
 	void unversioned_set(const type& src)
 	{
 		m_contents.m_data = src;
@@ -135,7 +135,7 @@ public:
 		return b;
 	}
 
-	bool versioned_exchange(const type& src, version_t& version) volatile	// always returns latest version #
+	bool versioned_exchange(const type& src, version_t& version) volatile // always returns latest version #
 	{
 		content_t oldContents;
 		atomic::load(m_contents, oldContents);
@@ -153,8 +153,8 @@ public:
 		return b;
 	}
 
-	
-	bool versioned_exchange(const type& src, version_t& version, type& rtn)	// always returns latest version #
+
+	bool versioned_exchange(const type& src, version_t& version, type& rtn) // always returns latest version #
 	{
 		bool b = (m_contents.m_version == version);
 		if (!b)
@@ -170,7 +170,7 @@ public:
 		return b;
 	}
 
-	bool versioned_exchange(const type& src, version_t& version, type& rtn) volatile	// always returns latest version #
+	bool versioned_exchange(const type& src, version_t& version, type& rtn) volatile // always returns latest version #
 	{
 		content_t oldContents;
 		atomic::load(m_contents, oldContents);

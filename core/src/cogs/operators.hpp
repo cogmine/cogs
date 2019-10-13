@@ -39,7 +39,7 @@ namespace cogs
 {
 
 
-// is_array		- matches T[n], or std::array<T, n>
+// is_array - matches T[n], or std::array<T, n>
 template <typename T, typename enable = void> struct is_array { static constexpr bool value = std::is_array_v<T>; };
 template <typename T, size_t n> struct is_array<std::array<T, n> > : std::true_type {};
 template <typename T, size_t n> struct is_array<const std::array<T, n> > : std::true_type {};
@@ -47,7 +47,7 @@ template <typename T, size_t n> struct is_array<volatile std::array<T, n> > : st
 template <typename T, size_t n> struct is_array<const volatile std::array<T, n> > : std::true_type {};
 template <typename T> constexpr bool is_array_v = is_array<T>::value;
 
-// is_array_type		- matches T[n], std::array<T, n>, or array_view<n, T>
+// is_array_type - matches T[n], std::array<T, n>, or array_view<n, T>
 template <typename T, typename enable = void> struct is_array_type { static constexpr bool value = is_array_v<T>; };
 template <typename T, size_t n> struct is_array_type<std::array<T, n> > : std::true_type {};
 template <typename T, size_t n> struct is_array_type<const std::array<T, n> > : std::true_type {};
@@ -59,7 +59,7 @@ template <typename T> constexpr bool is_array_type_v = is_array_type<T>::value;
 template <typename T, typename enable = void> struct is_reference_container { static constexpr bool value = false; };
 template <typename T> constexpr bool is_reference_container_v = is_reference_container<T>::value;
 
-// extent			- same as std::extent, but also supports std::array<T, n>, array_view<n, T>
+// extent - same as std::extent, but also supports std::array<T, n>, array_view<n, T>
 template<class T, unsigned N = 0, typename enable = void> struct extent : std::integral_constant<size_t, 0> {};
 template<class T> struct extent<T[], 0> : std::integral_constant<size_t, 0> {};
 template<class T, unsigned N> struct extent<T[], N> : extent<T, N - 1> {};
@@ -89,7 +89,7 @@ template<class T> struct remove_all_extents<T[]> { typedef remove_all_extents_t<
 template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all_extents_t<T> type; };
 
 
-#define COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(name, pre, post)	\
+#define COGS_DEFINE_UNARY_OPERATOR_FOR_MEMBER_OPERATOR(name, pre, post) \
 	template <typename T> inline constexpr std::enable_if_t<std::is_class_v<T>, decltype(pre(std::declval<T&>())post)> name(T& t) { return pre(t)post; }
 
 #define COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(name)\
@@ -131,7 +131,7 @@ template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all
 	COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(post_assign_ ## name)\
 	COGS_DEFINE_UNARY_ASSIGN_OPERATORS(name)\
 
-#define COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(name, symbol)	\
+#define COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(name, symbol) \
 	template <typename T, typename A1> inline constexpr std::enable_if_t<std::is_class_v<T>,\
 	decltype(std::declval<T&>() symbol std::declval<A1>())>\
 	name(T& t, A1&& a) { return t symbol std::forward<A1>(a); }\
@@ -590,7 +590,7 @@ add(const T& t, const A1& a);
 //	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > result;
 //	result.add(
 //		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of add
+//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a))); // fixed_integer_extended, 2-arg version of add
 //	return result;
 //}
 
@@ -645,7 +645,7 @@ subtract(const T& t, const A1& a);
 //	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
 //	result.subtract(
 //		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of subtract
+//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a))); // fixed_integer_extended, 2-arg version of subtract
 //	return result;
 //}
 
@@ -699,7 +699,7 @@ inverse_subtract(const T& t, const A1& a);
 //	fixed_integer<true, (sizeof(longest) * 8) + 1> result;
 //	result.subtract(
 //		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)));	// fixed_integer_extended, 2-arg version of subtract
+//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t))); // fixed_integer_extended, 2-arg version of subtract
 //	return result;
 //}
 
@@ -708,7 +708,7 @@ COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_subtract)
 
 template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<const A1&>() * std::declval<const T&>())>
 multiply(const T& t, const A1& a) { return a * t; }
-	
+
 
 
 template <typename T, typename A1>
@@ -734,7 +734,7 @@ multiply(const T& t, const A1& a);
 //	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, sizeof(T) + sizeof(A1)> result;
 //	result.multiply(
 //		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a)));	// fixed_integer_extended, 2-arg version of multiply
+//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a))); // fixed_integer_extended, 2-arg version of multiply
 //	return result;
 //}
 
@@ -769,7 +769,7 @@ modulo(const T& t, const A1& a)
 }
 
 // Addresses the issue in which the following operation provides an invalid result:
-// ((long)-1 % (unsigned long)-1)	== 0 instead of -1
+// ((long)-1 % (unsigned long)-1) == 0 instead of -1
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	std::is_integral_v<T>
@@ -817,7 +817,7 @@ inverse_modulo(const T& t, const A1& a)
 }
 
 // Addresses the issue in which the following operation provides an invalid result:
-// ((long)-1 % (unsigned long)-1)	== 0 instead of -1
+// ((long)-1 % (unsigned long)-1) == 0 instead of -1
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	std::is_integral_v<T>
@@ -1960,7 +1960,7 @@ using append_type_t = typename append_type<T, setType>::type;
 template <typename T, class setType>
 struct remove_type;
 
-template <typename T, template <typename...> class setType, typename... Ts>	// to match empty Ts
+template <typename T, template <typename...> class setType, typename... Ts> // to match empty Ts
 struct remove_type<T, setType<Ts...> >
 {
 	typedef setType<Ts...> type;
@@ -1986,19 +1986,19 @@ using remove_type_t = typename remove_type<T, setType>::type;
 template <class setType1, class setType2>
 struct are_same_set;
 
-template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename... Ts2>	// matches both empty
+template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename... Ts2> // matches both empty
 struct are_same_set<setType1<Ts1...>, setType2<Ts2...> >
 {
 	static constexpr bool value = true;
 };
 
-template <template <typename...> class setType1, template <typename...> class setType2, typename T1, typename... Ts1, typename... Ts2>	// matches empty Ts2
+template <template <typename...> class setType1, template <typename...> class setType2, typename T1, typename... Ts1, typename... Ts2> // matches empty Ts2
 struct are_same_set<setType1<T1, Ts1...>, setType2<Ts2...> >
 {
 	static constexpr bool value = false;
 };
 
-template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename T2, typename... Ts2>	// matches empty Ts1
+template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename T2, typename... Ts2> // matches empty Ts1
 struct are_same_set<setType1<Ts1...>, setType2<T2, Ts2...> >
 {
 	static constexpr bool value = false;

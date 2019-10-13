@@ -25,43 +25,43 @@ namespace cogs {
 class object;
 
 
-/*
-	rcptr<> and rcref<> are RAII reference container types.  rcptr<> is nullable, rcref<> is not.
+// rcptr<> and rcref<> are RAII reference container types.  rcptr<> is nullable, rcref<> is not.
 
-	RAII - Resource Acquisition Is Initialization
-		RAII is antithetical to the use of garbage collection (which is implcit in Java and C#).
-		RAII involves using the scope/lifetime of an object instance, to control the acquisition
-		and release of a resource.  Generally, any resource requiring initialization and/or
-		shutdown/release, should be represented as an object.  The objects scope is used to
-		ensure that the resource gets released any time its object goes out of scope (such as
-		an exception, or automatically at the end of a block or function).  For a dynamically
-		allocated object, a reference-counting pointer type is used (instead of garbage
-		collection), to ensure the object is destructed immediately when it is no longer
-		referred to.  The reference-counted pointer type is itself an RAII class, as it acquires
-		and releases references in its contructors/destructors, and on assignment.  This approach
-		allows the dependency relationships between objects to implicity facilitate the management of
-		resources. 
-*/
+//	RAII - Resource Acquisition Is Initialization
+//		RAII is antithetical to the use of garbage collection (which is implcit in Java and C#).
+//		RAII involves using the scope/lifetime of an object instance, to control the acquisition
+//		and release of a resource.  Generally, any resource requiring initialization and/or
+//		shutdown/release, should be represented as an object.  The objects scope is used to
+//		ensure that the resource gets released any time its object goes out of scope (such as
+//		an exception, or automatically at the end of a block or function).  For a dynamically
+//		allocated object, a reference-counting pointer type is used (instead of garbage
+//		collection), to ensure the object is destructed immediately when it is no longer
+//		referred to.  The reference-counted pointer type is itself an RAII class, as it acquires
+//		and releases references in its contructors/destructors, and on assignment.  This approach
+//		allows the dependency relationships between objects to implicity facilitate the management of
+//		resources. 
 
+// A reference-counted pointer class.
+// May refer to a non-reference-counted pointer, or NULL.
+// If type is dynamically allocated, reference-counting is done when
+// copied by value.  To avoid redundant reference counting of
+// function args, use: const rcptr<type>&
+// Note: The const& allows construction of a temporary, if necessary.
+// Only receive a rcptr<type> as an argument if the object may
+// be retained after the call has returned.  Otherwise, use a type*
 template <typename type>
-class rcptr;				// A reference-counted pointer class.
-							// May refer to a non-reference-counted pointer, or NULL.
-							// If type is dynamically allocated, reference-counting is done when
-							// copied by value.   To avoid redundant reference counting of
-							// function args, use: const rcptr<type>&
-							// Note: The const& allows construction of a temporary, if necessary.
-							// Only receive a rcptr<type> as an argument if the object may
-							// be retained after the call has returned.  Otherwise, use a type*
+class rcptr;
 
+// Like a rcptr<type>, but cannot point to NULL.
+// Choose between rcptr<type> and rcref<type> in the same way you
+// would choose between type* and type&.
+// To avoid redundant reference counting of function args,
+// use: const rcref<type>&
+// Note: The const& allows construction of a temporary, if necessary.
+// Only receive a rcref<type> as an argument if the object may
+// be retained after the call has returned.  Otherwise, use a type*
 template <typename type>
-class rcref;				// Like a rcptr<type>, but cannot point to NULL.
-							// Choose between rcptr<type> and rcref<type> in the same way you
-							// would choose between type* and type&.
-							// To avoid redundant reference counting of function args,
-							// use: const rcref<type>&
-							// Note: The const& allows construction of a temporary, if necessary.
-							// Only receive a rcref<type> as an argument if the object may
-							// be retained after the call has returned.  Otherwise, use a type*
+class rcref;
 
 template <typename type>
 class weak_rcptr;
@@ -71,8 +71,8 @@ class weak_rcptr;
 // when used as a template arg.
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment constructors specified
 
 
 template <typename type_in, reference_strength_type refStrengthType = strong>
@@ -108,8 +108,8 @@ protected:
 	typedef transactable<content_t> transactable_t;
 	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	read_token begin_read() const volatile { read_token rt; m_contents.begin_read(rt); return rt; }
 	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt); }
@@ -124,7 +124,7 @@ protected:
 	template <typename type2>
 	bool end_write(read_token& t, type2& src) volatile { return m_contents.end_write(t, src); }
 
-	void disown()	{ m_contents->m_desc = nullptr; }	// clear the desc ptr not the desc contents
+	void disown() { m_contents->m_desc = nullptr; } // clear the desc ptr not the desc contents
 
 	rc_obj_base* get_desc() const { return m_contents->m_desc; }
 	rc_obj_base* get_desc() const volatile { return begin_read()->m_desc; }
@@ -132,15 +132,15 @@ protected:
 	void clear()
 	{
 		m_contents->m_obj = 0;
-		m_contents->m_desc = 0;	// clear the desc ptr not the desc contents
+		m_contents->m_desc = 0; // clear the desc ptr not the desc contents
 	}
 
-	void clear() volatile	{ m_contents.set(); }
+	void clear() volatile { m_contents.set(); }
 
 	void set(const ptr<type>& obj)
 	{
 		m_contents->m_obj = obj.get_ptr();
-		m_contents->m_desc = 0;	// clear the desc ptr not the desc contents
+		m_contents->m_desc = 0; // clear the desc ptr not the desc contents
 	}
 
 	void set(const ptr<type>& obj) volatile
@@ -180,7 +180,7 @@ protected:
 		}
 		return true;
 	}
-	
+
 	template <reference_strength_type refStrengthType2 = refStrengthType>
 	bool guarded_acquire(read_token& rt) const volatile
 	{
@@ -217,7 +217,7 @@ protected:
 		return acquired;
 	}
 
-	bool guarded_begin_read(read_token& rt) const volatile	// returns false if it's a released weak reference.  May be treated as NULL.
+	bool guarded_begin_read(read_token& rt) const volatile // returns false if it's a released weak reference.  May be treated as NULL.
 	{
 		bool result = true;
 		if (refStrengthType == strong)
@@ -288,7 +288,7 @@ protected:
 	rc_container_base(rc_container_base<type2, refStrengthType>&& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
-		m_contents->m_obj = src.m_contents->m_obj;	// <- A failure here means type conversion (caller) error.
+		m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = src.m_contents->m_desc;
 		src.m_contents->m_desc = nullptr;
 	}
@@ -297,11 +297,11 @@ protected:
 	rc_container_base(const rc_container_base<type2, refStrengthType2>& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
-		m_contents->m_obj = src.m_contents->m_obj;	// <- A failure here means type conversion (caller) error.
+		m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = src.m_contents->m_desc;
 		acquire_inner();
 	}
-	
+
 	template <typename type2, reference_strength_type refStrengthType2>
 	rc_container_base(const volatile rc_container_base<type2, refStrengthType2>& src)
 	{
@@ -309,7 +309,7 @@ protected:
 		if (!!src.template guarded_acquire<refStrengthType>(rt))
 		{
 			COGS_ASSERT(rt->m_obj || !rt->m_desc);
-			m_contents->m_obj = rt->m_obj;	// <- A failure here means type conversion (caller) error.
+			m_contents->m_obj = rt->m_obj; // <- A failure here means type conversion (caller) error.
 			m_contents->m_desc = rt->m_desc;
 			//acquire_inner();
 
@@ -330,7 +330,7 @@ protected:
 	template <typename type2>
 	rc_container_base(const ptr<type2>& obj)
 	{
-		m_contents->m_obj = obj.get_ptr();	// <- A failure here means type conversion (caller) error.
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = nullptr;
 	}
 
@@ -345,12 +345,12 @@ protected:
 	template <typename type2>
 	rc_container_base(const ptr<type2>& obj, const ptr<rc_obj_base>& desc)
 	{
-		m_contents->m_obj = obj.get_ptr();	// <- A failure here means type conversion (caller) error.
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = desc.get_ptr();
 		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
 	}
 
-	
+
 	this_t& operator=(this_t&& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
@@ -378,11 +378,11 @@ protected:
 		if (this != &src)
 		{
 			if (m_contents->m_desc == src.m_contents->m_desc)
-				m_contents->m_obj = src.m_contents->m_obj;	// if desc are the same, no need to acquire/release, just copy obj
+				m_contents->m_obj = src.m_contents->m_obj; // if desc are the same, no need to acquire/release, just copy obj
 			else
 			{
-				rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
-				if (!src.m_contents->m_desc)				// If no new desc, just copy obj and clear desc.
+				rc_obj_base* oldDesc = m_contents->m_desc; // to release later (in case it's the same one we haven't acquired yet)
+				if (!src.m_contents->m_desc) // If no new desc, just copy obj and clear desc.
 				{
 					m_contents->m_obj = src.m_contents->m_obj;
 					m_contents->m_desc = nullptr;
@@ -396,7 +396,7 @@ protected:
 				}
 				else
 					clear();// failure to acquire
-				
+
 				if (!!oldDesc)
 					oldDesc->release(refStrengthType);
 			}
@@ -408,7 +408,7 @@ protected:
 	{
 		if (this != &src)
 		{
-			rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
+			rc_obj_base* oldDesc = m_contents->m_desc; // to release later (in case it's the same one we haven't acquired yet)
 
 			read_token rt;
 			if (!!src.template guarded_acquire<refStrengthType>(rt))
@@ -432,7 +432,7 @@ protected:
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		if (this != &src)
 		{
-			if (!!src.m_contents->m_desc && !src.m_contents->m_desc->acquire(refStrengthType))	// couldn't acquire, treat as null
+			if (!!src.m_contents->m_desc && !src.m_contents->m_desc->acquire(refStrengthType)) // couldn't acquire, treat as null
 				release();
 			else
 			{
@@ -448,7 +448,7 @@ protected:
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		release_inner();
-		m_contents->m_obj = src.m_contents->m_obj;	// <- A failure here means type conversion (user) error.
+		m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (user) error.
 		m_contents->m_desc = src.m_contents->m_desc;
 		src.m_contents->m_desc = nullptr;
 		return *this;
@@ -469,21 +469,21 @@ protected:
 	this_t& operator=(const rc_container_base<type2, refStrengthType2>& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
-		if (m_contents->m_desc == src.m_contents->m_desc)	// If desc are the same, no need to acquire/release, just copy obj
-			m_contents->m_obj = src.m_contents->m_obj;		// <- A failure here means type conversion (user) error.
+		if (m_contents->m_desc == src.m_contents->m_desc) // If desc are the same, no need to acquire/release, just copy obj
+			m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (user) error.
 		else
 		{
-			rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
-			if (!src.m_contents->m_desc)				// If no new desc, just copy obj and clear desc.
+			rc_obj_base* oldDesc = m_contents->m_desc; // to release later (in case it's the same one we haven't acquired yet)
+			if (!src.m_contents->m_desc) // If no new desc, just copy obj and clear desc.
 			{
-				m_contents->m_obj = src.m_contents->m_obj;	// <- A failure here means type conversion (user) error.
+				m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (user) error.
 				m_contents->m_desc = nullptr;
 			}
-			else if (!src.m_contents->m_desc->acquire(refStrengthType))	// if failure to acquire
+			else if (!src.m_contents->m_desc->acquire(refStrengthType)) // if failure to acquire
 				clear();
-			else									// acquired desc, copy contents
-			{										
-				m_contents->m_obj = src.m_contents->m_obj;	// <- A failure here means type conversion (user) error.
+			else // acquired desc, copy contents
+			{ 
+				m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (user) error.
 				m_contents->m_desc = src.m_contents->m_desc;
 			}
 
@@ -496,7 +496,7 @@ protected:
 	template <typename type2, reference_strength_type refStrengthType2>
 	this_t& operator=(const volatile rc_container_base<type2, refStrengthType2>& src)
 	{
-		rc_obj_base* oldDesc = m_contents->m_desc;	// to release later (in case it's the same one we haven't acquired yet)
+		rc_obj_base* oldDesc = m_contents->m_desc; // to release later (in case it's the same one we haven't acquired yet)
 
 		typename rc_container_base<type2, refStrengthType2>::read_token rt;
 		if (!src.template guarded_acquire<refStrengthType>(rt))
@@ -504,7 +504,7 @@ protected:
 		else
 		{
 			COGS_ASSERT(rt->m_obj || !rt->m_desc);
-			m_contents->m_obj = rt->m_obj;	// <- A failure here means type conversion (user) error.
+			m_contents->m_obj = rt->m_obj; // <- A failure here means type conversion (user) error.
 			m_contents->m_desc = rt->m_desc;
 		}
 
@@ -523,8 +523,8 @@ protected:
 			release();
 		else
 		{
-			this_t tmp;	// need a matching content_t to atomically swap
-			tmp.m_contents->m_obj = rt->m_obj;	// <- A failure here means type conversion (user) error.
+			this_t tmp; // need a matching content_t to atomically swap
+			tmp.m_contents->m_obj = rt->m_obj; // <- A failure here means type conversion (user) error.
 			tmp.m_contents->m_desc = rt->m_desc;
 			m_contents.swap(tmp.m_contents);
 		}
@@ -543,14 +543,14 @@ protected:
 	this_t& operator=(const ptr<type2>& src)
 	{
 		release_inner();
-		m_contents->m_obj = src.get_ptr();	// <- A failure here means type conversion (user) error.
+		m_contents->m_obj = src.get_ptr(); // <- A failure here means type conversion (user) error.
 		m_contents->m_desc = nullptr;
 		return *this;
 	}
 
 	volatile this_t& operator=(const ptr<type>& src) volatile
 	{
-		this_t tmp(src);	// need a matching content_t to atomically swap
+		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
 		return *this;
 	}
@@ -558,7 +558,7 @@ protected:
 	template <typename type2>
 	volatile this_t& operator=(const ptr<type2>& src) volatile
 	{
-		this_t tmp(src);	// need a matching content_t to atomically swap
+		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
 		return *this;
 	}
@@ -581,7 +581,7 @@ protected:
 	{
 		// If a weak reference, we need a strong reference before we can get a valid pointer value
 		// It's sufficient to make sure that the weak reference hasn't expired
-		if ((refStrengthType != strong) && !!m_contents->m_desc && m_contents->m_desc->is_released())	// No need to acquire a guard.  A weak ref retains the alloc, if not the object.
+		if ((refStrengthType != strong) && !!m_contents->m_desc && m_contents->m_desc->is_released()) // No need to acquire a guard.  A weak ref retains the alloc, if not the object.
 			return nullptr;
 		return m_contents->m_obj;
 	}
@@ -594,12 +594,12 @@ protected:
 		return guarded_begin_read(rt) ? rt->m_obj : nullptr;
 	}
 
-	type* peek_obj() const			{ return m_contents->m_obj; }
+	type* peek_obj() const { return m_contents->m_obj; }
 
-	type* peek_obj() const volatile	{ return get_obj(); }
+	type* peek_obj() const volatile { return get_obj(); }
 
-	static size_t mark_bits()					{ return ptr<type>::mark_bits(); }
-	static size_t mark_mask()					{ return ptr<type>::mark_mask(); }
+	static size_t mark_bits() { return ptr<type>::mark_bits(); }
+	static size_t mark_mask() { return ptr<type>::mark_mask(); }
 
 	size_t get_mark() const { ptr<type> p = m_contents->m_obj; return p.get_mark(); }
 	size_t get_mark() const volatile { ptr<type> p = begin_read()->m_obj; return p.get_mark(); }
@@ -662,7 +662,7 @@ protected:
 
 	void set_to_mark(size_t mark) volatile
 	{
-		this_t tmp;	// need a matching content_t to atomically swap
+		this_t tmp; // need a matching content_t to atomically swap
 		tmp.set_to_mark(mark);
 		m_contents.swap(tmp.m_contents);
 	}
@@ -678,16 +678,16 @@ protected:
 
 	void set_marked(type* p, size_t mark) volatile
 	{
-		this_t tmp;	// need a matching content_t to atomically swap
+		this_t tmp; // need a matching content_t to atomically swap
 		tmp.set_marked(p, mark);
 		m_contents.swap(tmp.m_contents);
 	}
 
-	bool is_empty() const					{ return !get_obj(); }
-	bool is_empty() const volatile			{ return !get_obj(); }
+	bool is_empty() const { return !get_obj(); }
+	bool is_empty() const volatile { return !get_obj(); }
 
-	bool operator!() const						{ return !get_obj(); }
-	bool operator!() const volatile				{ return !get_obj(); }
+	bool operator!() const { return !get_obj(); }
+	bool operator!() const volatile { return !get_obj(); }
 
 	bool operator==(const this_t& cmp) const
 	{
@@ -750,10 +750,10 @@ protected:
 	bool operator!=(const volatile rc_container_base<type2, refStrengthType2>& cmp) const
 	{ return !operator==(cmp); }
 
-	bool operator==(const ptr<type>& src) const				{ return (get_obj() == src); }
-	bool operator==(const ptr<type>& src) const volatile	{ return (get_obj() == src); }
-	bool operator!=(const ptr<type>& src) const				{ return (get_obj() != src); }
-	bool operator!=(const ptr<type>& src) const volatile	{ return (get_obj() != src); }
+	bool operator==(const ptr<type>& src) const { return (get_obj() == src); }
+	bool operator==(const ptr<type>& src) const volatile { return (get_obj() == src); }
+	bool operator!=(const ptr<type>& src) const { return (get_obj() != src); }
+	bool operator!=(const ptr<type>& src) const volatile { return (get_obj() != src); }
 
 
 	// swap
@@ -774,7 +774,7 @@ protected:
 	}
 
 	template <typename type2>
-	void swap(volatile rc_container_base<type2, refStrengthType>& wth)	{ wth.swap(*this); }
+	void swap(volatile rc_container_base<type2, refStrengthType>& wth) { wth.swap(*this); }
 
 
 	// exchange
@@ -928,8 +928,8 @@ protected:
 		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
 		if (b)
 		{
-			tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc)	// release the reference we just removed from this
+			tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+			if (!!tmpRtn.m_desc) // release the reference we just removed from this
 				tmpRtn.m_desc->release(refStrengthType);
 		}
 		return b;
@@ -944,8 +944,8 @@ protected:
 		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
 		if (b)
 		{
-			tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc)	// release the reference we just removed from this
+			tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+			if (!!tmpRtn.m_desc) // release the reference we just removed from this
 				tmpRtn.m_desc->release(refStrengthType);
 		}
 		return b;
@@ -960,8 +960,8 @@ protected:
 		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
 		if (b)
 		{
-			//tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc)	// release the reference we just removed from this
+			//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+			if (!!tmpRtn.m_desc) // release the reference we just removed from this
 				tmpRtn.m_desc->release(refStrengthType);
 		}
 		return b;
@@ -978,7 +978,7 @@ protected:
 		{
 			begin_read(rt);
 			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr())		// <- A failure here means type conversion (user) error.
+			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
 			{
 				result = false;
 				break;
@@ -986,8 +986,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc)					// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				if (!!oldDesc) // release the reference we just removed from this
 					oldDesc->release(refStrengthType);
 				result = true;
 				break;
@@ -1006,7 +1006,7 @@ protected:
 		{
 			begin_read(rt);
 			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr())		// <- A failure here means type conversion (user) error.
+			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
 			{
 				result = false;
 				break;
@@ -1014,8 +1014,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc)					// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				if (!!oldDesc) // release the reference we just removed from this
 					oldDesc->release(refStrengthType);
 				result = true;
 				break;
@@ -1034,7 +1034,7 @@ protected:
 		{
 			begin_read(rt);
 			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr())		// <- A failure here means type conversion (user) error.
+			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
 			{
 				result = false;
 				break;
@@ -1042,8 +1042,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				//tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc)					// release the reference we just removed from this
+				//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				if (!!oldDesc) // release the reference we just removed from this
 					oldDesc->release(refStrengthType);
 				result = true;
 				break;
@@ -1051,9 +1051,6 @@ protected:
 		}
 		return result;
 	}
-	
-
-
 
 
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
@@ -1140,7 +1137,7 @@ protected:
 	{
 		this_t tmpSrc(std::move(src));
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1155,8 +1152,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}
@@ -1171,7 +1168,7 @@ protected:
 	{
 		this_t tmpSrc(src);
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1186,8 +1183,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}
@@ -1202,7 +1199,7 @@ protected:
 	{
 		this_t tmpSrc(src);
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1217,8 +1214,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}
@@ -1233,7 +1230,7 @@ protected:
 	{
 		this_t tmpSrc(std::move(src));
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1248,8 +1245,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}
@@ -1264,7 +1261,7 @@ protected:
 	{
 		this_t tmpSrc(src);
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1279,8 +1276,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}
@@ -1295,7 +1292,7 @@ protected:
 	{
 		this_t tmpSrc(src);
 		read_token rt;
-		this_t tmp;	// contain, to handle hand-off of ownership.  or not.
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
 		for (;;)
 		{
@@ -1310,8 +1307,8 @@ protected:
 
 			if (end_write(rt, *tmpSrc.m_contents))
 			{
-				tmpSrc.disown();	// tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner();	// release the reference we just removed from this
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
 				result = true;
 				break;
 			}

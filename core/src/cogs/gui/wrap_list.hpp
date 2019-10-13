@@ -23,8 +23,8 @@ template <script_flow scriptFlow = script_flow::left_to_right_top_to_bottom, cla
 class wrap_list : public pane, public virtual pane_container
 {
 private:
-	double	m_verticalAlignment;
-	double	m_horizontalAlignment;
+	double m_verticalAlignment;
+	double m_horizontalAlignment;
 
 	double& get_alignment(dimension d)
 	{
@@ -41,12 +41,12 @@ private:
 		using secondary_sizing_group_t::cell::m_default;
 		using secondary_sizing_group_t::cell::m_range;
 
-		container_dlist<rcref<cell_t> >	m_cells;
-		bounds						m_bounds;
-		primary_sizing_group_t		m_primarySizingGroup;
-	
+		container_dlist<rcref<cell_t> > m_cells;
+		bounds m_bounds;
+		primary_sizing_group_t m_primarySizingGroup;
+
 		row_t()
-			:	m_bounds(point(0, 0), size(0, 0))
+			: m_bounds(point(0, 0), size(0, 0))
 		{
 			m_range.set_fixed(0);
 		}
@@ -58,9 +58,9 @@ private:
 		using primary_sizing_group_t::cell::m_default;
 		using primary_sizing_group_t::cell::m_range;
 
-		weak_rcptr<row_t>	m_row;
+		weak_rcptr<row_t> m_row;
 
-		typename container_dlist<rcref<cell_t> >::remove_token			m_removeToken;
+		typename container_dlist<rcref<cell_t> >::remove_token m_removeToken;
 
 		cell_t(const rcref<canvas::cell>& f)
 			: override_bounds_frame(f)
@@ -74,7 +74,7 @@ private:
 			m_range = frame::get_range()[d];
 		}
 	};
-	
+
 	container_dlist<rcref<cell_t> > m_cells;
 	mutable container_dlist<rcref<row_t> > m_rows;
 	mutable double m_cachedLength;
@@ -82,8 +82,8 @@ private:
 	range m_currentRange;
 	size m_currentDefaultSize;
 
-	virtual range get_range() const	{ return m_currentRange; }
-	virtual size get_default_size() const	{ return m_currentDefaultSize; }
+	virtual range get_range() const { return m_currentRange; }
+	virtual size get_default_size() const { return m_currentDefaultSize; }
 
 	virtual void calculate_range()
 	{
@@ -95,7 +95,7 @@ private:
 		m_currentDefaultSize.clear();
 		m_currentRange.set_fixed_width(0);
 		m_currentRange.set_fixed_height(0);
-		
+
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 
 		typename container_dlist<rcref<cell_t> >::iterator cellItor = m_cells.get_first();
@@ -104,10 +104,10 @@ private:
 			cell_t& c = **cellItor;
 
 			range cellRange = c.get_range();
-			size cellDefaultSize = cellRange.limit(c.get_default_size());	// necessary?
+			size cellDefaultSize = cellRange.limit(c.get_default_size()); // necessary?
 
 			// default size is one row, unwrapped
-			m_currentDefaultSize[d] += cellDefaultSize[d];	// compute other dimension later
+			m_currentDefaultSize[d] += cellDefaultSize[d]; // compute other dimension later
 			if (m_currentDefaultSize[!d] < cellDefaultSize[!d])
 				m_currentDefaultSize[!d] = cellDefaultSize[!d];
 
@@ -127,7 +127,7 @@ private:
 				else
 					m_currentRange.get_max_width() += cellRange.get_max_width();
 			}
-						
+
 			if (m_currentRange.has_max_height())
 			{
 				if (!cellRange.has_max_height())
@@ -148,9 +148,9 @@ private:
 			COGS_ASSERT(!!rtnOtherRange.has_max());
 			m_currentRange.set_max(!d, rtnOtherRange.get_max());
 		}
-		
+
 		range::linear_t rtnOtherRange;
-		propose_length(d, m_currentDefaultSize[d], rtnOtherRange);	// sets m_cachedLength
+		propose_length(d, m_currentDefaultSize[d], rtnOtherRange); // sets m_cachedLength
 		if (rtnOtherRange.has_max() && (m_currentDefaultSize[!d] > rtnOtherRange.get_max()))
 			m_currentDefaultSize[!d] = rtnOtherRange.get_max();
 		if (m_currentDefaultSize[!d] < rtnOtherRange.get_min())
@@ -174,21 +174,21 @@ private:
 			typename container_dlist<rcref<cell_t> >::iterator cellItor = m_cells.get_first();
 			if (!!cellItor)
 			{
-				rcref<row_t> row = rcnew(row_t);	// start a new row
-				
+				rcref<row_t> row = rcnew(row_t); // start a new row
+
 				double remaining = rtn;
 				double largestRowLength = 0;
 
 				rcref<cell_t> c = *cellItor;
 				size cellSize = c->get_default_size();
-	
+
 				for (;;)
 				{
 					bool insufficientSpace = (cellSize[d] > remaining);
 					if (insufficientSpace)
 					{
-						if (row->m_cells.is_empty())	// If nothing in the list, when need to shrink this one into place
-						{								// We shouldn't be asked to size smaller than min, as we've already established our mins.
+						if (row->m_cells.is_empty()) // If nothing in the list, when need to shrink this one into place
+						{ // We shouldn't be asked to size smaller than min, as we've already established our mins.
 							cellSize[d] = remaining;
 							insufficientSpace = false;
 						}
@@ -217,7 +217,7 @@ private:
 					}
 
 					bool rowDone = insufficientSpace || cellsDone;
-					if (rowDone)	// Need to start a new row.
+					if (rowDone) // Need to start a new row.
 					{
 						row->m_primarySizingGroup.calculate_sizes(rtn);
 
@@ -242,14 +242,14 @@ private:
 				rtn = largestRowLength;
 
 				range::linear_t otherRange;
-					
+
 				cellItor = m_cells.get_first();
 				while (!!cellItor)
 				{
 					cell_t& c = **cellItor;
 					rcptr<row_t> row = c.m_row;
 
-					c.propose_length(d, c.get_length(), otherRange);	// return value is ignored
+					c.propose_length(d, c.get_length(), otherRange); // return value is ignored
 
 					row->m_range ^= otherRange;
 
@@ -310,8 +310,10 @@ private:
 			reverseDirection[(int)!d] = !((int)scriptFlow & (int)script_flow::horizontal_ascending_mask);
 		}
 
-		double rowOffset = (newSize[!d] > m_secondarySizingGroup.get_length())	? (get_alignment(!d) * (newSize[!d] - m_secondarySizingGroup.get_length()))
-																				:	0;
+		double rowOffset = (newSize[!d] > m_secondarySizingGroup.get_length())
+			? (get_alignment(!d) * (newSize[!d] - m_secondarySizingGroup.get_length()))
+			: 0;
+
 		if (reverseDirection[(int)!d])
 		{
 			double oldRowOffset = rowOffset;
@@ -329,11 +331,13 @@ private:
 				rowOffset -= row.get_length();
 
 			double cellOffset =
-				row.m_bounds.get_position(d) = (newSize[d] > row.m_primarySizingGroup.get_length())	?	(get_alignment(d) * (newSize[d] - row.m_primarySizingGroup.get_length()))
-																										:	0;
+				row.m_bounds.get_position(d) = (newSize[d] > row.m_primarySizingGroup.get_length())
+					? (get_alignment(d) * (newSize[d] - row.m_primarySizingGroup.get_length()))
+					: 0;
+
 			row.m_bounds.get_position(!d) = rowOffset;
 			row.m_bounds.get_size(!d) = row.m_primarySizingGroup.get_length();
-			
+
 			if (reverseDirection[(int)d])
 			{
 				double oldCellOffset = cellOffset;
@@ -348,7 +352,7 @@ private:
 
 				if (reverseDirection[(int)d])
 					cellOffset -= c.get_length();
-				
+
 				c.get_position(d) = cellOffset;
 				c.get_position(!d) = rowOffset;
 
@@ -381,7 +385,7 @@ public:
 	{
 	protected:
 		friend class wrap_list;
-		typename container_dlist<rcref<cell_t> >::remove_token	m_removeToken;
+		typename container_dlist<rcref<cell_t> >::remove_token m_removeToken;
 		weak_rcptr<pane> m_pane;
 	};
 

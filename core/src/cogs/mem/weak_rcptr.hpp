@@ -73,7 +73,7 @@ public:
 
 	/// @{
 	/// @brief Constructor.  Initializes weak_rcptr to NULL.
-	weak_rcptr()	{ }
+	weak_rcptr() { }
 	/// @}
 
 	weak_rcptr(this_t&& src) : base_t(std::move(src)) { }
@@ -81,8 +81,8 @@ public:
 	/// @{
 	/// @brief Initializes rcptr to specified value.
 	/// @param src Initial value
-	weak_rcptr(const this_t& src)						:	base_t(src)	{ }
-	
+	weak_rcptr(const this_t& src) : base_t(src) { }
+
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	weak_rcptr(rcref<type2>&& src) : base_t(std::move(src)) { }
 
@@ -91,7 +91,7 @@ public:
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const rcref<type2>& src)				:	base_t(src)	{ }
+	weak_rcptr(const rcref<type2>& src) : base_t(src) { }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	weak_rcptr(rcptr<type2>&& src) : base_t(std::move(src.m_ref)) { }
@@ -101,7 +101,7 @@ public:
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const rcptr<type2>& src)				:	base_t(src.m_ref)	{ }
+	weak_rcptr(const rcptr<type2>& src) : base_t(src.m_ref) { }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	weak_rcptr(weak_rcptr<type2>&& src) : base_t(std::move(src)) { }
@@ -111,28 +111,28 @@ public:
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const weak_rcptr<type2>& src)			:	base_t(src)	{ }
+	weak_rcptr(const weak_rcptr<type2>& src) : base_t(src) { }
 
 	/// @brief Initializes weak_rcptr to specified value.
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const volatile rcref<type2>& src)		:	base_t(src)	{ }
+	weak_rcptr(const volatile rcref<type2>& src) : base_t(src) { }
 
 	/// @brief Initializes weak_rcptr to specified value.
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const volatile rcptr<type2>& src)		:	base_t(src.m_ref)	{ }
+	weak_rcptr(const volatile rcptr<type2>& src) : base_t(src.m_ref) { }
 
 	/// @brief Initializes weak_rcptr to specified value.
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Initial value
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	weak_rcptr(const volatile weak_rcptr<type2>& src)	:	base_t(src)	{ }
+	weak_rcptr(const volatile weak_rcptr<type2>& src) : base_t(src) { }
 
 	/// @brief Initializes weak_rcptr to specified value.
 	///
@@ -140,21 +140,21 @@ public:
 	/// is expected, the caller is gauranteeing the resource pointed to will remain in scope until no longer referenced
 	/// by the weak_rcptr.
 	/// @param src Initial value
-	weak_rcptr(type* src)												:	base_t(src)	{ }
+	weak_rcptr(type* src) : base_t(src) { }
 
 	/// @brief Initializes a rcptr to contain the specified object and descriptor, without incrementing its reference count.
 	/// @param obj Object to set value to
 	/// @param desc Descriptor of object to set value to
-	weak_rcptr(const ptr<type>& obj, const ptr<rc_obj_base>& desc)		:	base_t(obj, desc)	{ }
+	weak_rcptr(const ptr<type>& obj, const ptr<rc_obj_base>& desc) : base_t(obj, desc) { }
 	/// @}
 
 	/// @{
 	/// @brief Assignment
 	/// @param src Value to set
-	/// @return	A reference to this
-	this_t& operator=(type* src)														{ base_t::operator=(src); return *this; }
-	this_t& operator=(const this_t& src)												{ base_t::operator=(src); return *this; }
-	this_t& operator=(const volatile this_t& src)										{ base_t::operator=(src); return *this; }
+	/// @return A reference to this
+	this_t& operator=(type* src) { base_t::operator=(src); return *this; }
+	this_t& operator=(const this_t& src) { base_t::operator=(src); return *this; }
+	this_t& operator=(const volatile this_t& src) { base_t::operator=(src); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(rcref<type2>&& src) { base_t::operator=(std::move(src)); return *this; }
@@ -163,17 +163,17 @@ public:
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const rcref<type2>& src)				{ base_t::operator=(src); return *this; }
+	this_t& operator=(const rcref<type2>& src) { base_t::operator=(src); return *this; }
 
 	/// @brief Assignment
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const volatile rcref<type2>& src)		{ base_t::operator=(src); return *this; }
+	this_t& operator=(const volatile rcref<type2>& src) { base_t::operator=(src); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(rcptr<type2>&& src) { base_t::operator=(std::move(src.m_ref)); return *this; }
@@ -182,17 +182,17 @@ public:
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const rcptr<type2>& src)				{ base_t::operator=(src.m_ref); return *this; }
+	this_t& operator=(const rcptr<type2>& src) { base_t::operator=(src.m_ref); return *this; }
 
 	/// @brief Assignment
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const volatile rcptr<type2>& src)		{ base_t::operator=(src.m_ref); return *this; }
+	this_t& operator=(const volatile rcptr<type2>& src) { base_t::operator=(src.m_ref); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(weak_rcptr<type2>&& src) { base_t::operator=(std::move(src)); return *this; }
@@ -201,30 +201,30 @@ public:
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const weak_rcptr<type2>& src)			{ base_t::operator=(src); return *this; }
+	this_t& operator=(const weak_rcptr<type2>& src) { base_t::operator=(src); return *this; }
 
 	/// @brief Assignment
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
 	/// @param src Value to set
-	/// @return	A reference to this
+	/// @return A reference to this
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	this_t& operator=(const volatile weak_rcptr<type2>& src)	{ base_t::operator=(src); return *this; }
+	this_t& operator=(const volatile weak_rcptr<type2>& src) { base_t::operator=(src); return *this; }
 	/// @brief Thread-safe version of operator=()
-	volatile this_t& operator=(type* src) volatile							{ base_t::operator=(src); return *this; }
+	volatile this_t& operator=(type* src) volatile { base_t::operator=(src); return *this; }
 	/// @brief Thread-safe version of operator=()
-	volatile this_t& operator=(const this_t& src) volatile					{ base_t::operator=(src); return *this; }
-	/// @brief Thread-safe version of operator=()
-	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const rcref<type2>& src) volatile			{ base_t::operator=(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { base_t::operator=(src); return *this; }
 	/// @brief Thread-safe version of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const rcptr<type2>& src) volatile			{ base_t::operator=(src.m_ref); return *this; }
+	volatile this_t& operator=(const rcref<type2>& src) volatile { base_t::operator=(src); return *this; }
 	/// @brief Thread-safe version of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const weak_rcptr<type2>& src) volatile		{ base_t::operator=(src); return *this; }
+	volatile this_t& operator=(const rcptr<type2>& src) volatile { base_t::operator=(src.m_ref); return *this; }
+	/// @brief Thread-safe version of operator=()
+	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
+	volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { base_t::operator=(src); return *this; }
 	/// @}
 
 	volatile this_t& operator=(this_t&& src) volatile { base_t::operator=(std::move(src)); }
@@ -241,26 +241,26 @@ public:
 
 	/// @{
 	/// @brief Sets to the specified object, without incrementing its reference count.
-	void set(const ptr<type>& obj)														{ base_t::set(obj); }
+	void set(const ptr<type>& obj) { base_t::set(obj); }
 
 	/// @brief Thread-safe implementation of set()
-	void set(const ptr<type>& obj) volatile												{ base_t::set(obj); }
+	void set(const ptr<type>& obj) volatile { base_t::set(obj); }
 
 	/// @brief Sets to the specified object, without incrementing its reference count.
 	/// @param obj Object to set value to
 	/// @param desc Descriptor of object to set value to
-	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc)						{ base_t::set(obj, desc); }
+	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) { base_t::set(obj, desc); }
 
 	/// @brief Thread-safe implementation of set()
-	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile				{ base_t::set(obj, desc); }
+	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 	/// @}
 
 	/// @{
 	/// @brief Releases the contained object, decrementing the reference count.
 	/// @return True if the reference count reached zero and the object was destructed and/or disposed.
-	bool release()								{ return base_t::release(); }
+	bool release() { return base_t::release(); }
 	/// @brief Thread-safe implementation of release()
-	bool release() volatile						{ return base_t::release(); }
+	bool release() volatile { return base_t::release(); }
 	/// @}
 
 	/// @{
@@ -273,34 +273,34 @@ public:
 	void disown() { base_t::disown(); }
 	/// @}
 
-	type* get_obj() const					{ return base_t::get_obj(); }
-	type* get_obj() const volatile			{ return base_t::get_obj(); }
+	type* get_obj() const { return base_t::get_obj(); }
+	type* get_obj() const volatile { return base_t::get_obj(); }
 
 	/// @{
 	/// @brief Gets a pointer to the encapsulated object, after checking if still in scope.
 	/// @return A pointer to the encapsulated object, or NULL if no longer in scope.
-	type* get_ptr() const						{ return get_obj(); }
+	type* get_ptr() const { return get_obj(); }
 	/// @brief Thread-safe version of get_ptr()
-	type* get_ptr() const volatile				{ return get_obj(); }
+	type* get_ptr() const volatile { return get_obj(); }
 	/// @}
 
-	type* peek_obj() const					{ return base_t::peek_obj(); }
-	type* peek_obj() const volatile			{ return base_t::peek_obj(); }
+	type* peek_obj() const { return base_t::peek_obj(); }
+	type* peek_obj() const volatile { return base_t::peek_obj(); }
 
 	/// @{
 	/// @brief Gets a pointer to the encapsulated object without checking if it's still in scope.
 	/// @return A pointer to the encapsulated object, which may or may not still be in scope.
-	type* peek_ptr() const						{ return peek_obj(); }
+	type* peek_ptr() const { return peek_obj(); }
 	/// @brief Thread-safe version of peek_ptr()
-	type* peek_ptr() const volatile				{ return peek_obj(); }
+	type* peek_ptr() const volatile { return peek_obj(); }
 	/// @}
 
 	/// @{
 	/// @brief Gets the associated reference-counted descriptor, if any
 	/// @return Descriptor associated with this reference-counted object, if any
-	rc_obj_base* get_desc() const				{ return base_t::get_desc(); }
+	rc_obj_base* get_desc() const { return base_t::get_desc(); }
 	/// @brief Thread-safe version of get_desc()
-	rc_obj_base* get_desc() const volatile		{ return base_t::get_desc(); }
+	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }
 	/// @}
 
 	/// @{
@@ -340,28 +340,28 @@ public:
 		return *result;
 	}
 	/// @}
-	
+
 	/// @{
 	/// @brief Tests if the pointer value is NULL
 	/// @return True if the pointer value is NULL.
-	bool is_empty() const			{ return !get_ptr(); }
+	bool is_empty() const { return !get_ptr(); }
 	/// @brief Thread-safe implementation of is_empty()
-	bool is_empty() const volatile	{ return !get_ptr(); }
+	bool is_empty() const volatile { return !get_ptr(); }
 	/// @}
-	
+
 	/// @{
 	/// @brief Tests if the pointer value is NULL.  An alias for is_empty()
 	/// @return True if the pointer value is NULL.
-	bool operator!() const			{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
 	/// @brief Thread-safe implementation of operator!()
-	bool operator!() const volatile	{ return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 	/// @}
 
 	template <typename type2>
 	const weak_rcptr<type2>& static_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			static_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			static_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -376,7 +376,7 @@ public:
 	template <typename type2>
 	const weak_rcptr<type2>& dynamic_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
-		type2* tmp = dynamic_cast<type2*>(peek_obj());	// A failure here means type conversion (user) error.
+		type2* tmp = dynamic_cast<type2*>(peek_obj()); // A failure here means type conversion (user) error.
 		rc_obj_base* desc = !tmp ? nullptr : get_desc();;
 		storage.set(tmp, desc);
 		return storage;
@@ -393,7 +393,7 @@ public:
 	const weak_rcptr<type2>& const_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			const_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			const_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -466,192 +466,192 @@ public:
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
 	/// @return True if the values are equal
-	template <typename type2> bool operator==(type2* cmp) const								{ return get_ptr() == cmp; }
-	template <typename type2> bool operator==(const ptr<type2>& cmp) const					{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const ref<type2>& cmp) const					{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const			{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const			{ return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const				{ return base_t::operator==(cmp); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const				{ return base_t::operator==(cmp.m_ref); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const			{ return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(type2* cmp) const { return get_ptr() == cmp; }
+	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return base_t::operator==(cmp.m_ref); }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return base_t::operator==(cmp); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(type2* cmp) const volatile					{ return get_ptr() == cmp; }
+	template <typename type2> bool operator==(type2* cmp) const volatile { return get_ptr() == cmp; }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile			{ return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile			{ return get_ptr() == cmp.get_ptr(); }
+	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile		{ return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return base_t::operator==(cmp); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile		{ return base_t::operator==(cmp.m_ref); }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return base_t::operator==(cmp.m_ref); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile	{ return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return base_t::operator==(cmp); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const		{ return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return base_t::operator==(cmp); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const		{ return base_t::operator==(cmp.m_ref); }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return base_t::operator==(cmp.m_ref); }
 	/// @brief Thread-safe implementation of operator==()
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const	{ return base_t::operator==(cmp); }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return base_t::operator==(cmp); }
 	/// @}
 
 	/// @{
 	/// @brief Inequality operator
 	/// @param cmp Pointer to test against
 	/// @return True if the values are inequal
-	template <typename type2> bool operator!=(type2* cmp) const								{ return get_ptr() != cmp; }
-	template <typename type2> bool operator!=(const ptr<type2>& cmp) const					{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const ref<type2>& cmp) const					{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const			{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const			{ return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const				{ return base_t::operator!=(cmp); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const				{ return base_t::operator!=(cmp.m_ref); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const			{ return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(type2* cmp) const { return get_ptr() != cmp; }
+	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return base_t::operator!=(cmp.m_ref); }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return base_t::operator!=(cmp); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(type2* cmp) const volatile					{ return get_ptr() != cmp; }
+	template <typename type2> bool operator!=(type2* cmp) const volatile { return get_ptr() != cmp; }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile			{ return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile			{ return get_ptr() != cmp.get_ptr(); }
+	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile		{ return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return base_t::operator!=(cmp); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile		{ return base_t::operator!=(cmp.m_ref); }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return base_t::operator!=(cmp.m_ref); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile	{ return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return base_t::operator!=(cmp); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const		{ return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return base_t::operator!=(cmp); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const		{ return base_t::operator!=(cmp.m_ref); }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return base_t::operator!=(cmp.m_ref); }
 	/// @brief Thread-safe implementation of operator!=()
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const	{ return base_t::operator!=(cmp); }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return base_t::operator!=(cmp); }
 	/// @}
 
 	/// @{
 	/// @brief Greater-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than the parameter
-	template <typename type2> bool operator>(type2* cmp) const								{ return get_ptr() > cmp; }
-	template <typename type2> bool operator>(const ptr<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const ref<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const			{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const			{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const					{ return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const			{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(type2* cmp) const { return get_ptr() > cmp; }
+	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(type2* cmp) const volatile						{ return get_ptr() > cmp; }
+	template <typename type2> bool operator>(type2* cmp) const volatile { return get_ptr() > cmp; }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile			{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile			{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile		{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile		{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile	{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const		{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const		{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>()
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const	{ return get_ptr() > cmp.get_ptr(); }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Less-than operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is less than the parameter
-	template <typename type2> bool operator<(type2* cmp) const								{ return get_ptr() < cmp; }
-	template <typename type2> bool operator<(const ptr<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const ref<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const			{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const			{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const					{ return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const			{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(type2* cmp) const { return get_ptr() < cmp; }
+	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(type2* cmp) const volatile						{ return get_ptr() < cmp; }
+	template <typename type2> bool operator<(type2* cmp) const volatile { return get_ptr() < cmp; }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile			{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile			{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile		{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile		{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile	{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const		{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const		{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<()
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const	{ return get_ptr() < cmp.get_ptr(); }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Greather-than-or-equal operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is greater than or equal to the parameter
-	template <typename type2> bool operator>=(type2* cmp) const								{ return get_ptr() >= cmp; }
-	template <typename type2> bool operator>=(const ptr<type2>& cmp) const					{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const ref<type2>& cmp) const					{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const			{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const			{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const				{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const				{ return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const			{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(type2* cmp) const { return get_ptr() >= cmp; }
+	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(type2* cmp) const volatile					{ return get_ptr() >= cmp; }
+	template <typename type2> bool operator>=(type2* cmp) const volatile { return get_ptr() >= cmp; }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile			{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile			{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile		{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile		{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile	{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const		{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const		{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator>=()
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const	{ return get_ptr() >= cmp.get_ptr(); }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	/// @}
 
 	/// @{
 	/// @brief Less-than-or-equal operator
 	/// @param cmp Pointer to test against
 	/// @return True if this value is less than or equal to the parameter
-	template <typename type2> bool operator<=(type2* cmp) const								{ return get_ptr() <= cmp; }
-	template <typename type2> bool operator<=(const ptr<type2>& cmp) const					{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const ref<type2>& cmp) const					{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const			{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const			{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const				{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const				{ return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const			{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(type2* cmp) const { return get_ptr() <= cmp; }
+	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(type2* cmp) const volatile					{ return get_ptr() <= cmp; }
+	template <typename type2> bool operator<=(type2* cmp) const volatile { return get_ptr() <= cmp; }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile			{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile			{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile		{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile		{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile	{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const		{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const		{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	/// @brief Thread-safe implementation of operator<=()
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const	{ return get_ptr() <= cmp.get_ptr(); }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	/// @}
 
 
@@ -957,40 +957,40 @@ public:
 	template <typename type2>
 	using cast_t = typename cast<type2>::type;
 
-	weak_rcptr()																						{ }
-	weak_rcptr(const this_t& src)												:	base_t(src)			{ }
-	template <typename type2> weak_rcptr(const volatile rcref<type2>& src)		:	base_t(src)			{ }
-	template <typename type2> weak_rcptr(const volatile rcptr<type2>& src)		:	base_t(src.m_ref)	{ }
-	template <typename type2> weak_rcptr(const volatile weak_rcptr<type2>& src)	:	base_t(src)			{ }
-	template <typename type2> weak_rcptr(const rcref<type2>& src)				:	base_t(src)			{ }
-	template <typename type2> weak_rcptr(const rcptr<type2>& src)				:	base_t(src.m_ref)	{ }
-	template <typename type2> weak_rcptr(const weak_rcptr<type2>& src)			:	base_t(src)			{ }
+	weak_rcptr() { }
+	weak_rcptr(const this_t& src) : base_t(src) { }
+	template <typename type2> weak_rcptr(const volatile rcref<type2>& src) : base_t(src) { }
+	template <typename type2> weak_rcptr(const volatile rcptr<type2>& src) : base_t(src.m_ref) { }
+	template <typename type2> weak_rcptr(const volatile weak_rcptr<type2>& src) : base_t(src) { }
+	template <typename type2> weak_rcptr(const rcref<type2>& src) : base_t(src) { }
+	template <typename type2> weak_rcptr(const rcptr<type2>& src) : base_t(src.m_ref) { }
+	template <typename type2> weak_rcptr(const weak_rcptr<type2>& src) : base_t(src) { }
 
 	weak_rcptr(this_t&& src) : base_t(std::move(src)) { }
 	template <typename type2> weak_rcptr(rcref<type2>&& src) : base_t(std::move(src)) { }
 	template <typename type2> weak_rcptr(rcptr<type2>&& src) : base_t(std::move(src.m_ref)) { }
 	template <typename type2> weak_rcptr(weak_rcptr<type2>&& src) : base_t(std::move(src)) { }
 
-	weak_rcptr(type* obj)														:	base_t(obj)	{ }
+	weak_rcptr(type* obj) : base_t(obj) { }
 
-	weak_rcptr(const ptr<type>& obj, const ptr<rc_obj_base>& desc)	:	base_t(obj, desc)	{ }
+	weak_rcptr(const ptr<type>& obj, const ptr<rc_obj_base>& desc) : base_t(obj, desc) { }
 
-	this_t& operator=(type* src)									{ base_t::operator=(src); return *this; }
+	this_t& operator=(type* src) { base_t::operator=(src); return *this; }
 
 	this_t& operator=(this_t&& src) { base_t::operator=(std::move(src)); return *this; }
 	this_t& operator=(const this_t& src) { base_t::operator=(src); return *this; }
-	this_t& operator=(const volatile this_t& src)					{ base_t::operator=(src); return *this; }
+	this_t& operator=(const volatile this_t& src) { base_t::operator=(src); return *this; }
 
 	template <typename type2> this_t& operator=(rcref<type2>& src) { base_t::operator=(std::move(src)); return *this; }
 	template <typename type2> this_t& operator=(rcptr<type2>& src) { base_t::operator=(std::move(src.m_ref)); return *this; }
 	template <typename type2> this_t& operator=(weak_rcptr<type2>& src) { base_t::operator=(std::move(src)); return *this; }
 
-	template <typename type2> this_t& operator=(const rcref<type2>& src)			{ base_t::operator=(src); return *this; }
-	template <typename type2> this_t& operator=(const volatile rcref<type2>& src)	{ base_t::operator=(src); return *this; }
-	template <typename type2> this_t& operator=(const rcptr<type2>& src)			{ base_t::operator=(src.m_ref); return *this; }
-	template <typename type2> this_t& operator=(const volatile rcptr<type2>& src)	{ base_t::operator=(src.m_ref); return *this; }
-	template <typename type2> this_t& operator=(const weak_rcptr<type2>& src)			{ base_t::operator=(src); return *this; }
-	template <typename type2> this_t& operator=(const volatile weak_rcptr<type2>& src)	{ base_t::operator=(src); return *this; }
+	template <typename type2> this_t& operator=(const rcref<type2>& src) { base_t::operator=(src); return *this; }
+	template <typename type2> this_t& operator=(const volatile rcref<type2>& src) { base_t::operator=(src); return *this; }
+	template <typename type2> this_t& operator=(const rcptr<type2>& src) { base_t::operator=(src.m_ref); return *this; }
+	template <typename type2> this_t& operator=(const volatile rcptr<type2>& src) { base_t::operator=(src.m_ref); return *this; }
+	template <typename type2> this_t& operator=(const weak_rcptr<type2>& src) { base_t::operator=(src); return *this; }
+	template <typename type2> this_t& operator=(const volatile weak_rcptr<type2>& src) { base_t::operator=(src); return *this; }
 
 	volatile this_t& operator=(type* src) volatile { base_t::operator=(src); return *this; }
 
@@ -1005,43 +1005,43 @@ public:
 	template <typename type2> volatile this_t& operator=(const rcptr<type2>& src) volatile { base_t::operator=(src.m_ref); return *this; }
 	template <typename type2> volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { base_t::operator=(src); return *this; }
 
-	void set(const ptr<type>& obj)											{ base_t::set(obj); }
-	void set(const ptr<type>& obj) volatile									{ base_t::set(obj); }
-	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc)			{ base_t::set(obj, desc); }
-	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile	{ base_t::set(obj, desc); }
+	void set(const ptr<type>& obj) { base_t::set(obj); }
+	void set(const ptr<type>& obj) volatile { base_t::set(obj); }
+	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) { base_t::set(obj, desc); }
+	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 
-	bool release()														{ return base_t::release(); }
-	bool release() volatile												{ return base_t::release(); }
+	bool release() { return base_t::release(); }
+	bool release() volatile { return base_t::release(); }
 
-	void disown()		{ base_t::disown(); }
+	void disown() { base_t::disown(); }
 
-	type* get_obj() const					{ return base_t::get_obj(); }
-	type* get_obj() const volatile			{ return base_t::get_obj(); }
+	type* get_obj() const { return base_t::get_obj(); }
+	type* get_obj() const volatile { return base_t::get_obj(); }
 
-	type* get_ptr() const						{ return get_obj(); }
-	type* get_ptr() const volatile				{ return get_obj(); }
+	type* get_ptr() const { return get_obj(); }
+	type* get_ptr() const volatile { return get_obj(); }
 
-	type* peek_obj() const					{ return base_t::peek_obj(); }
-	type* peek_obj() const volatile			{ return base_t::peek_obj(); }
+	type* peek_obj() const { return base_t::peek_obj(); }
+	type* peek_obj() const volatile { return base_t::peek_obj(); }
 
-	type* peek_ptr() const						{ return peek_obj(); }
-	type* peek_ptr() const volatile				{ return peek_obj(); }
+	type* peek_ptr() const { return peek_obj(); }
+	type* peek_ptr() const volatile { return peek_obj(); }
 
-	rc_obj_base* get_desc() const				{ return base_t::get_desc(); }
-	rc_obj_base* get_desc() const volatile		{ return base_t::get_desc(); }
+	rc_obj_base* get_desc() const { return base_t::get_desc(); }
+	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }
 
-	bool is_empty() const						{ return base_t::is_empty(); }
-	bool is_empty() const volatile				{ return base_t::is_empty(); }
+	bool is_empty() const { return base_t::is_empty(); }
+	bool is_empty() const volatile { return base_t::is_empty(); }
 
-	bool operator!() const						{ return is_empty(); }
-	bool operator!() const volatile				{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
 
 	template <typename type2>
 	const weak_rcptr<type2>& static_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			static_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			static_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -1056,7 +1056,7 @@ public:
 	template <typename type2>
 	const weak_rcptr<type2>& dynamic_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
-		type2* tmp = dynamic_cast<type2*>(peek_obj());	// A failure here means type conversion (user) error.
+		type2* tmp = dynamic_cast<type2*>(peek_obj()); // A failure here means type conversion (user) error.
 		rc_obj_base* desc = !tmp ? nullptr : get_desc();;
 		storage.set(tmp, desc);
 		return storage;
@@ -1073,7 +1073,7 @@ public:
 	const weak_rcptr<type2>& const_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			const_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			const_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -1596,7 +1596,7 @@ public:
 	const weak_rcptr<type2>& static_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			static_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			static_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -1611,7 +1611,7 @@ public:
 	template <typename type2>
 	const weak_rcptr<type2>& dynamic_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
-		type2* tmp = dynamic_cast<type2*>(peek_obj());	// A failure here means type conversion (user) error.
+		type2* tmp = dynamic_cast<type2*>(peek_obj()); // A failure here means type conversion (user) error.
 		rc_obj_base* desc = !tmp ? nullptr : get_desc();;
 		storage.set(tmp, desc);
 		return storage;
@@ -1628,7 +1628,7 @@ public:
 	const weak_rcptr<type2>& const_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			const_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			const_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -2150,7 +2150,7 @@ public:
 	const weak_rcptr<type2>& static_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			static_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			static_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -2165,7 +2165,7 @@ public:
 	template <typename type2>
 	const weak_rcptr<type2>& dynamic_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
-		type2* tmp = dynamic_cast<type2*>(peek_obj());	// A failure here means type conversion (user) error.
+		type2* tmp = dynamic_cast<type2*>(peek_obj()); // A failure here means type conversion (user) error.
 		rc_obj_base* desc = !tmp ? nullptr : get_desc();;
 		storage.set(tmp, desc);
 		return storage;
@@ -2182,7 +2182,7 @@ public:
 	const weak_rcptr<type2>& const_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			const_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			const_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -2703,7 +2703,7 @@ public:
 	const weak_rcptr<type2>& static_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			static_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			static_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}
@@ -2718,7 +2718,7 @@ public:
 	template <typename type2>
 	const weak_rcptr<type2>& dynamic_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
-		type2* tmp = dynamic_cast<type2*>(peek_obj());	// A failure here means type conversion (user) error.
+		type2* tmp = dynamic_cast<type2*>(peek_obj()); // A failure here means type conversion (user) error.
 		rc_obj_base* desc = !tmp ? nullptr : get_desc();;
 		storage.set(tmp, desc);
 		return storage;
@@ -2735,7 +2735,7 @@ public:
 	const weak_rcptr<type2>& const_cast_to(unowned_t<weak_rcptr<type2> >& storage = unowned_t<weak_rcptr<type2> >().get_unowned()) const
 	{
 		storage.set(
-			const_cast<type2*>(peek_obj()),	// A failure here means type conversion (user) error.
+			const_cast<type2*>(peek_obj()), // A failure here means type conversion (user) error.
 			get_desc());
 		return storage;
 	}

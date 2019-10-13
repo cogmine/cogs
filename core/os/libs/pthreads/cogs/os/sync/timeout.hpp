@@ -59,10 +59,10 @@ private:
 	// We store that as a single large fixed integer of nanoseconds.
 	typedef measure<fixed_integer<false, sizeof(time_t)*8>, seconds> seconds_t;
 
-	period_t	m_startTime;
-	period_t	m_period;
-	period_t	m_expireTime;
-	bool		m_infinite;
+	period_t m_startTime;
+	period_t m_period;
+	period_t m_expireTime;
+	bool m_infinite;
 
 	bool expired_inner(const period_t& n, const period_t& expireTime) const
 	{
@@ -70,26 +70,26 @@ private:
 		//
 		// N=Now, S=Start, E=Expiration
 		//
-		//         S<E N<S E<=N	<- Only one of these conditions can be true if unexpired (N=Now, S=Start, E=Expiration)
+		//         S<E N<S E<=N <- Only one of these conditions can be true if unexpired (N=Now, S=Start, E=Expiration)
 		//
-		// SNE   =  1 ^ 0 ^ 0  =  1	<- not expired yet	<- normal, no counter loop
-		// ESN   =  0 ^ 0 ^ 1  =  1	<- not expired yet	<- counter will loop before timer expires
-		// NES   =  0 ^ 1 ^ 0  =  1	<- not expired yet	<- counter will loop before timer expires
+		// SNE   =  1 ^ 0 ^ 0  =  1 <- not expired yet <- normal, no counter loop
+		// ESN   =  0 ^ 0 ^ 1  =  1 <- not expired yet <- counter will loop before timer expires
+		// NES   =  0 ^ 1 ^ 0  =  1 <- not expired yet <- counter will loop before timer expires
 		//
-		// SEN   =  1 ^ 0 ^ 1  =  0	<- expired			<- normal, no counter loop
-		// NSE   =  1 ^ 1 ^ 0  =  0	<- expired			<- counter looped since timer expired
-		// ENS   =  0 ^ 1 ^ 1  =  0	<- expired			<- counter looped before timer expired
+		// SEN   =  1 ^ 0 ^ 1  =  0 <- expired <- normal, no counter loop
+		// NSE   =  1 ^ 1 ^ 0  =  0 <- expired <- counter looped since timer expired
+		// ENS   =  0 ^ 1 ^ 1  =  0 <- expired <- counter looped before timer expired
 		//
 		// If equal :
 		//
 		// (ES)N =  0 ^ 0 ^ 1  = 1 <- S==E Implies that the period is 0.  This function should not be called if the period is 0.
 		// N(ES) =  0 ^ 1 ^ 0  = 1 <- S==E Implies that the period is 0.  This function should not be called if the period is 0.
 		//
-		// (NS)E =  1 ^ 0 ^ 0  = 1 <- not expired yet	<- Assume N==S means it just started
-		// E(NS) =  0 ^ 0 ^ 1  = 1 <- not expired yet	<- Assume N==S means it just started
+		// (NS)E =  1 ^ 0 ^ 0  = 1 <- not expired yet <- Assume N==S means it just started
+		// E(NS) =  0 ^ 0 ^ 1  = 1 <- not expired yet <- Assume N==S means it just started
 		//
-		// S(EN) =  1 ^ 0 ^ 1  = 0	<- expired			<- Assume E==N means it just expired
-		// (EN)S =  0 ^ 1 ^ 1  = 0	<- expired			<- Assume E==N means it just expired
+		// S(EN) =  1 ^ 0 ^ 1  = 0 <- expired <- Assume E==N means it just expired
+		// (EN)S =  0 ^ 1 ^ 1  = 0 <- expired <- Assume E==N means it just expired
 		//
 		return (!((m_startTime < expireTime) ^ (n < m_startTime) ^ (expireTime <= n)));
 	}
@@ -184,15 +184,15 @@ public:
 		return *this;
 	}
 
-	static timeout_t infinite()		{ return timeout_t(period_t(0), period_t(0), period_t(0), true); }
-	static timeout_t none()			{ return timeout_t(); }
+	static timeout_t infinite() { return timeout_t(period_t(0), period_t(0), period_t(0), true); }
+	static timeout_t none() { return timeout_t(); }
 
-	bool operator!() const			{ return expired(); }
+	bool operator!() const { return expired(); }
 
-	period_t get_period() const		{ return m_period; }
-	period_t get_expiration() const	{ return m_expireTime; }
+	period_t get_period() const { return m_period; }
+	period_t get_expiration() const { return m_expireTime; }
 
-	bool is_infinite() const		{ return m_infinite; }
+	bool is_infinite() const { return m_infinite; }
 
 	period_t get_pending() const
 	{
@@ -230,10 +230,10 @@ public:
 		// since last fired into the new expiration time.  If more than that period has
 		// transpired since the timer last expired, the new expiration is immediate.
 		// (by changing the start time, so without modifying the period of the timeout object).
-		
+
 		period_t n = now();
 		if (!expired_inner(n, m_expireTime))
-			return;		// You can't refire() a timer until after it expires.
+			return; // You can't refire() a timer until after it expires.
 		// We bother with that check because we need to ensure m_startTime
 		// is never in the future, or our range overflow trick fails.
 
@@ -256,7 +256,7 @@ public:
 	{
 		period_t ns(m_expireTime);
 		seconds_t s(m_expireTime);
-		ns -= s;	// remove seconds from nanoseconds part
+		ns -= s; // remove seconds from nanoseconds part
 
 		ts.tv_sec = s.get().get_int();
 		ts.tv_nsec = ns.get().get_int();
@@ -285,7 +285,7 @@ public:
 	bool operator<=(const timeout_t& cmp) const { return !operator>(cmp); }
 
 	template <typename unit_t, typename unitbase_t>
-	timeout_t& operator+=(const measure<unit_t, unitbase_t>& n)	// extends the period
+	timeout_t& operator+=(const measure<unit_t, unitbase_t>& n) // extends the period
 	{
 		if (!m_infinite)
 		{
@@ -297,7 +297,7 @@ public:
 	}
 
 	template <typename unit_t, typename unitbase_t>
-	timeout_t operator+(const measure<unit_t, unitbase_t>& n)	// extends the period
+	timeout_t operator+(const measure<unit_t, unitbase_t>& n) // extends the period
 	{
 		timeout_t result = *this;
 		result += n;

@@ -31,27 +31,28 @@ public:
 	class terminal
 	{
 	private:
-		weak_rcptr<telnet>	m_telnet;
+		weak_rcptr<telnet> m_telnet;
 
 		friend class telnet;
 
 	public:
 		// notifications/requests
 		// NOP by default
-		virtual void telnet_are_you_there()		{}	// Called when remote party sends an AYT req.
-													// This party needs to respond with something to prove they are there.
-		virtual void telnet_interrupt_process() {}	// Received an Interrupt Process (IP) message from remote party
-		virtual void telnet_abort_output()		{}	// Received an Abort Output (AO) message from remote party
-		virtual void telnet_erase_char()		{}	// Received an Erase Character (EC) message from remote party
-		virtual void telnet_erase_line()		{}	// Received an Erase Line (EL) message from remote party
-		virtual void telnet_break()				{}	// Received a Break message from remote party
+		virtual void telnet_are_you_there() {} // Called when remote party sends an AYT req.
+		// This party needs to respond with something to prove they are there.
 
-		virtual bool telnet_request_echo(bool echoOn)	{ return false; }	// received request to set echo state
-		virtual bool telnet_notify_echo(bool echoOn)	{ return echoOn; }	// received request to set echo state
+		virtual void telnet_interrupt_process() {} // Received an Interrupt Process (IP) message from remote party
+		virtual void telnet_abort_output() {} // Received an Abort Output (AO) message from remote party
+		virtual void telnet_erase_char() {} // Received an Erase Character (EC) message from remote party
+		virtual void telnet_erase_line() {} // Received an Erase Line (EL) message from remote party
+		virtual void telnet_break() {} // Received a Break message from remote party
 
-		virtual cstring get_telnet_terminal_type()		{ return cstring::literal("UNKNOWN"); }
+		virtual bool telnet_request_echo(bool echoOn) { return false; } // received request to set echo state
+		virtual bool telnet_notify_echo(bool echoOn) { return echoOn; } // received request to set echo state
 
-		virtual void get_window_size(uint16_t& width, uint16_t& height)	{ }
+		virtual cstring get_telnet_terminal_type() { return cstring::literal("UNKNOWN"); }
+
+		virtual void get_window_size(uint16_t& width, uint16_t& height) { }
 
 		// Terminal utils
 		void send_window_size(uint16_t width, uint16_t height)
@@ -63,88 +64,88 @@ public:
 	};
 
 private:
-	weak_rcptr<terminal>	m_terminal;
-	volatile buffer			m_recvBuffer;
+	weak_rcptr<terminal> m_terminal;
+	volatile buffer m_recvBuffer;
 
-	static constexpr char IAC =		(char)255;
-	static constexpr char DONT =	(char)254;
-	static constexpr char DO =		(char)253;
-	static constexpr char WONT =	(char)252;
-	static constexpr char WILL =	(char)251;
-	static constexpr char SB =		(char)250;
-	static constexpr char GA =		(char)249;
-	static constexpr char EL =		(char)248;
-	static constexpr char EC =		(char)247;
-	static constexpr char AYT =		(char)246;
-	static constexpr char AO =		(char)245;
-	static constexpr char IP =		(char)244;
-	static constexpr char BRK =		(char)243;
-	static constexpr char DATAMARK =(char)242;
-	static constexpr char NOP =		(char)241;
-	static constexpr char SE =		(char)240;
-	static constexpr char SEND =	1;
-	static constexpr char IS =		0;
+	static constexpr unsigned char IAC = 255;
+	static constexpr unsigned char DONT = 254;
+	static constexpr unsigned char DO = 253;
+	static constexpr unsigned char WONT = 252;
+	static constexpr unsigned char WILL = 251;
+	static constexpr unsigned char SB = 250;
+	static constexpr unsigned char GA = 249;
+	static constexpr unsigned char EL = 248;
+	static constexpr unsigned char EC = 247;
+	static constexpr unsigned char AYT = 246;
+	static constexpr unsigned char AO = 245;
+	static constexpr unsigned char IP = 244;
+	static constexpr unsigned char BRK = 243;
+	static constexpr unsigned char DATAMARK =242;
+	static constexpr unsigned char NOP = 241;
+	static constexpr unsigned char SE = 240;
+	static constexpr unsigned char SEND = 1;
+	static constexpr unsigned char IS = 0;
 
-	static constexpr char TELOPT_BINARY =		0;
-	static constexpr char TELOPT_ECHO =			1;
-	static constexpr char TELOPT_SGA =			3;	// Suppress Go Ahead. 
-	static constexpr char TELOPT_STATUS =		5;
-	static constexpr char TELOPT_TIMING =		6;
-	static constexpr char TELOPT_RCTE =			7;	
-	static constexpr char TELOPT_NAOCRD =		10;
-	static constexpr char TELOPT_NAOHTS =		11;
-	static constexpr char TELOPT_NAOHTD =		12;
-	static constexpr char TELOPT_NAOFFD =		13;
-	static constexpr char TELOPT_NAOVTS =		14;
-	static constexpr char TELOPT_NAOVTD =		15;
-	static constexpr char TELOPT_NAOLFD =		16;
-	static constexpr char TELOPT_EXTEND_ASCII =	17;	// WILL, DO
-	static constexpr char TELOPT_LOGOUT =		18;	// 
-	static constexpr char TELOPT_BM =			19;	// Byte Macro
-	static constexpr char TELOPT_DET =			20;	// Data Entry Terminal
-	static constexpr char TELOPT_SUPDUP =		21;	// SUPDUP terminal? RFC734
-	static constexpr char TELOPT_SUPDUPOUTPUT =	22;	// SUPDUP terminal within existing term? RFC749
-	static constexpr char TELOPT_SENDLOCATION =	23;	// Send location string
-	static constexpr char TELOPT_TTYPE =		24;	// Terminal Type - RFC1091
-	static constexpr char TELOPT_EOR =			25;	// Necessary?
-	static constexpr char TELOPT_TUID =			26;	// TAC?  - Anyone still use this?
-	static constexpr char TELOPT_OUTMRK =		27;	// RFC933
-	static constexpr char TELOPT_TTYLOC =		28;	// Terminal ID number
-	static constexpr char TELOPT_3270REGIME =	29;	// 3270 terminal?
-	static constexpr char TELOPT_X3PAD =		30;	// Support X.3-PAD
-	static constexpr char TELOPT_NAWS =			31;	// Negotiate about window size.
-	static constexpr char TELOPT_TERMSPEED =	32;	// Not meaningful anymore
-	static constexpr char TELOPT_FLOWCONTROL =	33;	// Not meaningful anymore
-	static constexpr char TELOPT_LINEMODE =		34;	// Line edit mode - Lots to do there
-	static constexpr char TELOPT_XDISPLOC =		35;	// X-Windows display addr
-	static constexpr char TELOPT_AUTHENTICATION=37;	// RFC2941
-	static constexpr char TELOPT_ENCRYPT =		38;	// RFC2946
-	static constexpr char TELOPT_NEWENVIRON =	39;	// Environment options
-	static constexpr char TELOPT_TN3270E =		40;	// TN3270 Enchancements	RFC2355
-	static constexpr char TELOPT_XAUTH =		41;	// XAUTH?
-	static constexpr char TELOPT_CHARSET =		42;	// RFC2066
-	static constexpr char TELOPT_RSP =			42;	// Remote Serial Port
-	static constexpr char TELOPT_COMPORTOPTION=	44;	// Not meaningful anymore
-	static constexpr char TELOPT_SLE =			45;	// Suppress Local Echo
-	static constexpr char TELOPT_STARTTLS =		46;	// Start TLS
-	static constexpr char TELOPT_KERMIT =		47;	// Kermit
-	static constexpr char TELOPT_SENDURL =		48;	// Send URL
-	static constexpr char TELOPT_FORWARDX =		49;	// Forward X?
-	static constexpr char TELOPT_EXOPL =		(char)255;
+	static constexpr unsigned char TELOPT_BINARY = 0;
+	static constexpr unsigned char TELOPT_ECHO = 1;
+	static constexpr unsigned char TELOPT_SGA = 3; // Suppress Go Ahead. 
+	static constexpr unsigned char TELOPT_STATUS = 5;
+	static constexpr unsigned char TELOPT_TIMING = 6;
+	static constexpr unsigned char TELOPT_RCTE = 7;
+	static constexpr unsigned char TELOPT_NAOCRD = 10;
+	static constexpr unsigned char TELOPT_NAOHTS = 11;
+	static constexpr unsigned char TELOPT_NAOHTD = 12;
+	static constexpr unsigned char TELOPT_NAOFFD = 13;
+	static constexpr unsigned char TELOPT_NAOVTS = 14;
+	static constexpr unsigned char TELOPT_NAOVTD = 15;
+	static constexpr unsigned char TELOPT_NAOLFD = 16;
+	static constexpr unsigned char TELOPT_EXTEND_ASCII = 17; // WILL, DO
+	static constexpr unsigned char TELOPT_LOGOUT = 18; // 
+	static constexpr unsigned char TELOPT_BM = 19; // Byte Macro
+	static constexpr unsigned char TELOPT_DET = 20; // Data Entry Terminal
+	static constexpr unsigned char TELOPT_SUPDUP = 21; // SUPDUP terminal? RFC734
+	static constexpr unsigned char TELOPT_SUPDUPOUTPUT = 22; // SUPDUP terminal within existing term? RFC749
+	static constexpr unsigned char TELOPT_SENDLOCATION = 23; // Send location string
+	static constexpr unsigned char TELOPT_TTYPE = 24; // Terminal Type - RFC1091
+	static constexpr unsigned char TELOPT_EOR = 25; // Necessary?
+	static constexpr unsigned char TELOPT_TUID = 26; // TAC?  - Anyone still use this?
+	static constexpr unsigned char TELOPT_OUTMRK = 27; // RFC933
+	static constexpr unsigned char TELOPT_TTYLOC = 28; // Terminal ID number
+	static constexpr unsigned char TELOPT_3270REGIME = 29; // 3270 terminal?
+	static constexpr unsigned char TELOPT_X3PAD = 30; // Support X.3-PAD
+	static constexpr unsigned char TELOPT_NAWS = 31; // Negotiate about window size.
+	static constexpr unsigned char TELOPT_TERMSPEED = 32; // Not meaningful anymore
+	static constexpr unsigned char TELOPT_FLOWCONTROL = 33; // Not meaningful anymore
+	static constexpr unsigned char TELOPT_LINEMODE = 34; // Line edit mode - Lots to do there
+	static constexpr unsigned char TELOPT_XDISPLOC = 35; // X-Windows display addr
+	static constexpr unsigned char TELOPT_AUTHENTICATION=37; // RFC2941
+	static constexpr unsigned char TELOPT_ENCRYPT = 38; // RFC2946
+	static constexpr unsigned char TELOPT_NEWENVIRON = 39; // Environment options
+	static constexpr unsigned char TELOPT_TN3270E = 40; // TN3270 Enchancements RFC2355
+	static constexpr unsigned char TELOPT_XAUTH = 41; // XAUTH?
+	static constexpr unsigned char TELOPT_CHARSET = 42; // RFC2066
+	static constexpr unsigned char TELOPT_RSP = 42; // Remote Serial Port
+	static constexpr unsigned char TELOPT_COMPORTOPTION= 44; // Not meaningful anymore
+	static constexpr unsigned char TELOPT_SLE = 45; // Suppress Local Echo
+	static constexpr unsigned char TELOPT_STARTTLS = 46; // Start TLS
+	static constexpr unsigned char TELOPT_KERMIT = 47; // Kermit
+	static constexpr unsigned char TELOPT_SENDURL = 48; // Send URL
+	static constexpr unsigned char TELOPT_FORWARDX = 49; // Forward X?
+	static constexpr unsigned char TELOPT_EXOPL = 255;
 
 	int m_parserState = 0;
-	char m_optionVerb;
+	unsigned char m_optionVerb;
 
-	char m_myNegotiationState[256];		// A negotiation state per option
-	char m_theirNegotiationState[256];	// A negotiation state per option
+	unsigned char m_myNegotiationState[256]; // A negotiation state per option
+	unsigned char m_theirNegotiationState[256]; // A negotiation state per option
 
 	// negotiation state values:
 	//
 	// 0 = news to me, I assume they wouldn't use it (6)
-	// 1 = just sent DO/WILL   without provocation, waiting
+	// 1 = just sent   DO/WILL without provocation, waiting
 	// 2 = just sent DONT/WONT without provocation, waiting
 	// 3 = just sent DONT/WONT response to WILL/DO, waiting
-	// 4 = just sent DO/WILL   response to WONT/DONT, waiting
+	// 4 = just sent   DO/WILL response to WONT/DONT, waiting
 	// 5 = We've decided that I/they WILL/DO
 	// 6 = We've decided that I/they WONT/DONT
 
@@ -155,13 +156,13 @@ private:
 
 	void handle_option(bool response)
 	{
-		char msg[3];
+		unsigned char msg[3];
 		msg[0] = IAC;
 		msg[2] = m_option;
 		bool pos = (m_optionVerb == DO) || (m_optionVerb == WILL);
 		bool asking = (m_optionVerb == DO) || (m_optionVerb == DONT);
 
-		char* state;
+		unsigned char* state;
 		if (asking)
 		{
 			state = m_myNegotiationState;
@@ -181,15 +182,15 @@ private:
 		{
 			switch (*state)
 			{
-			case 0:	// unsolicited
-			case 6:	// unsolicited, but already discussed
-			case 2:	// I just said no, and they are disagreeing.
-			case 3:	// I just said no, and they are disagreeing.
+			case 0: // unsolicited
+			case 6: // unsolicited, but already discussed
+			case 2: // I just said no, and they are disagreeing.
+			case 3: // I just said no, and they are disagreeing.
 				get_sink_filter()->bypass(buffer((char*)&msg[0], 3));
-			case 1:	// Said I would, this must be the response
-			case 4:	// They came around.
+			case 1: // Said I would, this must be the response
+			case 4: // They came around.
 				*state = response ? 6 : 3;
-			case 5:	// must not respond when already in this mode
+			case 5: // must not respond when already in this mode
 				break;
 			default:
 				COGS_ASSERT(false);
@@ -200,15 +201,15 @@ private:
 		{
 			switch (*state)
 			{
-			case 0:	// unsolicitied
-			case 1:	// Was going to, but was just told not to. Confirm.
-			case 4:	// I just said I would, and they are disagreeing.
-			case 5:	// Already agreed I would, they changed their mind.
+			case 0: // unsolicitied
+			case 1: // Was going to, but was just told not to. Confirm.
+			case 4: // I just said I would, and they are disagreeing.
+			case 5: // Already agreed I would, they changed their mind.
 				get_sink_filter()->bypass(buffer((char*)&msg[0], 3));
-			case 2:	// Already said I wont, this was a response.
-			case 3:	// They came around
+			case 2: // Already said I wont, this was a response.
+			case 3: // They came around
 				*state = response ? 5 : 4;
-			case 6:	// We already discussed this, no change, ignored.
+			case 6: // We already discussed this, no change, ignored.
 				break;
 			default:
 				COGS_ASSERT(false);
@@ -223,10 +224,10 @@ private:
 		composite_buffer::const_iterator itor = src.get_first_const_iterator();
 		while (!!itor)
 		{
-			char c = *itor;
+			unsigned char c = *itor;
 			switch (m_parserState)
 			{
-			case 0:	// Normal state
+			case 0: // Normal state
 			{
 				if (c == IAC)
 				{
@@ -239,16 +240,16 @@ private:
 					++itor;
 				break;
 			}
-			case 5:	// SB content
+			case 5: // SB content
 			{
-				if (c == IAC)	// Two in a row means the value itself
+				if (c == IAC) // Two in a row means the value itself
 				{
 					m_incomingSB.append(IAC);
 					m_parserState = 4;
 					++itor;
 					break;
 				}
-				if (c == SE)	// sub neg is over
+				if (c == SE) // sub neg is over
 				{
 					// I suppose once we support some options that have SBs, that could go here
 
@@ -261,11 +262,11 @@ private:
 				// Looks like SB was interrupt with a new IAC.
 				// Fall through to state 1
 			}
-			case 1:	// Got an IAC
+			case 1: // Got an IAC
 			{
 				switch (c)
 				{
-				case IAC:	// second IAC indicates it's intended to be passed through.
+				case IAC: // second IAC indicates it's intended to be passed through.
 				{
 					m_parserState = 0;
 					++itor;
@@ -354,7 +355,7 @@ private:
 					itor = src.get_first_const_iterator();
 					break;
 				}
-				case GA:		// Go-Ahead is unnecessary. We won't ever be using any half-duplex connections.
+				case GA: // Go-Ahead is unnecessary. We won't ever be using any half-duplex connections.
 				case NOP:
 				default:
 				{
@@ -366,18 +367,18 @@ private:
 				}
 				break;
 			}
-			case 2:	// Receive option name - Pass option on to handler
+			case 2: // Receive option name - Pass option on to handler
 			{
 				m_option = c;
 				switch (m_option)
 				{
-				case TELOPT_BINARY:		// always binary on
-				case TELOPT_SGA:		// always SGA
+				case TELOPT_BINARY: // always binary on
+				case TELOPT_SGA: // always SGA
 				{
 					handle_option(true);
 					break;
 				}
-				case TELOPT_ECHO:	// ask terminal
+				case TELOPT_ECHO: // ask terminal
 				{
 					rcptr<terminal> term = m_terminal;
 					if (!!term)
@@ -398,7 +399,7 @@ private:
 						handle_option(true);
 						rcptr<terminal> term = m_terminal;
 						cstring termType = (!!term) ? term->get_telnet_terminal_type() : cstring::literal("UNKNOWN");
-						char msg[4] = { IAC, SB, TELOPT_TTYPE, IS };
+						unsigned char msg[4] = { IAC, SB, TELOPT_TTYPE, IS };
 						get_sink_filter()->bypass(buffer((char*)&msg[0], 4));
 						get_sink_filter()->bypass(encode_buffer_const(buffer(&termType[0], termType.get_length())));
 						//msg[0] = IAC;
@@ -443,7 +444,7 @@ private:
 				itor = src.get_first_const_iterator();
 				break;
 			}
-			case 3:	// Receive option name, then wait for content, plus IAC SE
+			case 3: // Receive option name, then wait for content, plus IAC SE
 			{
 				m_option = c;
 				m_incomingSB.clear();
@@ -474,7 +475,7 @@ private:
 		return result;
 	}
 
-	const buffer iacBuf{ 1, IAC };
+	const buffer iacBuf{ 1, (char)IAC };
 
 	virtual composite_buffer filtering_sink(composite_buffer& src)
 	{
@@ -493,7 +494,7 @@ private:
 		composite_buffer::const_iterator itor = src.get_first_const_iterator();
 		while (!!itor)
 		{
-			bool foundIAC = (*itor == IAC);
+			bool foundIAC = ((unsigned char)*itor == IAC);
 			++itor;
 			if (!foundIAC)
 				continue;
@@ -507,8 +508,8 @@ private:
 
 public:
 	telnet(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
-		:	datastream_protocol(desc, ds),
-			m_terminal(term)
+		: datastream_protocol(desc, ds),
+		m_terminal(term)
 	{
 		if (!!term)
 			term->m_telnet = this_rcref;
@@ -516,7 +517,7 @@ public:
 		memset(m_myNegotiationState, 0, 256);
 		memset(m_theirNegotiationState, 0, 256);
 
-		char msg[3];
+		unsigned char msg[3];
 		msg[0] = IAC;
 		msg[1] = WILL;
 		msg[2] = TELOPT_SGA;
@@ -552,7 +553,7 @@ public:
 	{
 		if (m_sendNAWS)
 		{
-			char msg[4] = { IAC, SB, TELOPT_NAWS };
+			unsigned char msg[4] = { IAC, SB, TELOPT_NAWS };
 			get_sink_filter()->bypass(buffer((char*)&msg[0], 3));
 			msg[0] = (char)(width >> 8);
 			msg[1] = (char)width;

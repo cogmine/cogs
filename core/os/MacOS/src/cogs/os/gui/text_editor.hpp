@@ -51,7 +51,7 @@ namespace os {
 class text_editor : public nsview_pane, public text_editor_interface
 {
 private:
-	rcptr<gfx::os::graphics_context::font>	m_cachedFont;
+	rcptr<gfx::os::graphics_context::font> m_cachedFont;
 
 public:
 	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
@@ -110,10 +110,10 @@ public:
 	{
 		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
 	}
-	
-	virtual size get_default_size() const	{ return size(100, 100); }
 
-	virtual bool is_focusable() const	{ return true; }
+	virtual size get_default_size() const { return size(100, 100); }
+
+	virtual bool is_focusable() const { return true; }
 
 	void focus(int direction = 0)
 	{

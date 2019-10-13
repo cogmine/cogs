@@ -61,11 +61,10 @@ public:
 //};
 
 
-}	// namespace ui
+} // namespace ui
 
 
 namespace gui {
-	
 
 class pane;
 class bridgeable_pane;
@@ -125,7 +124,7 @@ public:
 		const rcref<pane>& p,
 		const rcptr<frame>& f = 0) volatile = 0;
 
-	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile	{ return rcptr<canvas3D_pane_interface>(); }	// 3D unsupported by default
+	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile { return rcptr<canvas3D_pane_interface>(); } // 3D unsupported by default
 
 	static rcptr<subsystem> get_default();
 };
@@ -179,7 +178,7 @@ public:
 		const rcptr<frame>& f = 0) volatile;
 
 	//virtual rcref<task<void> > open_full_screen(
-	//	const gfx::canvas::point& screenAtPosition,	// Main display is 0,0
+	//	const gfx::canvas::point& screenAtPosition, // Main display is 0,0
 	//	const composite_string& title,
 	//	const rcref<pane>& p,
 	//	const rcptr<frame>& f = 0) volatile = 0;

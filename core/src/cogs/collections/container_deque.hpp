@@ -53,9 +53,9 @@ private:
 	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_iterator<link_t, versioned_ptr> >
 	{
 	public:
-		typedef typename versioned_ptr<link_t>::version_t	version_t;
-		
-		type	m_contents;
+		typedef typename versioned_ptr<link_t>::version_t version_t;
+
+		type m_contents;
 
 		link_t(const type& t)
 			: m_contents(t)
@@ -82,7 +82,7 @@ private:
 		{
 			atomic::load(m_contents, oldContents);
 			ptr<link_t> headRaw = oldContents.m_head;
-			if (!!headRaw.get_mark())	// prepend in progress.  Fix up head->next->prev to point to head
+			if (!!headRaw.get_mark()) // prepend in progress.  Fix up head->next->prev to point to head
 			{
 				link_t* head = headRaw.get_unmarked();
 				hazardPointer1.bind(m_hazard, head);
@@ -167,7 +167,7 @@ private:
 	bool remove_inner(type* t, bool& wasLast)
 	{
 		wasLast = false;
-		
+
 		ptr<link_t> oldLink = fromEnd ? m_contents.m_tail : m_contents.m_head;
 		if (!oldLink)
 			return false;
@@ -204,7 +204,7 @@ private:
 
 			if (!oldContents.m_head)
 				break;
-			
+
 			ptr<link_t> oldLink = fromEnd ? oldContents.m_tail : oldContents.m_head;
 			hazardPointer.bind(m_hazard, oldLink.get_ptr());
 			atomic::load(m_contents, newContents);
@@ -226,14 +226,14 @@ private:
 				newContents.m_head = oldLink->get_next_link().get_ptr();
 				newContents.m_tail = oldContents.m_tail;
 			}
-			
+
 			bool done = atomic::compare_exchange(m_contents, newContents, oldContents);
 			if (done)
 			{
 				result = true;
 				if (!!t)
 					*t = oldLink->m_contents;
-				bool b = m_hazard.release(oldLink.get_ptr());	// We have a hazard, so this will not return ownership
+				bool b = m_hazard.release(oldLink.get_ptr()); // We have a hazard, so this will not return ownership
 				COGS_ASSERT(!b);
 			}
 
@@ -330,14 +330,14 @@ private:
 			if (done)
 				break;
 
-			if (!oldContents.m_head)	// The list was empty.
+			if (!oldContents.m_head) // The list was empty.
 			{
 				if (insertMode == insert_mode::only_if_not_empty)
 					return true;
 
 				newContents.m_head = newContents.m_tail = myLink.get_ptr();
 				if (atomic::compare_exchange(m_contents, newContents, oldContents))
-				{		// success
+				{ // success
 					wasEmpty = true;
 					break;
 				}
@@ -346,17 +346,17 @@ private:
 
 			if (insertMode == insert_mode::only_if_empty)
 				return false;
-			
+
 			if (atEnd)
 			{
 				myLink->set_prev_link(oldContents.m_tail);
-				newContents.m_tail = myLink.get_marked(1);	// indicate an append is in progress.
+				newContents.m_tail = myLink.get_marked(1); // indicate an append is in progress.
 				newContents.m_head = oldContents.m_head;
 			}
 			else
 			{
 				myLink->set_next_link(oldContents.m_head);
-				newContents.m_head = myLink.get_marked(1);	// indicate a prepend is in progress.
+				newContents.m_head = myLink.get_marked(1); // indicate a prepend is in progress.
 				newContents.m_tail = oldContents.m_tail;
 			}
 			done = atomic::compare_exchange(m_contents, newContents, oldContents);
@@ -397,17 +397,17 @@ public:
 
 
 	explicit container_deque(volatile allocator_type& al)
-		:	m_allocator(al)
+		: m_allocator(al)
 	{
 		m_contents.m_head = 0;
 		m_contents.m_tail = 0;
 	}
 
-	~container_deque()		{ clear_inner(); }
+	~container_deque() { clear_inner(); }
 
 	void swap(this_t& wth)
 	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based);	// only supported if static allocator
+		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
 		content_t tmp = m_contents;
 		m_contents = wth.m_contents;
 		wth.m_contents = tmp;
@@ -415,15 +415,15 @@ public:
 
 	void swap(this_t& wth) volatile
 	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based);	// only supported if static allocator
+		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
 		cogs::swap(m_contents, wth.m_contents);
 		stabilize();
 		wth.stabilize();
 	}
 
-	void swap(volatile this_t& wth)	{ wth.swap(*this); }
+	void swap(volatile this_t& wth) { wth.swap(*this); }
 
-	void clear()			{ clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
+	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
 	{
 		content_t newContents;
@@ -464,41 +464,41 @@ public:
 	bool insert_if_empty(const type& t) { return insert_inner<true, insert_mode::only_if_empty>(t); }
 	bool insert_if_empty(const type& t) volatile { return insert_inner<true, insert_mode::only_if_empty>(t); }
 
-	bool peek_first(type& t) const			{ ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_first(type& t) const volatile	{ return peek_inner<false>(t); }
+	bool peek_first(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
+	bool peek_first(type& t) const volatile { return peek_inner<false>(t); }
 
-	bool peek_last(type& t) const			{ ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_last(type& t) const volatile	{ return peek_inner<true>(t); }
+	bool peek_last(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
+	bool peek_last(type& t) const volatile { return peek_inner<true>(t); }
 
-	bool is_empty() const					{ return !m_contents.m_head; }
-	bool is_empty() const volatile			{ link_t* l; atomic::load(m_contents.m_head, l); return !l; }
+	bool is_empty() const { return !m_contents.m_head; }
+	bool is_empty() const volatile { link_t* l; atomic::load(m_contents.m_head, l); return !l; }
 
-	bool operator!() const					{ return is_empty(); }
-	bool operator!() const volatile			{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
 	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
 	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
 
-	bool pop_first(type& t, bool& wasLast)			{ return remove_inner<false>(&t, wasLast); }
-	bool pop_first(type& t, bool& wasLast) volatile	{ return remove_inner<false>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast)			{ return remove_inner<true>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) volatile	{ return remove_inner<true>(&t, wasLast); }
+	bool pop_first(type& t, bool& wasLast) { return remove_inner<false>(&t, wasLast); }
+	bool pop_first(type& t, bool& wasLast) volatile { return remove_inner<false>(&t, wasLast); }
+	bool pop_last(type& t, bool& wasLast) { return remove_inner<true>(&t, wasLast); }
+	bool pop_last(type& t, bool& wasLast) volatile { return remove_inner<true>(&t, wasLast); }
 
-	bool pop_first(type& t)							{ bool wasLast; return pop_first(t, wasLast); }
-	bool pop_first(type& t) volatile				{ bool wasLast; return pop_first(t, wasLast); }
-	bool pop_last(type& t)							{ bool wasLast; return pop_last(t, wasLast); }
-	bool pop_last(type& t) volatile					{ bool wasLast; return pop_last(t, wasLast); }
+	bool pop_first(type& t) { bool wasLast; return pop_first(t, wasLast); }
+	bool pop_first(type& t) volatile { bool wasLast; return pop_first(t, wasLast); }
+	bool pop_last(type& t) { bool wasLast; return pop_last(t, wasLast); }
+	bool pop_last(type& t) volatile { bool wasLast; return pop_last(t, wasLast); }
 
 
-	bool remove_first(bool& wasLast)				{ return remove_inner<false>(0, wasLast); }
-	bool remove_first(bool& wasLast) volatile		{ return remove_inner<false>(0, wasLast); }
-	bool remove_last(bool& wasLast)					{ return remove_inner<true>(0, wasLast); }
-	bool remove_last(bool& wasLast) volatile		{ return remove_inner<true>(0, wasLast); }
+	bool remove_first(bool& wasLast) { return remove_inner<false>(0, wasLast); }
+	bool remove_first(bool& wasLast) volatile { return remove_inner<false>(0, wasLast); }
+	bool remove_last(bool& wasLast) { return remove_inner<true>(0, wasLast); }
+	bool remove_last(bool& wasLast) volatile { return remove_inner<true>(0, wasLast); }
 
-	bool remove_first()							{ bool wasLast; return remove_first(wasLast); }
-	bool remove_first() volatile				{ bool wasLast; return remove_first(wasLast); }
-	bool remove_last()							{ bool wasLast; return remove_last(wasLast); }
-	bool remove_last() volatile					{ bool wasLast; return remove_last(wasLast); }
+	bool remove_first() { bool wasLast; return remove_first(wasLast); }
+	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
+	bool remove_last() { bool wasLast; return remove_last(wasLast); }
+	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
 };
 
 
@@ -515,7 +515,7 @@ private:
 	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_iterator<link_t, versioned_ptr> >
 	{
 	public:
-		typedef typename versioned_ptr<link_t>::version_t	version_t;
+		typedef typename versioned_ptr<link_t>::version_t version_t;
 
 		type m_contents;
 
@@ -550,7 +550,7 @@ private:
 		{
 			atomic::load(m_contents, oldContents);
 			ptr<link_t> headRaw = oldContents.m_head;
-			if (!!headRaw.get_mark())	// prepend in progress.  Fix up head->next->prev to point to head
+			if (!!headRaw.get_mark()) // prepend in progress.  Fix up head->next->prev to point to head
 			{
 				link_t* head = headRaw.get_unmarked();
 				hazardPointer1.bind(m_hazard, head);
@@ -635,7 +635,6 @@ private:
 	bool remove_inner(type* t, bool& wasLast)
 	{
 		wasLast = false;
-		
 		ptr<link_t> oldLink = fromEnd ? m_contents.m_tail : m_contents.m_head;
 		if (!oldLink)
 			return false;
@@ -663,7 +662,6 @@ private:
 	bool remove_inner(type* t, bool& wasLast) volatile
 	{
 		bool result = false;
-		
 		typename hazard::pointer hazardPointer;
 		bool ownedRemoval = false;
 		content_t newContents;
@@ -688,7 +686,7 @@ private:
 			atomic::load(oldLink->m_remainingCount, oldCount);
 			for (;;)
 			{
-				ownedRemoval = (oldCount == 1);	// if 1, leave it at one, and only claim removal if we successfully remove it.
+				ownedRemoval = (oldCount == 1); // if 1, leave it at one, and only claim removal if we successfully remove it.
 				if (!ownedRemoval)
 				{
 					if (!atomic::compare_exchange(oldLink->m_remainingCount, oldCount - 1, oldCount, oldCount))
@@ -697,13 +695,12 @@ private:
 				}
 				break;
 			}
-			
 			if (ownedRemoval)
 			{
 				if (oldContents.m_head == oldContents.m_tail)
 				{
 					newContents.m_head = newContents.m_tail = 0;
-					wasLast = true;	
+					wasLast = true;
 				}
 				else if (fromEnd)
 				{
@@ -724,7 +721,7 @@ private:
 				if (ownedRemoval)
 				{
 					oldLink->m_removed = true;
-					bool b = m_hazard.release(oldLink.get_ptr());	// We have a hazard, so this will not return ownership
+					bool b = m_hazard.release(oldLink.get_ptr()); // We have a hazard, so this will not return ownership
 					COGS_ASSERT(!b);
 				}
 			}
@@ -822,14 +819,14 @@ private:
 			if (done)
 				break;
 
-			if (!oldContents.m_head)	// The list was empty.
+			if (!oldContents.m_head) // The list was empty.
 			{
 				if (insertMode == insert_mode::only_if_not_empty)
 					return true;
 
 				newContents.m_head = newContents.m_tail = myLink.get_ptr();
 				if (atomic::compare_exchange(m_contents, newContents, oldContents))
-				{		// success
+				{ // success
 					wasEmpty = true;
 					break;
 				}
@@ -842,13 +839,13 @@ private:
 			if (atEnd)
 			{
 				myLink->set_prev_link(oldContents.m_tail);
-				newContents.m_tail = myLink.get_marked(1);	// indicate an append is in progress.
+				newContents.m_tail = myLink.get_marked(1); // indicate an append is in progress.
 				newContents.m_head = oldContents.m_head;
 			}
 			else
 			{
 				myLink->set_next_link(oldContents.m_head);
-				newContents.m_head = myLink.get_marked(1);	// indicate a prepend is in progress.
+				newContents.m_head = myLink.get_marked(1); // indicate a prepend is in progress.
 				newContents.m_tail = oldContents.m_tail;
 			}
 			done = atomic::compare_exchange(m_contents, newContents, oldContents);
@@ -856,8 +853,6 @@ private:
 		}
 		return wasEmpty;
 	}
-	
-
 
 	container_deque(const container_deque& src) = delete;
 	this_t& operator=(const container_deque& src) = delete;
@@ -897,11 +892,11 @@ public:
 		m_contents.m_tail = 0;
 	}
 
-	~container_deque()		{ clear_inner(); }
+	~container_deque() { clear_inner(); }
 
 	void swap(this_t& wth)
 	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based);	// only supported if static allocator
+		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
 		content_t tmp = m_contents;
 		m_contents = wth.m_contents;
 		wth.m_contents = tmp;
@@ -909,15 +904,15 @@ public:
 
 	void swap(this_t& wth) volatile
 	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based);	// only supported if static allocator
+		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
 		cogs::swap(m_contents, wth.m_contents);
 		stabilize();
 		wth.stabilize();
 	}
 
-	void swap(volatile this_t& wth)	{ wth.swap(*this); }
+	void swap(volatile this_t& wth) { wth.swap(*this); }
 
-	void clear()			{ clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
+	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
 	{
 		content_t newContents;
@@ -958,41 +953,41 @@ public:
 	bool insert_if_empty(const type& t, size_t n = 1) { return insert_inner<true, insert_mode::only_if_empty>(t, n); }
 	bool insert_if_empty(const type& t, size_t n = 1) volatile { return insert_inner<true, insert_mode::only_if_empty>(t, n); }
 
-	bool peek_first(type& t) const			{ ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_first(type& t) const volatile	{ return peek_inner<false>(t); }
+	bool peek_first(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
+	bool peek_first(type& t) const volatile { return peek_inner<false>(t); }
 
-	bool peek_last(type& t) const			{ ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_last(type& t) const volatile	{ return peek_inner<true>(t); }
+	bool peek_last(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
+	bool peek_last(type& t) const volatile { return peek_inner<true>(t); }
 
-	bool is_empty() const					{ return !m_contents.m_head; }
-	bool is_empty() const volatile			{ link_t* l; atomic::load(m_contents.m_head, l); return !l; }
+	bool is_empty() const { return !m_contents.m_head; }
+	bool is_empty() const volatile { link_t* l; atomic::load(m_contents.m_head, l); return !l; }
 
-	bool operator!() const					{ return is_empty(); }
-	bool operator!() const volatile			{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
 	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
 	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
 
-	bool pop_first(type& t, bool& wasLast)			{ return remove_inner<false>(&t, wasLast); }
-	bool pop_first(type& t, bool& wasLast) volatile	{ return remove_inner<false>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast)			{ return remove_inner<true>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) volatile	{ return remove_inner<true>(&t, wasLast); }
+	bool pop_first(type& t, bool& wasLast) { return remove_inner<false>(&t, wasLast); }
+	bool pop_first(type& t, bool& wasLast) volatile { return remove_inner<false>(&t, wasLast); }
+	bool pop_last(type& t, bool& wasLast) { return remove_inner<true>(&t, wasLast); }
+	bool pop_last(type& t, bool& wasLast) volatile { return remove_inner<true>(&t, wasLast); }
 
-	bool pop_first(type& t)							{ bool wasLast; return pop_first(t, wasLast); }
-	bool pop_first(type& t) volatile				{ bool wasLast; return pop_first(t, wasLast); }
-	bool pop_last(type& t)							{ bool wasLast; return pop_last(t, wasLast); }
-	bool pop_last(type& t) volatile					{ bool wasLast; return pop_last(t, wasLast); }
+	bool pop_first(type& t) { bool wasLast; return pop_first(t, wasLast); }
+	bool pop_first(type& t) volatile { bool wasLast; return pop_first(t, wasLast); }
+	bool pop_last(type& t) { bool wasLast; return pop_last(t, wasLast); }
+	bool pop_last(type& t) volatile { bool wasLast; return pop_last(t, wasLast); }
 
 
-	bool remove_first(bool& wasLast)				{ return remove_inner<false>(0, wasLast); }
-	bool remove_first(bool& wasLast) volatile		{ return remove_inner<false>(0, wasLast); }
-	bool remove_last(bool& wasLast)					{ return remove_inner<true>(0, wasLast); }
-	bool remove_last(bool& wasLast) volatile		{ return remove_inner<true>(0, wasLast); }
+	bool remove_first(bool& wasLast) { return remove_inner<false>(0, wasLast); }
+	bool remove_first(bool& wasLast) volatile { return remove_inner<false>(0, wasLast); }
+	bool remove_last(bool& wasLast) { return remove_inner<true>(0, wasLast); }
+	bool remove_last(bool& wasLast) volatile { return remove_inner<true>(0, wasLast); }
 
-	bool remove_first()							{ bool wasLast; return remove_first(wasLast); }
-	bool remove_first() volatile				{ bool wasLast; return remove_first(wasLast); }
-	bool remove_last()							{ bool wasLast; return remove_last(wasLast); }
-	bool remove_last() volatile					{ bool wasLast; return remove_last(wasLast); }
+	bool remove_first() { bool wasLast; return remove_first(wasLast); }
+	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
+	bool remove_last() { bool wasLast; return remove_last(wasLast); }
+	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
 };
 
 
@@ -1000,4 +995,3 @@ public:
 
 
 #endif
-

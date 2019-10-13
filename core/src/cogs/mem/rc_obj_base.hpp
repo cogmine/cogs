@@ -29,7 +29,7 @@ namespace cogs {
 
 class rc_obj_base;
 
-class rc_object_base;	// seems ambiguous, need better names for these different objects!  TBD
+class rc_object_base; // seems ambiguous, need better names for these different objects!  TBD
 
 
 /// @ingroup Mem
@@ -61,14 +61,14 @@ enum reference_strength_type
 void assert_not_deallocated(const ptr<void>& p);
 #define ASSERT_NOT_DEALLOCATED(p) cogs::assert_not_deallocated(p)
 #else
-#define ASSERT_NOT_DEALLOCATED(p)	
+#define ASSERT_NOT_DEALLOCATED(p)
 #endif
 
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
 void assert_no_overflow(const ptr<void>& p);
 #define ASSERT_NO_OVERFLOW(p) cogs::assert_no_overflow(p)
 #else
-#define ASSERT_NO_OVERFLOW(p)	
+#define ASSERT_NO_OVERFLOW(p)
 #endif
 
 #if COGS_DEBUG_RC_LOGGING 
@@ -95,8 +95,10 @@ private:
 	rc_obj_base(const rc_obj_base&) = delete;
 	rc_obj_base& operator=(const rc_obj_base&) = delete;
 
-	struct counts_t		// Destructed  when m_reference[strong] == 0
-	{					// Deallocated when m_reference[weak] == 0
+	struct counts_t
+	{
+		// Destructed  when m_reference[strong] == 0
+		// Deallocated when m_reference[weak] == 0
 		alignas (atomic::get_alignment_v<size_t>) size_t m_references[2];
 
 		volatile size_t& operator[](reference_strength_type refStrengthType) volatile { return m_references[refStrengthType]; }
@@ -202,7 +204,7 @@ private:
 	void install_tracker()
 	{
 		m_tracker = (rc_obj_base::tracking_header*)malloc(sizeof(rc_obj_base::tracking_header));
-		new (m_tracker) tracking_header(this);	// placement new
+		new (m_tracker) tracking_header(this); // placement new
 
 		volatile aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
 		allocRecord.push(m_tracker);
@@ -501,8 +503,6 @@ public:
 		return false;
 	}
 
-	// Putting the comparison in its own function seems to encourage the compiler to optimize
-	// it out completely.
 	bool release(reference_strength_type refStrengthType = strong, size_t i = 1)
 	{
 		if (refStrengthType == strong)
@@ -595,9 +595,9 @@ public:
 	static constexpr size_t overhead = header_size;
 #endif
 
-	volatile aba_stack<header>	m_allocRecord;
-	volatile ptr<header>			m_firstAdded;
-	volatile ptr<header>			m_lastAdded;
+	volatile aba_stack<header> m_allocRecord;
+	volatile ptr<header> m_firstAdded;
+	volatile ptr<header> m_lastAdded;
 
 	virtual ptr<void> allocate(size_t n, size_t align) volatile
 	{
@@ -705,7 +705,7 @@ public:
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION
 		bool b = hdr->m_deallocated.compare_exchange(int_type(1), 0);
-		COGS_ASSERT(b);	// double-delete detection
+		COGS_ASSERT(b); // double-delete detection
 #endif
 
 #if COGS_DEBUG_ALLOC_BUFFER_DEINIT
@@ -735,9 +735,9 @@ public:
 #endif
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
-	virtual bool try_reallocate(const ptr<void>& p, size_t newSize)	volatile
+	virtual bool try_reallocate(const ptr<void>& p, size_t newSize) volatile
 	{
-		return false;//(newSize <= get_allocation_size(p));	// disable try_reallocate() to make things simpler for debugging.
+		return false;//(newSize <= get_allocation_size(p)); // disable try_reallocate() to make things simpler for debugging.
 	}
 #endif
 

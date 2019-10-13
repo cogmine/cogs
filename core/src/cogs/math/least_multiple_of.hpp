@@ -20,9 +20,12 @@ template <size_t n, size_t multiple_of>
 class least_multiple_of
 {
 public:
-	static constexpr size_t value =	((n % multiple_of) == 0) ? n
-							:	((n < multiple_of) ? multiple_of
-							:	(n-1) + (multiple_of - ((n-1) % multiple_of)));
+	static constexpr size_t value =
+		((n % multiple_of) == 0)
+			? n
+			: ((n < multiple_of)
+				? multiple_of
+				: (n-1) + (multiple_of - ((n-1) % multiple_of)));
 };
 template <size_t n, size_t multiple_of>
 inline constexpr size_t least_multiple_of_v = least_multiple_of<n, multiple_of>::value;

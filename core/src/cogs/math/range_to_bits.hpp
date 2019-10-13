@@ -23,17 +23,16 @@ template <longest min_value, ulongest max_value>
 class range_to_bits
 {
 public:
-	static constexpr size_t bitsRequiredForMin = range_to_bits<0, (ulongest)~min_value >::value + 1;	// if signed
+	static constexpr size_t bitsRequiredForMin = range_to_bits<0, (ulongest)~min_value >::value + 1; // if signed
 	static constexpr size_t bitsRequiredForMax = range_to_bits<0, max_value>::value;
 
 public:
-	static constexpr size_t value = (min_value >= 0) ?
-									bitsRequiredForMax
-								:	(
-										(bitsRequiredForMin > bitsRequiredForMax) ?
-											bitsRequiredForMin
-										:	bitsRequiredForMax
-									);
+	static constexpr size_t value =
+		(min_value >= 0)
+			? bitsRequiredForMax
+			: ((bitsRequiredForMin > bitsRequiredForMax)
+				? bitsRequiredForMin
+				: bitsRequiredForMax);
 };
 template <longest min_value, ulongest max_value> inline constexpr size_t range_to_bits_v = range_to_bits<min_value, max_value>::value;
 
@@ -58,7 +57,7 @@ private:
 	public:
 		static constexpr size_t value = helper<unsigned char, (x >> 1), true>::value + 1;
 	};
-	
+
 	template <typename int_t, int_t x, bool unused>
 	class helper
 	{

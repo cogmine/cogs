@@ -28,7 +28,7 @@ class const_lcm
 {
 private:
 	static constexpr ulongest multiplied_high_part = const_extumul<x, y>::high_part;
-	static constexpr ulongest multiplied_low_part =	const_extumul<x, y>::low_part;
+	static constexpr ulongest multiplied_low_part = const_extumul<x, y>::low_part;
 	static constexpr ulongest gcd = const_gcd<x, y>::value;
 
 public:
@@ -37,8 +37,8 @@ public:
 template <ulongest x, ulongest y>
 inline constexpr ulongest const_lcm_v = const_lcm<x, y>::value;
 
-template <ulongest y> class const_lcm<0, y>	{ public: static constexpr ulongest value = 0; };
-template <ulongest x> class const_lcm<x, 0>	{ public: static constexpr ulongest value = 0; };
+template <ulongest y> class const_lcm<0, y> { public: static constexpr ulongest value = 0; };
+template <ulongest x> class const_lcm<x, 0> { public: static constexpr ulongest value = 0; };
 
 
 }

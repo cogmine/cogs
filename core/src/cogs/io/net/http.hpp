@@ -43,7 +43,7 @@ private:
 	composite_cstring m_password;
 	bool m_useDefaultPort;
 	unsigned short m_port;
-	
+
 public:
 	url(const composite_cstring& s)
 	{
@@ -79,18 +79,18 @@ public:
 		}
 	}
 
-	const composite_cstring& get_scheme() const		{ return m_scheme; }
-	const composite_cstring& get_query() const		{ return m_query; }
-	const composite_cstring& get_fragment() const		{ return m_fragment; }
+	const composite_cstring& get_scheme() const { return m_scheme; }
+	const composite_cstring& get_query() const { return m_query; }
+	const composite_cstring& get_fragment() const { return m_fragment; }
 
-	const composite_cstring& get_path() const			{ return m_path; }
+	const composite_cstring& get_path() const { return m_path; }
 
-	const composite_cstring& get_host() const			{ return m_host; }
-	bool uses_default_port() const			{ return m_useDefaultPort; }
-	unsigned short get_port() const			{ return m_port; }
+	const composite_cstring& get_host() const { return m_host; }
+	bool uses_default_port() const { return m_useDefaultPort; }
+	unsigned short get_port() const { return m_port; }
 
-	const composite_cstring& get_user() const			{ return m_user; }
-	const composite_cstring& get_password() const		{ return m_password; }
+	const composite_cstring& get_user() const { return m_user; }
+	const composite_cstring& get_password() const { return m_password; }
 };
 
 
@@ -103,8 +103,8 @@ class chunk_source;
 class chunk_sink;
 
 class client;
-//class client::request;	// client request	
-//class client::response;	// client response
+//class client::request; // client request
+//class client::response; // client response
 
 class server;
 //class server::connection;
@@ -123,11 +123,11 @@ class server;
 class chunk_source : public filter
 {
 public:
-	typedef nonvolatile_map<composite_cstring, composite_cstring, false>		trailer_map_t;
+	typedef nonvolatile_map<composite_cstring, composite_cstring, false> trailer_map_t;
 
 private:
-	static constexpr size_t max_chunk_size_line_length	= 4 * 1024;	// 4K should be more than enough
-	static constexpr size_t max_trailer_items			= 500;		
+	static constexpr size_t max_chunk_size_line_length = 4 * 1024; // 4K should be more than enough
+	static constexpr size_t max_trailer_items = 500;
 
 	size_t m_remainingChunk = 0; // 0 if not in a chunk.  Otherwise, number of bytes remaining to be read in the chunk
 	composite_cstring m_curLine;
@@ -148,7 +148,7 @@ public:
 			size_t copySize = m_remainingChunk;
 			if (copySize > src.get_length())
 				copySize = src.get_length();
-			if (copySize)	// Some data left in this chunk.  Shovel it.
+			if (copySize) // Some data left in this chunk.  Shovel it.
 			{
 				result.append(src.split_off_before(copySize));
 
@@ -162,44 +162,44 @@ public:
 				COGS_ASSERT(!m_remainingChunk);
 				break;
 			}
-			
+
 			// reading a chunk header
 			for (;!!src;src.advance(1))
 			{
 				buffer buf = src.get_inner(0);
 				const char c = *(const char*)(buf.get_const_ptr());
-				if (c == special_characters<char>::CR)	// Ignore CRs
+				if (c == special_characters<char>::CR) // Ignore CRs
 					continue;
 				if (m_lastCharWasLF)
 				{
 					m_lastCharWasLF = false;
-					if (c == special_characters<char>::LF)	// Terminating blank link.
-						break;	// Refuse to process this char.  Tells the caller we're done reading.
+					if (c == special_characters<char>::LF) // Terminating blank link.
+						break; // Refuse to process this char.  Tells the caller we're done reading.
 
-					if (!m_lastChunkReceived)	// haven't seen an empty/last chunk yet.
+					if (!m_lastChunkReceived) // haven't seen an empty/last chunk yet.
 					{
 						// The format of a chunk size line is: chunk-size [ chunk-extension ] CRLF
 						// chunk-extension= *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
-						
+
 						vector<composite_cstring> parts = m_curLine.split_on(';');
 						m_curLine.clear();
-						
+
 						// For now, just ignore extensions.  TBD
 
 						parts.get_first().trim();
 						m_remainingChunk = parts[0].to_int<size_t>(16);
-						if (!m_remainingChunk)	// 0 byte final chunk indicates the end.
-							m_lastChunkReceived = true;	// next are trailing headers and a final blank line.
+						if (!m_remainingChunk) // 0 byte final chunk indicates the end.
+							m_lastChunkReceived = true; // next are trailing headers and a final blank line.
 					}
 					else // if (!!m_lastChunkReceived)
 					{
-						if (!cstring::is_white_space(c))	
-						{	// Only start a new one, if it didn't start with a blank space.  Otherwise, add the blank space.
+						if (!cstring::is_white_space(c))
+						{ // Only start a new one, if it didn't start with a blank space.  Otherwise, add the blank space.
 							if (m_trailers.size() == max_trailer_items)
-								break;	// Too many options! Refuse to process this char.  Tells the caller we're done reading.
+								break; // Too many options! Refuse to process this char.  Tells the caller we're done reading.
 
 							composite_cstring::position_t pos = m_curLine.position_of(composite_cstring::position_t(0, 0), ':');
-							if (pos == m_curLine.get_end_position())		// Bogus header?
+							if (pos == m_curLine.get_end_position()) // Bogus header?
 								break;
 
 							composite_cstring optionName(m_curLine.subrange(pos));
@@ -217,7 +217,7 @@ public:
 					continue;
 				}
 				if (m_curLine.get_length() == max_chunk_size_line_length)
-					break;	// Give up at this character.  The base class will get the message and close.
+					break; // Give up at this character.  The base class will get the message and close.
 			}
 			// Only continue if there is more data, and m_remainingChunk changed to non-zero
 		} while (!!src && !!m_remainingChunk);
@@ -225,7 +225,7 @@ public:
 		return get_immediate_task(result);
 	}
 
-	const trailer_map_t& get_trailers() const	{ return m_trailers; }
+	const trailer_map_t& get_trailers() const { return m_trailers; }
 };
 
 
@@ -244,10 +244,10 @@ public:
 			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
 			buffer crlfBuf = buffer::contain(CRLF, 2);
 			size_type bufLength = src.get_length();
-			result.append(composite_buffer::from_composite_cstring(bufLength.to_cstring(16)));	// Chunk length
-			result.append(crlfBuf);			// CRLF
-			result.append(src);				// DATA
-			result.append(crlfBuf);			// CRLF
+			result.append(composite_buffer::from_composite_cstring(bufLength.to_cstring(16))); // Chunk length
+			result.append(crlfBuf); // CRLF
+			result.append(src);     // DATA
+			result.append(crlfBuf); // CRLF
 			src.clear();
 			return get_immediate_task(result);
 		},
@@ -296,10 +296,10 @@ composite_cstring url_decode(const composite_cstring& s);
 //			m_netConnection(c)
 //		{ }
 //
-//		const rcref<net::connection>& get_net_connection() const	{ return m_netConnection; }
+//		const rcref<net::connection>& get_net_connection() const { return m_netConnection; }
 //
-//		void close_on_recycle()				{ m_reuse = false; }
-//		bool is_connection_reusable() const	{ return m_reuse; }
+//		void close_on_recycle() { m_reuse = false; }
+//		bool is_connection_reusable() const { return m_reuse; }
 //	};
 //
 //	//rcref<connection> get_connection()
@@ -333,10 +333,10 @@ composite_cstring url_decode(const composite_cstring& s);
 //		// read/write timeout
 //
 //		composite_cstring m_path;
-//		composite_cstring m_method;		// GET, POST, PUT, etc.
-//		composite_cstring m_contentType;	// Content-Type
-//		size_t m_contentLength;	// Content-Length: <numeric>
-//		boolean m_sendChunked;	// Transfer-encoding: chunked
+//		composite_cstring m_method; // GET, POST, PUT, etc.
+//		composite_cstring m_contentType; // Content-Type
+//		size_t m_contentLength; // Content-Length: <numeric>
+//		boolean m_sendChunked; // Transfer-encoding: chunked
 //		boolean m_keepAlive;
 //
 //		composite_cstring m_accept;
@@ -410,7 +410,7 @@ composite_cstring url_decode(const composite_cstring& s);
 //		request_parameters	m_parameters;
 //
 //	public:
-//		const request_parameters& get_request_parameters() const	{ return m_parameters; }
+//		const request_parameters& get_request_parameters() const { return m_parameters; }
 //
 //		explicit request(const request_parameters& parameters)
 //			: m_parameters(parameters)
@@ -440,7 +440,7 @@ composite_cstring url_decode(const composite_cstring& s);
 //		m_maxConnections = maxConnections;
 //	}
 //
-//	static rcref<request> create_request(const composite_cstring& urlString)	{ return create_request(url(urlString)); }
+//	static rcref<request> create_request(const composite_cstring& urlString) { return create_request(url(urlString)); }
 //
 //	static rcref<request> create_request(const url& u)
 //	{
@@ -468,13 +468,13 @@ private:
 	class response;
 
 public:
-	typedef function<void(const rcref<request>&)>	verb_delegate_t;
+	typedef function<void(const rcref<request>&)> verb_delegate_t;
 
-	typedef nonvolatile_map<composite_cstring, composite_cstring, false, case_insensitive_comparator<composite_cstring> >	header_map_t;
-	typedef nonvolatile_map<composite_cstring, verb_delegate_t, true, case_insensitive_comparator<composite_cstring> >		verb_handler_map_t;
+	typedef nonvolatile_map<composite_cstring, composite_cstring, false, case_insensitive_comparator<composite_cstring> > header_map_t;
+	typedef nonvolatile_map<composite_cstring, verb_delegate_t, true, case_insensitive_comparator<composite_cstring> > verb_handler_map_t;
 
 private:
-	static cstring get_version_cstring()	{ return cstring::literal("cogs::io::net::http::server/1.0"); }
+	static cstring get_version_cstring() { return cstring::literal("cogs::io::net::http::server/1.0"); }
 
 	class connection : public net::request_response_server::connection
 	{
@@ -505,7 +505,7 @@ private:
 		{
 			status_continue = 100,
 			status_switching_protocols = 101,
-			status_processing = 102,	// WebDAV, RFC2518
+			status_processing = 102, // WebDAV, RFC2518
 
 			status_ok = 200,
 			status_created = 201,
@@ -513,8 +513,8 @@ private:
 			status_nonauthoritative_information = 203,
 			status_no_content = 204,
 			status_reset_content = 205,
-			status_multi_status = 207,	// WebDAV, RFC4918
-			status_im_used = 226,		// WebDAV, RFC3229
+			status_multi_status = 207, // WebDAV, RFC4918
+			status_im_used = 226, // WebDAV, RFC3229
 
 			status_multiple_choices = 300,
 			status_moved_permanently = 301,
@@ -542,13 +542,13 @@ private:
 			status_unsupported_media_type = 415,
 			status_request_range_not_satisfiable = 416,
 			status_expectation_failed = 417,
-			status_iam_a_teapot = 418,			// joke
-			status_unprocessable_entity = 422,	// WebDAV, RFC4918
-			status_locked = 423,				// WebDAV, RFC4918
-			status_failed_dependency = 424,		// WebDAV, RFC4918
-			status_unordered_collection = 425,	// RFC3649
-			status_upgrade_required = 426,		// RFC2817
-			status_no_response = 444,			// Nginx
+			status_iam_a_teapot = 418, // joke
+			status_unprocessable_entity = 422, // WebDAV, RFC4918
+			status_locked = 423, // WebDAV, RFC4918
+			status_failed_dependency = 424, // WebDAV, RFC4918
+			status_unordered_collection = 425, // RFC3649
+			status_upgrade_required = 426, // RFC2817
+			status_no_response = 444, // Nginx
 			status_retry_with = 449,
 			status_blocked_by_windows_parental_controls = 450,
 			status_client_closed_request = 499,
@@ -559,10 +559,10 @@ private:
 			status_service_unavailable = 503,
 			status_gateway_timeout = 504,
 			status_http_version_not_supported = 505,
-			status_variant_also_negotiates = 506,	// RFC2295
-			status_insufficient_storage = 507,		// WebDAV, RFC4918
-			status_bandwidth_limit_exceeded = 509,	// Apache bw/limited extension
-			status_not_extended = 510				// RFC2274
+			status_variant_also_negotiates = 506, // RFC2295
+			status_insufficient_storage = 507, // WebDAV, RFC4918
+			status_bandwidth_limit_exceeded = 509, // Apache bw/limited extension
+			status_not_extended = 510 // RFC2274
 		};
 
 		enum mode
@@ -588,17 +588,16 @@ private:
 		};
 
 	private:
-		mode	m_mode;
-		size_t	m_contentLength;
-		bool	m_chunkOutgoing;
-		bool	m_chunkIncoming;
+		mode m_mode;
+		size_t m_contentLength;
+		bool m_chunkOutgoing;
 
-		rcptr<chunk_sink>		m_chunkSink;
-		rcptr<io::limiter>		m_sinkContentLengthLimiter;
-		rcptr<datasink>			m_sink;	// Will vary depending on whether chunking filter is used
-		const status_code		m_statusCode;
+		rcptr<chunk_sink> m_chunkSink;
+		rcptr<io::limiter> m_sinkContentLengthLimiter;
+		rcptr<datasink> m_sink; // Will vary depending on whether chunking filter is used
+		const status_code m_statusCode;
 		const composite_cstring m_statusPhrase;
-		const bool				m_reuseConnection;
+		const bool m_reuseConnection;
 
 	protected:
 		friend class server;
@@ -648,19 +647,16 @@ private:
 				if (!m_reuseConnection || m_mode == raw)
 					c->set_connection_reuse(false);
 				if (!c->is_connection_reusable())
-				{	// If connection is not persistent, indicate Connection: close
+				{ // If connection is not persistent, indicate Connection: close
 					// Connection header.  (rfc2616,  14.10 Connection)
 					headers->insert_replace(cstring::literal("Connection"), cstring::literal("close"));
 				}
 
-				m_chunkOutgoing = false;
-				if (m_mode == chunked)
+				m_chunkOutgoing = (m_mode == chunked);
+				if (m_chunkOutgoing)
 				{
-					m_chunkOutgoing = true;
-
 					// Transfer-Encoding header.  (rfc2616,  14.41 Transfer-Encoding)
 					headers->insert_replace(cstring::literal("Transfer-Encoding"), cstring::literal("chunked"));
-
 					m_chunkSink = rcnew(chunk_sink);
 				}
 
@@ -668,11 +664,10 @@ private:
 				{
 					if (m_contentLength != 0)
 					{
-						size_type contentlengthNum = m_contentLength;
+						size_type contentLengthNum = m_contentLength;
 
 						// Content-Length header.  (rfc2616,  14.13 Content-Length)
-						headers->insert_replace(cstring::literal("Content-Length"), contentlengthNum.to_cstring());
-
+						headers->insert_replace(cstring::literal("Content-Length"), contentLengthNum.to_cstring());
 						m_sinkContentLengthLimiter = rcnew(limiter, m_contentLength);
 					}
 				}
@@ -709,7 +704,7 @@ private:
 			}
 		}
 
-		virtual rcref<datasink> get_datasink() const		{ return m_sink.dereference(); }
+		virtual rcref<datasink> get_datasink() const { return m_sink.dereference(); }
 
 		virtual void completing()
 		{
@@ -725,35 +720,35 @@ private:
 		friend class connection;
 		friend class server;
 
-		static constexpr size_t max_request_length = 64 * 1024;	// 64K
-		static constexpr size_t max_header_item_length = 8 * 1024;	//  8K
+		static constexpr size_t max_request_length = 64 * 1024; // 64K
+		static constexpr size_t max_header_item_length = 8 * 1024; //  8K
 
 		// Max number of header option items
 		static constexpr size_t max_header_items = 500;
 
-		composite_cstring		m_requestLine;
-		composite_cstring		m_method;
-		composite_cstring		m_requestURI;
-		composite_cstring		m_httpVersionString;
-		uint16_t				m_httpVersionMajor;
-		uint16_t				m_httpVersionMinor;
-		bool					m_supportOutgoingChunking;
+		composite_cstring m_requestLine;
+		composite_cstring m_method;
+		composite_cstring m_requestURI;
+		composite_cstring m_httpVersionString;
+		uint16_t m_httpVersionMajor;
+		uint16_t m_httpVersionMinor;
+		bool m_supportOutgoingChunking;
 
-		rcref<header_map_t>		m_requestHeaders;
-		rcref<header_map_t>		m_responseHeaders;
+		rcref<header_map_t> m_requestHeaders;
+		rcref<header_map_t> m_responseHeaders;
 
-		size_t					m_contentLength;
+		size_t m_contentLength;
 
-		composite_buffer		m_bufferedWrite;
-		int						m_CRLFs;	// 0 = none found, 1 = CR, 2 = CRLF, 3 = CRLFCR, (until CRLFCRLF)
+		composite_buffer m_bufferedWrite;
+		int m_CRLFs; // 0 = none found, 1 = CR, 2 = CRLF, 3 = CRLFCR, (until CRLFCRLF)
 
-		rcref<datasink>			m_sink;
+		rcref<datasink> m_sink;
 
-		rcptr<chunk_source>		m_chunkSource;
-		rcptr<io::limiter>		m_sourceContentLengthLimiter;
-		rcptr<datasource>		m_source;
+		rcptr<chunk_source> m_chunkSource;
+		rcptr<io::limiter> m_sourceContentLengthLimiter;
+		rcptr<datasource> m_source;
 
-		rcptr<task<void> >	m_coupler;
+		rcptr<task<void> > m_coupler;
 
 	private:
 		rcref<task<bool> > process_write(composite_buffer& compBuf)
@@ -771,7 +766,7 @@ private:
 				if (++requestSize > max_request_length)
 				{
 					error_reply(response::status_bad_request, cstring::literal("Request Too Large"))->complete();
-					closing = true;	// Don't bother catching up with the buffer, we're closing it before it finishes.
+					closing = true; // Don't bother catching up with the buffer, we're closing it before it finishes.
 					break;
 				}
 
@@ -819,7 +814,7 @@ private:
 						{
 							buffer buf = m_bufferedWrite.get_inner(0);
 							const char c = ((const char*)(buf.get_const_ptr()))[0];
-							if (c == special_characters<char>::CR)	// Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
+							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
 								continue;
 							if (c != special_characters<char>::LF)
 							{
@@ -834,7 +829,7 @@ private:
 							}
 							else // (c == special_characters<char>::LF)
 							{
-								if (m_requestLine.is_empty())	// ignore leading blank lines
+								if (m_requestLine.is_empty()) // ignore leading blank lines
 									continue;
 
 								m_bufferedWrite.advance(1);
@@ -844,7 +839,7 @@ private:
 									m_method = parts[0];
 									m_requestURI = parts[1];
 									m_httpVersionString = parts[2];
-									m_httpVersionString.advance(5);	// Skip past "HTTP/"
+									m_httpVersionString.advance(5); // Skip past "HTTP/"
 									parts = m_httpVersionString.split_on('.');
 									if (parts.get_length() == 2)
 									{
@@ -868,7 +863,7 @@ private:
 						{
 							buffer buf = m_bufferedWrite.get_inner(0);
 							const char c = ((const char*)(buf.get_const_ptr()))[0];
-							if (c == special_characters<char>::CR)	// Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
+							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
 								continue;
 							if (lastCharWasLF)
 							{
@@ -886,13 +881,13 @@ private:
 									{
 										// Only start a new one, if it didn't start with a blank space.  Otherwise, add the blank space.
 										if (m_requestHeaders->size() == max_header_items)
-										{	// Too many options!
+										{ // Too many options!
 											error_reply()->complete();
 											break;
 										}
 
 										size_t i2 = currentHeader.index_of(':');
-										if (i2 == -1)	// Bogus header?
+										if (i2 == -1) // Bogus header?
 										{
 											error_reply()->complete();
 											break;
@@ -921,11 +916,11 @@ private:
 						}
 					}
 
-					if (curState == process_message_body)	// Done reading.  Validate the request.
+					if (curState == process_message_body) // Done reading.  Validate the request.
 					{
 						// Before we receive a message body, we need to validate the request.
 						if (m_httpVersionMajor != 1)
-							error_reply(response::status_http_version_not_supported, cstring::literal("HTTP Version Not Supported"))->complete();	// TDB: bad_request
+							error_reply(response::status_http_version_not_supported, cstring::literal("HTTP Version Not Supported"))->complete(); // TDB: bad_request
 						else
 						{
 							bool useIncomingChunking = false;
@@ -973,7 +968,7 @@ private:
 								else
 								{
 									header_map_t::iterator itor = m_requestHeaders->find(cstring::literal("Content-Length"));
-									if (!!itor)			// if known content length, add a limiter.
+									if (!!itor) // if known content length, add a limiter.
 									{
 										m_contentLength = itor->to_int<size_t>();
 										m_sourceContentLengthLimiter = rcnew(limiter, m_contentLength);
@@ -1045,7 +1040,7 @@ private:
 		}
 
 	public:
-		virtual rcref<datasource> get_datasource() const	{ return m_source.dereference(); }
+		virtual rcref<datasource> get_datasource() const { return m_source.dereference(); }
 
 		void send_100_continue()
 		{
@@ -1125,9 +1120,9 @@ private:
 			return r;
 		}
 
-		const composite_cstring& get_URI() const						{ return m_requestURI; }
-		rcref<const header_map_t> get_request_headers()		{ return m_requestHeaders; }
-		const rcref<header_map_t>& get_response_headers()	{ return m_responseHeaders; }
+		const composite_cstring& get_URI() const { return m_requestURI; }
+		rcref<const header_map_t> get_request_headers() { return m_requestHeaders; }
+		const rcref<header_map_t>& get_response_headers() { return m_responseHeaders; }
 
 		composite_cstring get_allow_string() const
 		{
@@ -1165,7 +1160,7 @@ private:
 		return rcnew(bypass_constructor_permission<request>, c);
 	}
 
-	rcref<verb_handler_map_t>		m_verbHandlerMap;
+	rcref<verb_handler_map_t> m_verbHandlerMap;
 
 	server(const server&) = delete;
 
@@ -1178,12 +1173,12 @@ private:
 	{
 		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
-	
+
 	static void default_post_handler(const rcref<request>& r)
 	{
 		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
-	
+
 	static void default_head_handler(const rcref<request>& r)
 	{
 		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
@@ -1203,7 +1198,7 @@ private:
 	{
 		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
-	
+
 	static void default_options_handler(const rcref<request>& r)
 	{
 		r->get_response_headers()->insert_replace(cstring::literal("Allow"), r->get_allow_string());
@@ -1257,7 +1252,7 @@ public:
 		m_verbHandlerMap(verbHandlers)
 	{ }
 
-	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2;	// 2 minute inactivity timeout
+	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2; // 2 minute inactivity timeout
 	// The inactivity timeout must be extended by a handler that does something appropriate to extend
 	// the lifetime of the connection.  Care should be taken to prevent denial-of-service attacks,
 	// such as clients establishing unnecessary connections and leaving them connected, to try to

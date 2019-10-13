@@ -30,7 +30,6 @@ inline std::enable_if_t<
 	size_t
 >
 bit_scan_reverse(const int_t& bits);
-	
 
 // bits must not be zero
 template <typename int_t>

@@ -21,8 +21,8 @@
 namespace cogs {
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 namespace io
 {
@@ -112,7 +112,7 @@ public:
 	typedef T type;
 	typedef type char_t;
 
-	typedef string_t<type>	this_t;
+	typedef string_t<type> this_t;
 
 protected:
 	template <typename>
@@ -125,9 +125,9 @@ protected:
 
 	typedef vector<type> vector_t;
 
-	vector_t	m_contents;
+	vector_t m_contents;
 
-	static size_t count_chars(const type* ltrl)	// A good compiler should be able to optimize this out, if used with a literal.
+	static size_t count_chars(const type* ltrl) // A good compiler should be able to optimize this out, if used with a literal.
 	{
 		size_t l = 0;
 		if (ltrl)
@@ -140,12 +140,12 @@ protected:
 
 	explicit string_t(const vector_t& v) : m_contents(v) { }
 
-	void set(typename vector_t::desc_t* d, type* p, size_t n)	{ m_contents.set(d, p, n); }
+	void set(typename vector_t::desc_t* d, type* p, size_t n) { m_contents.set(d, p, n); }
 
-	void disown()	{ m_contents.disown(); }
+	void disown() { m_contents.disown(); }
 
-	typename vector_t::desc_t* get_desc() const	{ return m_contents.get_desc(); }
-	type* get_raw_ptr()const					{ return m_contents.get_raw_ptr(); }
+	typename vector_t::desc_t* get_desc() const { return m_contents.get_desc(); }
+	type* get_raw_ptr()const { return m_contents.get_raw_ptr(); }
 
 public:
 	operator vector_t&() { return m_contents; }
@@ -153,10 +153,10 @@ public:
 	operator volatile vector_t&() const { return m_contents; }
 	operator const volatile vector_t&() const { return m_contents; }
 
-	vector_t& get_vector()					{ return m_contents; }
-	const          vector_t& get_vector() const				{ return m_contents; }
-	      volatile vector_t& get_vector()       volatile	{ return m_contents; }
-	const volatile vector_t& get_vector() const volatile	{ return m_contents; }
+	vector_t& get_vector() { return m_contents; }
+	const vector_t& get_vector() const { return m_contents; }
+	volatile vector_t& get_vector() volatile { return m_contents; }
+	const volatile vector_t& get_vector() const volatile { return m_contents; }
 
 	static const this_t& from_vector(const vector_t& v, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned())
 	{
@@ -250,18 +250,17 @@ public:
 		const_iterator prev() const { const_iterator result(*this); --result; return result; }
 	};
 
-	const_iterator get_first_const_iterator() const		{ return m_contents.get_first_const_iterator(); }
-	const_iterator get_last_const_iterator() const		{ return m_contents.get_last_const_iterator(); }
+	const_iterator get_first_const_iterator() const { return m_contents.get_first_const_iterator(); }
+	const_iterator get_last_const_iterator() const { return m_contents.get_last_const_iterator(); }
 
-	iterator get_first_iterator()						{ return m_contents.get_first_iterator(); }
-	iterator get_last_iterator()						{ return m_contents.get_last_iterator(); }
+	iterator get_first_iterator() { return m_contents.get_first_iterator(); }
+	iterator get_last_iterator() { return m_contents.get_last_iterator(); }
 
-	static this_t literal(const type* src)				{ return this_t(count_chars(src), src); }
-	static this_t literal(type& src)					{ return this_t(1, &src); }
+	static this_t literal(const type* src) { return this_t(count_chars(src), src); }
+	static this_t literal(type& src) { return this_t(1, &src); }
 
-	static this_t contain(const type* src)				{ return this_t(count_chars(src), src); }
-	static this_t contain(const type* src, size_t n)	{ return this_t(n, src); }
-
+	static this_t contain(const type* src) { return this_t(count_chars(src), src); }
+	static this_t contain(const type* src, size_t n) { return this_t(n, src); }
 
 	string_t(this_t&& src)
 		: m_contents(std::move(src.m_contents))
@@ -273,20 +272,19 @@ public:
 		return *this;
 	}
 
-
 	string_t()
 	{ }
 
 	string_t(const this_t& src)
-		:	m_contents(src.m_contents)
+		: m_contents(src.m_contents)
 	{ }
 
-	string_t(const volatile this_t& src)		
-		:	m_contents(src.m_contents)
+	string_t(const volatile this_t& src)
+		: m_contents(src.m_contents)
 	{ }
 
 	string_t(const type& src)
-		:	m_contents(1, src)
+		: m_contents(1, src)
 	{ }
 
 	string_t(size_t n, const type& src)
@@ -302,46 +300,46 @@ public:
 	{ }
 
 	string_t(const this_t& src, size_t i)
-		:	m_contents(src.m_contents, i)		
+		: m_contents(src.m_contents, i)
 	{ }
-	
+
 	string_t(const volatile this_t& src, size_t i)
-		:	m_contents(src.m_contents, i)		
+		: m_contents(src.m_contents, i)
 	{ }
-	
+
 	string_t(const this_t& src, size_t i, size_t n)
-		:	m_contents(src.m_contents, i, n)	
+		: m_contents(src.m_contents, i, n)
 	{ }
-	
+
 	string_t(const volatile this_t& src, size_t i, size_t n)
-		:	m_contents(src.m_contents, i, n)	
+		: m_contents(src.m_contents, i, n)
 	{ }
-	
-	bool is_unowned() const						{ return m_contents.is_unowned(); }
-	bool is_unowned() const volatile			{ return m_contents.is_unowned(); }
 
-	bool is_owned() const						{ return m_contents.is_owned(); }
-	bool is_owned() const volatile				{ return m_contents.is_owned(); }
+	bool is_unowned() const { return m_contents.is_unowned(); }
+	bool is_unowned() const volatile { return m_contents.is_unowned(); }
 
-	bool is_shared() const						{ return m_contents.is_shared(); }
-	bool is_shared() const volatile				{ return m_contents.is_shared(); }
+	bool is_owned() const { return m_contents.is_owned(); }
+	bool is_owned() const volatile { return m_contents.is_owned(); }
 
-	size_t get_length() const					{ return m_contents.get_length(); }
-	size_t get_length() const volatile			{ return m_contents.get_length(); }
+	bool is_shared() const { return m_contents.is_shared(); }
+	bool is_shared() const volatile { return m_contents.is_shared(); }
 
-	size_t get_capacity() const					{ return m_contents.get_capacity(); }
-	size_t get_reverse_capacity() const			{ return m_contents.get_reverse_capacity(); }
+	size_t get_length() const { return m_contents.get_length(); }
+	size_t get_length() const volatile { return m_contents.get_length(); }
 
-	bool is_empty() const						{ return m_contents.is_empty(); }
-	bool is_empty() const volatile				{ return m_contents.is_empty(); }
+	size_t get_capacity() const { return m_contents.get_capacity(); }
+	size_t get_reverse_capacity() const { return m_contents.get_reverse_capacity(); }
 
-	bool operator!() const						{ return !m_contents; }
-	bool operator!() const volatile				{ return !m_contents; }
+	bool is_empty() const { return m_contents.is_empty(); }
+	bool is_empty() const volatile { return m_contents.is_empty(); }
 
-	const type* get_const_ptr() const			{ return m_contents.get_const_ptr(); }
-	
+	bool operator!() const { return !m_contents; }
+	bool operator!() const volatile { return !m_contents; }
+
+	const type* get_const_ptr() const { return m_contents.get_const_ptr(); }
+
 	// caller error to pass index >= length
-	const type& operator[](size_t i) const		{ return m_contents[i]; }
+	const type& operator[](size_t i) const { return m_contents[i]; }
 
 	const this_t& subrange(size_t i, size_t n = const_max_int_v<size_t>, unowned_t<this_t>& storage = unowned_t<this_t>().get_unowned()) const
 	{
@@ -609,32 +607,32 @@ public:
 
 
 
-	bool operator>(const this_t& src) const			{ return is_greater_than(src); }
+	bool operator>(const this_t& src) const { return is_greater_than(src); }
 
-	bool operator>(const volatile this_t& src) const		 			{ return is_greater_than(src); }
+	bool operator>(const volatile this_t& src) const { return is_greater_than(src); }
 
-	bool operator>(const this_t& src) const volatile	{ return is_greater_than(src); }
-
-
-	bool operator<(const this_t& src) const 			{ return is_less_than(src); }
-
-	bool operator<(const volatile this_t& src) const					{ return is_less_than(src); }
-
-	bool operator<(const this_t& src) const volatile	{ return is_less_than(src); }
+	bool operator>(const this_t& src) const volatile { return is_greater_than(src); }
 
 
-	bool operator>=(const this_t& src) const 			{ return !is_less_than(src); }
+	bool operator<(const this_t& src) const { return is_less_than(src); }
 
-	bool operator>=(const volatile this_t& src) const				{ return !is_less_than(src); }
+	bool operator<(const volatile this_t& src) const { return is_less_than(src); }
+
+	bool operator<(const this_t& src) const volatile { return is_less_than(src); }
+
+
+	bool operator>=(const this_t& src) const { return !is_less_than(src); }
+
+	bool operator>=(const volatile this_t& src) const { return !is_less_than(src); }
 
 	bool operator>=(const this_t& src) const volatile { return !is_less_than(src); }
 
 
-	bool operator<=(const this_t& src) const			{ return !is_greater_than(src); }
+	bool operator<=(const this_t& src) const { return !is_greater_than(src); }
 
-	bool operator<=(const volatile this_t& src) const				{ return !is_greater_than(src); }
+	bool operator<=(const volatile this_t& src) const { return !is_greater_than(src); }
 
-	bool operator<=(const this_t& src) const volatile	{ return !is_greater_than(src); }
+	bool operator<=(const this_t& src) const volatile { return !is_greater_than(src); }
 
 
 
@@ -689,7 +687,7 @@ public:
 		return m_contents.template index_of<type, case_insensitive_comparator<type> >(i, cmp);
 	}
 
-	size_t index_of(size_t i, const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile	
+	size_t index_of(size_t i, const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.index_of(i, cmp);
@@ -706,7 +704,7 @@ public:
 	}
 
 
-	size_t index_of(const type* cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile	
+	size_t index_of(const type* cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.index_of(cmp, n);
@@ -771,14 +769,13 @@ public:
 		return m_contents.template index_of<type, case_insensitive_comparator<type> >(i, cmp.m_contents);
 	}
 
-	
 	bool contains(const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.contains(cmp);
 		return m_contents.template contains<type, case_insensitive_comparator<type> >(cmp);
 	}
-	
+
 	bool contains(const type& cmp, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
@@ -806,7 +803,7 @@ public:
 			return m_contents.contains_segment(cmp, n);
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(cmp, n);
 	}
-	
+
 	bool contains_segment(const type* cmp, size_t n, is_case_sensitive_t caseSensitivity = is_case_sensitive) const volatile
 	{
 		if (caseSensitivity == is_case_sensitive)
@@ -836,97 +833,95 @@ public:
 	}
 
 
+	this_t operator+(const type& src) const { this_t tmp(*this); tmp += src; return tmp; }
+
+	this_t operator+(const this_t& src) const { this_t tmp(*this); tmp += src; return tmp; }
+
+	this_t operator+(const volatile this_t& src) const { this_t tmp(*this); tmp += src; return tmp; }
+
+	this_t operator+(const this_t& src) const volatile { this_t tmp(*this); tmp += src; return tmp; }
 
 
-	this_t operator+(const type& src) const									{ this_t tmp(*this); tmp += src; return tmp; }
+	type* get_ptr() { return m_contents.get_ptr(); }
 
-	this_t operator+(const this_t& src) const			{ this_t tmp(*this); tmp += src; return tmp; }
+	void set_index(size_t i, const type& src) { m_contents.set_index(i, src); }
 
-	this_t operator+(const volatile this_t& src) const					{ this_t tmp(*this); tmp += src; return tmp; }
+	void reverse() { m_contents.reverse(); }
 
-	this_t operator+(const this_t& src) const volatile	{ this_t tmp(*this); tmp += src; return tmp; }
+	void set_to_subrange(size_t i) { m_contents.set_to_subrange(i); }
+	void set_to_subrange(size_t i) volatile { m_contents.set_to_subrange(i); }
+
+	void set_to_subrange(size_t i, size_t n) { m_contents.set_to_subrange(i, n); }
+
+	void set_to_subrange(size_t i, size_t n) volatile { m_contents.set_to_subrange(i, n); }
+
+	void clear() { m_contents.clear(); }
+	void clear() volatile { m_contents.clear(); }
+
+	// clears reserved space as well
+	void reset() { m_contents.reset(); }
+	void reset() volatile { m_contents.reset(); }
+
+	void reserve(size_t n) { m_contents.reserve(n); }
+
+	size_t get_capacity() { return m_contents.get_capacity(); }
+	size_t get_reverse_capacity() { return m_contents.get_reverse_capacity(); }
+
+	void assign(const type& src) { m_contents.assign(1, src); }
+	void assign(const type& src) volatile { m_contents.assign(1, src); }
+	void assign(size_t n, const type& src) { m_contents.assign(n, src); }
+	void assign(size_t n, const type& src) volatile { m_contents.assign(n, src); }
+	void assign(const type* src, size_t n) { m_contents.assign(src, n); }
+	void assign(const type* src, size_t n) volatile { m_contents.assign(src, n); }
+	void assign(const this_t& src) { m_contents.assign(src.m_contents); }
+	void assign(const this_t& src) volatile { m_contents.assign(src.m_contents); }
+	void assign(const volatile this_t& src) { m_contents.assign(src.m_contents); }
+
+	this_t& operator=(const type& src) { m_contents.assign(1, src); return *this; }
+	this_t operator=(const type& src) volatile { this_t tmp(1, src); m_contents.assign(tmp); return tmp; }
+	this_t& operator=(const this_t& src) { assign(src); return *this; }
+	this_t operator=(const this_t& src) volatile { assign(src); return src; }
+	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
+
+	void append(const type& src) { m_contents.append(1, src); }
+	void append(size_t n, const type& src) { m_contents.append(n, src); }
+	void append(const type* src, size_t n) { m_contents.append(src, n); }
+	void append(const this_t& src) { m_contents.append(src.m_contents); }
+	void append(const volatile this_t& src) { m_contents.append(src.m_contents); }
+
+	this_t& operator+=(const type& src) { append(src); return *this; }
+	this_t& operator+=(const this_t& src) { append(src); return *this; }
+	this_t& operator+=(const volatile this_t& src) { append(src); return *this; }
+
+	void prepend(const type& src) { m_contents.prepend(1, src); }
+	void prepend(size_t n, const type& src) { m_contents.prepend(n, src); }
+	void prepend(const type* src, size_t n) { m_contents.prepend(src, n); }
+	void prepend(const this_t& src) { m_contents.prepend(src.m_contents); }
+	void prepend(const volatile this_t& src) { m_contents.prepend(src.m_contents); }
 
 
-	type* get_ptr()										{ return m_contents.get_ptr(); }
-
-	void set_index(size_t i, const type& src)			{ m_contents.set_index(i, src); }
-
-	void reverse()										{ m_contents.reverse(); }
-	
-	void set_to_subrange(size_t i)						{ m_contents.set_to_subrange(i); }
-	void set_to_subrange(size_t i) volatile				{ m_contents.set_to_subrange(i); }
-
-	void set_to_subrange(size_t i, size_t n)			{ m_contents.set_to_subrange(i, n); }
-
-	void set_to_subrange(size_t i, size_t n) volatile	{ m_contents.set_to_subrange(i, n); }
-
-	void clear()										{ m_contents.clear(); }
-	void clear() volatile								{ m_contents.clear(); }
-
-	// clears reserved space as well	
-	void reset()										{ m_contents.reset(); }
-	void reset() volatile								{ m_contents.reset(); }
-
-	void reserve(size_t n)					{ m_contents.reserve(n); }
-
-	size_t get_capacity()			{ return m_contents.get_capacity(); }
-	size_t get_reverse_capacity()	{ return m_contents.get_reverse_capacity(); }
-
-	void assign(const type& src)						{ m_contents.assign(1, src); }
-	void assign(const type& src) volatile				{ m_contents.assign(1, src); }
-	void assign(size_t n, const type& src)				{ m_contents.assign(n, src); }
-	void assign(size_t n, const type& src) volatile		{ m_contents.assign(n, src); }
-	void assign(const type* src, size_t n)				{ m_contents.assign(src, n); }
-	void assign(const type* src, size_t n) volatile		{ m_contents.assign(src, n); }
-	void assign(const this_t& src)						{ m_contents.assign(src.m_contents); }
-	void assign(const this_t& src) volatile				{ m_contents.assign(src.m_contents); }
-	void assign(const volatile this_t& src)				{ m_contents.assign(src.m_contents); }
-
-	this_t& operator=(const type& src)					{ m_contents.assign(1, src); return *this; }
-	this_t operator=(const type& src) volatile			{ this_t tmp(1, src); m_contents.assign(tmp); return tmp; }
-	this_t& operator=(const this_t& src)				{ assign(src); return *this; }
-	this_t operator=(const this_t& src) volatile		{ assign(src); return src; }
-	this_t& operator=(const volatile this_t& src)		{ assign(src); return *this; }
-
-	void append(const type& src)						{ m_contents.append(1, src); }
-	void append(size_t n, const type& src)				{ m_contents.append(n, src); }
-	void append(const type* src, size_t n)				{ m_contents.append(src, n); }
-	void append(const this_t& src)						{ m_contents.append(src.m_contents); }
-	void append(const volatile this_t& src)				{ m_contents.append(src.m_contents); }
-	
-	this_t& operator+=(const type& src)					{ append(src); return *this; }
-	this_t& operator+=(const this_t& src)				{ append(src); return *this; }
-	this_t& operator+=(const volatile this_t& src)		{ append(src); return *this; }
-	
-	void prepend(const type& src)						{ m_contents.prepend(1, src); }
-	void prepend(size_t n, const type& src)				{ m_contents.prepend(n, src); }
-	void prepend(const type* src, size_t n)				{ m_contents.prepend(src, n); }
-	void prepend(const this_t& src)						{ m_contents.prepend(src.m_contents); }
-	void prepend(const volatile this_t& src)			{ m_contents.prepend(src.m_contents); }
-
-	
-	void resize(size_t n)						{ m_contents.resize(n); }
+	void resize(size_t n) { m_contents.resize(n); }
 
 	template <typename type2 = type>
-	void resize(size_t n, const type2& src)		{ m_contents.resize(n, src); }
+	void resize(size_t n, const type2& src) { m_contents.resize(n, src); }
 
-	void erase(size_t i)						{ m_contents.erase(i); }
-	void erase(size_t i, size_t n)				{ m_contents.erase(i, n); }
+	void erase(size_t i) { m_contents.erase(i); }
+	void erase(size_t i, size_t n) { m_contents.erase(i, n); }
 
-	void advance(size_t n = 1)					{ m_contents.advance(n); }
+	void advance(size_t n = 1) { m_contents.advance(n); }
 
-	void truncate_to(size_t n)					{ m_contents.truncate_to(n); }
-	
-	void truncate(size_t n)						{ m_contents.truncate(n); }
+	void truncate_to(size_t n) { m_contents.truncate_to(n); }
 
-	void truncate_to_right(size_t n)			{ m_contents.truncate_to_right(n); }
+	void truncate(size_t n) { m_contents.truncate(n); }
 
-	
-	void insert(size_t i, size_t n)						{ m_contents.insert(i, n); }
-	void insert(size_t i, size_t n, const type& src)	{ m_contents.insert(i, n, src); }
-	void insert(size_t i, const type* src, size_t n)			{ m_contents.insert(i, src, n); }
-	void insert(size_t i, const this_t& src)	{ m_contents.insert(i, src.m_contents); }
-	void insert(size_t i, const volatile this_t& src)		{ m_contents.insert(i, src.m_contents); }
+	void truncate_to_right(size_t n) { m_contents.truncate_to_right(n); }
+
+
+	void insert(size_t i, size_t n) { m_contents.insert(i, n); }
+	void insert(size_t i, size_t n, const type& src) { m_contents.insert(i, n, src); }
+	void insert(size_t i, const type* src, size_t n) { m_contents.insert(i, src, n); }
+	void insert(size_t i, const this_t& src) { m_contents.insert(i, src.m_contents); }
+	void insert(size_t i, const volatile this_t& src) { m_contents.insert(i, src.m_contents); }
 
 	void insert(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
 	{
@@ -940,13 +935,13 @@ public:
 
 
 
-	void replace(size_t i, size_t replaceLength, const type& src)			{ m_contents.replace(i, replaceLength, src); }
+	void replace(size_t i, size_t replaceLength, const type& src) { m_contents.replace(i, replaceLength, src); }
 
-	void replace(size_t i, const type* src, size_t replaceLength)			{ m_contents.replace(i, src, replaceLength); }
+	void replace(size_t i, const type* src, size_t replaceLength) { m_contents.replace(i, src, replaceLength); }
 
-	void replace(size_t i, const this_t& src)		{ m_contents.replace(i, src.m_contents); }
+	void replace(size_t i, const this_t& src) { m_contents.replace(i, src.m_contents); }
 
-	void replace(size_t i, const volatile this_t& src)			{ m_contents.replace(i, src.m_contents); }
+	void replace(size_t i, const volatile this_t& src) { m_contents.replace(i, src.m_contents); }
 
 
 	void replace(size_t i, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
@@ -960,15 +955,19 @@ public:
 	}
 
 
-	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type& src)	{ m_contents.insert_replace(i, replaceLength, insertLength, src); }
+	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type& src) { m_contents.insert_replace(i, replaceLength, insertLength, src); }
 
-	void insert_replace(size_t i, size_t replaceLength, type* src, size_t insertLength)	{ m_contents.insert_replace(i, replaceLength, src, insertLength); }
+	void insert_replace(size_t i, size_t replaceLength, type* src, size_t insertLength) { m_contents.insert_replace(i, replaceLength, src, insertLength); }
 
 	void insert_replace(size_t i, size_t replaceLength, const this_t& src)
-	{ m_contents.insert_replace(i, replaceLength, src.m_contents); }
+	{
+		m_contents.insert_replace(i, replaceLength, src.m_contents);
+	}
 
 	void insert_replace(size_t i, size_t replaceLength, const volatile this_t& src)
-	{ m_contents.insert_replace(i, replaceLength, src.m_contents); }
+	{
+		m_contents.insert_replace(i, replaceLength, src.m_contents);
+	}
 
 
 	void insert_replace(size_t i, size_t replaceLength, const this_t& src, size_t srcIndex, size_t n = const_max_int_v<size_t>)
@@ -983,11 +982,11 @@ public:
 
 
 
-	void swap(this_t& wth)					{ m_contents.swap(wth.m_contents); }
+	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	void swap(this_t& wth) volatile			{ m_contents.swap(wth.m_contents); }
+	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
 
-	void swap(volatile this_t& wth)			{ wth.swap(*this); }
+	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	this_t split_off_before(size_t i)
 	{
@@ -1024,14 +1023,14 @@ public:
 		result.m_contents = m_contents.split_off_front(n);
 		return result;
 	}
-	
+
 	this_t split_off_front(size_t n) volatile
 	{
 		this_t result;
 		result.m_contents = m_contents.split_off_front(n);
 		return result;
 	}
-	
+
 	this_t split_off_back(size_t n)
 	{
 		this_t result;
@@ -1045,7 +1044,7 @@ public:
 		result.m_contents = m_contents.split_off_back(n);
 		return result;
 	}
-	
+
 	vector<this_t> split_on(const type& splitOn, split_options opt = split_includes_empty_segments) const
 	{
 		return vector_t::template split_on_any_inner<this_t>(*this, &splitOn, 1, opt);
@@ -1119,7 +1118,7 @@ public:
 		static constexpr type empty_cstr = (type)0;
 		size_t length = get_length();
 		if (!length)
-			return &empty_cstr;	// rather than allocate a buffer just for a terminator
+			return &empty_cstr; // rather than allocate a buffer just for a terminator
 
 		// Unforunately, this means that a terminated string literal will be copied if extracted using cstr().
 		vector_t& tmp = const_cast<this_t*>(this)->m_contents;
@@ -1237,7 +1236,7 @@ public:
 		result.trim_end();
 		return result;
 	}
-	
+
 	static type get_uppercase(const type& c);
 	static type get_lowercase(const type& c);
 
@@ -1322,7 +1321,7 @@ public:
 	}
 
 	template <typename int_t>
-	int_t to_int(unsigned int radix = 0) const	// Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex 
+	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex 
 	{
 		int_t result = 0;
 
@@ -1331,7 +1330,7 @@ public:
 			radix = 10;
 		else if (radix > 36)
 			radix = 36;
-	
+
 		bool neg = false;
 		this_t tmp(*this);
 		tmp.trim();
@@ -1340,7 +1339,7 @@ public:
 		{
 			if (!tmp.get_length())
 				break;
-			
+
 			if (tmp.get_const_ptr()[0] == (type)'+')
 				tmp.advance();
 			else if (tmp.get_const_ptr()[0] == (type)'-')
@@ -1372,7 +1371,7 @@ public:
 			for (size_t i = 0; i < length; i++)
 			{
 				type c = tmp.get_const_ptr()[i];
-				if (c == (type)'.')	// stop at a deciminal place
+				if (c == (type)'.') // stop at a deciminal place
 					break;
 				if ((c >= (type)'0') && (c <= maxDecimalDigit))
 				{
@@ -1389,7 +1388,7 @@ public:
 					result *= radix;
 					result += 10 + (c - (type)'A');
 				}
-				else //if (!is_white_space(c))	// unhandleable characters cause 0 to be returned
+				else //if (!is_white_space(c)) // unhandleable characters cause 0 to be returned
 				{
 					result = 0;
 					break;
@@ -1401,14 +1400,14 @@ public:
 			for (size_t i = 0; i < length; i++)
 			{
 				type c = tmp.get_const_ptr()[i];
-				if (c == (type)'.')	// stop at a deciminal place
+				if (c == (type)'.') // stop at a deciminal place
 					break;
 				if ((c >= (type)'0') && (c <= maxDecimalDigit))
 				{
 					result *= radix;
 					result += c - (type)'0';
 				}
-				else //if (!is_white_space(c))	// unhandleable characters cause 0 to be returned
+				else //if (!is_white_space(c)) // unhandleable characters cause 0 to be returned
 				{
 					result = 0;
 					break;
@@ -1483,18 +1482,18 @@ inline bool string_t<wchar_t>::is_white_space(const wchar_t& c)
 }
 
 
-template <> inline char string_t<char>::get_uppercase(const char& c)				{ return toupper(c); }
-template <> inline char string_t<char>::get_lowercase(const char& c)				{ return tolower(c); }
-template <> inline wchar_t string_t<wchar_t>::get_uppercase(const wchar_t& c)		{ return towupper(c); }
-template <> inline wchar_t string_t<wchar_t>::get_lowercase(const wchar_t& c)		{ return towlower(c); }
+template <> inline char string_t<char>::get_uppercase(const char& c) { return toupper(c); }
+template <> inline char string_t<char>::get_lowercase(const char& c) { return tolower(c); }
+template <> inline wchar_t string_t<wchar_t>::get_uppercase(const wchar_t& c) { return towupper(c); }
+template <> inline wchar_t string_t<wchar_t>::get_lowercase(const wchar_t& c) { return towlower(c); }
 
 
 
-typedef string_t<char>		cstring;
-typedef string_t<wchar_t>	string;
+typedef string_t<char> cstring;
+typedef string_t<wchar_t> string;
 
-typedef string_t<signed char>		signed_cstring;
-typedef string_t<unsigned char>		unsigned_cstring;
+typedef string_t<signed char> signed_cstring;
+typedef string_t<unsigned char> unsigned_cstring;
 
 
 inline cstring string_to_cstring(const string& s)
@@ -1540,14 +1539,14 @@ inline string_t<char_t> boolean::to_string_t() const
 	return m_bool ? helper::get_true() : helper::get_false();
 }
 
-inline string_t<wchar_t> boolean::to_string() const	{ return to_string_t<wchar_t>(); }
-inline string_t<char> boolean::to_cstring() const		{ return to_string_t<char>(); }
+inline string_t<wchar_t> boolean::to_string() const { return to_string_t<wchar_t>(); }
+inline string_t<char> boolean::to_cstring() const { return to_string_t<char>(); }
 
 template <typename char_t>
-inline string_t<char_t> boolean::to_string_t() const volatile	{ boolean cpy(*this); return cpy.template to_string_t<char_t>(); }
+inline string_t<char_t> boolean::to_string_t() const volatile { boolean cpy(*this); return cpy.template to_string_t<char_t>(); }
 
-inline string_t<wchar_t> boolean::to_string() const volatile	{ boolean cpy(*this); return cpy.to_string(); }
-inline string_t<char> boolean::to_cstring() const volatile		{ boolean cpy(*this); return cpy.to_cstring(); }
+inline string_t<wchar_t> boolean::to_string() const volatile { boolean cpy(*this); return cpy.to_string(); }
+inline string_t<char> boolean::to_cstring() const volatile { boolean cpy(*this); return cpy.to_cstring(); }
 
 
 
@@ -1573,7 +1572,6 @@ inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsi
 				(char_t)'0', (char_t)'0', (char_t)'0', (char_t)'0' };
 			return string_t<char_t>::contain(zeros, minDigits);
 		}
-		
 		return string_t<char_t>(minDigits, (char_t)'0');
 	}
 
@@ -1583,7 +1581,7 @@ inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsi
 	// Handle negative values using a 2-way table.
 	static constexpr char digitsBuffer[] = "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	static const char* digits = digitsBuffer + 35;
-	static constexpr size_t maxLength = (sizeof(int_t) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
+	static constexpr size_t maxLength = (sizeof(int_t) * 8) + 2; // Enough space for largest possible value, i.e. binary radix
 
 	char tempBuffer[maxLength];
 

@@ -36,7 +36,7 @@ public:
 		size_t keyLength = k.get_length();
 		if (keyLength > blockSize)
 			k = calculate_hash<hash_t>(k);
-		
+
 		io::buffer pad(blockSize);
 		uint8_t* padPtr = (uint8_t*)pad.get_ptr();
 		if (keyLength < blockSize)
@@ -80,9 +80,9 @@ public:
 		return *this;
 	}
 
-	virtual size_t get_block_size() const			{ return m_innerHash.get_block_size(); }
+	virtual size_t get_block_size() const { return m_innerHash.get_block_size(); }
 
-	virtual void update(const io::buffer& block)	{ m_innerHash.update(block); }
+	virtual void update(const io::buffer& block) { m_innerHash.update(block); }
 
 	virtual io::buffer get_hash()
 	{

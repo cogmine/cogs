@@ -21,15 +21,15 @@ namespace gfx {
 // cogs::gfx::canvas::font is a base class for platform-specific fonts (size is embedded).
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 // cogs::gui:::font is platform-independent, and contains a priority-sorted list of fonts.
 // When applied to a particular platform, the first font that can be matched is loaded.
 
 /// @ingroup Graphics
 /// @brief A font
-class font	// copyable by value
+class font // copyable by value
 {
 private:
 	class description
@@ -54,7 +54,7 @@ private:
 			m_isStrikeOut(src.m_isStrikeOut)
 		{ }
 
-		description(double pointSize)	// no font name(s) implies default font
+		description(double pointSize) // no font name(s) implies default font
 			: m_pointSize(pointSize)
 		{ }
 
@@ -66,7 +66,7 @@ private:
 			m_isUnderlined(false),
 			m_isStrikeOut(false)
 		{ }
-		
+
 		description(const composite_string& fontName, double pointSize)
 			: m_pointSize(pointSize)
 		{
@@ -80,10 +80,10 @@ private:
 				m_isBold == cmp.m_isBold &&
 				m_isUnderlined == cmp.m_isUnderlined &&
 				m_isStrikeOut == cmp.m_isStrikeOut &&
-				m_fontNames == cmp.m_fontNames;	// Does not account for font names in a different order
+				m_fontNames == cmp.m_fontNames; // Does not account for font names in a different order
 		}
 
-		bool operator!=(const description& cmp) const	{ return !operator==(cmp); }
+		bool operator!=(const description& cmp) const { return !operator==(cmp); }
 	};
 
 	typedef transactable<description> transactable_t;
@@ -107,15 +107,15 @@ public:
 	explicit font(double pointSize)
 		: m_contents(typename transactable_t::construct_embedded_t(), description(pointSize))
 	{ }
-	
+
 	font(const vector<composite_string>& fontNames, double pointSize = 0)
 		: m_contents(typename transactable_t::construct_embedded_t(), description(fontNames, pointSize))
 	{ }
-		
+
 	font(const composite_string& fontName, double pointSize = 0)
 		: m_contents(typename transactable_t::construct_embedded_t(), description(fontName, pointSize))
 	{ }
-	
+
 	font& operator=(const font& src)
 	{
 		*m_contents = *(src.m_contents);
@@ -133,18 +133,18 @@ public:
 		m_contents.set(*(src.m_contents));
 	}
 
-	bool operator==(const font& cmp) const			{ return *m_contents == *(cmp.m_contents); }
-	bool operator==(const font& cmp) const volatile	{ return *(m_contents.begin_read()) == *(cmp.m_contents); }
+	bool operator==(const font& cmp) const { return *m_contents == *(cmp.m_contents); }
+	bool operator==(const font& cmp) const volatile { return *(m_contents.begin_read()) == *(cmp.m_contents); }
 	bool operator==(const volatile font& cmp) const { return cmp == *this; }
-	bool operator!=(const font& cmp) const			{ return !operator==(cmp); }
-	bool operator!=(const font& cmp) const volatile	{ return !operator==(cmp); }
+	bool operator!=(const font& cmp) const { return !operator==(cmp); }
+	bool operator!=(const font& cmp) const volatile { return !operator==(cmp); }
 	bool operator!=(const volatile font& cmp) const { return !operator==(cmp); }
 
 	//description& get_description() { return *m_contents; }
 	//description get_description() const { return *m_contents; }
 	//description get_description() const volatile { return *(m_contents.begin_read()); }
 
-	void prepend_font_name(const composite_string& fontName)	{ m_contents->m_fontNames.prepend(1, fontName); }
+	void prepend_font_name(const composite_string& fontName) { m_contents->m_fontNames.prepend(1, fontName); }
 
 	void prepend_font_name(const composite_string& fontName) volatile
 	{
@@ -156,7 +156,7 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void append_font_name(const composite_string& fontName)	{ m_contents->m_fontNames.append(1, fontName); }
+	void append_font_name(const composite_string& fontName) { m_contents->m_fontNames.append(1, fontName); }
 
 	void append_font_name(const composite_string& fontName) volatile
 	{
@@ -208,7 +208,7 @@ public:
 			m_contents.begin_write(wt);
 			wt->m_isBold = b;
 		} while (!m_contents.end_write(wt));
-	}	
+	}
 
 	void set_italic(bool b = true) volatile
 	{
@@ -231,11 +231,11 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	double& get_point_size()				{ return m_contents->m_pointSize; }
-	double get_point_size() const			{ return m_contents->m_pointSize; }
-	double get_point_size() const volatile	{ return m_contents.begin_read()->m_pointSize; }
+	double& get_point_size() { return m_contents->m_pointSize; }
+	double get_point_size() const { return m_contents->m_pointSize; }
+	double get_point_size() const volatile { return m_contents.begin_read()->m_pointSize; }
 
-	void set_point_size(double ptSize)		{ m_contents->m_pointSize = ptSize; }
+	void set_point_size(double ptSize) { m_contents->m_pointSize = ptSize; }
 
 	void set_point_size(double ptSize) volatile
 	{

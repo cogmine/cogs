@@ -61,7 +61,7 @@ protected:
 		m_address.set_address_and_port(sockAddr, sockAddrSize);
 	}
 
-	void set_port(unsigned short port)		{ m_address.set_port(port); }
+	void set_port(unsigned short port) { m_address.set_port(port); }
 
 	void set_address(const address& addr)
 	{
@@ -73,24 +73,24 @@ protected:
 public:
 	endpoint()
 	{ }
-	
+
 	endpoint(const address& addr, unsigned short port)
-		:	m_address(addr)
+		: m_address(addr)
 	{
 		set_port(port);
 	}
-	
+
 	endpoint(const endpoint& src)
-		:	m_address(src.m_address)
+		: m_address(src.m_address)
 	{ }
-	
+
 	endpoint& operator=(const endpoint& src)
 	{
 		m_address = src.m_address;
 		return *this;
 	}
 
-	unsigned short get_port() const			{ return m_address.get_port(); } 
+	unsigned short get_port() const { return m_address.get_port(); }
 
 	virtual composite_cstring to_cstring() const
 	{
@@ -108,14 +108,14 @@ public:
 		return s;
 	}
 
-	virtual       address& get_address()			{ return m_address; }
-	virtual const address& get_address() const		{ return m_address; }
+	virtual address& get_address() { return m_address; }
+	virtual const address& get_address() const { return m_address; }
 
-	SOCKADDR* get_sockaddr()						{ return get_address().get_sockaddr(); }
-	const SOCKADDR* get_sockaddr() const			{ return get_address().get_sockaddr(); }
+	SOCKADDR* get_sockaddr() { return get_address().get_sockaddr(); }
+	const SOCKADDR* get_sockaddr() const { return get_address().get_sockaddr(); }
 
-	size_t get_sockaddr_size() const				{ return get_address().get_sockaddr_size(); }
-	void set_sockaddr_size(size_t sz)				{ get_address().set_sockaddr_size(sz); }
+	size_t get_sockaddr_size() const { return get_address().get_sockaddr_size(); }
+	void set_sockaddr_size(size_t sz) { get_address().set_sockaddr_size(sz); }
 };
 
 

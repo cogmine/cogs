@@ -67,12 +67,12 @@ public:
 
 	virtual void set_text(const composite_string& text)
 	{
-		int i = Button_SetText(get_HWND(), text.composite().cstr());
+		Button_SetText(get_HWND(), text.composite().cstr());
 	}
 
 	virtual void set_enabled(bool isEnabled = true)
 	{
-		BOOL b = Button_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
+		Button_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
 	}
 
 	virtual void set_default(bool isDefault = true)
@@ -138,7 +138,7 @@ public:
 				}
 			}
 			break;
-		case WM_LBUTTONDBLCLK:	// Let Windows handle all types of clicks
+		case WM_LBUTTONDBLCLK: // Let Windows handle all types of clicks
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 		case WM_MBUTTONDBLCLK:
@@ -148,7 +148,7 @@ public:
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONUP:
 			return call_default_window_proc(msg, wParam, lParam);
-		case WM_PAINT:			// hwnd_pane's default WM_PAINT accounts for controls that accept HDC in wParam of WM_PAINT
+		case WM_PAINT: // hwnd_pane's default WM_PAINT accounts for controls that accept HDC in wParam of WM_PAINT
 		default:
 			break;
 		}
@@ -159,7 +159,7 @@ public:
 	virtual void calculate_range()
 	{
 		SIZE sz = { 0, 0 };
-		BOOL b = Button_GetIdealSize(get_HWND(), &sz);
+		Button_GetIdealSize(get_HWND(), &sz);
 		if (sz.cx < 16)
 			sz.cx = 16;
 		if (sz.cy < 16)
@@ -184,7 +184,7 @@ public:
 	virtual range get_range() const { return range(m_defaultSize); }
 	virtual size get_default_size() const { return m_defaultSize; }
 
-	virtual bool is_focusable() const	{ return true; }
+	virtual bool is_focusable() const { return true; }
 };
 
 

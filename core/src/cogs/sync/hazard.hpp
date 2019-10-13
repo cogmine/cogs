@@ -24,7 +24,7 @@
 namespace cogs {
 
 
-template <typename signature, size_t n = sizeof(void*) * 6>	// Enough space for 2x rcptr's, and a vtable ptr, plus padding
+template <typename signature, size_t n = sizeof(void*) * 6> // Enough space for 2x rcptr's, and a vtable ptr, plus padding
 class function;
 
 
@@ -83,23 +83,23 @@ private:
 	public:
 		enum state
 		{
-			empty_state = 0,	// 00 - Either null, or a pointer that has been bound and not yet confirmed
-			disposed_state = 1,	// 01 - A pointer that has been bound, and disposed before confirmed
-			acquired_state = 2,	// 10 - A pointer that has been acquired, and is not owned by this hazard::pointer
-			owned_state = 3,	// 11 - A pointer that has been acquired, has been disposed, and is now owned by this hazard::pointer
+			empty_state = 0,    // 00 - Either null, or a pointer that has been bound and not yet confirmed
+			disposed_state = 1, // 01 - A pointer that has been bound, and disposed before confirmed
+			acquired_state = 2, // 10 - A pointer that has been acquired, and is not owned by this hazard::pointer
+			owned_state = 3,    // 11 - A pointer that has been acquired, has been disposed, and is now owned by this hazard::pointer
 		};
 
 		class content_t
 		{
 		public:
-			void*									m_value;
+			void* m_value;
 			alignas (atomic::get_alignment_v<state>) state m_state;
 		};
 
 		alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
 
-		ptr<token>	m_next;
-		ptr<token>	m_nextFreeToken;
+		ptr<token> m_next;
+		ptr<token> m_nextFreeToken;
 
 		void bind(void* value) volatile { atomic::store(m_contents, { value, empty_state }); }
 
@@ -138,7 +138,7 @@ private:
 			ptr<volatile token> curToken = this;
 			content_t oldContents;
 			content_t newContents;
-			
+
 			do {
 				atomic::load(curToken->m_contents, oldContents);
 				if (oldContents.m_value == value)
@@ -193,13 +193,13 @@ private:
 	class list
 	{
 	private:
-		ptr<token>				m_tokens;
-		versioned_ptr<token>	m_freeTokens;
+		ptr<token> m_tokens;
+		versioned_ptr<token> m_freeTokens;
 
 		typedef versioned_ptr<token>::version_t version_t;
 
 	public:
-		ptr<token> get_head_token() volatile	{ return m_tokens; }
+		ptr<token> get_head_token() volatile { return m_tokens; }
 
 		token* get_token() volatile
 		{
@@ -260,14 +260,14 @@ private:
 	typedef freelist<list, env::allocator, 10> list_freelist_t;
 	typedef freelist<token, env::allocator, 10> token_freelist_t;
 
-	inline static placement<list_freelist_t> s_listFreeList;	// zero-initialize as bss, leaked
-	inline static placement<token_freelist_t> s_tokenFreeList;	// zero-initialize as bss, leaked
+	inline static placement<list_freelist_t> s_listFreeList; // zero-initialize as bss, leaked
+	inline static placement<token_freelist_t> s_tokenFreeList; // zero-initialize as bss, leaked
 
 	class content_t
 	{
 	public:
-		size_t	m_useCount;
-		list*	m_list;
+		size_t m_useCount;
+		list* m_list;
 	};
 
 	alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
@@ -337,7 +337,7 @@ private:
 		content_t newContents;
 		content_t oldContents;
 		atomic::load(m_contents, oldContents);
-		while (oldContents.m_useCount != 0)	// If no tokens, caller is free and clear
+		while (oldContents.m_useCount != 0) // If no tokens, caller is free and clear
 		{
 			COGS_ASSERT((!!oldContents.m_list || !oldContents.m_useCount));
 			newContents.m_list = oldContents.m_list;
@@ -380,8 +380,8 @@ public:
 	class pointer
 	{
 	private:
-		volatile hazard*	m_hazard;
-		token*				m_token;
+		volatile hazard* m_hazard;
+		token* m_token;
 
 		void bind_inner(volatile hazard& h, void* value)
 		{
@@ -576,7 +576,7 @@ public:
 	/// @param p hazard::pointer to bind pointer value to
 	/// @param value Value to bind
 	template <typename type>
-	void bind(pointer& p, type* value) volatile							{ p.bind(*this, value); }
+	void bind(pointer& p, type* value) volatile { p.bind(*this, value); }
 	/// @}
 
 	/// @{
@@ -585,14 +585,14 @@ public:
 	/// @param src Volatile reference to a pointer to acquire a hazard pointer to.
 	/// @return The value of the pointer acquired, or 0.
 	template <typename type>
-	void* acquire(pointer& p, ptr<type> const volatile& src) volatile	{ return p.acquire(*this, src.get_ptr_ref()); }
+	void* acquire(pointer& p, ptr<type> const volatile& src) volatile { return p.acquire(*this, src.get_ptr_ref()); }
 
 	/// @brief Acquire a hazard::pointer
 	/// @param p hazard::pointer to bind pointer value with
 	/// @param src Volatile reference to a pointer to acquire a hazard pointer to.
 	/// @return The value of the pointer acquired, or 0.
 	template <typename type>
-	void* acquire(pointer& p, type* const volatile& src) volatile		{ return p.acquire(*this, src); }
+	void* acquire(pointer& p, type* const volatile& src) volatile { return p.acquire(*this, src); }
 	/// @}
 
 	/// @{

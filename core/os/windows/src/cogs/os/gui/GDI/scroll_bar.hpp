@@ -75,7 +75,7 @@ private:
 					}
 					break;
 				}
-			
+
 				si.nMax = 0;
 				si.nPage = 1;
 				si.nPos = 0;
@@ -89,14 +89,16 @@ private:
 
 				UINT wArrows = ESB_ENABLE_BOTH;
 
-				if (!pos)	// No up or left arrow		// We already know pos != max
+				// No up or left arrow
+				// We already know pos != max
+				if (!pos)
 					wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
 				else
 				{
 					double maxPos = newState.m_max;
 					maxPos -= newState.m_thumbSize;
-					if (pos == maxPos)	// No down or right arrow
-						wArrows = (m_dimension == dimension::horizontal) ?  ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
+					if (pos == maxPos) // No down or right arrow
+						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
 				}
 
 				SetScrollInfo(get_HWND(), fnBar, &si, TRUE);
@@ -146,7 +148,7 @@ public:
 			}
 			m_positionProperty.set_complete();
 		}),
-		m_canAutoFadeProperty(desc, uiSubsystem, [this](){ return false; })
+		m_canAutoFadeProperty(desc, uiSubsystem, [](){ return false; })
 	{
 	}
 
@@ -156,7 +158,7 @@ public:
 
 		m_dimension = sb->get_dimension();
 		m_isHiddenWhenInactive = sb->is_hidden_when_inactive();
-		
+
 		if (m_dimension == dimension::horizontal)
 			m_style |= SBS_HORZ | SBS_TOPALIGN;
 		else
@@ -182,10 +184,10 @@ public:
 				si.cbSize = sizeof(si);
 				si.fMask = SIF_RANGE | SIF_POS | SIF_PAGE | SIF_TRACKPOS;
 				GetScrollInfo(get_HWND(), fnBar, &si);
-				
-				double pos  = si.nPos;
+
+				double pos = si.nPos;
 				double thumbSize = si.nPage;
-				double max  = si.nMax + 1;
+				double max = si.nMax + 1;
 				double trackPos = si.nTrackPos;
 				double maxPos = max;
 				maxPos -= thumbSize;
@@ -193,37 +195,39 @@ public:
 				if (LOWORD(wParam) == SB_ENDSCROLL)
 				{
 					UINT wArrows = ESB_ENABLE_BOTH;
-					if (!pos)	// No up or left arrow		// We already know pos != max
+					// No up or left arrow
+					// We already know pos != max
+					if (!pos)
 						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
-					else if (pos == maxPos)	// No down or right arrow
-						wArrows = (m_dimension == dimension::horizontal) ?  ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
+					else if (pos == maxPos) // No down or right arrow
+						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
 					EnableScrollBar(get_HWND(), fnBar, wArrows);
 				}
 				else
 				{
 					switch (LOWORD(wParam))
 					{
-					case SB_TOP:			// top
+					case SB_TOP: // top
 						pos = 0;
 						break;
-					case SB_BOTTOM:			// bottom
+					case SB_BOTTOM: // bottom
 						pos = maxPos;
 						break;
-					case SB_LINEDOWN:		// +1
+					case SB_LINEDOWN: // +1
 						pos++;
 						if (pos > maxPos)
 							pos = maxPos;
 						break;
-					case SB_LINEUP:			// -1
+					case SB_LINEUP: // -1
 						if (pos > 0)
 							pos--;
 						break;
-					case SB_PAGEDOWN:		// +page
+					case SB_PAGEDOWN: // +page
 						pos += thumbSize;
 						if (pos > maxPos)
 							pos = maxPos;
 						break;
-					case SB_PAGEUP:			// -page
+					case SB_PAGEUP: // -page
 						if (pos >= thumbSize)
 							pos -= thumbSize;
 						else
@@ -250,8 +254,8 @@ public:
 				return 0;
 			}
 			break;
-		case WM_PAINT:			// Let Windows render this control
-		case WM_LBUTTONDBLCLK:	// Let Windows handle all types of clicks
+		case WM_PAINT: // Let Windows render this control
+		case WM_LBUTTONDBLCLK: // Let Windows handle all types of clicks
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 		case WM_MBUTTONDBLCLK:
@@ -262,7 +266,7 @@ public:
 		case WM_RBUTTONUP:
 			return call_default_window_proc(msg, wParam, lParam);
 		default:
-			break;	
+			break;
 		}
 		return hwnd_pane::process_message(msg, wParam, lParam);
 	}
@@ -278,10 +282,10 @@ public:
 		m_currentDefaultSize.set(sz, sz);
 	}
 
-	virtual range get_range() const	 { return m_currentRange; }
+	virtual range get_range() const { return m_currentRange; }
 	virtual size get_default_size() const { return m_currentDefaultSize; }
 
-	virtual bool is_focusable() const	{ return false; }
+	virtual bool is_focusable() const { return false; }
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{

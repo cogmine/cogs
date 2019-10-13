@@ -56,8 +56,8 @@ private:
 	rcref<volatile priority_dispatcher> m_priorityDispatcher;
 	container_queue<function<void()> > m_abortCallbacks;
 
-	typedef transactable_t::read_token	read_token;
-	typedef transactable_t::write_token	write_token;
+	typedef transactable_t::read_token read_token;
+	typedef transactable_t::write_token write_token;
 
 	void release_reference() volatile
 	{
@@ -66,7 +66,7 @@ private:
 		{
 			m_contents.begin_write(wt);
 			COGS_ASSERT(wt->m_refCount > 0);
-				
+
 			if ((wt->m_state != quit_request_pending) || (wt->m_refCount > 1))
 			{
 				wt->m_refCount--;
@@ -273,7 +273,7 @@ public:
 
 	// Called by outer main() glue to wait for all things blocking quit to complete.
 	// Really not intended to be called from anywhere else.  So, probably a bug if you are calling it.
-	const waitable& get_event() const	{ return m_event; }
+	const waitable& get_event() const { return m_event; }
 };
 
 

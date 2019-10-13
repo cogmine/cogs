@@ -20,7 +20,7 @@ namespace gui {
 
 /// @ingroup GUI
 /// @brief A pane that divides child panes into rows and/or columns.
-/// 
+///
 /// A grid can be configured to allocate space to cells either fairly, or proportional to default cell sizes.
 /// Panes nested in cells can impose constraints on the cell they are in, and suggest default sizes.  Those ranges
 /// and defaults are used to determine the ranges and defaults of rows and columns.
@@ -32,14 +32,14 @@ private:
 	class primary_row_t;
 	class secondary_row_t;
 
-	typedef nonvolatile_multimap<  primary_key_t, rcref<  primary_row_t>, true>	  primary_map_t;
-	typedef nonvolatile_multimap<secondary_key_t, rcref<secondary_row_t>, true>	secondary_map_t;
-	
+	typedef nonvolatile_multimap<  primary_key_t, rcref<  primary_row_t>, true> primary_map_t;
+	typedef nonvolatile_multimap<secondary_key_t, rcref<secondary_row_t>, true> secondary_map_t;
+
 	class cell_t : public frame
 	{
 	public:
-		weak_rcptr<primary_row_t>		m_primaryRow;
-		weak_rcptr<secondary_row_t>		m_secondaryRow;
+		weak_rcptr<primary_row_t> m_primaryRow;
+		weak_rcptr<secondary_row_t> m_secondaryRow;
 
 		typename container_dlist<rcref<cell_t> >::remove_token m_verticalRemoveTokens;
 		typename container_dlist<rcref<cell_t> >::remove_token m_horizontalRemoveTokens;
@@ -75,42 +75,42 @@ private:
 	class primary_row_t : public primary_sizing_group_t::cell
 	{
 	public:
-		typename primary_map_t::iterator	m_removeToken;
+		typename primary_map_t::iterator m_removeToken;
 
-		container_dlist<rcref<cell_t> >	m_cells;
+		container_dlist<rcref<cell_t> > m_cells;
 
 		double m_offset;
 		double m_cachedLength;
 	};
-	
+
 	class secondary_row_t : public secondary_sizing_group_t::cell
 	{
 	public:
-		typename secondary_map_t::iterator	m_removeToken;
+		typename secondary_map_t::iterator m_removeToken;
 
-		container_dlist<rcref<cell_t> >	m_cells;
+		container_dlist<rcref<cell_t> > m_cells;
 
 		double m_offset;
 		double m_cachedLength;
 	};
-	
-	//----Configuration data
-	primary_map_t		m_primaryRows;
-	secondary_map_t		m_secondaryRows;
 
-	mutable primary_sizing_group_t		m_primarySizingGroup;
-	mutable secondary_sizing_group_t	m_secondarySizingGroup;
-	
+	//----Configuration data
+	primary_map_t m_primaryRows;
+	secondary_map_t m_secondaryRows;
+
+	mutable primary_sizing_group_t m_primarySizingGroup;
+	mutable secondary_sizing_group_t m_secondarySizingGroup;
+
 	//----State data
 	bool m_wasRecalculated;
 	mutable double m_cachedLength;
 
 	range m_currentRange;
 	size m_currentDefaultSize;
-	
-	virtual range get_range() const	{ return m_currentRange; }
-	virtual size get_default_size() const	{ return m_currentDefaultSize; }
-	
+
+	virtual range get_range() const { return m_currentRange; }
+	virtual size get_default_size() const { return m_currentDefaultSize; }
+
 	virtual void calculate_range()
 	{
 		pane::calculate_range();
@@ -122,8 +122,8 @@ private:
 
 		m_primarySizingGroup.clear();
 		m_secondarySizingGroup.clear();
-		
-		typename secondary_map_t::iterator itor = m_secondaryRows.get_first();	//m_rowsAndColumns[dimension::vertical].get_first();
+
+		typename secondary_map_t::iterator itor = m_secondaryRows.get_first(); //m_rowsAndColumns[dimension::vertical].get_first();
 		while (!!itor)
 		{
 			secondary_row_t& r2 = **itor;
@@ -132,8 +132,8 @@ private:
 
 			++itor;
 		}
-		
-		typename primary_map_t::iterator itor2 = m_primaryRows.get_first();	//m_rowsAndColumns[dimension::horizontal].get_first();
+
+		typename primary_map_t::iterator itor2 = m_primaryRows.get_first(); //m_rowsAndColumns[dimension::horizontal].get_first();
 		while (!!itor2)
 		{
 			primary_row_t& r = **itor2;
@@ -145,7 +145,7 @@ private:
 			{
 				cell_t& cell = **cellItor;
 
-				rcptr<secondary_row_t> otherRow = cell.m_secondaryRow;	//cell.m_rows[dimension::vertical];
+				rcptr<secondary_row_t> otherRow = cell.m_secondaryRow; //cell.m_rows[dimension::vertical];
 				secondary_row_t& r2 = *otherRow;
 
 				range cellRange = cell.get_range();
@@ -169,8 +169,8 @@ private:
 			m_primarySizingGroup.add_cell(*itor2);
 			++itor2;
 		}
-		
-		itor = m_secondaryRows.get_first();	//m_rowsAndColumns[dimension::vertical].get_first();
+
+		itor = m_secondaryRows.get_first(); //m_rowsAndColumns[dimension::vertical].get_first();
 		while (!!itor)
 		{
 			//secondary_row_t& r2 = **itor;
@@ -178,7 +178,7 @@ private:
 			m_secondarySizingGroup.add_cell(*itor);
 			++itor;
 		}
-		
+
 		range rng;
 		size defaultSize;
 		if (primary_dimension == dimension::horizontal)
@@ -207,9 +207,9 @@ private:
 		{
 			m_cachedLength = proposed;
 
-	//		size defaultSize = get_default_size();
+			//size defaultSize = get_default_size();
 
-			typename secondary_map_t::iterator itor = m_secondaryRows.get_first();	//m_rowsAndColumns[!d].get_first();
+			typename secondary_map_t::iterator itor = m_secondaryRows.get_first(); //m_rowsAndColumns[!d].get_first();
 			while (!!itor)
 			{
 				secondary_row_t& r2 = **itor;
@@ -233,12 +233,12 @@ private:
 				while (!!cellItor)
 				{
 					cell_t& cell = **cellItor;
-					rcptr<primary_row_t> otherRow = cell.m_primaryRow;	//cell.m_rows[d];
+					rcptr<primary_row_t> otherRow = cell.m_primaryRow; //cell.m_rows[d];
 					primary_row_t& r2 = *(otherRow);
 
 					//double ignoredRtn;
 					range::linear_t otherRange;
-					cell.propose_length(d, r2.get_length(), otherRange);	// return value is ignored
+					cell.propose_length(d, r2.get_length(), otherRange); // return value is ignored
 
 					r.m_range &= otherRange;
 
@@ -252,7 +252,7 @@ private:
 		}
 		return rtn;
 	}
-	
+
 	virtual size propose_lengths(dimension d, const size& proposedSize) const
 	{
 		size newSize;
@@ -278,10 +278,10 @@ private:
 			m_wasRecalculated = false;
 			newSize = propose_size(b.get_size());
 		}
-		
+
 		m_secondarySizingGroup.calculate_sizes(newSize[!primary_dimension]);
 
-		typename primary_map_t::iterator itor = m_primaryRows.get_first();	//m_rowsAndColumns[dimension::horizontal].get_first();
+		typename primary_map_t::iterator itor = m_primaryRows.get_first(); //m_rowsAndColumns[dimension::horizontal].get_first();
 		double curOffset = 0;
 		while (!!itor)
 		{
@@ -291,8 +291,8 @@ private:
 			curOffset += b.m_cachedLength;
 			++itor;
 		}
-			
-		typename secondary_map_t::iterator itor2 = m_secondaryRows.get_first();	//m_rowsAndColumns[dimension::vertical].get_first();
+
+		typename secondary_map_t::iterator itor2 = m_secondaryRows.get_first(); //m_rowsAndColumns[dimension::vertical].get_first();
 		curOffset = 0;
 		while (!!itor2)
 		{
@@ -305,20 +305,20 @@ private:
 
 		pane::reshape(b, oldOrigin);
 	}
-	
+
 	virtual void detaching_child(const rcref<pane>& p)
 	{
 		rcptr<cell_t> c = p->get_outermost_frame().template static_cast_to<cell_t>();
 
-		rcptr<primary_row_t>	primaryRow = c->m_primaryRow;
-		rcptr<secondary_row_t>	secondaryRow = c->m_secondaryRow;
+		rcptr<primary_row_t> primaryRow = c->m_primaryRow;
+		rcptr<secondary_row_t> secondaryRow = c->m_secondaryRow;
 
 		primaryRow->m_cells.remove(c->get_remove_token(primary_dimension));
-		if (!primaryRow->m_cells)	// remove row
+		if (!primaryRow->m_cells) // remove row
 			m_primaryRows.remove(primaryRow->m_removeToken);
 
 		secondaryRow->m_cells.remove(c->get_remove_token(!primary_dimension));
-		if (!secondaryRow->m_cells)	// remove row
+		if (!secondaryRow->m_cells) // remove row
 			m_secondaryRows.remove(secondaryRow->m_removeToken);
 
 		pane::detaching_child(p);
@@ -329,7 +329,7 @@ public:
 		: pane(desc),
 		m_wasRecalculated(false)
 	{ }
-	
+
 	void nest(const rcref<pane>& child, const primary_key_t& primaryKey, const secondary_key_t& secondaryKey, const rcptr<frame>& f = 0)
 	{
 		rcptr<canvas::cell> f2 = f;
@@ -364,7 +364,6 @@ public:
 
 		pane::nest(child, c);
 	}
-	
 };
 
 
@@ -373,4 +372,3 @@ public:
 
 
 #endif
-

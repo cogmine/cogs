@@ -35,7 +35,7 @@ public:
 };
 
 template <>
-class const_bit_scan_reverse<0> { };	// invalid
+class const_bit_scan_reverse<0> { }; // invalid
 
 
 /// @ingroup Mem
@@ -59,7 +59,7 @@ public:
 };
 
 template <>
-class const_bit_scan_forward<0> { };	// invalid
+class const_bit_scan_forward<0> { }; // invalid
 
 
 }

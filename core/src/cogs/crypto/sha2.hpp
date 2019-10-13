@@ -26,7 +26,7 @@ template <size_t result_bits, size_t digest_bits = result_bits>
 class sha2 : public hash
 {
 private:
-	sha2() = delete;	// Not allowed.  This template is specialized for supported bit sizes
+	sha2() = delete; // Not allowed.  This template is specialized for supported bit sizes
 };
 
 
@@ -37,18 +37,18 @@ private:
 	typedef sha2_256_base<digest_bits> this_t;
 	typedef serial_hash<256, digest_bits, 32, endian_t::big, 512> base_t;
 
-	uint32_t	m_state[64];
-	uint64_t	m_bitCount;
+	uint32_t m_state[64];
+	uint64_t m_bitCount;
 
-	static uint32_t S0(uint32_t x)	{ return bit_rotate_right(x, 7) ^ bit_rotate_right(x, 18) ^ (x >> 3); }
-	static uint32_t S1(uint32_t x)	{ return bit_rotate_right(x, 17) ^ bit_rotate_right(x, 19) ^ (x >> 10); }
-	static uint32_t S2(uint32_t x)	{ return bit_rotate_right(x, 2) ^ bit_rotate_right(x, 13) ^ bit_rotate_right(x, 22); }
-	static uint32_t S3(uint32_t x)	{ return bit_rotate_right(x, 6) ^ bit_rotate_right(x, 11) ^ bit_rotate_right(x, 25); }
+	static uint32_t S0(uint32_t x) { return bit_rotate_right(x, 7) ^ bit_rotate_right(x, 18) ^ (x >> 3); }
+	static uint32_t S1(uint32_t x) { return bit_rotate_right(x, 17) ^ bit_rotate_right(x, 19) ^ (x >> 10); }
+	static uint32_t S2(uint32_t x) { return bit_rotate_right(x, 2) ^ bit_rotate_right(x, 13) ^ bit_rotate_right(x, 22); }
+	static uint32_t S3(uint32_t x) { return bit_rotate_right(x, 6) ^ bit_rotate_right(x, 11) ^ bit_rotate_right(x, 25); }
 
-	static uint32_t maj(uint32_t x, uint32_t y, uint32_t z)		{ return ((x & y) | (z & (x | y))); }
-	static uint32_t ch(uint32_t x, uint32_t y, uint32_t z)		{ return (z ^ (x & (y ^ z))); }
+	static uint32_t maj(uint32_t x, uint32_t y, uint32_t z) { return ((x & y) | (z & (x | y))); }
+	static uint32_t ch(uint32_t x, uint32_t y, uint32_t z) { return (z ^ (x & (y ^ z))); }
 
-	uint32_t R(uint8_t t)	{ return (m_state[t] = S1(m_state[t - 2]) + m_state[t - 7] + S0(m_state[t - 15]) + m_state[t - 16]); }
+	uint32_t R(uint8_t t) { return (m_state[t] = S1(m_state[t - 2]) + m_state[t - 7] + S0(m_state[t - 15]) + m_state[t - 16]); }
 
 	static void r(uint32_t a, uint32_t b, uint32_t c, uint32_t& d, uint32_t e, uint32_t f, uint32_t g, uint32_t& h, uint32_t x, uint32_t K)
 	{
@@ -208,19 +208,19 @@ private:
 	typedef sha2_512_base<digest_bits> this_t;
 	typedef serial_hash<512, digest_bits, 64, endian_t::big, 1024> base_t;
 
-	uint64_t	m_state[80];
-	fixed_integer<false, 128>	m_bitCount;
+	uint64_t m_state[80];
+	fixed_integer<false, 128> m_bitCount;
 
-	static uint64_t S0(uint64_t x)	{ return bit_rotate_right(x, 1) ^ bit_rotate_right(x, 8) ^ (x >> 7); }
-	static uint64_t S1(uint64_t x)	{ return bit_rotate_right(x, 19) ^ bit_rotate_right(x, 61) ^ (x >> 6); }
+	static uint64_t S0(uint64_t x) { return bit_rotate_right(x, 1) ^ bit_rotate_right(x, 8) ^ (x >> 7); }
+	static uint64_t S1(uint64_t x) { return bit_rotate_right(x, 19) ^ bit_rotate_right(x, 61) ^ (x >> 6); }
 
-	static uint64_t S2(uint64_t x)	{ return bit_rotate_right(x, 28) ^ bit_rotate_right(x, 34) ^ bit_rotate_right(x, 39); }
-	static uint64_t S3(uint64_t x)	{ return bit_rotate_right(x, 14) ^ bit_rotate_right(x, 18) ^ bit_rotate_right(x, 41); }
+	static uint64_t S2(uint64_t x) { return bit_rotate_right(x, 28) ^ bit_rotate_right(x, 34) ^ bit_rotate_right(x, 39); }
+	static uint64_t S3(uint64_t x) { return bit_rotate_right(x, 14) ^ bit_rotate_right(x, 18) ^ bit_rotate_right(x, 41); }
 
-	static uint64_t maj(uint64_t x, uint64_t y, uint64_t z)		{ return ((x & y) | (z & (x | y))); }
-	static uint64_t ch(uint64_t x, uint64_t y, uint64_t z)		{ return (z ^ (x & (y ^ z))); }
+	static uint64_t maj(uint64_t x, uint64_t y, uint64_t z) { return ((x & y) | (z & (x | y))); }
+	static uint64_t ch(uint64_t x, uint64_t y, uint64_t z) { return (z ^ (x & (y ^ z))); }
 
-	uint64_t R(uint8_t t)	{ return (m_state[t] = S1(m_state[t - 2]) + m_state[t - 7] + S0(m_state[t - 15]) + m_state[t - 16]); }
+	uint64_t R(uint8_t t) { return (m_state[t] = S1(m_state[t - 2]) + m_state[t - 7] + S0(m_state[t - 15]) + m_state[t - 16]); }
 
 	static void r(uint64_t a, uint64_t b, uint64_t c, uint64_t& d, uint64_t e, uint64_t f, uint64_t g, uint64_t& h, uint64_t x, uint64_t K)
 	{

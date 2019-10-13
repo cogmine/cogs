@@ -47,8 +47,8 @@ private:
 	{
 	public:
 		node_t* m_next;
-		type* get_contents() const			{ return get_type_block_from_header<node_t, type>(this); }
-		static node_t* get_header(type& t)	{ return get_header_from_type_block<node_t, type>(&t); }
+		type* get_contents() const { return get_type_block_from_header<node_t, type>(this); }
+		static node_t* get_header(type& t) { return get_header_from_type_block<node_t, type>(&t); }
 	};
 
 	typedef placement_type_header_storage<node_t, type> node_placement_t;
@@ -174,8 +174,8 @@ private:
 	{
 	public:
 		node_t* m_next;
-		type* get_contents() const			{ return get_type_block_from_header<node_t, type>(this); }
-		static node_t* get_header(type& t)	{ return get_header_from_type_block<node_t, type>(&t); }
+		type* get_contents() const { return get_type_block_from_header<node_t, type>(this); }
+		static node_t* get_header(type& t) { return get_header_from_type_block<node_t, type>(&t); }
 	};
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
@@ -183,7 +183,7 @@ private:
 	versioned_ptr<node_t> m_head;
 
 public:
-	freelist()	{ }
+	freelist() { }
 
 	freelist(volatile allocator_type& al)
 		: m_allocator(al)

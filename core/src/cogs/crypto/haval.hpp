@@ -41,8 +41,8 @@ private:
 
 	static constexpr uint32_t version = 1;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[32];
+	uint64_t m_bitCount;
+	uint32_t m_state[32];
 
 	static uint32_t f_1(uint32_t x6, uint32_t x5, uint32_t x4, uint32_t x3, uint32_t x2, uint32_t x1, uint32_t x0)
 	{

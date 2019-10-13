@@ -30,7 +30,7 @@ namespace cogs {
 // changes).
 //
 // dependency_property<> is the interface class, however all instantiated properties are derived from virtual_dependency_property<>,
-//	which handles processing of change notifications.
+// which handles processing of change notifications.
 //
 // Certain constraints exist to handle parallelism issues.
 //	- A call to get() always occurs synchronously, in the invoking thread.
@@ -41,12 +41,12 @@ namespace cogs {
 
 
 // Interface class for dependency_property.
-//	Most references should be to rcptr<dependency_property<type, readWriteType> >
+//    Most references should be to rcptr<dependency_property<type, readWriteType> >
 template <typename type, io::permission readWriteType = io::read_write>
 class dependency_property;
 
 // Base class to use when deriving dependency_property types (implementing virtual setting() and/or getting()
-//	Calls to set() are asynchronous and serialized.  User implementation of setting() must call set_complete() to indicate completion.
+//    Calls to set() are asynchronous and serialized.  User implementation of setting() must call set_complete() to indicate completion.
 template <typename type, io::permission readWriteType = io::read_write>
 class virtual_dependency_property;
 
@@ -55,7 +55,7 @@ template <typename type, io::permission readWriteType = io::read_write>
 class delegated_dependency_property;
 
 // A concrete class for a backed dependency_property.
-//	Simply wraps a variable in a dependency_property.
+//    Simply wraps a variable in a dependency_property.
 template <typename type, io::permission readWriteType = io::read_write>
 class backed_dependency_property;
 
@@ -64,7 +64,7 @@ class virtual_dependency_property_base;
 
 // dependency_property<> is used as an interface only.
 // Derived properties should be derived from virtual_dependency_property.
-template <typename type, io::permission readWriteType>		// read_write
+template <typename type, io::permission readWriteType> // read_write
 class dependency_property : public dependency_property<type, io::read_only>, public dependency_property<type, io::write_only>
 {
 public:
@@ -74,15 +74,15 @@ public:
 	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk) = 0;
 	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src) = 0;
 
-	type get() const	{ return getting(); }	// inline for API symmetry with set/setting
+	type get() const { return getting(); } // inline for API symmetry with set/setting
 
-	virtual type getting() const = 0;			// User override, if virtual dependency_property
+	virtual type getting() const = 0; // User override, if virtual dependency_property
 
 	virtual void changed() = 0;
 
-	virtual void set(const type& t) = 0;		// Overloaded by virtual_dependency_property to defer setting() to appropriate thread
+	virtual void set(const type& t) = 0; // Overloaded by virtual_dependency_property to defer setting() to appropriate thread
 
-	virtual void setting(const type& t) = 0;	// User override, if virtual_dependency_property
+	virtual void setting(const type& t) = 0; // User override, if virtual_dependency_property
 };
 
 template <typename type>
@@ -93,9 +93,9 @@ public:
 
 	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk) = 0;
 
-	type get() const { return getting(); }	// inline for API symmetry with set/setting
+	type get() const { return getting(); } // inline for API symmetry with set/setting
 
-	virtual type getting() const = 0;			// User override, if virtual dependency_property
+	virtual type getting() const = 0; // User override, if virtual dependency_property
 
 	virtual void changed() = 0;
 
@@ -106,14 +106,14 @@ public:
 template <typename type>
 class dependency_property<type, io::write_only>
 {
-public:	
+public:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() = 0;
 
 	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src) = 0;
 
-	virtual void set(const type& t) = 0;		// Overloaded by virtual_dependency_property to defer setting() to appropriate thread
+	virtual void set(const type& t) = 0; // Overloaded by virtual_dependency_property to defer setting() to appropriate thread
 
-	virtual void setting(const type& t) = 0;	// User override, if virtual_dependency_property
+	virtual void setting(const type& t) = 0; // User override, if virtual_dependency_property
 };
 
 
@@ -126,22 +126,22 @@ private:
 	class binding
 	{
 	public:
-		weak_rcptr<this_t>	m_sink;
+		weak_rcptr<this_t> m_sink;
 
 		binding(const rcref<this_t>& snk)
-			:	m_sink(snk)
+			: m_sink(snk)
 		{ }
 	};
 
 	class notification_context
 	{
 	public:
-		type				m_cachedValue;
-		weak_rcptr<this_t>	m_updateSource;
+		type m_cachedValue;
+		weak_rcptr<this_t> m_updateSource;
 
 		notification_context(const type& t, const rcptr<this_t>& src)
-			:	m_cachedValue(t),
-				m_updateSource(src)
+			: m_cachedValue(t),
+			m_updateSource(src)
 		{ }
 	};
 
@@ -151,7 +151,7 @@ private:
 	volatile container_queue<rcref<notification_context> > m_setQueue;
 	volatile boolean m_pendingChange;
 
-	rcptr<notification_context>	m_lastBoundSet;
+	rcptr<notification_context> m_lastBoundSet;
 
 	// 0 = not dispatching, 1 = processing dispatch, 2 = pending dispatch
 	alignas (atomic::get_alignment_v<int>) volatile int m_pumpSerializer = 0;
@@ -168,7 +168,7 @@ private:
 				m_lastBoundSet.release();
 				if (!!ctx->m_updateSource)
 				{
-					if (!m_setQueue.is_empty())	// Ignore change()-triggered set if not the most recent set operation
+					if (!m_setQueue.is_empty()) // Ignore change()-triggered set if not the most recent set operation
 						continue;
 					m_lastBoundSet = ctx;
 				}
@@ -251,16 +251,16 @@ protected:
 
 	void changed()
 	{
-		if (!!m_bindings)	// NOP if nothing bound
+		if (!!m_bindings) // NOP if nothing bound
 		{
 			m_pendingChange = true;
 			start_pump();
 		}
 	}
 
-	void bound_set(const type& t, const rcref<this_t>& src)	{ return set_inner(t, src); }
+	void bound_set(const type& t, const rcref<this_t>& src) { return set_inner(t, src); }
 
-	void set(const type& t)		{ return set_inner(t, 0); }
+	void set(const type& t) { return set_inner(t, 0); }
 
 	void set_complete()
 	{
@@ -278,8 +278,8 @@ protected:
 			changed();
 		set_complete();
 	}
-	
-	virtual void setting(const type& t)	= 0;
+
+	virtual void setting(const type& t) = 0;
 	virtual type getting() const = 0;
 
 	// If both are read_write, the value of src will be used
@@ -287,8 +287,8 @@ protected:
 	{
 		rcref<binding> bindingObj = rcnew(binding, snk);
 		src->m_bindings.append(bindingObj);
-		
-		if (update)	// defer an update of just this binding
+
+		if (update) // defer an update of just this binding
 			snk->bound_set(src->getting(), src);
 	}
 
@@ -325,7 +325,7 @@ public:
 	{ }
 
 	virtual_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
-		:	base_t(desc, d)
+		: base_t(desc, d)
 	{ }
 
 	virtual void bind(const rcref<dependency_property<type, io::read_write> >& srcSnk, bool useThisValue = false)
@@ -345,14 +345,14 @@ public:
 
 	virtual type getting() const = 0;
 
-	virtual void changed()				{ base_t::changed(); }
+	virtual void changed() { base_t::changed(); }
 
-	virtual void set(const type& t)		{ base_t::set(t); }
-	
-	virtual void setting(const type& t)	{ base_t::set_complete(); }
+	virtual void set(const type& t) { base_t::set(t); }
 
-	void set_complete()					{ base_t::set_complete(); }
-	void set_complete(bool hasChanged)	{ base_t::set_complete(hasChanged); }
+	virtual void setting(const type& t) { base_t::set_complete(); }
+
+	void set_complete() { base_t::set_complete(); }
+	void set_complete(bool hasChanged) { base_t::set_complete(hasChanged); }
 };
 
 template <typename type>
@@ -382,7 +382,7 @@ public:
 
 	virtual type getting() const = 0;
 
-	virtual void changed()	{ base_t::changed(); }
+	virtual void changed() { base_t::changed(); }
 };
 
 template <typename type>
@@ -416,12 +416,12 @@ public:
 		base_t::bind_from(src->get_virtual_dependency_property_base());
 	}
 
-	virtual void set(const type& t)		{ base_t::set(t); }
-	
-	virtual void setting(const type& t)	{ base_t::changed(); }
+	virtual void set(const type& t) { base_t::set(t); }
 
-	void set_complete()					{ base_t::set_complete(); }
-	void set_complete(bool hasChanged)	{ base_t::set_complete(hasChanged); }
+	virtual void setting(const type& t) { base_t::changed(); }
+
+	void set_complete() { base_t::set_complete(); }
+	void set_complete(bool hasChanged) { base_t::set_complete(hasChanged); }
 };
 
 
@@ -453,7 +453,7 @@ public:
 		m_setDelegate(s)
 	{ }
 
-	virtual type getting()  const { return m_getDelegate(); }
+	virtual type getting() const { return m_getDelegate(); }
 
 	virtual void setting(const type& t)
 	{

@@ -24,7 +24,7 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 /// @ingroup BinaryTrees
@@ -69,11 +69,11 @@ public:
 
 	/// @brief Gets the AVL factor value of this node
 	/// @return The AVL factor value of this node
-	int get_factor() const	{ return m_factor; }
+	int get_factor() const { return m_factor; }
 
 	/// @brief Sets the AVL factor value of this node
 	/// @param f The value to set as the AVL factor of this node
-	void set_factor(int f)	{ m_factor = f; }
+	void set_factor(int f) { m_factor = f; }
 };
 
 
@@ -111,13 +111,13 @@ public:
 		return *this;
 	}
 
-	int get_factor() const	{ return m_factor; }
-	void set_factor(int f)	{ m_factor = f; }
+	int get_factor() const { return m_factor; }
+	void set_factor(int f) { m_factor = f; }
 };
 
 
 /// @brief An alias to avltree_node_t<void,ptr>
-typedef avltree_node_t<void,ptr>	avltree_node;
+typedef avltree_node_t<void,ptr> avltree_node;
 
 
 /// @ingroup BinaryTrees
@@ -125,11 +125,11 @@ typedef avltree_node_t<void,ptr>	avltree_node;
 ///
 /// derived_node_t must be derived from avltree_node_t, and  include the equivalent of the following member function:
 /// @code{.cpp}
-///		const key_t& get_key() const;
+/// const key_t& get_key() const;
 /// @endcode
 /// or:
 /// @code{.cpp}
-///		key_t get_key() const;
+/// key_t get_key() const;
 /// @endcode
 /// @tparam key_t The key type to contain
 /// @tparam derived_node_t A class derived from the intrusive node base, avltree_node_t.
@@ -140,7 +140,7 @@ class avltree : public sorted_btree<key_t, derived_node_t, comparator_t, ref_typ
 {
 public:
 	/// @brief Alias to this type.
-	typedef avltree<key_t, derived_node_t, comparator_t, ref_type>		this_t;
+	typedef avltree<key_t, derived_node_t, comparator_t, ref_type> this_t;
 
 	/// @brief Alias to the node type.
 	typedef derived_node_t node_t;
@@ -173,36 +173,36 @@ private:
 		if (!parentIn)
 			return;
 
-		bool isRightChild	= isRightChildIn;
-		ref_t n				= nIn;
-		ref_t parent		= parentIn;
+		bool isRightChild = isRightChildIn;
+		ref_t n = nIn;
+		ref_t parent = parentIn;
 		ref_t parentParent;
 		ref_t child;
 		typename ref_t::locked_t lockedRef;
 		typename ref_t::locked_t lockedParent;
 		typename ref_t::locked_t lockedChild;
 
-		if (isInsert)	// if (!!n)
+		if (isInsert) // if (!!n)
 			lockedRef = n;
 
 		lockedParent = parent;
 		parentParent = lockedParent->get_parent_link();
 
 		int childFactor = 0;
-		int factor     = 0;
+		int factor = 0;
 
 		for (;;)
 		{
-			const int side_convert[2]	= { -1, 1 };
-			const int parentFactor		= lockedParent->get_factor();
-			const int side				=  side_convert[isRightChild ^ !isInsert];
-			const int nSide				= -side;
-			if (parentFactor == side)	// If the parent has a factor that indicates it's lopsided to the other side.
+			const int side_convert[2] = { -1, 1 };
+			const int parentFactor = lockedParent->get_factor();
+			const int side = side_convert[isRightChild ^ !isInsert];
+			const int nSide = -side;
+			if (parentFactor == side) // If the parent has a factor that indicates it's lopsided to the other side.
 			{
-				int newFactor[2];	// index 0 is newFactor, index 1 is newParentFactor
+				int newFactor[2]; // index 0 is newFactor, index 1 is newParentFactor
 				ref_t* localRoot;
 
-				if (!isInsert)		// figure out new n.  When removing and rotating, we need to use the excess node on the other side as N.
+				if (!isInsert) // figure out new n.  When removing and rotating, we need to use the excess node on the other side as N.
 				{
 					n = lockedParent->get_child_link(!isRightChild);
 					lockedRef = n;
@@ -210,9 +210,9 @@ private:
 				}
 
 				bool direction = (isInsert == isRightChild);
-				if (factor == nSide)	// If inverted factors,
-				{						// double rotate
-					if (!isInsert)		// figure out new child, since we wont already know it when inserting.
+				if (factor == nSide) // If inverted factors, double rotate.
+				{
+					if (!isInsert) // Figure out new child, since we wont already know it when inserting.
 					{
 						child = lockedRef->get_child_link(isRightChild);
 						lockedChild = child;
@@ -254,7 +254,7 @@ private:
 
 					localRoot = &child;
 				}
-				else						// single rotate
+				else // single rotate
 				{
 					if (!isInsert)
 					{
@@ -272,10 +272,10 @@ private:
 						typename ref_t::locked_t lockedOtherChild = otherChild;
 						lockedOtherChild->set_parent_link(parent);
 					}
-					
+
 					// fix up children
 					lockedParent->set_child_link(direction, otherChild);
-					lockedRef->set_child_link(!direction, parent);	// set n's child last, so as not to stomp on otherChild ref
+					lockedRef->set_child_link(!direction, parent); // set n's child last, so as not to stomp on otherChild ref
 
 					// fixup factors
 					newFactor[0] = factor - side;
@@ -292,10 +292,10 @@ private:
 					set_root(*localRoot);
 					break;
 				}
-				lockedParent = parentParent;	// Moving lockedParentParent into lockedParent
+				lockedParent = parentParent; // Moving lockedParentParent into lockedParent
 				isRightChild = (lockedParent->get_right_link() == parent);
 				lockedParent->set_child_link(isRightChild, *localRoot);
-				if (isInsert)	// If inserting, a single or double rotate means we won't need to pass anything up.
+				if (isInsert) // If inserting, a single or double rotate means we won't need to pass anything up.
 					break;
 				if (parentFactor == newFactor[1])
 					break;
@@ -309,17 +309,17 @@ private:
 				lockedParent->set_factor(newParentFactor);
 				if (parent == get_root())
 					break;
-				if (isInsert)	// If Inserting, and no need to rotate, we stop if just changed the factor TO 0.
+				if (isInsert) // If Inserting, and no need to rotate, we stop if just changed the factor TO 0.
 				{
-					if (newParentFactor == 0)	//if (parentFactor == nSide)
+					if (newParentFactor == 0) //if (parentFactor == nSide)
 						break;
 				}
-				else	// If removing, we stop if we've change a factor FROM 0.
+				else // If removing, we stop if we've change a factor FROM 0.
 				{
 					if (parentFactor == 0) // if (!parentFactor)
 						break;
 				}
-				
+
 				child = n;
 				lockedChild = lockedRef;
 				childFactor = factor;
@@ -362,7 +362,7 @@ private:
 		return existing;
 	}
 
-	const ref_t& get_root() const		{ return base_t::get_root();  }
+	const ref_t& get_root() const { return base_t::get_root(); }
 	void set_root(const ref_t& r) { base_t::set_root(r); }
 
 public:
@@ -412,21 +412,21 @@ public:
 	/// @brief Insert a node, allowing duplicates
 	/// @param n Node to insert
 	/// @return A reference to an equal node in the case of collision, or an empty node if no collision.
-	ref_t insert_multi(const ref_t& n)						{ return insert(n, sorted_btree_insert_mode::multi); }
+	ref_t insert_multi(const ref_t& n) { return insert(n, sorted_btree_insert_mode::multi); }
 	/// @}
 
 	/// @{
 	/// @brief Insert a node, replacing a duplicate
 	/// @param n Node to insert
 	/// @return A reference to the replaced node, or an empty node if no collision.
-	ref_t insert_replace(const ref_t& n)					{ return insert(n, sorted_btree_insert_mode::replace); }
+	ref_t insert_replace(const ref_t& n) { return insert(n, sorted_btree_insert_mode::replace); }
 	/// @}
 
 	/// @{
 	/// @brief Insert a node, if an equal node is not already present
 	/// @param n Node to insert
 	/// @return A reference to an equal node in the case of collision, or an empty node if no collision.
-	ref_t insert_unique(const ref_t& n)						{ return insert(n, sorted_btree_insert_mode::unique); }
+	ref_t insert_unique(const ref_t& n) { return insert(n, sorted_btree_insert_mode::unique); }
 	/// @}
 
 	/// @{
@@ -446,11 +446,11 @@ public:
 			{
 				ref_t parent = lockedRef->get_parent_link();
 				typename ref_t::locked_t lockedSwappedWith;
-				if (!swappedWith)	// If no swap occured, we know the removed node has 0 or 1 children.
-				{					// Go ahead and set its parent's factor accordingly, and enter rebalance one level up.
-					if (!parent)	// if the root is being removed, we know it's now empty, or has just 1 element.
+				if (!swappedWith) // If no swap occured, we know the removed node has 0 or 1 children.
+				{                 // Go ahead and set its parent's factor accordingly, and enter rebalance one level up.
+					if (!parent)  // if the root is being removed, we know it's now empty, or has just 1 element.
 					{
-						if (!!liftedChild)	// If just 1 element, set its factor to 0 and clear the parent
+						if (!!liftedChild) // If just 1 element, set its factor to 0 and clear the parent
 						{
 							typename ref_t::locked_t lockedLiftedChild = liftedChild;
 							lockedLiftedChild->set_factor(0);
@@ -463,7 +463,7 @@ public:
 				else
 				{
 					lockedSwappedWith = swappedWith;
-					lockedSwappedWith->set_factor(factor);	// If a swap occured, trade factors with it.
+					lockedSwappedWith->set_factor(factor); // If a swap occured, trade factors with it.
 				}
 				rebalance<false>(liftedChild, parent, wasRightChild);
 				break;

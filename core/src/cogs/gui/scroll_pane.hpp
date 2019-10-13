@@ -20,9 +20,9 @@ namespace gui {
 
 enum scroll_dimensions
 {
-	scroll_horizontally					= 0x01,	// 01
-	scroll_vertically					= 0x02,	// 10
-	scroll_horizontally_and_vertically	= 0x03	// 11
+	scroll_horizontally                = 0x01, // 01
+	scroll_vertically                  = 0x02, // 10
+	scroll_horizontally_and_vertically = 0x03  // 11
 };
 
 /// @ingroup GUI
@@ -36,7 +36,7 @@ private:
 	public:
 		rcref<scroll_bar> m_scrollBar;
 		rcref<override_bounds_frame> m_frame;
-		volatile transactable<scroll_bar_state>	m_state;
+		volatile transactable<scroll_bar_state> m_state;
 		volatile double m_position = 0;
 		volatile boolean m_canAutoFade;
 
@@ -85,7 +85,7 @@ private:
 	placement<scroll_bar_info> m_scrollBarInfo[2];
 
 	rcptr<container_pane> m_contentPane;
-	rcptr<native_container_pane> m_clippingPane;	// using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
+	rcptr<native_container_pane> m_clippingPane; // using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
 	rcptr<container_pane> m_cornerPane;
 
 	rcptr<override_bounds_frame> m_contentFrame;
@@ -153,7 +153,7 @@ private:
 			size contentMins = contentRange.get_min();
 			for (;;)
 			{
-				const dimension d = dimension::horizontal;	// Doesn't matter which, logic is symmetrical
+				const dimension d = dimension::horizontal; // Doesn't matter which, logic is symmetrical
 				double min = contentMins[d];
 				if (has_scroll_bar(d))
 				{
@@ -161,7 +161,7 @@ private:
 					{
 						if (contentRange.get_min(d) > 0)
 							if (contentRange.get_min(!d) > 0)
-								if ((sz[d] >= min) && (sz[!d] >= contentMins[!d]))	// remove both scroll bars
+								if ((sz[d] >= min) && (sz[!d] >= contentMins[!d])) // remove both scroll bars
 								{
 									if (contentRange.has_max(d) && contentRange.get_max(d) == contentMins[d])
 										sz[d] = contentMins[d];
@@ -216,8 +216,8 @@ public:
 		const ptr<rc_obj_base>& desc,
 		scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically,
 		bool hideInactiveScrollBar = true,
-		bool shouldScrollBarAutoFade = true,	// If false, scroll bars are always displayed in mode B.
-		bool dragAndFlickScrolling = true)		// If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
+		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
+		bool dragAndFlickScrolling = true) // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		: pane(desc),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
@@ -340,7 +340,7 @@ public:
 
 		// default to size of contents
 		m_calculatedDefaultSize = m_contentPane->get_default_size();
-		
+
 		bool autoFade = use_scroll_bar_auto_fade();
 		if (!m_hideInactiveScrollBar && !autoFade)
 		{
@@ -442,8 +442,8 @@ public:
 			}
 			else
 			{
-				int neededPrevDimension = 0;	// 1 = yes, -1 = new, 0 not checked yet
-				dimension d = dimension::horizontal;	// doesn't matter which dimension is used first, it's symetrical
+				int neededPrevDimension = 0; // 1 = yes, -1 = new, 0 not checked yet
+				dimension d = dimension::horizontal; // doesn't matter which dimension is used first, it's symetrical
 				for (;;)
 				{
 					showScrollBar[(int)d] = (contentBounds.get_size()[d] > visibleBounds.get_size()[d]);
@@ -523,7 +523,7 @@ public:
 
 		contentBounds.get_size() = m_contentFrame->propose_size(contentBounds.get_size());
 		m_contentFrame->get_fixed_bounds() = contentBounds;
-		m_clippingFrame->get_fixed_bounds() = contentBounds & visibleBounds;	// clip to smaller of content and visible bounds
+		m_clippingFrame->get_fixed_bounds() = contentBounds & visibleBounds; // clip to smaller of content and visible bounds
 
 		for (int i = 0; i < 2; i++)
 		{
@@ -550,7 +550,7 @@ public:
 		if (!pane::wheel_moving(distance, pt, modifiers))
 		{
 			dimension scrollDimension = dimension::horizontal;
-			if (has_scroll_bar(dimension::vertical))	// If shift is held, scroll horizontally
+			if (has_scroll_bar(dimension::vertical)) // If shift is held, scroll horizontally
 			{
 				if (!has_scroll_bar(dimension::horizontal) || !modifiers.get_key(ui::modifier_key::shift_key))
 					scrollDimension = dimension::vertical;

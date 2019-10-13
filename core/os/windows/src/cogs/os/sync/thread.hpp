@@ -23,8 +23,8 @@ namespace os {
 class thread : public object
 {
 private:
-	HANDLE	m_hThread;
-	DWORD	m_threadId;
+	HANDLE m_hThread;
+	DWORD m_threadId;
 
 	static unsigned __stdcall thread_main(void* param)
 	{
@@ -43,7 +43,7 @@ public:
 		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)new (default_allocator::get()) function<void()>(d), 0, (unsigned int*)&m_threadId);
 	}
 
-	~thread()	{ CloseHandle(m_hThread); }
+	~thread() { CloseHandle(m_hThread); }
 
 	// returns -1 indicating a timeout
 	// returns 0 indicating this is the current thread
@@ -60,7 +60,7 @@ public:
 		return result;
 	}
 
-	bool is_current() const		{ return m_threadId == GetCurrentThreadId(); }
+	bool is_current() const { return m_threadId == GetCurrentThreadId(); }
 
 	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
 	static bool spin_once()

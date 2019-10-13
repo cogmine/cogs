@@ -51,16 +51,16 @@
 #pragma comment(lib, "winspool.lib")
 #pragma comment(lib, "ws2_32.lib")
 
-#define SC_RESIZE_LEFT			0xF001
-#define SC_RESIZE_RIGHT			0xF002 
-#define SC_RESIZE_TOP			0xF003
-#define SC_RESIZE_TOP_LEFT		0xF004 
-#define SC_RESIZE_TOP_RIGHT		0xF005
-#define SC_RESIZE_BOTTOM		0xF006
-#define SC_RESIZE_BOTTOM_LEFT	0xF007
-#define SC_RESIZE_BOTTOM_RIGHT	0xF008
+#define SC_RESIZE_LEFT 0xF001
+#define SC_RESIZE_RIGHT 0xF002 
+#define SC_RESIZE_TOP 0xF003
+#define SC_RESIZE_TOP_LEFT 0xF004 
+#define SC_RESIZE_TOP_RIGHT 0xF005
+#define SC_RESIZE_BOTTOM 0xF006
+#define SC_RESIZE_BOTTOM_LEFT 0xF007
+#define SC_RESIZE_BOTTOM_RIGHT 0xF008
 
-#define SC_DRAGMOVE				0xF012
+#define SC_DRAGMOVE 0xF012
 
 #include "cogs/arch.hpp"
 

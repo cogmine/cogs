@@ -25,8 +25,8 @@ private:
 	typedef wait_priority_queue<key_t, type, comparator_t, allocator_type> this_t;
 	typedef priority_queue<key_t, type, comparator_t, allocator_type> priority_queue_t;
 
-	mutable semaphore	m_semaphore;
-	priority_queue_t	m_priorityQueue;
+	mutable semaphore m_semaphore;
+	priority_queue_t m_priorityQueue;
 
 	wait_priority_queue(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -209,12 +209,12 @@ public:
 
 	wait_priority_queue(volatile allocator_type& al) : m_priorityQueue(al) { }
 
-	void clear()							{ m_priorityQueue.clear(); }
-	bool drain()							{ return m_priorityQueue.drain(); }
-	bool drain() volatile					{ return m_priorityQueue.drain(); }
-	bool is_empty() const volatile			{ return m_priorityQueue.is_empty(); }
-	bool operator!() const volatile			{ return is_empty(); }
-	size_t size() const volatile			{ return m_priorityQueue.size(); }
+	void clear() { m_priorityQueue.clear(); }
+	bool drain() { return m_priorityQueue.drain(); }
+	bool drain() volatile { return m_priorityQueue.drain(); }
+	bool is_empty() const volatile { return m_priorityQueue.is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
+	size_t size() const volatile { return m_priorityQueue.size(); }
 
 	value_token insert(const key_t& k, const type& t) volatile
 	{
@@ -254,7 +254,7 @@ public:
 		return m_priorityQueue.template preallocate_key_with_aux<T>(k, i.m_preallocated, storage);
 	}
 
-	value_token insert_preallocated(const preallocated_t& i) volatile			{ return m_priorityQueue.insert_preallocated(i.m_preallocated); }
+	value_token insert_preallocated(const preallocated_t& i) volatile { return m_priorityQueue.insert_preallocated(i.m_preallocated); }
 
 	value_token get(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
@@ -270,9 +270,9 @@ public:
 		return result;
 	}
 
-	value_token try_get(const key_t& lowestPriority) volatile		{ return m_priorityQueue.try_get(lowestPriority); }
+	value_token try_get(const key_t& lowestPriority) volatile { return m_priorityQueue.try_get(lowestPriority); }
 
-	value_token peek() const volatile	{ return m_priorityQueue.peek(); }
+	value_token peek() const volatile { return m_priorityQueue.peek(); }
 
 	value_token wait_peek(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) const volatile
 	{
@@ -288,11 +288,11 @@ public:
 		return result;
 	}
 
-	bool change_priority(value_token& vt, const key_t& newPriority) volatile	{ return m_priorityQueue.change_priority(vt.m_valueToken, newPriority); }
-	bool change_priority(remove_token& rt, const key_t& newPriority) volatile	{ return m_priorityQueue.change_priority(rt.m_removeToken, newPriority); }
+	bool change_priority(value_token& vt, const key_t& newPriority) volatile { return m_priorityQueue.change_priority(vt.m_valueToken, newPriority); }
+	bool change_priority(remove_token& rt, const key_t& newPriority) volatile { return m_priorityQueue.change_priority(rt.m_removeToken, newPriority); }
 
-	bool remove(const value_token& vt) volatile									{ return m_priorityQueue.remove(vt.m_valueToken); }
-	bool remove(const remove_token& rt) volatile								{ return m_priorityQueue.remove(rt.m_removeToken); }
+	bool remove(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_valueToken); }
+	bool remove(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_removeToken); }
 };
 
 template <typename key_t, class comparator_t, class allocator_type>
@@ -302,8 +302,8 @@ private:
 	typedef wait_priority_queue<key_t, void, comparator_t, allocator_type> this_t;
 	typedef priority_queue<key_t, void, comparator_t, allocator_type> priority_queue_t;
 
-	mutable semaphore	m_semaphore;
-	priority_queue_t	m_priorityQueue;
+	mutable semaphore m_semaphore;
+	priority_queue_t m_priorityQueue;
 
 	wait_priority_queue(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -474,10 +474,10 @@ public:
 
 	void clear() { m_priorityQueue.clear(); }
 	bool drain() { return m_priorityQueue.drain(); }
-	bool drain() volatile					{ return m_priorityQueue.drain(); }
-	bool is_empty() const volatile			{ return m_priorityQueue.is_empty(); }
-	bool operator!() const volatile			{ return is_empty(); }
-	size_t size() const volatile			{ return m_priorityQueue.size(); }
+	bool drain() volatile { return m_priorityQueue.drain(); }
+	bool is_empty() const volatile { return m_priorityQueue.is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
+	size_t size() const volatile { return m_priorityQueue.size(); }
 
 	value_token insert(const key_t& k) volatile
 	{
@@ -510,7 +510,7 @@ public:
 		return m_priorityQueue.template preallocate_with_aux<T>(k, i.m_preallocated, storage);
 	}
 
-	value_token insert_preallocated(const preallocated_t& i) volatile	{ return m_priorityQueue.insert_preallocated(i.m_preallocated); }
+	value_token insert_preallocated(const preallocated_t& i) volatile { return m_priorityQueue.insert_preallocated(i.m_preallocated); }
 
 	value_token get(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
@@ -526,9 +526,9 @@ public:
 		return result;
 	}
 
-	value_token try_get(const key_t& lowestPriority) volatile		{ return m_priorityQueue.try_get(lowestPriority); }
+	value_token try_get(const key_t& lowestPriority) volatile { return m_priorityQueue.try_get(lowestPriority); }
 
-	value_token peek() const volatile	{ return m_priorityQueue.peek(); }
+	value_token peek() const volatile { return m_priorityQueue.peek(); }
 
 	value_token wait_peek(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) const volatile
 	{
@@ -544,11 +544,11 @@ public:
 		return result;
 	}
 
-	bool change_priority(value_token& vt, const key_t& newPriority) volatile	{ return m_priorityQueue.change_priority(vt.m_valueToken, newPriority); }
-	bool change_priority(remove_token& rt, const key_t& newPriority) volatile	{ return m_priorityQueue.change_priority(rt.m_removeToken, newPriority); }
+	bool change_priority(value_token& vt, const key_t& newPriority) volatile { return m_priorityQueue.change_priority(vt.m_valueToken, newPriority); }
+	bool change_priority(remove_token& rt, const key_t& newPriority) volatile { return m_priorityQueue.change_priority(rt.m_removeToken, newPriority); }
 
-	bool remove(const value_token& vt) volatile							{ return m_priorityQueue.remove(vt.m_valueToken); }
-	bool remove(const remove_token& rt) volatile						{ return m_priorityQueue.remove(rt.m_removeToken); }
+	bool remove(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_valueToken); }
+	bool remove(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_removeToken); }
 };
 
 

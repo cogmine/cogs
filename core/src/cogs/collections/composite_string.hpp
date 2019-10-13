@@ -15,8 +15,8 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 namespace cogs {
@@ -55,7 +55,7 @@ public:
 	typedef T type;
 	typedef type char_t;
 
-	typedef composite_string_t<type>		this_t;
+	typedef composite_string_t<type> this_t;
 
 	typedef string_t<type> inner_t;
 
@@ -68,22 +68,22 @@ public:
 
 		typename content_t::position_t m_pos;
 
-		position_t(const typename content_t::position_t& pos) : m_pos(pos)		{ }
+		position_t(const typename content_t::position_t& pos) : m_pos(pos) { }
 
 	public:
-		position_t()															{ }
-		position_t(const position_t& pos) : m_pos(pos.m_pos)					{ }
-		position_t(size_t subStringIndex, size_t i) : m_pos(subStringIndex, i)	{ }
+		position_t() { }
+		position_t(const position_t& pos) : m_pos(pos.m_pos) { }
+		position_t(size_t subStringIndex, size_t i) : m_pos(subStringIndex, i) { }
 
-		position_t& operator=(const position_t& pos)	{ m_pos = pos.m_pos; return *this; }
+		position_t& operator=(const position_t& pos) { m_pos = pos.m_pos; return *this; }
 
-		void set(size_t subStringIndex, size_t i)		{ m_pos.set(subStringIndex, i); }
-		bool operator==(const position_t& cmp) const	{ return (m_pos == cmp.m_pos); }
-		bool operator!=(const position_t& cmp) const	{ return !operator==(cmp); }
-		bool operator<(const position_t& cmp) const		{ return (m_pos < cmp.m_pos); }
-		bool operator>(const position_t& cmp) const		{ return (m_pos > cmp.m_pos); }
-		bool operator<=(const position_t& cmp) const	{ return !operator>(cmp); }
-		bool operator>=(const position_t& cmp) const	{ return !operator<(cmp); }
+		void set(size_t subStringIndex, size_t i) { m_pos.set(subStringIndex, i); }
+		bool operator==(const position_t& cmp) const { return (m_pos == cmp.m_pos); }
+		bool operator!=(const position_t& cmp) const { return !operator==(cmp); }
+		bool operator<(const position_t& cmp) const { return (m_pos < cmp.m_pos); }
+		bool operator>(const position_t& cmp) const { return (m_pos > cmp.m_pos); }
+		bool operator<=(const position_t& cmp) const { return !operator>(cmp); }
+		bool operator>=(const position_t& cmp) const { return !operator<(cmp); }
 
 		size_t get_outer_index() const { return m_pos.get_outer_index(); }
 		size_t get_inner_index() const { return m_pos.get_inner_index(); }
@@ -95,35 +95,35 @@ public:
 	private:
 		template <typename>
 		friend class composite_string_t;
-	
+
 		typename content_t::iterator m_iterator;
-	
-		iterator(const typename content_t::iterator& i) : m_iterator(i)	{ }
-	
+
+		iterator(const typename content_t::iterator& i) : m_iterator(i) { }
+
 	public:
-		iterator()												{ }
-		iterator(const iterator& i) : m_iterator(i.m_iterator)	{ }
-	
-		void release()			{ m_iterator.release(); }
-	
+		iterator() { }
+		iterator(const iterator& i) : m_iterator(i.m_iterator) { }
+
+		void release() { m_iterator.release(); }
+
 		iterator& operator++() { ++m_iterator; return *this; }
 		iterator& operator--() { --m_iterator; return *this; }
-	
+
 		iterator operator++(int) { iterator i(*this); ++*this; return i; }
 		iterator operator--(int) { iterator i(*this); --*this; return i; }
-	
+
 		bool operator!() const { return !m_iterator; }
-	
-		bool operator==(const iterator& i) const	{ return m_iterator == i.m_iterator; }
-		bool operator!=(const iterator& i) const	{ return !operator==(i); }
-		iterator& operator=(const iterator& i)		{ m_iterator = i.m_iterator; return *this; }
-	
+
+		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+
 		type* get() const { return m_iterator.get(); }
 		type& operator*() const { return *get(); }
 		type* operator->() const { return get(); }
-	
+
 		position_t get_position() const { return m_iterator.get_position(); }
-	
+
 		iterator next() const { return m_iterator.next(); }
 		iterator prev() const { return m_iterator.prev(); }
 	};
@@ -161,13 +161,13 @@ public:
 
 		bool operator!() const { return !m_iterator; }
 
-		bool operator==(const const_iterator& i) const	{ return m_iterator == i.m_iterator; }
-		bool operator==(const iterator& i) const		{ return m_iterator == i.m_iterator; }
-		bool operator!=(const const_iterator& i) const	{ return !operator==(i); }
-		bool operator!=(const iterator& i) const		{ return !operator==(i); }
+		bool operator==(const const_iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator!=(const const_iterator& i) const { return !operator==(i); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
 
-		const_iterator& operator=(const const_iterator& i)	{ m_iterator = i.m_iterator; return *this; }
-		const_iterator& operator=(const iterator& i)		{ m_iterator = i.m_iterator; return *this; }
+		const_iterator& operator=(const const_iterator& i) { m_iterator = i.m_iterator; return *this; }
+		const_iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
 
 		const type* get() const { return m_iterator.get(); }
 		const type& operator*() const { return *get(); }
@@ -179,29 +179,27 @@ public:
 		const_iterator prev() const { return m_iterator.prev(); }
 	};
 
-	const_iterator get_first_const_iterator() const	{ return m_contents.get_first_const_iterator(); }
-	const_iterator get_last_const_iterator() const	{ return m_contents.get_last_const_iterator(); }
+	const_iterator get_first_const_iterator() const { return m_contents.get_first_const_iterator(); }
+	const_iterator get_last_const_iterator() const { return m_contents.get_last_const_iterator(); }
 
-	iterator get_first_iterator()					{ return m_contents.get_first_iterator(); }
-	iterator get_last_iterator()					{ return m_contents.get_last_iterator(); }
+	iterator get_first_iterator() { return m_contents.get_first_iterator(); }
+	iterator get_last_iterator() { return m_contents.get_last_iterator(); }
 
-	static this_t literal(const type* src)				{ return this_t(string_t<type>::literal(src)); }
-	static this_t literal(type& src)					{ return this_t(string_t<type>::literal(src)); }
+	static this_t literal(const type* src) { return this_t(string_t<type>::literal(src)); }
+	static this_t literal(type& src) { return this_t(string_t<type>::literal(src)); }
 
-	static this_t contain(const type* src)				{ return this_t(string_t<type>::contain(src)); }
-	static this_t contain(const type* src, size_t n)	{ return this_t(string_t<type>::contain(n, src)); }
-
+	static this_t contain(const type* src) { return this_t(string_t<type>::contain(src)); }
+	static this_t contain(const type* src, size_t n) { return this_t(string_t<type>::contain(n, src)); }
 
 	composite_string_t(this_t&& src)
 		: m_contents(std::move(src.m_contents))
 	{ }
-	
+
 	this_t& operator=(this_t&& src)
 	{
 		m_contents = std::move(src.m_contents);
 		return *this;
-	}	
-
+	}
 
 	composite_string_t()
 	{ }
@@ -270,23 +268,23 @@ public:
 		: m_contents(vector<type>(src, inner_t::count_chars(src)))
 	{ }
 
-	string_t<type> composite() const					{ return string_t<type>::from_vector(m_contents.composite()); }
-	string_t<type> composite() const volatile			{ return string_t<type>::from_vector(m_contents.composite()); }
+	string_t<type> composite() const { return string_t<type>::from_vector(m_contents.composite()); }
+	string_t<type> composite() const volatile { return string_t<type>::from_vector(m_contents.composite()); }
 
-	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const				{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
-	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ return string_t<type>::from_vector(m_contents.composite(i, n)); }
+	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const { return string_t<type>::from_vector(m_contents.composite(i, n)); }
+	string_t<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile { return string_t<type>::from_vector(m_contents.composite(i, n)); }
 
-	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const			{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
-	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile	{ return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
+	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const { return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
+	string_t<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile { return string_t<type>::from_vector(m_contents.composite(pos.m_pos, n)); }
 
-	size_t get_length() const					{ return m_contents.get_length(); }
-	size_t get_length() const volatile			{ return m_contents.get_length(); }
+	size_t get_length() const { return m_contents.get_length(); }
+	size_t get_length() const volatile { return m_contents.get_length(); }
 
-	bool is_empty() const						{ return m_contents.is_empty(); }
-	bool is_empty() const volatile				{ return m_contents.is_empty(); }
+	bool is_empty() const { return m_contents.is_empty(); }
+	bool is_empty() const volatile { return m_contents.is_empty(); }
 
-	bool operator!() const						{ return m_contents.operator!(); }
-	bool operator!() const volatile				{ return m_contents.operator!(); }
+	bool operator!() const { return m_contents.operator!(); }
+	bool operator!() const volatile { return m_contents.operator!(); }
 
 
 	bool equals(const type* cmp, size_t cmpLength, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
@@ -584,8 +582,6 @@ public:
 	}
 
 
-
-
 	bool operator==(const string_t<type>& cmp) const { return equals(cmp); }
 
 	bool operator==(const this_t& cmp) const { return equals(cmp); }
@@ -597,10 +593,6 @@ public:
 	bool operator==(const volatile string_t<type>& cmp) const { return equals(cmp); }
 
 	bool operator==(const volatile this_t& cmp) const { return equals(cmp); }
-
-
-
-
 
 
 	bool operator!=(const string_t<type>& cmp) const { return !equals(cmp); }
@@ -616,8 +608,7 @@ public:
 	bool operator!=(const volatile this_t& cmp) const { return !equals(cmp); }
 
 
-
-	int compare(const type* cmp, size_t cmpLength, is_case_sensitive_t caseSensitivity = is_case_sensitive) const						
+	int compare(const type* cmp, size_t cmpLength, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(cmp, cmpLength);
@@ -691,14 +682,14 @@ public:
 
 
 
-	int compare(const string_t<type>& buf, is_case_sensitive_t caseSensitivity = is_case_sensitive) const	
+	int compare(const string_t<type>& buf, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(buf.get_vector());
 		return m_contents.template compare<type, case_insensitive_comparator<type> >(buf.get_vector());
 	}
 
-	int compare(size_t i, const string_t<type>& buf, is_case_sensitive_t caseSensitivity = is_case_sensitive) const	
+	int compare(size_t i, const string_t<type>& buf, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
 		if (caseSensitivity == is_case_sensitive)
 			return m_contents.template compare<type, default_comparator>(i, buf.get_vector());
@@ -1495,36 +1486,33 @@ public:
 		return m_contents.template is_greater_than<type, case_insensitive_comparator<type> >(pos.m_pos, n, buf.get_composite_vector(), cmpIndex, cmpLength);
 	}
 
-	bool operator<(const string_t<type>& cmp) const				{ return is_less_than(cmp); }
-	bool operator<(const string_t<type>& cmp) const volatile	{ return is_less_than(cmp); }
-	bool operator<(const volatile string_t<type>& cmp) const	{ return is_less_than(cmp); }
-	bool operator<(const this_t& cmp) const						{ return is_less_than(cmp); }
-	bool operator<(const this_t& cmp) const volatile			{ return is_less_than(cmp); }
-	bool operator<(const volatile this_t& cmp) const			{ return is_less_than(cmp); }
+	bool operator<(const string_t<type>& cmp) const { return is_less_than(cmp); }
+	bool operator<(const string_t<type>& cmp) const volatile { return is_less_than(cmp); }
+	bool operator<(const volatile string_t<type>& cmp) const { return is_less_than(cmp); }
+	bool operator<(const this_t& cmp) const { return is_less_than(cmp); }
+	bool operator<(const this_t& cmp) const volatile { return is_less_than(cmp); }
+	bool operator<(const volatile this_t& cmp) const { return is_less_than(cmp); }
 
-	bool operator>(const string_t<type>& cmp) const				{ return is_greater_than(cmp); }
-	bool operator>(const string_t<type>& cmp) const volatile	{ return is_greater_than(cmp); }
-	bool operator>(const volatile string_t<type>& cmp) const	{ return is_greater_than(cmp); }
-	bool operator>(const this_t& cmp) const						{ return is_greater_than(cmp); }
-	bool operator>(const this_t& cmp) const volatile			{ return is_greater_than(cmp); }
-	bool operator>(const volatile this_t& cmp) const			{ return is_greater_than(cmp); }
+	bool operator>(const string_t<type>& cmp) const { return is_greater_than(cmp); }
+	bool operator>(const string_t<type>& cmp) const volatile { return is_greater_than(cmp); }
+	bool operator>(const volatile string_t<type>& cmp) const { return is_greater_than(cmp); }
+	bool operator>(const this_t& cmp) const { return is_greater_than(cmp); }
+	bool operator>(const this_t& cmp) const volatile { return is_greater_than(cmp); }
+	bool operator>(const volatile this_t& cmp) const { return is_greater_than(cmp); }
 
-	bool operator<=(const string_t<type>& cmp) const			{ return !operator>(cmp); }
-	bool operator<=(const string_t<type>& cmp) const volatile	{ return !operator>(cmp); }
-	bool operator<=(const volatile string_t<type>& cmp) const	{ return !operator>(cmp); }
-	bool operator<=(const this_t& cmp) const					{ return !operator>(cmp); }
-	bool operator<=(const this_t& cmp) const volatile			{ return !operator>(cmp); }
-	bool operator<=(const volatile this_t& cmp) const			{ return !operator>(cmp); }
+	bool operator<=(const string_t<type>& cmp) const { return !operator>(cmp); }
+	bool operator<=(const string_t<type>& cmp) const volatile { return !operator>(cmp); }
+	bool operator<=(const volatile string_t<type>& cmp) const { return !operator>(cmp); }
+	bool operator<=(const this_t& cmp) const { return !operator>(cmp); }
+	bool operator<=(const this_t& cmp) const volatile { return !operator>(cmp); }
+	bool operator<=(const volatile this_t& cmp) const { return !operator>(cmp); }
 
-	bool operator>=(const string_t<type>& cmp) const			{ return !operator<(cmp); }
-	bool operator>=(const string_t<type>& cmp) const volatile	{ return !operator<(cmp); }
-	bool operator>=(const volatile string_t<type>& cmp) const	{ return !operator<(cmp); }
-	bool operator>=(const this_t& cmp) const					{ return !operator<(cmp); }
-	bool operator>=(const this_t& cmp) const volatile			{ return !operator<(cmp); }
-	bool operator>=(const volatile this_t& cmp) const			{ return !operator<(cmp); }
-
-
-
+	bool operator>=(const string_t<type>& cmp) const { return !operator<(cmp); }
+	bool operator>=(const string_t<type>& cmp) const volatile { return !operator<(cmp); }
+	bool operator>=(const volatile string_t<type>& cmp) const { return !operator<(cmp); }
+	bool operator>=(const this_t& cmp) const { return !operator<(cmp); }
+	bool operator>=(const this_t& cmp) const volatile { return !operator<(cmp); }
+	bool operator>=(const volatile this_t& cmp) const { return !operator<(cmp); }
 
 	bool starts_with(const type* cmp, size_t cmpLength, is_case_sensitive_t caseSensitivity = is_case_sensitive) const
 	{
@@ -2590,13 +2578,13 @@ public:
 		return m_contents.template contains_segment<type, case_insensitive_comparator<type> >(pos.m_pos, n, cmp.get_composite_vector(), cmpPos.m_pos, cmpLength);
 	}
 
-	void reverse()	{ m_contents.reverse(); }
+	void reverse() { m_contents.reverse(); }
 
-	size_t get_inner_count() const							{ return m_contents.get_inner_count(); }
-	size_t get_inner_count() const volatile					{ return m_contents.get_inner_count(); }
+	size_t get_inner_count() const { return m_contents.get_inner_count(); }
+	size_t get_inner_count() const volatile { return m_contents.get_inner_count(); }
 
-	const composite_vector<type>& get_composite_vector() const						{ return m_contents; }
-	const volatile composite_vector<type>& get_composite_vector() const volatile	{ return m_contents; }
+	const composite_vector<type>& get_composite_vector() const { return m_contents; }
+	const volatile composite_vector<type>& get_composite_vector() const volatile { return m_contents; }
 
 	static this_t from_composite_vector(const composite_vector<type>& v)
 	{
@@ -2611,8 +2599,8 @@ public:
 		return result;
 	}
 
-	const vector<type>& get_inner_array(size_t i) const				{ return m_contents.get_inner_array(i); }
-	const vector<type>  get_inner_array(size_t i) const volatile		{ return m_contents.get_inner_array(i); }
+	const vector<type>& get_inner_array(size_t i) const { return m_contents.get_inner_array(i); }
+	const vector<type> get_inner_array(size_t i) const volatile { return m_contents.get_inner_array(i); }
 
 	string_t<type> get_inner_string(size_t i) const
 	{
@@ -2624,7 +2612,7 @@ public:
 		return string_t<type>::from_vector(get_inner_array(i));
 	}
 
-	
+
 	string_t<type> get_inner(size_t i) const
 	{
 		return string_t<type>::from_vector(get_inner_array(i));
@@ -2635,13 +2623,13 @@ public:
 		return string_t<type>::from_vector(get_inner_array(i));
 	}
 
-	void reserve_sub_strings(size_t n)				{ return m_contents.reserve_sub_arrays(n); }
+	void reserve_sub_strings(size_t n) { return m_contents.reserve_sub_arrays(n); }
 
 
-	void reset()									{ m_contents.reset(); }
-	void reset() volatile							{ m_contents.reset(); }
+	void reset() { m_contents.reset(); }
+	void reset() volatile { m_contents.reset(); }
 
-	const type& operator[](const position_t& pos) const			{ return get_inner_string(pos)[pos.get_inner_index()]; }
+	const type& operator[](const position_t& pos) const { return get_inner_string(pos)[pos.get_inner_index()]; }
 
 
 	this_t subrange(size_t i) const
@@ -2695,89 +2683,89 @@ public:
 		return m_contents.subrange(start.m_pos, end.m_pos);
 	}
 
-	void assign(const type& src)						{ assign(string_t<type>(src)); }
+	void assign(const type& src) { assign(string_t<type>(src)); }
 
-	void assign(const type& src) volatile				{ assign(string_t<type>(src)); }
+	void assign(const type& src) volatile { assign(string_t<type>(src)); }
 
-	void assign(size_t n, const type& src)				{ assign(string_t<type>(n, src)); }
+	void assign(size_t n, const type& src) { assign(string_t<type>(n, src)); }
 
-	void assign(size_t n, const type& src) volatile		{ assign(string_t<type>(n, src)); }
+	void assign(size_t n, const type& src) volatile { assign(string_t<type>(n, src)); }
 
-	void assign(const type* src, size_t n)				{ assign(string_t<type>(src, n)); }
+	void assign(const type* src, size_t n) { assign(string_t<type>(src, n)); }
 
-	void assign(const type* src, size_t n) volatile		{ assign(string_t<type>(src, n)); }
+	void assign(const type* src, size_t n) volatile { assign(string_t<type>(src, n)); }
 
-	void assign(const this_t& src)			{ m_contents.assign(src.m_contents); }
+	void assign(const this_t& src) { m_contents.assign(src.m_contents); }
 
-	void assign(const this_t& src) volatile	{ m_contents.assign(src.m_contents); }
+	void assign(const this_t& src) volatile { m_contents.assign(src.m_contents); }
 
-	void assign(const volatile this_t& src)							{ m_contents.assign(src.m_contents); }
-
-
-	void assign(const this_t& src, size_t i)			{ m_contents.assign(src.m_contents, i); }
-
-	void assign(const this_t& src, size_t i) volatile	{ m_contents.assign(src.m_contents, i); }
-
-	void assign(const volatile this_t& src, size_t i)							{ m_contents.assign(src.m_contents, i); }
+	void assign(const volatile this_t& src) { m_contents.assign(src.m_contents); }
 
 
+	void assign(const this_t& src, size_t i) { m_contents.assign(src.m_contents, i); }
 
-	void assign(const this_t& src, size_t i, size_t n)			{ m_contents.assign(src.m_contents, i, n); }
+	void assign(const this_t& src, size_t i) volatile { m_contents.assign(src.m_contents, i); }
 
-	void assign(const this_t& src, size_t i, size_t n) volatile	{ m_contents.assign(src.m_contents, i, n); }
-
-	void assign(const volatile this_t& src, size_t i, size_t n)							{ m_contents.assign(src.m_contents, i, n); }
+	void assign(const volatile this_t& src, size_t i) { m_contents.assign(src.m_contents, i); }
 
 
 
-	void assign(const string_t<type>& src)					{ m_contents.assign(src.m_contents); }
+	void assign(const this_t& src, size_t i, size_t n) { m_contents.assign(src.m_contents, i, n); }
 
-	void assign(const string_t<type>& src) volatile			{ m_contents.assign(src.m_contents); }
+	void assign(const this_t& src, size_t i, size_t n) volatile { m_contents.assign(src.m_contents, i, n); }
 
-	void assign(const volatile string_t<type>& src)	{ m_contents.assign(src.m_contents); }
-
-
-
-	void assign(const string_t<type>& src, size_t i)					{ m_contents.assign(src.m_contents, i); }
-
-	void assign(const string_t<type>& src, size_t i) volatile			{ m_contents.assign(src.m_contents, i); }
-
-	void assign(const volatile string_t<type>& src, size_t i)	{ m_contents.assign(src.m_contents, i); }
+	void assign(const volatile this_t& src, size_t i, size_t n) { m_contents.assign(src.m_contents, i, n); }
 
 
 
-	void assign(const string_t<type>& src, size_t i, size_t n)					{ m_contents.assign(src.m_contents, i, n); }
+	void assign(const string_t<type>& src) { m_contents.assign(src.m_contents); }
 
-	void assign(const string_t<type>& src, size_t i, size_t n) volatile			{ m_contents.assign(src.m_contents, i, n); }
+	void assign(const string_t<type>& src) volatile { m_contents.assign(src.m_contents); }
 
-	void assign(const volatile string_t<type>& src, size_t i, size_t n)	{ m_contents.assign(src.m_contents, i, n); }
-
-
-	this_t& operator=(const this_t& src)			{ m_contents.assign(src.m_contents); return *this; }
-
-	void operator=(const this_t& src) volatile		{ m_contents.assign(src.m_contents); }
-
-	this_t& operator=(const volatile this_t& src)	{ m_contents.assign(src.m_contents); return *this; }
+	void assign(const volatile string_t<type>& src) { m_contents.assign(src.m_contents); }
 
 
-	this_t& operator=(const string_t<type>& src)					{ m_contents.assign(src.get_vector()); return *this; }
 
-	this_t& operator=(const volatile string_t<type>& src)	{ m_contents.assign(src.get_vector()); return *this; }
+	void assign(const string_t<type>& src, size_t i) { m_contents.assign(src.m_contents, i); }
 
-	void operator=(const string_t<type>& src) volatile			{ m_contents.assign(src.get_vector()); }
-	
-	void append(const type& src)						{ m_contents.append(1, src); }
-	void append(size_t n, const type& src)				{ m_contents.append(n, src); }
-	void append(const type* src, size_t n)				{ m_contents.append(src, n); }
+	void assign(const string_t<type>& src, size_t i) volatile { m_contents.assign(src.m_contents, i); }
 
-	void append(const this_t& src)				{ m_contents.append(src.m_contents); }
-	
-	void append(const volatile this_t& src)								{ m_contents.append(src.m_contents); }
+	void assign(const volatile string_t<type>& src, size_t i) { m_contents.assign(src.m_contents, i); }
 
 
-	void append(const string_t<type>& src)						{ m_contents.append(src.get_vector()); }
-	
-	void append(const volatile string_t<type>& src)		{ m_contents.append(src.get_vector()); }
+
+	void assign(const string_t<type>& src, size_t i, size_t n) { m_contents.assign(src.m_contents, i, n); }
+
+	void assign(const string_t<type>& src, size_t i, size_t n) volatile { m_contents.assign(src.m_contents, i, n); }
+
+	void assign(const volatile string_t<type>& src, size_t i, size_t n) { m_contents.assign(src.m_contents, i, n); }
+
+
+	this_t& operator=(const this_t& src) { m_contents.assign(src.m_contents); return *this; }
+
+	void operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); }
+
+	this_t& operator=(const volatile this_t& src) { m_contents.assign(src.m_contents); return *this; }
+
+
+	this_t& operator=(const string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
+
+	this_t& operator=(const volatile string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
+
+	void operator=(const string_t<type>& src) volatile { m_contents.assign(src.get_vector()); }
+
+	void append(const type& src) { m_contents.append(1, src); }
+	void append(size_t n, const type& src) { m_contents.append(n, src); }
+	void append(const type* src, size_t n) { m_contents.append(src, n); }
+
+	void append(const this_t& src) { m_contents.append(src.m_contents); }
+
+	void append(const volatile this_t& src) { m_contents.append(src.m_contents); }
+
+
+	void append(const string_t<type>& src) { m_contents.append(src.get_vector()); }
+
+	void append(const volatile string_t<type>& src) { m_contents.append(src.get_vector()); }
 
 
 	this_t& operator+=(const this_t& src)
@@ -2834,34 +2822,34 @@ public:
 	}
 
 
-	void prepend(const type& src)						{ m_contents.prepend(1, src); }
-	void prepend(size_t n, const type& src)				{ m_contents.prepend(n, src); }
-	void prepend(const type* src, size_t n)				{ m_contents.prepend(src, n); }
+	void prepend(const type& src) { m_contents.prepend(1, src); }
+	void prepend(size_t n, const type& src) { m_contents.prepend(n, src); }
+	void prepend(const type* src, size_t n) { m_contents.prepend(src, n); }
 
-	void prepend(const this_t& src)	{ m_contents.prepend(src.get_vector()); }
-	
-	void prepend(const volatile this_t& src)					{ m_contents.prepend(src.m_contents); }
+	void prepend(const this_t& src) { m_contents.prepend(src.get_vector()); }
 
-
-	void prepend(const string_t<type>& src)	{ m_contents.prepend(src.get_vector()); }
-	
-	void prepend(const volatile string_t<type>& src)					{ m_contents.prepend(src.get_vector()); }
+	void prepend(const volatile this_t& src) { m_contents.prepend(src.m_contents); }
 
 
+	void prepend(const string_t<type>& src) { m_contents.prepend(src.get_vector()); }
+
+	void prepend(const volatile string_t<type>& src) { m_contents.prepend(src.get_vector()); }
 
 
-	void insert(size_t i, size_t n)				{ m_contents.insert(i, n); }
-
-	void insert(size_t i, size_t n, const type& src)	{ m_contents.insert(i, n, src); }
-
-	void insert(size_t i, const type* src, size_t n)	{ m_contents.insert(i, src, n); }
 
 
-	void insert(const position_t& pos, size_t n)				{ m_contents.insert(pos.m_pos, n); }
+	void insert(size_t i, size_t n) { m_contents.insert(i, n); }
 
-	void insert(const position_t& pos, size_t n, const type& src)	{ m_contents.insert(pos.m_pos, n, src); }
+	void insert(size_t i, size_t n, const type& src) { m_contents.insert(i, n, src); }
 
-	void insert(const position_t& pos, const type* src, size_t n)	{ m_contents.insert(pos.m_pos, src, n); }
+	void insert(size_t i, const type* src, size_t n) { m_contents.insert(i, src, n); }
+
+
+	void insert(const position_t& pos, size_t n) { m_contents.insert(pos.m_pos, n); }
+
+	void insert(const position_t& pos, size_t n, const type& src) { m_contents.insert(pos.m_pos, n, src); }
+
+	void insert(const position_t& pos, const type* src, size_t n) { m_contents.insert(pos.m_pos, src, n); }
 
 
 	void insert(size_t i, const string_t<type>& src)
@@ -3100,37 +3088,37 @@ public:
 	}
 
 
-	void erase(size_t i)						{ m_contents.erase(i); }
+	void erase(size_t i) { m_contents.erase(i); }
 
-	void erase(size_t i, size_t n)				{ m_contents.erase(i, n); }
-
-
-	void clear()							{ m_contents.clear(); }
-	void clear() volatile					{ m_contents.clear(); }
-	
-	void swap(this_t& wth)					{ m_contents.swap(wth.m_contents); }
-
-	void swap(this_t& wth) volatile			{ m_contents.swap(wth.m_contents); }
-	void swap(volatile this_t& wth)			{ m_contents.swap(wth.m_contents); }
+	void erase(size_t i, size_t n) { m_contents.erase(i, n); }
 
 
-	void advance_buffers(size_t n)				{ m_contents.advance_arrays(n); }
-	void advance_buffers(size_t n) volatile		{ m_contents.advance_arrays(n); }
+	void clear() { m_contents.clear(); }
+	void clear() volatile { m_contents.clear(); }
 
-	void truncate_buffers(size_t n)				{ m_contents.truncate_arrays(n); }
-	void truncate_buffers(size_t n) volatile	{ m_contents.truncate_arrays(n); }
+	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	void truncate_buffers_to(size_t n)			{ m_contents.truncate_arrays_to(n); }
-	void truncate_buffers_to(size_t n) volatile	{ m_contents.truncate_arrays_to(n); }
+	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+	void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	void advance_buffer()						{ m_contents.advance_array(); }
-	void truncate_buffer()						{ m_contents.truncate_array(); }
-	
-	string_t<type> pop_first_buffer()				{ return m_contents.pop_first_array(); }
-	string_t<type> pop_first_buffer() volatile		{ return m_contents.pop_first_array(); }
 
-	string_t<type> pop_last_buffer()				{ return m_contents.pop_last_array(); }
-	string_t<type> pop_last_buffer() volatile		{ return m_contents.pop_last_array(); }
+	void advance_buffers(size_t n) { m_contents.advance_arrays(n); }
+	void advance_buffers(size_t n) volatile { m_contents.advance_arrays(n); }
+
+	void truncate_buffers(size_t n) { m_contents.truncate_arrays(n); }
+	void truncate_buffers(size_t n) volatile { m_contents.truncate_arrays(n); }
+
+	void truncate_buffers_to(size_t n) { m_contents.truncate_arrays_to(n); }
+	void truncate_buffers_to(size_t n) volatile { m_contents.truncate_arrays_to(n); }
+
+	void advance_buffer() { m_contents.advance_array(); }
+	void truncate_buffer() { m_contents.truncate_array(); }
+
+	string_t<type> pop_first_buffer() { return m_contents.pop_first_array(); }
+	string_t<type> pop_first_buffer() volatile { return m_contents.pop_first_array(); }
+
+	string_t<type> pop_last_buffer() { return m_contents.pop_last_array(); }
+	string_t<type> pop_last_buffer() volatile { return m_contents.pop_last_array(); }
 
 	this_t split_off_buffers_before(size_t i)
 	{
@@ -3505,7 +3493,7 @@ public:
 	}
 
 	template <typename int_t>
-	int_t to_int(unsigned int radix = 0) const	// Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex 
+	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex 
 	{
 		int_t result = 0;
 
@@ -3562,7 +3550,7 @@ public:
 			while (!!itor)
 			{
 				type c = *itor;
-				if (c == (type)'.')	// stop at a deciminal place
+				if (c == (type)'.') // stop at a deciminal place
 					break;
 				if ((c >= (type)'0') && (c <= maxDecimalDigit))
 				{
@@ -3579,7 +3567,7 @@ public:
 					result *= radix;
 					result += 10 + (c - (type)'A');
 				}
-				else //if (!is_white_space(c))	// unhandleable characters cause 0 to be returned
+				else //if (!is_white_space(c)) // unhandleable characters cause 0 to be returned
 				{
 					result = 0;
 					break;
@@ -3594,14 +3582,14 @@ public:
 			while (!!itor)
 			{
 				type c = *itor;
-				if (c == (type)'.')	// stop at a deciminal place
+				if (c == (type)'.') // stop at a deciminal place
 					break;
 				if ((c >= (type)'0') && (c <= maxDecimalDigit))
 				{
 					result *= radix;
 					result += c - (type)'0';
 				}
-				else //if (!is_white_space(c))	// unhandleable characters cause 0 to be returned
+				else //if (!is_white_space(c)) // unhandleable characters cause 0 to be returned
 				{
 					result = 0;
 					break;

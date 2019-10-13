@@ -70,7 +70,7 @@ public:
 template <typename int_t, int_t high_part>
 inline constexpr int_t make_const_high_part_v = make_const_high_part<int_t, high_part>::value;
 
-	
+
 /// @ingroup Mem
 /// @brief Helper template to create a constant integer from high and low parts
 /// @tparam int_t Int type

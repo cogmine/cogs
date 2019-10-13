@@ -36,13 +36,13 @@ public:
 	typedef milliseconds period_unitbase;
 	typedef measure<period_unit_storage_t, period_unitbase> period_t;
 
-	//static period_t now()	{ return timeGetTime(); }	// timeGetTime() incurs a kernel mode transition  (?)  It's more accurate, but more overhead.
+	//static period_t now() { return timeGetTime(); } // timeGetTime() incurs a kernel mode transition  (?)  It's more accurate, but more overhead.
 	static period_t now() { return make_measure<period_unitbase>(GetTickCount64()); }
 
 private:
-	period_t	m_startTime;
-	period_t	m_period;
-	period_t	m_expireTime;
+	period_t m_startTime;
+	period_t m_period;
+	period_t m_expireTime;
 
 	bool expired_inner(const period_t& n, const period_t& expireTime) const
 	{
@@ -50,52 +50,52 @@ private:
 		//
 		// N=Now, S=Start, E=Expiration
 		//
-		//         S<E N<S E<=N	<- Only one of these conditions can be true if unexpired (N=Now, S=Start, E=Expiration)
+		//         S<E N<S E<=N <- Only one of these conditions can be true if unexpired (N=Now, S=Start, E=Expiration)
 		//
-		// SNE   =  1 ^ 0 ^ 0  =  1	<- not expired yet	<- normal, no counter loop
-		// ESN   =  0 ^ 0 ^ 1  =  1	<- not expired yet	<- counter will loop before timer expires
-		// NES   =  0 ^ 1 ^ 0  =  1	<- not expired yet	<- counter will loop before timer expires
+		// SNE   =  1 ^ 0 ^ 0  =  1 <- not expired yet <- normal, no counter loop
+		// ESN   =  0 ^ 0 ^ 1  =  1 <- not expired yet <- counter will loop before timer expires
+		// NES   =  0 ^ 1 ^ 0  =  1 <- not expired yet <- counter will loop before timer expires
 		//
-		// SEN   =  1 ^ 0 ^ 1  =  0	<- expired			<- normal, no counter loop
-		// NSE   =  1 ^ 1 ^ 0  =  0	<- expired			<- counter looped since timer expired
-		// ENS   =  0 ^ 1 ^ 1  =  0	<- expired			<- counter looped before timer expired
+		// SEN   =  1 ^ 0 ^ 1  =  0 <- expired <- normal, no counter loop
+		// NSE   =  1 ^ 1 ^ 0  =  0 <- expired <- counter looped since timer expired
+		// ENS   =  0 ^ 1 ^ 1  =  0 <- expired <- counter looped before timer expired
 		//
 		// If equal :
 		//
 		// (ES)N =  0 ^ 0 ^ 1  = 1 <- S==E Implies that the period is 0.  This function should not be called if the period is 0.
 		// N(ES) =  0 ^ 1 ^ 0  = 1 <- S==E Implies that the period is 0.  This function should not be called if the period is 0.
 		//
-		// (NS)E =  1 ^ 0 ^ 0  = 1 <- not expired yet	<- Assume N==S means it just started
-		// E(NS) =  0 ^ 0 ^ 1  = 1 <- not expired yet	<- Assume N==S means it just started
+		// (NS)E =  1 ^ 0 ^ 0  = 1 <- not expired yet <- Assume N==S means it just started
+		// E(NS) =  0 ^ 0 ^ 1  = 1 <- not expired yet <- Assume N==S means it just started
 		//
-		// S(EN) =  1 ^ 0 ^ 1  = 0	<- expired			<- Assume E==N means it just expired
-		// (EN)S =  0 ^ 1 ^ 1  = 0	<- expired			<- Assume E==N means it just expired
+		// S(EN) =  1 ^ 0 ^ 1  = 0 <- expired <- Assume E==N means it just expired
+		// (EN)S =  0 ^ 1 ^ 1  = 0 <- expired <- Assume E==N means it just expired
 		//
 		return (!((m_startTime < expireTime) ^ (n < m_startTime) ^ (expireTime <= n)));
 	}
 
 	timeout_t(const period_t& startTime, const period_t& period, const period_t& expireTime)
-		:	m_startTime(startTime),
-			m_period(period)
+		: m_startTime(startTime),
+		m_period(period)
 	{ }
 
 public:
 	timeout_t()
-		:	m_startTime(make_measure<period_unitbase>(0)),
-			m_period(make_measure<period_unitbase>(0)),
-			m_expireTime(make_measure<period_unitbase>(0))
+		: m_startTime(make_measure<period_unitbase>(0)),
+		m_period(make_measure<period_unitbase>(0)),
+		m_expireTime(make_measure<period_unitbase>(0))
 	{ }
 
 	timeout_t(const timeout_t& t)
-		:	m_startTime(t.m_startTime),
+		: m_startTime(t.m_startTime),
 		m_period(t.m_period),
 		m_expireTime(t.m_expireTime)
 	{ }
 
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
 	timeout_t(const measure<unit_storage_t, unitbase_t>& n)
-		:	m_startTime(now()),
-			m_period(n)
+		: m_startTime(now()),
+		m_period(n)
 	{
 		m_expireTime = m_startTime;
 		m_expireTime += m_period;
@@ -146,14 +146,14 @@ public:
 			make_measure<period_unitbase>(0));
 	}
 
-	static timeout_t none()		{ return timeout_t(); }
+	static timeout_t none() { return timeout_t(); }
 
-	bool operator!() const			{ return expired(); }
+	bool operator!() const { return expired(); }
 
-	period_t get_period() const		{ return m_period; }
-	period_t get_expiration() const	{ return m_expireTime; }
+	period_t get_period() const { return m_period; }
+	period_t get_expiration() const { return m_expireTime; }
 
-	bool is_infinite() const	{ return make_measure<period_unitbase>(const_max_int_v<ULONGLONG>) == m_period; }
+	bool is_infinite() const { return make_measure<period_unitbase>(const_max_int_v<ULONGLONG>) == m_period; }
 
 	period_t get_pending() const
 	{
@@ -190,10 +190,10 @@ public:
 		// since last fired into the new expiration time.  If more than that period has
 		// transpired since the timer last expired, the new expiration is immediate.
 		// (by changing the start time, so without modifying the period of the timeout object).
-		
+
 		period_t n = now();
 		if (!expired_inner(n, m_expireTime))
-			return;		// You can't refire() a timer until after it expires.
+			return; // You can't refire() a timer until after it expires.
 		// We bother with that check because we need to ensure m_startTime
 		// is never in the future, or our range overflow trick fails.
 
@@ -236,7 +236,7 @@ public:
 
 
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
-	timeout_t& operator+=(const measure<unit_storage_t, unitbase_t>& n)	// extends the period
+	timeout_t& operator+=(const measure<unit_storage_t, unitbase_t>& n) // extends the period
 	{
 		if (m_period != const_max_int_v<ULONGLONG>)
 		{
@@ -248,7 +248,7 @@ public:
 	}
 
 	template <typename unit_storage_t = period_unit_storage_t, typename unitbase_t = period_unitbase>
-	timeout_t& operator+=(const volatile measure<unit_storage_t, unitbase_t>& n)	// extends the period
+	timeout_t& operator+=(const volatile measure<unit_storage_t, unitbase_t>& n) // extends the period
 	{
 		if (m_period != const_max_int_v<ULONGLONG>)
 		{

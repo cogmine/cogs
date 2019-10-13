@@ -31,7 +31,7 @@ namespace os {
 class semaphore : public object
 {
 private:
-	sem_t	m_semaphore;
+	sem_t m_semaphore;
 
 public:
 	explicit semaphore(const ptr<rc_obj_base>& desc)

@@ -61,16 +61,16 @@
 //private:
 //	typedef pane_bridge<button_box_interface> base_t;
 //
-//	rcref<pane>					m_childPanel;
+//	rcref<pane> m_childPanel;
 //
-//	container_dlist<rcref<button> >	m_buttonList;
-//	rcptr<button>				m_defaultButton;
-//	size_t						m_numButtons;
+//	container_dlist<rcref<button> > m_buttonList;
+//	rcptr<button> m_defaultButton;
+//	size_t m_numButtons;
 //
 //public:
 //	button_box()
-//		:	m_childPanel(rcnew(pane)),
-//			m_numButtons(0)
+//		: m_childPanel(rcnew(pane)),
+//		m_numButtons(0)
 //	{ }
 //	
 //	~button_box()
@@ -84,14 +84,14 @@
 //	class button : public object
 //	{
 //	private:
-//		function<void(const rcref<button>&)>		m_action;
-//		composite_string										m_text;
-//		bool										m_isEnabled;
-//		gfx::font									m_font;
+//		function<void(const rcref<button>&)> m_action;
+//		composite_string m_text;
+//		bool m_isEnabled;
+//		gfx::font m_font;
 //		
-//		weak_rcptr<button_box>						m_buttonBox;
-//		container_dlist<rcref<button> >::remove_token	m_removeToken;
-//		rcptr<button_box_interface::button>			m_bridgedButton;
+//		weak_rcptr<button_box> m_buttonBox;
+//		container_dlist<rcref<button> >::remove_token m_removeToken;
+//		rcptr<button_box_interface::button> m_bridgedButton;
 //
 //	protected:
 //		friend class button_box;
@@ -120,7 +120,7 @@
 //				bridgedButton->set_text(s);
 //		}
 //
-//		composite_string get_text() const				{ return m_text; }
+//		composite_string get_text() const { return m_text; }
 //
 //		void set_enabled(bool b)
 //		{
@@ -133,7 +133,7 @@
 //			}
 //		}
 //
-//		bool get_enabled()						{ return m_isEnabled; }
+//		bool get_enabled() { return m_isEnabled; }
 //
 //		void set_default(bool b = true)
 //		{
@@ -142,7 +142,7 @@
 //			{
 //				if (b)
 //					buttonBox->set_default_button(this_rcref);
-//				else // if (!b)	// if clearing only if equals
+//				else // if (!b) // if clearing only if equals
 //				{
 //					const rcptr<button>& currentDefault = buttonBox->get_default_button();
 //					if (currentDefault == this_rcref)
@@ -160,7 +160,7 @@
 //			return b;
 //		}
 //
-//		const function<void(const rcref<button>&)>& get_action() const	{ return m_action; }
+//		const function<void(const rcref<button>&)>& get_action() const { return m_action; }
 //		void set_action(const function<void(const rcref<button>&)>& d)
 //		{
 //			m_action = d;
@@ -199,9 +199,9 @@
 //		}
 //	}
 //
-//	void clear_default_button()		{ set_default_button(rcptr<button>()); }
+//	void clear_default_button() { set_default_button(rcptr<button>()); }
 //
-//	const rcptr<button>& get_default_button() const	{ return m_defaultButton; }
+//	const rcptr<button>& get_default_button() const { return m_defaultButton; }
 //
 //
 //	rcref<button> append_button(const function<void(const rcref<button>&)>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
@@ -304,9 +304,9 @@
 //			buttonBox->clear_buttons();
 //	}
 //
-//	size_t get_num_buttons()		{ return m_numButtons; }
+//	size_t get_num_buttons() { return m_numButtons; }
 //
-//	const container_dlist<rcref<button> >& get_button_list() const	{ return m_buttonList; }
+//	const container_dlist<rcref<button> >& get_button_list() const { return m_buttonList; }
 //
 //	virtual void installing()
 //	{
@@ -334,9 +334,9 @@
 //class message_box : public button_box
 //{
 //private:
-//	rcref<button_box::button>	m_okButton;
-//	function<void()>			m_okDelegate;
-//	rcref<label>				m_messageText;
+//	rcref<button_box::button> m_okButton;
+//	function<void()> m_okDelegate;
+//	rcref<label> m_messageText;
 //
 //	virtual void detach(const rcref<button>& b)
 //	{
@@ -345,7 +345,7 @@
 //
 //public:
 //	message_box(const composite_string& msg, const function<void()>& d, const composite_string& text = composite_string::literal(L"OK"), const gfx::font& fnt = gfx::font(), bool isEnabled = true)
-//		:	m_messageText(rcnew(label, msg)),
+//		: m_messageText(rcnew(label, msg)),
 //			m_okButton(append_button(d, text, fnt, isEnabled, true))
 //	{
 //		nest(m_messageText);
@@ -363,20 +363,20 @@
 //		nest(m_messageText);
 //	}
 //
-////	void set_text(const composite_string& s)	{ m_messageText->set_text(s); }
-////	composite_string get_text() const			{ return m_messageText->get_text(); }
+////	void set_text(const composite_string& s) { m_messageText->set_text(s); }
+////	composite_string get_text() const { return m_messageText->get_text(); }
 //
-//	const rcref<button>	get_button() const	{ return m_okButton; }
-//	const rcref<label>	get_label() const	{ return m_messageText; }
+//	const rcref<button> get_button() const { return m_okButton; }
+//	const rcref<label> get_label() const { return m_messageText; }
 //
-//	const function<void()>& get_action() const		{ return m_okDelegate; }
-//	void set_action(const function<void()>& d)		{ m_okDelegate = d; m_okButton->set_action(d); }
+//	const function<void()>& get_action() const { return m_okDelegate; }
+//	void set_action(const function<void()>& d) { m_okDelegate = d; m_okButton->set_action(d); }
 //
-////	void set_button_text(const composite_string& s)	{ m_okButton->set_text(s); }
-////	composite_string get_button_text() const			{ return m_okButton->get_text(); }
+////	void set_button_text(const composite_string& s) { m_okButton->set_text(s); }
+////	composite_string get_button_text() const { return m_okButton->get_text(); }
 //
-////	void set_button_enabled(bool b)			{ m_okButton->set_enabled(b); }
-////	bool get_button_enabled()				{ return m_okButton->get_enabled(); }
+////	void set_button_enabled(bool b) { m_okButton->set_enabled(b); }
+////	bool get_button_enabled() { return m_okButton->get_enabled(); }
 //};
 //
 //
@@ -396,29 +396,29 @@
 //class default_button_box_button : public button_box_interface::button
 //{
 //public:
-//	wrap_list<script_flow::right_to_left_top_to_bottom>::nest_token	m_nestToken;
-//	rcref<gui::button>											m_uiButton;
+//	wrap_list<script_flow::right_to_left_top_to_bottom>::nest_token m_nestToken;
+//	rcref<gui::button> m_uiButton;
 //
 //	default_button_box_button(const rcref<gui::button>& uiButton)
-//		:	m_uiButton(uiButton)
+//		: m_uiButton(uiButton)
 //	{ }
 //
-//	virtual void set_action(const function<void()>& d)	{ m_uiButton->set_action(d); }
-//	virtual void set_text(const composite_string& s)		{ m_uiButton->set_text(s); }
-//	virtual void set_enabled(bool b)			{ m_uiButton->set_enabled(b); }
+//	virtual void set_action(const function<void()>& d) { m_uiButton->set_action(d); }
+//	virtual void set_text(const composite_string& s) { m_uiButton->set_text(s); }
+//	virtual void set_enabled(bool b) { m_uiButton->set_enabled(b); }
 //};
 //
 //
 //class default_button_box : public button_box_interface
 //{
 //private:
-//	rcptr<default_button_box_button>						m_defaultButton;
-//	rcref<grid<> >											m_grid;
-//	rcref<wrap_list<script_flow::right_to_left_top_to_bottom> >	m_wrapList;
+//	rcptr<default_button_box_button> m_defaultButton;
+//	rcref<grid<> > m_grid;
+//	rcref<wrap_list<script_flow::right_to_left_top_to_bottom> > m_wrapList;
 //
 //public:
 //	default_button_box()
-//		:	m_grid(rcnew(grid<>)),
+//		: m_grid(rcnew(grid<>)),
 //			m_wrapList(rcnew(wrap_list<script_flow::right_to_left_top_to_bottom>, 0.5, 0.5))
 //	{
 //		m_grid->nest(m_wrapList, 0, 1);
@@ -431,7 +431,7 @@
 //
 //	virtual rcref<button_box_interface::button> append_button(const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
+//		rcref<gui::button> uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
 //		m_wrapList->nest_last(uiButton);
 //		if (isDefault)
@@ -441,7 +441,7 @@
 //
 //	virtual rcref<button_box_interface::button> prepend_button(const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
+//		rcref<gui::button> uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
 //		m_wrapList->nest_first(uiButton);
 //		if (isDefault)
@@ -451,7 +451,7 @@
 //
 //	virtual rcref<button_box_interface::button> insert_button_before(const rcref<button_box_interface::button>& before, const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
+//		rcref<gui::button> uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
 //		rcref<default_button_box_button> beforeBtn = before.template static_cast_to<default_button_box_button>();
 //		m_wrapList->nest_before(uiButton, beforeBtn->m_uiButton);
@@ -462,7 +462,7 @@
 //
 //	virtual rcref<button_box_interface::button> insert_button_after(const rcref<button_box_interface::button>& after, const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		rcref<gui::button>	uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
+//		rcref<gui::button> uiButton = rcnew(gui::button, action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button, uiButton);
 //		rcref<default_button_box_button> afterBtn = after.template static_cast_to<default_button_box_button>();
 //		m_wrapList->nest_before(uiButton, afterBtn->m_uiButton);

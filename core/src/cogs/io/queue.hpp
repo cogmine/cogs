@@ -26,18 +26,18 @@ namespace io {
 
 
 /// @brief Combines a lock-free queue of tasks to be executed serially, and an open/closed state.
-///	
-///	An io::queue is a helper class used internally by datasource and datasink to serialize I/O operations/transactions
-/// on a serial stream (i.e. a tcp/ip channel or a file cursor), and maintain the stream's open/closed state.  It's useful to
-///	combine these concepts in a lock-free manner to synchronize cancellation of pending tasks with a close
-///	operation.
 ///
-///	An io::queue is initially open, and may potentially become permanently closed.  It is waitable, permanently becoming
-///	signaled if closed.  Queued tasks are automatically executed when at the head of the queue and removed as
-///	they are completed.  If the queue is closed, any unexecuted tasks are canceled, and any new tasks
-///	are immediately canceled instread of queued.  Derived tasks overload executing(), aborting().
-///	and canceling().
-///	
+/// An io::queue is a helper class used internally by datasource and datasink to serialize I/O operations/transactions
+/// on a serial stream (i.e. a tcp/ip channel or a file cursor), and maintain the stream's open/closed state.  It's useful to
+/// combine these concepts in a lock-free manner to synchronize cancellation of pending tasks with a close
+/// operation.
+///
+/// An io::queue is initially open, and may potentially become permanently closed.  It is waitable, permanently becoming
+/// signaled if closed.  Queued tasks are automatically executed when at the head of the queue and removed as
+/// they are completed.  If the queue is closed, any unexecuted tasks are canceled, and any new tasks
+/// are immediately canceled instread of queued.  Derived tasks overload executing(), aborting().
+/// and canceling().
+///
 /// Whether or not aborting() or canceling() is called depends on the state of the task when aborted.
 /// When a task is aborted by a call to task::abort(), aborting() will be called if the task had
 /// already begun executing asynchronously, canceling() is called if it had not.  If the io::queue itself
@@ -63,17 +63,17 @@ public:
 	private:
 		enum internal_task_state
 		{
-			done_bit				= 0x0001,	// Set when complete
-			canceled_bit			= 0x0010,	// Set when cancel is requested
-			active_bit				= 0x0100,	// Set when active - no longer in queue, unset when complete (may still be executing)
-			executing_bit			= 0x1000,	// Set when executing, unset when no longer executing
+			done_bit             = 0x0001, // Set when complete
+			canceled_bit         = 0x0010, // Set when cancel is requested
+			active_bit           = 0x0100, // Set when active - no longer in queue, unset when complete (may still be executing)
+			executing_bit        = 0x1000, // Set when executing, unset when no longer executing
 
-			queued_state			= 0x0000,
-			executing_state			= 0x1100,	// executing_bit |	active_bit
-			cancel_pending_state	= 0x1110,	// executing_bit |	active_bit |	canceled_bit
-			abort_pending_state		= 0x0110,	//					active_bit |	canceled_bit
-			async_state				= 0x0100,	//					active_bit
-			abort_complete_state	= 0x0011,	//									canceled_bit |	done_bit
+			queued_state         = 0x0000,
+			executing_state      = 0x1100, // executing_bit | active_bit
+			cancel_pending_state = 0x1110, // executing_bit | active_bit | canceled_bit
+			abort_pending_state  = 0x0110, //                 active_bit | canceled_bit
+			async_state          = 0x0100, //                 active_bit
+			abort_complete_state = 0x0011, //                              canceled_bit | done_bit
 		};
 
 		task_base(task_base&&) = delete;
@@ -138,7 +138,7 @@ public:
 				for (;;)
 				{
 					COGS_ASSERT((oldState & executing_bit) != 0);
-					internal_task_state newState = (internal_task_state)(oldState & ~executing_bit);	// remove executing_bit
+					internal_task_state newState = (internal_task_state)(oldState & ~executing_bit); // remove executing_bit
 					if (!atomic::compare_exchange(m_state, newState, oldState, oldState))
 						continue;
 
@@ -182,8 +182,8 @@ public:
 		friend class queue;
 
 		rcptr<queue> m_ioQueue;
-		bool m_wasClosed;
 		alignas (atomic::get_alignment_v<internal_task_state>) internal_task_state m_state;
+		bool m_wasClosed;
 
 		// Use is thread safe, so don't need volatility
 		const rcptr<queue>& get_queue() const volatile { return ((const task_base*)this)->m_ioQueue; }
@@ -213,7 +213,7 @@ public:
 
 		void complete(bool closeQueue = false)
 		{
-			get_queue()->m_closeEvent->signal();	// Releases a ref we used to hold it temporarily open
+			get_queue()->m_closeEvent->signal(); // Releases a ref we used to hold it temporarily open
 			get_was_closed() = closeQueue;
 			internal_task_state oldState;
 			atomic::load(m_state, oldState);
@@ -221,7 +221,7 @@ public:
 			{
 				COGS_ASSERT((oldState & done_bit) == 0);
 				COGS_ASSERT((oldState & active_bit) != 0);
-				internal_task_state newState = (internal_task_state)((oldState | done_bit) & ~active_bit);	// add done_bit, remove active_bit
+				internal_task_state newState = (internal_task_state)((oldState | done_bit) & ~active_bit); // add done_bit, remove active_bit
 				if (atomic::compare_exchange(m_state, newState, oldState, oldState))
 				{
 					if (closeQueue)
@@ -378,7 +378,7 @@ public:
 		m_closeEvent = m_contents->m_closeEvent;
 	}
 
-	~queue()		{ close(); }
+	~queue() { close(); }
 
 	void close()
 	{
@@ -389,10 +389,10 @@ public:
 		}
 	}
 
-	const waitable& get_close_event() const		{ return *m_closeEvent.dereference().template static_cast_to<waitable>(); }
+	const waitable& get_close_event() const { return *m_closeEvent.dereference().template static_cast_to<waitable>(); }
 
-	bool is_closed() const	{ return !m_contents; }
-	bool operator!() const	{ return is_closed(); }
+	bool is_closed() const { return !m_contents; }
+	bool operator!() const { return is_closed(); }
 
 	bool enqueue(const rcref<task_base>& t)
 	{

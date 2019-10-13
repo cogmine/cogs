@@ -22,14 +22,14 @@ namespace ip {
 class socket : public object
 {
 private:
-	rcref<os::io::epoll_pool>	m_epollPool;
-	address_family		m_addressFamily;
-	endpoint			m_localEndpoint;
-	endpoint			m_remoteEndpoint;
-	auto_fd				m_fd;
+	rcref<os::io::epoll_pool> m_epollPool;
+	address_family m_addressFamily;
+	endpoint m_localEndpoint;
+	endpoint m_remoteEndpoint;
+	auto_fd m_fd;
 
 	// We dup() the socket so we can register reads and writes independently in epoll_pool.
-	auto_fd				m_dupReadFd;
+	auto_fd m_dupReadFd;
 
 public:
 	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
@@ -118,7 +118,7 @@ public:
 			int enable = 1;
 			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 
-			if (m_addressFamily == inetv4)	// ipv4
+			if (m_addressFamily == inetv4) // ipv4
 			{
 				sockaddr_in addr;
 				memset(&addr, 0, sizeof(sockaddr_in)); 
@@ -137,7 +137,7 @@ public:
 				i = bind(m_fd.get(), (sockaddr*)&addr, sizeof(sockaddr_in6));
 			}
 			else
-				COGS_ASSERT(false);	// ??
+				COGS_ASSERT(false); // ??
 		}
 		return i;
 	}

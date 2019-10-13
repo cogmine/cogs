@@ -91,15 +91,15 @@ public:
 		[nsView setAutoresizesSubviews:NO];
 		[nsView setPostsFrameChangedNotifications:YES];
 
-		NSRect windowBounds;		// TMP - use some temp bounds, we will resize it before showing it.
+		NSRect windowBounds; // TMP - use some temp bounds, we will resize it before showing it.
 		windowBounds.origin.x = 50;
 		windowBounds.origin.y = 50;
 		windowBounds.size.height = 50;
 		windowBounds.size.width = 50;
 		m_nsWindow = [[objc_window alloc] initWithContentRect:windowBounds
-									styleMask: style
-									backing: NSBackingStoreBuffered
-									defer: NO ];
+			styleMask: style
+			backing: NSBackingStoreBuffered
+			defer: NO ];
 		m_nsWindow->m_cppWindow = this_rcptr;
 		[m_nsWindow setDelegate: m_nsWindow];
 
@@ -280,7 +280,7 @@ public:
 
 		[m_nsWindow setFrame:r display:FALSE];
 
-		if (!initialPosition)	//&& centerPosition)	// MacOS doesn't seem to have OS default for initial position
+		if (!initialPosition) //&& centerPosition) // MacOS doesn't seem to have OS default for initial position
 			[m_nsWindow center]; 
 	}
 

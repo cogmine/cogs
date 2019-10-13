@@ -29,8 +29,8 @@ namespace io {
 class epoll_pool : public object
 {
 private:
-	thread_pool		m_pool;
-	rcref<auto_fd>	m_fd;
+	thread_pool m_pool;
+	rcref<auto_fd> m_fd;
 
 	// Need to keep track of listenings in a less than ideal mannger, since kqueue does not tell us,
 	// in a race-condition-free manner, when listening sockets close.
@@ -39,15 +39,15 @@ private:
 	class task
 	{
 	public:
-		rcref<auto_fd>			m_fd;
-		int						m_shutdownSocket[2];
-		size_t					m_numThreadsLeft;
-		volatile map_t			m_tasks;
-		weak_rcptr<epoll_pool>	m_epollPool;
+		rcref<auto_fd> m_fd;
+		int m_shutdownSocket[2];
+		size_t m_numThreadsLeft;
+		volatile map_t m_tasks;
+		weak_rcptr<epoll_pool> m_epollPool;
 
 		task(const rcref<auto_fd>& fd, const rcref<epoll_pool>& epp)
-			:	m_fd(fd),
-				m_epollPool(epp)
+			: m_fd(fd),
+			m_epollPool(epp)
 		{
 		}
 
@@ -63,13 +63,13 @@ private:
 				if (i > 0)
 				{
 					int fd = ev.data.fd;
-					if (fd == m_fd->get())	// must have been triggered by m_shutdownSocket
+					if (fd == m_fd->get()) // must have been triggered by m_shutdownSocket
 					{
 						close(m_shutdownSocket[0]);
 						close(m_shutdownSocket[1]);
-						if (--m_numThreadsLeft > 0)	// if more threads waiting, signal another
+						if (--m_numThreadsLeft > 0) // if more threads waiting, signal another
 						{
-							i = pipe(m_shutdownSocket);	// Use a pipe to tell epoll threads to shut down
+							i = pipe(m_shutdownSocket); // Use a pipe to tell epoll threads to shut down
 							COGS_ASSERT(i != -1);
 							ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP;
 							ev.data.fd = fd;
@@ -120,7 +120,7 @@ protected:
 public:
 	~epoll_pool()
 	{
-		int i = pipe(m_func->m_shutdownSocket);	// Use a pipe to tell epoll threads to shut down
+		int i = pipe(m_func->m_shutdownSocket); // Use a pipe to tell epoll threads to shut down
 		COGS_ASSERT(i != -1);
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP;
@@ -164,14 +164,14 @@ public:
 		}
 
 	public:
-		remove_token()											{ }
-		remove_token(const remove_token& rt) : m_fd(rt.m_fd), m_removeToken(rt.m_removeToken)	{ }
-		remove_token& operator=(const remove_token& rt)			{ m_fd = rt.m_fd;  m_removeToken = rt.m_removeToken; return *this; }
-		bool is_active() const									{ return m_removeToken.is_active(); }
-		void release()											{ m_removeToken.release(); }
-		bool operator!() const									{ return !m_removeToken; }
-		bool operator==(const remove_token& rt) const			{ return m_removeToken == rt.m_removeToken; }
-		bool operator!=(const remove_token& rt) const			{ return !operator==(rt); }
+		remove_token() { }
+		remove_token(const remove_token& rt) : m_fd(rt.m_fd), m_removeToken(rt.m_removeToken) { }
+		remove_token& operator=(const remove_token& rt) { m_fd = rt.m_fd; m_removeToken = rt.m_removeToken; return *this; }
+		bool is_active() const { return m_removeToken.is_active(); }
+		void release() { m_removeToken.release(); }
+		bool operator!() const { return !m_removeToken; }
+		bool operator==(const remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
+		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
 	};
 
 
@@ -182,7 +182,7 @@ public:
 		ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
-		COGS_ASSERT(!!itor);	// shouldn't fail
+		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
@@ -196,13 +196,13 @@ public:
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
-		COGS_ASSERT(!!itor);	// shouldn't fail
+		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);
 		return result;
 	}
-	
+
 	void abort_waiter(const remove_token& rt)
 	{
 		if (m_func->m_tasks.remove(rt.m_removeToken))
@@ -220,9 +220,9 @@ public:
 		self_acquire();
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
-		ev.data.fd = fd;	// mark lsb to clue other thread in that this is a listener FD
+		ev.data.fd = fd; // mark lsb to clue other thread in that this is a listener FD
 		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
-		COGS_ASSERT(!!itor);	// shouldn't fail
+		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
 		remove_token result(fd, itor);

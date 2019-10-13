@@ -33,13 +33,13 @@ class md4 : public serial_hash<128, 128, 32, endian_t::little, 512>
 private:
 	typedef serial_hash<128, 128, 32, endian_t::little, 512> base_t;
 
-	uint64_t	m_bitCount;
-	digit_t		m_state[16];
+	uint64_t m_bitCount;
+	digit_t m_state[16];
 
-	static uint32_t F(uint32_t b, uint32_t c, uint32_t d)	{ return (d ^ (b & (c ^ d))); }
-	static uint32_t G(uint32_t b, uint32_t c, uint32_t d)	{ return (b & c) | (b & d) | (c & d); }
-	static uint32_t H(uint32_t b, uint32_t c, uint32_t d)	{ return b ^ c ^ d; }
-	
+	static uint32_t F(uint32_t b, uint32_t c, uint32_t d) { return (d ^ (b & (c ^ d))); }
+	static uint32_t G(uint32_t b, uint32_t c, uint32_t d) { return (b & c) | (b & d) | (c & d); }
+	static uint32_t H(uint32_t b, uint32_t c, uint32_t d) { return b ^ c ^ d; }
+
 	static void r1(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s)
 	{
 		a = bit_rotate_left(a + F(b, c, d) + x, s);

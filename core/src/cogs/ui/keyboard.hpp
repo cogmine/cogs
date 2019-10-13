@@ -143,7 +143,7 @@ public:
 	void set_key(physical_modifier_key key, bool b)
 	{
 		m_bitset.set((size_t)key, b);
-		size_t modifierKey = (size_t)key >> 1;	// modifier_key is (physical_modifier_key / 2)
+		size_t modifierKey = (size_t)key >> 1; // modifier_key is (physical_modifier_key / 2)
 		if (b)
 			m_bitset.set(modifierKey, true);
 		else

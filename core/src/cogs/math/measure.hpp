@@ -21,8 +21,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 template <typename storage_type, class unit_type>
 class measure;
@@ -43,11 +43,11 @@ public:
 	typedef storage_type storage_t;
 	typedef unit_type unit_t;
 
-	typedef measure<storage_t, unit_t>	this_t;
+	typedef measure<storage_t, unit_t> this_t;
 
 private:
 	storage_t m_contents;
-	
+
 	template <typename, typename>
 	friend class measure;
 
@@ -326,42 +326,42 @@ public:
 	auto abs() const { return make_measure<unit_t>(cogs::abs(m_contents)); }
 	auto abs() const volatile { return make_measure<unit_t>(cogs::abs(m_contents)); }
 
-	void assign_abs()					{ cogs::assign_abs(m_contents); }
-	void assign_abs() volatile			{ cogs::assign_abs(m_contents); }
-	const this_t& pre_assign_abs()		{ cogs::assign_abs(m_contents); return *this; }
-	this_t pre_assign_abs() volatile	{ return cogs::pre_assign_abs(m_contents); }
-	this_t post_assign_abs()			{ return cogs::post_assign_abs(m_contents); }
-	this_t post_assign_abs() volatile	{ return cogs::post_assign_abs(m_contents); }
+	void assign_abs() { cogs::assign_abs(m_contents); }
+	void assign_abs() volatile { cogs::assign_abs(m_contents); }
+	const this_t& pre_assign_abs() { cogs::assign_abs(m_contents); return *this; }
+	this_t pre_assign_abs() volatile { return cogs::pre_assign_abs(m_contents); }
+	this_t post_assign_abs() { return cogs::post_assign_abs(m_contents); }
+	this_t post_assign_abs() volatile { return cogs::post_assign_abs(m_contents); }
 
 	auto operator-() const { return make_measure<unit_t>(cogs::negative(m_contents)); }
 	auto operator-() const volatile { return make_measure<unit_t>(cogs::negative(m_contents)); }
-	
-	void assign_negative()					{ cogs::assign_negative(m_contents); }
-	void assign_negative() volatile			{ cogs::assign_negative(m_contents); }
-	const this_t& pre_assign_negative()		{ cogs::assign_negative(m_contents); return *this; }
-	this_t pre_assign_negative() volatile	{ return cogs::pre_assign_negative(m_contents); }
-	this_t post_assign_negative()			{ return cogs::post_assign_negative(m_contents); }
-	this_t post_assign_negative() volatile	{ return cogs::post_assign_negative(m_contents); }
+
+	void assign_negative() { cogs::assign_negative(m_contents); }
+	void assign_negative() volatile { cogs::assign_negative(m_contents); }
+	const this_t& pre_assign_negative() { cogs::assign_negative(m_contents); return *this; }
+	this_t pre_assign_negative() volatile { return cogs::pre_assign_negative(m_contents); }
+	this_t post_assign_negative() { return cogs::post_assign_negative(m_contents); }
+	this_t post_assign_negative() volatile { return cogs::post_assign_negative(m_contents); }
 
 	auto next() const { return make_measure<unit_t>(cogs::next(m_contents)); }
 	auto next() const volatile { return make_measure<unit_t>(cogs::next(m_contents)); }
-	
-	void assign_next()				{ cogs::assign_next(m_contents); }
-	void assign_next() volatile		{ cogs::assign_next(m_contents); }
-	const this_t& operator++()		{ cogs::assign_next(m_contents); return *this; }
-	this_t operator++() volatile	{ return cogs::pre_assign_next(m_contents); }
-	this_t operator++(int)			{ return cogs::post_assign_next(m_contents); }
-	this_t operator++(int) volatile	{ return cogs::post_assign_next(m_contents); }
+
+	void assign_next() { cogs::assign_next(m_contents); }
+	void assign_next() volatile { cogs::assign_next(m_contents); }
+	const this_t& operator++() { cogs::assign_next(m_contents); return *this; }
+	this_t operator++() volatile { return cogs::pre_assign_next(m_contents); }
+	this_t operator++(int) { return cogs::post_assign_next(m_contents); }
+	this_t operator++(int) volatile { return cogs::post_assign_next(m_contents); }
 
 	auto prev() const { return make_measure<unit_t>(cogs::prev(m_contents)); }
 	auto prev() const volatile { return make_measure<unit_t>(cogs::prev(m_contents)); }
 
-	void assign_prev()				{ cogs::assign_prev(m_contents); }
-	void assign_prev() volatile		{ cogs::assign_prev(m_contents); }
-	const this_t& operator--()		{ cogs::assign_prev(m_contents); return *this; }
-	this_t operator--() volatile	{ return cogs::pre_assign_prev(m_contents); }
-	this_t operator--(int)			{ return cogs::post_assign_prev(m_contents); }
-	this_t operator--(int) volatile	{ return cogs::post_assign_prev(m_contents); }
+	void assign_prev() { cogs::assign_prev(m_contents); }
+	void assign_prev() volatile { cogs::assign_prev(m_contents); }
+	const this_t& operator--() { cogs::assign_prev(m_contents); return *this; }
+	this_t operator--() volatile { return cogs::pre_assign_prev(m_contents); }
+	this_t operator--(int) { return cogs::post_assign_prev(m_contents); }
+	this_t operator--(int) volatile { return cogs::post_assign_prev(m_contents); }
 
 
 	// add
@@ -933,7 +933,7 @@ public:
 		return cogs::post_assign_subtract(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	
+
 	// inverse_subtract
 	auto inverse_subtract(const this_t& src) const { return make_measure<unit_t>(cogs::inverse_subtract(m_contents, src.m_contents)); }
 	auto inverse_subtract(const volatile this_t& src) const { return make_measure<unit_t>(cogs::inverse_subtract(m_contents, src.m_contents)); }
@@ -1768,7 +1768,7 @@ public:
 		return cogs::post_assign_modulo(m_contents, src);
 	}
 
-	
+
 	// inverse_modulo
 	auto inverse_modulo(const this_t& src) const { return make_measure<unit_t>(cogs::inverse_modulo(m_contents, src.m_contents)); }
 	auto inverse_modulo(const volatile this_t& src) const { return make_measure<unit_t>(cogs::inverse_modulo(m_contents, src.m_contents)); }

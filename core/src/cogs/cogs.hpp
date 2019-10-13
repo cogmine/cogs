@@ -38,7 +38,7 @@
 /// - core/arch/AMD64/src
 /// - core/os/windows/src
 /// - core/env/VS2013/Windows/src
-/// 
+///
 ///
 /// @section Concepts
 /// @subsection MainPageVolatileCorrectness Volatile Correctness
@@ -47,7 +47,7 @@
 /// In C++, the 'const' qualifier can be added to a type, preventing non-const access to that data at compile time.
 /// Using this language feature tends to have a cascading effect, and "correctness" refers to using const for
 /// read-only references consistently throughout the code-base.  
-/// 
+///
 /// The const qualifier can also be added to member functions, causing a member function to treat it's
 /// 'this' pointer as a pointer to a const type.  Methods of the same name can be overloaded with and without the const
 /// qualifier, to indicate one version of the function is to be used when called on a non-const reference,
@@ -60,46 +60,46 @@
 /// using a single a class.
 ///
 /// @code{.cpp}
-/// class A
-/// {
-/// private:
-///    ptr<void> m_ptr;
+///	class A
+///	{
+///	private:
+///		ptr<void> m_ptr;
 ///
-/// public:
+///	public:
 ///		// Sees: ptr<void> m_ptr;
-///     void foo();	// #1
+///		void foo(); // #1
 ///
 ///		// Sees: const ptr<void> m_ptr;
-///     void foo() const;	// #2
+///		void foo() const; // #2
 ///
 ///		// Sees: volatile ptr<void> m_ptr;
-///     void foo() volatile;	// #3
+///		void foo() volatile; // #3
 ///
 ///		// Sees: const volatile ptr<void> m_ptr;
-///     void foo() const volatile;	 // #4
-/// };
+///		void foo() const volatile; // #4
+///	};
 ///
 /// ...
 ///
-/// void bar(A& a1, const A& a2, volatile A& a3, const volatile A& a4)
-/// {
-///		a1.foo();	// Calls #1
-///		a2.foo();	// Calls #2
-///		a3.foo();	// Calls #3
-///		a4.foo();	// Calls #4
-/// }
+///	void bar(A& a1, const A& a2, volatile A& a3, const volatile A& a4)
+///	{
+///		a1.foo(); // Calls #1
+///		a2.foo(); // Calls #2
+///		a3.foo(); // Calls #3
+///		a4.foo(); // Calls #4
+///	}
 /// @endcode
 /// 
 ///
 /// @subsection MainPageAtomics Atomics
 ///
 /// Underlying Cogs' lock-free algorithms is a set of atomic functionality.  See: @ref cogs::atomic
-/// 
+///
 /// @subsection MainPageMemoryAllocation Memory Allocation 
 ///
 /// Cogs supports allocator classes. A @ref cogs::allocator may be static or 
 /// instance-based.  The default allocator (@ref cogs::buddy_block_allocator) is lock-free.
-/// 
+///
 ///
 /// @subsection MainPageRefCountedObjects Lock-Free RAII Reference-Counted Objects
 ///
@@ -116,7 +116,7 @@
 ///
 ///		// Encapsulated object is destructed and deallocated automatically once both a1 and a2 have gone out of scope.
 /// @endcode
-/// 
+///
 /// Classes intended to be allocated using rcnew can derive from @ref cogs::object to access their own reference-counted
 /// container using @ref this_rcptr or @ref this_rcref.
 ///
@@ -132,7 +132,7 @@
 /// Noteworthy lock-free algorithms include:
 ///
 /// @ref cogs::hazard (Hazard pointers) - Based loosely on a <a href="https://www.research.ibm.com/people/m/michael/ieeetpds-2004.pdf">paper</a> by Maged M. Michael
-/// 
+///
 /// @ref cogs::container_deque - A container (non-intrusive) deque/queue/stack.  Allows coalescing of equal nodes.  Based loosely on a <a href="http://www.research.ibm.com/people/m/michael/europar-2003.pdf">paper</a> by Maged M. Michael
 ///
 /// @ref cogs::container_dlist - A container (non-intrusive) double-link list.  Supports lock-free traversal.
@@ -145,9 +145,9 @@
 /// @ref cogs::multimap,
 /// as well as
 /// @ref cogs::priority_dispatcher.
-/// 
+///
 /// @ref cogs::transactable - A transactional type wrapper.  Encapsulates a type and provides access to it using simple atomic read/write transactions.
-/// 
+///
 /// @ref cogs::freelist - A simple lock-free <a href="https://en.wikipedia.org/wiki/Free_list">free-list</a>.
 ///
 /// @ref cogs::buddy_block_allocator - An allocator that uses a set of cascading free-lists.  If a block of a required
@@ -166,13 +166,13 @@
 /// blocking is necessary.
 ///
 /// @ref Events - Similar to Win32 Events and pthreads condition objects - cogs::event, @ref cogs::auto_reset_event, @ref cogs::count_down_event, @ref cogs::resettable_event, @ref cogs::single_fire_event
-///   
+///
 /// @ref Timers - cogs::timer, @ref cogs::resettable_timer, @ref cogs::pulse_timer, @ref cogs::refireable_timer, @ref cogs::single_fire_timer 
-/// 
+///
 /// @ref cogs::mutex, @ref cogs::semaphore, @ref cogs::rwlock, @ref cogs::priority_queue
 ///
 /// @ref cogs::thread, @ref cogs::thread_pool
-/// 
+///
 ///
 /// @subsection MainPageDelegatesAndDispatchers Delegates and Dispatchers
 ///
@@ -185,7 +185,7 @@
 /// - A member function and a strong or weak reference to a reference-counted object to invoke it on
 /// - Any of the above with the addition of 'piggy-backed' parameter data
 ///
-///	@ref cogs::delegate_t does not need to precisely match expected parameters or return types, as long as 
+/// @ref cogs::delegate_t does not need to precisely match expected parameters or return types, as long as 
 /// types are compatible.
 ///
 /// A @ref cogs::dispatcher is an interface for objects that dispatch delegates, such as a @ref cogs::thread_pool.
@@ -197,7 +197,7 @@
 /// and @ref cogs::io::datasink.
 /// A @ref cogs::io::datasource and a @ref cogs::io::datasink can be 'coupled', such that data is automatically routed between them, until decoupled or
 /// one of them is closed.  A @ref cogs::io::filter can be placed between a datasink and a datasource to patch a stream.
-/// 
+///
 /// Cogs I/O makes use of composite buffers (@ref cogs::io::composite_buffer_t).  A composite buffer is a single logical buffer potentially
 /// comprised of multiple incontiguous buffers.  This is intended to minimize large buffer copies.
 ///
@@ -207,7 +207,7 @@
 /// - On MacOS, <a href="https://en.wikipedia.org/wiki/Kqueue">kqueue</a> is used.
 ///
 /// (File I/O with scatter/gather transactions, is currently TODO).
-/// 
+///
 ///
 /// @subsection MainPageMath Math
 ///

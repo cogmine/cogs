@@ -38,13 +38,13 @@ public:
 	virtual bool signal() volatile { return m_resettableEvent.wake_next(); }
 
 	// returns true if the event was triggered
-	bool reset() volatile		{ return m_resettableEvent.reset(); }
+	bool reset() volatile { return m_resettableEvent.reset(); }
 
 	// returns true if any waiters woken/dispatched 
-	bool pulse_all() volatile	{ return m_resettableEvent.pulse_all(); }
-	bool pulse_one() volatile	{ return m_resettableEvent.pulse_one(); }
+	bool pulse_all() volatile { return m_resettableEvent.pulse_all(); }
+	bool pulse_one() volatile { return m_resettableEvent.pulse_one(); }
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile	{ return m_resettableEvent.timed_wait(timeout, spinCount); }
+	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_resettableEvent.timed_wait(timeout, spinCount); }
 };
 
 

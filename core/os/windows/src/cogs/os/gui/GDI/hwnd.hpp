@@ -592,11 +592,11 @@ public:
 		window_class()
 		{
 			WNDCLASSEX wcex = {};
-			wcex.cbSize			= sizeof(WNDCLASSEX);
-			wcex.lpfnWndProc	= (WNDPROC)DefWindowProc;
-			wcex.cbWndExtra		= sizeof(hwnd*);
-			wcex.hInstance		= GetModuleHandle(0);
-		
+			wcex.cbSize = sizeof(WNDCLASSEX);
+			wcex.lpfnWndProc = (WNDPROC)DefWindowProc;
+			wcex.cbWndExtra = sizeof(hwnd*);
+			wcex.hInstance = GetModuleHandle(0);
+
 			// Windows insists we provide a class name string.
 			// It won't accept NULL, a blank string, or a string already used by another window class.
 			// So, we'll generate a unique name from the this ptr of this window_class.
@@ -611,16 +611,14 @@ public:
 				srcAddr /= 93;
 			} while (srcAddr != 0);
 			wcex.lpszClassName = addrStr.cstr();
-		
+
 			m_atom = RegisterClassEx(&wcex);
-			DWORD err = GetLastError();
-			COGS_ASSERT(m_atom != NULL);
 
 			// XP required an explicit loading of controls.  Load all the ones we have classes for.
 			INITCOMMONCONTROLSEX initCtrls;
 			initCtrls.dwSize = sizeof(initCtrls);
 			initCtrls.dwICC = ICC_STANDARD_CLASSES;
-			BOOL b = InitCommonControlsEx(&initCtrls);
+			InitCommonControlsEx(&initCtrls);
 
 			// Load MSFTEDIT control
 			MsfteditDll = LoadLibrary(TEXT("Msftedit.dll"));
@@ -633,7 +631,7 @@ public:
 			//FreeLibrary(MsfteditDll);
 		}
 
-		ATOM get_ATOM() const	{ return m_atom; }
+		ATOM get_ATOM() const { return m_atom; }
 
 		static rcref<window_class> get_default() { return singleton<window_class>::get(); }
 	};
@@ -656,20 +654,20 @@ public:
 			rcptr<ui_thread> strongRef = uiThread;
 			volatile priority_dispatcher& controlQueue = strongRef->m_controlQueue;
 
-			strongRef->self_release();	// Release the extra reference we acquired before spawning the thread
+			strongRef->self_release(); // Release the extra reference we acquired before spawning the thread
 
 			HANDLE queueEvent = strongRef->m_queueEvent;
 			for (;;)
 			{
 				strongRef.release();
-				DWORD waitResult = MsgWaitForMultipleObjects(1, &queueEvent, FALSE, INFINITE, QS_ALLINPUT);
+				MsgWaitForMultipleObjects(1, &queueEvent, FALSE, INFINITE, QS_ALLINPUT);
 				strongRef = weakRef;
 				if (!strongRef)
 					break;
 
-				int priority = 0x00010000;	// UI subsystem runs at 0x00010000 priority.
+				int priority = 0x00010000; // UI subsystem runs at 0x00010000 priority.
 				strongRef->m_reentrancyGuard = true; 
-				for (;;)	// since we have a reference to self, we won't be deleted in this block
+				for (;;) // since we have a reference to self, we won't be deleted in this block
 				{
 					if (!!controlQueue.try_invoke(priority))
 					{
@@ -691,7 +689,7 @@ public:
 					// Handle thread messages
 					switch (strongRef->m_lastMsg.message)
 					{
-					case WM_QUIT:	// Might get this if another app wants us to quit.
+					case WM_QUIT: // Might get this if another app wants us to quit.
 						quit_dispatcher::get()->request();
 						break;
 					default:
@@ -701,7 +699,7 @@ public:
 					HWND activeHWND = strongRef->get_last_activate_window();
 					if ((activeHWND == NULL) || !IsDialogMessage(activeHWND, &(strongRef->m_lastMsg)))
 					{
-			// TBD		if (!TranslateAccelerator(strongRef->m_lastMsg.hwnd, strongRef->accelerators, &(strongRef->m_lastMsg))) 
+			// TBD if (!TranslateAccelerator(strongRef->m_lastMsg.hwnd, strongRef->accelerators, &(strongRef->m_lastMsg))) 
 						{ 
 							TranslateMessage(&(strongRef->m_lastMsg));  
 							DispatchMessage(&(strongRef->m_lastMsg));  
@@ -722,7 +720,7 @@ public:
 			{
 				m_reentrancyGuard = true;
 				volatile priority_dispatcher& controlQueue = m_controlQueue;
-				int priority = 0x00010000;	// UI subsystem runs at 0x00010000 priority.
+				int priority = 0x00010000; // UI subsystem runs at 0x00010000 priority.
 				for (;;)
 				{
 					if (!!controlQueue.try_invoke(priority))
@@ -761,7 +759,7 @@ public:
 
 			for (;;)
 			{
-				DWORD waitResult = WaitForSingleObject(queueEvent, INFINITE);
+				WaitForSingleObject(queueEvent, INFINITE);
 				for (;;)
 				{
 					if (t->is_signaled())
@@ -774,10 +772,10 @@ public:
 			}
 		}
 
-		MSG& get_msg()								{ return m_lastMsg; }
-		HWND& get_last_activate_window()			{ return m_lastActivatedWindow; }
+		MSG& get_msg() { return m_lastMsg; }
+		HWND& get_last_activate_window() { return m_lastActivatedWindow; }
 
-		rcptr<const thread> get_ui_thread() const	{ return m_thread; }
+		rcptr<const thread> get_ui_thread() const { return m_thread; }
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
@@ -813,8 +811,8 @@ public:
 	private:
 		ui_thread m_uiThread;
 		rcptr<volatile visible_windows_list_t> m_visibleWindows;
-		rcptr<task<void> > m_cleanupRemoveToken;
 		rcref<window_class> m_windowClass;
+		rcptr<task<void> > m_cleanupRemoveToken;
 
 		void cleanup() volatile
 		{
@@ -848,14 +846,14 @@ public:
 			m_cleanupRemoveToken->cancel();
 		}
 
-		MSG& get_msg() const volatile						{ return ((subsystem*)this)->m_uiThread.get_msg(); }
-		HWND& get_last_activate_window() const volatile		{ return ((subsystem*)this)->m_uiThread.get_last_activate_window(); }
+		MSG& get_msg() const volatile { return ((subsystem*)this)->m_uiThread.get_msg(); }
+		HWND& get_last_activate_window() const volatile { return ((subsystem*)this)->m_uiThread.get_last_activate_window(); }
 
-		rcptr<const thread> get_ui_thread() const volatile	{ return ((const subsystem*)this)->m_uiThread.get_ui_thread(); }
+		rcptr<const thread> get_ui_thread() const volatile { return ((const subsystem*)this)->m_uiThread.get_ui_thread(); }
 
-		virtual bool is_ui_thread_current() const volatile	{ return get_ui_thread()->is_current(); }
+		virtual bool is_ui_thread_current() const volatile { return get_ui_thread()->is_current(); }
 
-		bool run_high_priority_tasks(bool runNextIdleTask = false) const volatile		{ return ((subsystem*)this)->m_uiThread.run_high_priority_tasks(runNextIdleTask); }
+		bool run_high_priority_tasks(bool runNextIdleTask = false) const volatile { return ((subsystem*)this)->m_uiThread.run_high_priority_tasks(runNextIdleTask); }
 
 		void remove_visible_window(visible_windows_list_t::volatile_remove_token& removeToken) volatile
 		{
@@ -902,7 +900,7 @@ public:
 					DEVMODE dm;
 					dm.dmSize = sizeof(DEVMODE);
 					dm.dmDriverExtra = 0;
-					BOOL b2 = EnumDisplaySettingsExW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm, 0);
+					EnumDisplaySettingsExW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm, 0);
 					result.append(1, { { (double)dm.dmPosition.x, (double)dm.dmPosition.y }, { (double)dm.dmPelsWidth, (double)dm.dmPelsHeight } });
 				}
 			}
@@ -923,8 +921,8 @@ private:
 	WNDPROC m_defaultWndProc;
 	rcptr<hwnd::window_class> m_windowClass;
 	rcref<volatile subsystem> m_uiSubsystem;
-	rcptr<hwnd> m_parentHwndPane;
 	weak_rcptr<hwnd_pane> m_owner;
+	rcptr<hwnd> m_parentHwndPane;
 
 #if COGS_USE_ATL_THUNK
 	AtlThunkData_t* m_atlThunk;
@@ -956,12 +954,12 @@ public:
 
 		HWND parentHWND;
 		extendedStyle |= WS_EX_NOPARENTNOTIFY;
-		if (!!parent)	// if child
+		if (!!parent) // if child
 		{
 			parentHWND = parent->get_HWND();
 			style |= WS_CHILD;
 		}
-		else	// if window
+		else // if window
 		{
 			parentHWND = 0;
 #ifndef COGS_DEBUG
@@ -986,20 +984,17 @@ public:
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			parentHWND, 0, (HINSTANCE)(GetModuleHandle(0)), 0);
 
-		DWORD err = GetLastError();
 		COGS_ASSERT(hWnd != NULL);
-		
+
 		if (!!parent)
-		{
-			BOOL b = SetWindowPos(hWnd, !belowThis ? HWND_TOP : belowThis->m_hWnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-			COGS_ASSERT(b);
-		}
+			SetWindowPos(hWnd, !belowThis ? HWND_TOP : belowThis->m_hWnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+
 		m_hWnd = hWnd;
 
 		m_defaultWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
 
 #if COGS_USE_ATL_THUNK
-		AtlThunk_InitData(m_atlThunk, AtlThunkWndProc, (size_t)this);
+		AtlThunk_InitData(m_atlThunk, (void*)AtlThunkWndProc, (size_t)this);
 		WNDPROC thunkWndProc = AtlThunk_DataToCode(m_atlThunk);
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)thunkWndProc);
 #else
@@ -1027,9 +1022,9 @@ public:
 	}
 #endif
 
-	HWND get_HWND()									{ return m_hWnd; }
-	const weak_rcptr<hwnd_pane>& get_owner() const	{ return m_owner; }
-	const rcptr<hwnd>& get_parent_hwnd() const		{ return m_parentHwndPane; }
+	HWND get_HWND() { return m_hWnd; }
+	const weak_rcptr<hwnd_pane>& get_owner() const { return m_owner; }
+	const rcptr<hwnd>& get_parent_hwnd() const { return m_parentHwndPane; }
 
 	void release()
 	{
@@ -1043,7 +1038,7 @@ public:
 			hwnd::get_hwnd_map().remove(m_hWndMapRemoveToken);
 #endif
 	}
-	
+
 	LRESULT call_default_window_proc(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		return CallWindowProc(m_defaultWndProc, m_hWnd, msg, wParam, lParam);
@@ -1052,9 +1047,9 @@ public:
 
 enum hwnd_draw_mode
 {
-	user_drawn = 0,				// Drawn by pane::draw()
-	system_drawn_direct = 1,	// Drawn by the system directly to the display DC
-	system_drawn_offscreen = 2,	// Drawn by the system in response to WM_PAINT against the DC passed in WPARAM, in offscreen buffer
+	user_drawn = 0, // Drawn by pane::draw()
+	system_drawn_direct = 1, // Drawn by the system directly to the display DC
+	system_drawn_offscreen = 2, // Drawn by the system in response to WM_PAINT against the DC passed in WPARAM, in offscreen buffer
 };
 
 
@@ -1062,9 +1057,9 @@ enum hwnd_draw_mode
 class hwnd_pane : public object, public bridgeable_pane, public pane_orchestrator
 {
 private:
-	rcref<volatile hwnd::subsystem>	m_uiSubsystem;
+	rcref<volatile hwnd::subsystem> m_uiSubsystem;
 	rcptr<hwnd> m_hwnd;
-	rcref<gfx::os::gdi::device_context>	m_deviceContext = rcnew(gfx::os::gdi::device_context);
+	rcref<gfx::os::gdi::device_context> m_deviceContext = rcnew(gfx::os::gdi::device_context);
 	rcptr<hwnd_pane> m_parentHwndPane;
 	weak_rcptr<hwnd_pane> m_prevSiblingHwnd;
 	weak_rcptr<hwnd_pane> m_nextSiblingHwnd;
@@ -1073,7 +1068,7 @@ private:
 	weak_rcptr_list<gfx::os::gdi::bitmap> m_offscreenBuffers;
 	size_t m_childCount = 0;
 	composite_string m_windowClassName;
-	hwnd_draw_mode m_drawMode;	// i.e. window or canvas hwnd
+	hwnd_draw_mode m_drawMode; // i.e. window or canvas hwnd
 	bool m_focusing = false;
 	bool m_isVisible = false;
 	ui::modifier_keys_state m_lastModifierKeysState = {};
@@ -1092,7 +1087,7 @@ protected:
 	HDC& get_HDC() { return get_device_context().get_HDC(); }
 	const HDC& get_HDC() const { return get_device_context().get_HDC(); }
 
-	rcref<volatile hwnd::subsystem>& get_subsystem() { return m_uiSubsystem; }	
+	rcref<volatile hwnd::subsystem>& get_subsystem() { return m_uiSubsystem; }
 	const rcref<volatile hwnd::subsystem>& get_subsystem() const { return m_uiSubsystem; }
 
 	// Converts special keys that MapVirtualKey fails to map, to special unicode values (same as NSEvent on Mac)
@@ -1241,7 +1236,7 @@ protected:
 			result = ui::special_keys::PauseKey;
 			break;
 	//	case SysReqKey:
-		case VK_CANCEL:	// ?
+		case VK_CANCEL: // ?
 			result = ui::special_keys::BreakKey;
 			break;
 	//	case ResetKey:
@@ -1270,9 +1265,9 @@ protected:
 			break;
 	//	case ModeSwitchKey:
 		default:
-		   break;
+			break;
 		}
-	//	COGS_ASSERT(result);	// temporary: catch codes not already mapped.
+	//	COGS_ASSERT(result); // temporary: catch codes not already mapped.
 		return result;
 	}
 
@@ -1290,9 +1285,9 @@ protected:
 				HRGN updateRgn;
 				updateRgn = m_redrawRgn;
 				m_redrawRgn = NULL;
-				SelectClipRgn(offscreenDC, updateRgn);	// selecting into offscreen buffer	
+				SelectClipRgn(offscreenDC, updateRgn); // selecting into offscreen buffer
 				draw();
-				SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
+				SelectClipRgn(offscreenDC, NULL); // unclip the offscreen buffer
 				return;
 			}
 		}
@@ -1357,8 +1352,8 @@ protected:
 				curHwnd = curHwnd->m_firstChildHwnd;
 				if (curHwnd == this)
 					break;
-				COGS_ASSERT(!!curHwnd);	// Should have found this obj
-				b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+				COGS_ASSERT(!!curHwnd); // Should have found this obj
+				b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt); // Keep in same coords as curHwnd
 
 				for (;;)
 				{
@@ -1371,7 +1366,7 @@ protected:
 							offScreenBuffer = curHwnd->peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 							if (!offScreenBuffer)
 								return; // Not rendering in z-order.  Skip.  Will self-heal as underlying pane draws.
-							
+
 							curHwnd->draw_if_needed();
 							m_cachedBackgroundImage->draw_bitmap(*offScreenBuffer, b2, bounds(b2.get_position() + -b.get_position(), b2.get_size()), true);
 						}
@@ -1379,16 +1374,16 @@ protected:
 
 					if (!!curHwnd->m_firstChildHwnd)
 						break;
-					
+
 					for (;;)
 					{
 						if (!!curHwnd->m_nextSiblingHwnd)
 						{
-							b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+							b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt); // Keep in same coords as curHwnd
 							curHwnd = curHwnd->m_nextSiblingHwnd;
 							if (curHwnd == this)
 								return;
-							b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in same coords as curHwnd
+							b.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt); // Keep in same coords as curHwnd
 							break;
 						}
 						b.get_position() += curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);
@@ -1409,12 +1404,12 @@ protected:
 public:
 	hwnd_pane(const ptr<rc_obj_base>& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
 		: object(desc),
+		m_uiSubsystem(uiSubsystem),
 		m_offscreenBuffers(desc),
 		m_windowClassName(windowClassName),
+		m_drawMode(drawMode),
 		m_style(style),
-		m_extendedStyle(extendedStyle),
-		m_uiSubsystem(uiSubsystem),
-		m_drawMode(drawMode)
+		m_extendedStyle(extendedStyle)
 	{ }
 
 	~hwnd_pane()
@@ -1467,7 +1462,7 @@ public:
 		get_HDC() = NULL;
 		bridgeable_pane::uninstalling();
 	}
-	
+
 	void install_HWND()
 	{
 		rcptr<pane> p = get_parent();
@@ -1488,10 +1483,10 @@ public:
 
 			container_dlist<rcref<pane> >::iterator itor;
 			rcptr<hwnd_pane> lastFoundHwnd;
-			if (m_parentHwndPane->m_childCount++ > 0)	// if was 0
+			if (m_parentHwndPane->m_childCount++ > 0) // if was 0
 			{
 				itor = get_bridge(*m_parentHwndPane)->get_children().get_first();
-				COGS_ASSERT(!!itor);	// should at least find this obj
+				COGS_ASSERT(!!itor); // should at least find this obj
 				container_dlist<rcref<pane> >::iterator nextItor;
 				// start at furthest last
 				for (;;)
@@ -1509,7 +1504,7 @@ public:
 						if (!!bridge)
 							foundHwnd = get_bridged(*bridge).template dynamic_cast_to<hwnd_pane>();
 
-						if (!!foundHwnd)	// Don't descend beyond another HWND, move on to the next
+						if (!!foundHwnd) // Don't descend beyond another HWND, move on to the next
 						{
 							lastFoundHwnd = foundHwnd;
 							break;
@@ -1536,13 +1531,13 @@ public:
 							break;
 						}
 						p = (*itor)->get_parent();
-						COGS_ASSERT(p != get_bridge(*m_parentHwndPane));	// Shouldn't get here.  We should have found this obj.
+						COGS_ASSERT(p != get_bridge(*m_parentHwndPane)); // Shouldn't get here.  We should have found this obj.
 						itor = p->get_sibling_iterator();
 					}
 				}
 			}
 
-			if (!lastFoundHwnd)	// if none found, we were the last z-order HWND in this parent HWND
+			if (!lastFoundHwnd) // if none found, we were the last z-order HWND in this parent HWND
 			{
 				if (!!m_parentHwndPane->m_lastChildHwnd) // If any were present
 				{
@@ -1636,7 +1631,7 @@ public:
 		else // if not a window
 		{
 			bounds boundsInParentHwnd = b;
-			rcptr<pane> p = get_bridge()->get_parent();	// find new coords in parent hwnd
+			rcptr<pane> p = get_bridge()->get_parent(); // find new coords in parent hwnd
 			for (;;)
 			{
 				if (!p || (p == m_parentHwndPane->get_bridge()))
@@ -1705,7 +1700,7 @@ public:
 				if (!!curHwnd->m_firstChildHwnd)
 				{
 					curHwnd = curHwnd->m_firstChildHwnd;
-					b2.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt);	// Keep in coords of current curHwnd
+					b2.get_position() += -curHwnd->get_device_context().make_point(curHwnd->m_boundsInParentHwnd.pt); // Keep in coords of current curHwnd
 				}
 				else
 				{
@@ -1743,7 +1738,7 @@ public:
 		ui::modifier_keys_state result;
 
 		BYTE m_keyStateBuffer[256] = {};
-		BOOL b = GetKeyboardState(m_keyStateBuffer);
+		GetKeyboardState(m_keyStateBuffer);
 
 		result.set_key(ui::physical_modifier_key::left_shift_key, (m_keyStateBuffer[VK_LSHIFT] & 0x80) != 0);
 		result.set_key(ui::physical_modifier_key::right_shift_key, (m_keyStateBuffer[VK_RSHIFT] & 0x80) != 0);
@@ -1806,15 +1801,15 @@ public:
 						continue;
 					}
 				}
-				
+
 				for (;;)
 				{
 					++itor;
 					if (!!itor)
 						break; // continue outer loop
 
-					p = p->get_parent();	// go up
-					if (p == bridgePane)	// Got back to self
+					p = p->get_parent(); // go up
+					if (p == bridgePane) // Got back to self
 					{
 						itor.release();
 						break;
@@ -1823,7 +1818,7 @@ public:
 					itor = p->get_sibling_iterator();
 					// continue;
 				}
-				
+
 				if (!itor)
 					break;
 				//continue;
@@ -1979,7 +1974,7 @@ public:
 					{
 						switch (wParam)
 						{
-						case BN_CLICKED:	// Win32 passes button clicks to the parent window.  :/
+						case BN_CLICKED: // Win32 passes button clicks to the parent window.  :/
 							{
 								HWND childHWND = (HWND)lParam;
 #if COGS_USE_ATL_THUNK
@@ -2027,30 +2022,30 @@ public:
 			case WM_NCPAINT:
 				break;
 			case WM_ERASEBKGND:
-				return TRUE;	// prevent background erase
+				return TRUE; // prevent background erase
 			case WM_PAINT:
 				{
 					LRESULT lResult = 0;
 					if (!owner->is_visible())
 						return lResult;
 					if (m_drawMode == system_drawn_direct)
-						break;	// use default
+						break; // use default
 					PAINTSTRUCT ps;
-					HDC savedDC = get_HDC();	// in case owned.
+					HDC savedDC = get_HDC(); // in case owned.
 					size sz = owner->get_size();
 					allocate_temporary_background();
-					if (m_drawMode == system_drawn_offscreen)	// Handle as a Win32 Control
+					if (m_drawMode == system_drawn_offscreen) // Handle as a Win32 Control
 					{
-						COGS_ASSERT(!!m_cachedBackgroundImage);	
+						COGS_ASSERT(!!m_cachedBackgroundImage);
 						HRGN updateRgn = CreateRectRgn(0, 0, 0, 0);
 						GetUpdateRgn(get_HWND(), updateRgn, FALSE);
 						HDC offscreenDC = m_cachedBackgroundImage->get_HDC();
-						SelectClipRgn(offscreenDC, updateRgn);	// selecting into offscreen buffer
+						SelectClipRgn(offscreenDC, updateRgn); // selecting into offscreen buffer
 						paint_temporary_background();
 						lResult = render_native_control(offscreenDC);
 						get_HDC() = BeginPaint(get_HWND(), &ps);
 						get_device_context().draw_bitmap(*m_cachedBackgroundImage, sz, sz, false);
-						SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
+						SelectClipRgn(offscreenDC, NULL); // unclip the offscreen buffer
 						DeleteObject(updateRgn);
 						EndPaint(get_HWND(), &ps);
 					}
@@ -2065,13 +2060,13 @@ public:
 							get_HDC() = offscreenDC;
 							HRGN updateRgn = m_redrawRgn;
 							m_redrawRgn = NULL;
-							SelectClipRgn(offscreenDC, updateRgn);	// selecting into offscreen buffer
+							SelectClipRgn(offscreenDC, updateRgn); // selecting into offscreen buffer
 							draw();
-							SelectClipRgn(offscreenDC, NULL);	// unclip the offscreen buffer
+							SelectClipRgn(offscreenDC, NULL); // unclip the offscreen buffer
 							DeleteObject(updateRgn);
 						}
 						get_HDC() = BeginPaint(get_HWND(), &ps);
-						paint_temporary_background();	// Won't actually paint if background is opaque
+						paint_temporary_background(); // Won't actually paint if background is opaque
 						if (!m_cachedBackgroundImage)
 							get_device_context().draw_bitmap(*offScreenBuffer, sz, sz, false);
 						else
@@ -2099,7 +2094,7 @@ inline LRESULT CALLBACK hwnd::AtlThunkWndProc(HWND hWnd, UINT msg, WPARAM wParam
 {
 	hwnd* hwndPtr = (hwnd*)hWnd;
 
-	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
+	if (hwndPtr->m_hWnd == NULL) // Actually in the process of being deleted
 		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
 
 	LRESULT result;
@@ -2125,7 +2120,7 @@ inline LRESULT CALLBACK hwnd::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 {
 	hwnd* hwndPtr = (hwnd*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
-	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
+	if (hwndPtr->m_hWnd == NULL) // Actually in the process of being deleted
 		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
 
 	LRESULT result;
@@ -2153,7 +2148,7 @@ inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wP
 		return 0;
 
 	hwnd* hwndPtr = *itor;
-	if (hwndPtr->m_hWnd == NULL)	// Actually in the process of being deleted
+	if (hwndPtr->m_hWnd == NULL) // Actually in the process of being deleted
 		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
 
 	LRESULT result;

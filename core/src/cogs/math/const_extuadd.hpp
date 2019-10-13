@@ -40,10 +40,10 @@ template <ulongest high_x, ulongest low_x, ulongest high_y, ulongest low_y>
 class const_extuadd2
 {
 private:
-	static constexpr ulongest add1_high_part = const_extuadd<low_x, low_y>::high_part;	// low
+	static constexpr ulongest add1_high_part = const_extuadd<low_x, low_y>::high_part; // low
 	static constexpr ulongest add1_low_part = const_extuadd<low_x, low_y>::low_part;
 
-	static constexpr ulongest add2_high_part = const_extuadd<high_x, high_y>::high_part;	// high
+	static constexpr ulongest add2_high_part = const_extuadd<high_x, high_y>::high_part; // high
 	static constexpr ulongest add2_low_part = const_extuadd<high_x, high_y>::low_part;
 
 	// add overflow from low to high

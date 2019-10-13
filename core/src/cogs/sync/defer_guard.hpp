@@ -36,7 +36,7 @@ private:
 
 		alignas (atomic::get_alignment_v<size_t>) size_t m_guardCount;
 
-		content_t()	{ m_guardCount = 0; }
+		content_t() { m_guardCount = 0; }
 	};
 
 	alignas (atomic::get_alignment_v<content_t>) content_t m_contents;
@@ -64,15 +64,15 @@ public:
 	{ }
 
 	// If someone wants to add or process work, they need to first use begin_guard()
-	bool begin_guard()						{ return !m_contents.m_guardCount++; }
-	bool begin_guard() volatile				{ return !post_assign_next(m_contents.m_guardCount); }
+	bool begin_guard() { return !m_contents.m_guardCount++; }
+	bool begin_guard() volatile { return !post_assign_next(m_contents.m_guardCount); }
 
-	bool is_free() const					{ return !m_contents.m_guardCount; }
-	bool is_free() const volatile			{ return !atomic::load(m_contents.m_guardCount); }
+	bool is_free() const { return !m_contents.m_guardCount; }
+	bool is_free() const volatile { return !atomic::load(m_contents.m_guardCount); }
 
 	// Anyone can 'add' work if the guard is acquired
-	void add(link_t& sl)			{ prepend(sl); }
-	void add(link_t& sl) volatile	{ prepend(sl); }
+	void add(link_t& sl) { prepend(sl); }
+	void add(link_t& sl) volatile { prepend(sl); }
 
 	link_t* release()
 	{

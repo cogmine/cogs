@@ -38,7 +38,7 @@ private:
 	};
 
 public:
-	static bool get(const T& t)	{ return std::conditional_t<is_signed_v<T>, signed_getter, unsigned_getter>::get(t); }
+	static bool get(const T& t) { return std::conditional_t<is_signed_v<T>, signed_getter, unsigned_getter>::get(t); }
 };
 
 

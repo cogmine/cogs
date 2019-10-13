@@ -35,14 +35,14 @@ class sha1 : public serial_hash<160, 160, 32, endian_t::big, 512>
 private:
 	typedef serial_hash<160, 160, 32, endian_t::big, 512> base_t;
 
-	uint64_t	m_bitCount;
-	digit_t		m_state[80];
-		
-	static uint32_t ch(uint32_t x, uint32_t y, uint32_t z)		{ return (z ^ (x & (y ^ z))); }
-	static uint32_t maj(uint32_t x, uint32_t y, uint32_t z)		{ return ((x & y) | (z & (x | y))); }
-	static uint32_t parity(uint32_t x, uint32_t y, uint32_t z)	{ return (x ^ y ^ z); }
+	uint64_t m_bitCount;
+	digit_t m_state[80];
 
-	uint32_t R(uint8_t i)	{ return (m_state[i] = bit_rotate_left((m_state[i - 3] ^ m_state[i - 8] ^ m_state[i - 14] ^ m_state[i - 16]), 1)); }
+	static uint32_t ch(uint32_t x, uint32_t y, uint32_t z) { return (z ^ (x & (y ^ z))); }
+	static uint32_t maj(uint32_t x, uint32_t y, uint32_t z) { return ((x & y) | (z & (x | y))); }
+	static uint32_t parity(uint32_t x, uint32_t y, uint32_t z) { return (x ^ y ^ z); }
+
+	uint32_t R(uint8_t i) { return (m_state[i] = bit_rotate_left((m_state[i - 3] ^ m_state[i - 8] ^ m_state[i - 14] ^ m_state[i - 16]), 1)); }
 
 	void r0(uint32_t a, uint32_t& b, uint32_t c, uint32_t d, uint32_t& e, uint8_t i)
 	{

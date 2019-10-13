@@ -17,7 +17,7 @@
 //
 //namespace cogs {
 //namespace gui {
-//	
+//
 //
 //// A labeled_list is a top-down list with (usually) 2 columns.  The first column contains a label, the second contains a content pane.
 //// If a label/content pair is too wide for a single row, it may be be wrapped to 2 rows.
@@ -31,11 +31,11 @@
 //	class content_cell_t;
 //	class cell_t;
 //
-//	nonvolatile_multimap<double, rcref<cell_t>, true>	m_sortedByLabelWidth;	// computed offset is default width of last label in the list
+//	nonvolatile_multimap<double, rcref<cell_t>, true> m_sortedByLabelWidth; // computed offset is default width of last label in the list
 //
-//	bool	m_useManualOffset;		// overrides label width
-//	double	m_manualOffset;
-//	grid_t	m_grid;
+//	bool m_useManualOffset; // overrides label width
+//	double m_manualOffset;
+//	grid_t m_grid;
 //
 //	class label_cell_t : public frame
 //	{
@@ -62,22 +62,22 @@
 //	class cell_t
 //	{
 //	public:
-//		typename nonvolatile_multimap<size_t, rcref<cell_t>, true>::iterator	m_sortedByLabelWidthRemoveToken;
+//		typename nonvolatile_multimap<size_t, rcref<cell_t>, true>::iterator m_sortedByLabelWidthRemoveToken;
 //
-//		weak_rcptr<labeled_list>	m_labeledList;
-//		rcref<label_cell_t>			m_label;
-//		rcref<content_cell_t>		m_content;
-//		range				m_range;
-//		size					m_defaultSize;
+//		weak_rcptr<labeled_list> m_labeledList;
+//		rcref<label_cell_t> m_label;
+//		rcref<content_cell_t> m_content;
+//		range m_range;
+//		size m_defaultSize;
 //
 //		cell_t(const rcref<labeled_list>& labaledList, const rcref<label_cell_t>& lbl, const rcref<content_cell_t>& cntnt)
-//			:	m_labeledList(labaledList),
-//				m_label(lbl),
-//				m_content(cntnt)
+//			: m_labeledList(labaledList),
+//			m_label(lbl),
+//			m_content(cntnt)
 //		{ }
 //
-//		virtual range get_current_range() const	{ return m_range; }
-//		virtual size get_current_default_size() const	{ return m_defaultSize; }
+//		virtual range get_current_range() const { return m_range; }
+//		virtual size get_current_default_size() const { return m_defaultSize; }
 //
 //		virtual void calculate_range()
 //		{
@@ -88,7 +88,7 @@
 //				size m_defaultSize = m_label->get_current_default_size();
 //
 //				if (!!m_sortedByLabelWidthRemoveToken)
-//					m_sortedByLabelWidth.remove(m_sortedByLabelWidthRemoveToken);	// refresh sorted list
+//					m_sortedByLabelWidth.remove(m_sortedByLabelWidthRemoveToken); // refresh sorted list
 //				m_sortedByLabelWidthRemoveToken = m_sortedByLabelWidth.insert(m_defaultSize.get_width(), this_rcref);
 //				if (!!m_useManualOffset)
 //				{
@@ -145,7 +145,7 @@
 //
 //				double minWidth = labelRange.get_min_width();
 //				minWidth += contentRange.get_min_width();
-//				if (rtn < minWidth)	// needs to be 2 lines.
+//				if (rtn < minWidth) // needs to be 2 lines.
 //				{
 //					if (labelRange.has_max_width() && (rtn > labelRange.get_max_width()))
 //						rtn = labelRange.get_max_width();
@@ -159,8 +159,8 @@
 //
 //					range::linear_t otherLabelRange;
 //					range::linear_t otherContentRange;
-//					m_label->propose_dimension(dimension::horizontal, rtn, otherLabelRange);	// return value is ignored
-//					m_content->propose_dimension(dimension::horizontal, rtn, otherContentRange);	// return value is ignored
+//					m_label->propose_dimension(dimension::horizontal, rtn, otherLabelRange); // return value is ignored
+//					m_content->propose_dimension(dimension::horizontal, rtn, otherContentRange); // return value is ignored
 //
 //					if (!otherLabelRange.has_max() || !otherContentRange.has_max())
 //						rtnOtherRange.clear_max();
@@ -222,7 +222,7 @@
 //
 //		virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //		{
-//			dimension d = dimension::horizontal;		// Compute aligned locations of label and content
+//			dimension d = dimension::horizontal; // Compute aligned locations of label and content
 //			range labelRange = m_label->get_current_parent_range();
 //			range contentRange = m_content->get_current_parent_range();
 //
@@ -231,9 +231,9 @@
 //
 //			double minWidth = labelRange.get_min_width();
 //			minWidth += contentRange.get_min_width();
-//			if (b.get_width() < minWidth)	// needs to be 2 lines.
+//			if (b.get_width() < minWidth) // needs to be 2 lines.
 //			{
-//				range::linear_t labelHeightRange;		// size header first, width first
+//				range::linear_t labelHeightRange; // size header first, width first
 //				range::linear_t contentHeightRange;
 //				double newLabelWidth = m_label->propose_dimension(d, b.get_size(d), labelHeightRange);
 //				double newContentWidth = m_content->propose_dimension(d, b.get_size(d), contentHeightRange);
@@ -241,7 +241,7 @@
 //				m_label->m_bounds.get_size().get_width() = newLabelWidth;
 //				m_content->m_bounds.get_size().get_width() = newContentWidth;
 //				
-//				if (!scriptFlowsToTheRight)	// Align to right on left-right script languages.
+//				if (!scriptFlowsToTheRight) // Align to right on left-right script languages.
 //				{
 //					m_label->m_bounds.get_position().get_x() = b.get_size().get_width();
 //					m_content->m_bounds.get_position().get_x() = b.get_size().get_width();
@@ -272,7 +272,7 @@
 //					if (newLabelHeight < labelHeightRange.get_min())
 //						newLabelHeight = labelHeightRange.get_min();
 //				}
-//				else if (usedHeight < b.get_height())	// If too much space, allocate evenly until max, then give to the other until max.
+//				else if (usedHeight < b.get_height()) // If too much space, allocate evenly until max, then give to the other until max.
 //				{
 //					double remaining = b.get_height();
 //					remaining -= usedHeight;
@@ -312,7 +312,7 @@
 //					double boundsMinusColumnWidth = b.get_width();
 //					boundsMinusColumnWidth -= columnWidth;
 //
-//					range::linear_t labelHeightRange;		// size header first, width first
+//					range::linear_t labelHeightRange; // size header first, width first
 //					range::linear_t contentHeightRange;
 //					double newLabelWidth = m_label->propose_dimension(d, columnWidth, labelHeightRange);
 //					double newContentWidth = m_content->propose_dimension(d, boundsMinusColumnWidth, contentHeightRange);
@@ -370,8 +370,8 @@
 //	};
 //
 //	labeled_list()
-//		:	m_grid(rcnew(grid_t)),
-//			m_useManualOffset(false)
+//		: m_grid(rcnew(grid_t)),
+//		m_useManualOffset(false)
 //	{
 //		pane::nest(m_grid);
 //	}
@@ -382,15 +382,15 @@
 //	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0);
 //
 //	/*
-//	collection<rcref<cell_t> >	m_cells;
-//	collection<rcref<row_t> >	m_rows;
-//	double						m_cachedLength;
-//	secondary_sizing_group_t	m_secondarySizingGroup;
-//	range				m_currentRange;
-//	size					m_currentDefaultSize;
+//	collection<rcref<cell_t> > m_cells;
+//	collection<rcref<row_t> > m_rows;
+//	double m_cachedLength;
+//	secondary_sizing_group_t m_secondarySizingGroup;
+//	range m_currentRange;
+//	size m_currentDefaultSize;
 //
-//	virtual range get_current_range() const	{ return m_currentRange; }
-//	virtual size get_current_default_size() const	{ return m_currentDefaultSize; }
+//	virtual range get_current_range() const { return m_currentRange; }
+//	virtual size get_current_default_size() const { return m_currentDefaultSize; }
 //
 //	virtual void calculate_range()
 //	{
@@ -409,10 +409,10 @@
 //			cell_t& cell = **cellItor;
 //
 //			range cellRange = cell.get_current_parent_range();
-//			size cellDefaultSize = cellRange.limit(cell.get_current_parent_default_size());	// necessary?
+//			size cellDefaultSize = cellRange.limit(cell.get_current_parent_default_size()); // necessary?
 //
 //			// default size is one row, unwrapped
-//			m_currentDefaultSize[d] += cellDefaultSize[d];	// compute other dimension later
+//			m_currentDefaultSize[d] += cellDefaultSize[d]; // compute other dimension later
 //			if (m_currentDefaultSize[!d] < cellDefaultSize[!d])
 //				m_currentDefaultSize[!d] = cellDefaultSize[!d];
 //
@@ -455,7 +455,7 @@
 //		}
 //		
 //		range::linear_t rtnOtherRange;
-//		propose_dimension(d, m_currentDefaultSize[d], rtnOtherRange);	// sets m_cachedLength
+//		propose_dimension(d, m_currentDefaultSize[d], rtnOtherRange); // sets m_cachedLength
 //		if (rtnOtherRange.has_max() && (m_currentDefaultSize[!d] > rtnOtherRange.get_max()))
 //			m_currentDefaultSize[!d] = rtnOtherRange.get_max();
 //		if (m_currentDefaultSize[!d] < rtnOtherRange.get_min())
@@ -477,7 +477,7 @@
 //			typename collection<rcref<cell_t> >::iterator cellItor = m_cells.get_first();
 //			if (!!cellItor)
 //			{
-//				rcref<row_t> row = rcnew(row_t);	// start a new row
+//				rcref<row_t> row = rcnew(row_t); // start a new row
 //				
 //				double remaining = rtn;
 //				double largestRowLength;
@@ -491,8 +491,8 @@
 //					bool insufficientSpace = (cellSize[d] > remaining);
 //					if (insufficientSpace)
 //					{
-//						if (row->m_cells.empty())	// If nothing in the list, when need to shrink this one into place
-//						{							// We shouldn't be asked to size smaller than min, as we've already established our mins.
+//						if (row->m_cells.empty()) // If nothing in the list, when need to shrink this one into place
+//						{ // We shouldn't be asked to size smaller than min, as we've already established our mins.
 //							cellSize[d] = remaining;
 //							insufficientSpace = false;
 //						}
@@ -521,7 +521,7 @@
 //					}
 //
 //					bool rowDone = insufficientSpace || cellsDone;
-//					if (rowDone)	// Need to start a new row.
+//					if (rowDone) // Need to start a new row.
 //					{
 //						row->m_primarySizingGroup.calculate_sizes(rtn);
 //
@@ -555,7 +555,7 @@
 //					rcptr<row_t> row = cell.m_row;
 //
 //
-//					cell.propose_dimension(d, cell.get_length(), otherRange);	// return value is ignored
+//					cell.propose_dimension(d, cell.get_length(), otherRange); // return value is ignored
 //
 //					row->m_range ^= otherRange;
 //
@@ -612,8 +612,10 @@
 //			reverseDirection[!d] = !(scriptFlow & script_flow::horizontal_ascending_mask);
 //		}
 //
-//		double rowOffset = (newSize[!d] > m_secondarySizingGroup.get_length())	? (m_alignment[!d].align(newSize[!d] - m_secondarySizingGroup.get_length()))
-//																				:	0;
+//		double rowOffset =
+//			(newSize[!d] > m_secondarySizingGroup.get_length())
+//				? (m_alignment[!d].align(newSize[!d] - m_secondarySizingGroup.get_length()))
+//				: 0;
 //		if (reverseDirection[!d])
 //		{
 //			double oldRowOffset = rowOffset;
@@ -631,8 +633,9 @@
 //				rowOffset -= row.get_length();
 //
 //			double cellOffset =
-//				row.m_bounds.get_position(d) = (newSize[d] > row.m_primarySizingGroup.get_length())	?	(m_alignment[d].align(newSize[d] - row.m_primarySizingGroup.get_length()))
-//																										:	0;
+//				row.m_bounds.get_position(d) = (newSize[d] > row.m_primarySizingGroup.get_length())
+//					? (m_alignment[d].align(newSize[d] - row.m_primarySizingGroup.get_length()))
+//					: 0;
 //			row.m_bounds.get_position(!d) = rowOffset;
 //			row.m_bounds.get_size(!d) = row.m_primarySizingGroup.get_length();
 //			
@@ -675,7 +678,7 @@
 //	{
 //	protected:
 //		friend class wrap_list;
-//		typename collection<rcref<cell_t> >::remove_token	m_removeToken;
+//		typename collection<rcref<cell_t> >::remove_token m_removeToken;
 //	};
 //
 //	wrap_list()

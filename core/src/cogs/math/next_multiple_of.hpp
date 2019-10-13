@@ -20,9 +20,12 @@ template <size_t n, size_t multiple_of>
 class next_multiple_of
 {
 public:
-	static constexpr size_t value =	((n % multiple_of) == 0) ? n
-							:	((n < multiple_of) ? multiple_of
-							:	n + (multiple_of - (n % multiple_of)));
+	static constexpr size_t value =
+		((n % multiple_of) == 0)
+			? n
+			: ((n < multiple_of)
+				? multiple_of
+				: n + (multiple_of - (n % multiple_of)));
 };
 template <size_t n, size_t multiple_of>
 inline constexpr size_t next_multiple_of_v = next_multiple_of<n, multiple_of>::value;

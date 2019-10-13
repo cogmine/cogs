@@ -25,17 +25,17 @@ class slist_t
 {
 public:
 	typedef slist_t<link_t, ref_type, link_iterator> this_t;
-	typedef ref_type<link_t>	ref_t;
+	typedef ref_type<link_t> ref_t;
 
 private:
-	ref_t	m_first;
-	ref_t	m_last;
+	ref_t m_first;
+	ref_t m_last;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
 
 	slist_t(const this_t& src) = delete;
 	this_t& operator=(const this_t& src) = delete;
@@ -56,10 +56,10 @@ public:
 		return *this;
 	}
 
-	bool operator!() const				{ return !m_first; }
-	bool operator!() const volatile		{ return !m_first; }
-	bool is_empty() const				{ return !m_first; }
-	bool is_empty() const volatile		{ return !m_first; }
+	bool operator!() const { return !m_first; }
+	bool operator!() const volatile { return !m_first; }
+	bool is_empty() const { return !m_first; }
+	bool is_empty() const volatile { return !m_first; }
 
 	void append(const ref_t& l)
 	{
@@ -107,14 +107,14 @@ public:
 private:
 	ref_t m_last;
 
-	static const          ref_t& get_next(const          link_t& l)	{ return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l)	{ return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
 
-	static void set_next(         link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src)		{ return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
 
 	circular_slist_t(const ref_t& setTo)
-		:	m_last(setTo)
+		: m_last(setTo)
 	{ }
 
 	circular_slist_t(const this_t& src) = delete;
@@ -134,8 +134,8 @@ public:
 		return *this;
 	}
 
-	ref_t peek_last() const				{ return m_last; }
-	ref_t peek_last() const volatile	{ return m_last; }
+	ref_t peek_last() const { return m_last; }
+	ref_t peek_last() const volatile { return m_last; }
 
 	ref_t peek() const
 	{
@@ -144,11 +144,11 @@ public:
 			result = get_next(*m_last);
 		return result;
 	}
-	
-	bool operator!() const				{ return !m_last; }
-	bool operator!() const volatile		{ return !m_last; }
-	bool is_empty() const				{ return !m_last; }
-	bool is_empty() const volatile		{ return !m_last; }
+
+	bool operator!() const { return !m_last; }
+	bool operator!() const volatile { return !m_last; }
+	bool is_empty() const { return !m_last; }
+	bool is_empty() const volatile { return !m_last; }
 
 	void advance()
 	{
@@ -161,13 +161,13 @@ public:
 		set_next(*e, !m_last ? e : get_next(*m_last));
 		m_last = e;
 	}
-	
+
 	void prepend(const ref_t& e)
 	{
 		set_next(*e, !m_last ? (m_last = e) : get_next(*m_last));
 	}
 
-	ref_t remove()	// remove's first
+	ref_t remove() // remove's first
 	{
 		if (!m_last)
 		{
@@ -217,7 +217,7 @@ public:
 		}
 		return ref_t();
 	}
-	
+
 	this_t clear()
 	{
 		ref_t oldLast = m_last;

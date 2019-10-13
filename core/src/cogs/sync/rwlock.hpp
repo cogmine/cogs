@@ -48,9 +48,9 @@ public:
 	{
 		transactable<content_t>::read_token rt;
 		m_contents.begin_read(rt);
-		COGS_ASSERT((rt->m_blockReaders == false) && (rt->m_readerOwners == 0));	// Should not be acquired
+		COGS_ASSERT((rt->m_blockReaders == false) && (rt->m_readerOwners == 0)); // Should not be acquired
 	}
-	
+
 	bool read_acquire(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
 		bool result = true;
@@ -69,7 +69,7 @@ public:
 			wt->m_readersStalled++;
 			if (!m_contents.end_write(wt))
 				continue;
-			
+
 			bool b = m_readerGate.acquire(1, timeout, spinCount);
 			if (b)
 				break;
@@ -157,7 +157,7 @@ public:
 		}
 	}
 
-	
+
 	bool write_acquire(bool writePriority = true, const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
 		bool result = true;
@@ -182,7 +182,7 @@ public:
 			bool b = m_writerGate.acquire(1, timeout, spinCount);
 			if (b)
 				break;
-		
+
 			// expired.  We need to decrement the writer stall count
 			for (;;)
 			{
@@ -193,7 +193,7 @@ public:
 					// If there is nothing in the reader stall count, readers must have
 					// just been woken.  ... Meaning there is an extra release given
 					// to m_writerGate.
-					m_writerGate.acquire(1);			
+					m_writerGate.acquire(1);
 					break;
 				}
 				wt->m_writersStalled--;

@@ -22,11 +22,11 @@ namespace ip {
 class socket : public object
 {
 private:
-	rcref<os::io::kqueue_pool>	m_kqueuePool;
-	address_family		m_addressFamily;
-	endpoint			m_localEndpoint;
-	endpoint			m_remoteEndpoint;
-	auto_fd				m_fd;
+	rcref<os::io::kqueue_pool> m_kqueuePool;
+	address_family m_addressFamily;
+	endpoint m_localEndpoint;
+	endpoint m_remoteEndpoint;
+	auto_fd m_fd;
 
 public:
 	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
@@ -96,7 +96,7 @@ public:
 			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
 
-			if (m_addressFamily == inetv4)	// ipv4
+			if (m_addressFamily == inetv4) // ipv4
 			{
 				sockaddr_in addr;
 				memset(&addr, 0, sizeof(sockaddr_in)); 
@@ -117,7 +117,7 @@ public:
 				i = bind(m_fd.get(), (sockaddr*)&addr, sizeof(sockaddr_in6));
 			}
 			else
-				COGS_ASSERT(false);	// ??
+				COGS_ASSERT(false); // ??
 		}
 		return i;
 	}

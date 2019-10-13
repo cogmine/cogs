@@ -49,7 +49,7 @@ public:
 			defer();
 	}
 
-	// Caller error to call when in unfired state	
+	// Caller error to call when in unfired state
 	// This refire includes the overhead of actual operation it triggered.
 	bool refire() { return timer::refire(); }
 	bool refire(const timeout_t& t) { return timer::refire(t); }

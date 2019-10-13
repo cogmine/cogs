@@ -33,9 +33,9 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
-#pragma warning (disable: 4307)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
+#pragma warning (disable: 4307) // multiple copy constructors specified
 
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
@@ -94,7 +94,7 @@ private:
 
 	static constexpr bool can_reduce_positive = is_high_part_zero;
 	static constexpr bool low_sign_bit_set = ((longest)low_digit < 0);
-	static constexpr bool can_reduce_negative = has_sign && is_high_part_negative_one && low_sign_bit_set;	// ensures high bit of low part is set
+	static constexpr bool can_reduce_negative = has_sign && is_high_part_negative_one && low_sign_bit_set; // ensures high bit of low part is set
 
 
 	template <bool is_zero, bool overflow, ulongest... lowPart>
@@ -144,7 +144,7 @@ public:
 		typename fixed_integer_native_const<true, (sizeof(longest) * 8), (longest)low_digit>::reduced_t,
 		typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<low_digit>::type
 		>
-	>	reduced_t;
+	> reduced_t;
 
 	typedef typename calculate_negated<is_const_zero, true>::type::reduced_t negative_t;
 	typedef std::conditional_t<is_const_negative, negative_t, reduced_t> abs_t;
@@ -172,7 +172,7 @@ private:
 						fixed_integer_extended_const<true, (sizeof...(lowPart) * (sizeof(ulongest) * 8)) + reduced_low_digit, lowPart..., low_digit>,
 						typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<lowPart..., low_digit>::type
 					>
-			>	type;
+			> type;
 	};
 
 	template <ulongest... lowPart>
@@ -307,7 +307,7 @@ private:
 
 	template <bool has_sign2, size_t bits2, ulongest... highDigits2>
 	class get_multiplied_extended;
-	
+
 	template <bool has_sign2, size_t bits2, ulongest value2>
 	class get_multiplied_extended<has_sign2, bits2, value2>
 	{
@@ -358,7 +358,7 @@ private:
 					template calculate_multiplied_extended2<leading_zeros...>::
 					template calculate_multiplied_extended<new_overflow, lowPart..., new_low_digit>::type type;
 			};
-		
+
 			typedef typename calculate_multiplied_extended<0, leading_zeros...>::type tmp_t1;
 
 			typedef typename fixed_integer_extended_const<has_sign, bits, highDigits...>::
@@ -388,7 +388,7 @@ private:
 	public:
 		typedef typename T2::as_extended_t::template get_added_extended2<typename T1::as_extended_t::negative_t::as_extended_t>::type difference_t;
 
-		typedef typename difference_t::template right_shift_extended<1>::type half_difference_t;	// divide by 2
+		typedef typename difference_t::template right_shift_extended<1>::type half_difference_t; // divide by 2
 
 		typedef typename T1::as_extended_t::template get_added_extended2<half_difference_t>::type::as_extended_t half_way_t;
 
@@ -661,7 +661,7 @@ private:
 				template bitor_extended<has_sign2, bits2, highDigits2...>::
 				template calculate_bitor_extended<lowPart..., low_digit | low_digit2>::type type;
 		};
-		
+
 		typedef typename calculate_bitor_extended<>::type  type;
 	};
 
@@ -824,7 +824,7 @@ public:
 
 	constexpr bool operator!() const volatile { return is_const_zero; }
 
-	template <typename enable = void>	// delays expansion until called
+	template <typename enable = void> // delays expansion until called
 	auto operator~() const volatile
 	{
 		typename fixed_integer_extended_const<has_sign, bits, ~low_digit_in, ~highDigits...>::reduced_t tmp;
@@ -853,7 +853,7 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = void>	// delays expansion until called
+	template <typename enable = void> // delays expansion until called
 	auto operator-() const volatile
 	{
 		negative_t tmp;
@@ -861,7 +861,7 @@ public:
 	}
 
 	constexpr size_t bit_count() const volatile { return const_bit_count; }
-	
+
 	constexpr size_t bit_scan_forward() const volatile { return const_bit_scan_forward; }
 
 	constexpr size_t bit_scan_reverse() const volatile { return const_bit_scan_reverse; }
@@ -1257,7 +1257,7 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator/(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{ return fraction<reduced_t, fixed_integer_native_const<has_sign2, bits2, value2> >(); }
-	
+
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator/(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{ return fraction<reduced_t, fixed_integer_native_const<has_sign2, bits2, value2> >(); }
@@ -2127,7 +2127,7 @@ public:
 };
 
 
-template <bool has_sign_in, size_t bits_in, ulongest value_in>	// specialization for only 1 value - not valid, only used for template meta
+template <bool has_sign_in, size_t bits_in, ulongest value_in> // specialization for only 1 value - not valid, only used for template meta
 class fixed_integer_extended_const<has_sign_in, bits_in, value_in>
 {
 public:
@@ -2222,7 +2222,7 @@ private:
 	public:
 		static constexpr ulongest new_low_digit = low_digit + 1;
 		static constexpr bool overflow = new_low_digit == 0;
-		typedef std::conditional_t<overflow && !has_sign,	// is signed, ignore overflow, value became positive
+		typedef std::conditional_t<overflow && !has_sign, // is signed, ignore overflow, value became positive
 			fixed_integer_extended_const<false, bits, lowPart..., new_low_digit, (ulongest)1>,
 			fixed_integer_extended_const<is_const_negative && !overflow, bits, lowPart..., new_low_digit>
 		> type;
@@ -2426,7 +2426,7 @@ private:
 	public:
 		typedef typename T2::as_extended_t::template get_added_extended2<typename T1::as_extended_t::negative_t::as_extended_t>::type difference_t;
 
-		typedef typename difference_t::template right_shift_extended<1>::type half_difference_t;	// divide by 2
+		typedef typename difference_t::template right_shift_extended<1>::type half_difference_t; // divide by 2
 
 		typedef typename T1::as_extended_t::template get_added_extended2<half_difference_t>::type::as_extended_t half_way_t;
 

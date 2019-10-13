@@ -110,8 +110,8 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 	{
 		b = false;
 		if (oldValue.get_desc() != nullptr)
-			result = oldValue;	// won't be marked, if desc was not nullptr
-		else if (oldValue.get_mark() == 0)	// not set up yet
+			result = oldValue; // won't be marked, if desc was not nullptr
+		else if (oldValue.get_mark() == 0) // not set up yet
 			b = true;
 	}
 

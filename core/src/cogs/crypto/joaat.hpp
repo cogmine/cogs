@@ -24,7 +24,7 @@ private:
 	uint32_t m_result;
 
 public:
-	virtual uint_t get_hash_int()
+	virtual uint_t get_hash_int() const
 	{
 		uint32_t result = m_result;
 		result += (result << 3);
@@ -48,9 +48,9 @@ public:
 		}
 	}
 
-	joaat()								{ m_result = 0; }
-	joaat(const joaat& src)				{ m_result = src.m_result; }
-	joaat& operator=(const joaat& src)	{ m_result = src.m_result; return *this; }
+	joaat() { m_result = 0; }
+	joaat(const joaat& src) { m_result = src.m_result; }
+	joaat& operator=(const joaat& src) { m_result = src.m_result; return *this; }
 };
 
 

@@ -20,7 +20,6 @@ namespace arch {
 // Exposes the BSR/BSF instructions
 
 // If arch is 'unknown' we use the brute force approach.
-	
 
 // bits must not be zero
 template <typename int_t>
@@ -72,5 +71,3 @@ bit_scan_forward(const int_t& bits)
 
 
 #endif
-
-

@@ -38,7 +38,7 @@ private:
 		typedef const_extumul2<new_high_part, new_low_part, 0, denominator> new_multiplied_t;
 
 		static constexpr bool is_new_lesser =
-			   !new_multiplied_t::high_high_part
+			!new_multiplied_t::high_high_part
 			&& !new_multiplied_t::low_high_part
 			&& (
 				(new_multiplied_t::high_low_part < numerator_high_part)
@@ -98,7 +98,7 @@ private:
 			next_new_high_part,
 			next_new_low_part
 		> next_t;
-		
+
 		static constexpr ulongest high_part = next_t::high_part;
 		static constexpr ulongest low_part = next_t::low_part;
 	};

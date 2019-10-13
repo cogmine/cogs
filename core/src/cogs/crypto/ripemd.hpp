@@ -25,7 +25,7 @@ template <size_t bits>
 class ripemd : public hash
 {
 private:
-	ripemd() = delete;	// Not allowed.  This template is specialized for supported bit sizes
+	ripemd() = delete; // Not allowed.  This template is specialized for supported bit sizes
 };
 
 
@@ -33,11 +33,11 @@ private:
 class ripemd_base
 {
 protected:
-	static uint32_t F(uint32_t x, uint32_t y, uint32_t z)	{ return (x ^ y ^ z); }
-	static uint32_t G(uint32_t x, uint32_t y, uint32_t z)	{ return (z ^ (x & (y ^ z))); }
-	static uint32_t H(uint32_t x, uint32_t y, uint32_t z)	{ return (z ^ (x | ~y)); }
-	static uint32_t I(uint32_t x, uint32_t y, uint32_t z)	{ return (y ^ (z & (x ^ y))); }
-	static uint32_t J(uint32_t x, uint32_t y, uint32_t z)	{ return (x ^ (y | ~z)); }
+	static uint32_t F(uint32_t x, uint32_t y, uint32_t z) { return (x ^ y ^ z); }
+	static uint32_t G(uint32_t x, uint32_t y, uint32_t z) { return (z ^ (x & (y ^ z))); }
+	static uint32_t H(uint32_t x, uint32_t y, uint32_t z) { return (z ^ (x | ~y)); }
+	static uint32_t I(uint32_t x, uint32_t y, uint32_t z) { return (y ^ (z & (x ^ y))); }
+	static uint32_t J(uint32_t x, uint32_t y, uint32_t z) { return (x ^ (y | ~z)); }
 
 	static void subround_160_320_F(uint32_t& a, uint32_t b, uint32_t& c, uint32_t d, uint32_t e, uint32_t x, uint32_t s, uint32_t k)
 	{
@@ -103,8 +103,8 @@ class ripemd<128> : public serial_hash<128, 128, 32, endian_t::little, 512>, pub
 private:
 	typedef serial_hash<128, 128, 32, endian_t::little, 512> base_t;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[16];
+	uint64_t m_bitCount;
+	uint32_t m_state[16];
 
 	void process_digit()
 	{
@@ -324,8 +324,8 @@ class ripemd<256> : public serial_hash<256, 256, 32, endian_t::little, 512>, pub
 private:
 	typedef serial_hash<256, 256, 32, endian_t::little, 512> base_t;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[16];
+	uint64_t m_bitCount;
+	uint32_t m_state[16];
 
 	void process_digit()
 	{
@@ -560,8 +560,8 @@ class ripemd<160> : public serial_hash<160, 160, 32, endian_t::little, 512>, pub
 private:
 	typedef serial_hash<160, 160, 32, endian_t::little, 512> base_t;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[16];
+	uint64_t m_bitCount;
+	uint32_t m_state[16];
 
 	void process_digit()
 	{
@@ -818,8 +818,8 @@ class ripemd<320> : public serial_hash<320, 320, 32, endian_t::little, 512>, pub
 private:
 	typedef serial_hash<320, 320, 32, endian_t::little, 512> base_t;
 
-	uint64_t	m_bitCount;
-	uint32_t	m_state[16];
+	uint64_t m_bitCount;
+	uint32_t m_state[16];
 
 	void process_digit()
 	{

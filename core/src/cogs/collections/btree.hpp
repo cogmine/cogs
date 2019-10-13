@@ -17,7 +17,7 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 /// @brief Tree traversal order
 enum class btree_traversal_order
@@ -49,18 +49,18 @@ class btree
 {
 public:
 	/// @brief Alias to this type.
-	typedef btree<derived_node_t, ref_type>			this_t;
+	typedef btree<derived_node_t, ref_type> this_t;
 
 	/// @brief Alias to the node type.
-	typedef derived_node_t	node_t;
+	typedef derived_node_t node_t;
 
 	/// @brief The node reference type
 	typedef ref_type<node_t> ref_t;
 
 private:
-	ref_t	m_root;
-	ref_t	m_leftmost;
-	ref_t	m_rightmost;
+	ref_t m_root;
+	ref_t m_leftmost;
+	ref_t m_rightmost;
 
 	const ref_t get_sidebottom(bool right, const ref_t& cur) const
 	{
@@ -70,65 +70,65 @@ private:
 		for (;;)
 		{
 			lockedRef = n;
-			for (;;)			
+			for (;;)
 			{
 				child = lockedRef->get_child_link(right);
 				if (!child)
 					break;
 				n = child;
 				lockedRef = n;
-			}					
+			}
 			child = lockedRef->get_child_link(!right);
 			if (!child)
-				break;					
-			n = child;	
-		}						
+				break;
+			n = child;
+		}
 		return n;
 	}
 
 	ref_t get_next_preorder_or_prev_postorder(bool preorder, const ref_t& cur) const
 	{
 		typename ref_t::locked_t curLocked = cur;
-		bool postorder = !preorder;				
+		bool postorder = !preorder;
 		ref_t n = curLocked->get_child_link(postorder);
-		if (!n)					
-		{										
+		if (!n)
+		{
 			n = curLocked->get_child_link(preorder);
-			if (!n)				
-			{									
-				n = cur;						
+			if (!n)
+			{
+				n = cur;
 				ref_t parent = curLocked->get_parent_link();
 				typename ref_t::locked_t parentResolved;
-				while (!!parent)	
+				while (!!parent)
 				{
 					parentResolved = parent;
 					if (parentResolved->get_child_link(postorder) == n)
-					{							
+					{
 						const ref_t& parentChild = parentResolved->get_child_link(preorder);
 						if (!!parentChild)
 							return parentChild;
-					}							
-					n = parent;				
+					}
+					n = parent;
 					parent = parentResolved->get_parent_link();
-				}					
+				}
 				ref_t emptyRef;
-				return emptyRef;				
-			}									
-		}										
-		return n;	
+				return emptyRef;
+			}
+		}
+		return n;
 	}
 
 	ref_t get_prev_preorder_or_next_postorder(bool preorder, const ref_t& cur) const
 	{
 		typename ref_t::locked_t curLocked = cur;
 		const ref_t& parent = curLocked->get_parent_link();
-		if (!!parent)		
+		if (!!parent)
 		{
 			typename ref_t::locked_t parentResolved = parent;
 			const ref_t& parentChild = parentResolved->get_child_link(!preorder);
 			if ((!!parentChild) && (cur == parentResolved->get_child_link(preorder)))
 				return get_sidebottom(preorder, parentChild);
-		}										
+		}
 		return parent;
 	}
 
@@ -159,7 +159,7 @@ private:
 	}
 
 public:
-	btree()	{ }
+	btree() { }
 
 	btree(this_t&& t)
 	{
@@ -176,15 +176,13 @@ public:
 		return *this;
 	}
 
-
-
 	/// @{
 	/// @brief Gets a reference to the root node
 	/// @return A reference to the root node
 	ref_t& get_root() { return m_root; }
 	/// @brief Gets a const reference to the root node
 	/// @return A const reference to the root node
-	const ref_t& get_root() const		{ return m_root;  }
+	const ref_t& get_root() const { return m_root; }
 	/// @}
 
 	/// @{
@@ -193,7 +191,7 @@ public:
 	ref_t& get_leftmost() { return m_leftmost; }
 	/// @brief Gets a const reference to the leftmost (first) node
 	/// @return A const reference to the leftmost (first) node
-	const ref_t& get_leftmost() const		{ return m_leftmost; }
+	const ref_t& get_leftmost() const { return m_leftmost; }
 	/// @brief Gets a reference to the leftmost node below a specified parent node
 	/// @param cur Parent node to scan left from
 	/// @return A reference to the leftmost node below a specified parent node
@@ -219,7 +217,7 @@ public:
 	ref_t& get_rightmost(){ return m_rightmost; }
 	/// @brief Gets a const reference to the rightmost (last) node
 	/// @return A const reference to the rightmost (last) node
-	const ref_t& get_rightmost() const		{ return m_rightmost; }
+	const ref_t& get_rightmost() const { return m_rightmost; }
 	/// @brief Gets a reference to the leftmost node below a specified parent node
 	/// @param cur Parent node to scan right from
 	/// @return A reference to the leftmost node below a specified parent node
@@ -242,19 +240,19 @@ public:
 	/// @{
 	/// @brief Sets the root node
 	/// @param r Value to set root node to
-	void set_root(const ref_t& r)	{ m_root = r;  }
+	void set_root(const ref_t& r) { m_root = r; }
 	/// @}
 
 	/// @{
 	/// @brief Sets the leftmost (first) node
 	/// @param f Value to set leftmost (first) node to
-	void set_leftmost(const ref_t& f)	{ m_leftmost = f; }
+	void set_leftmost(const ref_t& f) { m_leftmost = f; }
 	/// @}
 
 	/// @{
 	/// @brief Sets the rightmost (last) node
 	/// @param l Value to set rightmost (last) node to
-	void set_rightmost(const ref_t& l)	{ m_rightmost = l; }
+	void set_rightmost(const ref_t& l) { m_rightmost = l; }
 	/// @}
 
 
@@ -271,7 +269,7 @@ public:
 	/// @{
 	/// @brief Tests if the tree is empty
 	/// @return True if the tree is empty
-	bool is_empty() const	{ return !m_root; }
+	bool is_empty() const { return !m_root; }
 	/// @}
 
 	/// @{
@@ -296,37 +294,37 @@ public:
 	/// @{
 	/// @brief Get the first in-order node
 	/// @return The first in-order node
-	const ref_t& get_first_inorder() const				{ return m_leftmost; }
+	const ref_t& get_first_inorder() const { return m_leftmost; }
 	/// @}
 
 	/// @{
 	/// @brief Get the first post-order node
 	/// @return The first post-order node
-	const ref_t  get_first_postorder() const			{ return (!m_leftmost) ? m_leftmost : get_sidebottom(false, m_leftmost); }
+	const ref_t get_first_postorder() const { return (!m_leftmost) ? m_leftmost : get_sidebottom(false, m_leftmost); }
 	/// @}
 
 	/// @{
 	/// @brief Get the first pre-order node
 	/// @return The first pre-order node
-	const ref_t& get_first_preorder() const				{ return m_root; }
+	const ref_t& get_first_preorder() const { return m_root; }
 	/// @}
 
 	/// @{
 	/// @brief Get the last in-order node
 	/// @return The last in-order node
-	const ref_t& get_last_inorder() const				{ return m_rightmost; }
+	const ref_t& get_last_inorder() const { return m_rightmost; }
 	/// @}
 
 	/// @{
 	/// @brief Get the last post-order node
 	/// @return The last post-order node
-	const ref_t& get_last_postorder() const				{ return m_root; }
+	const ref_t& get_last_postorder() const { return m_root; }
 	/// @}
 
 	/// @{
 	/// @brief Get the last pre-order node
 	/// @return The last pre-order node
-	const ref_t  get_last_preorder() const				{ return !m_rightmost ? m_rightmost : get_sidebottom(true, m_rightmost); }
+	const ref_t get_last_preorder() const { return !m_rightmost ? m_rightmost : get_sidebottom(true, m_rightmost); }
 	/// @}
 
 	/// @{
@@ -354,7 +352,7 @@ public:
 	/// @{
 	/// @brief Get the last node, based on a constant traversal order
 	/// @tparam order The traversal order
-	/// @return The last node, based on the specified traversal order.	
+	/// @return The last node, based on the specified traversal order.
 	template <btree_traversal_order order>
 	const ref_t get_last()
 	{
@@ -373,53 +371,53 @@ public:
 	}
 	/// @}
 
-	/// @{					
+	/// @{
 	/// @brief Get the next in-order node
 	/// @param cur The node to get the next in-order node from
 	/// @return The next in-order node
-	ref_t get_next_inorder(const ref_t& cur) const			{ return get_inorder(true, cur); }
+	ref_t get_next_inorder(const ref_t& cur) const { return get_inorder(true, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous in-order node
 	/// @param cur The node to get the previous in-order node from
 	/// @return The previous in-order node
-	ref_t get_prev_inorder(const ref_t& cur) const			{ return get_inorder(false, cur); }
+	ref_t get_prev_inorder(const ref_t& cur) const { return get_inorder(false, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next pre-order node
 	/// @param cur The node to get the next pre-order node from
 	/// @return The next pre-order node
-	ref_t get_next_preorder(const ref_t& cur) const			{ return get_next_preorder_or_prev_postorder(true, cur); }
+	ref_t get_next_preorder(const ref_t& cur) const { return get_next_preorder_or_prev_postorder(true, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous pre-order node
 	/// @param cur The node to get the previous pre-order node from
 	/// @return The previous pre-order node
-	ref_t get_prev_preorder(const ref_t& cur) const			{ return get_prev_preorder_or_next_postorder(true, cur); }
+	ref_t get_prev_preorder(const ref_t& cur) const { return get_prev_preorder_or_next_postorder(true, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next post-order node
 	/// @param cur The node to get the next post-order node from
 	/// @return The next post-order node
-	ref_t get_next_postorder(const ref_t& cur) const		{ return get_prev_preorder_or_next_postorder(false, cur); }
+	ref_t get_next_postorder(const ref_t& cur) const { return get_prev_preorder_or_next_postorder(false, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous post-order node
 	/// @param cur The node to get the previous post-order node from
 	/// @return The previous post-order node
-	ref_t get_prev_postorder(const ref_t& cur) const		{ return get_next_preorder_or_prev_postorder(false, cur); }
+	ref_t get_prev_postorder(const ref_t& cur) const { return get_next_preorder_or_prev_postorder(false, cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next node, based on a constant traversal order
 	/// @tparam order The traversal order
 	/// @param cur The node to get the next node from
-	/// @return The next node, based on the specified traversal order.	
+	/// @return The next node, based on the specified traversal order.
 	template <btree_traversal_order order>
 	ref_t get_next(const ref_t& cur) const
 	{
@@ -442,7 +440,7 @@ public:
 	/// @brief Get the previous node, based on a constant traversal order
 	/// @tparam order The traversal order
 	/// @param cur The node to get the previous node from
-	/// @return The previous node, based on the specified traversal order.	
+	/// @return The previous node, based on the specified traversal order.
 	template <btree_traversal_order order>
 	ref_t get_prev(const ref_t& cur) const
 	{
@@ -482,7 +480,7 @@ enum class sorted_btree_insert_mode
 ///
 /// derived_node_t must be derived from tlink_t<>, and  include the equivalent of the following member function:
 /// @code{.cpp}
-///		const key_t& get_key() const;
+/// const key_t& get_key() const;
 /// @endcode
 /// @tparam key_t The key type to contain
 /// @tparam derived_node_t A class derived from tlink_t.
@@ -493,10 +491,10 @@ class sorted_btree : protected btree<derived_node_t, ref_type>
 {
 public:
 	/// @brief Alias to this type.
-	typedef sorted_btree<key_t, derived_node_t, comparator_t, ref_type>	this_t;
+	typedef sorted_btree<key_t, derived_node_t, comparator_t, ref_type> this_t;
 
 	/// @brief Alias to the node type.
-	typedef derived_node_t	node_t;
+	typedef derived_node_t node_t;
 
 	/// @brief The node reference type
 	typedef ref_type<node_t> ref_t;
@@ -512,8 +510,8 @@ private:
 	const ref_t get_rightmost(const ref_t& cur) const { return base_t::get_rightmost(cur); }
 	const ref_t get_leftmost(const ref_t& cur) const { return base_t::get_leftmost(cur); }
 
-	void set_leftmost(const ref_t& f)	{ base_t::set_leftmost(f);  }
-	void set_rightmost(const ref_t& l)	{ base_t::set_rightmost(l);  }
+	void set_leftmost(const ref_t& f) { base_t::set_leftmost(f); }
+	void set_rightmost(const ref_t& l) { base_t::set_rightmost(l); }
 
 	template <bool rightSideLarger>
 	bool balance_remove_inner(const ref_t& nIn, ref_t& swappedWith, ref_t& liftedChild)
@@ -527,9 +525,9 @@ private:
 
 		swappedWith.release();
 
-		ref_t leftChild = lockedRef->get_left_link();	// Might be null
-		ref_t rightChild = lockedRef->get_right_link();	// Might be null
-		ref_t parent = lockedRef->get_parent_link();	// Might be null
+		ref_t leftChild = lockedRef->get_left_link(); // Might be null
+		ref_t rightChild = lockedRef->get_right_link(); // Might be null
+		ref_t parent = lockedRef->get_parent_link(); // Might be null
 
 		typename ref_t::locked_t lockedParent;
 		if (!!parent)
@@ -555,30 +553,30 @@ private:
 		case 1: // left node is present
 		{
 			result = wasRightNode;
-			liftedChild = leftChild;			// leftChild moves up to take its place
+			liftedChild = leftChild; // leftChild moves up to take its place
 			typename ref_t::locked_t lockedChild = leftChild;
 			lockedChild->set_parent_link(parent);
 			if (get_rightmost() == n)
 				set_rightmost(get_rightmost(leftChild));
 		}
 		break;
-		case 2:	// right node is present
+		case 2: // right node is present
 		{
 			result = wasRightNode;
-			liftedChild = rightChild;			// rightChild moves up to take its place
+			liftedChild = rightChild; // rightChild moves up to take its place
 			typename ref_t::locked_t lockedChild = rightChild;
 			lockedChild->set_parent_link(parent);
 			if (get_leftmost() == n)
 				set_leftmost(get_leftmost(rightChild));
 		}
 		break;
-		case 3:	// both are present.
+		case 3: // both are present.
 		{
 			const ref_t& child = rightSideLarger ? rightChild : leftChild;
 			const ref_t& otherChild = rightSideLarger ? leftChild : rightChild;
 			localRoot = &swappedWith;
 
-			if (rightSideLarger)	// Find node to swap with it.
+			if (rightSideLarger) // Find node to swap with it.
 				swappedWith = get_leftmost(child);
 			else
 				swappedWith = get_rightmost(child);
@@ -589,7 +587,7 @@ private:
 			typename ref_t::locked_t lockedOtherChild = otherChild;
 			lockedOtherChild->set_parent_link(swappedWith);
 			lockedSwappedWith->set_child_link(!rightSideLarger, otherChild);
-			if (swappedWith == child)	// In case swapping with a child node
+			if (swappedWith == child) // In case swapping with a child node
 			{
 				lockedRef->set_parent_link(swappedWith);
 				result = rightSideLarger;
@@ -597,7 +595,7 @@ private:
 			else
 			{
 				ref_t swappedWithParent = lockedSwappedWith->get_parent_link();
-				lockedRef->set_parent_link(swappedWithParent);	// just for the purpose of reporting back.  Not actually in the list anymore.
+				lockedRef->set_parent_link(swappedWithParent); // just for the purpose of reporting back.  Not actually in the list anymore.
 				if (!!liftedChild)
 				{
 					typename ref_t::locked_t lockedLiftedChild = liftedChild;
@@ -697,7 +695,7 @@ protected:
 						typename ref_t::locked_t lockedLeftNode = leftNode;
 						lockedLeftNode->set_parent_link(n);
 					}
-					
+
 					lockedRef->set_left_link(leftNode);
 
 					if (!!parentNode)
@@ -739,14 +737,14 @@ protected:
 			lockedCompareTo = compare_to;
 			const key_t& cmp2 = lockedCompareTo->get_key();
 			bool isLess = comparator_t::is_less_than(cmp, cmp2);
-				
+
 			// Check for an equal node.  If so, we're done.
 			if ((insertMode != sorted_btree_insert_mode::multi) && !isLess && !comparator_t::is_less_than(cmp2, cmp))
 			{
 				if (insertMode == sorted_btree_insert_mode::replace)
 				{
 					lockedRef->set_parent_link(lockedCompareTo->get_parent_link());
-				
+
 					ref_t& rightNode = lockedCompareTo->get_right_link();
 					if (!!rightNode)
 					{
@@ -755,7 +753,7 @@ protected:
 					}
 
 					lockedRef->set_right_link(rightNode);
-				
+
 					ref_t& leftNode = lockedCompareTo->get_left_link();
 					if (!!leftNode)
 					{
@@ -764,7 +762,7 @@ protected:
 					}
 
 					lockedRef->set_left_link(leftNode);
-				
+
 					if (!!parent)
 					{
 						typename ref_t::locked_t lockedParent = parent;
@@ -878,18 +876,18 @@ protected:
 	/// In order to update balancing information (red/black or avl), we need to return the node swapped with, and
 	/// the single child node swapped into place after removal.  The caller needs to handle the following scenarios:
 	///
-	///	- If swappedWith is null, and liftedChild is null, the removed node had no children.
-	///		The removed node will retain a link to its original parent, which the caller may need for repaint.
+	/// - If swappedWith is null, and liftedChild is null, the removed node had no children.
+	///     The removed node will retain a link to its original parent, which the caller may need for repaint.
 	///
-	///	- If swappedWith is null, and liftedChild is not null, the removed node had 1 child, which was moved into its place.
-	///		The removed node will retain a link to its original parent, which the caller may need for repaint.
-	///		
-	///	- If swappedWith is not null, and liftedChild is null, the removed node had 2 children, and was swapped with
-	///		a node with 0 children.  The removed node will retain a pointer to parent of the node it was swapped with,
-	///		which the caller may need for repainting.
+	/// - If swappedWith is null, and liftedChild is not null, the removed node had 1 child, which was moved into its place.
+	///     The removed node will retain a link to its original parent, which the caller may need for repaint.
 	///
-	///	- If swappedWith is not null, and liftedChild is not null, the removed node had 2 children, and was swapped with
-	///		a node with 1 child.  The removed node will retain a pointer to the parent of the node it was swapped with.
+	/// - If swappedWith is not null, and liftedChild is null, the removed node had 2 children, and was swapped with
+	///     a node with 0 children.  The removed node will retain a pointer to parent of the node it was swapped with,
+	///     which the caller may need for repainting.
+	///
+	/// - If swappedWith is not null, and liftedChild is not null, the removed node had 2 children, and was swapped with
+	///     a node with 1 child.  The removed node will retain a pointer to the parent of the node it was swapped with.
 	///
 	/// @returns True if the removed node (after swapped) was its parent's right node.
 	bool balance_remove(const ref_t& n, ref_t& swappedWith, ref_t& liftedChild, bool rightSideLarger)
@@ -921,33 +919,33 @@ public:
 	/// @{
 	/// @brief Get the first in-order node
 	/// @return The first in-order node
-	const ref_t& get_first() const	{ return base_t::get_first_inorder(); }
+	const ref_t& get_first() const { return base_t::get_first_inorder(); }
 	/// @}
 
 	/// @{
 	/// @brief Get the last in-order node
 	/// @return The last in-order node
-	const ref_t& get_last() const	{ return base_t::get_last_inorder(); }
+	const ref_t& get_last() const { return base_t::get_last_inorder(); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next in-order node
 	/// @param cur The node to get the next in-order node from
 	/// @return The next in-order node
-	ref_t get_next(const ref_t& cur) const		{ return base_t::get_next_inorder(cur); }
+	ref_t get_next(const ref_t& cur) const { return base_t::get_next_inorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous in-order node
 	/// @param cur The node to get the previous in-order node from
 	/// @return The previous in-order node
-	ref_t get_prev(const ref_t& cur) const		{ return base_t::get_prev_inorder(cur); }
+	ref_t get_prev(const ref_t& cur) const { return base_t::get_prev_inorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the first post-order node
 	/// @return The first post-order node
-	const ref_t  get_first_postorder() const { return base_t::get_first_postorder(); }
+	const ref_t get_first_postorder() const { return base_t::get_first_postorder(); }
 	/// @}
 
 	/// @{
@@ -1143,7 +1141,6 @@ public:
 				n = lockedRef->get_right_link();
 			else
 			{
-				
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
 				// if cmp is less than criteria.
@@ -1182,14 +1179,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(cmp, criteria))
 			{
-				lastLesser = n;	// lesser
+				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
 			else if (comparator_t::is_less_than(criteria, cmp))
 				n = lockedRef->get_left_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				break;
 			}
 		}
@@ -1212,14 +1209,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(criteria, cmp))
 			{
-				lastFound = n;	// greater
+				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
 			else if (comparator_t::is_less_than(cmp, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				break;
 			}
 		}
@@ -1243,14 +1240,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(cmp, criteria))
 			{
-				lastLesser = n;	// lesser
+				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
 			else if (comparator_t::is_less_than(criteria, cmp))
 				n = lockedRef->get_left_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				// Once we've found an equal node, and go left, all nodes
 				// are either smaller or equal to criteria. No need to check
 				// if criteria is less than cmp.
@@ -1262,7 +1259,7 @@ public:
 						n = lockedRef->get_right_link();
 					else
 					{
-						lastFound = n;	// equal
+						lastFound = n; // equal
 						n = lockedRef->get_left_link();
 					}
 				}
@@ -1288,14 +1285,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(criteria, cmp))
 			{
-				lastFound = n;	// greater
+				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
 			else if (comparator_t::is_less_than(cmp, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				// Once we've found an equal node, and go left, all nodes
 				// are either lesser or equal to criteria. No need to check
 				// if criteria is less than cmp.
@@ -1307,7 +1304,7 @@ public:
 						n = lockedRef->get_right_link();
 					else // they are equal
 					{
-						lastFound = n;	// equal
+						lastFound = n; // equal
 						n = lockedRef->get_left_link();
 					}
 				}
@@ -1334,14 +1331,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(cmp, criteria))
 			{
-				lastLesser = n;	// lesser
+				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
 			else if (comparator_t::is_less_than(criteria, cmp))
 				n = lockedRef->get_left_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
 				// if cmp is less than criteria.
@@ -1353,7 +1350,7 @@ public:
 						n = lockedRef->get_left_link();
 					else // they are equal
 					{
-						lastFound = n;	// equal
+						lastFound = n; // equal
 						n = lockedRef->get_right_link();
 					}
 				}
@@ -1379,14 +1376,14 @@ public:
 			const key_t& cmp = lockedRef->get_key();
 			if (comparator_t::is_less_than(criteria, cmp))
 			{
-				lastFound = n;	// greater
+				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
 			else if (comparator_t::is_less_than(cmp, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
-				lastFound = n;	// equal
+				lastFound = n; // equal
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
 				// if cmp is less than criteria.
@@ -1398,7 +1395,7 @@ public:
 						n = lockedRef->get_left_link();
 					else // they are equal
 					{
-						lastFound = n;	// equal
+						lastFound = n; // equal
 						n = lockedRef->get_right_link();
 					}
 				}

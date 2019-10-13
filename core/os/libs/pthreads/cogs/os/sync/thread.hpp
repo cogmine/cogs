@@ -33,21 +33,21 @@ namespace os {
 
 // os::thread is an OS level thread
 
-
+// Adds a timeout to join, and allows multiple joiners (normally pthreads only allows 1 joiner).
 class thread : public object
-{				// Adds a timeout to join, and allows multiple joiners (normally pthreads only allows 1 joiner).
+{
 private:
-	pthread_t		m_thread;
+	pthread_t m_thread;
 	function<void()> m_func;
-	volatile size_t	m_joinState;	// 0 = unjoined.  >0 number of threads waiting on semaphore, -1 = exited, -2 = exited, and a joiner needs to release it
-	volatile size_t	m_releaseCount; 
-	semaphore		m_exitSemaphore;
-	
+	volatile size_t m_joinState; // 0 = unjoined.  >0 number of threads waiting on semaphore, -1 = exited, -2 = exited, and a joiner needs to release it
+	volatile size_t m_releaseCount; 
+	semaphore m_exitSemaphore;
+
 	static void* thread_main(void* threadArg)
 	{
 		thread* t = (thread*)threadArg;
 		t->m_func();
-			
+
 		// Thread might be aborted (due to process termination after main thread returning) immediately after release, on some platforms.
 		// It should be the very last thing.
 		t->release();
@@ -80,7 +80,7 @@ public:
 		m_joinState(0),
 		m_exitSemaphore(desc)
 	{
-		self_acquire();	// Last thread to interact will release explicit reference.
+		self_acquire(); // Last thread to interact will release explicit reference.
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);
 		COGS_ASSERT(i == 0);
 	}
@@ -103,7 +103,7 @@ public:
 		size_t joinState = cogs::atomic::load(m_joinState);
 		for (;;)
 		{
-			if (joinState == (size_t)-2)	// A joiner needs to release a reference
+			if (joinState == (size_t)-2) // A joiner needs to release a reference
 			{
 				size_t allBitsSet = const_max_int_v<size_t>;
 				if (!cogs::atomic::compare_exchange(m_joinState, allBitsSet, joinState, joinState))
@@ -113,7 +113,7 @@ public:
 				break;
 			}
 
-			if (joinState == const_max_int_v<size_t>)	// Terminated, nothing more to do.
+			if (joinState == const_max_int_v<size_t>) // Terminated, nothing more to do.
 			{
 				result = 1;
 				break;
@@ -125,12 +125,12 @@ public:
 
 			if (!!m_exitSemaphore.acquire(timeout))
 				result = 1;
-			else				// Try to remove outselves from the waiting count.
+			else // Try to remove outselves from the waiting count.
 			{
 				joinState = cogs::atomic::load(m_joinState);
 				for (;;)
 				{
-					if (joinState == const_max_int_v<size_t>)		// Terminated, nothing more to do.
+					if (joinState == const_max_int_v<size_t>) // Terminated, nothing more to do.
 					{
 						result = 1;
 						break;

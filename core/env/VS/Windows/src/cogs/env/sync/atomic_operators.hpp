@@ -52,8 +52,8 @@ COGS_DEFINE_ENV_DEFAULT_VOLATILE_ASSIGN_OPERATORS(lesser)
 // next
 
 // We fall back to the default (compare_exchange), if:
-//	1 byte, since there is no _InterlockedIncrement8
-//	It's a floating point, as there is no intrinsic for it.
+// 1 byte, since there is no _InterlockedIncrement8
+// It's a floating point, as there is no intrinsic for it.
 
 template <typename T>
 inline std::enable_if_t<
@@ -161,8 +161,8 @@ assign_next(T& t)
 // prev
 
 // We fall back to the default (compare_exchange), if:
-//	1 byte, since there is no _InterlockedDecrement8
-//	It's a floating point, as there is no intrinsic for it.
+// 1 byte, since there is no _InterlockedDecrement8
+// It's a floating point, as there is no intrinsic for it.
 
 template <typename T>
 inline std::enable_if_t<

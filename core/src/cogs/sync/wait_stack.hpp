@@ -30,8 +30,8 @@ public:
 	typedef wait_container_stack<type, coalesc_equal, allocator_type> this_t;
 
 private:
-	semaphore				m_semaphore;
-	container_stack<type>	m_stack;
+	semaphore m_semaphore;
+	container_stack<type> m_stack;
 
 	wait_container_stack(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
@@ -39,9 +39,9 @@ private:
 public:
 	wait_container_stack()
 	{ }
-	
+
 	explicit wait_container_stack(volatile allocator_type& al)
-		:	m_stack(al)
+		: m_stack(al)
 	{ }
 
 	void insert(const type& t, unsigned int n = 1) volatile
@@ -71,8 +71,8 @@ public:
 	typedef wait_container_stack<type, false, allocator_type> this_t;
 
 private:
-	semaphore												m_semaphore;
-	container_stack<type, false, allocator_type>	m_stack;
+	semaphore m_semaphore;
+	container_stack<type, false, allocator_type> m_stack;
 
 	wait_container_stack(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;

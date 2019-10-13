@@ -22,7 +22,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -48,7 +48,7 @@ public:
 
 	virtual dimension get_primary_flow_dimension() const { return dimension::horizontal; }
 
-	virtual bool is_frame() const { return false; }	// used to support nesting frames
+	virtual bool is_frame() const { return false; } // used to support nesting frames
 
 
 	// propose functions propose a size for 'enclosing area' of the cell.
@@ -91,17 +91,17 @@ protected:
 	// oldOrigin is in new local coordinates.  This point maps to the origin location where the cell was
 	//		last positioned.  This is useful to determine the area to be redrawn, if prior contents may be preserved.
 	//
-	// A) As a child pane moves from (5,5) to (10,10), the oldOrigin will be (-5,-5).
+	//	A) As a child pane moves from (5,5) to (10,10), the oldOrigin will be (-5,-5).
 	//
-	// B) An OS window has its own coodination system.  A move of an OS window is processed as a position of (0,0),
+	//	B) An OS window has its own coodination system.  A move of an OS window is processed as a position of (0,0),
 	//		with an oldOrigin containing the distance moved.
 	//
-	// C) scroll_pane processes scrolling of its child pane as a move, while always representing (0,0) as the top left of the
+	//	C) scroll_pane processes scrolling of its child pane as a move, while always representing (0,0) as the top left of the
 	//		visible area.  The origin of its contents are equal to the negative of the scroll position.  i.e. Scrolling from position
 	//		(0,0) to position (5,5) moves the contents origin from (0,0) to (-5,-5), with an oldOrigin of (5,5).  The origin of
 	//		scroll_pane contents will never be >0.
 	//
-	// D) If a child pane moved from (5,5) to (10,10) but indicates an oldOrigin of (0,0), the child pane
+	//	D) If a child pane moved from (5,5) to (10,10) but indicates an oldOrigin of (0,0), the child pane
 	//		was effectively not moved.  This can happen due to combination of movements of parent panes, leaving
 	//		the child pane in the same location in a grandparent pane, as the child pane position refers only the the coordinate
 	//		system of the immediate parent.  This is still processed as a reshape, in case parent coordinate system changes are relevant.
@@ -116,7 +116,7 @@ protected:
 
 	// accessors
 	static void calculate_range(cell& c) { c.calculate_range(); }
-	static void reshape(cell& c, const bounds& newBounds, const point& oldOrigin = point(0, 0)) { c.reshape(newBounds, oldOrigin);  }
+	static void reshape(cell& c, const bounds& newBounds, const point& oldOrigin = point(0, 0)) { c.reshape(newBounds, oldOrigin); }
 };
 
 
@@ -130,4 +130,3 @@ protected:
 
 
 #endif
-

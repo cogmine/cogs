@@ -23,7 +23,7 @@ namespace crypto {
 //class serial_hash_derived_t
 //{
 //public:
-//	void process_digit(const digit_t& x);	// optional.  Default sets next state digit
+//	void process_digit(const digit_t& x); // optional.  Default sets next state digit
 //	void process_block();
 //	void terminate();
 //};
@@ -55,11 +55,11 @@ public:
 	static constexpr size_t result_contribution_digits = result_contribution_bytes / digit_bytes;
 
 	typedef serial_hash<result_bits, digest_bits, digit_bits, digit_endian, stride_bits, result_contribution_bits> this_t;
-	
+
 protected:
 	size_t m_digitProgress = 0;
 	size_t m_blockProgress = 0;
-	digit_t	m_result[result_digits];
+	digit_t m_result[result_digits];
 	digit_t m_curDigit = 0;
 
 	function<void()> m_processBlockFunc;
@@ -68,12 +68,12 @@ protected:
 
 	template <typename F1, typename F2, typename F3>
 	serial_hash(const this_t& src, F1&& processDigitFunc, F2&& processBlockFunc, F3&& terminateFunc)
-		: m_processBlockFunc(std::forward<F1>(processDigitFunc)),
-		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
-		m_terminateFunc(std::forward<F3>(terminateFunc)),
-		m_digitProgress(src.m_digitProgress),
+		: m_digitProgress(src.m_digitProgress),
 		m_blockProgress(src.m_blockProgress),
-		m_curDigit(src.m_curDigit)
+		m_curDigit(src.m_curDigit),
+		m_processBlockFunc(std::forward<F1>(processDigitFunc)),
+		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
+		m_terminateFunc(std::forward<F3>(terminateFunc))
 	{
 		for (size_t i = 0; i < result_digits; i++)
 			m_result[i] = src.m_result[i];
@@ -90,7 +90,7 @@ protected:
 	}
 
 public:
-	virtual size_t get_block_size() const				{ return stride_bytes; }
+	virtual size_t get_block_size() const { return stride_bytes; }
 
 	template <typename F1, typename F2, typename F3>
 	serial_hash(F1&& processDigitFunc, F2&& processBlockFunc, F3&& terminateFunc)

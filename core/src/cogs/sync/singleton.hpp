@@ -66,8 +66,8 @@ protected:
 	//	{
 	//		b = false;
 	//		if (oldValue.get_desc() != nullptr)
-	//			result = oldValue;	// won't be marked, if desc was not nullptr
-	//		else if (oldValue.get_mark() == 0)	// not set up yet
+	//			result = oldValue; // won't be marked, if desc was not nullptr
+	//		else if (oldValue.get_mark() == 0) // not set up yet
 	//			b = true;
 	//	}
 	//
@@ -197,7 +197,7 @@ public:
 	static rcref<T> get(bool& isNew) { return (singleton_base<T>::template get<singleton_posthumous_behavior::create_new_per_caller, singleton_cleanup_behavior::must_call_shutdown>(isNew)).dereference(); }
 
 	static rcptr<T> release() { return singleton_base<T>::release(); }
-	
+
 	static void shutdown() { singleton_base<T>::template shutdown<singleton_posthumous_behavior::create_new_per_caller>(); }
 };
 

@@ -22,7 +22,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -118,7 +118,7 @@ public:
 		return (m_contents[0] < pt.m_contents[0]);
 	}
 
-	bool operator>=(const point& src)  const { return !operator<(src); }
+	bool operator>=(const point& src) const { return !operator<(src); }
 
 	bool operator>(const point& src) const { return (src < *this); }
 
@@ -185,7 +185,7 @@ public:
 	// point * proportion = point
 	point operator*(const proportion& p) const { point result(m_contents[0] * p[dimension::horizontal], m_contents[1] * p[dimension::vertical]); return result; }
 	point& operator*=(const proportion& p) { m_contents[0] *= p[dimension::horizontal]; m_contents[1] *= p[dimension::vertical]; return *this; }
-	
+
 	// point * double[2] = point
 	point operator*(const double(&d)[2]) const { point result(m_contents[0] * d[0], m_contents[1] * d[1]); return result; }
 	point& operator*=(const double(&d)[2]) { m_contents[0] *= d[0]; m_contents[1] *= d[1]; return *this; }
@@ -226,11 +226,11 @@ public:
 	point divide_whole(const std::array<double, 2>& d) const { point result(m_contents[0] / d[0], m_contents[1] / d[1]); return result; }
 	void assign_divide_whole(const std::array<double, 2>& d) { cogs::assign_divide_whole(m_contents[0], d[0]); cogs::assign_divide_whole(m_contents[1], d[1]); }
 
-	// point | point = point		(leftmost x topmost)
+	// point | point = point (leftmost x topmost)
 	// point lesser point = point
 
-	// point & point = point		(rightmost x bottommost)
-	// point greater point = point	
+	// point & point = point (rightmost x bottommost)
+	// point greater point = point
 
 	// to_string
 	template <typename char_t>

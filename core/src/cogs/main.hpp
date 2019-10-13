@@ -24,7 +24,7 @@ namespace cogs {
 class init_token
 {
 private:
-	inline static placement<ptr<std::mutex> > s_mutex;	// zero-initialized, allocation leaked intentionally
+	inline static placement<ptr<std::mutex> > s_mutex; // zero-initialized, allocation leaked intentionally
 
 	struct count_and_result_t
 	{

@@ -21,7 +21,7 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
@@ -202,10 +202,9 @@ public:
 	margin(const point& tl, const size& br);
 
 	margin(double t, double l, double b, double r)
-		:	m_topLeftMargin(l, t),
-			m_bottomRightMargin(r, b)
+		: m_topLeftMargin(l, t),
+		m_bottomRightMargin(r, b)
 	{ }
-
 
 	margin& operator=(const margin& src)
 	{
@@ -228,7 +227,6 @@ public:
 		m_topLeftMargin = tl;
 		m_bottomRightMargin = br;
 	}
-
 
 	void set(const point& tl, const size& br);
 
@@ -255,16 +253,16 @@ public:
 	{ m_bottomRightMargin = br; }
 
 	// set_top
-	void set_top(double t)		{ m_topLeftMargin.set_height(t); }
+	void set_top(double t) { m_topLeftMargin.set_height(t); }
 
 	// set_left
-	void set_left(double l)		{ m_topLeftMargin.set_width(l); }
+	void set_left(double l) { m_topLeftMargin.set_width(l); }
 
 	// set_bottom
-	void set_bottom(double b)	{ m_bottomRightMargin.set_height(b); }
+	void set_bottom(double b) { m_bottomRightMargin.set_height(b); }
 
 	// set_right
-	void set_right(double r)		{ m_bottomRightMargin.set_width(r); }
+	void set_right(double r) { m_bottomRightMargin.set_width(r); }
 
 	// set linear margins
 	void set_width(const linear::margin& m)

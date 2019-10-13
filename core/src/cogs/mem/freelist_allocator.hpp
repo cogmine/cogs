@@ -157,7 +157,7 @@ public:
 
 	static constexpr bool is_static = true;
 
-	freelist_allocator()	{ }
+	freelist_allocator() { }
 
 	freelist_allocator(volatile allocator_type& al)
 		: m_allocator(al)

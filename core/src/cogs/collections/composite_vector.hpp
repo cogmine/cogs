@@ -32,8 +32,8 @@ template <typename T>
 class composite_string_t;
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 template <typename T>
@@ -41,7 +41,7 @@ class composite_vector_content_t
 {
 private:
 	typedef T type;
-	typedef composite_vector_content_t<type>	this_t;
+	typedef composite_vector_content_t<type> this_t;
 
 	template <typename>
 	friend class composite_vector;
@@ -51,8 +51,8 @@ private:
 	template <typename>
 	friend class composite_string_t;
 
-	vector<vector<type> >	m_vectorVector;
-	size_t					m_length;
+	vector<vector<type> > m_vectorVector;
+	size_t m_length;
 
 	composite_vector_content_t(const vector<vector<type> >& src, size_t n)
 		: m_vectorVector(src),
@@ -107,7 +107,7 @@ public:
 			return (m_innerIndex == cmp.m_innerIndex) && (m_outerIndex == cmp.m_outerIndex);
 		}
 
-		bool operator!=(const position_t& cmp) const	{ return !operator==(cmp); }
+		bool operator!=(const position_t& cmp) const { return !operator==(cmp); }
 
 		bool operator<(const position_t& cmp) const
 		{
@@ -119,14 +119,14 @@ public:
 			return ((m_outerIndex > cmp.m_outerIndex) || ((m_outerIndex == cmp.m_outerIndex) && (m_innerIndex > cmp.m_innerIndex)));
 		}
 
-		bool operator<=(const position_t& cmp) const	{ return !operator>(cmp); }
-		bool operator>=(const position_t& cmp) const	{ return !operator<(cmp); }
+		bool operator<=(const position_t& cmp) const { return !operator>(cmp); }
+		bool operator>=(const position_t& cmp) const { return !operator<(cmp); }
 
 		size_t get_outer_index() const { return m_outerIndex; }
 		size_t get_inner_index() const { return m_innerIndex; }
 	};
 
-	size_t get_length() const	{ return m_length; }
+	size_t get_length() const { return m_length; }
 
 
 	composite_vector_content_t(this_t&& src)
@@ -504,7 +504,7 @@ public:
 			size_t subVectorCount = m_vectorVector.get_length();
 			if (outerIndex >= subVectorCount)
 				return;
-			vector<type>* arrayArray = m_vectorVector.get_non_const_ptr();	// copy on write
+			vector<type>* arrayArray = m_vectorVector.get_non_const_ptr(); // copy on write
 			if (pos.m_innerIndex > 0)
 			{
 				vector<type>& subArray = arrayArray[outerIndex];
@@ -649,7 +649,7 @@ public:
 	{
 		size_t newVectorLength = m_vectorVector.get_length();
 		size_t resultVectorLength = dst.m_vectorVector.get_length();
-		if (resultVectorLength <= newVectorLength)	// slight optimization to count the shorter side
+		if (resultVectorLength <= newVectorLength) // slight optimization to count the shorter side
 		{
 			size_t resultLength = 0;
 			for (size_t i = 0; i < resultVectorLength; i++)
@@ -802,7 +802,7 @@ public:
 			dst.m_vectorVector = m_vectorVector.split_off_before(pos.m_outerIndex);
 		else
 		{
-			dst.m_vectorVector = m_vectorVector;	// Copy whole vector.  A 1-level deep copy will need to take place when modified.
+			dst.m_vectorVector = m_vectorVector; // Copy whole vector.  A 1-level deep copy will need to take place when modified.
 			dst.m_vectorVector.truncate_to(pos.m_outerIndex + 1);
 			dst.m_vectorVector.get_ptr()[pos.m_outerIndex].truncate_to(pos.m_innerIndex);
 			m_vectorVector.advance(pos.m_outerIndex);
@@ -833,7 +833,7 @@ public:
 			dst.m_vectorVector = m_vectorVector.split_off_after(pos.m_outerIndex);
 		else
 		{
-			dst.m_vectorVector = m_vectorVector;	// Copy whole vector.  A 1-level deep copy will need to take place when modified.
+			dst.m_vectorVector = m_vectorVector; // Copy whole vector.  A 1-level deep copy will need to take place when modified.
 			m_vectorVector.truncate_to(pos.m_outerIndex + 1);
 			m_vectorVector.get_ptr()[pos.m_outerIndex].truncate_to(pos.m_innerIndex);
 			dst.m_vectorVector.advance(pos.m_outerIndex);
@@ -1009,7 +1009,7 @@ public:
 		}
 	}
 
-	void advance_to(const position_t& pos)	{ set_to_subrange(pos); }
+	void advance_to(const position_t& pos) { set_to_subrange(pos); }
 
 	void truncate(size_t n)
 	{
@@ -1683,12 +1683,12 @@ public:
 
 			size_t cmpLength = cmp.get_length();
 			if (!cmpLength)
-				return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+				return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
 			if (lengthAdjusted > n)
 				lengthAdjusted = n;
-			if (cmpLength > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLength > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return const_max_int_v<size_t>;
 
 			position_t pos = v.calculate_position(i);
@@ -1702,10 +1702,10 @@ public:
 			size_t i = v.calculate_index(pos);
 			size_t cmpLength = cmp.get_length();
 			if (!cmpLength)
-				return v.get_end_position();	// validate cmpLength and cmdLengthAdjusted
+				return v.get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
-			if (cmpLength > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLength > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return v.get_end_position();
 
 			position_t newPos = pos;
@@ -1722,12 +1722,12 @@ public:
 
 			size_t cmpLengthAdjusted = cmp.validate_length_from(cmpIndex, cmpLength);
 			if (!cmpLengthAdjusted)
-				return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+				return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
 			if (lengthAdjusted > n)
 				lengthAdjusted = n;
-			if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return const_max_int_v<size_t>;
 
 			position_t pos = v.calculate_position(i);
@@ -1741,12 +1741,12 @@ public:
 			size_t i = v.calculate_index(pos);
 			size_t cmpLengthAdjusted = cmp.validate_length_from(cmpIndex, cmpLength);
 			if (!cmpLengthAdjusted)
-				return v.get_end_position();	// validate cmpLength and cmdLengthAdjusted
+				return v.get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
 			if (lengthAdjusted > n)
 				lengthAdjusted = n;
-			if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return v.get_end_position();
 
 			position_t newPos = pos;
@@ -1763,12 +1763,12 @@ public:
 
 			size_t cmpLengthAdjusted = cmp.validate_length_from(cmpPos, cmpLength);
 			if (!cmpLengthAdjusted)
-				return const_max_int_v<size_t>;	// validate cmpLength and cmdLengthAdjusted
+				return const_max_int_v<size_t>; // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
 			if (lengthAdjusted > n)
 				lengthAdjusted = n;
-			if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return const_max_int_v<size_t>;
 
 			position_t pos = v.calculate_position(i);
@@ -1781,12 +1781,12 @@ public:
 			size_t i = v.calculate_index(pos);
 			size_t cmpLengthAdjusted = cmp.validate_length_from(cmpPos, cmpLength);
 			if (!cmpLengthAdjusted)
-				return v.get_end_position();	// validate cmpLength and cmdLengthAdjusted
+				return v.get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 			size_t lengthAdjusted = v.m_length - i;
 			if (lengthAdjusted > n)
 				lengthAdjusted = n;
-			if (cmpLengthAdjusted > lengthAdjusted)	// Ensure m_length is larger enough for cmp, and >0
+			if (cmpLengthAdjusted > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 				return v.get_end_position();
 
 			position_t newPos = pos;
@@ -1982,7 +1982,7 @@ public:
 		{
 			size_t subVectorCount = m_vectorVector.get_length();
 			size_t newSubVectorCount = subVectorCount + 2;
-			if (m_vectorVector.get_capacity() >= newSubVectorCount)	// It will fit in the existing buffer
+			if (m_vectorVector.get_capacity() >= newSubVectorCount) // It will fit in the existing buffer
 			{
 				m_vectorVector.resize(newSubVectorCount);
 				vector<type>* arrayArrayPtr = m_vectorVector.get_ptr();
@@ -1994,7 +1994,7 @@ public:
 				arrayArrayPtr[curSubVector + 1] = src;
 				arrayToSplit.subrange(0, pos.m_innerIndex);
 			}
-			else	// Need a new buffer
+			else // Need a new buffer
 			{
 				const vector<type>* oldVectorVectorPtr = m_vectorVector.get_const_ptr();
 				vector<vector<type> > newOuterVector(newSubVectorCount);
@@ -2026,7 +2026,7 @@ public:
 			size_t subVectorCount = m_vectorVector.get_length();
 			size_t gap = srcSubVectorCount + 1;
 			size_t newSubVectorCount = subVectorCount + gap;
-			if (m_vectorVector.get_capacity() >= newSubVectorCount)	// It will fit in the existing buffer
+			if (m_vectorVector.get_capacity() >= newSubVectorCount) // It will fit in the existing buffer
 			{
 				m_vectorVector.resize(newSubVectorCount);
 				vector<type>* arrayArrayPtr = m_vectorVector.get_ptr();
@@ -2040,7 +2040,7 @@ public:
 				COGS_ASSERT(--curDstSubVector == pos.m_outerIndex);
 				arrayToSplit.subrange(0, pos.m_innerIndex);
 			}
-			else	// Need a new buffer
+			else // Need a new buffer
 			{
 				const vector<type>* oldVectorVectorPtr = m_vectorVector.get_const_ptr();
 				vector<vector<type> > newOuterVector(newSubVectorCount);
@@ -2206,13 +2206,13 @@ public:
 			size_t newSubVectorCount = m_vectorVector.get_length() + delta;
 			vector<vector<type> > origVectorVector;
 			const vector<type>* srcVector = m_vectorVector.get_const_ptr();
-			if (m_vectorVector.get_capacity() < newSubVectorCount)	// Need a new buffer (growing, or was shared)
+			if (m_vectorVector.get_capacity() < newSubVectorCount) // Need a new buffer (growing, or was shared)
 			{
-				origVectorVector = m_vectorVector;	// Keep it in scope so srcVector remains valid
+				origVectorVector = m_vectorVector; // Keep it in scope so srcVector remains valid
 				size_t tmpSubVectorCount = pos.outerIndex;
 				if (!!pos.m_innerIndex)
 					++tmpSubVectorCount;
-				m_vectorVector.truncate_to(tmpSubVectorCount);	// Copies first portion for us when we resize
+				m_vectorVector.truncate_to(tmpSubVectorCount); // Copies first portion for us when we resize
 				m_vectorVector.resize(newSubVectorCount);
 			}
 			vector<type>* dstVector = m_vectorVector.get_ptr();
@@ -2237,7 +2237,7 @@ public:
 				if (delta < 0)
 				{
 					curSubVectorIndex = replaceEndPos.m_outerIndex;
-					while (curSubVectorIndex < subVectorCount)	// If shrinking, we need to copy left to right
+					while (curSubVectorIndex < subVectorCount) // If shrinking, we need to copy left to right
 					{
 						dstVector[curSubVectorIndex + delta] = srcVector[curSubVectorIndex];
 						++curSubVectorIndex;
@@ -2248,7 +2248,7 @@ public:
 				{
 					m_vectorVector.resize(newSubVectorCount);
 					curSubVectorIndex = subVectorCount;
-					while (--curSubVectorIndex >= replaceEndPos.m_outerIndex)	// If growing, we need to copy right to left
+					while (--curSubVectorIndex >= replaceEndPos.m_outerIndex) // If growing, we need to copy right to left
 						dstVector[curSubVectorIndex + delta] = srcVector[curSubVectorIndex];
 				}
 
@@ -2326,13 +2326,13 @@ private:
 			size_t newSubVectorCount = m_vectorVector.get_length() + delta;
 			vector<vector<type> > origVectorVector;
 			const vector<type>* oldVector = m_vectorVector.get_const_ptr();
-			if (m_vectorVector.get_capacity() < newSubVectorCount)	// Need a new buffer (growing, or was shared)
+			if (m_vectorVector.get_capacity() < newSubVectorCount) // Need a new buffer (growing, or was shared)
 			{
-				origVectorVector = m_vectorVector;	// Keep it in scope so oldVector remains valid
+				origVectorVector = m_vectorVector; // Keep it in scope so oldVector remains valid
 				size_t tmpSubVectorCount = pos.outerIndex;
 				if (!!pos.m_innerIndex)
 					++tmpSubVectorCount;
-				m_vectorVector.truncate_to(tmpSubVectorCount);	// Copies first portion for us when we resize
+				m_vectorVector.truncate_to(tmpSubVectorCount); // Copies first portion for us when we resize
 				m_vectorVector.resize(newSubVectorCount);
 			}
 			vector<type>* dstVector = m_vectorVector.get_ptr();
@@ -2361,7 +2361,7 @@ private:
 				if (delta < 0)
 				{
 					curSubVectorIndex = replaceEndPos.m_outerIndex;
-					while (curSubVectorIndex < subVectorCount)	// If shrinking, we need to copy left to right
+					while (curSubVectorIndex < subVectorCount) // If shrinking, we need to copy left to right
 					{
 						dstVector[curSubVectorIndex + delta] = oldVector[curSubVectorIndex];
 						++curSubVectorIndex;
@@ -2372,7 +2372,7 @@ private:
 				{
 					m_vectorVector.resize(newSubVectorCount);
 					curSubVectorIndex = subVectorCount;
-					while (--curSubVectorIndex >= replaceEndPos.m_outerIndex)	// If growing, we need to copy right to left
+					while (--curSubVectorIndex >= replaceEndPos.m_outerIndex) // If growing, we need to copy right to left
 						dstVector[curSubVectorIndex + delta] = oldVector[curSubVectorIndex];
 				}
 
@@ -2400,10 +2400,10 @@ private:
 	static_assert(!std::is_const_v<T>);
 	static_assert(!std::is_volatile_v<T>);
 	static_assert(!std::is_void_v<T>);
-	
+
 public:
 	typedef T type;
-	typedef composite_vector<type>	this_t;
+	typedef composite_vector<type> this_t;
 
 	typedef vector<type> inner_t;
 
@@ -2416,38 +2416,38 @@ public:
 
 		typename composite_vector_content_t<type>::position_t m_pos;
 
-		position_t(const typename composite_vector_content_t<type>::position_t& pos) : m_pos(pos)		{ }
+		position_t(const typename composite_vector_content_t<type>::position_t& pos) : m_pos(pos) { }
 
 		size_t& get_outer_index() { return m_pos.get_outer_index(); }
 		size_t& get_inner_index() { return m_pos.get_inner_index(); }
 
 	public:
-		position_t()															{ }
-		position_t(const position_t& pos) : m_pos(pos.m_pos)					{ }
-		position_t(size_t subStringIndex, size_t i) : m_pos(subStringIndex, i)	{ }
+		position_t() { }
+		position_t(const position_t& pos) : m_pos(pos.m_pos) { }
+		position_t(size_t subStringIndex, size_t i) : m_pos(subStringIndex, i) { }
 
-		position_t& operator=(const position_t& pos)	{ m_pos = pos.m_pos; return *this; }
+		position_t& operator=(const position_t& pos) { m_pos = pos.m_pos; return *this; }
 
-		void set(size_t subStringIndex, size_t i)		{ m_pos.set(subStringIndex, i); }
-		bool operator==(const position_t& cmp) const	{ return (m_pos == cmp.m_pos); }
-		bool operator!=(const position_t& cmp) const	{ return !operator==(cmp); }
-		bool operator<(const position_t& cmp) const		{ return (m_pos < cmp.m_pos); }
-		bool operator>(const position_t& cmp) const		{ return (m_pos > cmp.m_pos); }
-		bool operator<=(const position_t& cmp) const	{ return !operator>(cmp); }
-		bool operator>=(const position_t& cmp) const	{ return !operator<(cmp); }
+		void set(size_t subStringIndex, size_t i) { m_pos.set(subStringIndex, i); }
+		bool operator==(const position_t& cmp) const { return (m_pos == cmp.m_pos); }
+		bool operator!=(const position_t& cmp) const { return !operator==(cmp); }
+		bool operator<(const position_t& cmp) const { return (m_pos < cmp.m_pos); }
+		bool operator>(const position_t& cmp) const { return (m_pos > cmp.m_pos); }
+		bool operator<=(const position_t& cmp) const { return !operator>(cmp); }
+		bool operator>=(const position_t& cmp) const { return !operator<(cmp); }
 
 		size_t get_outer_index() const { return m_pos.get_outer_index(); }
 		size_t get_inner_index() const { return m_pos.get_inner_index(); }
 	};
 
 protected:
-	typedef composite_vector_content_t<type>	content_t;
+	typedef composite_vector_content_t<type> content_t;
 
 	typedef transactable<content_t> transactable_t;
-	transactable_t	m_contents;
+	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	friend class io::composite_buffer;
 
@@ -2465,33 +2465,33 @@ public:
 	class iterator
 	{
 	protected:
-		this_t*		m_array;
-		position_t	m_position;
-	
+		this_t* m_array;
+		position_t m_position;
+
 		iterator(this_t* v, const position_t& pos)
-			:	m_array(v),
-				m_position(pos)
+			: m_array(v),
+			m_position(pos)
 		{ }
-	
+
 		iterator(this_t* v, size_t outerIndex, size_t i)
-			:	m_array(v),
-				m_position(outerIndex, i)
+			: m_array(v),
+			m_position(outerIndex, i)
 		{ }
-	
+
 		template <typename>
 		friend class composite_vector;
-	
+
 	public:
 		iterator()
 		{ }
-	
+
 		iterator(const iterator& i)
-			:	m_array(i.m_array),
-				m_position(i.m_position)
+			: m_array(i.m_array),
+			m_position(i.m_position)
 		{ }
-	
-		void release()	{ m_array = 0; }
-	
+
+		void release() { m_array = 0; }
+
 		iterator& operator++()
 		{
 			if (m_array)
@@ -2510,14 +2510,13 @@ public:
 						{
 							m_position.get_outer_index()++;
 							m_position.get_inner_index() = 0;
-						}							
+						}
 					}
 				}
 			}
-	
 			return *this;
 		}
-	
+
 		iterator& operator--()
 		{
 			if (m_array)
@@ -2550,36 +2549,35 @@ public:
 					}
 				}
 			}
-	
 			return *this;
 		}
-	
-		iterator operator++(int)					{ iterator i(*this); ++*this; return i; }
-		iterator operator--(int)					{ iterator i(*this); --*this; return i; }
-	
-		bool operator!() const						{ return !m_array || (m_position >= m_array->get_end_position()); }
-	
-		bool operator==(const iterator& i) const	{ return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator!=(const iterator& i) const	{ return !operator==(i); }
-		iterator& operator=(const iterator& i)		{ m_array = i.m_array; m_position = i.m_position; return *this; }
-	
-		type* get() const							{ return m_array->get_inner(m_position.get_outer_index()).get_ptr() + m_position.get_inner_index(); }
-		type& operator*() const						{ return *get(); }
-		type* operator->() const					{ return get(); }
-	
+
+		iterator operator++(int) { iterator i(*this); ++* this; return i; }
+		iterator operator--(int) { iterator i(*this); --* this; return i; }
+
+		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
+
+		bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
+
+		type* get() const { return m_array->get_inner(m_position.get_outer_index()).get_ptr() + m_position.get_inner_index(); }
+		type& operator*() const { return *get(); }
+		type* operator->() const { return get(); }
+
 		position_t get_position() const
 		{
 			if (!m_array)
 				return position_t(const_max_int_v<size_t>, const_max_int_v<size_t>);
 			return m_position;
 		}
-	
-		iterator next() const	{ iterator result(*this); ++result; return result; }
-	
-		iterator prev() const	{ iterator result(*this); --result; return result; }
+
+		iterator next() const { iterator result(*this); ++result; return result; }
+
+		iterator prev() const { iterator result(*this); --result; return result; }
 	};
-	
-	iterator get_first_iterator()	{ size_t sz = get_length(); return iterator(!!sz ? this : 0, 0, 0); }
+
+	iterator get_first_iterator() { size_t sz = get_length(); return iterator(!!sz ? this : 0, 0, 0); }
 	iterator get_last_iterator()
 	{
 		size_t subVectorCount = get_inner_count();
@@ -2596,17 +2594,17 @@ public:
 		template <typename>
 		friend class composite_vector;
 
-		const this_t*	m_array;
-		position_t		m_position;
+		const this_t* m_array;
+		position_t m_position;
 
 		const_iterator(const this_t* v, const position_t& pos)
-			:	m_array(v),
-				m_position(pos)
+			: m_array(v),
+			m_position(pos)
 		{ }
 
 		const_iterator(const this_t* v, size_t outerIndex, size_t i)
-			:	m_array(v),
-				m_position(outerIndex, i)
+			: m_array(v),
+			m_position(outerIndex, i)
 		{ }
 
 	public:
@@ -2614,16 +2612,16 @@ public:
 		{ }
 
 		const_iterator(const const_iterator& i)
-			:	m_array(i.m_array),
-				m_position(i.m_position)
+			: m_array(i.m_array),
+			m_position(i.m_position)
 		{ }
 
 		const_iterator(const iterator& i)
-			:	m_array(i.m_array),
-				m_position(i.m_position)
+			: m_array(i.m_array),
+			m_position(i.m_position)
 		{ }
 
-		void release()	{ m_array = 0; }
+		void release() { m_array = 0; }
 
 		const_iterator& operator++()
 		{
@@ -2687,21 +2685,21 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int)						{ const_iterator i(*this); ++*this; return i; }
-		const_iterator operator--(int)						{ const_iterator i(*this); --*this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
 
-		bool operator!() const								{ return !m_array || (m_position >= m_array->get_end_position()); }
+		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
-		bool operator==(const const_iterator& i) const		{ return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator==(const iterator& i) const			{ return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator!=(const const_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const iterator& i) const			{ return !operator==(i); }
-		const_iterator& operator=(const const_iterator& i)	{ m_array = i.m_array; m_position = i.m_position; return *this; }
-		const_iterator& operator=(const iterator& i)		{ m_array = i.m_array; m_position = i.m_position; return *this; }
+		bool operator==(const const_iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
+		bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
+		bool operator!=(const const_iterator& i) const { return !operator==(i); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		const_iterator& operator=(const const_iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
+		const_iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
 
-		const type* get() const								{ return m_array->get_inner(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
-		const type& operator*() const						{ return *get(); }
-		const type* operator->() const						{ return get(); }
+		const type* get() const { return m_array->get_inner(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
+		const type& operator*() const { return *get(); }
+		const type* operator->() const { return get(); }
 
 		position_t get_position() const
 		{
@@ -2710,12 +2708,12 @@ public:
 			return m_position;
 		}
 
-		const_iterator next() const	{ const_iterator result(*this); ++result; return result; }
-		const_iterator prev() const	{ const_iterator result(*this); --result; return result; }
+		const_iterator next() const { const_iterator result(*this); ++result; return result; }
+		const_iterator prev() const { const_iterator result(*this); --result; return result; }
 
 	};
 
-	const_iterator get_first_const_iterator() const	{ size_t sz = get_length(); return const_iterator((!!sz ? this : 0), 0, 0); }
+	const_iterator get_first_const_iterator() const { size_t sz = get_length(); return const_iterator((!!sz ? this : 0), 0, 0); }
 
 	const_iterator get_last_const_iterator() const
 	{
@@ -2726,19 +2724,19 @@ public:
 		return const_iterator(this, lastSubVectorIndex, get_inner(lastSubVectorIndex).get_length() - 1);
 	}
 
-	position_t get_first_position() const			{ return position_t(0, 0); }
-	position_t get_first_position() const volatile	{ return position_t(0, 0); }
-	position_t get_last_position() const			{ return m_contents->get_last_position(); }
-	position_t get_last_position() const volatile	{ return m_contents.begin_read()->get_last_position(); }
-	position_t get_end_position() const				{ return m_contents->get_end_position(); }
-	position_t get_end_position() const volatile	{ return m_contents.begin_read()->get_end_position(); }
+	position_t get_first_position() const { return position_t(0, 0); }
+	position_t get_first_position() const volatile { return position_t(0, 0); }
+	position_t get_last_position() const { return m_contents->get_last_position(); }
+	position_t get_last_position() const volatile { return m_contents.begin_read()->get_last_position(); }
+	position_t get_end_position() const { return m_contents->get_end_position(); }
+	position_t get_end_position() const volatile { return m_contents.begin_read()->get_end_position(); }
 
-	position_t get_next_position(const position_t& pos) const			{ return m_contents->get_next_position(pos.m_pos); }
-	position_t get_next_position(const position_t& pos) const volatile	{ return m_contents.begin_read()->get_next_position(pos.m_pos); }
+	position_t get_next_position(const position_t& pos) const { return m_contents->get_next_position(pos.m_pos); }
+	position_t get_next_position(const position_t& pos) const volatile { return m_contents.begin_read()->get_next_position(pos.m_pos); }
 
 	// Caller error to call with (pos == 0, 0)
-	position_t get_prev_position(const position_t& pos) const			{ return m_contents->get_prev_position(pos.m_pos); }
-	position_t get_prev_position(const position_t& pos) const volatile	{ return m_contents.begin_read()->get_prev_position(pos.m_pos); }
+	position_t get_prev_position(const position_t& pos) const { return m_contents->get_prev_position(pos.m_pos); }
+	position_t get_prev_position(const position_t& pos) const volatile { return m_contents.begin_read()->get_prev_position(pos.m_pos); }
 
 	// Caller error to call with i >= length
 	position_t calculate_position(size_t i, bool countFromFront = true) const
@@ -2839,72 +2837,72 @@ public:
 		: m_contents(typename transactable_t::construct_embedded_t(), src, srcPos, srcLength)
 	{ }
 
-	vector<type> composite() const					{ return m_contents->composite(); }
-	vector<type> composite() const volatile			{ return m_contents.begin_read()->composite(); }
+	vector<type> composite() const { return m_contents->composite(); }
+	vector<type> composite() const volatile { return m_contents.begin_read()->composite(); }
 
-	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const			{ return m_contents->composite(i, n); }
-	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ return m_contents.begin_read()->composite(i, n); }
+	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const { return m_contents->composite(i, n); }
+	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->composite(i, n); }
 
-	vector<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const			{ return m_contents->composite(pos.m_pos, n); }
-	vector<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile	{ return m_contents.begin_read()->composite(pos.m_pos, n); }
-
-	template <typename type2>
-	vector<type2> composite_as() const					{ return m_contents->template composite_as<type2>(); }
+	vector<type> composite(const position_t & pos, size_t n = const_max_int_v<size_t>) const { return m_contents->composite(pos.m_pos, n); }
+	vector<type> composite(const position_t & pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->composite(pos.m_pos, n); }
 
 	template <typename type2>
-	vector<type2> composite_as() const volatile			{ return m_contents.begin_read()->template composite_as<type2>(); }
+	vector<type2> composite_as() const { return m_contents->template composite_as<type2>(); }
 
 	template <typename type2>
-	vector<type2> composite_as(size_t i, size_t n = const_max_int_v<size_t>) const			{ return m_contents->template composite_as<type2>(i, n); }
+	vector<type2> composite_as() const volatile { return m_contents.begin_read()->template composite_as<type2>(); }
 
 	template <typename type2>
-	vector<type2> composite_as(size_t i, size_t n = const_max_int_v<size_t>) const volatile	{ return m_contents.begin_read()->template composite_as<type2>(i, n); }
+	vector<type2> composite_as(size_t i, size_t n = const_max_int_v<size_t>) const { return m_contents->template composite_as<type2>(i, n); }
 
 	template <typename type2>
-	vector<type2> composite_as(const position_t& pos, size_t n = const_max_int_v<size_t>) const			{ return m_contents->template composite_as<type2>(pos.m_pos, n); }
+	vector<type2> composite_as(size_t i, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->template composite_as<type2>(i, n); }
 
 	template <typename type2>
-	vector<type2> composite_as(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile	{ return m_contents.begin_read()->template composite_as<type2>(pos.m_pos, n); }
+	vector<type2> composite_as(const position_t & pos, size_t n = const_max_int_v<size_t>) const { return m_contents->template composite_as<type2>(pos.m_pos, n); }
 
-	size_t get_length() const					{ return m_contents->m_length; }
-	size_t get_length() const volatile			{ return m_contents.begin_read()->m_length; }
+	template <typename type2>
+	vector<type2> composite_as(const position_t & pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->template composite_as<type2>(pos.m_pos, n); }
 
-	bool is_empty() const						{ return get_length() == 0; }
-	bool is_empty() const volatile				{ return get_length() == 0; }
+	size_t get_length() const { return m_contents->m_length; }
+	size_t get_length() const volatile { return m_contents.begin_read()->m_length; }
 
-	bool operator!() const						{ return is_empty(); }
-	bool operator!() const volatile				{ return is_empty(); }
+	bool is_empty() const { return get_length() == 0; }
+	bool is_empty() const volatile { return get_length() == 0; }
 
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(const type2* cmp, size_t cmpLength) const						{ return content_t::template compare_helper<comparator_t>::equals(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(size_t i, const type2* cmp, size_t cmpLength) const				{ return content_t::template compare_helper<comparator_t>::equals(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(size_t i, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::equals(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::equals(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(position_t& pos, const type2* cmp, size_t cmpLength) const				{ return content_t::template compare_helper<comparator_t>::equals(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
-	
-	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::equals(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(size_t i, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::equals(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(const type2* cmp, size_t cmpLength) const volatile				{ return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::equals(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(position_t& pos, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::equals(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::equals(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(position_t& pos, const type2* cmp, size_t cmpLength) const volatile		{ return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool equals(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool equals(size_t i, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	bool equals(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	bool equals(position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	bool equals(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::equals(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -3223,73 +3221,73 @@ public:
 
 
 	template <typename type2>
-	bool operator==(const vector<type2>& cmp) const						{ return m_contents->template equals<type2, default_comparator >(cmp); }
+	bool operator==(const vector<type2>& cmp) const { return m_contents->template equals<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator==(const composite_vector<type2>& cmp) const				{ return m_contents->template equals<type2, default_comparator >(cmp); }
+	bool operator==(const composite_vector<type2>& cmp) const { return m_contents->template equals<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator==(const vector<type2>& cmp) const volatile				{ return m_contents.begin_read()->template equals<type2, default_comparator >(cmp); }
+	bool operator==(const vector<type2>& cmp) const volatile { return m_contents.begin_read()->template equals<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator==(const composite_vector<type2>& cmp) const volatile	{ return m_contents.begin_read()->template equals<type2, default_comparator >(cmp); }
+	bool operator==(const composite_vector<type2>& cmp) const volatile { return m_contents.begin_read()->template equals<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator==(const volatile vector<type2>& cmp) const				{ vector<type2> tmp = cmp; return m_contents->template equals<type2, default_comparator >(tmp); }
+	bool operator==(const volatile vector<type2>& cmp) const { vector<type2> tmp = cmp; return m_contents->template equals<type2, default_comparator >(tmp); }
 
 	template <typename type2>
-	bool operator==(const volatile composite_vector<type2>& cmp) const		{ vector<type2> tmp = cmp; return m_contents->template equals<type2, default_comparator >(tmp); }
+	bool operator==(const volatile composite_vector<type2>& cmp) const { vector<type2> tmp = cmp; return m_contents->template equals<type2, default_comparator >(tmp); }
 
 
 	template <typename type2>
-	bool operator!=(const vector<type2>& cmp) const						{ return !operator==(cmp); }
+	bool operator!=(const vector<type2>& cmp) const { return !operator==(cmp); }
 
 	template <typename type2>
-	bool operator!=(const composite_vector<type2>& cmp) const				{ return !operator==(cmp); }
+	bool operator!=(const composite_vector<type2>& cmp) const { return !operator==(cmp); }
 
 	template <typename type2>
-	bool operator!=(const vector<type2>& cmp) const volatile				{ return !operator==(cmp); }
+	bool operator!=(const vector<type2>& cmp) const volatile { return !operator==(cmp); }
 
 	template <typename type2>
-	bool operator!=(const composite_vector<type2>& cmp) const volatile	{ return !operator==(cmp); }
+	bool operator!=(const composite_vector<type2>& cmp) const volatile { return !operator==(cmp); }
 
 	template <typename type2>
-	bool operator!=(const volatile vector<type2>& cmp) const				{ return !operator==(cmp); }
+	bool operator!=(const volatile vector<type2>& cmp) const { return !operator==(cmp); }
 
 	template <typename type2>
-	bool operator!=(const volatile composite_vector<type2>& cmp) const		{ return !operator==(cmp); }
+	bool operator!=(const volatile composite_vector<type2>& cmp) const { return !operator==(cmp); }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(const type2* cmp, size_t cmpLength) const						{ return content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(size_t i, const type2* cmp, size_t cmpLength) const				{ return content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(size_t i, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(size_t i, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(position_t& pos, const type2* cmp, size_t cmpLength) const				{ return content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(position_t& pos, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(const type2* cmp, size_t cmpLength) const volatile				{ return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(size_t i, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(position_t& pos, const type2* cmp, size_t cmpLength) const volatile		{ return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	int compare(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	int compare(position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -3601,34 +3599,34 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const type2* cmp, size_t cmpLength) const						{ return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const type2* cmp, size_t cmpLength) const { return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(size_t i, const type2* cmp, size_t cmpLength) const			{ return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, const type2* cmp, size_t cmpLength) const { return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const			{ return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const position_t& pos, const type2* cmp, size_t cmpLength) const			{ return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, const type2* cmp, size_t cmpLength) const { return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return 0 > content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const type2* cmp, size_t cmpLength) const volatile			{ return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const type2* cmp, size_t cmpLength) const volatile { return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, const type2* cmp, size_t cmpLength) const volatile { return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile	{ return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_less_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_less_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return 0 > content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 
@@ -3940,34 +3938,34 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const type2* cmp, size_t cmpLength) const						{ return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const type2* cmp, size_t cmpLength) const { return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(size_t i, const type2* cmp, size_t cmpLength) const			{ return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, const type2* cmp, size_t cmpLength) const { return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const			{ return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const position_t& pos, const type2* cmp, size_t cmpLength) const			{ return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, const type2* cmp, size_t cmpLength) const { return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return 0 < content_t::template compare_helper<comparator_t>::compare(*m_contents, pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const type2* cmp, size_t cmpLength) const volatile			{ return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const type2* cmp, size_t cmpLength) const volatile { return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, const type2* cmp, size_t cmpLength) const volatile { return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile	{ return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool is_greater_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool is_greater_than(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return 0 < content_t::template compare_helper<comparator_t>::compare(*(m_contents.begin_read()), pos.m_pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 
@@ -4278,93 +4276,92 @@ public:
 	}
 
 
-	
 
 	template <typename type2>
-	bool operator<(const vector<type2>& cmp) const					{ return is_less_than<type2, default_comparator >(cmp); }
+	bool operator<(const vector<type2>& cmp) const { return is_less_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<(const vector<type2>& cmp) const volatile			{ return is_less_than<type2, default_comparator >(cmp); }
+	bool operator<(const vector<type2>& cmp) const volatile { return is_less_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<(const volatile vector<type2>& cmp) const			{ return is_less_than<type2, default_comparator >(cmp); }
+	bool operator<(const volatile vector<type2>& cmp) const { return is_less_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<(const composite_vector<type2>& cmp) const			{ return is_less_than<type2, default_comparator >(cmp); }
+	bool operator<(const composite_vector<type2>& cmp) const { return is_less_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<(const composite_vector<type2>& cmp) const volatile	{ return is_less_than<type2, default_comparator >(cmp); }
+	bool operator<(const composite_vector<type2>& cmp) const volatile { return is_less_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<(const volatile composite_vector<type2>& cmp) const	{ return is_less_than<type2, default_comparator >(cmp); }
-
-
-
-	template <typename type2>
-	bool operator>(const vector<type2>& cmp) const					{ return is_greater_than<type2, default_comparator >(cmp); }
-
-	template <typename type2>
-	bool operator>(const vector<type2>& cmp) const volatile			{ return is_greater_than<type2, default_comparator >(cmp); }
-
-	template <typename type2>
-	bool operator>(const volatile vector<type2>& cmp) const			{ return is_greater_than<type2, default_comparator >(cmp); }
-
-	template <typename type2>
-	bool operator>(const composite_vector<type2>& cmp) const			{ return is_greater_than<type2, default_comparator >(cmp); }
-
-	template <typename type2>
-	bool operator>(const composite_vector<type2>& cmp) const volatile	{ return is_greater_than<type2, default_comparator >(cmp); }
-
-	template <typename type2>
-	bool operator>(const volatile composite_vector<type2>& cmp) const	{ return is_greater_than<type2, default_comparator >(cmp); }
+	bool operator<(const volatile composite_vector<type2>& cmp) const { return is_less_than<type2, default_comparator >(cmp); }
 
 
 
 	template <typename type2>
-	bool operator<=(const vector<type2>& cmp) const					{ return !operator>(cmp); }
+	bool operator>(const vector<type2>& cmp) const { return is_greater_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<=(const vector<type2>& cmp) const volatile			{ return !operator>(cmp); }
+	bool operator>(const vector<type2>& cmp) const volatile { return is_greater_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<=(const volatile vector<type2>& cmp) const			{ return !operator>(cmp); }
+	bool operator>(const volatile vector<type2>& cmp) const { return is_greater_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<=(const composite_vector<type2>& cmp) const			{ return !operator>(cmp); }
+	bool operator>(const composite_vector<type2>& cmp) const { return is_greater_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<=(const composite_vector<type2>& cmp) const volatile	{ return !operator>(cmp); }
+	bool operator>(const composite_vector<type2>& cmp) const volatile { return is_greater_than<type2, default_comparator >(cmp); }
 
 	template <typename type2>
-	bool operator<=(const volatile composite_vector<type2>& cmp) const	{ return !operator>(cmp); }
+	bool operator>(const volatile composite_vector<type2>& cmp) const { return is_greater_than<type2, default_comparator >(cmp); }
 
 
 
 	template <typename type2>
-	bool operator>=(const vector<type2>& cmp) const					{ return !operator<(cmp); }
+	bool operator<=(const vector<type2>& cmp) const { return !operator>(cmp); }
 
 	template <typename type2>
-	bool operator>=(const vector<type2>& cmp) const volatile			{ return !operator<(cmp); }
+	bool operator<=(const vector<type2>& cmp) const volatile { return !operator>(cmp); }
 
 	template <typename type2>
-	bool operator>=(const volatile vector<type2>& cmp) const			{ return !operator<(cmp); }
+	bool operator<=(const volatile vector<type2>& cmp) const { return !operator>(cmp); }
 
 	template <typename type2>
-	bool operator>=(const composite_vector<type2>& cmp) const			{ return !operator<(cmp); }
+	bool operator<=(const composite_vector<type2>& cmp) const { return !operator>(cmp); }
 
 	template <typename type2>
-	bool operator>=(const composite_vector<type2>& cmp) const volatile	{ return !operator<(cmp); }
+	bool operator<=(const composite_vector<type2>& cmp) const volatile { return !operator>(cmp); }
 
 	template <typename type2>
-	bool operator>=(const volatile composite_vector<type2>& cmp) const	{ return !operator<(cmp); }
+	bool operator<=(const volatile composite_vector<type2>& cmp) const { return !operator>(cmp); }
+
+
+
+	template <typename type2>
+	bool operator>=(const vector<type2>& cmp) const { return !operator<(cmp); }
+
+	template <typename type2>
+	bool operator>=(const vector<type2>& cmp) const volatile { return !operator<(cmp); }
+
+	template <typename type2>
+	bool operator>=(const volatile vector<type2>& cmp) const { return !operator<(cmp); }
+
+	template <typename type2>
+	bool operator>=(const composite_vector<type2>& cmp) const { return !operator<(cmp); }
+
+	template <typename type2>
+	bool operator>=(const composite_vector<type2>& cmp) const volatile { return !operator<(cmp); }
+
+	template <typename type2>
+	bool operator>=(const volatile composite_vector<type2>& cmp) const { return !operator<(cmp); }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool starts_with(const type2* cmp, size_t cmpLength) const	{ return equals<type2, comparator_t>(0, cmpLength, cmp, cmpLength); }
+	bool starts_with(const type2* cmp, size_t cmpLength) const { return equals<type2, comparator_t>(0, cmpLength, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool starts_with(const type2* cmp, size_t cmpLength) const volatile	{ return equals<type2, comparator_t>(0, cmpLength, cmp, cmpLength); }
+	bool starts_with(const type2* cmp, size_t cmpLength) const volatile { return equals<type2, comparator_t>(0, cmpLength, cmp, cmpLength); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -4426,7 +4423,7 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool ends_with(const type2* cmp, size_t cmpLength) const						
+	bool ends_with(const type2* cmp, size_t cmpLength) const
 	{
 		return content_t::template compare_helper<comparator_t>::ends_with(*m_contents, vector<type2>::contain(cmp, cmpLength));
 	}
@@ -4501,92 +4498,92 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(const type2& cmp) const					{ return content_t::template compare_helper<comparator_t>::index_of(*m_contents, 0, const_max_int_v<size_t>, cmp); }
+	size_t index_of(const type2& cmp) const { return content_t::template compare_helper<comparator_t>::index_of(*m_contents, 0, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(const type2& cmp) const volatile			{ return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, cmp); }
+	size_t index_of(const type2& cmp) const volatile { return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(size_t i, const type2& cmp) const			{ return content_t::template compare_helper<comparator_t>::index_of(*m_contents, i, const_max_int_v<size_t>, cmp); }
+	size_t index_of(size_t i, const type2& cmp) const { return content_t::template compare_helper<comparator_t>::index_of(*m_contents, i, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(size_t i, const type2& cmp) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), i, const_max_int_v<size_t>, cmp); }
+	size_t index_of(size_t i, const type2& cmp) const volatile { return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), i, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(size_t i, size_t n, const type2& cmp) const			{ return content_t::template compare_helper<comparator_t>::index_of(*m_contents, i, n, cmp); }
+	size_t index_of(size_t i, size_t n, const type2& cmp) const { return content_t::template compare_helper<comparator_t>::index_of(*m_contents, i, n, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of(size_t i, size_t n, const type2& cmp) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), i, n, cmp); }
-
-
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of(const position_t& pos, const type2& cmp) const			{ return content_t::template compare_helper<comparator_t>::position_of(*m_contents, pos.m_pos, const_max_int_v<size_t>, cmp); }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of(const position_t& pos, const type2& cmp) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, cmp); }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of(const position_t& pos, size_t n, const type2& cmp) const			{ return content_t::template compare_helper<comparator_t>::position_of(*m_contents, pos.m_pos, n, cmp); }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of(const position_t& pos, size_t n, const type2& cmp) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of(*(m_contents.begin_read()), pos.m_pos, n, cmp); }
-
+	size_t index_of(size_t i, size_t n, const type2& cmp) const volatile { return content_t::template compare_helper<comparator_t>::index_of(*(m_contents.begin_read()), i, n, cmp); }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(const type2* cmp, size_t cmpLength) const						{ return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, 0, const_max_int_v<size_t>, cmp, cmpLength); }
+	position_t position_of(const position_t& pos, const type2& cmp) const { return content_t::template compare_helper<comparator_t>::position_of(*m_contents, pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(const type2* cmp, size_t cmpLength) const volatile				{ return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, cmp, cmpLength); }
+	position_t position_of(const position_t& pos, const type2& cmp) const volatile { return content_t::template compare_helper<comparator_t>::position_of(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const			{ return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, i, const_max_int_v<size_t>, cmp, cmpLength); }
+	position_t position_of(const position_t& pos, size_t n, const type2& cmp) const { return content_t::template compare_helper<comparator_t>::position_of(*m_contents, pos.m_pos, n, cmp); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), i, const_max_int_v<size_t>, cmp, cmpLength); }
+	position_t position_of(const position_t& pos, size_t n, const type2& cmp) const volatile { return content_t::template compare_helper<comparator_t>::position_of(*(m_contents.begin_read()), pos.m_pos, n, cmp); }
 
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(size_t i, size_t n, const type2* cmp, size_t cmpLength) const			{ return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, i, n, cmp, cmpLength); }
-
-	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_any(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), i, n, cmp, cmpLength); }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_any(const position_t& pos, const type2* cmp, size_t cmpLength) const			{ return content_t::template compare_helper<comparator_t>::position_of_any(*m_contents, pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
+	size_t index_of_any(const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, 0, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_any(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of_any(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
+	size_t index_of_any(const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_any(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::position_of_any(*m_contents, pos.m_pos, n, cmp, cmpLength); }
+	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, i, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_any(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of_any(*(m_contents.begin_read()), pos.m_pos, n, cmp, cmpLength); }
+	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), i, const_max_int_v<size_t>, cmp, cmpLength); }
+
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_any(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_any(*m_contents, i, n, cmp, cmpLength); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_any(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_any(*(m_contents.begin_read()), i, n, cmp, cmpLength); }
 
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(const type2* cmp, size_t cmpLength) const						{ return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_any(const position_t& pos, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::position_of_any(*m_contents, pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const			{ return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_any(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::position_of_any(*(m_contents.begin_read()), pos.m_pos, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_any(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::position_of_any(*m_contents, pos.m_pos, n, cmp, cmpLength); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(const type2* cmp, size_t cmpLength) const volatile				{ return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_any(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::position_of_any(*(m_contents.begin_read()), pos.m_pos, n, cmp, cmpLength); }
+
+
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	size_t index_of_segment(const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	size_t index_of_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
+	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::index_of_segment(*m_contents, i, n, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_segment(const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), 0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+
+	template <typename type2 = type, class comparator_t = default_comparator >
+	size_t index_of_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::index_of_segment(*(m_contents.begin_read()), i, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -4728,16 +4725,16 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::position_of_segment(*m_contents, pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::position_of_segment(*m_contents, pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return content_t::template compare_helper<comparator_t>::position_of_segment(*m_contents, pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return content_t::template compare_helper<comparator_t>::position_of_segment(*m_contents, pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of_segment(*(m_contents.begin_read()), pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::position_of_segment(*(m_contents.begin_read()), pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	position_t position_of_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return content_t::template compare_helper<comparator_t>::position_of_segment(*(m_contents.begin_read()), pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	position_t position_of_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return content_t::template compare_helper<comparator_t>::position_of_segment(*(m_contents.begin_read()), pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -4869,37 +4866,37 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const type2& cmp) const					{ return index_of<type2, comparator_t>(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const type2& cmp) const { return index_of<type2, comparator_t>(0, const_max_int_v<size_t>, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const type2& cmp) const volatile			{ return index_of<type2, comparator_t>(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const type2& cmp) const volatile { return index_of<type2, comparator_t>(0, const_max_int_v<size_t>, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(size_t i, const type2& cmp) const		{ return index_of<type2, comparator_t>(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const type2& cmp) const { return index_of<type2, comparator_t>(i, const_max_int_v<size_t>, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(size_t i, const type2& cmp) const volatile				{ return index_of<type2, comparator_t>(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const type2& cmp) const volatile { return index_of<type2, comparator_t>(i, const_max_int_v<size_t>, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const position_t& pos, const type2& cmp) const			{ return position_of<type2, comparator_t>(pos, const_max_int_v<size_t>, cmp) != get_end_position(); }
+	bool contains(const position_t& pos, const type2& cmp) const { return position_of<type2, comparator_t>(pos, const_max_int_v<size_t>, cmp) != get_end_position(); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const position_t& pos, const type2& cmp) const volatile	{ return position_of<type2, comparator_t>(pos, const_max_int_v<size_t>, cmp) != get_end_position(); }
+	bool contains(const position_t& pos, const type2& cmp) const volatile { return position_of<type2, comparator_t>(pos, const_max_int_v<size_t>, cmp) != get_end_position(); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(size_t i, size_t n, const type2& cmp) const						{ return index_of<type2, comparator_t>(i, n, cmp) != -1; }
+	bool contains(size_t i, size_t n, const type2& cmp) const { return index_of<type2, comparator_t>(i, n, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(size_t i, size_t n, const type2& cmp) const volatile				{ return index_of<type2, comparator_t>(i, n, cmp) != -1; }
+	bool contains(size_t i, size_t n, const type2& cmp) const volatile { return index_of<type2, comparator_t>(i, n, cmp) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const position_t& pos, size_t n, const type2& cmp) const			{ return position_of<type2, comparator_t>(pos, n, cmp) != get_end_position(); }
+	bool contains(const position_t& pos, size_t n, const type2& cmp) const { return position_of<type2, comparator_t>(pos, n, cmp) != get_end_position(); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains(const position_t& pos, size_t n, const type2& cmp) const volatile	{ return position_of<type2, comparator_t>(pos, n, cmp) != get_end_position(); }
+	bool contains(const position_t& pos, size_t n, const type2& cmp) const volatile { return position_of<type2, comparator_t>(pos, n, cmp) != get_end_position(); }
 
 
-	
+
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_any(const type2* cmp, size_t n) const { return index_of_any<type2, comparator_t>(cmp, n) != const_max_int_v<size_t>; }
 
@@ -4934,34 +4931,34 @@ public:
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const type2* cmp, size_t cmpLength) const						{ return index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(size_t i, const type2* cmp, size_t cmpLength) const				{ return index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const	{ return index_of_segment<type2, comparator_t>(i, n, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(i, n, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const	{ return get_end_position() != position_of_segment<type2, comparator_t>(pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool contains_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const { return get_end_position() != position_of_segment<type2, comparator_t>(pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const	{ return get_end_position() != position_of_segment<type2, comparator_t>(pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool contains_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const { return get_end_position() != position_of_segment<type2, comparator_t>(pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const type2* cmp, size_t cmpLength) const volatile				{ return index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(size_t i, const type2* cmp, size_t cmpLength) const volatile		{ return index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return index_of_segment<type2, comparator_t>(i, n, vector<type2>::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, size_t n, const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(i, n, vector<type2>::contain(cmp, cmpLength)) != -1; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile	{ return get_end_position() != position_of_segment<type2, comparator_t>(pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
+	bool contains_segment(const position_t& pos, const type2* cmp, size_t cmpLength) const volatile { return get_end_position() != position_of_segment<type2, comparator_t>(pos, const_max_int_v<size_t>, vector<type2>::contain(cmp, cmpLength)); }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
-	bool contains_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile	{ return get_end_position() != position_of_segment<type2, comparator_t>(pos, n, vector<type2>::contain(cmp, cmpLength)); }
+	bool contains_segment(const position_t& pos, size_t n, const type2* cmp, size_t cmpLength) const volatile { return get_end_position() != position_of_segment<type2, comparator_t>(pos, n, vector<type2>::contain(cmp, cmpLength)); }
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -5085,7 +5082,7 @@ public:
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_segment(const composite_vector<type2>& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos, cmpLength) != -1;
+		return index_of_segment<type2, comparator_t>(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos, cmpLength) != -1;
 	}
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -5104,7 +5101,7 @@ public:
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_segment(size_t i, const composite_vector<type2>& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos, cmpLength) != -1;
+		return index_of_segment<type2, comparator_t>(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos, cmpLength) != -1;
 	}
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -5123,7 +5120,7 @@ public:
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_segment(size_t i, size_t n, const composite_vector<type2>& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return  index_of_segment<type2, comparator_t>(i, n, *(cmp.m_contents), cmpPos, cmpLength) != -1;
+		return index_of_segment<type2, comparator_t>(i, n, *(cmp.m_contents), cmpPos, cmpLength) != -1;
 	}
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -5262,21 +5259,21 @@ public:
 		assign(v);
 	}
 
-	size_t get_inner_count() const						{ return m_contents->m_vectorVector.get_length(); }
-	size_t get_inner_count() const volatile			{ return m_contents.begin_read()->m_vectorVector.get_length(); }
+	size_t get_inner_count() const { return m_contents->m_vectorVector.get_length(); }
+	size_t get_inner_count() const volatile { return m_contents.begin_read()->m_vectorVector.get_length(); }
 
-	const vector<type>& get_inner_array(size_t i) const			{ return m_contents->m_vectorVector.get_const_ptr()[i]; }
-	const vector<type>  get_inner_array(size_t i) const volatile	{ return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
+	const vector<type>& get_inner_array(size_t i) const { return m_contents->m_vectorVector.get_const_ptr()[i]; }
+	const vector<type> get_inner_array(size_t i) const volatile { return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
 
-	const vector<type>& get_inner(size_t i) const			{ return m_contents->m_vectorVector.get_const_ptr()[i]; }
-	const vector<type>  get_inner(size_t i) const volatile	{ return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
+	const vector<type>& get_inner(size_t i) const { return m_contents->m_vectorVector.get_const_ptr()[i]; }
+	const vector<type> get_inner(size_t i) const volatile { return m_contents.begin_read()->m_vectorVector.get_const_ptr()[i]; }
 
-	void reserve_sub_arrays(size_t n)				{ return m_contents->m_vectorVector.reserve(n); }
+	void reserve_sub_arrays(size_t n) { return m_contents->m_vectorVector.reserve(n); }
 
-	void reset()									{ m_contents->reset(); }
-	void reset() volatile							{ this_t tmp; exchange(tmp); }
+	void reset() { m_contents->reset(); }
+	void reset() volatile { this_t tmp; exchange(tmp); }
 
-	const type& operator[](const position_t& pos) const			{ return get_inner(pos.get_outer_index())[pos.get_inner_index()]; }
+	const type& operator[](const position_t& pos) const { return get_inner(pos.get_outer_index())[pos.get_inner_index()]; }
 
 
 	this_t subrange(size_t i) const
@@ -5350,62 +5347,62 @@ public:
 	}
 
 	template <typename type2>
-	void assign(size_t n, const type2& src)				{ assign(vector<type>(n, src)); }
+	void assign(size_t n, const type2& src) { assign(vector<type>(n, src)); }
 
 	template <typename type2>
-	void assign(size_t n, const type2& src) volatile	{ assign(vector<type>(n, src)); }
+	void assign(size_t n, const type2& src) volatile { assign(vector<type>(n, src)); }
 
 	template <typename type2>
-	void assign(const type2* src, size_t n)				{ assign(vector<type>(src, n)); }
+	void assign(const type2* src, size_t n) { assign(vector<type>(src, n)); }
 
 	template <typename type2>
-	void assign(const type2* src, size_t n) volatile	{ assign(vector<type>(src, n)); }
+	void assign(const type2* src, size_t n) volatile { assign(vector<type>(src, n)); }
 
-	void assign(const this_t& src)					{ m_contents = src.m_contents; }
+	void assign(const this_t& src) { m_contents = src.m_contents; }
 
-	void assign(const volatile this_t& src)	{ m_contents = *(src.m_contents.begin_read()); }
+	void assign(const volatile this_t& src) { m_contents = *(src.m_contents.begin_read()); }
 
-	void assign(const this_t& src) volatile			{ m_contents = src.m_contents; }
-
-	template <typename type2>
-	void assign(const vector<type2>& src)					{ *m_contents = src; }
+	void assign(const this_t& src) volatile { m_contents = src.m_contents; }
 
 	template <typename type2>
-	void assign(const volatile vector<type2>& src)	{ *m_contents = src; }
+	void assign(const vector<type2>& src) { *m_contents = src; }
 
 	template <typename type2>
-	void assign(const vector<type2>& src) volatile		{ m_contents.set(src); }
-
-	this_t& operator=(const this_t& src)			{ assign(src); return *this; }
-	this_t& operator=(const volatile this_t& src)	{ assign(src); return *this; }
-	void operator=(const this_t& src) volatile		{ assign(src); }
+	void assign(const volatile vector<type2>& src) { *m_contents = src; }
 
 	template <typename type2>
-	this_t& operator=(const vector<type2>& src)				{ assign(src); return *this; }
+	void assign(const vector<type2>& src) volatile { m_contents.set(src); }
+
+	this_t& operator=(const this_t& src) { assign(src); return *this; }
+	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
+	void operator=(const this_t& src) volatile { assign(src); }
 
 	template <typename type2>
-	this_t& operator=(const volatile vector<type2>& src)	{ assign(src); return *this; }
+	this_t& operator=(const vector<type2>& src) { assign(src); return *this; }
 
 	template <typename type2>
-	void operator=(const vector<type2>& src) volatile		{ assign(src); }
+	this_t& operator=(const volatile vector<type2>& src) { assign(src); return *this; }
 
 	template <typename type2>
-	void append(size_t n, const type2& src)				{ m_contents->append(n, src); }
+	void operator=(const vector<type2>& src) volatile { assign(src); }
 
 	template <typename type2>
-	void append(const type2* src, size_t n)				{ m_contents->append(src, n); }
+	void append(size_t n, const type2& src) { m_contents->append(n, src); }
+
+	template <typename type2>
+	void append(const type2* src, size_t n) { m_contents->append(src, n); }
 
 
-	void append(const volatile this_t& src)				{ m_contents->append(*(src.m_contents.begin_read())); }
+	void append(const volatile this_t& src) { m_contents->append(*(src.m_contents.begin_read())); }
 
-	void append(const this_t& src)			{ m_contents->append(*(src.m_contents)); }
+	void append(const this_t& src) { m_contents->append(*(src.m_contents)); }
 
 
 	template <typename type2>
-	void append(const vector<type2>& src)			{ m_contents->append(src); }
+	void append(const vector<type2>& src) { m_contents->append(src); }
 
 	template <typename type2>
-	void append(const volatile vector<type2>& src)			{ m_contents->append(src); }
+	void append(const volatile vector<type2>& src) { m_contents->append(src); }
 
 
 	template <typename type2>
@@ -5472,43 +5469,43 @@ public:
 
 
 	template <typename type2>
-	void prepend(size_t n, const type2& src)				{ m_contents->prepend(n, src); }
+	void prepend(size_t n, const type2& src) { m_contents->prepend(n, src); }
 
 	template <typename type2>
-	void prepend(const type2* src, size_t n)				{ m_contents->prepend(src, n); }
+	void prepend(const type2* src, size_t n) { m_contents->prepend(src, n); }
 
 
-	void prepend(const this_t& src)	{ m_contents->prepend(*(src.m_contents)); }
-	
-	void prepend(const volatile this_t& src)					{ m_contents->prepend(*(src.m_contents.begin_read())); }
+	void prepend(const this_t& src) { m_contents->prepend(*(src.m_contents)); }
+
+	void prepend(const volatile this_t& src) { m_contents->prepend(*(src.m_contents.begin_read())); }
 
 
 	template <typename type2>
-	void prepend(const vector<type2>& src)				{ m_contents->prepend(src); }
+	void prepend(const vector<type2>& src) { m_contents->prepend(src); }
 
 	template <typename type2>
-	void prepend(const volatile vector<type2>& src)				{ m_contents->prepend(src); }
+	void prepend(const volatile vector<type2>& src) { m_contents->prepend(src); }
 
 
 
 
 
-	void insert(size_t i, size_t n)				{ m_contents->insert(i, vector<type>(n)); }
-
-	template <typename type2>
-	void insert(size_t i, size_t n, type2& src)	{ m_contents->insert(i, vector<type>(n, src)); }
+	void insert(size_t i, size_t n) { m_contents->insert(i, vector<type>(n)); }
 
 	template <typename type2>
-	void insert(size_t i, type2* src, size_t n)	{ m_contents->insert(i, vector<type2>::contain(src, n)); }
-
-
-	void insert(const position_t& pos, size_t n)				{ m_contents->insert(pos.m_pos, vector<type>(n)); }
+	void insert(size_t i, size_t n, type2& src) { m_contents->insert(i, vector<type>(n, src)); }
 
 	template <typename type2>
-	void insert(const position_t& pos, size_t n, type2& src)	{ m_contents->insert(pos.m_pos, vector<type>(n, src)); }
+	void insert(size_t i, type2* src, size_t n) { m_contents->insert(i, vector<type2>::contain(src, n)); }
+
+
+	void insert(const position_t& pos, size_t n) { m_contents->insert(pos.m_pos, vector<type>(n)); }
 
 	template <typename type2>
-	void insert(const position_t& pos, type2* src, size_t n)	{ m_contents->insert(pos.m_pos, vector<type2>::contain(src, n)); }
+	void insert(const position_t& pos, size_t n, type2& src) { m_contents->insert(pos.m_pos, vector<type>(n, src)); }
+
+	template <typename type2>
+	void insert(const position_t& pos, type2* src, size_t n) { m_contents->insert(pos.m_pos, vector<type2>::contain(src, n)); }
 
 
 	template <typename type2>
@@ -5790,20 +5787,20 @@ public:
 
 
 
-	void erase(size_t i, size_t n = const_max_int_v<size_t>)						{ m_contents->erase(i, n); }
-	void erase(const position_t& startPos, size_t n = const_max_int_v<size_t>)	{ m_contents->erase(startPos, n); }
+	void erase(size_t i, size_t n = const_max_int_v<size_t>) { m_contents->erase(i, n); }
+	void erase(const position_t& startPos, size_t n = const_max_int_v<size_t>) { m_contents->erase(startPos, n); }
 
-	void clear()										{ m_contents->clear(); }
+	void clear() { m_contents->clear(); }
 	void clear() volatile
 	{
 		this_t tmp;
 		exchange(tmp);
 	}
 
-	void swap(this_t& wth)						{ m_contents.swap(wth.m_contents); }
+	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	void swap(this_t& wth) volatile				{ m_contents.swap(wth.m_contents); }
-	void swap(volatile this_t& wth)				{ wth.m_contents.swap(m_contents); }
+	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+	void swap(volatile this_t& wth) { wth.m_contents.swap(m_contents); }
 
 	this_t exchange(this_t&& src) { return cogs::exchange(std::move(src)); }
 	this_t exchange(this_t&& src) volatile { return cogs::exchange(std::move(src)); }
@@ -5827,7 +5824,7 @@ public:
 
 
 
-	void advance_arrays(size_t n)				{ m_contents->advance_arrays(n); }
+	void advance_arrays(size_t n) { m_contents->advance_arrays(n); }
 	void advance_arrays(size_t n) volatile
 	{
 		write_token wt;
@@ -5837,7 +5834,7 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void truncate_arrays(size_t n)				{ m_contents->truncate_arrays(n); }
+	void truncate_arrays(size_t n) { m_contents->truncate_arrays(n); }
 
 	void truncate_arrays(size_t n) volatile
 	{
@@ -5849,7 +5846,7 @@ public:
 	}
 
 
-	void truncate_arrays_to(size_t n)			{ m_contents->truncate_arrays_to(n); }
+	void truncate_arrays_to(size_t n) { m_contents->truncate_arrays_to(n); }
 
 	void truncate_arrays_to(size_t n) volatile
 	{
@@ -5860,10 +5857,10 @@ public:
 		} while (!m_contents.end_write(wt));
 	}
 
-	void advance_array()				{ advance_arrays(1); }
-	void truncate_array()			{ truncate_arrays(1); }
+	void advance_array() { advance_arrays(1); }
+	void truncate_array() { truncate_arrays(1); }
 
-	vector<type> pop_first_array()		{ return m_contents->pop_first_array(); }
+	vector<type> pop_first_array() { return m_contents->pop_first_array(); }
 
 	vector<type> pop_first_array() volatile
 	{
@@ -5882,7 +5879,7 @@ public:
 		return result;
 	}
 
-	vector<type> pop_last_array()		{ return m_contents->pop_last_array(); }
+	vector<type> pop_last_array() { return m_contents->pop_last_array(); }
 
 	vector<type> pop_last_array() volatile
 	{
@@ -5916,7 +5913,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_arrays_before(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -5940,7 +5937,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_arrays_after(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -5966,7 +5963,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_before(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -5990,7 +5987,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_before(pos.m_pos, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -6015,7 +6012,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_after(i, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -6040,7 +6037,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_after(pos.m_pos, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -6075,7 +6072,7 @@ public:
 		{
 			m_contents.begin_write(wt);
 			result = wt->split_off_back(n, *(result.m_contents));
-			if (!result)	// if nothing split off, no change to write
+			if (!result) // if nothing split off, no change to write
 				break;
 			if (m_contents.end_write(wt))
 				break;
@@ -6306,7 +6303,7 @@ protected:
 		for (size_t i = 0; i < len; i++)
 		{
 			typename composite_vector_t::inner_t curSrc = src.get_inner(i);
-			COGS_ASSERT(curSrc.get_length() > 0);	// I don't think we ever have empty segments.
+			COGS_ASSERT(curSrc.get_length() > 0); // I don't think we ever have empty segments.
 
 			// including empty segments gives us a clue as to where each split actually is.
 			vector<typename composite_vector_t::inner_t> v = curSrc.split_on_any(splitOn, n, split_includes_empty_segments);

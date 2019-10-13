@@ -37,12 +37,12 @@ public:
 class check_box : public pane_bridge
 {
 private:
-	composite_string		m_text;
-	bool		m_isEnabled;
-	bool		m_isChecked;
-	gfx::font	m_font;
+	composite_string m_text;
+	bool m_isEnabled;
+	bool m_isChecked;
+	gfx::font m_font;
 
-	function<void(const rcref<check_box>&)>	m_action;
+	function<void(const rcref<check_box>&)> m_action;
 	rcptr<check_box_interface> m_nativeCheckBox;
 
 public:
@@ -51,8 +51,8 @@ public:
 		m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
-		m_action(action),
-		m_font(fnt)
+		m_font(fnt),
+		m_action(action)
 	{ }
 
 	check_box(const ptr<rc_obj_base>& desc, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
@@ -96,7 +96,7 @@ public:
 		m_action = newAction;
 	}
 
-	const composite_string& get_text() const		{ return m_text; }
+	const composite_string& get_text() const { return m_text; }
 	void set_text(const composite_string& text)
 	{
 		if (!m_nativeCheckBox)
@@ -108,7 +108,7 @@ public:
 		}
 	}
 
-	bool is_enabled() const				{ return m_isEnabled; }
+	bool is_enabled() const { return m_isEnabled; }
 	void set_enabled(bool b)
 	{
 		if (!!m_nativeCheckBox)
@@ -135,7 +135,7 @@ public:
 		return m_isChecked;
 	}
 
-	const gfx::font& get_font() const	{ return m_font; }
+	const gfx::font& get_font() const { return m_font; }
 	void set_font(const gfx::font& fnt)
 	{
 		m_font = fnt;

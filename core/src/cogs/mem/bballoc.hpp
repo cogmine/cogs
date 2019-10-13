@@ -34,10 +34,10 @@ template <size_t min_block_size, size_t max_block_size, class large_block_alloca
 class buddy_block_allocator : public allocator
 {
 public:
-	typedef buddy_block_allocator<min_block_size, max_block_size, large_block_allocator_type>	this_t;
+	typedef buddy_block_allocator<min_block_size, max_block_size, large_block_allocator_type> this_t;
 
 private:
-	allocator_container<large_block_allocator_type>	m_largeBlockAllocator;
+	allocator_container<large_block_allocator_type> m_largeBlockAllocator;
 
 	allocator_container<large_block_allocator_type>& get_large_block_allocator() const volatile
 	{
@@ -46,30 +46,30 @@ private:
 
 	enum link_state
 	{
-		free_link_state = 0,		// State of a link in a freelist
-		allocated_link_state = 1,	// State of a link on an allocated block
-		coalescing_link_state = 2,	// State of a link queued for insertion into a freelist (coalesc attempt)
-		promoting_link_state = 3,	// State of a link queued for insertion into the next larger freelist
+		free_link_state = 0,       // State of a link in a freelist
+		allocated_link_state = 1,  // State of a link on an allocated block
+		coalescing_link_state = 2, // State of a link queued for insertion into a freelist (coalesc attempt)
+		promoting_link_state = 3,  // State of a link queued for insertion into the next larger freelist
 	};
 
 	class link
 	{
 	public:
-		ptr<link>			m_next;
-		versioned_ptr<link>	m_prev;
-		size_type	m_selector;
+		ptr<link> m_next;
+		versioned_ptr<link> m_prev;
+		size_type m_selector;
 
-		bool is_left_buddy() const volatile		{ return !!(m_selector & (size_t)1); }
-		bool is_right_buddy() const volatile	{ return  !(m_selector & (size_t)1); }
+		bool is_left_buddy() const volatile { return !!(m_selector & (size_t)1); }
+		bool is_right_buddy() const volatile { return  !(m_selector & (size_t)1); }
 
-		size_t get_selector() const volatile	{ return (m_selector >> 1).get_int(); }
+		size_t get_selector() const volatile { return (m_selector >> 1).get_int(); }
 
 		void set_selector(size_t index, bool isLeftBuddy) volatile
 		{
 			m_selector = ((size_t)(index << 1) | (isLeftBuddy ? 1 : 0));
 		}
 
-		size_t get_block_size() const volatile	{ return IndexToSize(get_selector()); }
+		size_t get_block_size() const volatile { return IndexToSize(get_selector()); }
 
 		void* get_block() const volatile
 		{
@@ -107,15 +107,15 @@ private:
 		}
 	};
 
-	typedef typename versioned_ptr<link>::version_t	version_t;
+	typedef typename versioned_ptr<link>::version_t version_t;
 
 	class link_iterator
 	{
 	public:
-		typedef ptr<link>	ref_t;
+		typedef ptr<link> ref_t;
 
-		static const volatile ref_t& get_next(const volatile link& l)	{ return l.m_next; }
-		static void set_next(volatile link& l, const ref_t& src)		{ l.m_next = src; }
+		static const volatile ref_t& get_next(const volatile link& l) { return l.m_next; }
+		static void set_next(volatile link& l, const ref_t& src) { l.m_next = src; }
 	};
 
 	// All blocks are prefixed by a link, padded to end at the largest supported alignment.
@@ -155,11 +155,11 @@ private:
 		}
 
 	private:
-		volatile versioned_ptr<link>						m_head;
-		volatile serial_defer_guard_t<link, link_iterator>	m_guard;
+		volatile versioned_ptr<link> m_head;
+		volatile serial_defer_guard_t<link, link_iterator> m_guard;
 
-		ptr<this_t>											m_bballoc;
-		
+		ptr<this_t> m_bballoc;
+
 		bool is_last_free_list() const volatile
 		{
 			return this == &(get_allocator()->m_freeLists[last_index]);
@@ -178,7 +178,7 @@ private:
 		{
 			// add to main free list
 			ptr<volatile link> volatileLink = &l;
-			volatileLink->m_prev.release();			// no prev link, free state
+			volatileLink->m_prev.release(); // no prev link, free state
 			ptr<link> oldHead;
 			version_t oldVersion;
 			m_head.get(oldHead, oldVersion);
@@ -229,16 +229,16 @@ private:
 					{
 						otherBuddyPrevMark = otherBuddyPrev.get_mark();
 						COGS_ASSERT(otherBuddyPrevMark != promoting_link_state);
-						if (otherBuddyPrevMark == allocated_link_state)	// other buddy is allocated.
+						if (otherBuddyPrevMark == allocated_link_state) // other buddy is allocated.
 						{
 							insert_inner(*l);
 							break;
 						}
 						ptr<link> newOtherBuddyPrev;
-						if (otherBuddyPrevMark == coalescing_link_state)		// Other buddy queued to coalesc as well.
+						if (otherBuddyPrevMark == coalescing_link_state) // Other buddy queued to coalesc as well.
 							newOtherBuddyPrev.set_to_mark(promoting_link_state);
 						else //if (otherBuddyPrevMark == free_link_state)
-						{		// attempt mid-removal
+						{ // attempt mid-removal
 							// Try to change otherBuddyPrevMark to allocated_link_state
 							newOtherBuddyPrev = otherBuddyPrev;
 							newOtherBuddyPrev.set_mark(allocated_link_state);
@@ -248,10 +248,10 @@ private:
 						break;
 					}
 
-					if (otherBuddyPrevMark != free_link_state)	// else, attempt mid-removal
+					if (otherBuddyPrevMark != free_link_state) // else, attempt mid-removal
 						continue;
-					
-					if (!!otherBuddyPrev)	// otherwise, it was at the head of the list and complete_lingering should suffice
+
+					if (!!otherBuddyPrev) // otherwise, it was at the head of the list and complete_lingering should suffice
 					{
 						ptr<link> otherBuddyNext = volatileOtherBuddy->m_next;
 						ptr<volatile link> volatileOtherBuddyPrev = otherBuddyPrev;
@@ -264,9 +264,9 @@ private:
 					}
 					complete_lingering();
 				}
-				else if (mark != promoting_link_state)	// else, was in coalesc queue when buddy was free'd, now represents both.
+				else if (mark != promoting_link_state) // else, was in coalesc queue when buddy was free'd, now represents both.
 					continue;
-				
+
 				ptr<link> leftBuddy = l->get_left_buddy();
 				COGS_ASSERT(leftBuddy->get_selector() == l->get_selector());
 				ptr<link> promotedBuddy = link::from_block(leftBuddy.get_ptr());
@@ -302,15 +302,15 @@ private:
 
 				COGS_ASSERT(oldHead != oldHeadPrev);
 
-				if (oldHeadPrev.get_mark() == free_link_state)	// no mark - it must include a ptr since it's not null.
-				{	// Insertion
+				if (oldHeadPrev.get_mark() == free_link_state) // no mark - it must include a ptr since it's not null.
+				{ // Insertion
 					m_head.versioned_exchange(oldHeadPrev, oldVersion);
 					continue;
 				}
 
 				// Removal
 
-				ptr<link> oldHeadNext = oldHead->m_next;	// ok to read non-volatile, would not change if head version hasn't.
+				ptr<link> oldHeadNext = oldHead->m_next; // ok to read non-volatile, would not change if head version hasn't.
 				if (m_head.get_version() != oldVersion)
 					continue;
 
@@ -362,11 +362,11 @@ private:
 			}
 			else
 			{
-				m_guard.begin_guard();	// The guard ensures the block can be interrupted by at most 1 insert operation
+				m_guard.begin_guard(); // The guard ensures the block can be interrupted by at most 1 insert operation
 				bool done = false;
 				for (;;)
 				{
-					ptr<link> l = m_guard.remove();	// prefer to snag a block in the process of deallocating
+					ptr<link> l = m_guard.remove(); // prefer to snag a block in the process of deallocating
 					if (!l)
 					{
 						ptr<link> oldHead;
@@ -380,7 +380,7 @@ private:
 							oldHeadVolatile->m_prev.get(oldHeadPrev, oldHeadPrevVersion);
 							if (!oldHeadPrev)
 							{
-								done = oldHeadVolatile->m_prev.versioned_exchange((link*)allocated_link_state, oldHeadPrevVersion);	// Try to put a mark in oldHead->get_prev_link()
+								done = oldHeadVolatile->m_prev.versioned_exchange((link*)allocated_link_state, oldHeadPrevVersion); // Try to put a mark in oldHead->get_prev_link()
 								if (done)
 									result = oldHead.get_ptr();
 							}
@@ -391,7 +391,7 @@ private:
 							break;
 						}
 
-						l = m_guard.remove();	// goink
+						l = m_guard.remove(); // goink
 						if (!l)
 							break;
 					}
@@ -411,7 +411,7 @@ private:
 					{
 						prevMark = oldPrev.get_mark();
 						COGS_ASSERT(prevMark != free_link_state);
-						if (prevMark == allocated_link_state)	// Must have just been claimed in a coalesc
+						if (prevMark == allocated_link_state) // Must have just been claimed in a coalesc
 							break;
 						if (!volatileLink->m_prev.versioned_exchange((link*)allocated_link_state, oldPrevVersion, oldPrev))
 							continue;
@@ -422,11 +422,11 @@ private:
 						continue;
 
 					if (prevMark == promoting_link_state)
-					{										// actually 2 blocks here, free the other one.
+					{ // actually 2 blocks here, free the other one.
 						ptr<link> otherBuddy = l->get_buddy();
 						COGS_ASSERT(otherBuddy->get_buddy() == l.get_ptr());
 						ptr<volatile link> volatileOtherBuddy = otherBuddy;
-						volatileOtherBuddy->m_prev.set_to_mark(coalescing_link_state);	// doesn't need to be volatile here because no other thread will change it.
+						volatileOtherBuddy->m_prev.set_to_mark(coalescing_link_state); // doesn't need to be volatile here because no other thread will change it.
 						m_guard.add(*otherBuddy);
 					}
 
@@ -465,7 +465,7 @@ private:
 		link* peek() const volatile { return m_head.get_ptr(); }
 	};
 
-	free_list		m_freeLists[num_indexes];
+	free_list m_freeLists[num_indexes];
 
 	void init()
 	{
@@ -505,17 +505,17 @@ public:
 			block = get_large_block_allocator().allocate(n + overhead, largest_alignment);
 			if (!block)
 			{
-				COGS_ASSERT(false);	// For now, let's consider out of memory to be a fatal error
-				return nullptr;	// TBD ?  
+				COGS_ASSERT(false); // For now, let's consider out of memory to be a fatal error
+				return nullptr; // TBD ?
 			}
 			link* linkPtr = (link*)(block.get_ptr());
-			linkPtr->set_selector(num_indexes, false);	// Selector of m_numIndexes means a large block
+			linkPtr->set_selector(num_indexes, false); // Selector of m_numIndexes means a large block
 			return linkPtr->get_block();
 		}
 
 		if (!n)
 			n = 1;
-		
+
 		size_t idealIndex = SizeToIndex(n);
 		size_t i = idealIndex;
 		link* l;
@@ -525,13 +525,13 @@ public:
 			if (!!l)
 				break;
 
-			if (i == last_index)	// If at the last freelist
+			if (i == last_index) // If at the last freelist
 			{
 				l = (link*)(get_large_block_allocator().allocate(largest_block_size + overhead, largest_alignment).get_ptr());
 				if (!l)
 				{
-					COGS_ASSERT(false);	// For now, let's consider out of memory to be a fatal error
-					return nullptr;	// TBD ?  
+					COGS_ASSERT(false); // For now, let's consider out of memory to be a fatal error
+					return nullptr; // TBD ?
 				}
 				l->set_selector(last_index, false);
 				break;
@@ -540,17 +540,17 @@ public:
 		}
 		block = l->get_block();
 		while (i > idealIndex)
-		{					// Split up allocated block into two smaller blocks, and put one into i-1
+		{ // Split up allocated block into two smaller blocks, and put one into i-1
 			i--;
 			link* leftBuddy = (link*)(block.get_ptr());
 			leftBuddy->set_selector(i, true);
-			leftBuddy->m_prev.set_to_mark(allocated_link_state);	// mark as allocated
+			leftBuddy->m_prev.set_to_mark(allocated_link_state); // mark as allocated
 
 			link* rightBuddy = leftBuddy->get_right_buddy();
 			rightBuddy->set_selector(i, false);
 			rightBuddy->m_prev.set_to_mark(allocated_link_state);
 			COGS_ASSERT(rightBuddy->get_buddy() == leftBuddy);
-			
+
 			m_freeLists[i].insert(*rightBuddy);
 
 			block = leftBuddy->get_block();
@@ -580,10 +580,10 @@ public:
 	{
 		if (!p)
 			return false;
-		
+
 		link* l = link::from_block(p.get_ptr());
 		size_t i = l->get_selector();
-		
+
 		if (i == num_indexes)
 			return get_large_block_allocator().try_reallocate(l, newSize + overhead);
 		return (newSize <= IndexToSize(i));

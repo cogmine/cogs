@@ -15,12 +15,12 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 namespace cogs {
 namespace geometry {
-	
+
 
 namespace planar {
 
@@ -108,7 +108,7 @@ public:
 		return (m_contents[0] < sz.m_contents[0]);
 	}
 
-	bool operator>=(const size& src)  const { return !operator<(src); }
+	bool operator>=(const size& src) const { return !operator<(src); }
 
 	bool operator>(const size& src) const { return (src < *this); }
 
@@ -229,7 +229,7 @@ public:
 	// size - size = size
 	size operator-(const size& sz) const { size result(m_contents[0] - sz.m_contents[0], m_contents[1] - sz.m_contents[1]); return result; }
 	size& operator-=(const size& sz) { m_contents[0] -= sz.m_contents[0]; m_contents[1] -= sz.m_contents[1]; return *this; }
-	
+
 	// size - point = size
 	size operator-(const point& pt) const;
 	size& operator-=(const point& pt);
@@ -302,19 +302,19 @@ public:
 	void assign_divide_whole(const std::array<double, 2>& d) { cogs::assign_divide_whole(m_contents[0], d[0]); cogs::assign_divide_whole(m_contents[1], d[1]); }
 
 
-	// size | size = size	// longer
+	// size | size = size // longer
 	size operator|(const size& sz) const { size result(cogs::greater(m_contents[0], sz.m_contents[0]), cogs::greater(m_contents[1], sz.m_contents[1])); return result; }
 	size& operator|=(const size& sz) { cogs::assign_greater(m_contents[0], sz.m_contents[0]); cogs::assign_greater(m_contents[1], sz.m_contents[1]); return *this; }
 
-	// size greater size = size	// longer
+	// size greater size = size // longer
 	size greater(const size& sz) const { size result(cogs::greater(m_contents[0], sz.m_contents[0]), cogs::greater(m_contents[1], sz.m_contents[1])); return result; }
 	void assign_greater(const size& sz) { cogs::assign_greater(m_contents[0], sz.m_contents[0]); cogs::assign_greater(m_contents[1], sz.m_contents[1]); }
 
-	// size & size = size	// shorter
+	// size & size = size // shorter
 	size operator&(const size& sz) const { size result(cogs::lesser(m_contents[0], sz.m_contents[0]), cogs::lesser(m_contents[1], sz.m_contents[1])); return result; }
 	size& operator&=(const size& sz) { cogs::assign_lesser(m_contents[0], sz.m_contents[0]); cogs::assign_lesser(m_contents[1], sz.m_contents[1]); return *this; }
 
-	// size lesser size = size	// shorter
+	// size lesser size = size // shorter
 	size lesser(const size& sz) const { size result(cogs::lesser(m_contents[0], sz.m_contents[0]), cogs::lesser(m_contents[1], sz.m_contents[1])); return result; }
 	void assign_lesser(const size& sz) { cogs::assign_lesser(m_contents[0], sz.m_contents[0]); cogs::assign_lesser(m_contents[1], sz.m_contents[1]); }
 

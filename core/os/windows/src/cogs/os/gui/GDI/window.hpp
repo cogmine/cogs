@@ -40,7 +40,7 @@ private:
 	{
 		WINDOWPLACEMENT windowPlacement;
 		windowPlacement.length = sizeof(WINDOWPLACEMENT);
-		BOOL b = GetWindowPlacement(get_HWND(), &windowPlacement);
+		GetWindowPlacement(get_HWND(), &windowPlacement);
 		return windowPlacement.showCmd == SW_MAXIMIZE;
 	}
 
@@ -61,7 +61,7 @@ private:
 		else
 		{
 			RECT borderRect = { 0, 0, 0, 0 };
-			BOOL b = AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)get_device_context().get_dpi());
+			AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)get_device_context().get_dpi());
 			sz.cx = borderRect.right - borderRect.left;
 			sz.cy = borderRect.bottom - borderRect.top;
 		}
@@ -73,7 +73,7 @@ private:
 	{
 		SIZE sz;
 		RECT borderRect = { 0, 0, 0, 0 };
-		BOOL b = AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)dpi);
+		AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)dpi);
 		sz.cx = borderRect.right - borderRect.left;
 		sz.cy = borderRect.bottom - borderRect.top;
 		return sz;
@@ -125,7 +125,7 @@ public:
 
 	virtual void set_title(const composite_string& title)
 	{
-		BOOL b = SetWindowText(get_HWND(), title.composite().cstr());
+		SetWindowText(get_HWND(), title.composite().cstr());
 	}
 
 	virtual bool is_opaque() const
@@ -162,8 +162,7 @@ public:
 		{
 			// Uses OS-selected position for new window (current position, as a result of using CW_USEDEFAULT)
 			RECT r;
-			BOOL b = GetWindowRect(get_HWND(), &r);
-			COGS_ASSERT(b);
+			GetWindowRect(get_HWND(), &r);
 			pt.x = r.left;
 			pt.y = r.top;
 		}
@@ -203,13 +202,11 @@ public:
 		m_pendingPosition = pt;
 		m_position = pt;
 		m_sizing = true;
-		BOOL b = MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
+		MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
-		COGS_ASSERT(b);
 
 		RECT r;
-		b = GetClientRect(get_HWND(), &r);
-		COGS_ASSERT(b);
+		GetClientRect(get_HWND(), &r);
 		SIZE contentSize = { r.right - r.left, r.bottom - r.top };
 		hwnd_pane::reshape(get_device_context().make_size(contentSize));
 	}
@@ -230,8 +227,7 @@ public:
 
 		m_pendingPosition = oldBounds.pt;
 		m_sizing = true;
-		BOOL b = MoveWindow(get_HWND(), oldBounds.pt.x, oldBounds.pt.y, sz.cx, sz.cy, FALSE);
-		COGS_ASSERT(b);
+		MoveWindow(get_HWND(), oldBounds.pt.x, oldBounds.pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
 
 		// We don't want to call reshape() on children, as that will happen in 
@@ -251,8 +247,7 @@ public:
 
 		m_pendingPosition = pt;
 		m_sizing = true;
-		BOOL b = MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
-		COGS_ASSERT(b);
+		MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
 
 		// We don't want to call reshape() on children, as that will happen in 
@@ -266,8 +261,7 @@ public:
 	RECT get_frame_RECT() const
 	{
 		RECT r;
-		BOOL b = GetWindowRect(get_HWND(), &r);
-		COGS_ASSERT(b);
+		GetWindowRect(get_HWND(), &r);
 		return r;
 	}
 
@@ -286,8 +280,7 @@ public:
 	SIZE get_frame_SIZE() const
 	{
 		RECT r;
-		BOOL b = GetWindowRect(get_HWND(), &r);
-		COGS_ASSERT(b);
+		GetWindowRect(get_HWND(), &r);
 		return { r.right - r.left, r.bottom - r.top };
 	}
 
@@ -296,9 +289,9 @@ public:
 		bridgeable_pane::calculate_range();
 		DWORD newStyle = m_style;
 		if (get_range().is_fixed())
-			newStyle &= ~(WS_MAXIMIZEBOX | WS_THICKFRAME);	// Disable maximize button and resizable frame
+			newStyle &= ~(WS_MAXIMIZEBOX | WS_THICKFRAME); // Disable maximize button and resizable frame
 		else
-			newStyle |= (WS_MAXIMIZEBOX | WS_THICKFRAME);	// Enable maximize button and resizable frame
+			newStyle |= (WS_MAXIMIZEBOX | WS_THICKFRAME); // Enable maximize button and resizable frame
 		if (m_style != newStyle)
 		{
 			SetWindowLong(get_HWND(), GWL_STYLE, newStyle);
@@ -316,9 +309,9 @@ public:
 			case WM_MOUSEWHEEL:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-					BOOL b = ScreenToClient(get_HWND(), &pt);
+					ScreenToClient(get_HWND(), &pt);
 					point pt2 = get_device_context().make_point(pt);
-					WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
+					//WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
 					short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 					ui::modifier_keys_state modifiers = get_modifier_keys();
 					if (wheel_move(*w, zDelta / -WHEEL_DELTA, pt2, modifiers))
@@ -338,7 +331,7 @@ public:
 						tme.cbSize = sizeof(TRACKMOUSEEVENT);
 						tme.dwFlags = TME_LEAVE;
 						tme.hwndTrack = get_HWND();
-		
+
 						if (TrackMouseEvent(&tme))
 							m_mouseTracking = true;
 					}
@@ -407,7 +400,7 @@ public:
 				{
 					// We do our own double-buffering on Win32, so prevent default buffering on size/move
 					NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*)lParam;
-					RECT& newClient = params->rgrc[0];
+					//RECT& newClient = params->rgrc[0];
 					RECT& dst = params->rgrc[1];
 					RECT& src = params->rgrc[2];
 
@@ -489,19 +482,19 @@ public:
 				bool trimLeft = false;
 				switch (wParam)
 				{
-				case WMSZ_TOP:			// trim height, adjust top
-				case WMSZ_TOPRIGHT: 	// trim size, adjust top
+				case WMSZ_TOP:         // trim height, adjust top
+				case WMSZ_TOPRIGHT:    // trim size, adjust top
 					trimTop = true;
 					break;
-				case WMSZ_TOPLEFT:		// trim size, adjust top/left
+				case WMSZ_TOPLEFT:     // trim size, adjust top/left
 					trimTop = true;
-				case WMSZ_BOTTOMLEFT:	// trim size, adjust left
-				case WMSZ_LEFT:			// trim width, adjust left
+				case WMSZ_BOTTOMLEFT:  // trim size, adjust left
+				case WMSZ_LEFT:        // trim width, adjust left
 					trimLeft = true;
 					break;
-				case WMSZ_RIGHT:		// trim width
-				case WMSZ_BOTTOM:		// trim height
-				case WMSZ_BOTTOMRIGHT:	// trim size
+				case WMSZ_RIGHT:       // trim width
+				case WMSZ_BOTTOM:      // trim height
+				case WMSZ_BOTTOMRIGHT: // trim size
 				default:
 					break;
 				}
@@ -593,7 +586,7 @@ public:
 			case WM_WINDOWPOSCHANGING:
 			{
 				WINDOWPOS* winPos = (WINDOWPOS*)lParam;
-				if (m_sizingMode == 1)	// If we need to save the pending size for use in WM_SIZE
+				if (m_sizingMode == 1) // If we need to save the pending size for use in WM_SIZE
 				{
 					m_sizingMode = 2;
 					m_pendingPosition.x = winPos->x;
@@ -604,13 +597,13 @@ public:
 			case WM_WINDOWPOSCHANGED:
 			{
 				WINDOWPOS* winPos = (WINDOWPOS*)lParam;
-				if (m_sizingMode == 1)	// Not sure why we'd be in this mode, but handle it - save the pending size for use in WM_SIZE
+				if (m_sizingMode == 1) // Not sure why we'd be in this mode, but handle it - save the pending size for use in WM_SIZE
 				{
 					m_sizingMode = 3;
 					m_pendingPosition.x = winPos->x;
 					m_pendingPosition.y = winPos->y;
 				}
-				else if (m_sizingMode != 2)	// 0, or 3?
+				else if (m_sizingMode != 2) // 0, or 3?
 				{
 					m_position.x = winPos->x;
 					m_position.y = winPos->y;
@@ -738,7 +731,7 @@ inline rcref<gui::window> hwnd::subsystem::open_window(
 {
 	rcref<gui::window> w = rcnew(gui::window, screenPosition, frameSize, positionCentered, title);
 	w->nest(p, f);
-	install(*w, rcnew(hwnd::subsystem));	// Give each window it's own subsystem instance, so it's own UI thread.
+	install(*w, rcnew(hwnd::subsystem)); // Give each window it's own subsystem instance, so it's own UI thread.
 	return w;
 }
 

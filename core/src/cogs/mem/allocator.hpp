@@ -81,7 +81,7 @@ public:
 
 	virtual ref_t allocate(size_t n, size_t align) volatile = 0;
 	virtual void deallocate(const ref_t& p) volatile = 0;
-	virtual bool try_reallocate(const ref_t& p, size_t n) volatile = 0;	// returns true if same block can be used.
+	virtual bool try_reallocate(const ref_t& p, size_t n) volatile = 0; // returns true if same block can be used.
 	virtual size_t get_allocation_size(const ref_t& p, size_t align, size_t knownSize) const volatile { return knownSize; }
 };
 

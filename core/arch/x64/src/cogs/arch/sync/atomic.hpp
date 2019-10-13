@@ -23,10 +23,9 @@ namespace atomic {
 // How atomic APIs are accessed depends on the arch, os, and env used.
 // Compiler intrinsics are preferred if available, followed by OS APIs, followed by
 // architecture (i.e. asm).
-	
+
 // On x64 and IA64, loads and stores to 1, 2, 4,  8 and 16 byte aligned
 // memory addresses are guaranteed to be atomic (no partial values).
-	
 
 
 static constexpr size_t largest = 16;
@@ -36,11 +35,12 @@ template <size_t n>
 class size_to_alignment
 {
 public:
-	static constexpr size_t value =	(n ==  1) ?  1 : 
-								(n ==  2) ?  2 : 
-								(n ==  4) ?  4 : 
-								(n ==  8) ?  8 :
-								(n == 16) ? 16 : 0;
+	static constexpr size_t value =
+		(n == 1) ?  1 : 
+		(n == 2) ?  2 : 
+		(n == 4) ?  4 : 
+		(n == 8) ?  8 :
+		(n == 16) ? 16 : 0;
 };
 
 
@@ -50,4 +50,3 @@ public:
 
 
 #endif
-

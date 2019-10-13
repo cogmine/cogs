@@ -17,7 +17,7 @@
 
 namespace cogs {
 
-	
+
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 class fixed_integer_native_const;
 
@@ -34,7 +34,7 @@ template <bool has_sign, size_t n_bits>
 class fixed_integer_extended_content;
 
 template <bool has_sign, size_t bits>
-using fixed_integer =	std::conditional_t<!bits,
+using fixed_integer = std::conditional_t<!bits,
 							fixed_integer_native_const<false, 0, 0>,
 							std::conditional_t<(!!bits && (bits <= (sizeof(longest) * 8))),
 								fixed_integer_native<has_sign, ((!!bits && (bits <= (sizeof(longest) * 8))) ? bits : 1)>,

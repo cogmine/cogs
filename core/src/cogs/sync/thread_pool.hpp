@@ -42,7 +42,7 @@ private:
 		volatile size_type m_progress;
 
 		parallel_task()
-			:	m_progress(0)
+			: m_progress(0)
 		{ }
 
 		~parallel_task()
@@ -74,8 +74,8 @@ private:
 
 		explicit main_loop(const ptr<rc_obj_base>& desc, size_t numThreads)
 			: object(desc),
-			m_semaphore(0, numThreads),
-			m_tasks(desc)
+			m_tasks(desc),
+			m_semaphore(0, numThreads)
 		{
 		}
 
@@ -89,10 +89,12 @@ private:
 				{
 					if (m_tasks.invoke())
 						continue;
-					
-					if (m_exiting)	// Only check of exiting if out of tasks, immediately before acquiring the semaphore.
-						break;		// Ensures all tasts have been processed, and we don't consume the semaphore preventing
-									// other threads from waking in order to exit.
+
+					// Only check of exiting if out of tasks, immediately before acquiring the semaphore.
+					// Ensures all tasts have been processed, and we don't consume the semaphore preventing
+					// other threads from waking in order to exit.
+					if (m_exiting)
+						break;
 					m_semaphore.acquire();
 					continue;
 				}
@@ -116,7 +118,7 @@ private:
 						{
 							if (!m_tasks.remove_and_invoke(vt.dereference()))
 								continue;
-							
+
 							// Ran higher priority event, recheck priorities
 							if (p < currentPriority)
 								continue;
@@ -124,7 +126,7 @@ private:
 						}
 					}
 				}
-				
+
 				// Run next parallel task
 				parallel_task_list_t::volatile_iterator parallelTaskItor = currentPriorityLevelItor->m_parallelTaskItor++;
 				for (;;)
@@ -170,11 +172,11 @@ private:
 		}
 	};
 
-	rcref<main_loop>	m_mainLoop;
-	const size_t		m_numThreads;
+	const size_t m_numThreads;
+	rcref<main_loop> m_mainLoop;
 
-	volatile container_dlist<rcref<thread> >	m_threads;
-	volatile uint_type							m_state;	// 0 == not start, 1 == started, 2 == shutdown
+	volatile container_dlist<rcref<thread> > m_threads;
+	volatile uint_type m_state; // 0 == not start, 1 == started, 2 == shutdown
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
@@ -211,17 +213,17 @@ public:
 	{
 		// Phase 1: Full service cleanup - cleanup queue and threading are still online.
 		//
-		//	First, try to drain the default global cleanup queue (without taking it offline).
-		//	This allows new cleanup requests to be chained after existing ones.
-		//	(Because threads are still running, new cleanup requests could still come in late).
+		//    First, try to drain the default global cleanup queue (without taking it offline).
+		//    This allows new cleanup requests to be chained after existing ones.
+		//    (Because threads are still running, new cleanup requests could still come in late).
 
 		rcref<cleanup_queue> cleanupQueue = cleanup_queue::get();
 		cleanupQueue->drain();
 
 		// Phase 2: Tear down default thread pool
-		//	
-		//	Cleanup phase has completed, take default thread pool offline for cleanup.
-		//	Threading system uses the same cleanup queue.
+		//
+		//    Cleanup phase has completed, take default thread pool offline for cleanup.
+		//    Threading system uses the same cleanup queue.
 		default_thread_pool_singleton_t::release();
 
 		do {
@@ -232,8 +234,8 @@ public:
 #endif
 
 			// Phase 3: Take the global cleanup queue offline and drain it again.
-			//	
-			//	Now that no other threads are running, once the queue is drained, we're done.
+			//
+			//    Now that no other threads are running, once the queue is drained, we're done.
 			//
 		} while (cleanupQueue->drain());
 
@@ -269,7 +271,7 @@ public:
 		join();
 	}
 
-	bool start()	// Can only be shutdown once - cannot be restarted.
+	bool start() // Can only be shutdown once - cannot be restarted.
 	{
 		bool result = (m_state.compare_exchange(one_t(), zero_t()));
 		if (result)
@@ -285,7 +287,7 @@ public:
 		return result;
 	}
 
-	size_t get_num_threads() const	{ return m_numThreads; }
+	size_t get_num_threads() const { return m_numThreads; }
 
 	void dispatch_parallel(size_t n, const function<void(size_t)>& d, const function<void()>& doneDelegate = function<void()>(), int priority = 0) volatile
 	{
@@ -309,7 +311,7 @@ public:
 						preallocatedTask->m_parallelCount = n;
 					}
 					parallel_task_list_t::volatile_iterator taskItor = i->m_parallelTasks.prepend_preallocated(preallocatedTask, insert_mode::only_if_not_empty);
-					if (!taskItor)	// was not added, preallocatedTask is still good.
+					if (!taskItor) // was not added, preallocatedTask is still good.
 					{
 						COGS_ASSERT(i->m_parallelTasks.is_empty());
 						m_mainLoop->m_parallelTaskLevelMap.remove(i);
@@ -341,12 +343,12 @@ public:
 			}
 		}
 	}
-	
+
 	// To maximize efficiency of dispatching tasks to a thread pool, there is no protection
 	// against dispatching to a thread pool that has already been shut down.  It is caller
 	// error to dispatch to a thread pool that has already shut down, or to race dispatching
 	// with shutting down.
-	bool shutdown()	// Returns false if already shut down.
+	bool shutdown() // Returns false if already shut down.
 	{
 		uint_type two(2);
 		uint_type oldState;
@@ -400,7 +402,7 @@ inline void thread::deregister_waiter() const
 	threadWaiters->remove(m_removeToken);
 }
 
-inline void thread::join_all(const timeout_t& timeout)	// To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
+inline void thread::join_all(const timeout_t& timeout) // To be called in main thread only.  Called automatically at exit.  Do not create new threads after calling.
 {
 	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
 		thread_waiters_singleton_t;
@@ -416,7 +418,7 @@ inline void thread::join_all(const timeout_t& timeout)	// To be called in main t
 			break;
 		}
 		int i = (*itor)->join(timeout);
-		COGS_ASSERT(i != 0);	// should only be called by main thread
+		COGS_ASSERT(i != 0); // should only be called by main thread
 		if (i == 1)
 			anySinceLastLoop = true;
 		++itor;

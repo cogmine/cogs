@@ -18,7 +18,7 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
 
 
 /// @ingroup BinaryTrees
@@ -64,14 +64,14 @@ public:
 	static constexpr bool red = true;
 	static constexpr bool black = false;
 
-	bool get_color() const		{ return m_color; }
-	void set_color(bool color)	{ m_color = color; }	
-	
-	bool is_red() const			{ return m_color; }
-	void set_red(bool useRed)	{ m_color = useRed; }
+	bool get_color() const { return m_color; }
+	void set_color(bool color) { m_color = color; }
+
+	bool is_red() const { return m_color; }
+	void set_red(bool useRed) { m_color = useRed; }
 
 	// Must be defined in a derived class:
-	//		const key_t& get_key() const;	or  key_t get_key() const;
+	// const key_t& get_key() const; or  key_t get_key() const;
 };
 
 
@@ -112,16 +112,16 @@ public:
 	static constexpr bool red = true;
 	static constexpr bool black = false;
 
-	bool get_color() const		{ return m_color; }
-	void set_color(bool color)	{ m_color = color; }	
-	
-	bool is_red() const			{ return m_color; }
-	void set_red(bool useRed)	{ m_color = useRed; }
+	bool get_color() const { return m_color; }
+	void set_color(bool color) { m_color = color; }
+
+	bool is_red() const { return m_color; }
+	void set_red(bool useRed) { m_color = useRed; }
 };
 
 
 /// @brief An alias to rbtree_node_t<void,ptr>
-typedef rbtree_node_t<void,ptr>	rbtree_node;
+typedef rbtree_node_t<void,ptr> rbtree_node;
 
 
 /// @ingroup BinaryTrees
@@ -129,11 +129,11 @@ typedef rbtree_node_t<void,ptr>	rbtree_node;
 ///
 /// derived_node_t must be derived from rbtree_node_t, and  include the equivalent of the following member function:
 /// @code{.cpp}
-///		const key_t& get_key() const;
+/// const key_t& get_key() const;
 /// @endcode
 /// or:
 /// @code{.cpp}
-///		key_t get_key() const;
+/// key_t get_key() const;
 /// @endcode
 /// @tparam key_t The key type to contain
 /// @tparam derived_node_t A class derived from the intrusive node base, rbtree_node_t.  Default: rbtree_node
@@ -144,8 +144,8 @@ class rbtree : public sorted_btree<key_t, derived_node_t, comparator_t, ref_type
 {
 public:
 	/// @brief Alias to this type.
-	typedef rbtree<key_t, derived_node_t, comparator_t, ref_type>		this_t;
-	
+	typedef rbtree<key_t, derived_node_t, comparator_t, ref_type> this_t;
+
 	/// @brief Alias to the node type.
 	typedef derived_node_t node_t;
 
@@ -175,18 +175,18 @@ private:
 		{
 			parent = lockedRef->get_parent_link();
 			lockedParent = parent;
-			if (!lockedParent->is_red())	// no need to check for root  (???)
+			if (!lockedParent->is_red()) // no need to check for root  (???)
 				break;
 
 			parentParent = lockedParent->get_parent_link();
-			lockedParentParent = parentParent;	//??
+			lockedParentParent = parentParent; //??
 			bool wasRightNode = (lockedParentParent->get_right_link() == parent);
 
 			other = lockedParentParent->get_child_link(!wasRightNode);
 			if (!!other)
 			{
 				lockedOther = other;
-				if (lockedOther->is_red())	// red uncle node
+				if (lockedOther->is_red()) // red uncle node
 				{
 					lockedOther->set_red(false);
 					lockedParent->set_red(false);
@@ -198,17 +198,17 @@ private:
 					continue;
 				}
 			}
-			
+
 			// black uncle node
 			lockedParentParent->set_red(true);
-			if (n != lockedParent->get_child_link(!wasRightNode))	// Cant do second rotate if nodes are in inverse directions.  Quick rotate to change direction of lower one.
+			if (n != lockedParent->get_child_link(!wasRightNode)) // Cant do second rotate if nodes are in inverse directions.  Quick rotate to change direction of lower one.
 				lockedParent->set_red(false);
 			else
 			{
-				lockedRef->set_red(false);	// Actually parent due to the swap
+				lockedRef->set_red(false); // Actually parent due to the swap
 
 				// rotate such that x moves up to become parentParent's new child
-                //rotate_quick(wasRightNode, parent, n);	
+				//rotate_quick(wasRightNode, parent, n);
 				//inline to remove some redundant steps and maximum use of locked references
 				ref_t childChild = lockedRef->get_child_link(wasRightNode);
 
@@ -222,7 +222,7 @@ private:
 					typename ref_t::locked_t lockedChildChild = childChild;
 					lockedChildChild->set_parent_link(parent);
 				}
-				
+
 				if (n == get_root())
 					base_t::set_root(n);
 				else
@@ -230,8 +230,8 @@ private:
 				parent = n;
 				lockedParent = lockedRef;
 			}
-			
-			//rotate(!wasRightNode, parentParent);	// aka: rotate_quick(!wasRightNode, parentParent, parent);//lockedParentParent->get_child_link(wasRightNode)); // aka:
+
+			//rotate(!wasRightNode, parentParent); // aka: rotate_quick(!wasRightNode, parentParent, parent);//lockedParentParent->get_child_link(wasRightNode)); // aka:
 			//inline to remove some redundant steps and maximum use of locked references
 
 			ref_t childChild = lockedParent->get_child_link(!wasRightNode);
@@ -275,14 +275,14 @@ private:
 		else
 		{
 			// Inserted nodes are at maximum depth (no children), and are always created as red.
-			lockedRef->set_red(!wasEmpty);	// except for the root node, which is always black.
+			lockedRef->set_red(!wasEmpty); // except for the root node, which is always black.
 			if (!wasEmpty)
 				balance(n);
 		}
 		return existing;
 	}
 
-	const ref_t& get_root() const	{ return base_t::get_root();  }
+	const ref_t& get_root() const { return base_t::get_root();  }
 
 public:
 	rbtree()
@@ -364,7 +364,7 @@ public:
 
 		if (!!swappedWith)
 		{
-			const bool tmp_red = lockedRef->is_red();	// swap color
+			const bool tmp_red = lockedRef->is_red(); // swap color
 			lockedRef->set_red(swappedWith->is_red());
 			swappedWith->set_red(tmp_red);
 		}
@@ -373,13 +373,13 @@ public:
 
 		// x might be empty
 		// xParent will not be empty unless n was root
-        if (!lockedRef->is_red())
-        {
+		if (!lockedRef->is_red())
+		{
 			typename ref_t::locked_t lockedX;
 			typename ref_t::locked_t lockedXParent;
 			if (!!x)
 				lockedX = x;
-			while (x != get_root())		// root will never be red
+			while (x != get_root()) // root will never be red
 			{
 				if (!!x)
 				{
@@ -392,8 +392,9 @@ public:
 				ref_t y = lockedXParent->get_right_link();
 				const bool was_right_child = (x == y);
 				if (was_right_child)
-					y = lockedXParent->get_left_link();	// if was_right_child y is left side
-													// if !was_right_child y is right side
+					y = lockedXParent->get_left_link();
+					// if was_right_child y is left side
+					// if !was_right_child y is right side
 
 				// y is xParent's other child, and might be empty
 				if (!!y)
@@ -411,25 +412,25 @@ public:
 								base_t::rotate_right(xParent);
 							else
 								base_t::rotate_left(xParent);
-							
-							y = lockedXParent->get_child_link(!was_right_child);	// y updates to remain xParent's other child
+
+							y = lockedXParent->get_child_link(!was_right_child); // y updates to remain xParent's other child
 							if (!y)
 								break;
 							lockedY = y;
 						}
 
-						bool are_red[2] = { false, false };	
+						bool are_red[2] = { false, false };
 						ref_t y_children[2] = { lockedY->get_left_link(), lockedY->get_right_link() };
 						typename ref_t::locked_t lockedYChildren[2] = { y_children[0], y_children[1] };
 
 						if (!!y_children[0])
 							are_red[0] = lockedYChildren[0]->is_red();
-  						if (!!y_children[1])
+						if (!!y_children[1])
 							are_red[1] = lockedYChildren[1]->is_red();
 
 						if (are_red[0] || are_red[1])
 						{
-							if (!are_red[!was_right_child])	// so are_red[was_right_child] must be true, child[was_right_child] must be valid
+							if (!are_red[!was_right_child]) // so are_red[was_right_child] must be true, child[was_right_child] must be valid
 							{
 								lockedYChildren[was_right_child]->set_red(false);
 								lockedY->set_red(true);
@@ -441,7 +442,7 @@ public:
 								lockedYChildren[!was_right_child] = y;
 								y = y_children[was_right_child];
 								lockedY = lockedYChildren[was_right_child]; //lockedY = y;
-								//y = elem_t::rotate(!was_right_child, y);		// moves up one of y's children to take its place 
+								//y = elem_t::rotate(!was_right_child, y); // moves up one of y's children to take its place 
 								// y will be become y_children[was_right_child] always
 								lockedXParent->set_child_link(!was_right_child, y);
 								// y will not be null
@@ -455,8 +456,8 @@ public:
 							if (was_right_child)
 								base_t::rotate_right(xParent);
 							else
-								base_t::rotate_left(xParent); 							
-							
+								base_t::rotate_left(xParent);
+
 							if (!!x)
 								lockedX->set_red(false);
 							return;

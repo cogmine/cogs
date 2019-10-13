@@ -16,8 +16,8 @@
 namespace cogs {
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 /// @ingroup LockFreeCollections
@@ -52,7 +52,7 @@ public:
 	}
 
 	explicit container_stack(volatile allocator_type& al)
-		:	m_deque(al)
+		: m_deque(al)
 	{ }
 
 	void clear() { m_deque.clear(); }
@@ -115,7 +115,7 @@ public:
 	}
 
 	explicit container_stack(volatile allocator_type& al)
-		:	m_deque(al)
+		: m_deque(al)
 	{ }
 
 	void clear() { m_deque.clear(); }

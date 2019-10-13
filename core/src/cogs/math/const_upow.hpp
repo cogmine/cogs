@@ -64,7 +64,7 @@ public:
 
 	static constexpr ulongest high_part = 0;
 	static constexpr ulongest low_part = v;
-	
+
 	static constexpr ulongest value = v;
 };
 

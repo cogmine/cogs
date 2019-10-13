@@ -60,8 +60,8 @@
 //	template <typename>
 //	friend class vector_view;
 //
-//	typedef typename transactable_t::read_token		read_token;
-//	typedef typename transactable_t::write_token	write_token;
+//	typedef typename transactable_t::read_token read_token;
+//	typedef typename transactable_t::write_token write_token;
 //
 //	read_token begin_read() const volatile { return m_contents.begin_read(); }
 //	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt); }

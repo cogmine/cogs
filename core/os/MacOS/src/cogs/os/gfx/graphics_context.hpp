@@ -69,12 +69,12 @@ public:
 		friend class graphics_context;
 
 		__strong NSFont* m_nsFont;
-		bool	m_isUnderlined;
+		bool m_isUnderlined;
 
 	public:
 		font(NSFont* nsFont, bool isUnderlined)
-			:	m_nsFont(nsFont),
-				m_isUnderlined(isUnderlined)
+			: m_nsFont(nsFont),
+			m_isUnderlined(isUnderlined)
 		{
 		}
 
@@ -99,7 +99,7 @@ public:
 			[attribs setObject:m_nsFont forKey:NSFontAttributeName]; 
 			if (m_isUnderlined)
 				[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
-			NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs];	// NSStringDrawingUsesDeviceMetrics | 
+			NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs]; // NSStringDrawingUsesDeviceMetrics | 
 			return canvas::size(r.size.width, r.size.height);
 		}
 	};
@@ -194,7 +194,7 @@ public:
 	{
 		return *singleton<default_font>::get();
 	}
-	
+
 	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
 	{
 		font* derivedFont = f.template static_cast_to<font>().get_ptr();

@@ -16,7 +16,7 @@
 namespace cogs {
 namespace env {
 
-	
+
 inline ulongest umul_longest(const ulongest& src1, const ulongest& src2, ulongest& highPartRtn)
 {
 #ifdef _M_X64

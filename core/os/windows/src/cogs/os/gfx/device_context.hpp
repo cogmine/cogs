@@ -41,7 +41,7 @@ namespace gdi {
 // To avoid multiply deriving from device_context, encapsulate gdi::device_context by value.
 class device_context;
 
-class bitmap;	// forward declared here, defined in bitmap.hpp
+class bitmap; // forward declared here, defined in bitmap.hpp
 
 inline void auto_handle_impl_DeleteObject(HGDIOBJ h) { DeleteObject(h); }
 typedef auto_handle<HGDIOBJ, (HGDIOBJ)NULL, auto_handle_impl_DeleteObject> auto_HGDIOBJ;
@@ -68,9 +68,9 @@ inline void auto_handle_impl_DeleteColorSpace(HCOLORSPACE h) { DeleteColorSpace(
 typedef auto_handle<HCOLORSPACE, (HCOLORSPACE)NULL, auto_handle_impl_DeleteColorSpace> auto_HCOLORSPACE;
 
 
-#define COGS_RENDER_GDIPLUS_FONTS 0 // If 1, use GDI+ font rendering.  If 0, use renders GDI font rendering
-// GDI plus fonts are preferred.  "GDI generally offers better performance and more accurate text measuring (than GDI+)"
-
+#define COGS_RENDER_GDIPLUS_FONTS 0 // If 1, use GDI+ font rendering.  If 0, use GDI font rendering.  GDI fonts are preferred.
+// "GDI text rendering typically offers better performance and more accurate text measuring than GDI+."
+// - https://docs.microsoft.com/en-us/dotnet/framework/winforms/advanced/how-to-draw-text-with-gdi
 
 struct BOUNDS
 {
@@ -109,8 +109,8 @@ public:
 	static constexpr int dip_dpi = 96;
 
 private:
-	rcref<gdi_plus_scope> m_gdiPlusScope;
 	HDC m_hDC = NULL;
+	rcref<gdi_plus_scope> m_gdiPlusScope;
 	container_stack<HRGN> m_savedClips;
 	double m_dpi = dip_dpi;
 	double m_scale = 1.0;
@@ -140,7 +140,7 @@ public:
 				LOGFONT logFont = {};
 				logFont.lfCharSet = DEFAULT_CHARSET;
 				HDC hdc = GetDC(NULL);
-				int i = EnumFontFamiliesEx(hdc, &logFont, &EnumFontFamExProc, (LPARAM)this, 0);
+				EnumFontFamiliesEx(hdc, &logFont, &EnumFontFamExProc, (LPARAM)this, 0);
 				ReleaseDC(NULL, hdc);
 			}
 		};
@@ -182,7 +182,7 @@ public:
 			{
 				auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
 				if (!!itor)
-					return *itor;	// Use case from font list, just in case.  ha
+					return *itor; // Use case from font list, just in case.  ha
 			}
 			return singleton<default_font>::get()->get_font_names()[0];
 		}
@@ -268,7 +268,7 @@ public:
 			// Load default font
 			NONCLIENTMETRICS ncm;
 			ncm.cbSize = sizeof(NONCLIENTMETRICS);// -sizeof(ncm.iPaddedBorderWidth);?
-			BOOL b = SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
+			SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
 
 			append_font_name(ncm.lfMessageFont.lfFaceName);
 			set_italic(ncm.lfMessageFont.lfItalic != 0);
@@ -302,14 +302,13 @@ private:
 #else // GDI
 		HFONT savedFont = SelectFont(m_hDC, f.get_HFONT());
 		TEXTMETRIC tm = {};
-		BOOL b = GetTextMetrics(m_hDC, &tm);
-		COGS_ASSERT(b);
+		GetTextMetrics(m_hDC, &tm);
 		SelectFont(m_hDC, savedFont);
 		result.m_ascent = tm.tmAscent / m_scale;
 		result.m_descent = tm.tmDescent / m_scale;
 		result.m_spacing = (tm.tmHeight + tm.tmExternalLeading) / m_scale;
 #endif
-		
+
 		return result;
 	}
 
@@ -345,13 +344,8 @@ private:
 			r.right = r.bottom = 0;
 			r.top = r.left = 0;
 			HFONT savedFont = SelectFont(m_hDC, f.get_HFONT());
-			int i = DrawText(m_hDC, &(s2[0]), (int)s2.get_length(), &r, DT_CALCRECT);
+			DrawText(m_hDC, &(s2[0]), (int)s2.get_length(), &r, DT_CALCRECT);
 			SelectFont(m_hDC, savedFont);
-
-			//// Because size may be truncated by 1 when translating to int coordinates, pad by 1
-			//r.right++;
-			//r.left++;
-
 			result = make_size(r);
 #endif
 		}
@@ -386,7 +380,7 @@ public:
 		set_dpi(dpi);
 	}
 
-	~device_context()	// Does not free the DC here!
+	~device_context() // Does not free the DC here!
 	{
 		HRGN hRgn;
 		while (!!m_savedClips.pop(hRgn))
@@ -428,7 +422,7 @@ public:
 	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
 	{
 		COGS_ASSERT(!!m_hDC);
-		
+
 		Gdiplus::REAL startX = (Gdiplus::REAL)(startPt.get_x() * m_scale);
 		Gdiplus::REAL startY = (Gdiplus::REAL)(startPt.get_y() * m_scale);
 		Gdiplus::REAL endX = (Gdiplus::REAL)(endPt.get_x() * m_scale);
@@ -472,12 +466,12 @@ public:
 			{
 				string s2 = s.composite();
 
+#if COGS_RENDER_GDIPLUS_FONTS
 				BYTE alph = c.get_alpha();
 				BYTE rd = c.get_red();
 				BYTE grn = c.get_green();
 				BYTE bl = c.get_blue();
 
-#if COGS_RENDER_GDIPLUS_FONTS
 				Gdiplus::Graphics gfx(m_hDC);
 				gfx.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 				gfx.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
@@ -526,8 +520,8 @@ public:
 			}
 		}
 	}
-	
-	virtual void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);	
+
+	virtual void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);
 	virtual void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false);
 	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
@@ -553,7 +547,7 @@ public:
 		COGS_ASSERT(!!m_hDC);
 		HRGN savedClip = CreateRectRgn(0, 0, 0, 0);
 		int i = GetClipRgn(m_hDC, savedClip);
-		if (!i)	// no clipping region right now
+		if (!i) // no clipping region right now
 		{
 			DeleteObject(savedClip);
 			savedClip = 0;
@@ -602,7 +596,7 @@ public:
 		RECT r = make_RECT(b);
 		return (RectVisible(m_hDC, &r) == TRUE);
 	}
-	
+
 	virtual double get_dpi() const
 	{
 		return m_dpi;

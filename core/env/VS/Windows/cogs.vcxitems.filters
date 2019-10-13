@@ -297,12 +297,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\graphics_context.hpp">
       <Filter>os\MacOS\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmask.hpp">
-      <Filter>os\MacOS\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmap.hpp">
-      <Filter>os\MacOS\gfx</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gui\button.hpp">
       <Filter>os\MacOS\gui</Filter>
     </ClInclude>
@@ -1283,6 +1277,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\bitmap_pane.hpp">
       <Filter>core\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmap.hpp">
+      <Filter>os\MacOS\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmask.hpp">
+      <Filter>os\MacOS\gfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

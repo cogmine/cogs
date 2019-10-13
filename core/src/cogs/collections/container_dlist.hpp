@@ -24,8 +24,8 @@ namespace cogs {
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 /// @ingroup LockFreeCollections
@@ -85,8 +85,8 @@ private:
 		~link_t()
 		{ }
 
-		virtual bool is_sentinel() const			{ return false; }
-		virtual bool is_sentinel() const volatile	{ return false; }
+		virtual bool is_sentinel() const { return false; }
+		virtual bool is_sentinel() const volatile { return false; }
 
 		bool is_removed()
 		{
@@ -164,7 +164,7 @@ private:
 				{
 					result = true;
 					prev->m_links.begin_read(rt_prev);
-					if (rt_prev->m_mode == link_mode::removing_next)	// If not spontaneously completed by another thread.
+					if (rt_prev->m_mode == link_mode::removing_next) // If not spontaneously completed by another thread.
 						prev->complete_remove_next(rt_prev);
 					break;
 				}
@@ -233,15 +233,15 @@ private:
 					COGS_ASSERT(!beforeThis->m_links.is_current(rt_beforeThis));
 					continue;
 				}
-				
+
 				if (!beforeThis->m_links.is_current(rt_beforeThis))
 					continue;
-				
+
 				COGS_ASSERT(rt_beforeThisPrev->m_next == beforeThis);
 
 				if ((insertMode != insert_mode::normal) && (beforeThisPrev->is_sentinel() == (insertMode == insert_mode::only_if_not_empty)))
 					break;
-				
+
 				m_links->m_prev = beforeThisPrev.template const_cast_to<link_t>();
 				write_token wt_beforeThisPrev;
 				if (!beforeThisPrev->m_links.promote_read_token(rt_beforeThisPrev, wt_beforeThisPrev))
@@ -273,7 +273,7 @@ private:
 					break;
 
 				COGS_ASSERT((rt_next->m_mode == link_mode::normal) || (rt_next->m_mode == link_mode::removing_next));
-					
+
 				if (nextPrev.get_ptr() == this)
 					break;
 
@@ -313,7 +313,7 @@ private:
 					next->complete_remove_next(rt_next);
 					continue;
 				}
-				COGS_ASSERT(rt_next->m_mode == link_mode::normal);	// Wouldn't be inserting, no need to check link_mode::inserting
+				COGS_ASSERT(rt_next->m_mode == link_mode::normal); // Wouldn't be inserting, no need to check link_mode::inserting
 				write_token wt_next;
 				if (!next->m_links.promote_read_token(rt_next, wt_next))
 					continue;
@@ -353,7 +353,7 @@ private:
 				rcptr<volatile link_t> prev = rt->m_prev;
 				read_token rt_prev;
 				prev->m_links.begin_read(rt_prev);
-				if (rt_prev->m_next.get_ptr() == this)	// otherwise, we're done here.
+				if (rt_prev->m_next.get_ptr() == this) // otherwise, we're done here.
 				{
 					COGS_ASSERT(rt_prev->m_mode == link_mode::removing_next);
 					write_token wt_prev;
@@ -368,7 +368,7 @@ private:
 			}
 		}
 
-		bool begin_read_and_complete(read_token& rt, bool returnTokenEvenIfRemoved) volatile	// returns false this link was removed.
+		bool begin_read_and_complete(read_token& rt, bool returnTokenEvenIfRemoved) volatile // returns false this link was removed.
 		{
 			bool notRemoved = true;
 			rt.release();
@@ -403,7 +403,7 @@ private:
 			return notRemoved;
 		}
 
-		bool is_removed() volatile	// returns false this link was removed.
+		bool is_removed() volatile // returns false this link was removed.
 		{
 			read_token rt;
 			return !begin_read_and_complete(rt, false);
@@ -432,19 +432,19 @@ private:
 		{
 			new (get()) type;
 		}
-		
+
 		payload_link_t(const ptr<rc_obj_base>& desc, const type& t)
 			: link_t(desc)
 		{
 			new (get()) type(t);
 		}
-		
+
 		~payload_link_t()
 		{
 			m_value.destruct();
 		}
 
-		rcref<type>	get_obj()	{ return get_self_rcref(get()); }
+		rcref<type> get_obj() { return get_self_rcref(get()); }
 	};
 
 	template <typename T2>
@@ -478,15 +478,15 @@ private:
 	{
 	public:
 		using link_t::m_links;
-		
+
 		explicit sentinel_link_t(const ptr<rc_obj_base>& desc)
 			: link_t(desc)
 		{
 			m_links->m_next = m_links->m_prev = this_rcptr;
 		}
 
-		virtual bool is_sentinel() const			{ return true; }
-		virtual bool is_sentinel() const volatile	{ return true; }
+		virtual bool is_sentinel() const { return true; }
+		virtual bool is_sentinel() const volatile { return true; }
 	};
 
 	rcptr<link_t> m_sentinel;
@@ -499,11 +499,11 @@ private:
 		for (;;)
 		{
 			wasLast = false;
-			sentinel->begin_read_and_complete(rt, false);	// sentinel won't get deleted, no need to check result
+			sentinel->begin_read_and_complete(rt, false); // sentinel won't get deleted, no need to check result
 			rcptr<volatile link_t> firstLink = rt->m_next;
 			if (firstLink.get_ptr() == sentinel.get_ptr())
 				return false;
-			if (firstLink->is_removed())	// also completes other states
+			if (firstLink->is_removed()) // also completes other states
 				continue;
 
 			write_token wt;
@@ -519,7 +519,7 @@ private:
 			if (!sentinel->m_links.end_write(wt))
 				continue;
 
-			sentinel->begin_read_and_complete(rt, false);	// completes remove-next
+			sentinel->begin_read_and_complete(rt, false); // completes remove-next
 			*t = *(firstLink.template const_cast_to<link_t>()->get());
 			result = true;
 			break;
@@ -537,11 +537,11 @@ private:
 		for (;;)
 		{
 			wasLast = false;
-			sentinel->begin_read_and_complete(rt_sentinel, false);	// sentinel won't get deleted, no need to check result
+			sentinel->begin_read_and_complete(rt_sentinel, false); // sentinel won't get deleted, no need to check result
 			rcptr<volatile link_t> lastLink = rt_sentinel->m_prev;
 			if (lastLink.get_ptr() == sentinel.get_ptr())
 				break;
-			if (lastLink->is_removed())	// also completes other states
+			if (lastLink->is_removed()) // also completes other states
 				continue;
 			if (!lastLink->begin_read_and_complete(rt_last, false))
 				continue;
@@ -566,7 +566,7 @@ private:
 			if (!prev->m_links.end_write(wt_prev))
 				continue;
 
-			prev->begin_read_and_complete(rt_prev, false);	// completes remove-next
+			prev->begin_read_and_complete(rt_prev, false); // completes remove-next
 			if (!!t)
 				*t = *(lastLink.template const_cast_to<link_t>()->get());
 			result = true;
@@ -630,19 +630,19 @@ public:
 		friend class remove_token;
 		friend class preallocated_t;
 
-		iterator(const rcptr<link_t>& l) : m_link(l)	{ }
+		iterator(const rcptr<link_t>& l) : m_link(l) { }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		iterator()												{ }
-		iterator(const iterator& i) : m_link(i.m_link)	{ }
-		iterator(const remove_token& rt) : m_link(rt.m_link)	{ if (is_removed()) release(); }
+		iterator() { }
+		iterator(const iterator& i) : m_link(i.m_link) { }
+		iterator(const remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
-		void release()				{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool is_active() const		{ return !!m_link && !m_link->is_removed(); }
-		bool is_removed() const		{ return !!m_link && m_link->is_removed(); }	// implies that it was in the list.  null m_link returns false
+		bool is_active() const { return !!m_link && !m_link->is_removed(); }
+		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
 
 		iterator& operator++()
 		{
@@ -676,23 +676,23 @@ public:
 			return *this;
 		}
 
-		iterator operator++(int)			{ iterator i(*this); ++*this; return i; }
-		iterator operator--(int)			{ iterator i(*this); --*this; return i; }
+		iterator operator++(int) { iterator i(*this); ++* this; return i; }
+		iterator operator--(int) { iterator i(*this); --* this; return i; }
 
-		bool operator!() const								{ return !m_link; }
+		bool operator!() const { return !m_link; }
 
-		bool operator==(const iterator& i) const			{ return m_link == i.m_link; }
-		bool operator==(const remove_token& i) const		{ return m_link == i.m_link; }
+		bool operator==(const iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const remove_token& i) const { return m_link == i.m_link; }
 
-		bool operator!=(const iterator& i) const			{ return !operator==(i); }
-		bool operator!=(const remove_token& i) const		{ return !operator==(i); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		bool operator!=(const remove_token& i) const { return !operator==(i); }
 
-		iterator& operator=(const iterator& i)				{ m_link = i.m_link; return *this; }
-		iterator& operator=(const remove_token& i)			{ m_link = i.m_link; if (is_removed()) release(); return *this; }
+		iterator& operator=(const iterator& i) { m_link = i.m_link; return *this; }
+		iterator& operator=(const remove_token& i) { m_link = i.m_link; if (is_removed()) release(); return *this; }
 
-		type* get() const								{ return (!m_link) ? (type*)0 : m_link->get(); }
-		type& operator*() const							{ return *(m_link->get()); }
-		type* operator->() const						{ return m_link->get(); }
+		type* get() const { return (!m_link) ? (type*)0 : m_link->get(); }
+		type& operator*() const { return *(m_link->get()); }
+		type* operator->() const { return m_link->get(); }
 
 		rcptr<type> get_obj() const
 		{
@@ -702,8 +702,8 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
 		iterator next() const
 		{
@@ -712,7 +712,7 @@ public:
 			{
 				rcptr<link_t>* lnk = &(m_link->m_links->m_next);
 				while (!(*lnk)->is_sentinel())
-				{	
+				{
 					if ((*lnk)->m_links->m_mode != link_mode::removing)
 					{
 						result.m_link = *lnk;
@@ -756,19 +756,19 @@ public:
 		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l) { }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		volatile_iterator()																	{ }
-		volatile_iterator(const volatile_iterator& i) : m_link(i.m_link)					{ }
-		volatile_iterator(const volatile_remove_token& rt) : m_link(rt.m_link)				{ if (is_removed()) release(); }
-		volatile_iterator(const volatile volatile_iterator& i) : m_link(i.m_link)			{ }
-		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link)		{ if (is_removed()) release(); }
+		volatile_iterator() { }
+		volatile_iterator(const volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_iterator(const volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
+		volatile_iterator(const volatile volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
-		volatile_iterator& operator=(const volatile_iterator& i)					{ m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile_remove_token& rt)				{ m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		volatile_iterator& operator=(const volatile volatile_iterator& i)			{ m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile volatile_remove_token& rt)		{ m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		void operator=(const volatile_iterator& i) volatile							{ m_link = i.m_link; }
+		volatile_iterator& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_iterator& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		volatile_iterator& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_iterator& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
 		void operator=(const volatile_remove_token& rt) volatile
 		{
 			rcptr<volatile link_t> lnk = rt.m_link;
@@ -777,11 +777,11 @@ public:
 			m_link = lnk;
 		}
 
-		bool is_active() const				{ return !!m_link && !m_link->is_removed(); }
-		bool is_active() const volatile		{ rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const { return !!m_link && !m_link->is_removed(); }
+		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
-		bool is_removed() const				{ return !!m_link && m_link->is_removed(); }
-		bool is_removed() const volatile	{ rcptr<volatile link_t> lnk(m_link); return !!lnk && lnk->is_removed(); }
+		bool is_removed() const { return !!m_link && m_link->is_removed(); }
+		bool is_removed() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && lnk->is_removed(); }
 
 		const volatile_iterator& operator++()
 		{
@@ -891,7 +891,7 @@ public:
 			return result;
 		}
 
-		volatile_iterator operator++(int)			{ volatile_iterator i(*this); ++*this; return i; }
+		volatile_iterator operator++(int) { volatile_iterator i(*this); ++* this; return i; }
 
 		volatile_iterator operator++(int) volatile
 		{
@@ -907,7 +907,7 @@ public:
 			return original;
 		}
 
-		volatile_iterator operator--(int)			{ volatile_iterator i(*this); --*this; return i; }
+		volatile_iterator operator--(int) { volatile_iterator i(*this); --* this; return i; }
 
 		volatile_iterator operator--(int) volatile
 		{
@@ -923,31 +923,31 @@ public:
 			return original;
 		}
 
-		bool operator!() const											{ return !m_link; }
-		bool operator!() const volatile									{ return !m_link; }
+		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const				{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile		{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const			{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_remove_token& i) const	{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const volatile	{ return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& i) const volatile { return m_link == i.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const				{ return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile		{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const			{ return !operator==(i); }
-		bool operator!=(const volatile volatile_remove_token& i) const	{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const volatile	{ return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_remove_token& i) const { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& i) const volatile { return !operator==(i); }
 
-		type* get() const												{ return (!m_link) ? (type*)0 : m_link.template const_cast_to<link_t>()->get(); }
-		type& operator*() const											{ return *(get()); }
-		type* operator->() const										{ return get(); }
+		type* get() const { return (!m_link) ? (type*)0 : m_link.template const_cast_to<link_t>()->get(); }
+		type& operator*() const { return *(get()); }
+		type* operator->() const { return get(); }
 
-		void release()													{ m_link.release(); }
-		void release() volatile											{ m_link.release(); }
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
-		rcptr<type>	get_obj() const
+		rcptr<type> get_obj() const
 		{
 			rcptr<type> result;
 			if (!!m_link)
@@ -955,11 +955,11 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
-		volatile_iterator next() const	{ volatile_iterator result(this); ++result; return result; }
-		volatile_iterator prev() const	{ volatile_iterator result(this); --result; return result; }
+		volatile_iterator next() const { volatile_iterator result(this); ++result; return result; }
+		volatile_iterator prev() const { volatile_iterator result(this); --result; return result; }
 
 		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) volatile
 		{
@@ -985,24 +985,24 @@ public:
 		{ }
 
 	public:
-		void disown()	{ m_link.disown(); }
+		void disown() { m_link.disown(); }
 
-		preallocated_t()	{ }
-		
+		preallocated_t() { }
+
 		preallocated_t(const preallocated_t& src)
 			: m_link(src.m_link)
 		{ }
 
-		void release()										{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool operator!() const								{ return !m_link; }
-		bool operator==(const preallocated_t& i) const		{ return m_link == i.m_link; }
-		bool operator!=(const preallocated_t& i) const		{ return !operator==(i); }
-		preallocated_t& operator=(const preallocated_t& i)		{ m_link = i.m_link; return *this; }
+		bool operator!() const { return !m_link; }
+		bool operator==(const preallocated_t & i) const { return m_link == i.m_link; }
+		bool operator!=(const preallocated_t & i) const { return !operator==(i); }
+		preallocated_t& operator=(const preallocated_t & i) { m_link = i.m_link; return *this; }
 
-		type* get() const								{ return (!m_link) ? (type*)0 : m_link->get(); }
-		type& operator*() const							{ return *(m_link->get()); }
-		type* operator->() const						{ return m_link->get(); }
+		type* get() const { return (!m_link) ? (type*)0 : m_link->get(); }
+		type& operator*() const { return *(m_link->get()); }
+		type* operator->() const { return m_link->get(); }
 
 		rcptr<type> get_obj() const
 		{
@@ -1011,9 +1011,9 @@ public:
 				result = m_link.template static_cast_to<payload_link_t>()->get_obj();
 			return result;
 		}
-		
-		rc_obj_base* get_desc() const		{ return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile		{ return m_link.get_desc(); }
+
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 	};
 
 	/// @brief A container_dlist element remove token
@@ -1026,26 +1026,26 @@ public:
 
 		friend class container_dlist;
 	public:
-		remove_token()												{ }
-		remove_token(const preallocated_t& i)	: m_link(i.m_link)	{ }
-		remove_token(const iterator& i)			: m_link(i.m_link)	{ }
-		remove_token(const remove_token& rt)	: m_link(rt.m_link)	{ }
+		remove_token() { }
+		remove_token(const preallocated_t& i) : m_link(i.m_link) { }
+		remove_token(const iterator& i) : m_link(i.m_link) { }
+		remove_token(const remove_token& rt) : m_link(rt.m_link) { }
 
-		remove_token& operator=(const preallocated_t& i)	{ m_link = i.m_link; return *this; }
-		remove_token& operator=(const iterator& i)			{ m_link = i.m_link; return *this; }
-		remove_token& operator=(const remove_token& rt)		{ m_link = rt.m_link; return *this; }
+		remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const iterator& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const remove_token& rt) { m_link = rt.m_link; return *this; }
 
-		bool is_active() const							{ rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
-		void release()									{ m_link.release(); }
+		void release() { m_link.release(); }
 
-		bool operator!() const							{ return !m_link; }
+		bool operator!() const { return !m_link; }
 
-		bool operator==(const iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const remove_token& rt) const	{ return m_link == rt.m_link; }
+		bool operator==(const iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const remove_token& rt) const { return m_link == rt.m_link; }
 
-		bool operator!=(const iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const remove_token& rt) const	{ return !operator==(rt); }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
 	};
 
 	/// @brief A volatile container_dlist element remove token
@@ -1058,44 +1058,44 @@ public:
 
 		friend class container_dlist;
 	public:
-		volatile_remove_token()																{ }
-		volatile_remove_token(const          preallocated_t& i) : m_link(i.m_link)			{ }
-		volatile_remove_token(const          volatile_iterator& i) : m_link(i.m_link)		{ }
-		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link)		{ }
-		volatile_remove_token(const          volatile_remove_token& rt) : m_link(rt.m_link)	{ }
-		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link)	{ }
+		volatile_remove_token() { }
+		volatile_remove_token(const preallocated_t& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile_remove_token& rt) : m_link(rt.m_link) { }
+		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { }
 
-		volatile_remove_token& operator=(const preallocated_t& i)					{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_iterator& i)				{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_iterator& i)		{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_remove_token& i)			{ m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_remove_token& i)	{ m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile_remove_token& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile volatile_remove_token& i) { m_link = i.m_link; return *this; }
 
-		void operator=(const volatile_iterator& i) volatile							{ m_link = i.m_link; }
-		void operator=(const volatile_remove_token& i) volatile						{ m_link = i.m_link; }
+		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
+		void operator=(const volatile_remove_token& i) volatile { m_link = i.m_link; }
 
-		bool is_active() const				{ rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
-		bool is_active() const volatile		{ rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
-		void release()						{ m_link.release(); }
-		void release() volatile				{ m_link.release(); }
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
-		bool operator!() const				{ return !m_link; }
-		bool operator!() const volatile		{ return !m_link; }
+		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const				{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const		{ return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile		{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const			{ return m_link == i.m_link; }
-		bool operator==(const volatile volatile_remove_token& i) const	{ return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const volatile	{ return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile volatile_remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile_remove_token& i) const volatile { return m_link == i.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const				{ return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const		{ return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile		{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const			{ return !operator==(i); }
-		bool operator!=(const volatile volatile_remove_token& i) const	{ return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const volatile	{ return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& i) const { return !operator==(i); }
+		bool operator!=(const volatile volatile_remove_token& i) const { return !operator==(i); }
+		bool operator!=(const volatile_remove_token& i) const volatile { return !operator==(i); }
 	};
 
 	container_dlist()
@@ -1130,7 +1130,7 @@ public:
 			clear_inner();
 			m_sentinel->m_links->m_next.release();
 			m_sentinel->m_links->m_prev.release();
-			COGS_ASSERT(m_sentinel.get_desc()->is_owned());	// Should only be referenced by container_dlist itself
+			COGS_ASSERT(m_sentinel.get_desc()->is_owned()); // Should only be referenced by container_dlist itself
 		}
 	}
 
@@ -1141,7 +1141,7 @@ public:
 			clear_inner();
 			m_sentinel->m_links->m_next = m_sentinel;
 			m_sentinel->m_links->m_prev = m_sentinel;
-			COGS_ASSERT(m_sentinel.get_desc()->get_strong_count() == 3);	// Should only be referenced by container_dlist itself
+			COGS_ASSERT(m_sentinel.get_desc()->get_strong_count() == 3); // Should only be referenced by container_dlist itself
 		}
 	}
 
@@ -1153,15 +1153,15 @@ public:
 		return foundAny;
 	}
 
-	bool is_empty() const			{ return !m_sentinel || ((m_sentinel->m_links->m_next.get_ptr() == m_sentinel.get_ptr())); }
+	bool is_empty() const { return !m_sentinel || ((m_sentinel->m_links->m_next.get_ptr() == m_sentinel.get_ptr())); }
 	bool is_empty() const volatile
 	{
 		volatile link_t* sentinel = m_sentinel.get_ptr();
 		return !sentinel || (sentinel->m_links.begin_read()->m_next.get_ptr() == sentinel);
 	}
 
-	bool operator!() const			{ return is_empty(); }
-	bool operator!() const volatile	{ return is_empty(); }
+	bool operator!() const { return is_empty(); }
+	bool operator!() const volatile { return is_empty(); }
 
 	iterator get_first() const
 	{
@@ -1221,8 +1221,8 @@ public:
 		return i;
 	}
 
-	preallocated_t preallocate() const volatile					{ preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
-	preallocated_t preallocate(const type& t) const volatile	{ preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
+	preallocated_t preallocate() const volatile { preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
+	preallocated_t preallocate(const type& t) const volatile { preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
 
 	template <typename T2>
 	const rcref<T2>& preallocate_with_aux(preallocated_t& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile

@@ -54,11 +54,11 @@ private:
 			m_freelist->release(this);
 		}
 
-		T* get_obj()			{ return get_type_block_from_header<descriptor_t, T>(this); }
+		T* get_obj() { return get_type_block_from_header<descriptor_t, T>(this); }
 
-		static descriptor_t* from_obj(T* obj)	{ return get_header_from_type_block<descriptor_t, T>(obj); }
+		static descriptor_t* from_obj(T* obj) { return get_header_from_type_block<descriptor_t, T>(obj); }
 	};
-	
+
 	typedef placement_type_header_storage<descriptor_t, T>  placement_t;
 
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
@@ -96,7 +96,7 @@ public:
 		{
 			ptr<descriptor_t> next = n->m_next;
 			n->get_obj()->~type();
-			n->~descriptor_t();
+			n->descriptor_t::~descriptor_t();
 			if ((n < (descriptor_t*)&(m_preallocated[0])) || (n >= (descriptor_t*)&(m_preallocated[num_preallocated])))
 				m_allocator.deallocate(n);
 			n = next;
@@ -173,9 +173,9 @@ private:
 			m_freelist->release(this);
 		}
 
-		T* get_obj()			{ return get_type_block_from_header<descriptor_t, T>(this); }
+		T* get_obj() { return get_type_block_from_header<descriptor_t, T>(this); }
 
-		static descriptor_t* from_obj(T* obj)	{ return get_header_from_type_block<descriptor_t, T>(obj); }
+		static descriptor_t* from_obj(T* obj) { return get_header_from_type_block<descriptor_t, T>(obj); }
 	};
 
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
@@ -209,7 +209,7 @@ public:
 		{
 			ptr<descriptor_t> next = n->m_next;
 			n->get_obj()->~type();
-			n->~descriptor_t();
+			n->descriptor_t::~descriptor_t();
 			m_allocator.deallocate(n);
 			n = next;
 		}

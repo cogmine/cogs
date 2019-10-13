@@ -43,7 +43,7 @@ public:
 		{
 			if (n > src.get_length())
 				n = src.get_length();
-			
+
 			result = src.split_off_before(n);
 			m_remaining -= n;
 		}

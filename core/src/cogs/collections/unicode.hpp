@@ -29,10 +29,10 @@ public:
 
 	enum normalization_form
 	{
-		NFD,	// Normalization Form D (NFD) Canonical Decomposition 
-		NFC,	// Normalization Form C (NFC) Canonical Decomposition, followed by Canonical Composition
-		NFKD,	// Normalization Form KD (NFKD) Compatibility Decomposition 
-		NFKC	// Normalization Form KC (NFKC) Compatibility Decomposition, followed by Canonical Composition
+		NFD,  // Normalization Form D (NFD) Canonical Decomposition 
+		NFC,  // Normalization Form C (NFC) Canonical Decomposition, followed by Canonical Composition
+		NFKD, // Normalization Form KD (NFKD) Compatibility Decomposition 
+		NFKC  // Normalization Form KC (NFKC) Compatibility Decomposition, followed by Canonical Composition
 	};
 
 

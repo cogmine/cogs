@@ -29,8 +29,8 @@
 
 
 #pragma warning(push)
-#pragma warning (disable: 4521)	// multiple copy constructors specified
-#pragma warning (disable: 4522)	// multiple assignment operators specified
+#pragma warning (disable: 4521) // multiple copy constructors specified
+#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 namespace cogs {
@@ -52,8 +52,8 @@ template <> class is_signed<dynamic_integer> : public std::true_type { };
 class dynamic_integer_content
 {
 public:
-	typedef vector_descriptor<ulongest>	desc_t;
-	typedef vector_content<ulongest>	vector_content_t;
+	typedef vector_descriptor<ulongest> desc_t;
+	typedef vector_content<ulongest> vector_content_t;
 
 	vector_content_t m_digits;
 	bool m_isNegative;
@@ -62,12 +62,12 @@ public:
 		: m_isNegative(false)
 	{ }
 
-	dynamic_integer_content(const dynamic_integer_content& src)	// does not acquire
+	dynamic_integer_content(const dynamic_integer_content& src) // does not acquire
 		: m_digits(src.m_digits),
 		m_isNegative(src.m_isNegative)
 	{ }
 
-	dynamic_integer_content(const vector_content_t& digits, bool isNegative)	// does not acquire
+	dynamic_integer_content(const vector_content_t& digits, bool isNegative) // does not acquire
 		: m_digits(digits),
 		m_isNegative(isNegative)
 	{ }
@@ -91,7 +91,7 @@ public:
 	}
 
 	dynamic_integer_content& operator=(dynamic_integer_content&& src)
-	{		
+	{
 		m_digits.release();
 		m_digits.set(src.m_digits);
 		m_isNegative = src.m_isNegative;
@@ -99,7 +99,7 @@ public:
 		return *this;
 	}
 
-	dynamic_integer_content& operator=(const dynamic_integer_content& src)	// does not acquire, but releases existing
+	dynamic_integer_content& operator=(const dynamic_integer_content& src) // does not acquire, but releases existing
 	{
 		m_digits.release();
 		m_digits.set(src.m_digits);
@@ -107,14 +107,14 @@ public:
 		return *this;
 	}
 
-	dynamic_integer_content& operator=(const vector_content_t& src)	// does not acquire, but releases existing
+	dynamic_integer_content& operator=(const vector_content_t& src) // does not acquire, but releases existing
 	{
 		m_digits.release();
 		m_digits.set(src);
 		return *this;
 	}
 
-	void assign(const dynamic_integer_content& src)	// does acquire
+	void assign(const dynamic_integer_content& src) // does acquire
 	{
 		m_digits.acquire(src.m_digits);
 		m_isNegative = src.m_isNegative;
@@ -324,7 +324,7 @@ public:
 		return m_isNegative ? -result : result;
 	}
 
-	int compare(const ulongest* cmpDigits, size_t cmpLength) const	// assumes positive
+	int compare(const ulongest* cmpDigits, size_t cmpLength) const // assumes positive
 	{
 		size_t n = m_digits.get_length();
 		if (n > cmpLength)
@@ -360,7 +360,7 @@ public:
 		{
 			if (!cmp.is_negative())
 				return -1;
-			size_t sz = m_digits.get_length();	// will be >0 because m_isNegative is true
+			size_t sz = m_digits.get_length(); // will be >0 because m_isNegative is true
 			size_t cmpDigits = fixed_integer_extended<has_sign, bits>::n_digits;
 			if (sz > cmpDigits)
 				return -1;
@@ -406,7 +406,7 @@ public:
 	>
 	compare(const int_t2& cmp) const
 	{
-		if (m_isNegative)	// sz won't be 0 if negative
+		if (m_isNegative) // sz won't be 0 if negative
 			return -1;
 
 		size_t sz = m_digits.get_length();
@@ -430,14 +430,14 @@ public:
 	>
 	compare(const int_t2& cmp) const
 	{
-		if (m_isNegative)	// sz won't be 0 if negative
+		if (m_isNegative) // sz won't be 0 if negative
 		{
 			if (cmp >= 0)
 				return -1;
 			size_t sz = m_digits.get_length();
 			if (sz > 1)
-				return -1;								// else sz == 1
-			ulongest tmpCmp = (ulongest)-(longest)cmp;	// should fit
+				return -1; // else sz == 1
+			ulongest tmpCmp = (ulongest)-(longest)cmp; // should fit
 			ulongest firstDigit = get_const_ptr()[0];
 			if (firstDigit == tmpCmp)
 				return 0;
@@ -452,7 +452,7 @@ public:
 				return 1;
 			if (sz == 0)
 				return !cmp ? 0 : -1;
-			ulongest tmpCmp = (ulongest)cmp;	// should fit
+			ulongest tmpCmp = (ulongest)cmp; // should fit
 			ulongest firstDigit = m_digits.get_const_ptr()[0];
 			if (firstDigit == tmpCmp)
 				return 0;
@@ -484,14 +484,14 @@ public:
 	template <bool has_sign, size_t bits>
 	bool equals(const fixed_integer_native<has_sign, bits>& cmp) const
 	{
-		if (m_isNegative)	// sz won't be 0 if negative
+		if (m_isNegative) // sz won't be 0 if negative
 		{
 			if (!cmp.is_negative())
 				return false;
 			size_t sz = m_digits.get_length();
 			if (sz > 1)
-				return false;									// else sz == 1
-			return m_digits.get_const_ptr()[0] == (ulongest)-(longest)(cmp.get_int());	// should fit
+				return false; // else sz == 1
+			return m_digits.get_const_ptr()[0] == (ulongest)-(longest)(cmp.get_int()); // should fit
 		}
 		else
 		{
@@ -502,12 +502,12 @@ public:
 				return false;
 			if (sz == 0)
 				return !cmp;
-			return m_digits.get_const_ptr()[0] == (ulongest)cmp.get_int();		// should fit
+			return m_digits.get_const_ptr()[0] == (ulongest)cmp.get_int(); // should fit
 		}
 	}
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	bool equals(const int_t2& cmp) const	// int version needed by compare_exchange
+	bool equals(const int_t2& cmp) const // int version needed by compare_exchange
 	{
 		int_to_fixed_integer_t<int_t2> tmp(cmp);
 		return equals(cmp);
@@ -520,7 +520,7 @@ public:
 		{
 			if (!cmp.is_negative())
 				return false;
-			size_t sz = m_digits.get_length();	// will be >0 because m_isNegative is true
+			size_t sz = m_digits.get_length(); // will be >0 because m_isNegative is true
 			size_t cmpDigits = fixed_integer_extended<has_sign, bits>::n_digits;
 			if (sz > cmpDigits)
 				return false;
@@ -573,7 +573,7 @@ public:
 		}
 	}
 
-	bool is_greater_than(const ulongest* cmpDigits, size_t cmpLength) const	// Assumes both are positive
+	bool is_greater_than(const ulongest* cmpDigits, size_t cmpLength) const // Assumes both are positive
 	{
 		size_t length = m_digits.get_length();
 		if (length > cmpLength)
@@ -597,14 +597,14 @@ public:
 	template <bool has_sign, size_t bits>
 	bool is_greater_than(const fixed_integer_native<has_sign, bits>& cmp) const
 	{
-		if (m_isNegative)	// sz won't be 0 if negative
+		if (m_isNegative) // sz won't be 0 if negative
 		{
 			if (!cmp.is_negative())
 				return false;
 			size_t sz = m_digits.get_length();
 			if (sz > 1)
-				return false;									// else sz == 1
-			ulongest tmpCmp = (ulongest)-(longest)(cmp.get_int());	// should fit
+				return false; // else sz == 1
+			ulongest tmpCmp = (ulongest)-(longest)(cmp.get_int()); // should fit
 			return (m_digits.get_const_ptr()[0] < tmpCmp);
 		}
 		else
@@ -616,7 +616,7 @@ public:
 				return true;
 			if (sz == 0)
 				return false;
-			ulongest tmpCmp = (ulongest)cmp.get_int();	// should fit
+			ulongest tmpCmp = (ulongest)cmp.get_int(); // should fit
 			return (m_digits.get_const_ptr()[0] > tmpCmp);
 		}
 	}
@@ -628,7 +628,7 @@ public:
 		{
 			if (!cmp.is_negative())
 				return false;
-			size_t sz = m_digits.get_length();	// will be >0 because m_isNegative is true
+			size_t sz = m_digits.get_length(); // will be >0 because m_isNegative is true
 			size_t cmpDigits = fixed_integer_extended<has_sign, bits>::n_digits;
 			if (sz > cmpDigits)
 				return false;
@@ -667,7 +667,7 @@ public:
 		}
 	}
 
-	bool is_less_than(const ulongest* cmpDigits, size_t cmpLength) const	// Assumes both are positive
+	bool is_less_than(const ulongest* cmpDigits, size_t cmpLength) const // Assumes both are positive
 	{
 		size_t length = m_digits.get_length();
 		if (length < cmpLength)
@@ -707,14 +707,14 @@ public:
 	template <bool has_sign, size_t bits>
 	bool is_less_than(const fixed_integer_native<has_sign, bits>& cmp) const
 	{
-		if (m_isNegative)	// sz won't be 0 if negative
+		if (m_isNegative) // sz won't be 0 if negative
 		{
 			if (!cmp.is_negative())
 				return true;
 			size_t sz = m_digits.get_length();
 			if (sz > 1)
-				return true;									// else sz == 1
-			ulongest tmpCmp = (ulongest)-(longest)(cmp.get_int());	// should fit
+				return true; // else sz == 1
+			ulongest tmpCmp = (ulongest)-(longest)(cmp.get_int()); // should fit
 			return (m_digits.get_const_ptr()[0] > tmpCmp);
 		}
 		else
@@ -725,8 +725,8 @@ public:
 			if (sz > 1)
 				return false;
 			if (sz == 0)
-				return !!cmp.get_int();	// we are less if cmp is non-zero
-			ulongest tmpCmp = (ulongest)cmp.get_int();	// should fit
+				return !!cmp.get_int(); // we are less if cmp is non-zero
+			ulongest tmpCmp = (ulongest)cmp.get_int(); // should fit
 			return (m_digits.get_const_ptr()[0] < tmpCmp);
 		}
 	}
@@ -738,7 +738,7 @@ public:
 		{
 			if (!cmp.is_negative())
 				return true;
-			size_t sz = m_digits.get_length();	// will be >0 because m_isNegative is true
+			size_t sz = m_digits.get_length(); // will be >0 because m_isNegative is true
 			size_t cmpDigits = fixed_integer_extended<has_sign, bits>::n_digits;
 			if (sz > cmpDigits)
 				return true;
@@ -827,8 +827,10 @@ public:
 
 
 	// Addition
-	void add(const ulongest* src1Digits, size_t src1Length, const ulongest* src2Digits, size_t src2Length)	// Assumes both are positive and not-zero
-	{																										// Does not set m_isNegative
+	void add(const ulongest* src1Digits, size_t src1Length, const ulongest* src2Digits, size_t src2Length)
+	{
+		// Assumes both are positive and not-zero
+		// Does not set m_isNegative
 		size_t shorterLength;
 		size_t longerLength;
 		const ulongest* longerDigits;
@@ -875,7 +877,7 @@ public:
 			dstDigits[i] = 1;
 	}
 
-	void add(const dynamic_integer_content& src1, const dynamic_integer_content& src2)	// assumes neither src1 or src2 are this
+	void add(const dynamic_integer_content& src1, const dynamic_integer_content& src2) // assumes neither src1 or src2 are this
 	{
 		size_t src1Length = src1.m_digits.get_length();
 		if (!src1Length)
@@ -973,8 +975,10 @@ public:
 	}
 
 	// Add to
-	void add(const ulongest* srcDigits, size_t srcLength)	// Assumes both are positive and not-zero
-	{														// Does not set m_isNegative
+	void add(const ulongest* srcDigits, size_t srcLength)
+	{
+		// Assumes both are positive and not-zero
+		// Does not set m_isNegative
 		vector_content_t tmp(m_digits);
 		tmp.acquire();
 		add(srcDigits, srcLength, tmp.get_const_ptr(), tmp.get_length());
@@ -1077,7 +1081,8 @@ public:
 
 	// Subtraction
 	void subtract2(const ulongest* src1Digits, size_t src1Length, const ulongest* src2Digits, size_t src2Length)
-	{											// (src1Length >= src2Length) && (src2Length > 0)
+	{
+		// (src1Length >= src2Length) && (src2Length > 0)
 		ulongest* digits = m_digits.m_ptr;
 		bool overflow = false;
 		ulongest src1Digit;
@@ -1104,11 +1109,13 @@ public:
 			digits[i] = newValue;
 		}
 		if (newValue == 0)
-			m_digits.truncate(1);	// At most will need to shrink by 1
+			m_digits.truncate(1); // At most will need to shrink by 1
 	}
 
-	void subtract(const ulongest* src1Digits, size_t src1Length, const ulongest* src2Digits, size_t src2Length)	// Assumes both are same sign and both lengths are >0
-	{												// Will invert m_isNegative if src2 > src1.  Will set m_isNegative to false if result is 0
+	void subtract(const ulongest* src1Digits, size_t src1Length, const ulongest* src2Digits, size_t src2Length)
+	{
+		// Assumes both are same sign and both lengths are >0
+		// Will invert m_isNegative if src2 > src1.  Will set m_isNegative to false if result is 0
 		m_digits.clear();
 		if (src1Length > src2Length)
 		{
@@ -1537,7 +1544,7 @@ public:
 			size_t src2LengthNext = src2Length - 1;
 			if (src2Digits[src2LengthNext] != 0)
 				break;
-			if (!src2LengthNext)	// src2 is zero
+			if (!src2LengthNext) // src2 is zero
 			{
 				clear();
 				return;
@@ -1621,7 +1628,7 @@ public:
 				size_t srcLengthNext = srcLength - 1;
 				if (srcDigits[srcLengthNext] != 0)
 					break;
-				if (!srcLengthNext)	// src is zero
+				if (!srcLengthNext) // src is zero
 				{
 					clear();
 					return;
@@ -1657,7 +1664,7 @@ public:
 			i = nextIndex;
 			srcValue = srcValueNext;
 		}
-		m_digits.truncate_to(srcLength);	// Might still have trailing zeroes
+		m_digits.truncate_to(srcLength); // Might still have trailing zeroes
 	}
 
 	// Division
@@ -1689,8 +1696,8 @@ public:
 		{
 			size_t moduloDigits = denomLength;
 			size_t bitShift = bit_scan_forward(denomHighDigitValue);
-			if (!bitShift)		// No bit shifting necessary, just digit shifting
-				--moduloDigits;	// Will be >0 because denom is known != 1
+			if (!bitShift) // No bit shifting necessary, just digit shifting
+				--moduloDigits; // Will be >0 because denom is known != 1
 			size_t divideDigits = numerLength - moduloDigits;
 			if (!!result)
 			{
@@ -1725,7 +1732,7 @@ public:
 				// We special case a high divisor digit of max value, as +1 causes it to overflow into an additional digit.
 				if (denomHighDigitValue >= highMask)
 				{
-					if (highIndex == denomHighIndex)	// highDigit of src2 is so large, there can only possibly be 1
+					if (highIndex == denomHighIndex) // highDigit of src2 is so large, there can only possibly be 1
 					{
 						subtract(denomDigits, denomLength);
 						if (!!result)
@@ -1840,7 +1847,7 @@ public:
 									highIndex--;
 									continue;
 								}
-								onBoundary = true;	// (highRemainder < denomHighDigitValue) && (highRemainder != 0)
+								onBoundary = true; // (highRemainder < denomHighDigitValue) && (highRemainder != 0)
 							}
 						}
 						else if (highRemainder == 0)
@@ -1927,14 +1934,14 @@ public:
 	void divide_whole_and_assign_modulo(const dynamic_integer_content& denom, dynamic_integer_content& result)
 	{
 		size_t denomLength = denom.m_digits.get_length();
-		if (!denomLength)	// divide by zero?
+		if (!denomLength) // divide by zero?
 		{
 			result.clear();
 			clear();
 			return;
 		}
 
-		if ((denomLength == 1) && (denom.m_digits.get_const_ptr()[0] == 1))	// div by 1 optimization
+		if ((denomLength == 1) && (denom.m_digits.get_const_ptr()[0] == 1)) // div by 1 optimization
 		{
 			result.m_digits.acquire(m_digits);
 			result.m_isNegative = (m_isNegative != denom.m_isNegative);
@@ -1964,8 +1971,8 @@ public:
 	void divide_whole_and_assign_modulo(const dynamic_integer_content& denom)
 	{
 		size_t denomLength = denom.m_digits.get_length();
-		if (!denomLength	// divide by zero?
-			|| ((denomLength == 1) && (denom.m_digits.get_const_ptr()[0] == 1)))	// div by 1 optimization
+		if (!denomLength // divide by zero?
+			|| ((denomLength == 1) && (denom.m_digits.get_const_ptr()[0] == 1))) // div by 1 optimization
 			clear();
 		else
 		{
@@ -1983,7 +1990,7 @@ public:
 	template <bool has_sign, size_t bits>
 	void divide_whole_and_assign_modulo(const fixed_integer_native<has_sign, bits>& denom, dynamic_integer_content& result)
 	{
-		if (!denom)	// divide by zero?
+		if (!denom) // divide by zero?
 		{
 			result.clear();
 			clear();
@@ -1991,7 +1998,7 @@ public:
 		}
 
 		auto absDenom = denom.abs();
-		if (absDenom == 1)	// div by 1 optimization
+		if (absDenom == 1) // div by 1 optimization
 		{
 			result.m_digits.acquire(m_digits);
 			result.m_isNegative = (m_isNegative != denom.is_negative());
@@ -2022,12 +2029,12 @@ public:
 	template <bool has_sign, size_t bits>
 	void divide_whole_and_assign_modulo(const fixed_integer_native<has_sign, bits>& denom)
 	{
-		if (!denom)	// divide by zero?
+		if (!denom) // divide by zero?
 			clear();
 		else
 		{
 			auto absDenom = denom.abs();
-			if (absDenom == 1)	// div by 1 optimization
+			if (absDenom == 1) // div by 1 optimization
 				clear();
 			else
 			{
@@ -2049,7 +2056,7 @@ public:
 	template <bool has_sign, size_t bits>
 	void divide_whole_and_assign_modulo(const fixed_integer_extended_content<has_sign, bits>& denom, dynamic_integer_content& result)
 	{
-		if (!denom)	// divide by zero?
+		if (!denom) // divide by zero?
 		{
 			result.clear();
 			clear();
@@ -2058,7 +2065,7 @@ public:
 
 		typename decltype(std::declval<fixed_integer_extended<has_sign, bits>&>().abs())::content_t absDenom;
 		absDenom.assign_abs(denom);
-		if (absDenom.equals(fixed_integer_native<0, 1>(1)))	// div by 1 optimization
+		if (absDenom.equals(fixed_integer_native<0, 1>(1))) // div by 1 optimization
 		{
 			result.m_digits.acquire(m_digits);
 			result.m_isNegative = (m_isNegative != denom.is_negative());
@@ -2082,7 +2089,7 @@ public:
 		{
 			ulongest* denomDigits = absDenom.get_digits();
 			size_t i = decltype(std::declval<fixed_integer_extended<has_sign, bits>&>().abs())::n_digits - 1;
-			while (denomDigits[i] == 0)	// Trim leading zeros
+			while (denomDigits[i] == 0) // Trim leading zeros
 				i--;
 			divide_whole_and_assign_modulo(denomDigits, i, &result);
 			result.m_isNegative = (m_isNegative != denom.is_negative());
@@ -2092,13 +2099,13 @@ public:
 	template <bool has_sign, size_t bits>
 	void divide_whole_and_assign_modulo(const fixed_integer_extended_content<has_sign, bits>& denom)
 	{
-		if (!denom)	// divide by zero?
+		if (!denom) // divide by zero?
 			clear();
 		else
 		{
 			typename decltype(std::declval<fixed_integer_extended<has_sign, bits>&>().abs())::content_t absDenom;
 			absDenom.assign_abs(denom);
-			if (absDenom.equals(fixed_integer_native<0, 1>(1)))	// div by 1 optimization
+			if (absDenom.equals(fixed_integer_native<0, 1>(1))) // div by 1 optimization
 				clear();
 			else
 			{
@@ -2111,7 +2118,7 @@ public:
 					{
 						ulongest* denomDigits = absDenom.get_digits();
 						size_t i = decltype(std::declval<fixed_integer_extended<has_sign, bits>&>().abs())::n_digits - 1;
-						while (denomDigits[i] == 0)	// Trim leading zeros
+						while (denomDigits[i] == 0) // Trim leading zeros
 							i--;
 						divide_whole_and_assign_modulo(denomDigits, i);
 					}
@@ -2125,7 +2132,7 @@ public:
 		size_t length = m_digits.get_length();
 		if (length == 0)
 		{
-			COGS_ASSERT(false);	// no recip of 0
+			COGS_ASSERT(false); // no recip of 0
 			return false;
 		}
 		else
@@ -2135,7 +2142,7 @@ public:
 				if (length == 1)
 				{
 					ulongest lowDigit = m_digits.get_const_ptr()[0];
-					if (lowDigit == 1)	// if full value is 1 or -1, leave intact
+					if (lowDigit == 1) // if full value is 1 or -1, leave intact
 						return false;
 				}
 
@@ -2178,7 +2185,7 @@ public:
 	void set_to_gcd(const dynamic_integer_content& d1, const dynamic_integer_content& d2)
 	{
 		// TODO: Replace with more efficient GCD algorithm if extremely large values
-		if (!d1)	// GCD with zero is the absolute of the non-zero value
+		if (!d1) // GCD with zero is the absolute of the non-zero value
 		{
 			if (!d2)
 				m_digits.clear();
@@ -2199,10 +2206,11 @@ public:
 		int cmpValue = d1.compare(&digit, 1);
 		if (cmpValue == 0)
 			assign(d1);
-		else if (cmpValue == -1)	// If a positive dynamic_integer is less than a fixed_integer_native, it must be <=1 digits
+		else if (cmpValue == -1) // If a positive dynamic_integer is less than a fixed_integer_native, it must be <=1 digits
 			operator=(d2.gcd(d1.m_digits.get_const_ptr()[0]));
 		else
-		{			// Since remainder will fit within fixed_integer_native after the first round, just do one round and pass it on.
+		{
+			// Since remainder will fit within fixed_integer_native after the first round, just do one round and pass it on.
 			dynamic_integer_content r(d1);
 			r.acquire();
 			r.divide_whole_and_assign_modulo(&digit, 1, this);
@@ -2216,7 +2224,7 @@ public:
 	void set_to_gcd(const dynamic_integer_content& d1, const fixed_integer_native<has_sign, bits>& d2)
 	{
 		// TODO: Replace with more efficient GCD algorithm if extremely large values
-		if (!d1)	// GCD with zero is the absolute of the non-zero value
+		if (!d1) // GCD with zero is the absolute of the non-zero value
 		{
 			if (!d2)
 				m_digits.clear();
@@ -2238,7 +2246,7 @@ public:
 			assign(d1);
 		else
 		{
-			dynamic_integer_content t2(d2);	// We'll need a buffer for intermediate results anyway
+			dynamic_integer_content t2(d2); // We'll need a buffer for intermediate results anyway
 			set_to_gcd3(cmpValue, d1, t2);
 		}
 	}
@@ -2247,7 +2255,7 @@ public:
 	void set_to_gcd(const dynamic_integer_content& d1, const fixed_integer_extended_content<has_sign, bits>& d2)
 	{
 		// TODO: Replace with more efficient GCD algorithm if extremely large values
-		if (!d1)	// GCD with zero is the absolute of the non-zero value
+		if (!d1) // GCD with zero is the absolute of the non-zero value
 		{
 			if (!d2)
 				m_digits.clear();
@@ -2407,7 +2415,7 @@ public:
 
 		// Handle negative values using a 2-way table.
 		static constexpr char textDigits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		size_t maxLength = (m_digits.get_length() * sizeof(ulongest) * 8) + 2;	// Enough space for largest possible value, i.e. binary radix
+		size_t maxLength = (m_digits.get_length() * sizeof(ulongest) * 8) + 2; // Enough space for largest possible value, i.e. binary radix
 
 		char tempBufferStorage[512];
 		ptr<char> tempBuffer = tempBufferStorage;
@@ -2495,14 +2503,14 @@ public:
 
 private:
 	typedef dynamic_integer_content content_t;
-	typedef dynamic_integer_content::desc_t				desc_t;
-	typedef dynamic_integer_content::vector_content_t	vector_content_t;
+	typedef dynamic_integer_content::desc_t desc_t;
+	typedef dynamic_integer_content::vector_content_t vector_content_t;
 
 	typedef transactable<dynamic_integer_content> transactable_t;
-	transactable_t	m_contents;
+	transactable_t m_contents;
 
-	typedef typename transactable_t::read_token		read_token;
-	typedef typename transactable_t::write_token	write_token;
+	typedef typename transactable_t::read_token read_token;
+	typedef typename transactable_t::write_token write_token;
 
 	read_token begin_read() const volatile { return m_contents.begin_read(); }
 	void begin_read(read_token& rt) const volatile { m_contents.begin_read(rt); }
@@ -2915,15 +2923,15 @@ private:
 		}
 	}
 
-	dynamic_integer(const vector_content_t& content, bool isNegative)	// does not acquire
+	dynamic_integer(const vector_content_t& content, bool isNegative) // does not acquire
 		: m_contents(typename transactable_t::construct_embedded_t(), content, isNegative)
 	{ }
 
-	dynamic_integer(const dynamic_integer_content& content)	// does not acquire
+	dynamic_integer(const dynamic_integer_content& content) // does not acquire
 		: m_contents(typename transactable_t::construct_embedded_t(), content)
 	{ }
 
-	dynamic_integer& operator=(const vector_content_t& content)	// does not acquire, but releases existing
+	dynamic_integer& operator=(const vector_content_t& content) // does not acquire, but releases existing
 	{
 		*m_contents = content;
 		return *this;
@@ -2952,10 +2960,10 @@ private:
 	{
 		bool b;
 		write_token wt;
-		guarded_begin_write(wt);				// acquires
+		guarded_begin_write(wt); // acquires
 		if (!wt->equals(*(cmp.m_contents)))
 		{
-			*(rtn.m_contents) = *wt;			// hands off ownership to rtn.
+			*(rtn.m_contents) = *wt; // hands off ownership to rtn.
 			b = false;
 		}
 		else
@@ -2964,20 +2972,20 @@ private:
 			for (;;)
 			{
 				dynamic_integer_content oldContent(*wt);
-				*wt = *(tmp.m_contents);				// Does not take ownership from tmp.
+				*wt = *(tmp.m_contents); // Does not take ownership from tmp.
 				if (end_write(wt))
 				{
-					*(rtn.m_contents) = oldContent;		// hands off ownership to rtn.
-					tmp.m_contents->m_digits.clear_inner();	// tmp hands off ownership to this object.
+					*(rtn.m_contents) = oldContent; // hands off ownership to rtn.
+					tmp.m_contents->m_digits.clear_inner(); // tmp hands off ownership to this object.
 					b = true;
 					break;
 				}
 
-				oldContent.release();					// releases
-				guarded_begin_write(wt);				// acquires
+				oldContent.release(); // releases
+				guarded_begin_write(wt); // acquires
 				if (!wt->equals(*(cmp.m_contents)))
 				{
-					*(rtn.m_contents) = *wt;			// hands off ownership to rtn.
+					*(rtn.m_contents) = *wt; // hands off ownership to rtn.
 					b = false;
 					break;
 				}
@@ -2991,10 +2999,10 @@ private:
 	{
 		bool b;
 		write_token wt;
-		guarded_begin_write(wt);				// acquires
+		guarded_begin_write(wt); // acquires
 		if (!wt->equals(*(cmp.m_contents)))
 		{
-			wt->release();						// releases
+			wt->release(); // releases
 			b = false;
 		}
 		else
@@ -3003,20 +3011,20 @@ private:
 			for (;;)
 			{
 				dynamic_integer_content oldContent(*wt);
-				*wt = *(tmp.m_contents);				// Does not take ownership from tmp.
+				*wt = *(tmp.m_contents); // Does not take ownership from tmp.
 				if (end_write(wt))
 				{
-					oldContent.release();				// releases
-					tmp.m_contents->m_digits.clear_inner();	// tmp hands off ownership to this object.
+					oldContent.release(); // releases
+					tmp.m_contents->m_digits.clear_inner(); // tmp hands off ownership to this object.
 					b = true;
 					break;
 				}
 
-				oldContent.release();					// releases
-				guarded_begin_write(wt);				// acquires
+				oldContent.release(); // releases
+				guarded_begin_write(wt); // acquires
 				if (!wt->equals(*(cmp.m_contents)))
 				{
-					wt->release();						// releases
+					wt->release(); // releases
 					b = false;
 					break;
 				}
@@ -3364,7 +3372,7 @@ public:
 	void clear() volatile { m_contents.set(); }
 
 	bool operator!() const { return !*m_contents; }
-	bool operator!() const volatile { return !*begin_read(); }	// Don't need buffer, just its length
+	bool operator!() const volatile { return !*begin_read(); } // Don't need buffer, just its length
 
 	bool is_negative() const { return m_contents->is_negative(); }
 	bool is_negative() const volatile { return begin_read()->is_negative(); }
@@ -3372,7 +3380,7 @@ public:
 	bool is_exponent_of_two() const { return m_contents->is_exponent_of_two(); }
 	bool is_exponent_of_two() const volatile
 	{
-		read_token rt = guarded_begin_read();	// acquires
+		read_token rt = guarded_begin_read(); // acquires
 		bool result = rt->is_exponent_of_two();
 		rt->release();
 		return result;
@@ -3416,9 +3424,9 @@ public:
 		for (;;)
 		{
 			guarded_begin_write(wt);
-			dynamic_integer result(wt->m_digits, false);	// acquired reference transferred to result,
+			dynamic_integer result(wt->m_digits, false); // acquired reference transferred to result,
 			wt->m_isNegative = false;
-			if (end_write(wt))								// safe because absolute will not reallocate
+			if (end_write(wt)) // safe because absolute will not reallocate
 				return result;
 		}
 	}
@@ -3436,8 +3444,10 @@ public:
 		for (;;)
 		{
 			guarded_begin_write(wt);
-			dynamic_integer result(wt->m_digits, wt->m_isNegative);	// acquired reference transferred to result,
-			wt->m_isNegative = false;								// safe because absolute will not reallocate
+			dynamic_integer result(wt->m_digits, wt->m_isNegative);
+			// acquired reference transferred to result,
+			// safe because absolute will not reallocate
+			wt->m_isNegative = false;
 			if (end_write(wt))
 				return result;
 		}
@@ -3454,7 +3464,7 @@ public:
 
 	dynamic_integer operator-() const volatile
 	{
-		read_token rt = guarded_begin_read();	// acquires
+		read_token rt = guarded_begin_read(); // acquires
 		dynamic_integer result(rt->m_digits, !rt->m_isNegative);
 		return result;
 	}
@@ -3482,8 +3492,10 @@ public:
 		{
 			guarded_begin_write(wt);
 			wt->negate();
-			dynamic_integer result(wt->m_digits, wt->m_isNegative);	// acquired reference transferred to result,
-			if (end_write(wt))										// safe because negate will not reallocate
+			dynamic_integer result(wt->m_digits, wt->m_isNegative);
+			// acquired reference transferred to result,
+			// safe because negate will not reallocate
+			if (end_write(wt))
 				return result;
 		}
 	}
@@ -3501,8 +3513,10 @@ public:
 		for (;;)
 		{
 			guarded_begin_write(wt);
-			dynamic_integer result(wt->m_digits, wt->m_isNegative);	// acquired reference transferred to result,
-			wt->negate();											// safe because negate will not reallocate
+			dynamic_integer result(wt->m_digits, wt->m_isNegative);
+			// acquired reference transferred to result,
+			// safe because negate will not reallocate
+			wt->negate();
 			if (end_write(wt))
 				return result;
 		}
@@ -4385,7 +4399,7 @@ public:
 			tmp = *(src.m_contents);
 			tmp.acquire();
 		});
-	}	
+	}
 
 	dynamic_integer post_assign_inverse_modulo(const volatile dynamic_integer& src) { dynamic_integer tmp2(*this); dynamic_integer tmp(src); *this = tmp % *this; return tmp2; }
 	dynamic_integer post_assign_inverse_modulo(const volatile dynamic_integer& src) volatile { if (this == &src) { dynamic_integer tmp2; return exchange(tmp2); } else { dynamic_integer tmp(src); return post_assign_inverse_modulo(tmp); } }
@@ -4825,7 +4839,7 @@ public:
 		dynamic_integer result;
 		if (this == &src)
 		{
-			COGS_ASSERT(!!*this);	// divide by zero
+			COGS_ASSERT(!!*this); // divide by zero
 			result = one_t();
 		}
 		else
@@ -6609,8 +6623,8 @@ public:
 		{
 			rtn.clear();
 			dynamic_integer tmp(src);
-			m_contents.exchange(tmp.m_contents, rtn.m_contents);	// transfers ownership to rtn
-			tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+			m_contents.exchange(tmp.m_contents, rtn.m_contents); // transfers ownership to rtn
+			tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 		}
 	}
 
@@ -6622,8 +6636,8 @@ public:
 		{
 			rtn.clear();
 			dynamic_integer tmp(src);
-			m_contents.exchange(tmp.m_contents, rtn.m_contents);	// transfers ownership to rtn
-			tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+			m_contents.exchange(tmp.m_contents, rtn.m_contents); // transfers ownership to rtn
+			tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 		}
 	}
 
@@ -6633,8 +6647,8 @@ public:
 		{
 			dynamic_integer tmpRtn;
 			dynamic_integer tmp(src);
-			m_contents.exchange(tmp.m_contents, tmpRtn.m_contents);	// transfers ownership to tmpRtn
-			tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+			m_contents.exchange(tmp.m_contents, tmpRtn.m_contents); // transfers ownership to tmpRtn
+			tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 			rtn.swap(tmpRtn);
 		}
 	}
@@ -6649,8 +6663,8 @@ public:
 			{
 				dynamic_integer tmpRtn;
 				dynamic_integer tmp(src);
-				m_contents.exchange(tmp.m_contents, tmpRtn.m_contents);	// transfers ownership to tmpRtn
-				tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+				m_contents.exchange(tmp.m_contents, tmpRtn.m_contents); // transfers ownership to tmpRtn
+				tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 				rtn.swap(tmpRtn);
 			}
 		}
@@ -6667,8 +6681,8 @@ public:
 	{
 		dynamic_integer rtn;
 		dynamic_integer tmp(src);
-		m_contents.exchange(tmp.m_contents, rtn.m_contents);	// transfers ownership to rtn
-		tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+		m_contents.exchange(tmp.m_contents, rtn.m_contents); // transfers ownership to rtn
+		tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 		return rtn;
 	}
 
@@ -6687,8 +6701,8 @@ public:
 		else
 		{
 			dynamic_integer tmp(src);
-			m_contents.exchange(tmp.m_contents, rtn.m_contents);	// transfers ownership to rtn
-			tmp.m_contents->m_digits.clear_inner();						// transfers ownership to this
+			m_contents.exchange(tmp.m_contents, rtn.m_contents); // transfers ownership to rtn
+			tmp.m_contents->m_digits.clear_inner(); // transfers ownership to this
 		}
 		return rtn;
 	}
@@ -6811,7 +6825,7 @@ public:
 			m_contents.swap(rtn.m_contents);
 			return true;
 		}
-		
+
 		rtn = *this;
 		*this = src;
 		return true;
@@ -6831,7 +6845,7 @@ public:
 
 	bool compare_exchange(const dynamic_integer& src, const dynamic_integer& cmp, dynamic_integer& rtn) volatile
 	{
-		if (&src == &cmp)	// if compared equal, no need to assign.
+		if (&src == &cmp) // if compared equal, no need to assign.
 		{
 			if (&rtn == &cmp)
 			{
@@ -7102,8 +7116,7 @@ public:
 		return compare_exchange(tmpSrc, tmpCmp);
 	}
 
-	
-	 
+
 	// to_string
 	template <typename char_t>
 	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const
@@ -7114,7 +7127,7 @@ public:
 	template <typename char_t>
 	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const volatile
 	{
-		read_token rt = guarded_begin_read();	// acquires
+		read_token rt = guarded_begin_read(); // acquires
 		dynamic_integer tmp(rt->m_digits, rt->m_isNegative);
 		return tmp.to_string_t<char_t>(radix, minDigits);
 	}
@@ -7200,24 +7213,24 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole(const dynamic_i
 	{
 		if (src.is_negative())
 		{
-			if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+			if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
-						result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0)	// 00 = -256 
+					if (srcInt != 0) // 00 = -256 
 					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
-							result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+							result = cogs::divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 							break;
 						}
 
@@ -7255,24 +7268,24 @@ inline void fixed_integer_native<has_sign, n_bits>::assign_divide_whole(const dy
 {
 	if (src.is_negative())
 	{
-		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+		if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 		{
 			longest srcInt = (longest)src.get_int();
-			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 				{
-					cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+					cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 					return;
 				}
 			}
-			else	// this range will be 0..255 == 00..FF
+			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0)	// 00 = -256 
+				if (srcInt != 0) // 00 = -256 
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+						cogs::assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 						return;
 					}
 
@@ -7312,20 +7325,20 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 {
 	if (src.is_negative())
 	{
-		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+		if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 		{
 			longest srcInt = (longest)src.get_int();
-			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-					return cogs::pre_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					return cogs::pre_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 			}
-			else	// this range will be 0..255 == 00..FF
+			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0)	// 00 = -256 
+				if (srcInt != 0) // 00 = -256 
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						return cogs::pre_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
+						return cogs::pre_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 
 					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
 					ulongest srcInt2 = (ulongest)-srcInt;
@@ -7360,20 +7373,20 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 {
 	if (src.is_negative())
 	{
-		if (src.get_length() == 1)		// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+		if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 		{
 			longest srcInt = (longest)src.get_int();
-			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0)			// Therefor, if src is negative (80..FF), it's within range of this. 
-					return cogs::post_assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					return cogs::post_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 			}
-			else	// this range will be 0..255 == 00..FF
+			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0)	// 00 = -256 
+				if (srcInt != 0) // 00 = -256 
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						return cogs::post_assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
+						return cogs::post_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 
 					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
 					ulongest srcInt2 = (ulongest)-srcInt;
@@ -7402,24 +7415,24 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 	{
 		if (src.is_negative())
 		{
-			if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+			if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
 						result = cogs::modulo(m_int, srcInt);
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0)	// 00 = -256 
+					if (srcInt != 0) // 00 = -256 
 					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
-							result = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+							result = cogs::modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 							break;
 						}
 
@@ -7456,21 +7469,21 @@ inline fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has_sign, n_
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
 						cogs::assign_modulo(m_int, srcInt);
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0)	// 00 = -256 
+					if (srcInt != 0) // 00 = -256 
 					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
-							cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+							cogs::assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 							break;
 						}
 
@@ -7503,24 +7516,24 @@ inline volatile fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has
 	{
 		if (src.is_negative())
 		{
-			if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+			if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
 						cogs::assign_modulo(m_int, srcInt);
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0)	// 00 = -256 
+					if (srcInt != 0) // 00 = -256 
 					{
-						if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
-							cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+							cogs::assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 							break;
 						}
 
@@ -7558,23 +7571,23 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 {
 	if (src.is_negative())
 	{
-		if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+		if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 		{
 			longest srcInt = (longest)src.get_int();
-			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					return cogs::pre_assign_modulo(m_int, srcInt);
 			}
-			else	// this range will be 0..255 == 00..FF
+			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0)	// 00 = -256 
+				if (srcInt != 0) // 00 = -256 
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						return cogs::pre_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
+						return cogs::pre_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 
 					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
-					return pre_assign_modulo(m_int, (ulongest)-srcInt);	// src sign doesn't affect the sign of the result
+					return pre_assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
 				}
 			}
 		}
@@ -7601,20 +7614,20 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 {
 	if (src.is_negative())
 	{
-		if (src.get_length() == 1)	// src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
+		if (src.get_length() == 1) // src's range will be -256..0.  -256..-129..-128..-1 == 0..7F..80..FF == 0..007F FF80..FFFF
 		{
 			longest srcInt = (longest)src.get_int();
-			if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					return cogs::post_assign_modulo(m_int, srcInt);
 			}
-			else	// this range will be 0..255 == 00..FF
+			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0)	// 00 = -256 
+				if (srcInt != 0) // 00 = -256 
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
-						return cogs::post_assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
+						return cogs::post_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 
 					// High bit is zero, but the number is still negative. -255..-129, -255==1, -128=128, -129=127
 					return post_assign_modulo(m_int, (ulongest)-srcInt); // src sign doesn't affect the sign of the result
@@ -7643,21 +7656,21 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_modulo(cons
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
-						result.first = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+						result.first = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						result.second = cogs::modulo(m_int, srcInt);
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						result.first = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-						result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+						result.first = cogs::divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+						result.second = cogs::modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 						break;
 					}
 
@@ -7697,21 +7710,21 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_assign_modu
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
-						result = cogs::divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						cogs::assign_modulo(m_int, srcInt);
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						result = cogs::divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
-						cogs::assign_modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+						result = cogs::divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+						cogs::assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 						break;
 					}
 
@@ -7750,19 +7763,19 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_assign_modu
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
-						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 						// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 						break;
 					}
@@ -7801,21 +7814,21 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
 						result = cogs::modulo(m_int, srcInt);
-						cogs::assign_divide_whole(m_int, srcInt);	// signed/signed divide, so may grow, i.e.: -128/-1=128
+						cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						result.second = cogs::modulo(m_int, srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
-						cogs::assign_divide_whole(m_int, srcInt);	// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
+						result.second = cogs::modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+						cogs::assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 						break;
 					}
 
@@ -7855,20 +7868,20 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			if (src.get_length() == 1)
 			{
 				longest srcInt = (longest)src.get_int();
-				if (has_sign)				// this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
+				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0)		// Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
 					{
 						result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
 						// signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
 					}
 				}
-				else	// this range will be 0..255 == 00..FF
+				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt < 0)	// High bit is set, so srcInt value is accurate
+					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
-						result.second = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);	// unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
+						result.second = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
 						// unsigned/signed divide, so may grow, i.e.: 255/-1=-255
 						break;
 					}

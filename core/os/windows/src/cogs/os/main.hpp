@@ -22,13 +22,13 @@ inline int initialize()
 	__cpuid(cpuInfo, 1);
 
 #ifdef _M_X64
-	if (!(cpuInfo[2] & (1 << 13)))	// if 64-bit and no support for CMPXCHG16B instruction
+	if (!(cpuInfo[2] & (1 << 13))) // if 64-bit and no support for CMPXCHG16B instruction
 	{
 		MessageBox(NULL, L"Unsupported 64-bit processor detected.", L"Instruction not found: CMPXCHG16B", MB_OK);
 		return EXIT_FAILURE;
 	}
 #else
-	if (!(cpuInfo[3] & (1 << 8)))	// if 32-bit and no support for CMPXCHG8B instruction
+	if (!(cpuInfo[3] & (1 << 8))) // if 32-bit and no support for CMPXCHG8B instruction
 	{
 		MessageBox(NULL, L"Processor not supported.", L"Instruction not found: CMPXCHG8B", MB_OK);
 		return EXIT_FAILURE;

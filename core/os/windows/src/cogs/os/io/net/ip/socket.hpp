@@ -24,18 +24,18 @@ class socket : public object
 private:
 	friend class tcp;
 
-	rcref<network>				m_network;
-	rcref<os::io::completion_port>	m_completionPort;
-	SOCKET							m_socket;
-	address_family					m_addressFamily;
-	endpoint						m_localEndpoint;
-	endpoint						m_remoteEndpoint;
+	rcref<network> m_network;
+	rcref<os::io::completion_port> m_completionPort;
+	SOCKET m_socket;
+	address_family m_addressFamily;
+	endpoint m_localEndpoint;
+	endpoint m_remoteEndpoint;
 
 public:
 	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		: object(desc),
-		m_completionPort(cp),
 		m_network(n),
+		m_completionPort(cp),
 		m_addressFamily(addressFamily)
 	{
 		// Socket is both overlapped and non-blocking.
@@ -45,7 +45,7 @@ public:
 			m_completionPort->register_handle((HANDLE)m_socket);
 
 			unsigned long argp = 1;
-			int i = ioctlsocket(m_socket, FIONBIO, &argp);
+			ioctlsocket(m_socket, FIONBIO, &argp);
 		}
 	}
 
@@ -93,8 +93,8 @@ public:
 		{
 			BOOL enable = TRUE;
 			setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(BOOL));
-			
-			if (m_addressFamily == AF_INET)	// IPV4
+
+			if (m_addressFamily == AF_INET) // IPV4
 			{
 				sockaddr_in addr;
 				memset(&addr, 0, sizeof(sockaddr_in));
@@ -104,7 +104,7 @@ public:
 
 				i = bind(m_socket, (SOCKADDR*)&addr, sizeof(sockaddr_in));
 			}
-			else if (m_addressFamily == AF_INET6)	// IPV6
+			else if (m_addressFamily == AF_INET6) // IPV6
 			{
 				sockaddr_in6 addr;
 				memset(&addr, 0, sizeof(sockaddr_in6));

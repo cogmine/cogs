@@ -132,7 +132,7 @@ protected:
 	{
 		return dr.dispatch_default_task(onComplete, priority);
 	}
-	
+
 	static rcref<task_base> dispatch_default_task(volatile dispatcher& dr, const void_function& onComplete, const void_function& onCancel, int priority)
 	{
 		return dr.dispatch_default_task(onComplete, onCancel, priority);
@@ -166,7 +166,7 @@ private:
 	friend class task;
 
 	weak_rcptr<volatile dispatched> m_dispatched;
-	
+
 	virtual bool needs_arg() const volatile { return false; }
 
 public:
@@ -188,6 +188,7 @@ private:
 	virtual bool needs_arg() const volatile { return true; }
 
 public:
+	virtual bool signal() volatile = 0;
 	virtual bool signal(const rcref<task<arg_t> >& parentTask) volatile = 0;
 };
 
@@ -196,6 +197,7 @@ template <>
 class task_arg_base<void> : public task_base
 {
 public:
+	virtual bool signal() volatile = 0;
 	virtual bool signal(const rcref<task<void> >& parentTask) volatile = 0;
 };
 
@@ -339,7 +341,7 @@ protected:
 			{
 				m_continuationSubTasks.insert_preallocated(i);
 				if (!m_continuationSubTaskDrainDone || !m_continuationSubTasks.remove(i))
-					break;	// was handled
+					break; // was handled
 			}
 			i.release();
 			if (is_signaled())
@@ -397,7 +399,7 @@ public:
 
 	virtual rcref<task<bool> > cancel() volatile = 0;
 
-	virtual void change_priority(int newPriority) volatile { }	// default is no-op
+	virtual void change_priority(int newPriority) volatile { } // default is no-op
 	virtual int get_priority() const volatile { return 0; }
 };
 
@@ -408,7 +410,7 @@ class task : public task<void>
 protected:
 	using task<void>::signal_continuations;
 
-	static_assert(!std::is_reference_v<result_t>);	// task result must be a concrete type
+	static_assert(!std::is_reference_v<result_t>); // task result must be a concrete type
 
 	virtual void signal_continuation(task_base& t) volatile
 	{
@@ -504,7 +506,7 @@ public:
 	// continuations on the same task, or multiple callers might call get() on the same task).
 	// Note that since it's const, it may not require volatility.
 
-	virtual const result_t& get() const volatile = 0;	// error to call on incomplete task.
+	virtual const result_t& get() const volatile = 0; // error to call on incomplete task.
 };
 
 
@@ -587,9 +589,9 @@ protected:
 
 	~signallable_task_base()
 	{
-		COGS_ASSERT(!m_taskState.m_numWaiting);	// Should not be possible to destruct when some threads still in timed_wait().
+		COGS_ASSERT(!m_taskState.m_numWaiting); // Should not be possible to destruct when some threads still in timed_wait().
 		ptr<os::semaphore> p = m_taskState.m_osSemaphore;
-		COGS_ASSERT(!p.get_unmarked());	// Should be no semaphore
+		COGS_ASSERT(!p.get_unmarked()); // Should be no semaphore
 	}
 
 	int get_state() const volatile
@@ -631,7 +633,7 @@ protected:
 		task<result_t>::cancel_continuations();
 		return true;
 	}
-	
+
 	virtual rcref<task<bool> > cancel() volatile
 	{
 		TaskState oldTaskState;
@@ -660,16 +662,16 @@ public:
 		{
 			atomic::load(m_taskState, oldTaskState);
 			int state = oldTaskState.get_state();
-			if (state == 3)	// Completed
+			if (state == 3) // Completed
 			{
 				result = 1;
 				break;
 			}
-			if (state == 2)	// Cancelled
+			if (state == 2) // Cancelled
 			{
 				result = -1;
 				break;
-			}				// otherwise, 0 or 1 means in progress
+			} // otherwise, 0 or 1 means in progress
 			if (!timeout)
 				break;
 			if (!!spinsLeft)
@@ -701,18 +703,18 @@ public:
 			}
 			if (!atomic::compare_exchange(m_taskState, newTaskState, oldTaskState, oldTaskState))
 				continue;
-			if (useCachedOsSemaphore)	// Store our copy of it in osSemaphoreRc
-				osSemaphoreRc.get_desc()->acquire();	// Give one reference to state
+			if (useCachedOsSemaphore) // Store our copy of it in osSemaphoreRc
+				osSemaphoreRc.get_desc()->acquire(); // Give one reference to state
 			else
 			{
-				osSemaphoreRc.release();	// Borrow rcptr here to clean up our reference to state semaphore
+				osSemaphoreRc.release(); // Borrow rcptr here to clean up our reference to state semaphore
 				osSemaphoreRc.set(osSemaphore, osSemaphore->self_acquire());
 			}
 			bool acquiredSemaphore = osSemaphore->acquire(timeout);
 			atomic::load(m_taskState, oldTaskState);
 			for (;;)
 			{
-				COGS_ASSERT(oldTaskState.get_semaphore() == osSemaphore.get_ptr());	// Should not have changed
+				COGS_ASSERT(oldTaskState.get_semaphore() == osSemaphore.get_ptr()); // Should not have changed
 				COGS_ASSERT(oldTaskState.m_numWaiting > 0);
 				state = oldTaskState.get_state();
 				newTaskState.m_numWaiting = oldTaskState.m_numWaiting - 1;
@@ -724,7 +726,7 @@ public:
 			if (state >= 2)
 			{
 				result = (state == 2) ? -1 : 1;
-				if (!acquiredSemaphore)	// If a wake was incurred for us, before we decremented
+				if (!acquiredSemaphore) // If a wake was incurred for us, before we decremented
 				{
 					bool b = osSemaphore->acquire();
 					COGS_ASSERT(b);
@@ -840,7 +842,7 @@ public:
 		m_priority(priority)
 	{
 	}
-	
+
 	template <typename F>
 	function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
 		: signallable_task<result_t>(desc),
@@ -906,7 +908,7 @@ public:
 				{
 					dispatcher::change_priority_inner(*dr, *d, newPriority);
 					int newerPriority = atomic::load(m_priority);
-					if (newPriority == newerPriority)	// Address race condition in which another thread is also changing the priority
+					if (newPriority == newerPriority) // Address race condition in which another thread is also changing the priority
 						break;
 					newPriority = newerPriority;
 				}
@@ -1449,7 +1451,7 @@ public:
 
 	bool cancel_inner() volatile
 	{
-		bool b = base_t::cancel()->get();	// signallable_task<bool> will complete immediately.
+		bool b = base_t::cancel()->get(); // signallable_task<bool> will complete immediately.
 		m_cancelTask.signal(b);
 		return b;
 	}
@@ -1490,7 +1492,7 @@ public:
 			atomic::store(m_priority, newPriority);
 			rcptr<task<result_t> > oldValue = m_innerTask2;
 			if (oldValue.get_mark())
-				return;	// cancelled
+				return; // cancelled
 			if (!!oldValue)
 				oldValue->change_priority(newPriority);
 			else
@@ -1507,6 +1509,9 @@ public:
 template <>
 class dispatcher::linked_task<void> : public signallable_task_base<void>
 {
+private:
+	using signallable_task_base<void>::cancel_inner;
+
 public:
 	typedef signallable_task_base<void> base_t;
 
@@ -1535,7 +1540,7 @@ public:
 
 	bool cancel_inner() volatile
 	{
-		bool b = base_t::cancel()->get();	// signallable_task<bool> will complete immediately.
+		bool b = base_t::cancel()->get(); // signallable_task<bool> will complete immediately.
 		m_cancelTask.signal(b);
 		return b;
 	}
@@ -1576,7 +1581,7 @@ public:
 			atomic::store(m_priority, newPriority);
 			rcptr<task<void> > oldValue = m_innerTask2;
 			if (oldValue.get_mark())
-				return;	// cancelled
+				return; // cancelled
 			if (!!oldValue)
 				oldValue->change_priority(newPriority);
 			else
@@ -1604,8 +1609,8 @@ dispatcher::dispatch(F&& onComplete, int priority) volatile
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t]()
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+		if (!!oldValue) // Marked, cancel is in progress
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
 		{
 			rcref<result_task_t> t2 = onComplete();
@@ -1654,9 +1659,9 @@ dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority]()
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
+		if (!!oldValue) // Marked, cancel is in progress
 		{
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 			onCancel();
 		}
 		else
@@ -1709,8 +1714,8 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const result_t& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+		if (!!oldValue) // Marked, cancel is in progress
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
 		{
 			rcref<result_task_t> t2 = onComplete(r);
@@ -1760,9 +1765,9 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 	rcref<result_task_t> innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const result_t& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
+		if (!!oldValue) // Marked, cancel is in progress
 		{
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 			onCancel();
 		}
 		else
@@ -1851,8 +1856,8 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const rcref<task<result_t> >& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+		if (!!oldValue) // Marked, cancel is in progress
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
 		{
 			rcref<result_task_t> t2 = onComplete(r);
@@ -1902,9 +1907,9 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const rcref<task<result_t> >& r)
 	{
 		rcptr<result_task_t> oldValue = t->m_innerTask2;
-		if (!!oldValue)	// Marked, cancel is in progress
+		if (!!oldValue) // Marked, cancel is in progress
 		{
-			t->cancel_inner();	// We consider cancellation successful as long as the last in the chain does not compelete.
+			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 			onCancel();
 		}
 		else

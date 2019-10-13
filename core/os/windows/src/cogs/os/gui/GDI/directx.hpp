@@ -33,38 +33,38 @@ class directx : public hwnd_pane
 {
 private:
 	// DX9
-	LPDIRECT3D9 d3d;			// the pointer to our Direct3D interface
-	LPDIRECT3DDEVICE9 d3ddev;	// the pointer to the device class
+	LPDIRECT3D9 d3d; // the pointer to our Direct3D interface
+	LPDIRECT3DDEVICE9 d3ddev; // the pointer to the device class
 
 	// DX10
-	ID3D10Device* device;    // the pointer to our Direct3D device interface
-	ID3D10RenderTargetView* rtv;    // the pointer to the render target view
-	IDXGISwapChain* swapchain;    // the pointer to the swap chain class
+	ID3D10Device* device; // the pointer to our Direct3D device interface
+	ID3D10RenderTargetView* rtv; // the pointer to the render target view
+	IDXGISwapChain* swapchain; // the pointer to the swap chain class
 
 	// DX11
-	ID3D11Device *dev;                     // the pointer to our Direct3D device interface
-	ID3D11DeviceContext *devcon;           // the pointer to our Direct3D device context
-	IDXGISwapChain *swapchain;             // the pointer to the swap chain interface
+	ID3D11Device *dev; // the pointer to our Direct3D device interface
+	ID3D11DeviceContext *devcon; // the pointer to our Direct3D device context
+	IDXGISwapChain *swapchain; // the pointer to the swap chain interface
 
 
 public:
 	directx(const rcref<frame>& owner)
-		:	hwnd_pane(owner, composite_string(), composite_string(), WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_NOPARENTNOTIFY, uiSubsystem)
+		: hwnd_pane(owner, composite_string(), composite_string(), WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_NOPARENTNOTIFY, uiSubsystem)
 	{ }
 
 	~directx()
 	{
 		if (version == 9)
 		{
-			d3ddev->Release();	// close and release the 3D device
-			d3d->Release();		// close and release Direct3D
+			d3ddev->Release(); // close and release the 3D device
+			d3d->Release(); // close and release Direct3D
 		}
 
 		if (version == 10)
 		{
-			swapchain->Release();    // close and release the swap chain
-			rtv->Release();    // close and release the render target view
-			device->Release();    // close and release the 3D device
+			swapchain->Release(); // close and release the swap chain
+			rtv->Release(); // close and release the render target view
+			device->Release(); // close and release the 3D device
 		}
 
 		if (version == 11)
@@ -76,20 +76,20 @@ public:
 		}
 	}
 
-	//virtual color get_background_color() const	{ return color::green; }
+	//virtual color get_background_color() const { return color::green; }
 
 	virtual void installing()
 	{
 		if (version == 9)
 		{
-			d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
+			d3d = Direct3DCreate9(D3D_SDK_VERSION); // create the Direct3D interface
 
-			D3DPRESENT_PARAMETERS d3dpp;    // create a struct to hold various device information
+			D3DPRESENT_PARAMETERS d3dpp; // create a struct to hold various device information
 
-			ZeroMemory(&d3dpp, sizeof(d3dpp));    // clear out the struct for use
-			d3dpp.Windowed = TRUE;    // program windowed, not fullscreen
-			d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;    // discard old frames
-			d3dpp.hDeviceWindow = hWnd;    // set the window to be used by Direct3D
+			ZeroMemory(&d3dpp, sizeof(d3dpp)); // clear out the struct for use
+			d3dpp.Windowed = TRUE; // program windowed, not fullscreen
+			d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD; // discard old frames
+			d3dpp.hDeviceWindow = hWnd; // set the window to be used by Direct3D
 
 			// create a device class using this information and information from the d3dpp stuct
 			d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &d3ddev);
@@ -97,17 +97,17 @@ public:
 
 		if (version == 10)
 		{
-			DXGI_SWAP_CHAIN_DESC scd;    // create a struct to hold various swap chain information
+			DXGI_SWAP_CHAIN_DESC scd; // create a struct to hold various swap chain information
 
-			ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));    // clear out the struct for use
+			ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC)); // clear out the struct for use
 
-			scd.BufferCount = 1;    // create two buffers, one for the front, one for the back
-			scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;    // use 32-bit color
-			scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;    // tell how the chain is to be used
-			scd.OutputWindow = hWnd;    // set the window to be used by Direct3D
-			scd.SampleDesc.Count = 1;    // set the level of multi-sampling
-			scd.SampleDesc.Quality = 0;    // set the quality of multi-sampling
-			scd.Windowed = TRUE;    // set to windowed or full-screen mode
+			scd.BufferCount = 1; // create two buffers, one for the front, one for the back
+			scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // use 32-bit color
+			scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // tell how the chain is to be used
+			scd.OutputWindow = hWnd; // set the window to be used by Direct3D
+			scd.SampleDesc.Count = 1; // set the level of multi-sampling
+			scd.SampleDesc.Quality = 0; // set the quality of multi-sampling
+			scd.Windowed = TRUE; // set to windowed or full-screen mode
 
 			// create a device class and swap chain class using the information in the scd struct
 			D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, 0, D3D10_SDK_VERSION, &scd, &swapchain, &device);
@@ -121,16 +121,16 @@ public:
 			// set the render target as the back buffer
 			device->OMSetRenderTargets(1, &rtv, NULL);
 
-			D3D10_VIEWPORT viewport;    // create a struct to hold the viewport data
+			D3D10_VIEWPORT viewport; // create a struct to hold the viewport data
 
-			ZeroMemory(&viewport, sizeof(D3D10_VIEWPORT));    // clear out the struct for use
+			ZeroMemory(&viewport, sizeof(D3D10_VIEWPORT)); // clear out the struct for use
 
-			viewport.TopLeftX = 0;    // set the left to 0
-			viewport.TopLeftY = 0;    // set the top to 0
-			viewport.Width = 800;    // set the width to the window's width
-			viewport.Height = 600;    // set the height to the window's height
+			viewport.TopLeftX = 0; // set the left to 0
+			viewport.TopLeftY = 0; // set the top to 0
+			viewport.Width = 800; // set the width to the window's width
+			viewport.Height = 600; // set the height to the window's height
 
-			device->RSSetViewports(1, &viewport);    // set the viewport
+			device->RSSetViewports(1, &viewport); // set the viewport
 		}
 
 		if (version == 11)
@@ -142,12 +142,12 @@ public:
 			ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
 
 			// fill the swap chain description struct
-			scd.BufferCount = 1;                                    // one back buffer
-			scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
-			scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
-			scd.OutputWindow = hWnd;                                // the window to be used
-			scd.SampleDesc.Count = 4;                               // how many multisamples
-			scd.Windowed = TRUE;                                    // windowed/full-screen mode
+			scd.BufferCount = 1; // one back buffer
+			scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // use 32-bit color
+			scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // how swap chain is to be used
+			scd.OutputWindow = hWnd; // the window to be used
+			scd.SampleDesc.Count = 4; // how many multisamples
+			scd.Windowed = TRUE; // windowed/full-screen mode
 
 			// create a device, device context and swap chain using the information in the scd struct
 			D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL, D3D11_SDK_VERSION, &scd, &swapchain, &dev, NULL, &devcon);
@@ -162,7 +162,7 @@ public:
 		{
 			// clear the window to a deep blue
 			d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 40, 100), 1.0f, 0);
-			d3ddev->BeginScene();    // begins the 3D scene
+			d3ddev->BeginScene(); // begins the 3D scene
 		}
 
 		if (version == 9)
@@ -175,8 +175,8 @@ public:
 	{
 		if (version == 9)
 		{
-			d3ddev->EndScene();							// ends the 3D scene
-			d3ddev->Present(NULL, NULL, NULL, NULL);	// displays the created frame
+			d3ddev->EndScene(); // ends the 3D scene
+			d3ddev->Present(NULL, NULL, NULL, NULL); // displays the created frame
 		}
 
 		if (version == 10)
@@ -247,12 +247,12 @@ public:
 
 	virtual rcptr<console> get_default_console() volatile
 	{
-		return rcptr<console>();	// TBD
+		return rcptr<console>(); // TBD
 	}
 
 	virtual rcptr<console> create_console() volatile
 	{
-		return rcptr<console>();	// TBD
+		return rcptr<console>(); // TBD
 	}
 
 	virtual rcref<task<void> > message(const composite_string& msg) volatile
@@ -264,13 +264,13 @@ public:
 	}
 
 	// planar 
-	virtual rcref<view> create_button		(const rcref<gui::button>& btn) volatile
+	virtual rcref<view> create_button(const rcref<gui::button>& btn) volatile
 	{
 		rcptr<view> a;
 		return a.get_ref();
 	}
 
-	virtual rcref<view> create_check_box	(const rcref<gui::check_box>& cb) volatile
+	virtual rcref<view> create_check_box(const rcref<gui::check_box>& cb) volatile
 	{
 		rcptr<view> a;
 		return a.get_ref();
@@ -282,17 +282,17 @@ public:
 		return a.get_ref();
 	}
 
-	virtual rcref<view> create_scroll_bar	(const rcref<gui::scroll_bar>& sb) volatile
+	virtual rcref<view> create_scroll_bar(const rcref<gui::scroll_bar>& sb) volatile
 	{
 		rcptr<view> a;
 		return a.get_ref();
 	}
 
 	// TBD - Create frame buffer objects for nested canvas's
-//	virtual rcptr<view> create_canvas	(const rcref<canvas_panel>& cf)	{ return rcptr<view>(); }
-//	virtual rcptr<view> create_canvas	(const rcref<canvas_frame>& cf)	{ return rcptr<view>(); }
+//	virtual rcptr<view> create_canvas(const rcref<canvas_panel>& cf) { return rcptr<view>(); }
+//	virtual rcptr<view> create_canvas(const rcref<canvas_frame>& cf) { return rcptr<view>(); }
 
-//	virtual rcptr<view> create_canvas3D	(const rcref<canvas3D_frame>& cf)	{ return rcptr<view>(); }
+//	virtual rcptr<view> create_canvas3D(const rcref<canvas3D_frame>& cf) { return rcptr<view>(); }
 };
 */
 }

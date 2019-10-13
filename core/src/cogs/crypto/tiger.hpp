@@ -296,8 +296,8 @@ private:
 	typedef serial_hash<192, bits, 64, endian_t::little, 512> base_t;
 	typedef tiger_base<bits, passes, terminator_byte> this_t;
 
-	uint64_t	m_bitCount;
-	uint64_t	m_state[8];
+	uint64_t m_bitCount;
+	uint64_t m_state[8];
 
 	static unsigned char get_byte(uint64_t x, uint64_t i)
 	{

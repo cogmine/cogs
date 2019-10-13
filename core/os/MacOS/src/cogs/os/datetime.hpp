@@ -27,14 +27,14 @@ namespace cogs {
 
 struct datetime_detail
 {
-	fixed_integer<false, 16>	m_year;
-	fixed_integer<false,  4>	m_month;		// January == 1
-	fixed_integer<false,  5>	m_day;			// 1-31
-	fixed_integer<false,  3>	m_dayOfWeek;	// Sunday == 0
-	fixed_integer<false,  5>	m_hour;			// 0-23
-	fixed_integer<false,  6>	m_minute;		// 0-59
-	fixed_integer<false,  6>	m_second;		// 0-59
-	fixed_integer<false, 10>	m_millisecond;	// 0-999
+	fixed_integer<false, 16> m_year;
+	fixed_integer<false, 4> m_month;        // January == 1
+	fixed_integer<false, 5> m_day;          // 1-31
+	fixed_integer<false, 3> m_dayOfWeek;    // Sunday == 0
+	fixed_integer<false, 5> m_hour;         // 0-23
+	fixed_integer<false, 6> m_minute;       // 0-59
+	fixed_integer<false, 6> m_second;       // 0-59
+	fixed_integer<false, 10> m_millisecond; // 0-999
 };
 
 
@@ -46,7 +46,7 @@ private:
 	time_t m_stamp;
 
 	datetime(const time_t& t)
-		:	m_stamp(t)
+		: m_stamp(t)
 	{ }
 
 public:
@@ -54,7 +54,7 @@ public:
 	{ }
 
 	datetime(const datetime& src)
-		:	m_stamp(src.m_stamp)
+		: m_stamp(src.m_stamp)
 	{ }
 
 	datetime& operator=(const datetime& src)
@@ -63,7 +63,7 @@ public:
 		return *this;
 	}
 
-	static datetime	now()
+	static datetime now()
 	{
 		time_t t;
 		::time(&t);
