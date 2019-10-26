@@ -411,7 +411,7 @@ public:
 		/// @}
 
 		/// @{
-		/// @brief Move-constructor.
+		/// @brief Move constructor.
 		///
 		/// Ownership of an acquired hazard::pointer is transfered on assignment/copy-construct
 		/// @param p hazard::pointer to copy

@@ -52,6 +52,7 @@ public:
 
 	public:
 		void disown() { m_itor.disown(); }
+		void disown() volatile { m_itor.disown(); }
 
 		iterator() { }
 		iterator(const iterator& i) : m_itor(i.m_itor) { }
@@ -104,7 +105,7 @@ public:
 			return itor.is_removed();
 		}
 
-		const iterator& operator++()
+		iterator& operator++()
 		{
 			if (!!*this)
 			{
@@ -134,7 +135,7 @@ public:
 			return newValue;
 		}
 
-		const iterator& operator--()
+		iterator& operator--()
 		{
 			if (!!*this)
 			{
@@ -164,8 +165,8 @@ public:
 			return newValue;
 		}
 
-		iterator operator++(int) { iterator i(*this); ++* this; return i; }
-		iterator operator--(int) { iterator i(*this); --* this; return i; }
+		iterator operator++(int) { iterator i(*this); ++*this; return i; }
+		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
 		iterator operator++(int) volatile
 		{
@@ -230,8 +231,8 @@ public:
 		void release() { m_itor.release(); }
 		void release() volatile { m_itor.release(); }
 
-		iterator next() const { iterator result(this); ++result; return result; }
-		iterator prev() const { iterator result(this); --result; return result; }
+		iterator next() const { iterator result(*this); ++result; return result; }
+		iterator prev() const { iterator result(*this); --result; return result; }
 
 		bool compare_exchange(const iterator& src, const iterator& cmp) volatile
 		{

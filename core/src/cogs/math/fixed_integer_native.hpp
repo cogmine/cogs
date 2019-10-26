@@ -1801,7 +1801,7 @@ public:
 	this_t next() const volatile { return cogs::next(m_int); }
 	void assign_next() { cogs::assign_next(m_int); }
 	void assign_next() volatile { cogs::assign_next(m_int); }
-	const this_t& operator++() { cogs::assign_next(m_int); return *this; }
+	this_t& operator++() { cogs::assign_next(m_int); return *this; }
 	this_t operator++() volatile { return cogs::pre_assign_next(m_int); }
 	this_t operator++(int) { return cogs::post_assign_next(m_int); }
 	this_t operator++(int) volatile { return cogs::post_assign_next(m_int); }
@@ -1810,7 +1810,7 @@ public:
 	this_t prev() const volatile { return cogs::prev(m_int); }
 	void assign_prev() { cogs::assign_prev(m_int); }
 	void assign_prev() volatile { cogs::assign_prev(m_int); }
-	const this_t& operator--() { cogs::assign_prev(m_int); return *this; }
+	this_t& operator--() { cogs::assign_prev(m_int); return *this; }
 	this_t operator--() volatile { return cogs::pre_assign_prev(m_int); }
 	this_t operator--(int) { return cogs::post_assign_prev(m_int); }
 	this_t operator--(int) volatile { return cogs::post_assign_prev(m_int); }

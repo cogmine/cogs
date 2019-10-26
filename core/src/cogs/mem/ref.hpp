@@ -799,7 +799,7 @@ private:
 	this_t next() const volatile { return cogs::next(get_ptr_ref()); }
 	void assign_next() { cogs::assign_next(get_ptr_ref()); }
 	void assign_next() volatile { cogs::assign_next(get_ptr_ref()); }
-	const this_t& operator++() { cogs::assign_next(get_ptr_ref()); return *this; }
+	this_t& operator++() { cogs::assign_next(get_ptr_ref()); return *this; }
 	this_t operator++() volatile { return cogs::pre_assign_next(get_ptr_ref()); }
 	this_t operator++(int) { return cogs::post_assign_next(get_ptr_ref()); }
 	this_t operator++(int) volatile { return cogs::post_assign_next(get_ptr_ref()); }
@@ -808,7 +808,7 @@ private:
 	this_t prev() const volatile { return cogs::prev(get_ptr_ref()); }
 	void assign_prev() { cogs::assign_prev(get_ptr_ref()); }
 	void assign_prev() volatile { cogs::assign_prev(get_ptr_ref()); }
-	const this_t& operator--() { cogs::assign_prev(get_ptr_ref()); return *this; }
+	this_t& operator--() { cogs::assign_prev(get_ptr_ref()); return *this; }
 	this_t operator--() volatile { return cogs::pre_assign_prev(get_ptr_ref()); }
 	this_t operator--(int) { return cogs::post_assign_prev(get_ptr_ref()); }
 	this_t operator--(int) volatile { return cogs::post_assign_prev(get_ptr_ref()); }

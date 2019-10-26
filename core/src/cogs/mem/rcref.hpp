@@ -189,6 +189,8 @@ public:
 	/// @{
 	/// @brief Releases the contained object without decrementing the reference count
 	void disown() { rc_container_base<type, strong>::disown(); }
+	/// @brief Thread-safe version of disown()
+	void disown() volatile { rc_container_base<type, strong>::disown(); }
 	/// @}
 
 	type* get_obj() const { return base_t::get_obj(); }
@@ -635,30 +637,22 @@ public:
 	void swap(volatile rcref<type2>& wth) { base_t::swap(wth); }
 	/// @}
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
 
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -669,6 +663,10 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp.m_ref); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -677,6 +675,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -685,6 +685,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -693,6 +695,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -701,28 +705,36 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
 
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 	/// @}
 
 	/// @brief Gets the number of bits available to be marked on the pointer.
@@ -880,6 +892,7 @@ public:
 	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 
 	void disown() { rc_container_base<type, strong>::disown(); }
+	void disown() volatile { rc_container_base<type, strong>::disown(); }
 
 	type* get_obj() const { return base_t::get_obj(); }
 	type* get_obj() const volatile { return base_t::get_obj(); }
@@ -1180,30 +1193,22 @@ public:
 	void swap(volatile rcref<type2>& wth) { base_t::swap(wth); }
 	/// @}
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
 
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -1214,6 +1219,10 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp.m_ref); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1222,6 +1231,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1230,6 +1241,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1238,6 +1251,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1246,28 +1261,36 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
 
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 	/// @}
 
 };
@@ -1351,6 +1374,7 @@ public:
 	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 
 	void disown() { rc_container_base<type, strong>::disown(); }
+	void disown() volatile { rc_container_base<type, strong>::disown(); }
 
 	type* get_obj() const { return base_t::get_obj(); }
 	type* get_obj() const volatile { return base_t::get_obj(); }
@@ -1637,7 +1661,7 @@ public:
 	/// @}
 
 	/// @{
-	/// @brief swap the pointer value
+	/// @brief Swap the pointer value
 	/// @param[in,out] wth Value to swap
 	template <typename type2>
 	void swap(rcref<type2>& wth) { base_t::swap(wth); }
@@ -1649,30 +1673,22 @@ public:
 	void swap(volatile rcref<type2>& wth) { base_t::swap(wth); }
 	/// @}
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
 
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -1683,6 +1699,10 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp.m_ref); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1691,6 +1711,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1699,6 +1721,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1707,6 +1731,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1715,28 +1741,36 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
 
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 	/// @}
 };
 
@@ -1819,6 +1853,7 @@ public:
 	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 
 	void disown() { rc_container_base<type, strong>::disown(); }
+	void disown() volatile { rc_container_base<type, strong>::disown(); }
 
 	type* get_obj() const { return base_t::get_obj(); }
 	type* get_obj() const volatile { return base_t::get_obj(); }
@@ -2109,7 +2144,7 @@ public:
 	/// @}
 
 	/// @{
-	/// @brief swap the pointer value
+	/// @brief Swap the pointer value
 	/// @param[in,out] wth Value to swap
 	template <typename type2>
 	void swap(rcref<type2>& wth) { base_t::swap(wth); }
@@ -2121,30 +2156,22 @@ public:
 	void swap(volatile rcref<type2>& wth) { base_t::swap(wth); }
 	/// @}
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
 
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -2155,6 +2182,10 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp.m_ref); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2163,6 +2194,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2171,6 +2204,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2179,6 +2214,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2187,28 +2224,36 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
 
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 	/// @}
 };
 
@@ -2291,6 +2336,7 @@ public:
 	void set(const ptr<type>& obj, const ptr<rc_obj_base>& desc) volatile { base_t::set(obj, desc); }
 
 	void disown() { rc_container_base<type, strong>::disown(); }
+	void disown() volatile { rc_container_base<type, strong>::disown(); }
 
 	type* get_obj() const { return base_t::get_obj(); }
 	type* get_obj() const volatile { return base_t::get_obj(); }
@@ -2579,7 +2625,7 @@ public:
 	/// @}
 
 	/// @{
-	/// @brief swap the pointer value
+	/// @brief Swap the pointer value
 	/// @param[in,out] wth Value to swap
 	template <typename type2>
 	void swap(rcref<type2>& wth) { base_t::swap(wth); }
@@ -2591,30 +2637,22 @@ public:
 	void swap(volatile rcref<type2>& wth) { base_t::swap(wth); }
 	/// @}
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) { return base_t::exchange(src); }
+	template <typename type2> this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
 
-	template <typename type2>
-	this_t exchange(rcref<type2>&& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(const rcref<type2>& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-	template <typename type2>
-	this_t exchange(const rcref<type2>& src) volatile { return base_t::exchange(src); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn);// { base_t::exchange(src, rtn.m_ref); }
+	template <typename type2> void exchange(rcref<type2>&& src, rcptr<type>& rtn) volatile;// { base_t::exchange(src, rtn.m_ref); }
 
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(rcref<type2>&& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
-
-	template <typename type2>
-	void exchange(const rcref<type2>& src, this_t& rtn) volatile { base_t::exchange(src, rtn); }
 
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -2625,6 +2663,10 @@ public:
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp.m_ref); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) { return base_t::compare_exchange(std::move(src), cmp); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2633,6 +2675,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2641,6 +2685,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2649,6 +2695,8 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2657,28 +2705,36 @@ public:
 	/// @return True if the comparison was equal and the value set.
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn);// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 
 	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(src, cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp) volatile { return base_t::compare_exchange(std::move(src), cmp); }
 
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp.m_ref, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp.m_ref, rtn.m_ref); }
-	/// @brief Thread-safe implementation of compare_exchange()
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(src, cmp, rtn); }
 	template <typename type2, typename type3> bool compare_exchange(const rcref<type2>& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(src, cmp, rtn.m_ref); }
+
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, type3* cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcref<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp.m_ref, rtn.m_ref); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, this_t& rtn) volatile { return base_t::compare_exchange(std::move(src), cmp, rtn); }
+	template <typename type2, typename type3> bool compare_exchange(rcref<type2>&& src, const weak_rcptr<type3>& cmp, rcptr<type>& rtn) volatile;// { return base_t::compare_exchange(std::move(src), cmp, rtn.m_ref); }
 	/// @}
 };
 

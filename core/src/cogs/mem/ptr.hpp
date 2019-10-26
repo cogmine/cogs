@@ -833,7 +833,7 @@ public:
 	/// @{
 	/// @brief Index operator
 	/// @param i Index value.
-	/// @return a reference to the element at that index
+	/// @return A reference to the element at that index
 	type& operator[](size_t i) const { return get_ptr()[i]; }
 	/// @brief Thread-safe versions of operator[]()
 	type& operator[](size_t i) const volatile { return get_ptr()[i]; }

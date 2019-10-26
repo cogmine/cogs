@@ -104,6 +104,8 @@ public:
 		iterator() { }
 		iterator(const iterator& i) : m_iterator(i.m_iterator) { }
 
+		iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+
 		void release() { m_iterator.release(); }
 
 		iterator& operator++() { ++m_iterator; return *this; }
@@ -116,7 +118,6 @@ public:
 
 		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
-		iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
 
 		type* get() const { return m_iterator.get(); }
 		type& operator*() const { return *get(); }
@@ -140,16 +141,12 @@ public:
 		const_iterator(const typename content_t::const_iterator& i) : m_iterator(i) { }
 
 	public:
-		const_iterator()
-		{ }
+		const_iterator() { }
+		const_iterator(const const_iterator& i) : m_iterator(i.m_iterator) { }
+		const_iterator(const iterator& i) : m_iterator(i.m_iterator) { }
 
-		const_iterator(const const_iterator& i)
-			: m_iterator(i.m_iterator)
-		{ }
-
-		const_iterator(const iterator& i)
-			: m_iterator(i.m_iterator)
-		{ }
+		const_iterator& operator=(const const_iterator& i) { m_iterator = i.m_iterator; return *this; }
+		const_iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
 
 		void release() { m_iterator.release(); }
 
@@ -165,9 +162,6 @@ public:
 		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
-
-		const_iterator& operator=(const const_iterator& i) { m_iterator = i.m_iterator; return *this; }
-		const_iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
 
 		const type* get() const { return m_iterator.get(); }
 		const type& operator*() const { return *get(); }
@@ -194,12 +188,6 @@ public:
 	composite_string_t(this_t&& src)
 		: m_contents(std::move(src.m_contents))
 	{ }
-
-	this_t& operator=(this_t&& src)
-	{
-		m_contents = std::move(src.m_contents);
-		return *this;
-	}
 
 	composite_string_t()
 	{ }
@@ -2747,6 +2735,9 @@ public:
 
 	this_t& operator=(const volatile this_t& src) { m_contents.assign(src.m_contents); return *this; }
 
+	this_t& operator=(this_t&& src) { m_contents = std::move(src.m_contents); return *this; }
+
+	volatile this_t& operator=(this_t&& src) volatile { m_contents = std::move(src.m_contents); return *this; }
 
 	this_t& operator=(const string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
 

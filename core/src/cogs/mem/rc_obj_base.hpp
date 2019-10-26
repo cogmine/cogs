@@ -11,7 +11,7 @@
 
 #include <type_traits>
 
-#include "cogs/collections/abastack.hpp"
+#include "cogs/collections/no_aba_stack.hpp"
 #include "cogs/collections/slink.hpp"
 #include "cogs/collections/rbtree.hpp"
 #include "cogs/debug.hpp"
@@ -198,7 +198,7 @@ public:
 private:
 	tracking_header* m_tracker;
 
-	inline static placement<aba_stack<rc_obj_base::tracking_header> > s_allocRecord;
+	inline static placement<no_aba_stack<rc_obj_base::tracking_header> > s_allocRecord;
 	inline static placement<size_type> s_totalTrackers;
 
 	void install_tracker()
@@ -206,7 +206,7 @@ private:
 		m_tracker = (rc_obj_base::tracking_header*)malloc(sizeof(rc_obj_base::tracking_header));
 		new (m_tracker) tracking_header(this); // placement new
 
-		volatile aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
+		volatile no_aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
 		allocRecord.push(m_tracker);
 
 		volatile size_type& totalTrackers = s_totalTrackers.get();
@@ -223,8 +223,8 @@ public:
 
 	static void log_active_references()
 	{
-		volatile aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
-		aba_stack<rc_obj_base::tracking_header> allocs;
+		volatile no_aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
+		no_aba_stack<rc_obj_base::tracking_header> allocs;
 		allocRecord.swap(allocs);
 		size_t numStrongLeaks = 0;
 		size_t numWeakLeaks = 0;
@@ -595,7 +595,7 @@ public:
 	static constexpr size_t overhead = header_size;
 #endif
 
-	volatile aba_stack<header> m_allocRecord;
+	volatile no_aba_stack<header> m_allocRecord;
 	volatile ptr<header> m_firstAdded;
 	volatile ptr<header> m_lastAdded;
 
@@ -770,7 +770,7 @@ public:
 	{
 		// We had been hording all blocks.  Abandon m_allocRecord and release the released blocks.
 		printf("Attempting to deallocate all allocations...\n");
-		aba_stack<header> allocs;
+		no_aba_stack<header> allocs;
 		allocs.swap(m_allocRecord);
 		for (;;)
 		{

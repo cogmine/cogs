@@ -25,23 +25,23 @@ namespace cogs {
 /// @brief Lock-free intrusive stack that is not vulnerable to <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a>.
 ///
 /// For a lock-free instrusive stack that is vulnerable to <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a>,
-/// use aba_stack.  aba_stack is slightly more efficient than cogs::stack when usage patterns gaurantee
+/// use no_aba_stack.  no_aba_stack is slightly more efficient than cogs::stack when usage patterns gaurantee
 /// <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a> will not arise,
-/// such as when an element will never be added twice.  Neither aba_stack or cogs::stack protect
+/// such as when an element will never be added twice.  Neither no_aba_stack or cogs::stack protect
 /// against hazardous (posthumous) access to an element, so elements must remain in
 /// scope beyond any potential parallel access.  Managing hazardous access requires
 /// managing the scope of the element, so must be done by the caller of any intrusive lock-free collection.
 ///
-/// Unlike aba_stack, the ABA solution employed by cogs::stack requires elements are referred to only by ptr (not rcptr, etc.).
+/// Unlike no_aba_stack, the ABA solution employed by cogs::stack requires elements are referred to only by ptr (not rcptr, etc.).
 ///
 /// @tparam T Intrusive single-link element type.  Default: slink
-/// @tparam link_iterator Helper type providing functions to get and set the next link.  Default: default_slink_iterator\<T\>
-template <class T = slink, class link_iterator = default_slink_iterator<T> >
+/// @tparam link_accessor Helper type providing functions to get and set the next link.  Default: default_slink_accessor\<T\>
+template <class T = slink, class link_accessor = default_slink_accessor<T> >
 class stack
 {
 public:
 	/// @brief Alias to this type.
-	typedef stack<T, link_iterator> this_t;
+	typedef stack<T, link_accessor> this_t;
 
 	/// @brief Alias to the link type.
 	typedef T link_t;
@@ -52,9 +52,9 @@ private:
 
 	head_ref_t m_head;
 
-	static const ptr<link_t>& get_next(const link_t& l) { return link_iterator::get_next(l); }
+	static const ptr<link_t>& get_next(const link_t& l) { return link_accessor::get_next(l); }
 
-	static void set_next(link_t& l, ptr<link_t> src) { link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, ptr<link_t> src) { link_accessor::set_next(l, src); }
 
 	stack(ptr<link_t> setTo)
 		: m_head(setTo)
@@ -264,9 +264,9 @@ public:
 
 	/// @{
 	/// @brief Removes all elements from the stack.
-	/// @return An aba_stack containing all of the elements that had been in this stack.
+	/// @return An no_aba_stack containing all of the elements that had been in this stack.
 	///
-	/// Since the aba_stack does not manage the scope of its elements, the elements are
+	/// Since the no_aba_stack does not manage the scope of its elements, the elements are
 	/// returned to allow cleanup.  Calling clear() is equivalent to calling exchange() and passing an empty stack.
 	this_t clear()
 	{

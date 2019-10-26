@@ -143,6 +143,7 @@ protected:
 	void set(typename vector_t::desc_t* d, type* p, size_t n) { m_contents.set(d, p, n); }
 
 	void disown() { m_contents.disown(); }
+	void disown() volatile { m_contents.disown(); }
 
 	typename vector_t::desc_t* get_desc() const { return m_contents.get_desc(); }
 	type* get_raw_ptr()const { return m_contents.get_raw_ptr(); }

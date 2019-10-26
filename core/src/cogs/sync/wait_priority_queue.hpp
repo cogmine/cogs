@@ -49,6 +49,7 @@ public:
 
 	public:
 		void disown() { m_preallocated.disown(); }
+		void disown() volatile { m_preallocated.disown(); }
 
 		preallocated_t() { }
 		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
@@ -90,6 +91,7 @@ public:
 		friend class wait_priority_queue;
 	public:
 		void disown() { m_valueToken.disown(); }
+		void disown() volatile { m_valueToken.disown(); }
 
 		value_token() { }
 		value_token(const value_token& vt) : m_valueToken(vt.m_valueToken) { }
@@ -325,6 +327,7 @@ public:
 
 	public:
 		void disown() { m_preallocated.disown(); }
+		void disown() volatile { m_preallocated.disown(); }
 
 		preallocated_t() { }
 		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
@@ -359,6 +362,7 @@ public:
 		friend class wait_priority_queue;
 	public:
 		void disown() { m_valueToken.disown(); }
+		void disown() volatile { m_valueToken.disown(); }
 
 		value_token() { }
 		value_token(const value_token& vt) : m_valueToken(vt.m_valueToken) { }

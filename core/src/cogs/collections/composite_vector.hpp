@@ -128,26 +128,17 @@ public:
 
 	size_t get_length() const { return m_length; }
 
-
-	composite_vector_content_t(this_t&& src)
-		: m_vectorVector(std::move(src.m_vectorVector)),
-		m_length(src.m_length)
-	{ }
-
-	this_t& operator=(this_t&& src)
-	{
-		m_vectorVector = std::move(src.m_vectorVector);
-		m_length = src.m_length;
-		return *this;
-	}
-
-
 	composite_vector_content_t()
 		: m_length(0)
 	{ }
 
 	composite_vector_content_t(const this_t& src)
 		: m_vectorVector(src.m_vectorVector),
+		m_length(src.m_length)
+	{ }
+
+	composite_vector_content_t(this_t&& src)
+		: m_vectorVector(std::move(src.m_vectorVector)),
 		m_length(src.m_length)
 	{ }
 
@@ -190,6 +181,13 @@ public:
 	this_t& operator=(const this_t& src)
 	{
 		m_vectorVector = src.m_vectorVector;
+		m_length = src.m_length;
+		return *this;
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		m_vectorVector = std::move(src.m_vectorVector);
 		m_length = src.m_length;
 		return *this;
 	}
@@ -2552,13 +2550,14 @@ public:
 			return *this;
 		}
 
-		iterator operator++(int) { iterator i(*this); ++* this; return i; }
-		iterator operator--(int) { iterator i(*this); --* this; return i; }
+		iterator operator++(int) { iterator i(*this); ++*this; return i; }
+		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
 		bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
+
 		iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
 
 		type* get() const { return m_array->get_inner(m_position.get_outer_index()).get_ptr() + m_position.get_inner_index(); }
@@ -2685,8 +2684,8 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
-		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++*this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
@@ -2749,17 +2748,6 @@ public:
 		return m_contents->calculate_index(pos.m_pos);
 	}
 
-	composite_vector(this_t&& src)
-		: m_contents(std::move(src.m_contents))
-	{ }
-
-	this_t& operator=(this_t&& src)
-	{
-		m_contents = std::move(src.m_contents);
-		return *this;
-	}
-
-
 	composite_vector()
 	{ }
 
@@ -2769,6 +2757,10 @@ public:
 
 	composite_vector(const volatile this_t& src)
 		: m_contents(typename transactable_t::construct_embedded_t(), *(src.m_contents.begin_read()))
+	{ }
+
+	composite_vector(this_t&& src)
+		: m_contents(std::move(src.m_contents))
 	{ }
 
 	composite_vector(const this_t& src, size_t srcIndex, size_t srcLength = const_max_int_v<size_t>)
@@ -2843,8 +2835,8 @@ public:
 	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const { return m_contents->composite(i, n); }
 	vector<type> composite(size_t i, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->composite(i, n); }
 
-	vector<type> composite(const position_t & pos, size_t n = const_max_int_v<size_t>) const { return m_contents->composite(pos.m_pos, n); }
-	vector<type> composite(const position_t & pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->composite(pos.m_pos, n); }
+	vector<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const { return m_contents->composite(pos.m_pos, n); }
+	vector<type> composite(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->composite(pos.m_pos, n); }
 
 	template <typename type2>
 	vector<type2> composite_as() const { return m_contents->template composite_as<type2>(); }
@@ -2859,10 +2851,10 @@ public:
 	vector<type2> composite_as(size_t i, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->template composite_as<type2>(i, n); }
 
 	template <typename type2>
-	vector<type2> composite_as(const position_t & pos, size_t n = const_max_int_v<size_t>) const { return m_contents->template composite_as<type2>(pos.m_pos, n); }
+	vector<type2> composite_as(const position_t& pos, size_t n = const_max_int_v<size_t>) const { return m_contents->template composite_as<type2>(pos.m_pos, n); }
 
 	template <typename type2>
-	vector<type2> composite_as(const position_t & pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->template composite_as<type2>(pos.m_pos, n); }
+	vector<type2> composite_as(const position_t& pos, size_t n = const_max_int_v<size_t>) const volatile { return m_contents.begin_read()->template composite_as<type2>(pos.m_pos, n); }
 
 	size_t get_length() const { return m_contents->m_length; }
 	size_t get_length() const volatile { return m_contents.begin_read()->m_length; }
@@ -5376,6 +5368,18 @@ public:
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
 	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
 	void operator=(const this_t& src) volatile { assign(src); }
+
+	this_t& operator=(this_t&& src)
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
+	}
+
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
+	}
 
 	template <typename type2>
 	this_t& operator=(const vector<type2>& src) { assign(src); return *this; }

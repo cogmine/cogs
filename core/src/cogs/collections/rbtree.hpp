@@ -24,15 +24,15 @@ namespace cogs {
 /// @ingroup BinaryTrees
 /// @brief Base classes for (intrusive) nodes of a rbtree.
 /// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type, without requiring a cast.
-/// If void is specified, links will point to rbtree_node_t<void, ref_type, link_iterator>.  Default: void
+/// If void is specified, links will point to rbtree_node_t<void, ref_type, link_accessor>.  Default: void
 /// @tparam ref_type Reference type to use for links.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_tlink_iterator<derived_t, ref_type>
-template <class derived_t, template <typename> class ref_type = ptr, class link_iterator = default_tlink_iterator<derived_t, ref_type> >
-class rbtree_node_t : public tlink_t<derived_t, ref_type, link_iterator>
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_tlink_accessor<derived_t, ref_type>
+template <class derived_t, template <typename> class ref_type = ptr, class link_accessor = default_tlink_accessor<derived_t, ref_type> >
+class rbtree_node_t : public tlink_t<derived_t, ref_type, link_accessor>
 {
 private:
-	typedef rbtree_node_t<derived_t, ref_type, link_iterator> this_t;
-	typedef tlink_t<derived_t, ref_type, link_iterator> base_t;
+	typedef rbtree_node_t<derived_t, ref_type, link_accessor> this_t;
+	typedef tlink_t<derived_t, ref_type, link_accessor> base_t;
 
 	bool m_color;
 
@@ -75,12 +75,12 @@ public:
 };
 
 
-template <template <typename> class ref_type, class link_iterator>
-class rbtree_node_t<void, ref_type, link_iterator> : public tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_iterator>
+template <template <typename> class ref_type, class link_accessor>
+class rbtree_node_t<void, ref_type, link_accessor> : public tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor>
 {
 private:
-	typedef rbtree_node_t<void, ref_type, link_iterator> this_t;
-	typedef tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_iterator> base_t;
+	typedef rbtree_node_t<void, ref_type, link_accessor> this_t;
+	typedef tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor> base_t;
 
 	bool m_color;
 

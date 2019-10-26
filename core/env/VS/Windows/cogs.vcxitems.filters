@@ -543,9 +543,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\operators.hpp">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\abastack.hpp">
-      <Filter>core\collections</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\array_view.hpp">
       <Filter>core\collections</Filter>
     </ClInclude>
@@ -1283,6 +1280,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\gfx\bitmask.hpp">
       <Filter>os\MacOS\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\no_aba_stack.hpp">
+      <Filter>core\collections</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

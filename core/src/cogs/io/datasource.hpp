@@ -783,7 +783,7 @@ private:
 public:
 	friend class datasource;
 
-	/// @brief Transaction constructor.
+	/// @brief Constructor.
 	/// @param ds Target datasource
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasource.

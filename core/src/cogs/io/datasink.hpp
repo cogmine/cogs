@@ -333,7 +333,7 @@ protected:
 		m_ioQueue(rcnew(queue))
 	{ }
 
-	/// @brief Datasink constructor
+	/// @brief Constructor
 	/// @param ioQueue The io::queue to use.  Default: creates a new one
 	datasink(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue)
 		: object(desc),
@@ -594,7 +594,7 @@ private:
 	}
 
 public:
-	/// @brief Transaction constructor.
+	/// @brief Constructor.
 	/// @param ds Target datasink
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.

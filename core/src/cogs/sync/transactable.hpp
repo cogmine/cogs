@@ -2073,7 +2073,7 @@ public:
 		/// @}
 
 		/// @{
-		/// @brief Move-Constructor
+		/// @brief Move constructor
 		/// @param src Initial value
 		read_token(read_token& src) = delete;
 		read_token(read_token&& src) : m_readToken(std::move(src.m_readToken)) { }
@@ -2121,7 +2121,7 @@ public:
 		/// @}
 
 		/// @{
-		/// @brief Move-Constructor
+		/// @brief Move constructor
 		/// @param src Initial value
 		write_token(write_token&& src) : m_writeToken(std::move(src.m_writeToken)) { }
 		/// @}

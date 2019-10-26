@@ -19,23 +19,23 @@ namespace cogs {
 /// @brief An intrusive single-link list.
 /// @tparam link_t A single-link list element type
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_slink_iterator<link_t, ref_type>
-template <class link_t = slink, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_slink_accessor<link_t, ref_type>
+template <class link_t = slink, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<link_t, ref_type> >
 class slist_t
 {
 public:
-	typedef slist_t<link_t, ref_type, link_iterator> this_t;
+	typedef slist_t<link_t, ref_type, link_accessor> this_t;
 	typedef ref_type<link_t> ref_t;
 
 private:
 	ref_t m_first;
 	ref_t m_last;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
 
 	slist_t(const this_t& src) = delete;
 	this_t& operator=(const this_t& src) = delete;
@@ -96,22 +96,22 @@ public:
 /// @brief An intrusive single-link circular list.
 /// @tparam link_t A single-link list element type
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_slink_iterator<link_t, ref_type>
-template <class link_t = slink, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_slink_accessor<link_t, ref_type>
+template <class link_t = slink, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<link_t, ref_type> >
 class circular_slist_t
 {
 public:
-	typedef circular_slist_t<link_t, ref_type, link_iterator> this_t;
+	typedef circular_slist_t<link_t, ref_type, link_accessor> this_t;
 	typedef ref_type<link_t> ref_t;
 
 private:
 	ref_t m_last;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
 
 	circular_slist_t(const ref_t& setTo)
 		: m_last(setTo)
@@ -234,8 +234,8 @@ public:
 };
 
 
-typedef slist_t<slink, ptr, default_slink_iterator<slink> > slist;
-typedef circular_slist_t<slink, ptr, default_slink_iterator<slink> > circular_slist;
+typedef slist_t<slink, ptr, default_slink_accessor<slink> > slist;
+typedef circular_slist_t<slink, ptr, default_slink_accessor<slink> > circular_slist;
 
 
 };

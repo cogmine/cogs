@@ -9,7 +9,6 @@
 #define COGS_HEADER_COLLECTION_SLINK
 
 #include <type_traits>
-
 #include "cogs/mem/ptr.hpp"
 
 namespace cogs {
@@ -18,9 +17,25 @@ namespace cogs {
 #pragma warning(push)
 #pragma warning (disable: 4521) // multiple copy constructors specified
 
+/// @defgroup CollectionMixIns Collection Mix-In's
+/// @{
+/// @ingroup Collections
+/// @}
 
+/// @defgroup CollectionAccessorMixIns Accessor Mix-In's
+/// @{
+/// @ingroup CollectionMixIns
+/// @brief Accessor mix-in's provide intrusive collection algorithms with access to the links within intrusive elements.
+/// They are an alternative to deriving from an intrusive link base class.  They allow use of an intrusive element that
+/// do not publicly expose access to the link accessors.
+/// @}
+
+/// @ingroup CollectionAccessorMixIns
+/// @brief Provides a default slink accessor mix-in type which leverages accessors in the intrusive element.
+/// @tparam link_t The link type to wrap access to.
+/// @tparam ref_type Type used to reference elements.  Default: ptr
 template <class link_t, template <typename> class ref_type = ptr>
-class default_slink_iterator
+class default_slink_accessor
 {
 public:
 	typedef ref_type<link_t> ref_t;
@@ -33,17 +48,17 @@ public:
 };
 
 
-template <class link_t, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >
+template <class link_t, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<link_t, ref_type> >
 class slink_methods
 {
 public:
 	typedef ref_type<link_t> ref_t;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next_link(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next_link(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_accessor::set_next_link(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_accessor::set_next_link(l, src); }
 
 	static void insert_next(link_t& ths, const ref_t& l)
 	{
@@ -245,19 +260,25 @@ public:
 	}
 };
 
-
-template <class derived_t, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<derived_t, ref_type> >
+/// @ingroup Collections
+/// @brief Base class for a single-link list element.  Does not include storage or link accessor methods.
+/// @tparam derived_t Derived type of this class.
+/// This <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">curiously recurring template pattern</a>
+/// allows links to refer to the derived type.  Storage and access can be defined in the derived type.
+/// @tparam ref_type Type used to reference elements.  Default: ptr
+/// @tparam link_accessor Mix-in type providing access to the link.  Default: default_slink_accessor<derived_t, ref_type>
+template <class derived_t, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<derived_t, ref_type> >
 class slink_base
 {
 public:
-	typedef slink_base<derived_t, ref_type, link_iterator> this_t;
+	typedef slink_base<derived_t, ref_type, link_accessor> this_t;
 	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
 	typedef ref_type<link_t> ref_t;
-	typedef slink_methods<link_t, ref_type, link_iterator> slink_methods_t;
+	typedef slink_methods<link_t, ref_type, link_accessor> slink_methods_t;
 
 	// non-volatile misc
 	void insert_next(const ref_t& l) { slink_methods_t::insert_next(*(derived_t*)this, l); }
-	ref_t remove_next() { return  slink_methods_t::remove_next(*(derived_t*)this); }
+	ref_t remove_next() { return slink_methods_t::remove_next(*(derived_t*)this); }
 	void insert_segment(const ref_t& seq_start, const ref_t& seq_end) { slink_methods_t::insert_segment(*(derived_t*)this, seq_start, seq_end); }
 	ref_t insert_terminated_list(const ref_t& l, const ref_t& terminator = ref_t()) { return slink_methods_t::insert_terminated_list(*(derived_t*)this, l, terminator); }
 	ref_t insert_circular_list(const ref_t& l) { return slink_methods_t::insert_circular_list(*(derived_t*)this, l); }
@@ -275,20 +296,22 @@ public:
 
 
 /// @ingroup Collections
-/// @brief A single-link list element
-/// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type, without requiring a cast.
-/// If void is specified, links will point to slink_t<void, ref_type, link_iterator>.  Default: void
+/// @brief Base class for a single-link list element.
+/// @tparam derived_t Derived type of this class.
+/// This <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">curiously recurring template pattern</a>
+/// allows links to refer to the derived type.
+/// If void is specified, links will point to slink_t<void, ref_type, link_accessor>.  Default: void
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_slink_iterator<derived_t, ref_type>
-template <class derived_t = void, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<derived_t, ref_type> >
-class slink_t : public slink_base<derived_t, ref_type, link_iterator>
+/// @tparam link_accessor Mix-in type providing access to the link.  Default: default_slink_accessor<derived_t, ref_type>
+template <class derived_t = void, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<derived_t, ref_type> >
+class slink_t : public slink_base<derived_t, ref_type, link_accessor>
 {
 public:
-	typedef slink_t<derived_t, ref_type, link_iterator> this_t;
+	typedef slink_t<derived_t, ref_type, link_accessor> this_t;
 	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
 	typedef ref_type<link_t> ref_t;
 
-	typedef default_slink_iterator<this_t, ref_type> default_link_iterator;
+	typedef default_slink_accessor<this_t, ref_type> default_link_accessor;
 
 private:
 	ref_t m_next;
@@ -297,12 +320,11 @@ private:
 	this_t& operator=(const this_t& t) = delete;
 
 public:
-	slink_t()
-	{ }
+	slink_t() { }
 
 	slink_t(this_t&& t)
+		: m_next(std::move(t.m_next))
 	{
-		m_next = std::move(t.m_next);
 	}
 
 	this_t& operator=(this_t&& t)
@@ -324,7 +346,7 @@ public:
 
 
 template <template <typename> class ref_type>
-class default_slink_iterator<void, ref_type> : public default_slink_iterator<slink_t<void, ref_type, default_slink_iterator<void, ref_type> > >
+class default_slink_accessor<void, ref_type> : public default_slink_accessor<slink_t<void, ref_type, default_slink_accessor<void, ref_type> > >
 {
 };
 

@@ -38,58 +38,71 @@ namespace cogs {
 /// @brief Lock-free intrusive stack that is vulnerable to <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a>.
 ///
 /// For a lock-free instrusive stack that is not vulnerable to <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a>,
-/// use cogs::stack.  aba_stack is slightly more efficient than cogs::stack when usage patterns gaurantee
+/// use cogs::stack.  no_aba_stack is slightly more efficient than cogs::stack when usage patterns gaurantee
 /// <a href="https://en.wikipedia.org/wiki/ABA_problem">The ABA Problem</a> will not arise,
-/// such as when an element will never be added twice.  Neither aba_stack or cogs::stack protect
+/// such as when an element will never be added twice.  Neither no_aba_stack or cogs::stack protect
 /// against hazardous (posthumous) access to an element, so elements must remain in
 /// scope beyond any potential parallel access.  Managing hazardous access requires
 /// managing the scope of the element, so must be done by the caller of any intrusive lock-free collection.
 ///
-/// @tparam link_t  Intrusive single-link element type.  Default: slink
+/// @tparam link_t Intrusive single-link element type.  Default: slink
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set the next link.  Default: default_slink_iterator\<T, ref_type\>
-template <class link_t = slink, template <typename> class ref_type = ptr, class link_iterator = default_slink_iterator<link_t, ref_type> >
-class aba_stack
+/// @tparam link_accessor Helper type providing functions to get and set the next link.  Default: default_slink_accessor\<T, ref_type\>
+template <class link_t = slink, template <typename> class ref_type = ptr, class link_accessor = default_slink_accessor<link_t, ref_type> >
+class no_aba_stack
 {
 public:
 	/// @brief Aliases to the element reference type.  i.e. ptr\<link_t\>
 	typedef ref_type<link_t> ref_t;
 
 	/// @brief Alias to this type.
-	typedef aba_stack<link_t, ref_type, link_iterator> this_t;
+	typedef no_aba_stack<link_t, ref_type, link_accessor> this_t;
 
 private:
 	ref_t m_head;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
 
-	aba_stack(const ref_t& setTo)
-	{ m_head = setTo; }
+	no_aba_stack(const ref_t& setTo) { m_head = setTo; }
 
-	aba_stack(const this_t&) = delete;
+	no_aba_stack(const this_t&) = delete;
 	this_t& operator=(const this_t&) = delete;
 
 public:
-	aba_stack()
-	{ }
+	/// @{
+	/// @brief Constructor
+	no_aba_stack() { }
+	/// @}
 
-	aba_stack(this_t&& s)
+	/// @{
+	/// @brief Move constructor
+	/// @param s The no_aba_stack to move
+	no_aba_stack(this_t&& s)
 		: m_head(std::move(s.m_head))
 	{
 		s.m_head.clear();
 	}
+	/// @}
 
+	/// @{
+	/// @brief Move assignment operator
+	/// @param s The no_aba_stack to move
+	/// @return A reference to this
 	this_t& operator=(this_t&& s)
 	{
 		clear();
 		m_head = std::move(s.m_head);
 		s.m_head.clear();
 	}
+	/// @}
 
+	/// @{
+	/// @brief Counts the elements in the stack.
+	/// @return The number of elements in the stack
 	size_t count() const
 	{
 		size_t n = 0;
@@ -101,9 +114,10 @@ public:
 		}
 		return n;
 	}
+	/// @}
 
 	/// @{
-	/// @brief Peek at the element at the head of the stack, without removing it.
+	/// @brief Peek at the element at the head of the stack without removing it.
 	/// @return An element reference pointing to the head element.
 	ref_t peek() const { return m_head; }
 	/// @brief Thread-safe implementation of peek().
@@ -119,7 +133,7 @@ public:
 	/// @}
 
 	/// @{
-	/// @brief Checks if the stack is empty.  An alias for is_empty().
+	/// @brief Checks if the stack is empty.  Tbhis is alias for is_empty().
 	/// @return True if the stack is empty.
 	bool operator!() const { return !m_head; }
 	/// @brief Thread-safe implementation of operator!()
@@ -262,7 +276,6 @@ public:
 	}
 	/// @}
 
-
 	/// @{
 	/// @brief Exchanges this contents of this stack with the specified stack.
 	/// @param[in,out] s Stack to exchange the contents of this stack with.
@@ -286,9 +299,9 @@ public:
 
 	/// @{
 	/// @brief Removes all elements from the stack.
-	/// @return An aba_stack containing all of the elements that had been in this stack.
+	/// @return An no_aba_stack containing all of the elements that had been in this stack.
 	///
-	/// Since the aba_stack does not manage the scope of its elements, the elements are
+	/// Since the no_aba_stack does not manage the scope of its elements, the elements are
 	/// returned to allow cleanup.  Calling clear() is equivalent to calling exchange() and passing an empty stack.
 	this_t clear()
 	{
@@ -315,4 +328,3 @@ public:
 
 
 #endif
-

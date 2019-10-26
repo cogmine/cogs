@@ -20,29 +20,29 @@ namespace cogs {
 /// @brief An intrusive double-link list.
 /// @tparam link_t A double-link list element type
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_dlink_iterator
-template <class link_t = dlink, template <typename> class ref_type = ptr, class link_iterator = default_dlink_iterator<link_t, ref_type> >
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_dlink_accessor
+template <class link_t = dlink, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<link_t, ref_type> >
 class dlist_t
 {
 public:
-	typedef dlist_t<link_t, ref_type, link_iterator> this_t;
+	typedef dlist_t<link_t, ref_type, link_accessor> this_t;
 	typedef ref_type<link_t> ref_t;
 
 private:
 	ref_t m_first;
 	ref_t m_last;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_accessor::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_accessor::get_prev(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
 
-	static void set_prev(link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
 
 	dlist_t(const this_t& src) = delete;
 	this_t& operator=(const this_t& src) = delete;
@@ -148,28 +148,28 @@ public:
 /// @brief An intrusive double-link circular list.
 /// @tparam link_t A double-link list element type
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_dlink_iterator
-template <class link_t = dlink, template <typename> class ref_type = ptr, class link_iterator = default_dlink_iterator<link_t, ref_type> >
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_dlink_accessor
+template <class link_t = dlink, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<link_t, ref_type> >
 class circular_dlist_t
 {
 public:
-	typedef circular_dlist_t<link_t, ref_type, link_iterator> this_t;
+	typedef circular_dlist_t<link_t, ref_type, link_accessor> this_t;
 	typedef ref_type<link_t> ref_t;
 
 private:
 	ref_t m_first;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
 
-	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_accessor::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_accessor::get_prev(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { return link_iterator::set_next(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { return link_accessor::set_next(l, src); }
 
-	static void set_prev(link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src) { return link_iterator::set_prev(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
 
 	circular_dlist_t(const ref_t& setTo)
 		: m_first(setTo)
@@ -314,8 +314,8 @@ public:
 };
 
 
-typedef dlist_t<dlink, ptr, default_dlink_iterator<dlink> > dlist;
-typedef circular_dlist_t<dlink, ptr, default_dlink_iterator<slink> > circular_dlist;
+typedef dlist_t<dlink, ptr, default_dlink_accessor<dlink> > dlist;
+typedef circular_dlist_t<dlink, ptr, default_dlink_accessor<slink> > circular_dlist;
 
 
 }

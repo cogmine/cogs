@@ -48,9 +48,7 @@ public:
 	typedef container_deque<type, false, allocator_type> this_t;
 
 private:
-	allocator_container<allocator_type> m_allocator;
-
-	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_iterator<link_t, versioned_ptr> >
+	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
 	{
 	public:
 		typedef typename versioned_ptr<link_t>::version_t version_t;
@@ -368,6 +366,8 @@ private:
 	container_deque(const container_deque& src) = delete;
 	this_t& operator=(const container_deque& src) = delete;
 
+	allocator_container<allocator_type> m_allocator;
+
 public:
 	container_deque()
 	{
@@ -395,6 +395,13 @@ public:
 		return *this;
 	}
 
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		swap(src);
+		src.clear();
+		return *this;
+	}
 
 	explicit container_deque(volatile allocator_type& al)
 		: m_allocator(al)
@@ -404,24 +411,6 @@ public:
 	}
 
 	~container_deque() { clear_inner(); }
-
-	void swap(this_t& wth)
-	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
-		content_t tmp = m_contents;
-		m_contents = wth.m_contents;
-		wth.m_contents = tmp;
-	}
-
-	void swap(this_t& wth) volatile
-	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
-		cogs::swap(m_contents, wth.m_contents);
-		stabilize();
-		wth.stabilize();
-	}
-
-	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
@@ -499,6 +488,44 @@ public:
 	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
 	bool remove_last() { bool wasLast; return remove_last(wasLast); }
 	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
+
+	void swap(this_t& wth)
+	{
+		content_t tmp = m_contents;
+		m_contents = wth.m_contents;
+		wth.m_contents = tmp;
+		allocator_container<allocator_type> tmp2 = m_allocator;
+		m_allocator = wth.m_allocator;
+		wth.m_allocator = tmp2;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile
+	{
+		content_t oldContents;
+		do {
+			stabilize(oldContents);
+		} while (!atomic::compare_exchange(m_contents, wth.m_contents, oldContents));
+		wth.m_contents = oldContents;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth) { wth.swap(*this); }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
 };
 
 
@@ -510,9 +537,7 @@ public:
 	typedef container_deque<type, true, allocator_type> this_t;
 
 private:
-	allocator_container<allocator_type> m_allocator;
-
-	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_iterator<link_t, versioned_ptr> >
+	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
 	{
 	public:
 		typedef typename versioned_ptr<link_t>::version_t version_t;
@@ -857,6 +882,8 @@ private:
 	container_deque(const container_deque& src) = delete;
 	this_t& operator=(const container_deque& src) = delete;
 
+	allocator_container<allocator_type> m_allocator;
+
 public:
 	container_deque()
 	{
@@ -873,6 +900,13 @@ public:
 		src.m_contents.m_tail = 0;
 	}
 
+	explicit container_deque(volatile allocator_type& al)
+		: m_allocator(al)
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+	}
+
 	this_t& operator=(this_t&& src)
 	{
 		clear_inner();
@@ -884,33 +918,15 @@ public:
 		return *this;
 	}
 
-
-	explicit container_deque(volatile allocator_type& al)
-		: m_allocator(al)
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
 	{
-		m_contents.m_head = 0;
-		m_contents.m_tail = 0;
+		swap(src);
+		src.clear();
+		return *this;
 	}
 
 	~container_deque() { clear_inner(); }
-
-	void swap(this_t& wth)
-	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
-		content_t tmp = m_contents;
-		m_contents = wth.m_contents;
-		wth.m_contents = tmp;
-	}
-
-	void swap(this_t& wth) volatile
-	{
-		COGS_ASSERT(!m_allocator.is_allocator_instance_based); // only supported if static allocator
-		cogs::swap(m_contents, wth.m_contents);
-		stabilize();
-		wth.stabilize();
-	}
-
-	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
@@ -988,6 +1004,44 @@ public:
 	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
 	bool remove_last() { bool wasLast; return remove_last(wasLast); }
 	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
+
+	void swap(this_t& wth)
+	{
+		content_t tmp = m_contents;
+		m_contents = wth.m_contents;
+		wth.m_contents = tmp;
+		allocator_container<allocator_type> tmp2 = m_allocator;
+		m_allocator = wth.m_allocator;
+		wth.m_allocator = tmp2;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile
+	{
+		content_t oldContents;
+		do {
+			stabilize(oldContents);
+		} while (!atomic::compare_exchange(m_contents, wth.m_contents, oldContents));
+		wth.m_contents = oldContents;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth) { wth.swap(*this); }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
 };
 
 

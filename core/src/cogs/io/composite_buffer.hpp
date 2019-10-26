@@ -1632,8 +1632,8 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
-		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++*this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 

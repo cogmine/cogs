@@ -125,6 +125,14 @@ protected:
 	bool end_write(read_token& t, type2& src) volatile { return m_contents.end_write(t, src); }
 
 	void disown() { m_contents->m_desc = nullptr; } // clear the desc ptr not the desc contents
+	void disown() volatile
+	{
+		write_token wt;
+		do {
+			begin_write(wt);
+			wt->m_desc = nullptr;
+		}  while (!end_write(wt));
+	}
 
 	rc_obj_base* get_desc() const { return m_contents->m_desc; }
 	rc_obj_base* get_desc() const volatile { return begin_read()->m_desc; }
@@ -779,25 +787,9 @@ protected:
 
 	// exchange
 	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(rc_container_base<type2, refStrengthType2>&& src)
-	{
-		this_t rtn(std::move(src));
-		swap(rtn);
-		return rtn;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
 	this_t exchange(const rc_container_base<type2, refStrengthType2>& src)
 	{
 		this_t rtn(src);
-		swap(rtn);
-		return rtn;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(rc_container_base<type2, refStrengthType2>&& src) volatile
-	{
-		this_t rtn(std::move(src));
 		swap(rtn);
 		return rtn;
 	}
@@ -811,25 +803,26 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn)
+	this_t exchange(rc_container_base<type2, refStrengthType2>&& src)
 	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		rtn = std::move(tmp);
+		this_t rtn(std::move(src));
+		swap(rtn);
+		return rtn;
 	}
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	this_t exchange(rc_container_base<type2, refStrengthType2>&& src) volatile
+	{
+		this_t rtn(std::move(src));
+		swap(rtn);
+		return rtn;
+	}
+
 
 	template <typename type2, reference_strength_type refStrengthType2>
 	void exchange(const rc_container_base<type2, refStrengthType2>& src, this_t& rtn)
 	{
 		this_t tmp(src);
-		swap(tmp);
-		rtn = std::move(tmp);
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn) volatile
-	{
-		this_t tmp(std::move(src));
 		swap(tmp);
 		rtn = std::move(tmp);
 	}
@@ -842,22 +835,39 @@ protected:
 		rtn = std::move(tmp);
 	}
 
+	template <typename type2, reference_strength_type refStrengthType2>
+	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		rtn = std::move(tmp);
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		rtn = std::move(tmp);
+	}
+
 
 	// compare_exchange
+
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp)
+	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp)
 	{
 		bool b = (*this == cmp);
 		if (b)
 		{
-			this_t tmp(std::move(src));
+			this_t tmp(src);
 			swap(tmp);
 		}
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp)
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp)
 	{
 		bool b = (*this == cmp);
 		if (b)
@@ -880,30 +890,6 @@ protected:
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-		}
-		return b;
-	}
-
 	template <typename type2, typename type3>
 	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp)
 	{
@@ -916,24 +902,30 @@ protected:
 		return b;
 	}
 
-
-
-
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp)
 	{
-		this_t tmpSrc(std::move(src));
-		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
-		content_t tmpRtn;
-		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
+		bool b = (*this == cmp);
 		if (b)
 		{
-			tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc) // release the reference we just removed from this
-				tmpRtn.m_desc->release(refStrengthType);
+			this_t tmp(std::move(src));
+			swap(tmp);
 		}
 		return b;
 	}
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp)
+	{
+		bool b = (*this == cmp);
+		if (b)
+		{
+			this_t tmp(std::move(src));
+			swap(tmp);
+		}
+		return b;
+	}
+
 
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
 	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
@@ -949,51 +941,6 @@ protected:
 				tmpRtn.m_desc->release(refStrengthType);
 		}
 		return b;
-	}
-
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
-	{
-		this_t tmpSrc(src);
-		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
-		content_t tmpRtn;
-		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
-		if (b)
-		{
-			//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc) // release the reference we just removed from this
-				tmpRtn.m_desc->release(refStrengthType);
-		}
-		return b;
-	}
-
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		bool result;
-		for (;;)
-		{
-			begin_read(rt);
-			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc) // release the reference we just removed from this
-					oldDesc->release(refStrengthType);
-				result = true;
-				break;
-			}
-		}
-		return result;
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2, typename type3>
@@ -1024,6 +971,22 @@ protected:
 		return result;
 	}
 
+	template <typename type2, typename type3, reference_strength_type refStrengthType3>
+	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
+	{
+		this_t tmpSrc(src);
+		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
+		content_t tmpRtn;
+		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
+		if (b)
+		{
+			//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+			if (!!tmpRtn.m_desc) // release the reference we just removed from this
+				tmpRtn.m_desc->release(refStrengthType);
+		}
+		return b;
+	}
+
 	template <typename type2, typename type3>
 	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp) volatile
 	{
@@ -1052,25 +1015,73 @@ protected:
 		return result;
 	}
 
-
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
 	{
-		bool b = (*this == cmp);
+		this_t tmpSrc(std::move(src));
+		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
+		content_t tmpRtn;
+		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
 		if (b)
 		{
-			this_t tmp(std::move(src));
+			tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+			if (!!tmpRtn.m_desc) // release the reference we just removed from this
+				tmpRtn.m_desc->release(refStrengthType);
+		}
+		return b;
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp) volatile
+	{
+		this_t tmpSrc(std::move(src));
+		read_token rt;
+		bool result;
+		for (;;)
+		{
+			begin_read(rt);
+			rc_obj_base* oldDesc = rt->m_desc;
+			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
+			{
+				result = false;
+				break;
+			}
+
+			if (end_write(rt, *tmpSrc.m_contents))
+			{
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				if (!!oldDesc) // release the reference we just removed from this
+					oldDesc->release(refStrengthType);
+				result = true;
+				break;
+			}
+		}
+		return result;
+	}
+
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
+	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
+	{
+		bool b = (*this == cmp);
+		if (!b)
+			rtn = *this;
+		else
+		{
+			this_t tmp(src);
 			swap(tmp);
 			rtn = std::move(tmp);
 		}
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp, this_t& rtn)
 	{
 		bool b = (*this == cmp);
-		if (b)
+		if (!b)
+			rtn = *this;
+		else
 		{
 			this_t tmp(src);
 			swap(tmp);
@@ -1083,33 +1094,9 @@ protected:
 	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
 	{
 		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (b)
+		if (!b)
+			rtn = *this;
+		else
 		{
 			this_t tmp(src);
 			swap(tmp);
@@ -1122,7 +1109,9 @@ protected:
 	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp, this_t& rtn)
 	{
 		bool b = (*this == cmp);
-		if (b)
+		if (!b)
+			rtn = *this;
+		else
 		{
 			this_t tmp(src);
 			swap(tmp);
@@ -1131,37 +1120,36 @@ protected:
 		return b;
 	}
 
-
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
 	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
+		bool b = (*this == cmp);
+		if (!b)
+			rtn = *this;
+		else
 		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
+			this_t tmp(std::move(src));
+			swap(tmp);
+			rtn = std::move(tmp);
 		}
-		rtn = std::move(tmp);
-		return result;
+		return b;
 	}
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn)
+	{
+		bool b = (*this == cmp);
+		if (!b)
+			rtn = *this;
+		else
+		{
+			this_t tmp(std::move(src));
+			swap(tmp);
+			rtn = std::move(tmp);
+		}
+		return b;
+	}
+
 
 	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
 	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
@@ -1176,68 +1164,6 @@ protected:
 			*tmp.m_contents = *rt;
 
 			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if (rt->m_obj != cmp.get_ptr())
 			{
 				result = false;
 				break;
@@ -1287,10 +1213,103 @@ protected:
 		return result;
 	}
 
+	template <typename type2, typename type3, reference_strength_type refStrengthType3>
+	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
+	{
+		this_t tmpSrc(src);
+		read_token rt;
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
+		bool result;
+		for (;;)
+		{
+			guarded_acquire(rt);
+			*tmp.m_contents = *rt;
+
+			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
+			{
+				result = false;
+				break;
+			}
+
+			if (end_write(rt, *tmpSrc.m_contents))
+			{
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
+				result = true;
+				break;
+			}
+			tmp.release_inner();
+		}
+		rtn = std::move(tmp);
+		return result;
+	}
+
 	template <typename type2, typename type3>
 	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp, this_t& rtn) volatile
 	{
 		this_t tmpSrc(src);
+		read_token rt;
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
+		bool result;
+		for (;;)
+		{
+			guarded_acquire(rt);
+			*tmp.m_contents = *rt;
+
+			if (rt->m_obj != cmp.get_ptr())
+			{
+				result = false;
+				break;
+			}
+
+			if (end_write(rt, *tmpSrc.m_contents))
+			{
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
+				result = true;
+				break;
+			}
+			tmp.release_inner();
+		}
+		rtn = std::move(tmp);
+		return result;
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
+	{
+		this_t tmpSrc(std::move(src));
+		read_token rt;
+		this_t tmp; // contain, to handle hand-off of ownership.  or not.
+		bool result;
+		for (;;)
+		{
+			guarded_acquire(rt);
+			*tmp.m_contents = *rt;
+
+			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
+			{
+				result = false;
+				break;
+			}
+
+			if (end_write(rt, *tmpSrc.m_contents))
+			{
+				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
+				tmp.release_inner(); // release the reference we just removed from this
+				result = true;
+				break;
+			}
+			tmp.release_inner();
+		}
+		rtn = std::move(tmp);
+		return result;
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2, typename type3>
+	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn) volatile
+	{
+		this_t tmpSrc(std::move(src));
 		read_token rt;
 		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;

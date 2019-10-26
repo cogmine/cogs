@@ -3417,7 +3417,7 @@ public:
 	this_t next() const volatile { this_t tmp(*this); tmp.m_contents->increment(); return tmp; }
 	void assign_next() { m_contents->increment(); }
 	void assign_next() volatile { write_retry_loop([&](content_t& c) { c.increment(); }); }
-	const this_t& operator++() { assign_next(); return *this; }
+	this_t& operator++() { assign_next(); return *this; }
 	this_t operator++() volatile { return write_retry_loop_pre([&](content_t& c) { c.increment(); }); }
 	this_t operator++(int) { this_t result(*this); m_contents->increment(); return result; }
 	this_t operator++(int) volatile { return write_retry_loop_post([&](content_t& c) { c.increment(); }); }
@@ -3426,7 +3426,7 @@ public:
 	this_t prev() const volatile { this_t tmp(*this); tmp.m_contents->decrement(); return tmp; }
 	void assign_prev() { m_contents->decrement(); }
 	void assign_prev() volatile { write_retry_loop([&](content_t& c) { c.decrement(); }); }
-	const this_t& operator--() { assign_prev(); return *this; }
+	this_t& operator--() { assign_prev(); return *this; }
 	this_t operator--() volatile { return write_retry_loop_pre([&](content_t& c) { c.decrement(); }); }
 	this_t operator--(int) { this_t result(*this); m_contents->decrement(); return result; }
 	this_t operator--(int) volatile { return write_retry_loop_post([&](content_t& c) { c.decrement(); }); }

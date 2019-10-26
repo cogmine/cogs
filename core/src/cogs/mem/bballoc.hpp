@@ -60,7 +60,7 @@ private:
 		size_type m_selector;
 
 		bool is_left_buddy() const volatile { return !!(m_selector & (size_t)1); }
-		bool is_right_buddy() const volatile { return  !(m_selector & (size_t)1); }
+		bool is_right_buddy() const volatile { return !(m_selector & (size_t)1); }
 
 		size_t get_selector() const volatile { return (m_selector >> 1).get_int(); }
 
@@ -109,7 +109,7 @@ private:
 
 	typedef typename versioned_ptr<link>::version_t version_t;
 
-	class link_iterator
+	class link_accessor
 	{
 	public:
 		typedef ptr<link> ref_t;
@@ -156,7 +156,7 @@ private:
 
 	private:
 		volatile versioned_ptr<link> m_head;
-		volatile serial_defer_guard_t<link, link_iterator> m_guard;
+		volatile serial_defer_guard_t<link, link_accessor> m_guard;
 
 		ptr<this_t> m_bballoc;
 

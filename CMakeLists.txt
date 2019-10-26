@@ -92,16 +92,17 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 ###################################################################### CLANG
-  message(STATUS "Configured for Clang")
 
   if (WIN32)
   ################################################################ CLANG/MSVC WIN32
+    message(STATUS "Configured for clang-cl")
     # TODO: Create a separate env layer for Clang on Win32?
     include_directories(
       core/env/VS/Windows/src
     )
     # On Windows, clang-cl and MSVC linker are used, so MSVC settings are used (below)
   else()
+    message(STATUS "Configured for clang")
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules)
     if (APPLE)
     ################################################################ CLANG MACOS
@@ -131,7 +132,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 ###################################################################### GCC
-  message(STATUS "Configured for GCC")
+  message(STATUS "Configured for gcc")
 
   include_directories(
     core/env/gcc/src
@@ -170,7 +171,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") 
 ###################################################################### MSVC
-  message(STATUS "Configured for MSVC")
+  message(STATUS "Configured for msvc")
   
   include_directories(
     core/env/VS/Windows/src

@@ -1477,7 +1477,15 @@ protected:
 
 	void set(desc_t* d, type* p, size_t n) { m_contents->set(d, p, n); }
 
-	void disown() { m_contents->m_desc = 0; }
+	void disown() { m_contents->m_desc = nullptr; }
+	void disown() volatile
+	{
+		write_token wt;
+		do {
+			m_contents.begin_write(wt);
+			wt->m_desc = nullptr;
+		} while (!m_contents.end_write(wt));
+	}
 
 	desc_t* get_desc() const { return m_contents->m_desc; }
 	type* get_raw_ptr() const { return m_contents->m_ptr; }

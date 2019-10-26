@@ -114,6 +114,7 @@ public:
 
 	public:
 		void disown() { m_preallocated.disown(); }
+		void disown() volatile { m_preallocated.disown(); }
 
 		preallocated_t() { }
 		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
@@ -165,6 +166,7 @@ public:
 		friend class priority_queue;
 	public:
 		void disown() { m_iterator.disown(); }
+		void disown() volatile { m_iterator.disown(); }
 
 		value_token() { }
 		value_token(const value_token& vt) : m_iterator(vt.m_iterator) { }
@@ -576,6 +578,7 @@ public:
 
 	public:
 		void disown() { m_preallocated.disown(); }
+		void disown() volatile { m_preallocated.disown(); }
 
 		preallocated_t() { }
 		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
@@ -610,6 +613,7 @@ public:
 		friend class priority_queue;
 	public:
 		void disown() { m_iterator.disown(); }
+		void disown() volatile { m_iterator.disown(); }
 
 		value_token() { }
 		value_token(const value_token& vt) : m_iterator(vt.m_iterator) { }

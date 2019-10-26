@@ -99,6 +99,7 @@ public:
 
 	public:
 		void disown() { m_iterator.disown(); }
+		void disown() volatile { m_iterator.disown(); }
 
 		iterator() { }
 		iterator(const iterator& itor) : m_iterator(itor.m_iterator) { }
@@ -117,8 +118,8 @@ public:
 		iterator& operator++() { ++m_iterator; return *this; }
 		iterator& operator--() { --m_iterator; return *this; }
 
-		iterator operator++(int) { iterator i(*this); ++* this; return i; }
-		iterator operator--(int) { iterator i(*this); --* this; return i; }
+		iterator operator++(int) { iterator i(*this); ++*this; return i; }
+		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_iterator; }
 
@@ -179,6 +180,7 @@ public:
 
 	public:
 		void disown() { m_iterator.disown(); }
+		void disown() volatile { m_iterator.disown(); }
 
 		volatile_iterator() { }
 		volatile_iterator(const volatile_iterator& i) : m_iterator(i.m_iterator) { }
@@ -202,14 +204,14 @@ public:
 		void release() { m_iterator.release(); }
 		void release() volatile { m_iterator.release(); }
 
-		const volatile_iterator& operator++() { ++m_iterator; return *this; }
-		const volatile_iterator& operator--() { --m_iterator; return *this; }
+		volatile_iterator& operator++() { ++m_iterator; return *this; }
+		volatile_iterator& operator--() { --m_iterator; return *this; }
 
 		volatile_iterator operator++() volatile { volatile_iterator result(*this); ++result; return result; }
 		volatile_iterator operator--() volatile { volatile_iterator result(*this); --result; return result; }
 
-		volatile_iterator operator++(int) { volatile_iterator i(*this); ++* this; return i; }
-		volatile_iterator operator--(int) { volatile_iterator i(*this); --* this; return i; }
+		volatile_iterator operator++(int) { volatile_iterator i(*this); ++*this; return i; }
+		volatile_iterator operator--(int) { volatile_iterator i(*this); --*this; return i; }
 
 		volatile_iterator operator++(int) volatile { return volatile_iterator(m_iterator++); }
 		volatile_iterator operator--(int) volatile { return volatile_iterator(m_iterator--); }
@@ -293,6 +295,7 @@ public:
 
 	public:
 		void disown() { m_preallocated.disown(); }
+		void disown() volatile { m_preallocated.disown(); }
 
 		preallocated_t() { }
 
@@ -773,8 +776,8 @@ public:
 
 		iterator& operator++() { if (!!m_node) m_node = m_tree->get_next(m_node); return *this; }
 		iterator& operator--() { if (!!m_node) m_node = m_tree->get_prev(m_node); return *this; }
-		iterator& operator++(int) { iterator tmp(*this); ++* this; return tmp; }
-		iterator& operator--(int) { iterator tmp(*this); --* this; return tmp; }
+		iterator& operator++(int) { iterator tmp(*this); ++*this; return tmp; }
+		iterator& operator--(int) { iterator tmp(*this); --*this; return tmp; }
 
 		bool operator!() const { return !m_node; }
 

@@ -247,8 +247,6 @@
 ///
 
 
-
-
 #include "cogs/assert.hpp"
 #include "cogs/compatible.hpp"
 #include "cogs/debug.hpp"
@@ -260,7 +258,6 @@
 #include "cogs/macro_stringify.hpp"
 #include "cogs/main.hpp"
 #include "cogs/operators.hpp"
-#include "cogs/collections/abastack.hpp"
 #include "cogs/collections/array_view.hpp"
 #include "cogs/collections/avltree.hpp"
 #include "cogs/collections/btree.hpp"
@@ -276,6 +273,7 @@
 #include "cogs/collections/map.hpp"
 #include "cogs/collections/multimap.hpp"
 #include "cogs/collections/multiset.hpp"
+#include "cogs/collections/no_aba_stack.hpp"
 #include "cogs/collections/rbtree.hpp"
 #include "cogs/collections/set.hpp"
 #include "cogs/collections/simple_vector.hpp"
@@ -480,8 +478,6 @@
 #include "cogs/sync/wait_queue.hpp"
 #include "cogs/sync/wait_stack.hpp"
 #include "cogs/ui/keyboard.hpp"
-
-
 
 
 #endif

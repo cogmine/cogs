@@ -263,8 +263,8 @@ public:
 			return *this;
 		}
 
-		iterator operator++(int) { iterator i(*this); ++* this; return i; }
-		iterator operator--(int) { iterator i(*this); --* this; return i; }
+		iterator operator++(int) { iterator i(*this); ++*this; return i; }
+		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_array || (m_index >= m_array->get_length()); }
 
@@ -329,8 +329,8 @@ public:
 			return *this;
 		}
 
-		const_iterator operator++(int) { const_iterator i(*this); ++* this; return i; }
-		const_iterator operator--(int) { const_iterator i(*this); --* this; return i; }
+		const_iterator operator++(int) { const_iterator i(*this); ++*this; return i; }
+		const_iterator operator--(int) { const_iterator i(*this); --*this; return i; }
 
 		bool operator!() const { return !m_array || (m_index >= m_array->get_length()); }
 

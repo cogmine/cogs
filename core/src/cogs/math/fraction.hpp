@@ -2871,7 +2871,7 @@ public:
 	auto next() const volatile { return simplify_type(cogs::next(simplify_content_type(*this))); }
 	void assign_next() { m_contents->assign_next(); }
 	void assign_next() volatile { write_retry_loop([&](content_t& c) { c.assign_next(); }); }
-	const this_t& operator++() { m_contents->assign_next(); return *this; }
+	this_t& operator++() { m_contents->assign_next(); return *this; }
 	this_t operator++() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_next(); }); }
 	this_t operator++(int) { this_t result(*this); m_contents->assign_next(); return result; }
 	this_t operator++(int) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_next(); }); }
@@ -2881,7 +2881,7 @@ public:
 	auto prev() const volatile { return simplify_type(cogs::prev(simplify_content_type(*this))); }
 	void assign_prev() { m_contents->assign_prev(); }
 	void assign_prev() volatile { write_retry_loop([&](content_t& c) { c.assign_prev(); }); }
-	const this_t& operator--() { m_contents->assign_prev(); return *this; }
+	this_t& operator--() { m_contents->assign_prev(); return *this; }
 	this_t operator--() volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_prev(); }); }
 	this_t operator--(int) { this_t result(*this); m_contents->assign_prev(); return result; }
 	this_t operator--(int) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_prev(); }); }

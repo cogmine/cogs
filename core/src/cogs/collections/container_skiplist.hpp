@@ -181,7 +181,7 @@ private:
 		bool is_removed() volatile { link_mode primaryMode; atomic::load(m_primaryMode, primaryMode); return primaryMode == link_mode::removing; }
 
 		bool is_removed(height_t height) { return m_links[height]->m_mode == link_mode::removing; }
-		bool is_removed(height_t height) volatile { read_token rt; return !begin_read_and_complete(height, rt, false); }
+		bool is_removed(height_t height) volatile { read_token rt; return !begin_read_and_complete(rt, false, height); }
 
 		bool remove()
 		{
@@ -319,11 +319,11 @@ private:
 			for (;;)
 			{
 				read_token rt;
-				if (!begin_read_and_complete(level, rt, false))
+				if (!begin_read_and_complete(rt, false, level))
 					break;
 				rcptr<volatile link_t> prev = rt->m_prev;
 				read_token rt_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (!m_links[level].is_current(rt))
 					continue;
@@ -491,7 +491,7 @@ private:
 				complete_insert(level, rt);
 		}
 
-		bool begin_read_and_complete(height_t level, read_token& rt, bool returnTokenEvenIfRemoved) volatile // returns false this link was removed.
+		bool begin_read_and_complete(read_token& rt, bool returnTokenEvenIfRemoved, height_t level = 0) volatile // returns false this link was removed.
 		{
 			COGS_ASSERT(level <= m_height);
 			bool notRemoved = true;
@@ -527,7 +527,7 @@ private:
 		void complete(height_t level) volatile
 		{
 			read_token rt;
-			begin_read_and_complete(level, rt, false);
+			begin_read_and_complete(rt, false, level);
 		}
 
 		// Scan for the last equal element, and add after it.
@@ -593,7 +593,7 @@ private:
 			for (;;)
 			{
 				bool emptyList = false;
-				if (!prev->begin_read_and_complete(level, rt, true))
+				if (!prev->begin_read_and_complete(rt, true, level))
 				{
 					prevWasEqual = false;
 					prev = rt->m_prev;
@@ -662,18 +662,18 @@ private:
 			bool insertedLowerLevels = false;
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -832,18 +832,18 @@ private:
 			bool insertedLowerLevels = false;
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -961,7 +961,7 @@ private:
 			for (;;)
 			{
 				read_token rt;
-				sentinelPtr->begin_read_and_complete(0, rt, false);
+				sentinelPtr->begin_read_and_complete(rt, false);
 				next = rt->m_next;
 				if (!!next)
 					break;
@@ -1292,65 +1292,44 @@ public:
 
 	public:
 		void disown() { m_link.disown(); }
+		void disown() volatile { m_link.disown(); }
 
 		iterator() { }
 		iterator(const iterator& i) : m_link(i.m_link) { }
 		iterator(const remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
+		iterator(const volatile iterator& i) : m_link(i.m_link) { }
+		iterator(const volatile remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
-		void release() { m_link.release(); }
-
-		bool is_active() const { return !!m_link && !m_link->is_removed(); }
-		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
-
-		iterator& operator++()
-		{
-			if (!!m_link)
-			{
-				do {
-					m_link = m_link->m_links[0]->m_next;
-					if (!!m_link->is_sentinel())
-					{
-						m_link.release();
-						break;
-					}
-				} while (m_link->m_links[0]->m_mode == link_mode::removing);
-			}
-			return *this;
-		}
-
-		iterator& operator--()
-		{
-			if (!!m_link)
-			{
-				do {
-					m_link = m_link->m_links[0]->m_prev;
-					if (!!m_link->is_sentinel())
-					{
-						m_link.release();
-						break;
-					}
-				} while (m_link->m_links[0]->m_mode == link_mode::removing);
-			}
-			return *this;
-		}
-
-		iterator operator++(int) { iterator i(*this); ++* this; return i; }
-		iterator operator--(int) { iterator i(*this); --* this; return i; }
-
-		bool operator!() const { return !m_link; }
-
-		bool operator==(const iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const remove_token& rt) const { return m_link == rt.m_link; }
-
-		bool operator!=(const iterator& i) const { return !operator==(i); }
-		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
+		iterator(iterator&& i) : m_link(std::move(i.m_link)) { }
+		iterator(remove_token&& rt) : m_link(std::move(rt.m_link)) { if (is_removed()) release(); }
 
 		iterator& operator=(const iterator& i) { m_link = i.m_link; return *this; }
 		iterator& operator=(const remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
+		iterator& operator=(const volatile iterator& i) { m_link = i.m_link; return *this; }
+		iterator& operator=(const volatile remove_token& i) { m_link = i.m_link; if (is_removed()) release(); return *this; }
+		volatile iterator& operator=(const iterator& i) volatile { m_link = i.m_link; return *this; }
+		volatile iterator& operator=(const remove_token& i) volatile { m_link = i.m_link; return *this; }
+
+		iterator& operator=(iterator&& i) { m_link = std::move(i.m_link); return *this; }
+		iterator& operator=(remove_token&& rt) { m_link = std::move(rt.m_link); if (is_removed()) release(); return *this; }
+		volatile iterator& operator=(iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile iterator& operator=(remove_token&& i) volatile { m_link = std::move(i.m_link); return *this; }
+
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
+
+		bool is_active() const { return !!m_link && !m_link->is_removed(); }
+		bool is_active() const volatile { iterator i(*this); return i.is_action(); }
+
+		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
+		bool is_removed() const volatile { iterator i(*this); return i.is_removed(); }
 
 		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
 		payload_t& operator*() const { return *(m_link->get_payload()); }
 		payload_t* operator->() const { return m_link->get_payload(); }
+
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
 		rcptr<payload_t> get_obj() const
 		{
@@ -1360,8 +1339,22 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const { return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
+		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
+
+		bool operator==(const iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile iterator& i) const { return m_link == i.m_link; }
+		bool operator==(const iterator& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const volatile remove_token& i) const { return m_link == i.m_link; }
+		bool operator==(const remove_token& i) const volatile { return m_link == i.m_link; }
+
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
+		bool operator!=(const iterator& i) const volatile { return !operator==(i); }
+		bool operator!=(const remove_token& i) const { return !operator==(i); }
+		bool operator!=(const volatile remove_token& i) const { return !operator==(i); }
+		bool operator!=(const remove_token& i) const volatile { return !operator==(i); }
 
 		iterator next() const
 		{
@@ -1382,6 +1375,35 @@ public:
 			return result;
 		}
 
+		iterator next() const volatile { iterator tmp(*this); return tmp.next(); }
+
+		void assign_next()
+		{
+			if (!!m_link)
+			{
+				do {
+					m_link = m_link->m_links->m_next;
+					if (!!m_link->is_sentinel())
+					{
+						m_link.release();
+						break;
+					}
+				} while (m_link->m_links->m_mode == link_mode::removing);
+			}
+		}
+
+		void assign_next() volatile
+		{
+			iterator i(*this);
+			link_t* oldValue;
+			do {
+				oldValue = i.m_link.get_ptr();
+				if (!oldValue)
+					break;
+				i.assign_next();
+			} while (!m_link.compare_exchange(i.m_link, oldValue, i.m_link));
+		}
+
 		iterator prev() const
 		{
 			iterator result;
@@ -1400,6 +1422,163 @@ public:
 			}
 			return result;
 		}
+
+		iterator prev() const volatile { iterator tmp(*this); return tmp.prev(); }
+
+		void assign_prev()
+		{
+			if (!!m_link)
+			{
+				do {
+					m_link = m_link->m_links->m_prev;
+					if (!!m_link->is_sentinel())
+					{
+						m_link.release();
+						break;
+					}
+				} while (m_link->m_links->m_mode == link_mode::removing);
+			}
+		}
+
+		void assign_prev() volatile
+		{
+			iterator i(*this);
+			link_t* oldValue;
+			do {
+				oldValue = i.m_link.get_ptr();
+				if (!oldValue)
+					break;
+				i.assign_prev();
+			} while (!m_link.compare_exchange(i.m_link, oldValue, i.m_link));
+		}
+
+		iterator& operator++()
+		{
+			assign_next();
+			return *this;
+		}
+
+		iterator operator++() volatile
+		{
+			iterator newValue;
+			iterator oldValue(*this);
+			for (;;) {
+				if (!oldValue)
+					break;
+				newValue = oldValue.next();
+				if (m_link.compare_exchange(newValue.m_link, oldValue.m_link, oldValue.m_link))
+					break;
+				newValue.release();
+			}
+			return newValue;
+		}
+
+		iterator operator++(int) { iterator i(*this); assign_next(); return i; }
+
+		iterator operator++(int) volatile
+		{
+			iterator oldValue(*this);
+			while (!!oldValue)
+			{
+				iterator newValue = oldValue.next();
+				if (m_link.compare_exchange(newValue.m_link, oldValue.m_link, oldValue.m_link))
+					break;
+			}
+			return oldValue;
+		}
+
+		iterator& operator--()
+		{
+			assign_prev();
+			return *this;
+		}
+
+		iterator operator--() volatile
+		{
+			iterator newValue;
+			iterator oldValue(*this);
+			for (;;) {
+				if (!oldValue)
+					break;
+				newValue = oldValue.prev();
+				if (m_link.compare_exchange(newValue.m_link, oldValue.m_link, oldValue.m_link))
+					break;
+				newValue.release();
+			}
+			return newValue;
+		}
+
+		iterator operator--(int) { iterator i(*this); assign_prev(); return i; }
+
+		iterator operator--(int) volatile
+		{
+			iterator oldValue(*this);
+			while (!!oldValue)
+			{
+				iterator newValue = oldValue.prev();
+				if (m_link.compare_exchange(newValue.m_link, oldValue.m_link, oldValue.m_link))
+					break;
+			}
+			return oldValue;
+		}
+
+		void swap(iterator& wth) { m_link.swap(wth); }
+		void swap(iterator& wth) volatile { m_link.swap(wth); }
+		void swap(volatile iterator& wth) { return wth.swap(*this); }
+
+		void exchange(const iterator& src, iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const iterator& src, iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile iterator& src, iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile iterator& src, iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const iterator& src, volatile iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const iterator& src, volatile iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile iterator& src, volatile iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile iterator& src, volatile iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+
+		void exchange(iterator&& src, iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(iterator&& src, iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(iterator&& src, volatile iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(iterator&& src, volatile iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+
+		bool compare_exchange(const iterator& src, const iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const iterator& src, const iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		bool compare_exchange(iterator&& src, const iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(iterator&& src, const iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+
+		bool compare_exchange(const iterator& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const iterator& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		bool compare_exchange(iterator&& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(iterator&& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
 	/// @brief A volatile container_skiplist element iterator
@@ -1415,6 +1594,7 @@ public:
 
 	public:
 		void disown() { m_link.disown(); }
+		void disown() volatile { m_link.disown(); }
 
 		volatile_iterator() { }
 		volatile_iterator(const volatile_iterator& i) : m_link(i.m_link) { }
@@ -1422,18 +1602,30 @@ public:
 		volatile_iterator(const volatile volatile_iterator& i) : m_link(i.m_link) { }
 		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
 
+		volatile_iterator(volatile_iterator&& i) : m_link(std::move(i.m_link)) { }
+		volatile_iterator(volatile_remove_token&& rt) : m_link(std::move(rt.m_link)) { if (is_removed()) release(); }
+
 		volatile_iterator& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
 		volatile_iterator& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
 		volatile_iterator& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
 		volatile_iterator& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
-		void operator=(const volatile_remove_token& rt) volatile
+		volatile volatile_iterator& operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
+		volatile volatile_iterator& operator=(const volatile_remove_token& rt) volatile
 		{
 			rcptr<volatile link_t> lnk = rt.m_link; 
 			if (!!lnk && lnk->is_removed())
 				lnk.release();
 			m_link = lnk;
+			return *this;
 		}
+
+		volatile_iterator& operator=(volatile_iterator&& i) { m_link = std::move(i.m_link); return *this; }
+		volatile_iterator& operator=(volatile_remove_token&& rt) { m_link = std::move(rt.m_link); if (is_removed()) release(); return *this; }
+		volatile volatile_iterator& operator=(volatile_iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile volatile_iterator& operator=(volatile_remove_token&& rt) volatile { m_link = std::move(rt.m_link); return *this; }
+
+		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
 		bool is_active() const { return !!m_link && !m_link->is_removed(); }
 		bool is_active() const volatile { rcptr<volatile link_t> lnk = m_link; return !!lnk && !!lnk->is_removed(); }
@@ -1441,189 +1633,19 @@ public:
 		bool is_removed() const { return !!m_link && m_link->is_removed(); }
 		bool is_removed() const volatile { rcptr<volatile link_t> lnk = m_link; return !!lnk && lnk->is_removed(); }
 
-		const volatile_iterator& operator++()
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template const_cast_to<link_t>()->get_payload(); }
+		payload_t& operator*() const { return *(get()); }
+		payload_t* operator->() const { return get(); }
+
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
+
+		rcptr<payload_t> get_obj() const
 		{
+			rcptr<payload_t> result;
 			if (!!m_link)
-			{
-				read_token rt;
-				m_link->begin_read_and_complete(0, rt, true);
-				rcptr<volatile link_t> nextLink;
-				for (;;)
-				{
-					nextLink = rt->m_next;
-					if (nextLink->is_sentinel())
-					{
-						m_link.release();
-						break;
-					}
-					if (!nextLink->begin_read_and_complete(0, rt, true))
-						continue;
-
-					m_link = nextLink;
-					break;
-				}
-			}
-			return *this;
-		}
-
-		volatile_iterator operator++() volatile
-		{
-			volatile_iterator result(m_link);
-			read_token rt;
-			for (;;)
-			{
-				if (!result.m_link)
-					break;
-				result.m_link->begin_read_and_complete(0, rt, true);
-				rcptr<volatile link_t> newLink = rt->m_next;
-				for (;;)
-				{
-					if (newLink->is_sentinel())
-						newLink.release();
-					else if (!newLink->begin_read_and_complete(0, rt, true))
-					{
-						newLink = rt->m_next;
-						continue;
-					}
-					break;
-				}
-				if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
-					continue;
-				break;
-			}
-		}
-
-		const volatile_iterator& operator--()
-		{
-			if (!!m_link)
-			{
-				read_token rt;
-				rcptr<volatile link_t> newLink;
-				for (;;)
-				{
-					m_link->begin_read_and_complete(0, rt, true);
-					newLink = rt->m_prev;
-					if (!newLink)
-					{
-						COGS_ASSERT(!m_link->m_links[0].is_current(rt));
-						continue;
-					}
-					break;
-				}
-				for (;;)
-				{
-					if (newLink->is_sentinel())
-					{
-						m_link.release();
-						break;
-					}
-
-					bool done = false;
-					for (;;)
-					{
-						if (!!newLink->begin_read_and_complete(0, rt, true))
-						{
-							m_link = newLink;
-							done = true;
-							break;
-						}
-						rcptr<volatile link_t> tmp = rt->m_prev;
-						if (!tmp)
-						{
-							COGS_ASSERT(!newLink->m_links[0].is_current(rt));
-							continue;
-						}
-						newLink = tmp;
-						break; // but not done.
-					}
-					if (done)
-						break;
-					//continue;
-				}
-			}
-			return *this;
-		}
-
-		volatile_iterator operator--() volatile
-		{
-			volatile_iterator result(m_link);
-			read_token rt;
-			for (;;)
-			{
-				if (!result.m_link)
-					break;
-				result.m_link->begin_read_and_complete(0, rt, true);
-				rcptr<volatile link_t> newLink = rt->m_prev;
-				if (!newLink)
-				{
-					COGS_ASSERT(!result.m_link->m_links[0].is_current(rt));
-					continue;
-				}
-				for (;;)
-				{
-					if (newLink->is_sentinel())
-					{
-						m_link.release();
-						break;
-					}
-
-					bool done = false;
-					for (;;)
-					{
-						if (!!newLink->begin_read_and_complete(0, rt, true))
-						{
-							done = true;
-							break;
-						}
-						rcptr<volatile link_t> tmp = rt->m_prev;
-						if (!tmp)
-						{
-							COGS_ASSERT(!newLink->m_links[0].is_current(rt));
-							continue;
-						}
-						newLink = tmp;
-						break; // but not done.
-					}
-					if (done)
-						break;
-					//continue;
-				}
-				if (!m_link.compare_exchange(newLink, result.m_link, result.m_link))
-					continue;
-				break;
-			}
-		}
-
-		volatile_iterator operator++(int) { volatile_iterator i(*this); ++*this; return i; }
-
-		volatile_iterator operator++(int) volatile
-		{
-			volatile_iterator original(*this);
-			for (;;)
-			{
-				volatile_iterator next = original;
-				++next;
-				if (!m_link.compare_exchange(next.m_link, original.m_link, original.m_link))
-					continue;
-				break;
-			}
-			return original;
-		}
-
-		volatile_iterator operator--(int) { volatile_iterator i(*this); --*this; return i; }
-
-		volatile_iterator operator--(int) volatile
-		{
-			volatile_iterator original(*this);
-			for (;;)
-			{
-				volatile_iterator prev = original;
-				++prev;
-				if (!m_link.compare_exchange(prev.m_link, original.m_link, original.m_link))
-					continue;
-				break;
-			}
-			return original;
+				result = m_link.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_obj();
+			return result;
 		}
 
 		bool operator!() const { return !m_link; }
@@ -1643,36 +1665,371 @@ public:
 		bool operator!=(const volatile volatile_remove_token& rt) const { return !operator==(rt); }
 		bool operator!=(const volatile_remove_token& rt) const volatile { return !operator==(rt); }
 
-		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template const_cast_to<link_t>()->get_payload(); }
-		payload_t& operator*() const { return *(get()); }
-		payload_t* operator->() const { return get(); }
-
-		void release() { m_link.release(); }
-		void release() volatile { m_link.release(); }
-
-		rcptr<payload_t> get_obj() const
+		volatile_iterator next() const
 		{
-			rcptr<payload_t> result;
+			volatile_iterator result;
 			if (!!m_link)
-				result = m_link.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_obj();
+			{
+				read_token rt;
+				m_link->begin_read_and_complete(rt, true); // OK if already removed
+				rcptr<volatile link_t> newLink;
+				for (;;)
+				{
+					newLink = rt->m_next;
+					if (newLink->is_sentinel())
+						break;
+					if (!newLink->begin_read_and_complete(rt, true))
+						continue;
+					result.m_link = std::move(newLink);
+					break;
+				}
+			}
 			return result;
 		}
 
-		rc_obj_base* get_desc() const { return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
-
-		volatile_iterator next() const { volatile_iterator result(this); ++result; return result; }
-		volatile_iterator prev() const { volatile_iterator result(this); --result; return result; }
-
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) volatile
+		volatile_iterator next() const volatile
 		{
-			return m_link.compare_exchange(src.m_link, cmp.m_link);
+			volatile_iterator result;
+			rcptr<volatile link_t> oldValue;
+			bool done = false;
+			do {
+				oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_next;
+					if (!newLink->is_sentinel())
+					{
+						if (!newLink->begin_read_and_complete(rt, true))
+						{
+							if (oldValue != m_link)
+								break;
+							continue;
+						}
+						result.m_link = std::move(newLink);
+					}
+					done = true;
+					break;
+				}
+			} while (!done);
+			return result;
 		}
 
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile
+		void assign_next()
 		{
-			return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link);
+			if (!!m_link)
+			{
+				read_token rt;
+				m_link->begin_read_and_complete(rt, true); // OK if already removed
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_next;
+					if (newLink->is_sentinel())
+					{
+						m_link.release();
+						break
+					}
+					if (!newLink->begin_read_and_complete(rt, true))
+						continue;
+					m_link = std::move(newLink);
+					break;
+				}
+			}
 		}
+
+		void assign_next() volatile
+		{
+			bool done = false;
+			do {
+				rcptr<volatile link_t> oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_next;
+					if (newLink->is_sentinel())
+						newLink.release();
+					else if (!newLink->begin_read_and_complete(rt, true))
+					{
+						if (oldValue != m_link)
+							break;
+						continue;
+					}
+					done = m_link.compare_exchange(newLink, oldValue, oldValue);
+					break;
+				}
+			} while (!done);
+		}
+
+		volatile_iterator prev() const
+		{
+			volatile_iterator result;
+			if (!!m_link)
+			{
+				read_token rt;
+				m_link->begin_read_and_complete(rt, true); // OK if already removed
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_prev;
+					if (newLink->is_sentinel())
+						break;
+					if (!newLink->begin_read_and_complete(rt, true))
+						continue;
+					result.m_link = std::move(newLink);
+					break;
+				}
+			}
+			return result;
+		}
+
+		volatile_iterator prev() const volatile
+		{
+			volatile_iterator result;
+			bool done = false;
+			do {
+				rcptr<volatile link_t> oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_prev;
+					if (!newLink->is_sentinel())
+					{
+						if (!newLink->begin_read_and_complete(rt, true))
+						{
+							if (oldValue != m_link)
+								break;
+							continue;
+						}
+						result.m_link = std::move(newLink);
+					}
+					done = true;
+					break;
+				}
+			} while (!done);
+			return result;
+		}
+
+		void assign_prev()
+		{
+			if (!!m_link)
+			{
+				read_token rt;
+				m_link->begin_read_and_complete(rt, true); // OK if already removed
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_prev;
+					if (newLink->is_sentinel())
+					{
+						m_link.release();
+						break;
+					}
+					if (!newLink->begin_read_and_complete(rt, true))
+						continue;
+					m_link = std::move(newLink);
+					break;
+				}
+			}
+		}
+
+		void assign_prev() volatile
+		{
+			bool done = false;
+			do {
+				rcptr<volatile link_t> oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					rcptr<volatile link_t> newLink = rt->m_prev;
+					if (newLink->is_sentinel())
+						newLink.release();
+					else if (!newLink->begin_read_and_complete(rt, true))
+					{
+						if (oldValue != m_link)
+							break;
+						continue;
+					}
+					done = m_link.compare_exchange(newLink, oldValue, oldValue);
+					break;
+				}
+			} while (!done);
+		}
+
+		volatile_iterator& operator++()
+		{
+			assign_next();
+			return *this;
+		}
+
+		volatile_iterator operator++() volatile
+		{
+			volatile_iterator result;
+			rcptr<volatile link_t> newLink;
+			bool done = false;
+			do {
+				rcptr<volatile link_t> oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					result.m_link = rt->m_next;
+					if (result.m_link->is_sentinel())
+						result.m_link.release();
+					else if (!result.m_link->begin_read_and_complete(rt, true))
+					{
+						if (oldValue != m_link)
+							break;
+						continue;
+					}
+					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
+					break;
+				}
+			} while (!done);
+			return result;
+		}
+
+		volatile_iterator operator++(int) { volatile_iterator i(*this); assign_next(); return i; }
+
+		volatile_iterator operator++(int) volatile
+		{
+			volatile_iterator oldValue(*this);
+			while (!!oldValue)
+			{
+				if (compare_exchange(oldValue.next(), oldValue, oldValue))
+					break;
+			}
+			return oldValue;
+		}
+
+		volatile_iterator& operator--()
+		{
+			assign_prev();
+			return *this;
+		}
+
+		volatile_iterator operator--() volatile
+		{
+			volatile_iterator result;
+			rcptr<volatile link_t> newLink;
+			bool done = false;
+			do {
+				rcptr<volatile link_t> oldValue = m_link;
+				if (!oldValue)
+					break;
+				read_token rt;
+				oldValue->begin_read_and_complete(rt, true); // OK if already removed
+				if (oldValue != m_link)
+					continue;
+				for (;;)
+				{
+					result.m_link = rt->m_prev;
+					if (result.m_link->is_sentinel())
+						result.m_link.release();
+					else if (!result.m_link->begin_read_and_complete(rt, true))
+					{
+						if (oldValue != m_link)
+							break;
+						continue;
+					}
+					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
+					break;
+				}
+			} while (!done);
+			return result;
+		}
+
+		volatile_iterator operator--(int) { volatile_iterator i(*this); assign_prev(); return i; }
+
+		volatile_iterator operator--(int) volatile
+		{
+			volatile_iterator oldValue(*this);
+			while (!!oldValue)
+			{
+				if (compare_exchange(oldValue.prev(), oldValue, oldValue))
+					break;
+			}
+			return oldValue;
+		}
+
+		void swap(volatile_iterator& wth) { m_link.swap(wth); }
+		void swap(volatile_iterator& wth) volatile { m_link.swap(wth); }
+		void swap(volatile volatile_iterator& wth) { return wth.swap(*this); }
+
+		void exchange(const volatile_iterator& src, volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile_iterator& src, volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile volatile_iterator& src, volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile volatile_iterator& src, volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile_iterator& src, volatile volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile_iterator& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile volatile_iterator& src, volatile volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile volatile_iterator& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+
+		void exchange(volatile_iterator&& src, volatile_iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(volatile_iterator&& src, volatile_iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(volatile_iterator&& src, volatile volatile_iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(volatile_iterator&& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
 	/// @brief A preallocated container_skiplist element
@@ -1683,29 +2040,33 @@ public:
 
 		friend class container_skiplist;
 
-		preallocated_t(const rcptr<link_t>& l)
-			: m_link(l)
-		{ }
+		preallocated_t(const rcptr<link_t>& l) : m_link(l) { }
 
 	public:
 		void disown() { m_link.disown(); }
+		void disown() volatile { m_link.disown(); }
 
 		preallocated_t() { }
+		preallocated_t(const preallocated_t& src) : m_link(src.m_link) { }
+		preallocated_t(const volatile preallocated_t& src) : m_link(src.m_link) { }
 
-		preallocated_t(const preallocated_t& src)
-			: m_link(src.m_link)
-		{ }
+		preallocated_t(preallocated_t&& src) : m_link(std::move(src.m_link)) { }
+
+		preallocated_t& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
+		preallocated_t& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
+		preallocated_t& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
+
+		preallocated_t& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
+		preallocated_t& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
 
 		void release() { m_link.release(); }
 
-		bool operator!() const { return !m_link; }
-		bool operator==(const preallocated_t & i) const { return m_link == i.m_link; }
-		bool operator!=(const preallocated_t & i) const { return !operator==(i); }
-		preallocated_t & operator=(const preallocated_t & i) { m_link = i.m_link; return *this; }
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
+		payload_t& operator*() const { return *(m_link->get_payload()); }
+		payload_t* operator->() const { return m_link->get_payload(); }
 
-		payload_t * get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
-		payload_t & operator*() const { return *(m_link->get_payload()); }
-		payload_t * operator->() const { return m_link->get_payload(); }
+		rc_obj_base* get_desc() const { return m_link.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
 		rcptr<payload_t> get_obj() const
 		{
@@ -1715,8 +2076,9 @@ public:
 			return result;
 		}
 
-		rc_obj_base* get_desc() const { return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
+		bool operator!() const { return !m_link; }
+		bool operator==(const preallocated_t& i) const { return m_link == i.m_link; }
+		bool operator!=(const preallocated_t& i) const { return !operator==(i); }
 	};
 
 	/// @brief A container_skiplist element remove token
@@ -1733,10 +2095,30 @@ public:
 		remove_token(const preallocated_t& i) : m_link(i.m_link) { }
 		remove_token(const iterator& i) : m_link(i.m_link) { }
 		remove_token(const remove_token& rt) : m_link(rt.m_link) { }
+		remove_token(const volatile preallocated_t& i) : m_link(i.m_link) { }
+		remove_token(const volatile iterator& i) : m_link(i.m_link) { }
+		remove_token(const volatile remove_token& rt) : m_link(rt.m_link) { }
+
+		remove_token(preallocated_t&& i) : m_link(std::move(i.m_link)) { }
+		remove_token(iterator&& i) : m_link(std::move(i.m_link)) { }
+		remove_token(remove_token&& rt) : m_link(std::move(rt.m_link)) { }
 
 		remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
 		remove_token& operator=(const iterator& i) { m_link = i.m_link; return *this; }
 		remove_token& operator=(const remove_token& rt) { m_link = rt.m_link; return *this; }
+		remove_token& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const volatile iterator& i) { m_link = i.m_link; return *this; }
+		remove_token& operator=(const volatile remove_token& rt) { m_link = rt.m_link; return *this; }
+		volatile remove_token& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
+		volatile remove_token& operator=(const iterator& i) volatile { m_link = i.m_link; return *this; }
+		volatile remove_token& operator=(const remove_token& rt) volatile { m_link = rt.m_link; return *this; }
+
+		remove_token& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
+		remove_token& operator=(iterator&& i) { m_link = std::move(i.m_link); return *this; }
+		remove_token& operator=(remove_token&& rt) { m_link = std::move(rt.m_link); return *this; }
+		volatile remove_token& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile remove_token& operator=(iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile remove_token& operator=(remove_token&& rt) volatile { m_link = std::move(rt.m_link); return *this; }
 
 		bool is_active() const { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
@@ -1764,18 +2146,31 @@ public:
 		volatile_remove_token() { }
 		volatile_remove_token(const preallocated_t& i) : m_link(i.m_link) { }
 		volatile_remove_token(const volatile_iterator& i) : m_link(i.m_link) { }
-		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link) { }
 		volatile_remove_token(const volatile_remove_token& rt) : m_link(rt.m_link) { }
+		volatile_remove_token(const volatile preallocated_t& i) : m_link(i.m_link) { }
+		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link) { }
 		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { }
+
+		volatile_remove_token(preallocated_t& i) : m_link(std::move(i.m_link)) { }
+		volatile_remove_token(volatile_iterator& i) : m_link(std::move(i.m_link)) { }
+		volatile_remove_token(volatile_remove_token& rt) : m_link(std::move(rt.m_link)) { }
 
 		volatile_remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
 		volatile_remove_token& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
 		volatile_remove_token& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
+		volatile_remove_token& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
 		volatile_remove_token& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; return *this; }
+		volatile volatile_remove_token& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
+		volatile volatile_remove_token& operator=(const volatile_iterator& i) volatile { m_link = i.m_link; return *this; }
+		volatile volatile_remove_token& operator=(const volatile_remove_token& rt) volatile { m_link = rt.m_link; return *this; }
 
-		void operator=(const volatile_iterator& i) volatile { m_link = i.m_link; }
-		void operator=(const volatile_remove_token& rt) volatile { m_link = rt.m_link; }
+		volatile_remove_token& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
+		volatile_remove_token& operator=(volatile_iterator&& i) { m_link = std::move(i.m_link); return *this; }
+		volatile_remove_token& operator=(volatile_remove_token&& rt) { m_link = std::move(rt.m_link); return *this; }
+		volatile volatile_remove_token& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile volatile_remove_token& operator=(volatile_iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		volatile volatile_remove_token& operator=(volatile_remove_token&& rt) volatile { m_link = std::move(rt.m_link); return *this; }
 
 		bool is_active() const { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
@@ -1801,22 +2196,11 @@ public:
 		bool operator!=(const volatile_remove_token& rt) const volatile { return !operator==(rt); }
 	};
 
-
 	container_skiplist(this_t&& src)
 		: m_allocator(std::move(src.m_allocator)),
 		m_sentinel(std::move(m_sentinel)),
 		m_heightAndCount(m_heightAndCount)
 	{ }
-
-	this_t& operator=(this_t&& src)
-	{
-		clear_inner();
-		m_allocator = std::move(src.m_allocator);
-		m_sentinel = std::move(src.m_sentinel);
-		m_heightAndCount = src.m_heightAndCount;
-		return *this;
-	}
-
 
 	container_skiplist()
 	{
@@ -1842,6 +2226,15 @@ public:
 			}
 			m_sentinel.release();
 		}
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		clear_inner();
+		m_allocator = std::move(src.m_allocator);
+		m_sentinel = std::move(src.m_sentinel);
+		m_heightAndCount = src.m_heightAndCount;
+		return *this;
 	}
 
 	void clear()
@@ -1912,12 +2305,12 @@ public:
 			for (;;)
 			{
 				read_token rt;
-				bool b = sentinel->begin_read_and_complete(0, rt, false);
+				bool b = sentinel->begin_read_and_complete(rt, false);
 				COGS_ASSERT(b); // sentinel will not be removed
 				lnk = rt->m_next;
 				if (lnk.get_ptr() == sentinel.get_ptr())
 					break;
-				if (!lnk->begin_read_and_complete(0, rt, false)) // just in case it needs help removing...
+				if (!lnk->begin_read_and_complete(rt, false)) // just in case it needs help removing...
 					continue;
 				i.m_link = lnk;
 				break;
@@ -1944,7 +2337,7 @@ public:
 			for (;;)
 			{
 				read_token rt;
-				bool b = sentinel->begin_read_and_complete(0, rt, false);
+				bool b = sentinel->begin_read_and_complete(rt, false);
 				COGS_ASSERT(b); // sentinel will not be removed
 				lnk = rt->m_prev;
 				if (lnk.get_ptr() == sentinel.get_ptr())
@@ -2321,7 +2714,7 @@ public:
 			for (;;)
 			{
 				wasLast = false;
-				bool b = sentinel->begin_read_and_complete(0, rt_sentinel, false); // sentinel won't get deleted, no need to check result
+				bool b = sentinel->begin_read_and_complete(rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				COGS_ASSERT(b);
 				rcptr<volatile link_t> prev = rt_sentinel->m_prev;
 
@@ -2344,7 +2737,7 @@ public:
 				if (!sentinel->m_links[0].end_write(wt))
 					continue;
 
-				sentinel->begin_read_and_complete(0, rt_sentinel, false); // completes remove-next
+				sentinel->begin_read_and_complete(rt_sentinel, false); // completes remove-next
 				if (!firstLink->remove())
 					continue; // someone else marked it first.
 				dec_count();
@@ -2367,7 +2760,7 @@ public:
 			for (;;)
 			{
 				wasLast = false;
-				sentinel->begin_read_and_complete(0, rt_sentinel, false); // sentinel won't get deleted, no need to check result
+				sentinel->begin_read_and_complete(rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				rcptr<volatile link_t> lastLink = rt_sentinel->m_prev;
 				if (lastLink.get_ptr() == sentinel.get_ptr())
 					break;
@@ -2377,7 +2770,7 @@ public:
 				bool outerContinue = false;
 				for (;;)
 				{
-					if (!lastLink->begin_read_and_complete(0, rt_last, false))
+					if (!lastLink->begin_read_and_complete(rt_last, false))
 					{
 						outerContinue = true;
 						break;
@@ -2386,7 +2779,7 @@ public:
 					bool outerContinue2 = false;
 					for (;;)
 					{
-						if (!prev->begin_read_and_complete(0, rt_prev, false))
+						if (!prev->begin_read_and_complete(rt_prev, false))
 						{
 							outerContinue2 = true;
 							break;
@@ -2419,7 +2812,7 @@ public:
 				if (!prev->m_links[0].end_write(wt_prev))
 					continue;
 
-				prev->begin_read_and_complete(0, rt_prev, false); // completes remove-next
+				prev->begin_read_and_complete(rt_prev, false); // completes remove-next
 				if (!lastLink->remove())
 					continue;
 				dec_count();
@@ -2535,19 +2928,19 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					nextWasEqual = false;
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_next;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -2658,18 +3051,18 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -2756,19 +3149,19 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					nextWasEqual = false;
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -2879,18 +3272,18 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -3079,19 +3472,19 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					nextWasEqual = false;
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -3192,19 +3585,19 @@ public:
 			bool nextWasEqual = false;
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					nextWasEqual = false;
 					next = rt->m_prev;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -3315,18 +3708,18 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_prev;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
@@ -3427,18 +3820,18 @@ public:
 			atomic::load(m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
-				if (!next->begin_read_and_complete(level, rt, true))
+				if (!next->begin_read_and_complete(rt, true, level))
 				{
 					next = rt->m_next;
 					continue;
 				}
 				prev = rt->m_prev;
-				if (!prev->begin_read_and_complete(level, rt_prev, false))
+				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
 				if (rt_prev->m_next.get_ptr() != next.get_ptr())
 				{
 					ptr<volatile link_t> prevNextPtr = rt_prev->m_next.get_ptr();
-					prevNextPtr->begin_read_and_complete(level, rt_prev_next, false);
+					prevNextPtr->begin_read_and_complete(rt_prev_next, false, level);
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}

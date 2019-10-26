@@ -8,7 +8,6 @@
 #define COGS_HEADER_SYNC_DEFER_GUARD
 
 
-#include "cogs/collections/abastack.hpp"
 #include "cogs/collections/slink.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -25,7 +24,7 @@ namespace cogs {
 //class defer_guard;
 
 
-template <class link_t, class link_iterator = default_slink_iterator<link_t> >
+template <class link_t, class link_accessor = default_slink_accessor<link_t> >
 class defer_guard_t
 {
 private:
@@ -43,7 +42,7 @@ private:
 
 	void prepend(link_t& e)
 	{
-		link_iterator::set_next(e, m_contents.m_head);
+		link_accessor::set_next(e, m_contents.m_head);
 		m_contents.m_head = &e;
 	}
 
@@ -55,7 +54,7 @@ private:
 		ptr<link_t> oldHead;
 		atomic::load(m_contents.m_head, oldHead);
 		do {
-			link_iterator::set_next(*vol, oldHead.get_ptr());
+			link_accessor::set_next(*vol, oldHead.get_ptr());
 		} while (!atomic::compare_exchange(m_contents.m_head, ePtr, oldHead, oldHead)); 
 	}
 

@@ -139,15 +139,15 @@ private:
 			++cellItor;
 		}
 
-		// One last tweak.  If the preferred dimension is at minumum, compute the
-		// range of the other dimension, and use it's max.
-		if (m_currentRange[!d].has_max())
-		{
-			range::linear_t rtnOtherRange;
-			propose_length(d, m_currentRange[d].get_min(), rtnOtherRange);
-			COGS_ASSERT(!!rtnOtherRange.has_max());
-			m_currentRange.set_max(!d, rtnOtherRange.get_max());
-		}
+		//// One last tweak.  If the preferred dimension is at minumum, compute the
+		//// range of the other dimension, and use it's max.
+		//if (m_currentRange[!d].has_max())
+		//{
+		//	range::linear_t rtnOtherRange;
+		//	propose_length(d, m_currentRange[d].get_min(), rtnOtherRange);
+		//	COGS_ASSERT(!!rtnOtherRange.has_max());
+		//	m_currentRange.set_max(!d, rtnOtherRange.get_max());
+		//}
 
 		range::linear_t rtnOtherRange;
 		propose_length(d, m_currentDefaultSize[d], rtnOtherRange); // sets m_cachedLength

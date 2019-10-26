@@ -43,19 +43,22 @@ public:
 		: m_deque(std::move(src.m_deque))
 	{ }
 
+	explicit container_queue(volatile allocator_type& al)
+		: m_deque(al)
+	{ }
+
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
 	}
 
-	explicit container_queue(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
-
-	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
-	void swap(this_t& wth) volatile { m_deque.swap(wth.m_deque); }
-	void swap(volatile this_t& wth) { m_deque.swap(wth.m_deque); }
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		m_deque = std::move(src.m_deque);
+		return *this;
+	}
 
 	void clear() { m_deque.clear(); }
 	void clear() volatile { m_deque.clear(); }
@@ -108,6 +111,29 @@ public:
 
 	bool contains_one() const { return m_deque.contains_one(); }
 	bool contains_one() const volatile { return m_deque.contains_one(); }
+
+	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile { m_deque.swap(wth.m_deque); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth) { m_deque.swap(wth.m_deque); }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
 };
 
 
@@ -133,19 +159,22 @@ public:
 		: m_deque(std::move(src.m_deque))
 	{ }
 
+	explicit container_queue(volatile allocator_type& al)
+		: m_deque(al)
+	{ }
+
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
 	}
 
-	explicit container_queue(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
-
-	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
-	void swap(this_t& wth) volatile { m_deque.swap(wth.m_deque); }
-	void swap(volatile this_t& wth) { m_deque.swap(wth.m_deque); }
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		m_deque = std::move(src.m_deque);
+		return *this;
+	}
 
 	void clear() { m_deque.clear(); }
 	void clear() volatile { m_deque.clear(); }
@@ -199,6 +228,29 @@ public:
 
 	bool contains_one() const { return m_deque.contains_one(); }
 	bool contains_one() const volatile { return m_deque.contains_one(); }
+
+	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile { m_deque.swap(wth.m_deque); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth) { m_deque.swap(wth.m_deque); }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
 };
 
 

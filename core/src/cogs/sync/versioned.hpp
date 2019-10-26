@@ -198,7 +198,7 @@ public:
 			m_contents.m_data = src;
 			m_contents.m_version++;
 		}
-		return  b;
+		return b;
 	}
 
 	bool unversioned_compare_exchange(const type& src, const type& cmp)
@@ -206,7 +206,7 @@ public:
 		bool b = m_contents.m_data == cmp;
 		if (b)
 			m_contents.m_data = src;
-		return  b;
+		return b;
 	}
 
 	bool compare_exchange(const type& src, const type& cmp) volatile
@@ -236,7 +236,7 @@ public:
 			m_contents.m_version++;
 		}
 		rtn = tmp;
-		return  b;
+		return b;
 	}
 
 	bool unversioned_compare_exchange(const type& src, const type& cmp, type& rtn)
@@ -246,7 +246,7 @@ public:
 		if (b)
 			m_contents.m_data = src;
 		rtn = tmp;
-		return  b;
+		return b;
 	}
 
 	bool compare_exchange(const type& src, const type& cmp, type& rtn) volatile

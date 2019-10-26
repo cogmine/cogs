@@ -21,8 +21,12 @@ namespace cogs {
 #pragma warning (disable: 4521) // multiple copy constructors specified
 
 
+/// @ingroup CollectionAccessorMixIns
+/// @brief Provides a default dlink accessor mix-in type which leverages accessors in the intrusive element.
+/// @tparam link_t The link type to wrap access to.
+/// @tparam ref_type Type used to reference elements.  Default: ptr
 template <class link_t, template <typename> class ref_type = ptr>
-class default_dlink_iterator : public default_slink_iterator<link_t, ref_type>
+class default_dlink_accessor : public default_slink_accessor<link_t, ref_type>
 {
 public:
 	typedef ref_type<link_t> ref_t;
@@ -35,21 +39,21 @@ public:
 };
 
 
-template <class link_t, template <typename> class ref_type = ptr, class link_iterator = default_dlink_iterator<link_t, ref_type> >
+template <class link_t, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<link_t, ref_type> >
 class dlink_methods
 {
 public:
 	typedef ref_type<link_t> ref_t;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
-	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_accessor::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_accessor::get_prev(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
-	static void set_prev(link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_accessor::set_next(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { link_accessor::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { link_accessor::set_prev(l, src); }
 
 	static void remove(link_t& ths, const ref_t& terminator = ref_t())
 	{
@@ -278,24 +282,31 @@ public:
 };
 
 
-template <class derived_t, template <typename> class ref_type = ptr, class link_iterator = default_dlink_iterator<derived_t, ref_type> >
+/// @ingroup Collections
+/// @brief Base class for a double-link list element.  Does not include storage or link accessor methods.
+/// @tparam derived_t Derived type of this class.
+/// This <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">curiously recurring template pattern</a>
+/// allows links to refer to the derived type.  Storage and access can be defined in the derived type.
+/// @tparam ref_type Type used to reference elements.  Default: ptr
+/// @tparam link_accessor Mix-in type providing access to the link.  Default: default_slink_accessor<derived_t, ref_type>
+template <class derived_t, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<derived_t, ref_type> >
 class dlink_base
 {
 public:
-	typedef dlink_base<derived_t, ref_type, link_iterator> this_t;
+	typedef dlink_base<derived_t, ref_type, link_accessor> this_t;
 	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
 	typedef ref_type<link_t> ref_t;
-	typedef dlink_methods<link_t, ref_type, link_iterator> dlink_methods_t;
+	typedef dlink_methods<link_t, ref_type, link_accessor> dlink_methods_t;
 
-	static const ref_t& get_next(const link_t& l) { return link_iterator::get_next(l); }
-	static const volatile ref_t& get_next(const volatile link_t& l) { return link_iterator::get_next(l); }
-	static const ref_t& get_prev(const link_t& l) { return link_iterator::get_prev(l); }
-	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_iterator::get_prev(l); }
+	static const ref_t& get_next(const link_t& l) { return link_accessor::get_next(l); }
+	static const volatile ref_t& get_next(const volatile link_t& l) { return link_accessor::get_next(l); }
+	static const ref_t& get_prev(const link_t& l) { return link_accessor::get_prev(l); }
+	static const volatile ref_t& get_prev(const volatile link_t& l) { return link_accessor::get_prev(l); }
 
-	static void set_next(link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
-	static void set_next(volatile link_t& l, const ref_t& src) { link_iterator::set_next(l, src); }
-	static void set_prev(link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
-	static void set_prev(volatile link_t& l, const ref_t& src) { link_iterator::set_prev(l, src); }
+	static void set_next(link_t& l, const ref_t& src) { link_accessor::set_next(l, src); }
+	static void set_next(volatile link_t& l, const ref_t& src) { link_accessor::set_next(l, src); }
+	static void set_prev(link_t& l, const ref_t& src) { link_accessor::set_prev(l, src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { link_accessor::set_prev(l, src); }
 
 	static void remove(link_t& ths, const ref_t& terminator = ref_t()) { dlink_methods_t::remove(ths, terminator); }
 
@@ -338,16 +349,18 @@ public:
 
 
 /// @ingroup Collections
-/// @brief A double-link list element
-/// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type, without requiring a cast.
-/// If void is specified, links will point to dlink_t<void, ref_type, link_iterator>.  Default: void
+/// @brief Base class for a double-link list element.
+/// @tparam derived_t Derived type of this class.
+/// This <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">curiously recurring template pattern</a>
+/// allows links to refer to the derived type.
+/// If void is specified, links will point to dlink_t<void, ref_type, link_accessor>.  Default: void
 /// @tparam ref_type Type used to reference elements.  Default: ptr
-/// @tparam link_iterator Helper type providing functions to get and set links.  Default: default_dlink_iterator<derived_t, ref_type>
-template <class derived_t = void, template <typename> class ref_type = ptr, class link_iterator = default_dlink_iterator<derived_t, ref_type> >
-class dlink_t : public dlink_base<derived_t, ref_type, link_iterator>
+/// @tparam link_accessor Mix-in type providing access to the link.  Default: default_dlink_accessor<derived_t, ref_type>template <class derived_t = void, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<derived_t, ref_type> >
+template <class derived_t = void, template <typename> class ref_type = ptr, class link_accessor = default_dlink_accessor<derived_t, ref_type> >
+class dlink_t : public dlink_base<derived_t, ref_type, link_accessor>
 {
 public:
-	typedef dlink_t<derived_t, ref_type, link_iterator> this_t;
+	typedef dlink_t<derived_t, ref_type, link_accessor> this_t;
 	typedef std::conditional_t<std::is_void_v<derived_t>, this_t, derived_t> link_t;
 	typedef ref_type<link_t> ref_t;
 
@@ -369,10 +382,9 @@ public:
 	{ }
 
 	dlink_t(this_t&& t)
-	{
-		m_next = std::move(t.m_next);
-		m_prev = std::move(t.m_prev);
-	}
+		: m_next(std::move(t.m_next)),
+		m_prev(std::move(t.m_prev))
+	{ }
 
 	dlink_t& operator=(this_t&& t)
 	{
@@ -414,7 +426,7 @@ public:
 
 
 template <template <typename> class ref_type>
-class default_dlink_iterator<void, ref_type> : public default_dlink_iterator<dlink_t<void, ref_type, default_dlink_iterator<void, ref_type> > >
+class default_dlink_accessor<void, ref_type> : public default_dlink_accessor<dlink_t<void, ref_type, default_dlink_accessor<void, ref_type> > >
 {
 };
 

@@ -3527,7 +3527,7 @@ public:
 	dynamic_integer next() const volatile { dynamic_integer tmp(*this); tmp.assign_next(); return tmp; }
 	void assign_next() { if (m_contents->m_isNegative) m_contents->decrement(); else m_contents->increment(); }
 	void assign_next() volatile { write_retry_loop([&](content_t& c) { if (c.m_isNegative) c.decrement(); else c.increment(); }); }
-	const dynamic_integer& operator++() { assign_next(); return *this; }
+	dynamic_integer& operator++() { assign_next(); return *this; }
 	dynamic_integer operator++() volatile { return guarded_write_retry_loop_pre([&](content_t& c) { if (c.m_isNegative) c.decrement(); else c.increment(); }); }
 	dynamic_integer operator++(int) { dynamic_integer result(*this); assign_next(); return result; }
 	dynamic_integer operator++(int) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { if (c.m_isNegative) c.decrement(); else c.increment(); }); }
@@ -3537,7 +3537,7 @@ public:
 	dynamic_integer prev() const volatile { dynamic_integer tmp(*this); tmp.assign_prev(); return tmp; }
 	void assign_prev() { if (m_contents->m_isNegative) m_contents->increment(); else m_contents->decrement(); }
 	void assign_prev() volatile { write_retry_loop([&](content_t& c) { if (c.m_isNegative) c.increment(); else c.decrement(); }); }
-	const dynamic_integer& operator--() { assign_prev(); return *this; }
+	dynamic_integer& operator--() { assign_prev(); return *this; }
 	dynamic_integer operator--() volatile { return guarded_write_retry_loop_pre([&](content_t& c) { if (c.m_isNegative) c.increment(); else c.decrement(); }); }
 	dynamic_integer operator--(int) { dynamic_integer result(*this); assign_prev(); return result; }
 	dynamic_integer operator--(int) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { if (c.m_isNegative) c.increment(); else c.decrement(); }); }

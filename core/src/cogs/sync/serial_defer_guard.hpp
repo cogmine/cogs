@@ -36,10 +36,10 @@ namespace cogs {
 /// A serial_defer_guard_t is vulnerable to livelock if the guard is constantly under contention,
 /// and should not be used in situations in which this has the potential to occur. 
 ///
-/// Like stack or aba_stack, a serial_defer_guard_t is intrusive and does not protect
+/// Like stack or no_aba_stack, a serial_defer_guard_t is intrusive and does not protect
 /// against hazardous (posthumous) access to an element, so elements must remain in
 /// scope beyond any potential parallel access.
-template <class link_t, class link_iterator = default_slink_iterator<link_t> >
+template <class link_t, class link_accessor = default_slink_accessor<link_t> >
 class serial_defer_guard_t
 {
 private:
@@ -87,7 +87,7 @@ public:
 	/// @brief Adds an item to the guard.  The guard must be in the acquired state when add() is called.
 	void add(link_t& l)
 	{
-		link_iterator::set_next(l, m_head);
+		link_accessor::set_next(l, m_head);
 		m_head = &l;
 	}
 	/// @brief Thread-safe implementation of add().
@@ -98,7 +98,7 @@ public:
 		m_head.get(oldHead, oldVersion);
 		do {
 			COGS_ASSERT(oldHead != &l);
-			link_iterator::set_next(l, oldHead);
+			link_accessor::set_next(l, oldHead);
 		} while (!m_head.versioned_exchange(&l, oldVersion, oldHead));
 	}
 	/// @}
@@ -120,7 +120,7 @@ public:
 		ptr<link_t> l = m_head;
 		if (!l)
 			return 0;
-		ptr<link_t> next = link_iterator::get_next(*l);
+		ptr<link_t> next = link_accessor::get_next(*l);
 		COGS_ASSERT(l != next);
 		if (!!wasLast)
 			*wasLast = !next;
@@ -137,7 +137,7 @@ public:
 		{
 			if (!oldHead)
 				break;
-			ptr<link_t> next = link_iterator::get_next(*oldHead);
+			ptr<link_t> next = link_accessor::get_next(*oldHead);
 			COGS_ASSERT(oldHead != next);
 			if (!m_head.versioned_exchange(next, oldVersion, oldHead))
 				continue;
@@ -222,7 +222,7 @@ public:
 			if (m_head.get_version() != oldVersion)
 				continue;
 
-			ptr<link_t> next = link_iterator::get_next(*oldHead);
+			ptr<link_t> next = link_accessor::get_next(*oldHead);
 			COGS_ASSERT(oldHead != next);
 			if (!m_head.versioned_exchange(next, oldVersion))
 				continue;

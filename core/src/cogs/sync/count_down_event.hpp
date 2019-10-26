@@ -121,7 +121,7 @@ public:
 		~reference()
 		{
 			if (!!m_countDownEvent)
-				--* m_countDownEvent;
+				--*m_countDownEvent;
 		}
 	};
 
