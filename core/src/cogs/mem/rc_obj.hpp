@@ -272,21 +272,21 @@ public:
 
 	static ref_t allocate()
 	{
-		ref_t r = allocator_container<allocator_type>::template allocate_type_with_header<this_t, type>();
+		ref_t r = allocator_container<allocator_type>::template allocate_type<placement_with_header<this_t, type> >();
 		if (!!r)
 			new (r.get_ptr()) this_t;
 		return r;
 	}
 
-	type* get_obj() { return get_type_block_from_header<this_t, type>(this); }
-	const type* get_obj() const { return get_type_block_from_header<const this_t, const type>(this); }
-	volatile type* get_obj() volatile { return get_type_block_from_header<volatile this_t, volatile type>(this); }
-	const volatile type* get_obj() const volatile { return get_type_block_from_header<const volatile this_t, const volatile type>(this); }
+	type* get_obj() { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
 
-	static this_t* from_obj(type* obj) { return get_header_from_type_block<this_t, type>(obj); }
-	static const this_t* from_obj(const type* obj) { return get_header_from_type_block<const this_t, const type>(obj); }
-	static volatile this_t* from_obj(volatile type* obj) { return get_header_from_type_block<volatile this_t, volatile type>(obj); }
-	static const volatile this_t* from_obj(const volatile type* obj) { return get_header_from_type_block<const volatile this_t, const volatile type>(obj); }
+	static this_t* from_obj(type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
 
 	ref<this_t> get_self_reference() { return *this; }
 	ref<const this_t> get_self_reference() const { return *this; }
@@ -338,21 +338,21 @@ public:
 	static ref_t allocate(volatile allocator& al)
 	{
 		allocator_container<allocator_type> alw(al);
-		ref_t r = alw.template allocate_type_with_header<this_t, type>();
+		ref_t r = alw.template allocate_type<placement_with_header<this_t, type> >();
 		if (!!r)
 			new (r.get_ptr()) this_t(al);
 		return r;
 	}
 
-	type* get_obj() { return get_type_block_from_header<this_t, type>(this); }
-	const type* get_obj() const { return get_type_block_from_header<const this_t, const type>(this); }
-	volatile type* get_obj() volatile { return get_type_block_from_header<volatile this_t, volatile type>(this); }
-	const volatile type* get_obj() const volatile { return get_type_block_from_header<const volatile this_t, const volatile type>(this); }
+	type* get_obj() { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
 
-	static this_t* from_obj(type* obj) { return get_header_from_type_block<this_t, type>(obj); }
-	static const this_t* from_obj(const type* obj) { return get_header_from_type_block<const this_t, const type>(obj); }
-	static volatile this_t* from_obj(volatile type* obj) { return get_header_from_type_block<volatile this_t, volatile type>(obj); }
-	static const volatile this_t* from_obj(const volatile type* obj) { return get_header_from_type_block<const volatile this_t, const volatile type>(obj); }
+	static this_t* from_obj(type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
 
 	ref<this_t> get_self_reference() { return *this; }
 	ref<const this_t> get_self_reference() const { return *this; }
@@ -399,20 +399,20 @@ public:
 
 	static ref_t allocate()
 	{
-		ref_t r = allocator_container<default_allocator>::template allocate_type_with_header<this_t, type>().dereference();
+		ref_t r = *allocator_container<default_allocator>::template allocate_type<placement_with_header<this_t, type> >()->get_header();
 		new (r.get_ptr()) this_t;
 		return r;
 	}
 
-	type* get_obj() { return get_type_block_from_header<this_t, type>(this); }
-	const type* get_obj() const { return get_type_block_from_header<const this_t, const type>(this); }
-	volatile type* get_obj() volatile { return get_type_block_from_header<volatile this_t, volatile type>(this); }
-	const volatile type* get_obj() const volatile { return get_type_block_from_header<const volatile this_t, const volatile type>(this); }
+	type* get_obj() { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
+	type* get_obj() const volatile { return placement_with_header<this_t, type>::get_obj_from_header(this); }
 
-	static this_t* from_obj(type* obj) { return get_header_from_type_block<this_t, type>(obj); }
-	static const this_t* from_obj(const type* obj) { return get_header_from_type_block<const this_t, const type>(obj); }
-	static volatile this_t* from_obj(volatile type* obj) { return get_header_from_type_block<volatile this_t, volatile type>(obj); }
-	static const volatile this_t* from_obj(const volatile type* obj) { return get_header_from_type_block<const volatile this_t, const volatile type>(obj); }
+	static this_t* from_obj(type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
+	static this_t* from_obj(const volatile type* obj) { return placement_with_header<this_t, type>::get_from_header_from_obj(obj); }
 
 	ref<this_t> get_self_reference() { return *this; }
 	ref<const this_t> get_self_reference() const { return *this; }

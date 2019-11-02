@@ -150,8 +150,8 @@ private:
 	public:
 		rc_obj_base* m_desc;
 
-		link(const ptr<rc_obj_base>& desc)
-			: m_desc(desc.get_ptr())
+		link(rc_obj_base& desc)
+			: m_desc(&desc)
 		{ }
 	};
 
@@ -168,8 +168,8 @@ public:
 		rc_obj_base* m_desc;
 		void* m_objPtr = 0;
 
-		tracking_header(const ptr<rc_obj_base>& desc)
-			: m_desc(desc.get_ptr())
+		tracking_header(rc_obj_base& desc)
+			: m_desc(&desc)
 		{ }
 	};
 

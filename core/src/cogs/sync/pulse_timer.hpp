@@ -44,13 +44,13 @@ public:
 
 	// wakeAll false means only wake 1 waiter per timer expiration
 
-	explicit pulse_timer(const ptr<rc_obj_base>& desc)
+	explicit pulse_timer(rc_obj_base& desc)
 		: timer(desc, timeout_t::infinite()),
 		m_wakeAll(true)
 	{
 	}
 
-	pulse_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll = true)
+	pulse_timer(rc_obj_base& desc, const timeout_t& t, bool wakeAll = true)
 		: timer(desc, t),
 		m_wakeAll(wakeAll)
 	{

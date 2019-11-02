@@ -161,7 +161,7 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s, const rcref<network>& n = network::get_default())
+		lookup_result(rc_obj_base& desc, const composite_string& s, const rcref<network>& n = network::get_default())
 			: signallable_task_base<lookup_result>(desc),
 			m_inputString(s.composite()),
 			m_network(n)
@@ -230,7 +230,7 @@ public:
 	protected:
 		friend class address;
 
-		reverse_lookup_result(const ptr<rc_obj_base>& desc, const address& addr, const rcref<network>& n = network::get_default())
+		reverse_lookup_result(rc_obj_base& desc, const address& addr, const rcref<network>& n = network::get_default())
 			: net::address::reverse_lookup_result(desc),
 			m_network(n)
 		{

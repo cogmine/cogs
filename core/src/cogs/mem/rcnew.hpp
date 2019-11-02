@@ -41,14 +41,14 @@ public:
 
 template <typename T, typename... args_t>
 std::enable_if_t<std::is_base_of_v<object, T>, void>
-placement_rcnew(T* obj, const ptr<rc_obj_base>& desc, args_t&&... args)
+placement_rcnew(T* obj, rc_obj_base& desc, args_t&&... args)
 {
 	new (obj) T(desc, std::forward<args_t>(args)...);
 }
 
 template <typename T, typename... args_t>
 std::enable_if_t<!std::is_base_of_v<object, T>, void>
-placement_rcnew(T* obj, const ptr<rc_obj_base>& desc, args_t&&... args)
+placement_rcnew(T* obj, rc_obj_base& desc, args_t&&... args)
 {
 	new (obj) T(std::forward<args_t>(args)...);
 }
@@ -56,14 +56,14 @@ placement_rcnew(T* obj, const ptr<rc_obj_base>& desc, args_t&&... args)
 
 template <typename T>
 std::enable_if_t<std::is_base_of_v<object, T>, void>
-placement_rcnew(T* obj, const ptr<rc_obj_base>& desc)
+placement_rcnew(T* obj, rc_obj_base& desc)
 {
 	new (obj) T(desc);
 }
 
 template <typename T>
 std::enable_if_t<!std::is_base_of_v<object, T>, void>
-placement_rcnew(T* obj, const ptr<rc_obj_base>& desc)
+placement_rcnew(T* obj, rc_obj_base& desc)
 {
 	new (obj) T;
 }
@@ -94,7 +94,7 @@ rcnew_inner(
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
-	placement_rcnew(obj, desc, std::forward<args_t>(args)...);
+	placement_rcnew(obj, *desc, std::forward<args_t>(args)...);
 	rcref<type> r(obj, desc);
 	return r;
 }
@@ -125,7 +125,7 @@ rcnew_inner(
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
-	placement_rcnew(obj, desc, std::forward<args_t>(args)...);
+	placement_rcnew(obj, *desc, std::forward<args_t>(args)...);
 	rcref<type> r(obj, desc);
 	return r;
 }
@@ -154,7 +154,7 @@ rcnew_inner(
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
-	placement_rcnew(obj, desc);
+	placement_rcnew(obj, *desc);
 	rcref<type> r(obj, desc);
 	return r;
 }
@@ -184,7 +184,7 @@ rcnew_inner(
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
-	placement_rcnew(obj, desc);
+	placement_rcnew(obj, *desc);
 	rcref<type> r(obj, desc);
 	return r;
 }

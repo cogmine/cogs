@@ -136,7 +136,7 @@ private:
 	trailer_map_t m_trailers;
 
 public:
-	explicit chunk_source(const ptr<rc_obj_base>& desc)
+	explicit chunk_source(rc_obj_base& desc)
 		: filter(desc)
 	{ }
 
@@ -237,7 +237,7 @@ public:
 class chunk_sink : public filter
 {
 public:
-	explicit chunk_sink(const ptr<rc_obj_base>& desc)
+	explicit chunk_sink(rc_obj_base& desc)
 		: filter(desc, [](composite_buffer & src)
 		{
 			composite_buffer result;
@@ -488,7 +488,7 @@ private:
 		friend class request;
 		friend class response;
 
-		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
 			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
 		{ }
 
@@ -604,7 +604,7 @@ private:
 		friend class connection;
 		friend class request;
 
-		response(const ptr<rc_obj_base>& desc, const rcref<request>& r, status_code code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
+		response(rc_obj_base& desc, const rcref<request>& r, status_code code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
 			: net::request_response_server::response(desc, r),
 			m_mode(m),
 			m_contentLength(contentLength),
@@ -1018,7 +1018,7 @@ private:
 		}
 
 	protected:
-		request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+		request(rc_obj_base& desc, const rcref<connection>& c)
 			: net::request_response_server::request(desc, c),
 			m_supportOutgoingChunking(true),
 			m_requestHeaders(rcnew(header_map_t)),
@@ -1242,12 +1242,12 @@ private:
 	}
 
 public:
-	explicit server(const ptr<rc_obj_base>& desc)
+	explicit server(rc_obj_base& desc)
 		: net::request_response_server(desc),
 		m_verbHandlerMap(get_default_verb_handlers())
 	{ }
 
-	server(const ptr<rc_obj_base>& desc, const rcref<verb_handler_map_t>& verbHandlers)
+	server(rc_obj_base& desc, const rcref<verb_handler_map_t>& verbHandlers)
 		: net::request_response_server(desc),
 		m_verbHandlerMap(verbHandlers)
 	{ }

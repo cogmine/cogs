@@ -34,12 +34,12 @@ private:
 	}
 
 public:
-	explicit resettable_timer(const ptr<rc_obj_base>& desc)
+	explicit resettable_timer(rc_obj_base& desc)
 		: timer(desc, timeout_t::infinite())
 	{
 	}
 
-	resettable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+	resettable_timer(rc_obj_base& desc, const timeout_t& t)
 		: timer(desc, t)
 	{
 		if (!t.is_infinite())

@@ -130,7 +130,7 @@ private:
 	}
 
 protected:
-	explicit completion_port(const ptr<rc_obj_base>& desc)
+	explicit completion_port(rc_obj_base& desc)
 		: object(desc),
 		m_handle(rcnew(auto_HANDLE))
 	{

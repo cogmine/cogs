@@ -54,7 +54,7 @@ public:
 
 		virtual const reverse_lookup_result& get() const volatile { return *(const reverse_lookup_result*)this; }
 
-		explicit reverse_lookup_result(const ptr<rc_obj_base>& desc)
+		explicit reverse_lookup_result(rc_obj_base& desc)
 			: signallable_task_base<reverse_lookup_result>(desc)
 		{ }
 

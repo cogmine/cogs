@@ -209,7 +209,7 @@ private:
 	rcref<task_base> m_taskBase;
 
 public:
-	dispatched(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t)
+	dispatched(rc_obj_base& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t)
 		: object(desc),
 		m_parentDispatcher(parentDispatcher),
 		m_taskBase(t)
@@ -274,7 +274,7 @@ public:
 	priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() volatile { return ((continuation_dispatched*)this)->m_removeToken; }
 	const priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() const volatile { return ((const continuation_dispatched*)this)->m_removeToken; }
 
-	continuation_dispatched(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt)
+	continuation_dispatched(rc_obj_base& desc, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt)
 		: dispatched(desc, parentDispatcher, t),
 		m_removeToken(rt)
 	{ }
@@ -331,7 +331,7 @@ protected:
 		auto r = m_continuationSubTasks.preallocate_key_with_aux<delayed_construction<continuation_dispatched> >(priority, i);
 		continuation_dispatched* d = &(r->get());
 		i.get_value() = d;
-		new (d) continuation_dispatched(r.get_desc(), this_rcref, t, i);
+		new (d) continuation_dispatched(*r.get_desc(), this_rcref, t, i);
 		rcref<continuation_dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
 		i.disown();
@@ -378,7 +378,7 @@ protected:
 		}
 	}
 
-	task(const ptr<rc_obj_base>& desc, bool signaled = false)
+	task(rc_obj_base& desc, bool signaled = false)
 		: object(desc),
 		m_continuationSubTaskDrainDone(signaled)
 	{ }
@@ -426,14 +426,14 @@ protected:
 		}
 	}
 
-	task(const ptr<rc_obj_base>& desc, bool signaled)
+	task(rc_obj_base& desc, bool signaled)
 		: task<void>(desc, signaled)
 	{ }
 
 public:
 	typedef result_t result_type;
 
-	explicit task(const ptr<rc_obj_base>& desc)
+	explicit task(rc_obj_base& desc)
 		: task<void>(desc)
 	{ }
 
@@ -582,7 +582,7 @@ protected:
 
 	mutable TaskState m_taskState alignas (atomic::get_alignment_v<TaskState>);
 
-	explicit signallable_task_base(const ptr<rc_obj_base>& desc)
+	explicit signallable_task_base(rc_obj_base& desc)
 		: task<result_t>(desc),
 		m_taskState{ 0, nullptr }
 	{ }
@@ -763,7 +763,7 @@ protected:
 	using signallable_task_base<result_t>::post_signal;
 
 public:
-	explicit signallable_task(const ptr<rc_obj_base>& desc)
+	explicit signallable_task(rc_obj_base& desc)
 		: signallable_task_base<result_t>(desc)
 	{
 	}
@@ -800,7 +800,7 @@ protected:
 	void get() const volatile {};
 
 public:
-	explicit signallable_task(const ptr<rc_obj_base>& desc)
+	explicit signallable_task(rc_obj_base& desc)
 		: signallable_task_base<void>(desc)
 	{ }
 
@@ -837,14 +837,14 @@ public:
 
 	virtual rcptr<volatile dispatched> get_dispatched() const volatile { return task_arg_base<arg_t>::get_dispatched(); }
 
-	function_task_base(const ptr<rc_obj_base>& desc, int priority)
+	function_task_base(rc_obj_base& desc, int priority)
 		: signallable_task<result_t>(desc),
 		m_priority(priority)
 	{
 	}
 
 	template <typename F>
-	function_task_base(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	function_task_base(rc_obj_base& desc, F&& f, int priority)
 		: signallable_task<result_t>(desc),
 		m_cancelFunc(std::forward<F>(f)),
 		m_priority(priority)
@@ -941,14 +941,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<result_t, arg_t>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<result_t, arg_t>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -992,14 +992,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<result_t, void>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<result_t, void>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1042,14 +1042,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<void, arg_t>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<void, arg_t>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1092,14 +1092,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<void, void>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<void, void>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1145,14 +1145,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<result_t, arg_t>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<result_t, arg_t>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1194,14 +1194,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<void, arg_t>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<void, arg_t>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1246,14 +1246,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<result_t, void>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<result_t, void>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1295,14 +1295,14 @@ protected:
 
 public:
 	template <typename F>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F&& f, int priority)
+	forwarding_function_task(rc_obj_base& desc, F&& f, int priority)
 		: function_task_base<void, void>(desc, priority),
 		m_primaryFunc(std::forward<F>(f))
 	{
 	}
 
 	template <typename F1, typename F2>
-	forwarding_function_task(const ptr<rc_obj_base>& desc, F1&& f1, F2&& f2, int priority)
+	forwarding_function_task(rc_obj_base& desc, F1&& f1, F2&& f2, int priority)
 		: function_task_base<void, void>(desc, std::forward<F2>(f2), priority),
 		m_primaryFunc(std::forward<F1>(f1))
 	{
@@ -1437,7 +1437,7 @@ public:
 		return m_innerTask2.template const_cast_to<task<result_t> >()->get();
 	}
 
-	explicit linked_task(const ptr<rc_obj_base>& desc, int priority)
+	explicit linked_task(rc_obj_base& desc, int priority)
 		: base_t(desc),
 		m_cancelTask(desc),
 		m_priority(priority)
@@ -1526,7 +1526,7 @@ public:
 		return atomic::load(m_priority);
 	}
 
-	explicit linked_task(const ptr<rc_obj_base>& desc, int priority)
+	explicit linked_task(rc_obj_base& desc, int priority)
 		: base_t(desc),
 		m_cancelTask(desc),
 		m_priority(priority)

@@ -37,58 +37,90 @@ inline constexpr size_t get_common_alignment_v = get_common_alignment<T1, T2>::v
 
 
 /// @ingroup Mem
-/// @brief Gets the size of a block containing a header and a data type 
+/// @brief Facilitates placement storage access to a header and a data type
 ///
-/// Ensures alignment of both types are satisfied in the new block.
 /// @tparam header_t Header type
-/// @tparam T Data type
-template <typename header_t, typename T>
-class get_type_and_header_size
+/// @tparam type_alignment Alignment of stored object
+/// @tparam type_size Size of stored object
+template <typename header_t, size_t type_alignment, size_t type_size>
+class placement_storage_with_header
 {
 public:
-	static constexpr size_t value = least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> > +
-		least_multiple_of_v<sizeof(T), get_common_alignment_v<header_t, T> >;
+	static constexpr size_t alignment = const_lcm_v<std::alignment_of_v<header_t>, type_alignment>;
+	static constexpr size_t distance = least_multiple_of_v<sizeof(header_t), alignment>;
+	static constexpr size_t size = distance + least_multiple_of_v<type_size, alignment>;
+
+private:
+	placement_storage<size, alignment> m_storage;
+
+public:
+	static header_t* get_header_from_obj(void* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(const void* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(volatile void* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(const volatile void* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+
+	static void* get_obj_from_header(header_t* hdr) { return reinterpret_cast<void*>((unsigned char*)hdr + distance); }
+	static void* get_obj_from_header(const header_t* hdr) { return reinterpret_cast<void*>((unsigned char*)hdr + distance); }
+	static void* get_obj_from_header(volatile header_t* hdr) { return reinterpret_cast<void*>((unsigned char*)hdr + distance); }
+	static void* get_obj_from_header(const volatile header_t* hdr) { return reinterpret_cast<void*>((unsigned char*)hdr + distance); }
+
+	header_t* get_header() { return &m_storage.template get<header_t>(); }
+	header_t* get_header() const { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+	header_t* get_header() volatile { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+	header_t* get_header() const volatile { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+
+	void* get_obj() { return get_obj_from_header(&get_header()); }
+	void* get_obj() const { return get_obj_from_header(&get_header()); }
+	void* get_obj() volatile { return get_obj_from_header(&get_header()); }
+	void* get_obj() const volatile { return get_obj_from_header(&get_header()); }
 };
-template <class header_t, class T>
-inline constexpr size_t get_type_and_header_size_v = get_type_and_header_size<header_t, T>::value;
+
 
 /// @ingroup Mem
-/// @brief A helper class that facilitates placement storage access to a header and a data type 
+/// @brief Facilitates placement storage access to a header and a data type
 ///
 /// @tparam header_t Header type
 /// @tparam T Data type
-template <typename header_t, typename T>
-class placement_type_header_storage : public placement_storage<get_type_and_header_size_v<header_t, T>, get_common_alignment_v<header_t, T> >
+/// @tparam n Count of objects of type T to store
+template <typename header_t, typename T, size_t n = 1>
+class placement_with_header
 {
-private:
-	typedef placement_storage<get_type_and_header_size_v<header_t, T>, get_common_alignment_v<header_t, T> > base_t;
 public:
-	header_t& get_header() { return base_t::template get<header_t>(); }
-	const header_t& get_header() const { return base_t::template get<header_t>(); }
-	volatile header_t& get_header() volatile { return base_t::template get<header_t>(); }
-	const volatile header_t& get_header() const volatile { return base_t::template get<header_t>(); }
+	static_assert(n > 0);
+
+	static constexpr size_t alignment = get_common_alignment_v<header_t, T>;
+	static constexpr size_t distance = least_multiple_of_v<sizeof(header_t), alignment>;
+	static constexpr size_t size = distance + least_multiple_of_v<sizeof(T) * n, alignment>;
+
+private:
+	placement_storage<size, alignment> m_storage;
+
+public:
+	// For an allocation at runtime, storage does not need to be extended to an alignment boundary.
+	static size_t get_runtime_size(size_t length) { return distance + (sizeof(T) * length); }
+
+	static header_t* get_header_from_obj(T* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(const T* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(volatile T* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+	static header_t* get_header_from_obj(const volatile T* t) { return reinterpret_cast<header_t*>((unsigned char*)t - distance); }
+
+	static T* get_obj_from_header(header_t* hdr) { return reinterpret_cast<T*>((unsigned char*)hdr + distance); }
+	static T* get_obj_from_header(const header_t* hdr) { return reinterpret_cast<T*>((unsigned char*)hdr + distance); }
+	static T* get_obj_from_header(volatile header_t* hdr) { return reinterpret_cast<T*>((unsigned char*)hdr + distance); }
+	static T* get_obj_from_header(const volatile header_t* hdr) { return reinterpret_cast<T*>((unsigned char*)hdr + distance); }
+
+	header_t* get_header() { return &m_storage.template get<header_t>(); }
+	header_t* get_header() const { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+	header_t* get_header() volatile { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+	header_t* get_header() const volatile { return const_cast<header_t*>(&m_storage.template get<header_t>()); }
+
+	T* get_obj() { return get_obj_from_header(&get_header()); }
+	T* get_obj() const { return get_obj_from_header(&get_header()); }
+	T* get_obj() volatile { return get_obj_from_header(&get_header()); }
+	T* get_obj() const volatile { return get_obj_from_header(&get_header()); }
 };
-
-
-
-template <typename header_t, typename T>
-inline T* get_type_block_from_header(const ptr<const header_t>& p)
-{
-	return (T*)(((unsigned char*)p.get_ptr()) + least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> >);
-}
-
-
-template <typename header_t, typename T>
-inline header_t* get_header_from_type_block(const ptr<T>& p)
-{
-	return reinterpret_cast<header_t*>(((unsigned char*)p.get_ptr()) - least_multiple_of_v<sizeof(header_t), get_common_alignment_v<header_t, T> >);
-}
-
-
-
 
 }
 
 
 #endif
-

@@ -52,8 +52,6 @@ template <typename T, size_t alignment = std::alignment_of_v<T> >
 struct alignas (alignment) placement : public placement_storage<sizeof(T), alignment>
 {
 public:
-	//unsigned char m_bytes[sizeof(T)];
-
 	T& get() { return *reinterpret_cast<T*>(this); }
 	const T& get() const { return *reinterpret_cast<const T*>(this); }
 	volatile T& get() volatile { return *reinterpret_cast<volatile T*>(this); }

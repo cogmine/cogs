@@ -323,7 +323,7 @@ private:
 			return result;
 		}
 
-		inner_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, const rcref<timer>& tmr)
+		inner_timer(rc_obj_base& desc, const timeout_t& t, const rcref<timer>& tmr)
 			: object(desc),
 			m_timeoutInfo(transactable_t::construct_embedded_t(), t),
 			m_outerTimer(tmr)
@@ -337,7 +337,7 @@ private:
 protected:
 	resettable_event m_event;
 
-	timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+	timer(rc_obj_base& desc, const timeout_t& t)
 		: object(desc)
 	{
 		if (!t.is_infinite())

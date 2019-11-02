@@ -30,7 +30,7 @@ private:
 	HANDLE m_hSemaphore;
 
 public:
-	explicit semaphore(const ptr<rc_obj_base>& desc)
+	explicit semaphore(rc_obj_base& desc)
 		: object(desc),
 		m_hSemaphore(CreateSemaphore(NULL, 0, LONG_MAX, NULL))
 	{

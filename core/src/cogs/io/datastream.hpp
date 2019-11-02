@@ -31,7 +31,7 @@ class datastream : public datasource,  public datasink
 public:
 	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(datastream, datasource, datasink);
 
-	explicit datastream(const ptr<rc_obj_base>& desc)
+	explicit datastream(rc_obj_base& desc)
 		: datasource(desc),
 		datasink(desc)
 	{ }
@@ -51,7 +51,7 @@ public:
 	protected:
 		friend class datastream;
 
-		closer(const ptr<rc_obj_base>& desc, const rcref<datastream>& ds)
+		closer(rc_obj_base& desc, const rcref<datastream>& ds)
 			: object(desc),
 			m_stream(ds),
 			m_event(desc, 2)

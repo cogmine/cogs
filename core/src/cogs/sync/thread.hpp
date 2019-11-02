@@ -58,7 +58,7 @@ private:
 	thread& operator=(const thread&) = delete;
 
 public:
-	thread(const ptr<rc_obj_base>& desc, const function<void()>& task)
+	thread(rc_obj_base& desc, const function<void()>& task)
 		: object(desc),
 		m_joinSync(desc)
 	{

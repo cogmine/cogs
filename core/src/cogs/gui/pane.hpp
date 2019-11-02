@@ -182,7 +182,7 @@ private:
 		priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() volatile { return ((serial_dispatched*)this)->m_removeToken; }
 		const priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() const volatile { return ((const serial_dispatched*)this)->m_removeToken; }
 
-		serial_dispatched(const ptr<rc_obj_base>& desc, bool async, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
+		serial_dispatched(rc_obj_base& desc, bool async, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
 			: dispatched(desc, parentDispatcher, t),
 			m_removeToken(rt),
 			m_async(async)
@@ -216,7 +216,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		new (d) serial_dispatched(r.get_desc(), false, this_rcref, t, i);
+		new (d) serial_dispatched(*r.get_desc(), false, this_rcref, t, i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		t->set_dispatched(d2);
@@ -465,7 +465,7 @@ private:
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
-		new(d) serial_dispatched(r.get_desc(), true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
+		new(d) serial_dispatched(*r.get_desc(), true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
 		m_priorityQueue.insert_preallocated(i);
 		rcref<dispatched> d2(d, i.get_desc());
 		result.template static_cast_to<task_t>().template static_cast_to<task_base>()->set_dispatched(d2);
@@ -475,7 +475,7 @@ private:
 	}
 
 protected:
-	explicit pane(const ptr<rc_obj_base>& desc, compositing_behavior cb = compositing_behavior::no_buffer)
+	explicit pane(rc_obj_base& desc, compositing_behavior cb = compositing_behavior::no_buffer)
 		: object(desc),
 		m_compositingBehavior(cb),
 		m_setSubsystemDelegate([r{ this_weak_rcptr }](const rcptr<volatile gui::subsystem>& s)
@@ -2390,12 +2390,12 @@ public:
 class container_pane : public pane, public virtual pane_container
 {
 public:
-	explicit container_pane(const ptr<rc_obj_base>& desc)
+	explicit container_pane(rc_obj_base& desc)
 		: pane(desc, compositing_behavior::no_buffer)
 	{
 	}
 
-	container_pane(const ptr<rc_obj_base>& desc, compositing_behavior cb)
+	container_pane(rc_obj_base& desc, compositing_behavior cb)
 		: pane(desc, cb)
 	{
 	}
@@ -2437,7 +2437,7 @@ protected:
 	}
 
 public:
-	canvas_pane(const ptr<rc_obj_base>& desc, const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
+	canvas_pane(rc_obj_base& desc, const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
 		: pane(desc, cb),
 		m_drawDelegate(d),
 		m_invalidateOnReshape(invalidateOnReshape)

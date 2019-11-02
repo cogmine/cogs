@@ -69,7 +69,7 @@ private:
 	class control_queue_t : public priority_dispatcher
 	{
 	public:
-		control_queue_t(const ptr<rc_obj_base>& desc)
+		control_queue_t(rc_obj_base& desc)
 			: priority_dispatcher(desc)
 		{ }
 
@@ -145,7 +145,7 @@ private:
 	}
 
 protected:
-	ui_thread(const ptr<rc_obj_base>& desc)
+	ui_thread(rc_obj_base& desc)
 		: object(desc),
 		m_controlQueue(rcnew(control_queue_t)),
 		m_dispatchMode(0)
@@ -196,7 +196,7 @@ private:
 	}
 
 public:
-	nsview_subsystem(const ptr<rc_obj_base>& desc)
+	nsview_subsystem(rc_obj_base& desc)
 		: gui::windowing::subsystem(desc),
 		m_visibleWindows(rcnew(visible_windows_list_t)),
 		m_mainThreadDispatcher(ui_thread::get()),
@@ -293,7 +293,7 @@ protected:
 	const rcref<volatile nsview_subsystem>& get_subsystem() const { return m_uiSubsystem; }
 
 public:
-	nsview_pane(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+	nsview_pane(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: object(desc),
 		m_uiSubsystem(uiSubsystem)
 	{ }
@@ -615,7 +615,7 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 	class native_pane : public nsview_pane
 	{
 	public:
-		native_pane(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& subSystem)
+		native_pane(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& subSystem)
 			: nsview_pane(desc, subSystem)
 		{ }
 

@@ -25,7 +25,7 @@ protected:
 	}
 
 public:
-	explicit native_container_pane(const ptr<rc_obj_base>& desc)
+	explicit native_container_pane(rc_obj_base& desc)
 		: pane_bridge(desc)
 	{
 	}

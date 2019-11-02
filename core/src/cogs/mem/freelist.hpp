@@ -47,11 +47,11 @@ private:
 	{
 	public:
 		node_t* m_next;
-		type* get_contents() const { return get_type_block_from_header<node_t, type>(this); }
-		static node_t* get_header(type& t) { return get_header_from_type_block<node_t, type>(&t); }
+		type* get_contents() const { return placement_with_header<node_t, type>::get_obj_from_header(this); }
+		static node_t* from_obj(type& t) { return placement_with_header<node_t, type>::get_header_from_obj(&t); }
 	};
 
-	typedef placement_type_header_storage<node_t, type> node_placement_t;
+	typedef placement_with_header<node_t, type> node_placement_t;
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
@@ -93,10 +93,10 @@ public:
 		else
 		{
 			if (m_curPos >= num_preallocated)
-				result = m_allocator.template allocate_type_with_header<node_t, T>();
+				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			else
 			{
-				result = &(m_preallocated[m_curPos].template get<type>());
+				result = &(m_preallocated[m_curPos].get_type());
 				++m_curPos;
 			}
 
@@ -125,7 +125,7 @@ public:
 
 			size_t oldPos = atomic::load(m_curPos);
 			if (oldPos >= num_preallocated)
-				result = m_allocator.template allocate_type_with_header<node_t, T>();
+				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			else
 			{
 				if (!atomic::compare_exchange(m_curPos, oldPos + 1, oldPos, oldPos))
@@ -133,7 +133,7 @@ public:
 					m_head.get(oldHead, v);
 					continue;
 				}
-				result = const_cast<node_t*>(&m_preallocated[oldPos].get_header());
+				result = m_preallocated[oldPos].get_header();
 			}
 
 			new (result->get_contents()) type;
@@ -145,14 +145,14 @@ public:
 
 	void release(type& t)
 	{
-		node_t* n = node_t::get_header(t);
+		node_t* n = node_t::from_obj(t);
 		n->m_next = m_head.get_ptr();
 		m_head = n;
 	}
 
 	void release(type& t) volatile
 	{
-		node_t* n = node_t::get_header(t);
+		node_t* n = node_t::from_obj(t);
 
 		ptr<node_t> oldHead;
 		version_t oldVersion;
@@ -174,8 +174,9 @@ private:
 	{
 	public:
 		node_t* m_next;
-		type* get_contents() const { return get_type_block_from_header<node_t, type>(this); }
-		static node_t* get_header(type& t) { return get_header_from_type_block<node_t, type>(&t); }
+
+		type* get_contents() const { return placement_with_header<node_t, type>::get_obj_from_header(this); }
+		static node_t* from_obj(type& t) { return placement_with_header<node_t, type>::get_header_from_obj(&t); }
 	};
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
@@ -211,7 +212,7 @@ public:
 		}
 		else
 		{
-			result = m_allocator.template allocate_type_with_header<node_t, type>();
+			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			new (result->get_contents()) type;
 		}
 
@@ -235,7 +236,7 @@ public:
 				break;
 			}
 
-			result = m_allocator.template allocate_type_with_header<node_t, type>();
+			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			new (result->get_contents()) type;
 			break;
 		}
@@ -245,14 +246,14 @@ public:
 
 	void release(type& t)
 	{
-		node_t* n = node_t::get_header(t);
+		node_t* n = node_t::from_obj(t);
 		n->m_next = m_head.get_ptr();
 		m_head = n;
 	}
 
 	void release(type& t) volatile
 	{
-		node_t* n = node_t::get_header(t);
+		node_t* n = node_t::from_obj(t);
 		ptr<node_t> oldHead;
 		m_head.get(oldHead);
 		do {

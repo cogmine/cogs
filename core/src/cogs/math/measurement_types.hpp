@@ -110,7 +110,6 @@ class mass : public quantity_type_base { public: typedef grams preferred_unit_t;
 class weight : public quantity_type_base { };
 
 
-// Always fully specialize unit_conversion with the primary unit type as the second template parameter
 
 template <class T1, class T2, typename enable = void>
 class unit_conversion

@@ -240,11 +240,11 @@ private:
 
 protected:
 
-	explicit virtual_dependency_property_base(const ptr<rc_obj_base>& desc)
+	explicit virtual_dependency_property_base(rc_obj_base& desc)
 		: object(desc)
 	{ }
 
-	virtual_dependency_property_base(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	virtual_dependency_property_base(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: object(desc),
 		m_dispatcher(d)
 	{ }
@@ -320,11 +320,11 @@ private:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
 
 public:
-	explicit virtual_dependency_property(const ptr<rc_obj_base>& desc)
+	explicit virtual_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	virtual_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc, d)
 	{ }
 
@@ -367,11 +367,11 @@ private:
 	virtual void setting(const type& t) { }
 
 public:
-	explicit virtual_dependency_property(const ptr<rc_obj_base>& desc)
+	explicit virtual_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	virtual_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc, d)
 	{ }
 
@@ -403,11 +403,11 @@ private:
 	}
 
 public:
-	virtual_dependency_property(const ptr<rc_obj_base>& desc)
+	virtual_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	virtual_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc, d)
 	{ }
 
@@ -441,13 +441,13 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const get_delegate_type& g, const set_delegate_type& s)
+	delegated_dependency_property(rc_obj_base& desc, const get_delegate_type& g, const set_delegate_type& s)
 		: base_t(desc),
 		m_getDelegate(g),
 		m_setDelegate(s)
 	{ }
 
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
+	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
 		: base_t(desc, d),
 		m_getDelegate(g),
 		m_setDelegate(s)
@@ -476,12 +476,12 @@ private:
 	get_delegate_type m_getDelegate;
 
 public:
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const get_delegate_type& g)
+	delegated_dependency_property(rc_obj_base& desc, const get_delegate_type& g)
 		: base_t(desc),
 		m_getDelegate(g)
 	{ }
 
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g)
+	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g)
 		: base_t(desc, d),
 		m_getDelegate(g)
 	{ }
@@ -503,12 +503,12 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const set_delegate_type& s)
+	delegated_dependency_property(rc_obj_base& desc, const set_delegate_type& s)
 		: base_t(desc),
 		m_setDelegate(s)
 	{ }
 
-	delegated_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const set_delegate_type& s)
+	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const set_delegate_type& s)
 		: base_t(desc, d),
 		m_setDelegate(s)
 	{ }
@@ -530,20 +530,20 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	explicit backed_dependency_property(const ptr<rc_obj_base>& desc)
+	explicit backed_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const type& t)
 		: base_t(desc),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc, d)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
 		: base_t(desc, d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
@@ -568,20 +568,20 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	backed_dependency_property(const ptr<rc_obj_base>& desc)
+	backed_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const type& t)
 		: base_t(desc),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
 		: base_t(desc),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
@@ -600,20 +600,20 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	backed_dependency_property(const ptr<rc_obj_base>& desc)
+	backed_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const type& t)
 		: base_t(desc),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
 		: base_t(desc, d)
 	{ }
 
-	backed_dependency_property(const ptr<rc_obj_base>& desc, const rcref<volatile dispatcher>& d, const type& t)
+	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
 		: base_t(desc, d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }

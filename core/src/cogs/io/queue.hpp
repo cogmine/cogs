@@ -195,7 +195,7 @@ public:
 
 	protected:
 		/// @brief Constructor
-		task_base(const ptr<rc_obj_base>& desc)
+		task_base(rc_obj_base& desc)
 			: object(desc),
 			m_state(queued_state),
 			m_wasClosed(false)
@@ -268,7 +268,7 @@ public:
 	public:
 		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(io_task<result_t>, task_base, signallable_task_base<result_t>);
 
-		explicit io_task(const ptr<rc_obj_base>& desc)
+		explicit io_task(rc_obj_base& desc)
 			: task_base(desc),
 			signallable_task_base<result_t>(desc)
 		{ }
@@ -371,7 +371,7 @@ protected:
 	}
 
 public:
-	explicit queue(const ptr<rc_obj_base>& desc)
+	explicit queue(rc_obj_base& desc)
 		: object(desc),
 		m_contents(rcnew(content_t))
 	{

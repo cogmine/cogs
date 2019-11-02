@@ -41,7 +41,7 @@ private:
 	friend class thread_pool;
 
 public:
-	explicit cleanup_queue(const ptr<rc_obj_base>& desc)
+	explicit cleanup_queue(rc_obj_base& desc)
 		: object(desc),
 		m_tasks(desc)
 	{

@@ -354,18 +354,18 @@ private:
 	}
 
 public:
-	explicit device_context(const ptr<rc_obj_base>& desc, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+	explicit device_context(rc_obj_base& desc, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
 		: object(desc),
 		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
-	explicit device_context(const ptr<rc_obj_base>& desc, HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+	explicit device_context(rc_obj_base& desc, HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
 		: object(desc),
 		m_hDC(hDC),
 		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
-	explicit device_context(const ptr<rc_obj_base>& desc, HDC hDC, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+	explicit device_context(rc_obj_base& desc, HDC hDC, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
 		: object(desc),
 		m_hDC(hDC),
 		m_gdiPlusScope(gdiPlusScope)
@@ -373,7 +373,7 @@ public:
 		set_dpi(dpi);
 	}
 
-	explicit device_context(const ptr<rc_obj_base>& desc, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+	explicit device_context(rc_obj_base& desc, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
 		: object(desc),
 		m_gdiPlusScope(gdiPlusScope)
 	{

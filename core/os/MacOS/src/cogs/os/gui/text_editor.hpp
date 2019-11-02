@@ -54,7 +54,7 @@ private:
 	rcptr<gfx::os::graphics_context::font> m_cachedFont;
 
 public:
-	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+	text_editor(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem)
 	{ }
 

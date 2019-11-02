@@ -35,12 +35,12 @@ private:
 	}
 
 public:
-	explicit single_fire_timer(const ptr<rc_obj_base>& desc)
+	explicit single_fire_timer(rc_obj_base& desc)
 		: timer(desc, timeout_t::infinite())
 	{
 	}
 
-	single_fire_timer(const ptr<rc_obj_base>& desc, const timeout_t& t)
+	single_fire_timer(rc_obj_base& desc, const timeout_t& t)
 		: timer(desc, t)
 	{
 		if (!t.is_infinite())

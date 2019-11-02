@@ -31,7 +31,7 @@ private:
 	}
 
 public:
-	count_down_event(const ptr<rc_obj_base>& desc, size_t n)
+	count_down_event(rc_obj_base& desc, size_t n)
 		: object(desc),
 		m_event(desc),
 		m_count(n)
@@ -39,7 +39,7 @@ public:
 		COGS_ASSERT(n != doneValue); // max value is not supported (used internally to indicate fired, to allow init from 0)
 	}
 
-	count_down_event(const ptr<rc_obj_base>& desc, size_t n, const function<void()>& d)
+	count_down_event(rc_obj_base& desc, size_t n, const function<void()>& d)
 		: object(desc),
 		m_event(desc),
 		m_count(n)

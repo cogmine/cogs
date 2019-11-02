@@ -77,7 +77,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this task
-		datasink_task(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : io::queue::io_task<result_t>(desc), m_sink(ds) { }
+		datasink_task(rc_obj_base& desc, const rcref<datasink>& ds) : io::queue::io_task<result_t>(desc), m_sink(ds) { }
 
 		/// @brief Derived class implements executing() to execute the task
 		virtual void executing() = 0;
@@ -118,7 +118,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this flusher
-		flusher(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds) { }
+		flusher(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds) { }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
@@ -158,7 +158,7 @@ public:
 
 	protected:
 		/// @brief Constructor
-		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds) { }
+		closer(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds) { }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
@@ -207,7 +207,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this writer
-		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds) { }
+		writer(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds) { }
 
 		/// @brief Derived writers should implement writing() to perform the write operation
 		/// 
@@ -305,7 +305,7 @@ private:
 	public:
 		const weak_rcptr<datasink> m_sink;
 
-		callback_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<datasink>& ds)
+		callback_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<datasink>& ds)
 			: writer(desc, proxy),
 			m_sink(ds)
 		{
@@ -328,14 +328,14 @@ private:
 	};
 
 protected:
-	explicit datasink(const ptr<rc_obj_base>& desc)
+	explicit datasink(rc_obj_base& desc)
 		: object(desc),
 		m_ioQueue(rcnew(queue))
 	{ }
 
 	/// @brief Constructor
 	/// @param ioQueue The io::queue to use.  Default: creates a new one
-	datasink(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue)
+	datasink(rc_obj_base& desc, const rcref<io::queue>& ioQueue)
 		: object(desc),
 		m_ioQueue(ioQueue)
 	{ }
@@ -378,13 +378,13 @@ protected:
 	}
 
 public:
-	datasink(const ptr<rc_obj_base>& desc, const write_func_t& writeFunc)
+	datasink(rc_obj_base& desc, const write_func_t& writeFunc)
 		: object(desc),
 		m_ioQueue(rcnew(queue)),
 		m_writeFunc(writeFunc)
 	{ }
 
-	datasink(const ptr<rc_obj_base>& desc, write_func_t&& writeFunc)
+	datasink(rc_obj_base& desc, write_func_t&& writeFunc)
 		: object(desc),
 		m_ioQueue(rcnew(queue)),
 		m_writeFunc(std::move(writeFunc))
@@ -424,7 +424,7 @@ private:
 		class plug : public io::queue::io_task<plug>
 		{
 		public:
-			explicit plug(const ptr<rc_obj_base>& desc)
+			explicit plug(rc_obj_base& desc)
 				: io::queue::io_task<plug>(desc)
 			{ }
 
@@ -458,7 +458,7 @@ private:
 				p->complete();
 		}
 
-		transaction_task(const ptr<rc_obj_base>& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
+		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
 			: io::queue::io_task<transaction_task>(desc),
 			m_transactionIoQueue(ioQueue),
 			m_closePropagationMode(closePropagationMode)
@@ -536,7 +536,7 @@ private:
 	public:
 		rcref<transaction_task> m_transactionTask;
 
-		terminator(const ptr<rc_obj_base>& desc, const rcref<transaction_task>& t)
+		terminator(rc_obj_base& desc, const rcref<transaction_task>& t)
 			: io::queue::io_task<terminator>(desc),
 			m_transactionTask(t)
 		{ }
@@ -599,7 +599,7 @@ public:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.
 	/// @param closePropagationMode Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	transaction(const ptr<rc_obj_base>& desc, const rcref<datasink>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
+	transaction(rc_obj_base& desc, const rcref<datasink>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
 		: datasink(desc),
 		m_sink(ds),
 		m_started(startImmediately),

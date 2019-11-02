@@ -74,7 +74,7 @@ private:
 	delegated_dependency_property<bool> m_shouldAutoFadeProperty; // reflects callers choice to auto-fade
 
 public:
-	explicit scroll_bar(const ptr<rc_obj_base>& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
+	explicit scroll_bar(rc_obj_base& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
 		: pane_bridge(desc),
 		m_dimension(d),
 		m_isHiddenWhenInactive(isHiddenWhenInactive),

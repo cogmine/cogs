@@ -72,7 +72,7 @@ private:
 		volatile parallel_task_level_map_t m_parallelTaskLevelMap;
 		volatile boolean m_exiting;
 
-		explicit main_loop(const ptr<rc_obj_base>& desc, size_t numThreads)
+		explicit main_loop(rc_obj_base& desc, size_t numThreads)
 			: object(desc),
 			m_tasks(desc),
 			m_semaphore(0, numThreads)

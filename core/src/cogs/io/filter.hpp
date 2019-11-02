@@ -77,7 +77,7 @@ private:
 
 		volatile container_queue<task_f> m_completionSerializer;
 
-		state(const ptr<rc_obj_base>& desc, const rcref<filter>& f)
+		state(rc_obj_base& desc, const rcref<filter>& f)
 			: object(desc),
 			m_filter(f)
 		{
@@ -417,7 +417,7 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<filter::state>& s)
+		reader(rc_obj_base& desc, const rcref<datasource>& proxy, const rcref<filter::state>& s)
 			: datasource::reader(desc, proxy),
 			m_state(s)
 		{ }
@@ -468,7 +468,7 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		writer_base(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+		writer_base(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
 			: datasink::writer(desc, proxy),
 			m_state(s)
 		{ }
@@ -515,7 +515,7 @@ private:
 	class writer : public writer_base
 	{
 	public:
-		writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+		writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
 			: writer_base(desc, proxy, s)
 		{ }
 
@@ -544,7 +544,7 @@ private:
 	class bypass_writer : public writer_base
 	{
 	public:
-		bypass_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+		bypass_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
 			: writer_base(desc, proxy, s)
 		{ }
 
@@ -574,7 +574,7 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		closer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
+		closer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
 			: datasink::closer(desc, proxy),
 			m_state(s)
 		{ }
@@ -616,7 +616,7 @@ private:
 		bool isCompleting = true;
 
 		coupler(
-			const ptr<rc_obj_base>& desc,
+			rc_obj_base& desc,
 			const rcref<filter::state>& s,
 			const rcref<datasource>& src,
 			const rcref<datasink>& snk,
@@ -764,27 +764,27 @@ public:
 	}
 
 	/// @brief Constructor
-	filter(const ptr<rc_obj_base>& desc)
+	filter(rc_obj_base& desc)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref))
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f)
+	filter(rc_obj_base& desc, const filter_func_t& f)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(f)
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f)
+	filter(rc_obj_base& desc, filter_func_t&& f)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),
 		m_filterFunc(std::move(f))
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f, const finalize_func_t& fn)
+	filter(rc_obj_base& desc, const filter_func_t& f, const finalize_func_t& fn)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),
@@ -792,7 +792,7 @@ public:
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f, const finalize_func_t& fn)
+	filter(rc_obj_base& desc, filter_func_t&& f, const finalize_func_t& fn)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),
@@ -800,7 +800,7 @@ public:
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, const filter_func_t& f, finalize_func_t&& fn)
+	filter(rc_obj_base& desc, const filter_func_t& f, finalize_func_t&& fn)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),
@@ -808,7 +808,7 @@ public:
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(const ptr<rc_obj_base>& desc, filter_func_t&& f, finalize_func_t&& fn)
+	filter(rc_obj_base& desc, filter_func_t&& f, finalize_func_t&& fn)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref)),

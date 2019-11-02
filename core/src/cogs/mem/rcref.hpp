@@ -217,9 +217,11 @@ public:
 	/// @}
 
 	/// @{
-	this_t& dereference() { return *this; }
+	this_t& dereference() & { return *this; }
 	/// @brief Thread-safe version of dereference()
-	const this_t& dereference() const { return *this; }
+	const this_t& dereference() const & { return *this; }
+	/// @brief rvalue qualified implementation of dereference()
+	this_t&& dereference() && { return std::move(*this); }
 	/// @}
 
 	/// @{
@@ -906,8 +908,9 @@ public:
 	type* peek_ptr() const { return peek_obj(); }
 	type* peek_ptr() const volatile { return peek_obj(); }
 
-	this_t& dereference() { return *this; }
-	const this_t& dereference() const { return *this; }
+	this_t& dereference() & { return *this; }
+	const this_t& dereference() const & { return *this; }
+	this_t&& dereference() && { return std::move(*this); }
 
 	rc_obj_base* get_desc() const { return base_t::get_desc(); }
 	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }
@@ -1388,8 +1391,9 @@ public:
 	type* peek_ptr() const { return peek_obj(); }
 	type* peek_ptr() const volatile { return peek_obj(); }
 
-	this_t& dereference() { return *this; }
-	const this_t& dereference() const { return *this; }
+	this_t& dereference() & { return *this; }
+	const this_t& dereference() const & { return *this; }
+	this_t&& dereference() && { return std::move(*this); }
 
 	rc_obj_base* get_desc() const { return base_t::get_desc(); }
 	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }
@@ -1867,8 +1871,9 @@ public:
 	type* peek_ptr() const { return peek_obj(); }
 	type* peek_ptr() const volatile { return peek_obj(); }
 
-	this_t& dereference() { return *this; }
-	const this_t& dereference() const { return *this; }
+	this_t& dereference() & { return *this; }
+	const this_t& dereference() const & { return *this; }
+	this_t&& dereference() && { return std::move(*this); }
 
 	rc_obj_base* get_desc() const { return base_t::get_desc(); }
 	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }
@@ -2350,8 +2355,9 @@ public:
 	type* peek_ptr() const { return peek_obj(); }
 	type* peek_ptr() const volatile { return peek_obj(); }
 
-	this_t& dereference() { return *this; }
-	const this_t& dereference() const { return *this; }
+	this_t& dereference() & { return *this; }
+	const this_t& dereference() const & { return *this; }
+	this_t&& dereference() && { return std::move(*this); }
 
 	rc_obj_base* get_desc() const { return base_t::get_desc(); }
 	rc_obj_base* get_desc() const volatile { return base_t::get_desc(); }

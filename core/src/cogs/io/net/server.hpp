@@ -83,7 +83,7 @@ public:
 		virtual rcref<datasource> get_datasource() const { return m_netConnection; }
 		virtual rcref<datasink> get_datasink() const { return m_netConnection; }
 
-		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
+		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
 			: object(desc),
 			m_server(srvr),
 			m_netConnection(c),
@@ -137,7 +137,7 @@ public:
 	};
 
 public:
-	explicit server(const ptr<rc_obj_base>& desc)
+	explicit server(rc_obj_base& desc)
 		: object(desc)
 	{ }
 
@@ -191,7 +191,7 @@ public:
 		}
 
 	public:
-		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
+		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
 			: server::connection(desc, srvr, c, inactivityTimeout),
 			m_reuse(supportMultipleRequests)
 		{ }
@@ -238,7 +238,7 @@ public:
 			const rcref<datasource::transaction> m_transaction;
 			volatile boolean m_completed;
 
-			request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+			request(rc_obj_base& desc, const rcref<connection>& c)
 				: object(desc),
 				m_connection(c),
 				m_transaction(rcnew(datasource::transaction, c->get_datasource(), false, datasource::transaction::propagate_abort_only))
@@ -293,7 +293,7 @@ public:
 		protected:
 			friend class request;
 
-			response(const ptr<rc_obj_base>& desc, const rcref<request>& r)
+			response(rc_obj_base& desc, const rcref<request>& r)
 				: object(desc),
 				m_request(r),
 				m_connection(r->get_connection()),
@@ -347,7 +347,7 @@ public:
 	typedef connection::response response;
 
 public:
-	request_response_server(const ptr<rc_obj_base>& desc)
+	request_response_server(rc_obj_base& desc)
 		: server(desc)
 	{ }
 };

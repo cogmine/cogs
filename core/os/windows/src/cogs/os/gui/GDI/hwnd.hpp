@@ -784,7 +784,7 @@ public:
 		}
 
 	public:
-		explicit ui_thread(const ptr<rc_obj_base>& desc)
+		explicit ui_thread(rc_obj_base& desc)
 			: object(desc),
 			m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL)),
 			m_controlQueue(desc)
@@ -827,7 +827,7 @@ public:
 		}
 
 	public:
-		explicit subsystem(const ptr<rc_obj_base>& desc)
+		explicit subsystem(rc_obj_base& desc)
 			: gui::windowing::subsystem(desc),
 			m_uiThread(desc),
 			m_visibleWindows(rcnew(visible_windows_list_t)),
@@ -934,7 +934,7 @@ private:
 #endif
 
 public:
-	hwnd(const ptr<rc_obj_base>& desc,
+	hwnd(rc_obj_base& desc,
 		const rcptr<hwnd>& parent,
 		const rcptr<hwnd>& belowThis,
 		const rcref<hwnd_pane>& owner,
@@ -1402,7 +1402,7 @@ protected:
 	}
 
 public:
-	hwnd_pane(const ptr<rc_obj_base>& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
+	hwnd_pane(rc_obj_base& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
 		: object(desc),
 		m_uiSubsystem(uiSubsystem),
 		m_offscreenBuffers(desc),
@@ -2176,7 +2176,7 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 	class native_pane : public hwnd_pane
 	{
 	public:
-		native_pane(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& subSystem)
+		native_pane(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& subSystem)
 			: hwnd_pane(desc, composite_string(), 0, 0, subSystem, user_drawn)
 		{ }
 

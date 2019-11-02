@@ -116,7 +116,7 @@ private:
 	}
 
 public:
-	scroll_bar(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+	scroll_bar(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, system_drawn_offscreen),
 		m_stateProperty(desc, uiSubsystem, [this]()
 		{

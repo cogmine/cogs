@@ -28,13 +28,10 @@ protected:
 	object() = delete;
 
 public:
-	object(const ptr<rc_obj_base>& desc) : m_desc(desc.get_ptr()) { }
+	object(rc_obj_base& desc) : m_desc(&desc) { }
 
 	rc_obj_base* get_desc() const { return m_desc; }
 	rc_obj_base* get_desc() const volatile { return m_desc; } // Set on construction and not modified.
-
-	void set_desc(const ptr<rc_obj_base>& desc) { m_desc = desc.get_ptr(); }
-	void set_desc(const ptr<rc_obj_base>& desc) volatile { m_desc = desc.get_ptr(); }
 
 	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const
 	{
@@ -51,7 +48,6 @@ public:
 	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const volatile { return const_cast<const object*>(this)->self_acquire(refStrengthType); }
 	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const volatile { return const_cast<const object*>(this)->self_release(refStrengthType); }
 
-
 	template <class type> const rcref<type>& get_self_rcref(type* obj,
 		unowned_t<rcptr<type> >& storage = unowned_t<rcptr<type> >().get_unowned()) const
 	{ storage.set(obj, m_desc); return storage.dereference(); }
@@ -60,11 +56,11 @@ public:
 		unowned_t<rcptr<const type> >& storage = unowned_t<rcptr<const type> >().get_unowned()) const
 	{ storage.set(obj, m_desc); return storage.dereference(); }
 
-	template <class type> const rcref<volatile type>& get_self_rcref(volatile type* obj, 
+	template <class type> const rcref<volatile type>& get_self_rcref(volatile type* obj,
 		unowned_t<rcptr<volatile type> >& storage = unowned_t<rcptr<volatile type> >().get_unowned()) const volatile
 	{ storage.set(obj, m_desc); return storage.dereference(); }
 
-	template <class type> const rcref<const volatile type>& get_self_rcref(const volatile type* obj, 
+	template <class type> const rcref<const volatile type>& get_self_rcref(const volatile type* obj,
 		unowned_t<rcptr<const volatile type> >& storage = unowned_t<rcptr<const volatile type> >().get_unowned()) const volatile
 	{ storage.set(obj, m_desc); return storage.dereference(); }
 
@@ -101,7 +97,6 @@ public:
 	template <class type> const weak_rcptr<const volatile type>& get_self_weak_rcptr(const volatile type* obj,
 		unowned_t<weak_rcptr<const volatile type> >& storage = unowned_t<weak_rcptr<const volatile type> >().get_unowned()) const volatile
 	{ storage.set(obj, m_desc); return storage; }
-
 };
 
 
@@ -109,7 +104,7 @@ public:
 // As a member function is executing, the reference is assumed to already be in scope.
 
 /// @brief When used in a class derived from object, returns the object's reference-counting descriptor
-#define this_desc (this->get_desc())
+#define this_desc (*this->get_desc())
 
 /// @brief When used in a class derived from object, returns a rcref referring to itself
 #define this_rcref (this->get_self_rcref(this))
@@ -155,9 +150,7 @@ public:
 	template <typename type> weak_rcptr<volatile type> get_self_weak_rcptr(volatile type* obj) const volatile \
 	{ return base1::get_self_weak_rcptr(obj); } \
 	template <typename type> weak_rcptr<const volatile type> get_self_weak_rcptr(const volatile type* obj) const volatile \
-	{ return base1::get_self_weak_rcptr(obj); } \
-	void set_desc(const ptr<rc_obj_base>& desc) { base1::set_desc(desc); base2::set_desc(desc); } \
-	void set_desc(const ptr<rc_obj_base>& desc) volatile { base1::set_desc(desc); base2::set_desc(desc); }
+	{ return base1::get_self_weak_rcptr(obj); }
 
 
 
@@ -195,9 +188,7 @@ public:
 	template <typename type> weak_rcptr<volatile type> get_self_weak_rcptr(volatile type* obj) const volatile \
 	{ return base1::get_self_weak_rcptr(obj); } \
 	template <typename type> weak_rcptr<const volatile type> get_self_weak_rcptr(const volatile type* obj) const volatile \
-	{ return base1::get_self_weak_rcptr(obj); } \
-	void set_desc(const ptr<rc_obj_base>& desc) { base1::set_desc(desc); base2::set_desc(desc); } \
-	void set_desc(const ptr<rc_obj_base>& desc) volatile { base1::set_desc(desc); base2::set_desc(desc); }
+	{ return base1::get_self_weak_rcptr(obj); }
 
 
 #define COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE4(derived_type, base1, base2, base3, base4) \
@@ -234,9 +225,7 @@ public:
 	template <typename type> weak_rcptr<volatile type> get_self_weak_rcptr(volatile type* obj) const volatile \
 	{ return base1::get_self_weak_rcptr(obj); } \
 	template <typename type> weak_rcptr<const volatile type> get_self_weak_rcptr(const volatile type* obj) const volatile \
-	{ return base1::get_self_weak_rcptr(obj); } \
-	void set_desc(const ptr<rc_obj_base>& desc) { base1::set_desc(desc); base2::set_desc(desc); } \
-	void set_desc(const ptr<rc_obj_base>& desc) volatile { base1::set_desc(desc); base2::set_desc(desc); }
+	{ return base1::get_self_weak_rcptr(obj); }
 
 }
 

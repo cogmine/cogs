@@ -43,7 +43,7 @@ private:
 	size m_textExtent;
 
 public:
-	label(const ptr<rc_obj_base>& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::black, bool useLineHeight = true)
+	label(rc_obj_base& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::black, bool useLineHeight = true)
 		: pane(desc),
 		m_text(text),
 		m_font(fnt),

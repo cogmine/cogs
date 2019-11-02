@@ -74,7 +74,7 @@ public:
 		connection& operator=(const connection&) = delete;
 
 	protected:
-		connection(const ptr<rc_obj_base>& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
 			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
 		{ }
 
@@ -146,7 +146,7 @@ public:
 		reply_code m_replyCode;
 		const composite_cstring m_text;
 
-		response(const ptr<rc_obj_base>& desc, const rcref<request>& r, reply_code replyCode, const composite_cstring& text = cstring())
+		response(rc_obj_base& desc, const rcref<request>& r, reply_code replyCode, const composite_cstring& text = cstring())
 			: net::request_response_server::response(desc, r),
 			m_replyCode(replyCode),
 			m_text(text)
@@ -271,7 +271,7 @@ public:
 			return r;
 		}
 
-		request(const ptr<rc_obj_base>& desc, const rcref<connection>& c)
+		request(rc_obj_base& desc, const rcref<connection>& c)
 			: net::request_response_server::request(desc, c),
 			m_sink(rcnew(datasink, [r{ this_weak_rcptr }](composite_buffer& b)
 			{
@@ -416,12 +416,12 @@ public:
 		return mapRef;
 	}
 
-	explicit server(const ptr<rc_obj_base>& desc)
+	explicit server(rc_obj_base& desc)
 		: net::request_response_server(desc),
 		m_commandHandlerMap(get_default_command_handlers())
 	{ } 
 
-	server(const ptr<rc_obj_base>& desc, const rcref<command_handler_map_t>& commandHandlers)
+	server(rc_obj_base& desc, const rcref<command_handler_map_t>& commandHandlers)
 		: net::request_response_server(desc),
 		m_commandHandlerMap(commandHandlers)
 	{ }

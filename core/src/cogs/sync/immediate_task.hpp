@@ -51,12 +51,12 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	immediate_task(const ptr<rc_obj_base>& desc, const result_t& r)
+	immediate_task(rc_obj_base& desc, const result_t& r)
 		: task<result_t>(desc, true),
 		m_result(r)
 	{ }
 
-	immediate_task(const ptr<rc_obj_base>& desc, result_t&& r)
+	immediate_task(rc_obj_base& desc, result_t&& r)
 		: task<result_t>(desc, true),
 		m_result(std::move(r))
 	{ }
@@ -90,7 +90,7 @@ inline rcref<task<bool> > get_immediate_task(bool b)
 	class immediate_task_true : public immediate_task<bool>
 	{
 	public:
-		explicit immediate_task_true(const ptr<rc_obj_base>& desc)
+		explicit immediate_task_true(rc_obj_base& desc)
 			: immediate_task<bool>(desc, true)
 		{ }
 	};
@@ -98,7 +98,7 @@ inline rcref<task<bool> > get_immediate_task(bool b)
 	class immediate_task_false : public immediate_task<bool>
 	{
 	public:
-		explicit immediate_task_false(const ptr<rc_obj_base>& desc)
+		explicit immediate_task_false(rc_obj_base& desc)
 			: immediate_task<bool>(desc, false)
 		{ }
 	};
@@ -143,7 +143,7 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	explicit immediate_task(const ptr<rc_obj_base>& desc)
+	explicit immediate_task(rc_obj_base& desc)
 		: task<void>(desc, true)
 	{ }
 

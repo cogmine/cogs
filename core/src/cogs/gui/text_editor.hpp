@@ -48,7 +48,7 @@ private:
 	rcptr<text_editor_interface> m_nativeTextEditor;
 
 public:
-	text_editor(const ptr<rc_obj_base>& desc, const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
+	text_editor(rc_obj_base& desc, const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
 		: pane_bridge(desc),
 		m_text(text),
 		m_maxLength(maxLength),

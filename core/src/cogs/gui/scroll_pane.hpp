@@ -44,7 +44,7 @@ private:
 		delegated_dependency_property<double> m_positionProperty;
 		delegated_dependency_property<bool, io::write_only> m_canAutoFadeProperty;
 
-		scroll_bar_info(const ptr<rc_obj_base>& desc, scroll_pane& scrollPane, dimension d)
+		scroll_bar_info(rc_obj_base& desc, scroll_pane& scrollPane, dimension d)
 			: m_scrollBar(rcnew(scroll_bar, d, scrollPane.m_hideInactiveScrollBar)),
 			m_frame(rcnew(override_bounds_frame, m_scrollBar)),
 			m_stateProperty(desc, scrollPane, [this]()
@@ -213,7 +213,7 @@ public:
 	// the content only when scrolling occurs, then fade.  Drag/flick scrolling is always enabled in Mode B.
 	// On MacOS, there is a user setting to dynamically switch between these modes.
 	explicit scroll_pane(
-		const ptr<rc_obj_base>& desc,
+		rc_obj_base& desc,
 		scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically,
 		bool hideInactiveScrollBar = true,
 		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.

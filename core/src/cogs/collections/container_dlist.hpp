@@ -76,7 +76,7 @@ private:
 			return NULL;
 		}
 
-		explicit link_t(const ptr<rc_obj_base>& desc)
+		explicit link_t(rc_obj_base& desc)
 			: object(desc)
 		{
 			m_links->m_mode = link_mode::normal;
@@ -427,13 +427,13 @@ private:
 	public:
 		virtual type* get() { return &m_value.get(); }
 
-		explicit payload_link_t(const ptr<rc_obj_base>& desc)
+		explicit payload_link_t(rc_obj_base& desc)
 			: link_t(desc)
 		{
 			new (get()) type;
 		}
 
-		payload_link_t(const ptr<rc_obj_base>& desc, const type& t)
+		payload_link_t(rc_obj_base& desc, const type& t)
 			: link_t(desc)
 		{
 			new (get()) type(t);
@@ -455,13 +455,13 @@ private:
 
 		delayed_construction<T3> m_aux;
 
-		explicit aux_payload_link_t(const ptr<rc_obj_base>& desc)
+		explicit aux_payload_link_t(rc_obj_base& desc)
 			: payload_link_t(desc)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
 
-		explicit aux_payload_link_t(const ptr<rc_obj_base>& desc, const type& t)
+		explicit aux_payload_link_t(rc_obj_base& desc, const type& t)
 			: payload_link_t(desc, t)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
@@ -469,7 +469,7 @@ private:
 
 		const rcref<T2>& get_aux_ref(unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T> >().get_unowned())
 		{
-			storage.set(&m_aux.get(), this_desc);
+			storage.set(&m_aux.get(), &this_desc);
 			return storage.dereference();
 		}
 	};
@@ -479,7 +479,7 @@ private:
 	public:
 		using link_t::m_links;
 
-		explicit sentinel_link_t(const ptr<rc_obj_base>& desc)
+		explicit sentinel_link_t(rc_obj_base& desc)
 			: link_t(desc)
 		{
 			m_links->m_next = m_links->m_prev = this_rcptr;

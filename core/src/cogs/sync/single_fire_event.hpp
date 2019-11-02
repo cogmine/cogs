@@ -29,7 +29,7 @@ private:
 	}
 
 public:
-	single_fire_event(const ptr<rc_obj_base>& desc)
+	single_fire_event(rc_obj_base& desc)
 		: object(desc),
 		m_signallableTask(desc)
 	{ }

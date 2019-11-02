@@ -29,7 +29,7 @@ private:
 	auto_fd m_fd;
 
 public:
-	socket(const ptr<rc_obj_base>& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: object(desc),
 		m_fd(::socket(addressFamily, type, protocol)),
 		m_kqueuePool(kq),
@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	socket(const ptr<rc_obj_base>& desc, int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	socket(rc_obj_base& desc, int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: object(desc),
 		m_fd(sckt),
 		m_kqueuePool(kq),

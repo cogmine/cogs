@@ -389,14 +389,14 @@ public:
 		weak_rcptr<pane> m_pane;
 	};
 
-	wrap_list(const ptr<rc_obj_base>& desc)
+	wrap_list(rc_obj_base& desc)
 		: pane(desc)
 	{
 		m_verticalAlignment = 0;
 		m_horizontalAlignment = 0;
 	}
 
-	wrap_list(const ptr<rc_obj_base>& desc, double primaryAlignment, double secondaryAlignment)
+	wrap_list(rc_obj_base& desc, double primaryAlignment, double secondaryAlignment)
 		: pane(desc)
 	{
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
@@ -404,7 +404,7 @@ public:
 		get_alignment(!d) = secondaryAlignment;
 	}
 
-	wrap_list(const ptr<rc_obj_base>& desc, double primaryAlignment)
+	wrap_list(rc_obj_base& desc, double primaryAlignment)
 		: pane(desc)
 	{
 		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);

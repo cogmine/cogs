@@ -49,7 +49,7 @@ private:
 	size m_defaultSize;
 
 public:
-	check_box(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+	check_box(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem)
 	{ }
 

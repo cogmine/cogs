@@ -59,18 +59,18 @@ private:
 	placement<T> m_contents;
 
 public:
-	explicit delayed_construction_obj(const ptr<rc_obj_base>& desc)
+	explicit delayed_construction_obj(rc_obj_base& desc)
 		: object(desc)
 	{
 	}
 
-	delayed_construction_obj(const ptr<rc_obj_base>& desc, this_t&& src)
+	delayed_construction_obj(rc_obj_base& desc, this_t&& src)
 		: object(desc)
 	{
 		new (&get()) T(std::move(src.get()));
 	}
 
-	delayed_construction_obj(const ptr<rc_obj_base>& desc, const this_t& src)
+	delayed_construction_obj(rc_obj_base& desc, const this_t& src)
 		: object(desc)
 	{
 		new (&get()) T(src.get());

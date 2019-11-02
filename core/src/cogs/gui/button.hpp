@@ -44,7 +44,7 @@ private:
 	rcptr<button_interface> m_nativeButton;
 
 public:
-	button(const ptr<rc_obj_base>& desc, const action_delegate_t& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
+	button(rc_obj_base& desc, const action_delegate_t& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 		: pane_bridge(desc),
 		m_action(action),
 		m_text(text),

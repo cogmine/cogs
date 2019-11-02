@@ -160,7 +160,7 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(const ptr<rc_obj_base>& desc, const composite_string& s)
+		lookup_result(rc_obj_base& desc, const composite_string& s)
 			: signallable_task_base<lookup_result>(desc),
 			m_inputString(s)
 		{
@@ -214,7 +214,7 @@ public:
 	protected:
 		friend class address;
 
-		reverse_lookup_result(const ptr<rc_obj_base>& desc, const address& addr)
+		reverse_lookup_result(rc_obj_base& desc, const address& addr)
 			: net::address::reverse_lookup_result(desc)
 		{
 			m_sockAddrSize = addr.m_sockAddrSize;

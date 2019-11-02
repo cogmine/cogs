@@ -325,7 +325,7 @@ private:
 	}
 
 public:
-	explicit grid(const ptr<rc_obj_base>& desc)
+	explicit grid(rc_obj_base& desc)
 		: pane(desc),
 		m_wasRecalculated(false)
 	{ }

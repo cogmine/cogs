@@ -29,7 +29,7 @@ public:
 	size m_defaultSize;
 	HBRUSH m_backgroundBrush = NULL;
 
-	button(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+	button(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, system_drawn_offscreen)
 	{ }
 

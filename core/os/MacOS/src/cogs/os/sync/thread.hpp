@@ -93,7 +93,7 @@ private:
 	inline static unsigned int s_processorCount = 0;
 
 public:
-	thread(const ptr<rc_obj_base>& desc, const function<void()>& d)
+	thread(rc_obj_base& desc, const function<void()>& d)
 		: object(desc),
 		m_func(d),
 		m_releaseCount(0),

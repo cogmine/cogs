@@ -116,7 +116,7 @@ private:
 		virtual payload_t* get_payload() { return NULL; }
 		virtual const payload_t* get_payload() const { return NULL; }
 
-		link_t(const ptr<rc_obj_base>& desc, height_t height, link_mode linkMode)
+		link_t(rc_obj_base& desc, height_t height, link_mode linkMode)
 			: object(desc),
 			m_height(height),
 			m_primaryMode(linkMode)
@@ -129,7 +129,7 @@ private:
 				m_links[i]->m_mode = linkMode;
 		}
 
-		link_t(const ptr<rc_obj_base>& desc, height_t height)
+		link_t(rc_obj_base& desc, height_t height)
 			: object(desc),
 			m_height(height),
 			m_primaryMode(link_mode::inserting)
@@ -142,12 +142,12 @@ private:
 				m_links[i]->m_mode = link_mode::inserting;
 		}
 
-		link_t(const ptr<rc_obj_base>& desc, link_mode linkMode)
+		link_t(rc_obj_base& desc, link_mode linkMode)
 			: object(desc),
 			m_primaryMode(linkMode)
 		{ }
 
-		explicit link_t(const ptr<rc_obj_base>& desc)
+		explicit link_t(rc_obj_base& desc)
 			: object(desc),
 			m_primaryMode(link_mode::inserting)
 		{ }
@@ -1027,25 +1027,25 @@ private:
 		virtual payload_t* get_payload() { return &m_value.get(); }
 		virtual const payload_t* get_payload() const { return &m_value.get(); }
 
-		explicit payload_link_t(const ptr<rc_obj_base>& desc)
+		explicit payload_link_t(rc_obj_base& desc)
 			: link_t(desc)
 		{
 			new (get_payload()) payload_t;
 		}
 
-		payload_link_t(const ptr<rc_obj_base>& desc, const payload_t& t)
+		payload_link_t(rc_obj_base& desc, const payload_t& t)
 			: link_t(desc)
 		{
 			new (get_payload()) payload_t(t);
 		}
 
-		payload_link_t(const ptr<rc_obj_base>& desc, height_t height)
+		payload_link_t(rc_obj_base& desc, height_t height)
 			: link_t(desc, height)
 		{
 			new (get_payload()) payload_t;
 		}
 
-		payload_link_t(const ptr<rc_obj_base>& desc, const payload_t& t, height_t height)
+		payload_link_t(rc_obj_base& desc, const payload_t& t, height_t height)
 			: link_t(desc, height)
 		{
 			new (get_payload()) payload_t(t);
@@ -1064,21 +1064,21 @@ private:
 
 		delayed_construction<T2> m_aux;
 
-		explicit aux_payload_link_t(const ptr<rc_obj_base>& desc)
+		explicit aux_payload_link_t(rc_obj_base& desc)
 			: payload_link_t(desc)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
 
-		aux_payload_link_t(const ptr<rc_obj_base>& desc, const payload_t& t)
+		aux_payload_link_t(rc_obj_base& desc, const payload_t& t)
 			: payload_link_t(desc, t)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
 
-		const rcref<T>& get_aux_ref(unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned())
+		const rcref<T2>& get_aux_ref(unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T> >().get_unowned())
 		{
-			storage.set(&m_aux.get(), this_desc);
+			storage.set(&m_aux.get(), &this_desc);
 			return storage.dereference();
 		}
 	};
@@ -1086,7 +1086,7 @@ private:
 	class sentinel_link_t : public link_t
 	{
 	public:
-		explicit sentinel_link_t(const ptr<rc_obj_base>& desc)
+		explicit sentinel_link_t(rc_obj_base& desc)
 			: link_t(desc, max_height, link_mode::normal)
 		{
 			link_t::m_links[0]->m_prev = link_t::m_links[0]->m_next = this_rcptr;

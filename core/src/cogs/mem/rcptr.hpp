@@ -286,9 +286,11 @@ public:
 	///
 	/// It is caller error to invoke dereference() on an empty rcptr.  The result is undefined.
 	/// @return A rcref from a rcptr
-	non_nullable& dereference() { return m_ref; }
+	non_nullable& dereference() & { return m_ref; }
 	/// @brief Const implementation of dereference()
-	const non_nullable& dereference() const { return m_ref; }
+	const non_nullable& dereference() const & { return m_ref; }
+	/// @brief rvalue qualified implementation of dereference(), which returns rcref as rvalue.
+	non_nullable&& dereference() && { return std::move(m_ref); }
 	/// @}
 
 	type* get_obj() const { return m_ref.get_obj(); }
@@ -1032,8 +1034,9 @@ public:
 	void disown() { m_ref.disown(); }
 	void disown() volatile { m_ref.disown(); }
 
-	non_nullable& dereference() { return m_ref; }
-	const non_nullable& dereference() const { return m_ref; }
+	non_nullable& dereference() & { return m_ref; }
+	const non_nullable& dereference() const & { return m_ref; }
+	non_nullable&& dereference() && { return std::move(m_ref); }
 
 	type* get_obj() const { return m_ref.get_obj(); }
 	type* get_obj() const volatile { return m_ref.get_obj(); }
@@ -1572,8 +1575,9 @@ public:
 	void disown() { m_ref.disown(); }
 	void disown() volatile { m_ref.disown(); }
 
-	non_nullable& dereference() { return m_ref; }
-	const non_nullable& dereference() const { return m_ref; }
+	non_nullable& dereference() & { return m_ref; }
+	const non_nullable& dereference() const & { return m_ref; }
+	non_nullable&& dereference() && { return std::move(m_ref); }
 
 	type* get_obj() const { return m_ref.get_obj(); }
 	type* get_obj() const volatile { return m_ref.get_obj(); }
@@ -2112,8 +2116,9 @@ public:
 	void disown() { m_ref.disown(); }
 	void disown() volatile { m_ref.disown(); }
 
-	non_nullable& dereference() { return m_ref; }
-	const non_nullable& dereference() const { return m_ref; }
+	non_nullable& dereference() & { return m_ref; }
+	const non_nullable& dereference() const & { return m_ref; }
+	non_nullable&& dereference() && { return std::move(m_ref); }
 
 	type* get_obj() const { return m_ref.get_obj(); }
 	type* get_obj() const volatile { return m_ref.get_obj(); }
@@ -2651,8 +2656,9 @@ public:
 	void disown() { m_ref.disown(); }
 	void disown() volatile { m_ref.disown(); }
 
-	non_nullable& dereference() { return m_ref; }
-	const non_nullable& dereference() const { return m_ref; }
+	non_nullable& dereference() & { return m_ref; }
+	const non_nullable& dereference() const & { return m_ref; }
+	non_nullable&& dereference() && { return std::move(m_ref); }
 
 	type* get_obj() const { return m_ref.get_obj(); }
 	type* get_obj() const volatile { return m_ref.get_obj(); }

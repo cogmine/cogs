@@ -35,13 +35,13 @@ private:
 	}
 
 public:
-	explicit refireable_timer(const ptr<rc_obj_base>& desc)
+	explicit refireable_timer(rc_obj_base& desc)
 		: timer(desc, timeout_t::infinite()),
 		m_wakeAll(true)
 	{
 	}
 
-	refireable_timer(const ptr<rc_obj_base>& desc, const timeout_t& t, bool wakeAll = true)
+	refireable_timer(rc_obj_base& desc, const timeout_t& t, bool wakeAll = true)
 		: timer(desc, t),
 		m_wakeAll(wakeAll)
 	{

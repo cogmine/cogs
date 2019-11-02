@@ -436,7 +436,7 @@ private:
 	}
 
 public:
-	bitmap(const ptr<rc_obj_base>& desc, const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
+	bitmap(rc_obj_base& desc, const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
 		: device_context(desc, dpi),
 		m_gdiBitmap(make_SIZE(sz), (int)imageType)
 	{
@@ -458,7 +458,7 @@ public:
 		}
 	}
 
-	bitmap(const ptr<rc_obj_base>& desc, const composite_string& location, image_type imageType)
+	bitmap(rc_obj_base& desc, const composite_string& location, image_type imageType)
 		: device_context(desc, dip_dpi),
 		m_gdiBitmap(gdi_bitmap::load_rgba(location, &m_isOpaque)),
 		m_logicalSize(m_gdiBitmap.get_size())

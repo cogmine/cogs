@@ -27,7 +27,7 @@ public:
 	function<void()> m_expireInUiThreadDelegate;
 	rcptr<resettable_timer> m_boxTimer;
 
-	box(const ptr<rc_obj_base>& desc, const color& c)
+	box(rc_obj_base& desc, const color& c)
 		: background(desc, c),
 		m_baseColor(c),
 		m_timeoutPeriod(measure<int_type, milliseconds>(5)),

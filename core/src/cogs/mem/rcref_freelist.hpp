@@ -54,12 +54,12 @@ private:
 			m_freelist->release(this);
 		}
 
-		T* get_obj() { return get_type_block_from_header<descriptor_t, T>(this); }
+		T* get_obj() const { return placement_with_header<descriptor_t, T>::get_obj_from_header(this); }
 
-		static descriptor_t* from_obj(T* obj) { return get_header_from_type_block<descriptor_t, T>(obj); }
+		static descriptor_t* from_obj(T* obj) { return placement_with_header<descriptor_t, T>::get_header_from_obj(obj); }
 	};
 
-	typedef placement_type_header_storage<descriptor_t, T>  placement_t;
+	typedef placement_with_header<descriptor_t, T>  placement_t;
 
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
 
@@ -123,7 +123,7 @@ public:
 
 			size_t oldPos = atomic::load(m_curPos);
 			if (oldPos >= num_preallocated)
-				desc = m_allocator.template allocate_type<descriptor_t>();
+				desc = m_allocator.template allocate_type<placement_t>()->get_header();
 			else
 			{
 				if (!atomic::compare_exchange(m_curPos, oldPos + 1, oldPos, oldPos))
@@ -131,12 +131,12 @@ public:
 					m_head.get(oldHead, v);
 					continue;
 				}
-				desc = const_cast<descriptor_t*>(&m_preallocated[oldPos].get_header());
+				desc = m_preallocated[oldPos].get_header();
 			}
 
 			new (desc) descriptor_t;
 			desc->m_freelist = this;
-			new (desc->get_obj()) T(desc);
+			placement_rcnew(desc->get_obj(), *desc);
 			break;
 		}
 
@@ -145,7 +145,6 @@ public:
 		return result;
 	}
 };
-
 
 
 template <typename T, class allocator_type>
@@ -173,9 +172,9 @@ private:
 			m_freelist->release(this);
 		}
 
-		T* get_obj() { return get_type_block_from_header<descriptor_t, T>(this); }
+		T* get_obj() const { return placement_with_header<descriptor_t, T>::get_obj_from_header(this); }
 
-		static descriptor_t* from_obj(T* obj) { return get_header_from_type_block<descriptor_t, T>(obj); }
+		static descriptor_t* from_obj(T* obj) { return placement_with_header<descriptor_t, T>::get_header_from_obj(obj); }
 	};
 
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
@@ -233,10 +232,10 @@ public:
 				break;
 			}
 
-			desc = m_allocator.template allocate_type<descriptor_t>();
+			desc = m_allocator.template allocate_type<placement_t>();
 			new (desc) descriptor_t;
 			desc->m_freelist = this;
-			new (desc->get_obj()) T(desc);
+			placement_rcnew(desc->get_obj(), *desc);
 			break;
 		}
 
@@ -245,8 +244,6 @@ public:
 		return result;
 	}
 };
-
-
 
 
 }

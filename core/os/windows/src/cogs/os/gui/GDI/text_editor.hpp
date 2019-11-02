@@ -29,7 +29,7 @@ private:
 	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
 
 public:
-	text_editor(const ptr<rc_obj_base>& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
+	text_editor(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
 		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem,system_drawn_direct)
 	{
 	}

@@ -138,7 +138,7 @@ private:
 
 public:
 
-	explicit quit_dispatcher(const ptr<rc_obj_base>& desc)
+	explicit quit_dispatcher(rc_obj_base& desc)
 		: object(desc),
 		m_event(desc),
 		m_priorityDispatcher(rcnew(priority_dispatcher))

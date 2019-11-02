@@ -25,7 +25,7 @@ namespace net {
 class connection : public datastream
 {
 public:
-	explicit connection(const ptr<rc_obj_base>& desc)
+	explicit connection(rc_obj_base& desc)
 		: datastream(desc)
 	{ }
 

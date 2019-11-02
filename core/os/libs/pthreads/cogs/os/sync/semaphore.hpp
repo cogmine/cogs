@@ -34,7 +34,7 @@ private:
 	sem_t m_semaphore;
 
 public:
-	explicit semaphore(const ptr<rc_obj_base>& desc)
+	explicit semaphore(rc_obj_base& desc)
 		: object(desc)
 	{
 		int result = sem_init(&m_semaphore, 0, 0);

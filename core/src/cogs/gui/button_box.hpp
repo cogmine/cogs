@@ -30,7 +30,7 @@
 //		virtual void set_text(const composite_string&) = 0;
 //		virtual void set_enabled(bool) = 0;
 //
-//		button(const ptr<rc_obj_base>& desc)
+//		button(rc_obj_base& desc)
 //		: object(desc)
 //		{
 //		}
@@ -96,7 +96,7 @@
 //	protected:
 //		friend class button_box;
 //
-//		button(const ptr<rc_obj_base>& desc, const rcref<button_box>& bb, const function<void(const rcref<button>&)>& m_action, const composite_string& text, const gfx::font& fnt, bool isEnabled)
+//		button(rc_obj_base& desc, const rcref<button_box>& bb, const function<void(const rcref<button>&)>& m_action, const composite_string& text, const gfx::font& fnt, bool isEnabled)
 //			: object(desc),
 //			m_buttonBox(bb),
 //			m_text(text),

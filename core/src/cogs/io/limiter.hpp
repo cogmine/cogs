@@ -30,7 +30,7 @@ private:
 	size_t m_remaining;
 
 public:
-	limiter(const ptr<rc_obj_base>& desc, size_t n)
+	limiter(rc_obj_base& desc, size_t n)
 		: filter(desc),
 		m_remaining(n)
 	{ }

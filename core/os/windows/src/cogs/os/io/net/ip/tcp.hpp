@@ -68,7 +68,7 @@ private:
 				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
-		tcp_reader(const ptr<rc_obj_base>& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
+		tcp_reader(rc_obj_base& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
 			: reader(desc, proxy),
 			m_tcp(t),
 			m_socket(t->m_socket),
@@ -236,7 +236,7 @@ private:
 		vector<WSABUF> m_wsaBuffers;
 		volatile fixed_integer<false, 2> m_abortStateBits; // bit 0=aborted, bit 1=started
 
-		tcp_writer(const ptr<rc_obj_base>& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
+		tcp_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
 			: writer(desc, proxy),
 			m_tcp(t),
 			m_socket(t->m_socket),
@@ -371,7 +371,7 @@ private:
 	}
 
 public:
-	tcp(const ptr<rc_obj_base>& desc, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+	tcp(rc_obj_base& desc, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		: connection(desc),
 		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
@@ -480,7 +480,7 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
-		connecter(const ptr<rc_obj_base>& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+		connecter(rc_obj_base& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
 			: signallable_task_base<connecter>(desc),
 			m_network(n),
 			m_completionPort(cp),
@@ -499,7 +499,7 @@ public:
 			});
 		}
 
-		connecter(const ptr<rc_obj_base>& desc, const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+		connecter(rc_obj_base& desc, const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
 			: signallable_task_base<connecter>(desc),
 			m_network(n),
 			m_completionPort(cp),
@@ -564,7 +564,7 @@ public:
 			LPFN_GETACCEPTEXSOCKADDRS m_lpfnGetAcceptExSockaddrs;
 			char m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
-			accept_helper(const ptr<rc_obj_base>& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 				: object(desc),
 				m_network(n),
 				m_completionPort(cp),
@@ -724,7 +724,7 @@ public:
 		}
 
 	public:
-		listener(const ptr<rc_obj_base>& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
+		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
 			: object(desc),
 			m_closeEvent(desc),
 			m_port(port)

@@ -51,7 +51,7 @@ class vector_descriptor<type, std::enable_if_t<!std::is_trivially_destructible_v
 private:
 	// non_pod array desc storage layout:
 	//
-	// true_base               m_start                                                   m_start+desc.m_length
+	// base                    m_start                                                   m_start+desc.m_length
 	// |                       |                     m_ptr      m_ptr+content_t.m_length |
 	// |                       |                     |          |                        |
 	// +-----------------------+---------------------+----------+------------------------+
@@ -76,17 +76,17 @@ public:
 	vector_descriptor(size_t length, size_t capacity)
 		: m_capacity(capacity),
 		m_length(length),
-		m_start(get_true_base())
+		m_start(get_base())
 	{ }
 
 	size_t get_capacity() const { return m_capacity; }
 
-	size_t get_capacity_before(type* p) const { return p - get_true_base(); }
+	size_t get_capacity_before(type* p) const { return p - get_base(); }
 	size_t get_capacity_after(type* p) const { return m_capacity - get_capacity_before(p); }
 
 	void set_constructed_range(type* p, size_t length) { m_start = p; m_length = length; }
 
-	type* get_true_base() const { return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
+	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::get_obj_from_header(this); }
 	type* get_ptr() const { return m_start; }
 	size_t get_constructed_length() const { return m_length; }
 	size_t get_constructed_length(type* p) const { return m_length - get_index_of(p); }
@@ -94,7 +94,7 @@ public:
 
 	void advance(size_t n = 1) { m_start += n; m_length -= n; }
 	void trim_unconstructed_trailing(size_t n) { m_length -= n; }
-	size_t get_gap() const { return m_start - get_true_base(); }
+	size_t get_gap() const { return m_start - get_base(); }
 
 	size_t get_index_of(type* p) const { return p - m_start; }
 
@@ -104,7 +104,7 @@ public:
 	void destruct_all()
 	{
 		placement_destruct_multiple(m_start, m_length);
-		m_start = get_true_base();
+		m_start = get_base();
 		m_length = 0;
 	}
 
@@ -147,7 +147,7 @@ class vector_descriptor<type, std::enable_if_t<std::is_trivially_destructible_v<
 private:
 	// pod array desc storage layout:
 	//
-	// true_base                                       true_base+desc.m_capacity
+	// base                                            base+desc.m_capacity
 	// |           m_ptr      m_ptr+content_t.m_length |
 	// |           |          |                        |
 	// +-----------+----------+------------------------+
@@ -170,15 +170,16 @@ public:
 
 	size_t get_capacity() const { return m_capacity; }
 
-	size_t get_capacity_before(type* p) const { return p - get_true_base(); }
+	size_t get_capacity_before(type* p) const { return p - get_base(); }
 	size_t get_capacity_after(type* p) const { return m_capacity - get_capacity_before(p); }
 
-	size_t get_index_of(type* p) const { return p - get_true_base(); }
+	size_t get_index_of(type* p) const { return p - get_base(); }
 
 	void set_constructed_range(type* p, size_t length) { }
 
-	type* get_true_base() const { return reinterpret_cast<type*>(default_allocator::get_type_block_from_header<vector_descriptor<type>, type>(this)); }
-	type* get_ptr() const { return get_true_base(); }
+
+	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::get_obj_from_header(this); }
+	type* get_ptr() const { return get_base(); }
 	size_t get_constructed_length() const { return m_capacity; }
 	size_t get_constructed_length(type* p) const { return get_capacity_after(p); }
 	void set_constructed_length(size_t newLength) { }
@@ -470,7 +471,7 @@ public:
 		else if (m_desc->is_owned()) // If we own the buffer, try to reuse it to preserve reserved space
 		{
 			m_desc->destruct_all();
-			m_ptr = m_desc->get_true_base();
+			m_ptr = m_desc->get_base();
 		}
 		else
 		{
@@ -521,7 +522,7 @@ public:
 			if (!!oldDesc && oldDesc->is_owned() && oldDesc->try_reallocate(n))
 			{
 				trim_lingering();
-				type* trueBase = oldDesc->get_true_base();
+				type* trueBase = oldDesc->get_base();
 				size_t gap = m_ptr - trueBase;
 				size_t stationaryCapacity = oldDesc->get_capacity() - gap;
 				if (n > stationaryCapacity)
@@ -639,7 +640,7 @@ public:
 		if (!!oldDesc && oldDesc->is_owned() && oldDesc->try_reallocate(newLength))
 		{
 			trim_lingering();
-			type* trueBase = oldDesc->get_true_base();
+			type* trueBase = oldDesc->get_base();
 			size_t gap = m_ptr - trueBase;
 			size_t stationaryCapacity = oldDesc->get_capacity() - gap;
 			if (n > stationaryCapacity)
@@ -715,7 +716,7 @@ public:
 		if (!!oldDesc && oldDesc->is_owned() && oldDesc->try_reallocate(newLength))
 		{
 			trim_lingering();
-			type* trueBase = oldDesc->get_true_base();
+			type* trueBase = oldDesc->get_base();
 			size_t gap = m_ptr - trueBase;
 			if (n <= gap)
 				m_ptr -= n;
@@ -840,7 +841,7 @@ public:
 				placement_move(pastFirstSegment + n, pastFirstSegment + replaceLength, secondSegmentLength);
 			else if (n > replaceLength)
 			{
-				type* trueBase = oldDesc->get_true_base();
+				type* trueBase = oldDesc->get_base();
 				size_t startGap = m_ptr - trueBase;
 
 				size_t growingBy = n - replaceLength;

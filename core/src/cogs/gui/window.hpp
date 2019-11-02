@@ -41,7 +41,7 @@ private:
 	public:
 		window* m_window;
 
-		window_task(const ptr<rc_obj_base>& desc, window* w)
+		window_task(rc_obj_base& desc, window* w)
 			: task<void>(desc),
 			m_window(w)
 		{ }
@@ -96,7 +96,7 @@ protected:
 	}
 
 public:
-	window(const ptr<rc_obj_base>& desc,
+	window(rc_obj_base& desc,
 		const gfx::canvas::point* screenPosition,
 		const gfx::canvas::size* frameSize,
 		bool positionCentered,

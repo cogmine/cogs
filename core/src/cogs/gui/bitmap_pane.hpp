@@ -27,7 +27,7 @@ private:
 	rcptr<bitmap> m_image;
 
 public:
-	bitmap_pane(const ptr<rc_obj_base>& desc, const composite_string& imageLocation)
+	bitmap_pane(rc_obj_base& desc, const composite_string& imageLocation)
 		: pane(desc),
 		m_imageLocation(imageLocation)
 	{ }

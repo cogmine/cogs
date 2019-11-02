@@ -209,7 +209,7 @@ private:
 	}
 
 public:
-	scroll_bar(const ptr<rc_obj_base>& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
+	scroll_bar(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem),
 		m_fadeDelayTimer(rcnew(resettable_timer)),
 		m_stateProperty(desc, uiSubsystem, [this]()

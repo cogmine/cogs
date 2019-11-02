@@ -392,7 +392,7 @@ private:
 	rcptr<bridgeable_pane> m_bridgedPane;
 
 protected:
-	explicit pane_bridge(const ptr<rc_obj_base>& desc)
+	explicit pane_bridge(rc_obj_base& desc)
 		: pane(desc)
 	{ }
 
