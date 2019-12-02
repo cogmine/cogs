@@ -31,7 +31,7 @@ using bytes_to_int_t = typename bytes_to_int<num_bytes, has_sign>::type;
 
 
 template <size_t bytes, bool has_sign>
-class bytes_to_int<bytes, has_sign, typename std::enable_if<next_or_current_exponent_of_two_v<bytes> != bytes>::type>
+class bytes_to_int<bytes, has_sign, typename std::enable_if_t<next_or_current_exponent_of_two_v<bytes> != bytes> >
 {
 public:
 	typedef bytes_to_int_t<next_or_current_exponent_of_two_v<bytes> > type;

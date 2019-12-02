@@ -179,6 +179,8 @@ private:
 		static node_t* from_obj(type& t) { return placement_with_header<node_t, type>::get_header_from_obj(&t); }
 	};
 
+	typedef placement_with_header<node_t, type> node_placement_t;
+
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
 	versioned_ptr<node_t> m_head;

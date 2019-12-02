@@ -294,8 +294,8 @@ public:
 		COGS_ASSERT(m_state == 1);
 		if (!!n)
 		{
-			parallel_task_list_t::preallocated_t preallocatedTask;
-			parallel_task_level_map_t::preallocated_t preallocatedLevel;
+			parallel_task_list_t::preallocated preallocatedTask;
+			parallel_task_level_map_t::preallocated preallocatedLevel;
 			parallel_task_level_map_t::volatile_iterator i;
 			for (;;)
 			{

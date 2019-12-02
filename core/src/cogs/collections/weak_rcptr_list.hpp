@@ -43,37 +43,43 @@ public:
 	class iterator
 	{
 	private:
-		typename container_dlist<node>::volatile_iterator m_itor;
-
-		iterator(const typename container_dlist<node>::volatile_iterator& i) : m_itor(i) { }
-		iterator(const typename container_dlist<node>::preallocated_t& i) : m_itor(i) { }
-
 		friend class weak_rcptr_list;
+		friend class remove_token;
+
+		typename container_dlist<node>::volatile_iterator m_contents;
+
+		iterator(const typename container_dlist<node>::volatile_iterator& i) : m_contents(i) { }
+		iterator(const typename container_dlist<node>::preallocated& i) : m_contents(i) { }
 
 	public:
-		void disown() { m_itor.disown(); }
-		void disown() volatile { m_itor.disown(); }
-
 		iterator() { }
-		iterator(const iterator& i) : m_itor(i.m_itor) { }
-		iterator(const remove_token& rt) : m_itor(rt.m_removeToken) { }
-		iterator(const volatile iterator& i) : m_itor(i.m_itor) { }
-		iterator(const volatile remove_token& rt) : m_itor(rt.m_removeToken) { }
+		iterator(const iterator& i) : m_contents(i.m_contents) { }
+		iterator(const remove_token& rt) : m_contents(rt.m_contents) { }
+		iterator(const volatile iterator& i) : m_contents(i.m_contents) { }
+		iterator(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 
-		iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
-		iterator& operator=(const remove_token& rt) { m_itor = rt.m_removeToken; return *this; }
-		iterator& operator=(const volatile iterator& i) { m_itor = i.m_itor; return *this; }
-		iterator& operator=(const volatile remove_token& rt) { m_itor = rt.m_removeToken; return *this; }
-		void operator=(const iterator& i) volatile { m_itor = i.m_itor; }
-		void operator=(const remove_token& rt) volatile { m_itor = rt.m_removeToken; }
+		iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
+		iterator& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		iterator& operator=(const volatile iterator& i) { m_contents = i.m_contents; return *this; }
+		iterator& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
+
+		void disown() { m_contents.disown(); }
+		void disown() volatile { m_contents.disown(); }
+
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
 		bool is_active() const
 		{
-			if (!m_itor.is_active())
+			if (!m_contents)
 				return false;
-			if (!m_itor->m_removeToken) // non rc obj
+			if (!m_contents.is_active())
+				return false;
+			if (!m_contents->m_removeToken) // non rc obj
 				return true;
-			rc_obj_base* desc = m_itor->m_obj.get_desc();
+			rc_obj_base* desc = m_contents->m_obj.get_desc();
 			if (!desc)
 				return true;
 			return !desc->is_released();
@@ -81,19 +87,19 @@ public:
 
 		bool is_active() const volatile
 		{
-			iterator itor = *this;
+			iterator itor(*this);
 			return itor.is_active();
 		}
 
 		bool is_removed() const
 		{
-			if (!m_itor)
+			if (!m_contents)
 				return false;
-			if (m_itor.is_removed())
+			if (m_contents.is_removed())
 				return true;
-			if (!m_itor->m_removeToken) // non rc obj
+			if (!m_contents->m_removeToken) // non rc obj
 				return false;
-			rc_obj_base* desc = m_itor->m_obj.get_desc();
+			rc_obj_base* desc = m_contents->m_obj.get_desc();
 			if (!desc)
 				return false;
 			return desc->is_released();
@@ -101,7 +107,7 @@ public:
 
 		bool is_removed() const volatile
 		{
-			iterator itor = *this;
+			iterator itor(*this);
 			return itor.is_removed();
 		}
 
@@ -111,7 +117,7 @@ public:
 			{
 				for (;;)
 				{
-					++m_itor;
+					++m_contents;
 					if (!is_removed())
 						break;
 				}
@@ -141,7 +147,7 @@ public:
 			{
 				for (;;)
 				{
-					--m_itor;
+					--m_contents;
 					if (!is_removed())
 						break;
 				}
@@ -198,16 +204,16 @@ public:
 			return oldValue;
 		}
 
-		bool operator!() const { return !m_itor; }
-		bool operator!() const volatile { return !m_itor; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
-		bool operator==(const volatile iterator& i) const { return m_itor == i.m_itor; }
-		bool operator==(const iterator& i) const volatile { return m_itor == i.m_itor; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const volatile iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const iterator& i) const volatile { return m_contents == i.m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_itor == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_itor == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_itor == rt.m_removeToken; }
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
 
 		bool operator!=(const iterator& i) const { return !operator==(i); }
 		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
@@ -220,71 +226,69 @@ public:
 		rcptr<T> get() const
 		{
 			rcptr<T> result;
-			if (!!m_itor)
-				result = m_itor->m_obj;
+			if (!!m_contents)
+				result = m_contents->m_obj;
 			return result;
 		}
 
 		T& operator*() const { return *get(); }
 		rcptr<T> operator->() const { return get(); }
 
-		void release() { m_itor.release(); }
-		void release() volatile { m_itor.release(); }
-
 		iterator next() const { iterator result(*this); ++result; return result; }
 		iterator prev() const { iterator result(*this); --result; return result; }
 
 		bool compare_exchange(const iterator& src, const iterator& cmp) volatile
 		{
-			return m_itor(src.m_itor, cmp.m_itor);
+			return m_contents.compare_exchange(src.m_contents, cmp.m_contents);
 		}
 
 		bool compare_exchange(const iterator& src, const iterator& cmp, iterator& rtn) volatile
 		{
-			return m_itor(src.m_itor, cmp.m_itor, rtn.m_itor);
+			return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents);
 		}
 	};
 
 	class remove_token
 	{
 	private:
-		typename container_dlist<node>::volatile_remove_token m_removeToken;
-
-		remove_token(const typename container_dlist<node>::volatile_remove_token& rt) : m_removeToken(rt) { }
-		remove_token(const typename container_dlist<node>::preallocated_t& i) : m_removeToken(i) { }
-
 		friend class weak_rcptr_list;
+		friend class iterator;
+
+		typename container_dlist<node>::volatile_remove_token m_contents;
+
+		remove_token(const typename container_dlist<node>::volatile_remove_token& rt) : m_contents(rt) { }
+		remove_token(const typename container_dlist<node>::preallocated& i) : m_contents(i) { }
 
 	public:
 		remove_token() { }
-		remove_token(const iterator& i) : m_removeToken(i.m_itor) { }
-		remove_token(const remove_token& rt) : m_removeToken(rt.m_removeToken) { }
-		remove_token(const volatile iterator& i) : m_removeToken(i.m_itor) { }
-		remove_token(const volatile remove_token& rt) : m_removeToken(rt.m_removeToken) { }
+		remove_token(const iterator& i) : m_contents(i.m_contents) { }
+		remove_token(const remove_token& rt) : m_contents(rt.m_contents) { }
+		remove_token(const volatile iterator& i) : m_contents(i.m_contents) { }
+		remove_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 
-		remove_token& operator=(const iterator& i) { m_removeToken = i.m_itor; return *this; }
-		remove_token& operator=(const remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		remove_token& operator=(const volatile iterator& i) { m_removeToken = i.m_itor; return *this; }
-		remove_token& operator=(const volatile remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		void operator=(const iterator& i) volatile { m_removeToken = i.m_itor; }
-		void operator=(const remove_token& rt) volatile { m_removeToken = rt.m_removeToken; }
+		remove_token& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
+		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		remove_token& operator=(const volatile iterator& i) { m_contents = i.m_contents; return *this; }
+		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
 
 		bool is_active() const { iterator itor(*this); return itor.is_active(); }
 		bool is_active() const volatile { iterator itor(*this); return itor.is_active(); }
 
-		void release() { m_removeToken.release(); }
-		void release() volatile { m_removeToken.release(); }
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
-		bool operator!() const { return !m_removeToken; }
-		bool operator!() const volatile { return !m_removeToken; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const iterator& i) const { return m_removeToken == i.m_itor; }
-		bool operator==(const volatile iterator& i) const { return m_removeToken == i.m_itor; }
-		bool operator==(const iterator& i) const volatile { return m_removeToken == i.m_itor; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const volatile iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const iterator& i) const volatile { return m_contents == i.m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_removeToken == rt.m_removeToken; }
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
 
 		bool operator!=(const iterator& i) const { return !operator==(i); }
 		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
@@ -355,7 +359,7 @@ public:
 
 	iterator prepend(const rcref<T>& t, insert_mode insertMode = insert_mode::normal) volatile
 	{
-		typename container_dlist<node>::preallocated_t p = m_list.preallocate();
+		typename container_dlist<node>::preallocated p = m_list.preallocate();
 		p->m_obj = t;
 		rc_obj_base* desc = t.get_desc();
 		if (!!desc)
@@ -375,7 +379,7 @@ public:
 
 	iterator append(const rcref<T>& t, insert_mode insertMode = insert_mode::normal) volatile
 	{
-		typename container_dlist<node>::preallocated_t p = m_list.preallocate();
+		typename container_dlist<node>::preallocated p = m_list.preallocate();
 		p->m_obj = t;
 		rc_obj_base* desc = t.get_desc();
 		if (!!desc)
@@ -395,7 +399,7 @@ public:
 
 	iterator insert_before(const rcref<T>& t, const iterator& insertBefore) volatile
 	{
-		typename container_dlist<node>::preallocated_t p = m_list.preallocate();
+		typename container_dlist<node>::preallocated p = m_list.preallocate();
 		p->m_obj = t;
 		rc_obj_base* desc = t.get_desc();
 		if (!!desc)
@@ -415,7 +419,7 @@ public:
 
 	iterator insert_after(const rcref<T>& t, const iterator& insertAfter) volatile
 	{
-		typename container_dlist<node>::preallocated_t p = m_list.preallocate();
+		typename container_dlist<node>::preallocated p = m_list.preallocate();
 		p->m_obj = t;
 		rc_obj_base* desc = t.get_desc();
 		if (!!desc)
@@ -437,12 +441,12 @@ public:
 	{
 		if (!i)
 			return false;
-		if (!m_list.remove(i.m_itor))
+		if (!m_list.remove(i.m_contents))
 			return false;
 
-		rc_obj_base* desc = i.m_itor->m_obj.get_desc();
+		rc_obj_base* desc = i.m_contents->m_obj.get_desc();
 		if (!!desc)
-			desc->uninstall_released_handler(i.m_itor->m_removeToken);
+			desc->uninstall_released_handler(i.m_contents->m_removeToken);
 		return true;
 	}
 

@@ -327,7 +327,7 @@ protected:
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<continuation_dispatched> >::preallocated_t i;
+		priority_queue<int, ptr<continuation_dispatched> >::preallocated i;
 		auto r = m_continuationSubTasks.preallocate_key_with_aux<delayed_construction<continuation_dispatched> >(priority, i);
 		continuation_dispatched* d = &(r->get());
 		i.get_value() = d;

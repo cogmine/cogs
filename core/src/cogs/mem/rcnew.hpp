@@ -15,7 +15,7 @@
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/rc_container_base.hpp"
+#include "cogs/mem/rc_container.hpp"
 #include "cogs/mem/object.hpp"
 #include "cogs/operators.hpp"
 

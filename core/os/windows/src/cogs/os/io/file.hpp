@@ -679,7 +679,7 @@
 //			void set_write_handle(const rcref<m_writeHandle>& ah) { }
 //			rcptr<m_writeHandle> get_write_handle() const { return 0; }
 //		};
-//		typedef conditional<((accessMode & write_access) != 0), content_with_handle, content_without_handle> m_content;
+//		typedef conditional<((accessMode & write_access) != 0), content_with_handle, content_without_handle> m_contents;
 //
 //		synchronized_file(const rcref<io::synchronized_file_impl<io::default_file_size_t> >& impl, const file_id_map_t::iterator& itor)
 //			: io::synchronized_file<io::read_write_access, io::default_file_size_t>(impl),

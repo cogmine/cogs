@@ -12,6 +12,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/function.hpp"
+#include "cogs/mem/is_same_instance.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
@@ -76,35 +77,35 @@ class weak_rcptr;
 
 
 template <typename type_in, reference_strength_type refStrengthType = strong>
-class rc_container_base;
+class rc_container;
 
 
 template <typename type>
-struct rc_container_base_content_t
+struct rc_container_content_t
 {
 	type* m_obj;
 	rc_obj_base* m_desc;
 
-	bool operator==(const rc_container_base_content_t& t) const { return (t.m_desc == m_desc) && (t.m_obj == m_obj); }
+	bool operator==(const rc_container_content_t& t) const { return (t.m_desc == m_desc) && (t.m_obj == m_obj); }
 
-	bool operator!=(const rc_container_base_content_t& t) const { return !operator==(t); }
-
+	bool operator!=(const rc_container_content_t& t) const { return !operator==(t); }
 };
 
 template <typename type_in, reference_strength_type refStrengthType>
-class rc_container_base
+class rc_container
 {
 public:
-	typedef rc_container_base<type_in, refStrengthType> this_t;
+	typedef rc_container<type_in, refStrengthType> this_t;
 	typedef type_in type;
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	friend class rc_container_base;
+	friend class rc_container;
 
-	~rc_container_base() { release_inner(); }
+	~rc_container() { release_inner(); }
 
-protected:
-	typedef rc_container_base_content_t<type> content_t;
+private:
+	typedef rc_container_content_t<type> content_t;
+	typedef rc_container_content_t<type> content_t;
 	typedef transactable<content_t> transactable_t;
 	transactable_t m_contents;
 
@@ -124,14 +125,190 @@ protected:
 	template <typename type2>
 	bool end_write(read_token& t, type2& src) volatile { return m_contents.end_write(t, src); }
 
-	void disown() { m_contents->m_desc = nullptr; } // clear the desc ptr not the desc contents
-	void disown() volatile
+	// Helper function for exchange() and compare_exchange()
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(rc_container<type2, refStrengthType2>& rtn, const this_t& src) { rtn = src; }
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(volatile rc_container<type2, refStrengthType2>& rtn, const this_t& src) { rtn = src; }
+
+	template <typename type2>
+	static void set_return(ptr<type2>& rtn, const this_t& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ptr<type2>& rtn, const this_t& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(ref<type2>& rtn, const this_t& src) { rtn.get_ptr_ref() = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ref<type2>& rtn, const this_t& src) { atomic::store(rtn.get_ptr_ref(), src.m_contents->m_obj); }
+
+
+	template <typename type2>
+	static void set_return(type2*& rtn, const this_t& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(type2* volatile& rtn, const this_t& src) { atomic::store(rtn, src.m_contents->m_obj); }
+
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(rc_container<type2, refStrengthType2>& rtn, const volatile this_t& src) { rtn = src; }
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(volatile rc_container<type2, refStrengthType2>& rtn, const volatile this_t& src) { rtn = src; }
+
+	template <typename type2>
+	static void set_return(ptr<type2>& rtn, const volatile this_t& src) { rtn = src.begin_read()->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ptr<type2>& rtn, const volatile this_t& src) { rtn = src.begin_read()->m_obj; }
+
+	template <typename type2>
+	static void set_return(ref<type2>& rtn, const volatile this_t& src) { rtn.get_ptr_ref() = src.begin_read()->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ref<type2>& rtn, const volatile this_t& src) { atomic::store(rtn.get_ptr_ref(), src.m_contents->m_obj); }
+
+	template <typename type2>
+	static void set_return(type2*& rtn, const volatile this_t& src) { rtn.get_ptr_ref() = src.begin_read()->m_obj; }
+
+	template <typename type2>
+	static void set_return(type2* volatile& rtn, const volatile this_t& src) { atomic::store(rtn, src.begin_read()->m_obj); }
+
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(rc_container<type2, refStrengthType2>& rtn, this_t&& src) { rtn = std::move(src); }
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static void set_return(volatile rc_container<type2, refStrengthType2>& rtn, this_t&& src) { rtn = std::move(src); }
+
+	template <typename type2>
+	static void set_return(ptr<type2>& rtn, this_t&& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ptr<type2>& rtn, this_t&& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(ref<type2>& rtn, this_t&& src) { rtn.get_ptr_ref() = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(volatile ref<type2>& rtn, this_t&& src) { atomic::store(rtn.get_ptr_ref(), src.m_contents->m_obj); }
+
+	template <typename type2>
+	static void set_return(type2*& rtn, this_t&& src) { rtn = src.m_contents->m_obj; }
+
+	template <typename type2>
+	static void set_return(type2* volatile& rtn, this_t&& src) { atomic::store(rtn, src.m_contents->m_obj); }
+
+
+
+
+
+	//template <typename type2, reference_strength_type refStrengthType2>
+	//rc_container<type2, refStrengthType2> get_as(rc_container<type2, refStrengthType2>&)
+	//{ rc_container<type2, refStrengthType2> rtn(*this); return rtn; }
+
+	//template <typename type2, reference_strength_type refStrengthType2>
+	//rc_container<type2, refStrengthType2> get_as(volatile rc_container<type2, refStrengthType2>&)
+	//{ rc_container<type2, refStrengthType2> rtn(*this); return rtn; }
+
+	//template <typename type2>
+	//ptr<type2> get_as(ptr<type2>&) { ptr<type2> rtn(src.m_contents->m_obj); return rtn; }
+
+	//template <typename type2>
+	//ptr<type2> get_as(volatile ptr<type2>&) { ptr<type2> rtn(src.m_contents->m_obj); return rtn; }
+
+	//template <typename type2>
+	//type2* get_as(type2*&) { type2* rtn(src.m_contents->m_obj); return rtn; }
+
+	//template <typename type2>
+	//type2* get_as(type2* volatile&) { type2* rtn(src.m_contents->m_obj); return rtn; }
+
+
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static content_t make_content(const rc_container<type2, refStrengthType2>& src)
+	{ content_t rtn { src.m_contents->m_obj, src.m_contents->m_desc }; return rtn; }
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static content_t make_content(const volatile rc_container<type2, refStrengthType2>& src)
+	{ auto rt = src.begin_read(); content_t rtn { rt->m_obj, rt->m_m_desc }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(const ptr<type2>& src) { content_t rtn{ src.get_ptr(), nullptr }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(const volatile ptr<type2>& src) { content_t rtn{ src.get_ptr(), nullptr }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(const ref<type2>& src) { content_t rtn{ src.get_ptr(), nullptr }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(const volatile ref<type2>& src) { content_t rtn{ src.get_ptr(), nullptr }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(type2* const& src) { content_t rtn{ src, nullptr }; return rtn; }
+
+	template <typename type2>
+	static content_t make_content(type2* const volatile& src) { content_t rtn{ atomic::load(src), nullptr }; return rtn; }
+
+
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static bool compare_content(const content_t& c, const rc_container<type2, refStrengthType2>& cmp)
 	{
+		return (c.m_obj == cmp.m_contents->m_obj) && (c.m_desc == cmp.m_contents->m_desc);
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	static bool compare_content(const content_t& c, const volatile rc_container<type2, refStrengthType2>& src)
+	{
+		auto rt = src.begin_read();
+		return (c.m_obj == rt->m_obj) && (c.m_desc == rt->m_desc);
+	}
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, const ptr<type2>& src) { return c.m_obj == src.get_ptr(); }
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, const volatile ptr<type2>& src) { return c.m_obj == src.get_ptr(); }
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, const ref<type2>& src) { return c.m_obj == src.get_ptr(); }
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, const volatile ref<type2>& src) { return c.m_obj == src.get_ptr(); }
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, type2* const& src) { return c.m_obj == src; }
+
+	template <typename type2>
+	static bool compare_content(const content_t& c, type2* const volatile& src) { return c.m_obj == atomic::load(src); }
+
+
+
+public:
+	rc_obj_base* disown() // clear the desc ptr not the desc contents
+	{
+		rc_obj_base* desc = m_contents->m_desc;
+		m_contents->m_desc = nullptr;
+		return desc;
+	}
+	
+	rc_obj_base* disown() volatile
+	{
+		rc_obj_base* desc;
 		write_token wt;
 		do {
 			begin_write(wt);
+			desc = wt->m_desc;
+			if (desc == nullptr)
+				break;
 			wt->m_desc = nullptr;
 		}  while (!end_write(wt));
+		return desc;
 	}
 
 	rc_obj_base* get_desc() const { return m_contents->m_desc; }
@@ -171,6 +348,7 @@ protected:
 		content_t tmp{ obj.get_ptr(), desc.get_ptr() };
 		m_contents.swap_contents(tmp);
 	}
+
 
 	bool release_inner()
 	{
@@ -255,13 +433,13 @@ protected:
 		return result;
 	}
 
-	rc_container_base()
+	rc_container()
 	{
 		m_contents->m_obj = nullptr;
 		m_contents->m_desc = nullptr;
 	}
 
-	rc_container_base(this_t&& src)
+	rc_container(this_t&& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		m_contents->m_obj = src.m_contents->m_obj;
@@ -269,7 +447,7 @@ protected:
 		src.m_contents->m_desc = nullptr;
 	}
 
-	rc_container_base(const this_t& src)
+	rc_container(const this_t& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		m_contents->m_obj = src.m_contents->m_obj;
@@ -277,7 +455,7 @@ protected:
 		acquire_inner();
 	}
 
-	rc_container_base(const volatile this_t& src)
+	rc_container(const volatile this_t& src)
 	{
 		read_token rt;
 		if (!!src.template guarded_acquire<refStrengthType>(rt))
@@ -293,7 +471,7 @@ protected:
 	}
 
 	template <typename type2>
-	rc_container_base(rc_container_base<type2, refStrengthType>&& src)
+	rc_container(rc_container<type2, refStrengthType>&& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (caller) error.
@@ -302,7 +480,7 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	rc_container_base(const rc_container_base<type2, refStrengthType2>& src)
+	rc_container(const rc_container<type2, refStrengthType2>& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (caller) error.
@@ -311,9 +489,9 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	rc_container_base(const volatile rc_container_base<type2, refStrengthType2>& src)
+	rc_container(const volatile rc_container<type2, refStrengthType2>& src)
 	{
-		typename rc_container_base<type2, refStrengthType2>::read_token rt;
+		typename rc_container<type2, refStrengthType2>::read_token rt;
 		if (!!src.template guarded_acquire<refStrengthType>(rt))
 		{
 			COGS_ASSERT(rt->m_obj || !rt->m_desc);
@@ -329,35 +507,95 @@ protected:
 		}
 	}
 
-	rc_container_base(const ptr<type>& obj)
-	{
-		m_contents->m_obj = obj.get_ptr();
-		m_contents->m_desc = nullptr;
-	}
-
 	template <typename type2>
-	rc_container_base(const ptr<type2>& obj)
+	explicit rc_container(const ref<type2>& obj)
 	{
 		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = nullptr;
 	}
 
-	rc_container_base(const ptr<type>& obj, const ptr<rc_obj_base>& desc)
+	template <typename type2>
+	explicit rc_container(const ptr<type2>& obj)
 	{
-		m_contents->m_obj = obj.get_ptr();
-		m_contents->m_desc = desc.get_ptr();
-		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = nullptr;
 	}
 
+	template <typename type2>
+	explicit rc_container(type2* const& obj)
+	{
+		m_contents->m_obj = obj; // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = nullptr;
+	}
 
 	template <typename type2>
-	rc_container_base(const ptr<type2>& obj, const ptr<rc_obj_base>& desc)
+	explicit rc_container(const volatile ref<type2>& obj)
+	{
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = nullptr;
+	}
+
+	template <typename type2>
+	explicit rc_container(const volatile ptr<type2>& obj)
+	{
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = nullptr;
+	}
+
+	template <typename type2>
+	explicit rc_container(type2* const volatile& obj)
+	{
+		m_contents->m_obj = atomic::load(obj); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = nullptr;
+	}
+
+	template <typename type2>
+	rc_container(const ref<type2>& obj, const ptr<rc_obj_base>& desc)
 	{
 		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
 		m_contents->m_desc = desc.get_ptr();
 		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
 	}
 
+	template <typename type2>
+	rc_container(const ptr<type2>& obj, const ptr<rc_obj_base>& desc)
+	{
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = desc.get_ptr();
+		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+	}
+
+	template <typename type2>
+	rc_container(type2* const& obj, const ptr<rc_obj_base>& desc)
+	{
+		m_contents->m_obj = obj; // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = desc.get_ptr();
+		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+	}
+
+	template <typename type2>
+	rc_container(const volatile ref<type2>& obj, const ptr<rc_obj_base>& desc)
+	{
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = desc.get_ptr();
+		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+	}
+
+	template <typename type2>
+	rc_container(const volatile ptr<type2>& obj, const ptr<rc_obj_base>& desc)
+	{
+		m_contents->m_obj = obj.get_ptr(); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = desc.get_ptr();
+		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+	}
+
+	template <typename type2>
+	rc_container(type2* const volatile& obj, const ptr<rc_obj_base>& desc)
+	{
+		m_contents->m_obj = atomic::load(obj); // <- A failure here means type conversion (caller) error.
+		m_contents->m_desc = desc.get_ptr();
+		COGS_ASSERT(m_contents->m_obj || !m_contents->m_desc);
+	}
 
 	this_t& operator=(this_t&& src)
 	{
@@ -452,7 +690,7 @@ protected:
 	}
 
 	template <typename type2>
-	this_t& operator=(rc_container_base<type2, refStrengthType>&& src)
+	this_t& operator=(rc_container<type2, refStrengthType>&& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		release_inner();
@@ -463,7 +701,7 @@ protected:
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(rc_container_base<type2, refStrengthType>&& src) volatile
+	volatile this_t& operator=(rc_container<type2, refStrengthType>&& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		swap(src);
@@ -474,7 +712,7 @@ protected:
 
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	this_t& operator=(const rc_container_base<type2, refStrengthType2>& src)
+	this_t& operator=(const rc_container<type2, refStrengthType2>& src)
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		if (m_contents->m_desc == src.m_contents->m_desc) // If desc are the same, no need to acquire/release, just copy obj
@@ -502,11 +740,11 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	this_t& operator=(const volatile rc_container_base<type2, refStrengthType2>& src)
+	this_t& operator=(const volatile rc_container<type2, refStrengthType2>& src)
 	{
 		rc_obj_base* oldDesc = m_contents->m_desc; // to release later (in case it's the same one we haven't acquired yet)
 
-		typename rc_container_base<type2, refStrengthType2>::read_token rt;
+		typename rc_container<type2, refStrengthType2>::read_token rt;
 		if (!src.template guarded_acquire<refStrengthType>(rt))
 			clear();
 		else
@@ -523,10 +761,10 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	volatile this_t& operator=(const rc_container_base<type2, refStrengthType2>& src) volatile
+	volatile this_t& operator=(const rc_container<type2, refStrengthType2>& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
-		typename rc_container_base<type2, refStrengthType2>::read_token rt;
+		typename rc_container<type2, refStrengthType2>::read_token rt;
 		if (!src.template guarded_acquire<refStrengthType>(rt))
 			release();
 		else
@@ -539,10 +777,11 @@ protected:
 		return *this;
 	}
 
-	this_t& operator=(const ptr<type>& src)
+	template <typename type2>
+	this_t& operator=(const ref<type2>& src)
 	{
 		release_inner();
-		m_contents->m_obj = src.get_ptr();
+		m_contents->m_obj = src.get_ptr(); // <- A failure here means type conversion (user) error.
 		m_contents->m_desc = nullptr;
 		return *this;
 	}
@@ -556,7 +795,45 @@ protected:
 		return *this;
 	}
 
-	volatile this_t& operator=(const ptr<type>& src) volatile
+	template <typename type2>
+	this_t& operator=(type2* const& src)
+	{
+		release_inner();
+		m_contents->m_obj = src; // <- A failure here means type conversion (user) error.
+		m_contents->m_desc = nullptr;
+		return *this;
+	}
+
+	template <typename type2>
+	this_t& operator=(const volatile ref<type2>& src)
+	{
+		release_inner();
+		m_contents->m_obj = src.get_ptr(); // <- A failure here means type conversion (user) error.
+		m_contents->m_desc = nullptr;
+		return *this;
+	}
+
+	template <typename type2>
+	this_t& operator=(const volatile ptr<type2>& src)
+	{
+		release_inner();
+		m_contents->m_obj = src.get_ptr(); // <- A failure here means type conversion (user) error.
+		m_contents->m_desc = nullptr;
+		return *this;
+	}
+
+	template <typename type2>
+	this_t& operator=(type2* const volatile& src)
+	{
+		release_inner();
+		m_contents->m_obj = atomic::load(src); // <- A failure here means type conversion (user) error.
+		m_contents->m_desc = nullptr;
+		return *this;
+	}
+
+
+	template <typename type2>
+	volatile this_t& operator=(const ref<type2>& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
@@ -570,6 +847,68 @@ protected:
 		m_contents.swap(tmp.m_contents);
 		return *this;
 	}
+
+	template <typename type2>
+	volatile this_t& operator=(type2* const& src) volatile
+	{
+		this_t tmp(src); // need a matching content_t to atomically swap
+		m_contents.swap(tmp.m_contents);
+		return *this;
+	}
+
+	template <typename type2>
+	volatile this_t& operator=(const volatile ref<type2>& src) volatile
+	{
+		this_t tmp(src); // need a matching content_t to atomically swap
+		m_contents.swap(tmp.m_contents);
+		return *this;
+	}
+
+	template <typename type2>
+	volatile this_t& operator=(const volatile ptr<type2>& src) volatile
+	{
+		this_t tmp(src); // need a matching content_t to atomically swap
+		m_contents.swap(tmp.m_contents);
+		return *this;
+	}
+
+	template <typename type2>
+	volatile this_t& operator=(type2* const volatile& src) volatile
+	{
+		this_t tmp(src); // need a matching content_t to atomically swap
+		m_contents.swap(tmp.m_contents);
+		return *this;
+	}
+
+
+	//template <typename type2, reference_strength_type refStrengthType2>
+	//static content_t make_content(const rc_container<type2, refStrengthType2>& src)
+	//{
+	//	content_t c;
+	//	c.m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (caller) error.
+	//	c.m_desc = src.m_contents->m_desc;
+	//	return c;
+	//}
+
+	//template <typename type2, reference_strength_type refStrengthType2>
+	//static content_t make_content(const volatile rc_container<type2, refStrengthType2>& src)
+	//{
+	//	content_t c;
+	//	read_token rt = src.m_contents->begin_read();
+	//	c.m_obj = rt->m_obj; // <- A failure here means type conversion (caller) error.
+	//	c.m_desc = rt->m_desc;
+	//	return c;
+	//}
+
+	//template <typename type2>
+	//static content_t make_content(const ptr<type2>& src)
+	//{
+	//	content_t c;
+	//	c.m_obj = src.get_ptr(); // <- A failure here means type conversion (caller) error.
+	//	c.m_desc = nullptr;
+	//	return c;
+	//}
+
 
 	bool release()
 	{
@@ -718,13 +1057,13 @@ protected:
 	{ return cmp.operator==(*this); }
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator==(const rc_container_base<type2, refStrengthType2>& cmp) const
+	bool operator==(const rc_container<type2, refStrengthType2>& cmp) const
 	{
 		return (m_contents->m_obj == cmp.m_contents->m_obj) && (m_contents->m_desc == cmp.m_contents->m_desc);
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator==(const rc_container_base<type2, refStrengthType2>& cmp) const volatile
+	bool operator==(const rc_container<type2, refStrengthType2>& cmp) const volatile
 	{
 		bool result = true;
 		read_token rt;
@@ -734,39 +1073,71 @@ protected:
 	}
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator==(const volatile rc_container_base<type2, refStrengthType2>& cmp) const
+	bool operator==(const volatile rc_container<type2, refStrengthType2>& cmp) const
 	{ return cmp.operator==(*this); }
 
 	bool operator!=(const this_t& cmp) const
 	{ return !operator==(cmp); }
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator!=(const rc_container_base<type2, refStrengthType2>& cmp) const
+	bool operator!=(const rc_container<type2, refStrengthType2>& cmp) const
 	{ return !operator==(cmp); }
 
 	bool operator!=(const this_t& cmp) const volatile
 	{ return !operator==(cmp); }
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator!=(const rc_container_base<type2, refStrengthType2>& cmp) const volatile
+	bool operator!=(const rc_container<type2, refStrengthType2>& cmp) const volatile
 	{ return !operator==(cmp); }
 
 	bool operator!=(const volatile this_t& cmp) const
 	{ return !operator==(cmp); }
 
 	template <typename type2, reference_strength_type refStrengthType2>
-	bool operator!=(const volatile rc_container_base<type2, refStrengthType2>& cmp) const
+	bool operator!=(const volatile rc_container<type2, refStrengthType2>& cmp) const
 	{ return !operator==(cmp); }
 
-	bool operator==(const ptr<type>& src) const { return (get_obj() == src); }
-	bool operator==(const ptr<type>& src) const volatile { return (get_obj() == src); }
-	bool operator!=(const ptr<type>& src) const { return (get_obj() != src); }
-	bool operator!=(const ptr<type>& src) const volatile { return (get_obj() != src); }
+	template <typename type2> bool operator==(const ptr<type2>& src) const { return src == get_obj(); }
+	template <typename type2> bool operator==(const ptr<type2>& src) const volatile { return src == get_obj(); }
+	template <typename type2> bool operator!=(const ptr<type2>& src) const { return src != get_obj(); }
+	template <typename type2> bool operator!=(const ptr<type2>& src) const volatile { return src != get_obj(); }
 
+	template <typename type2> bool operator==(const ref<type2>& src) const { return src == get_obj(); }
+	template <typename type2> bool operator==(const ref<type2>& src) const volatile { return src == get_obj(); }
+	template <typename type2> bool operator!=(const ref<type2>& src) const { return src != get_obj(); }
+	template <typename type2> bool operator!=(const ref<type2>& src) const volatile { return src != get_obj(); }
+
+	template <typename type2> bool operator==(const volatile ptr<type2>& src) const { return src == get_obj(); }
+	template <typename type2> bool operator==(const volatile ptr<type2>& src) const volatile { return src == get_obj(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& src) const { return src != get_obj(); }
+	template <typename type2> bool operator!=(const volatile ptr<type2>& src) const volatile { return src != get_obj(); }
+
+	template <typename type2> bool operator==(const volatile ref<type2>& src) const { return src == get_obj(); }
+	template <typename type2> bool operator==(const volatile ref<type2>& src) const volatile { return src == get_obj(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& src) const { return src != get_obj(); }
+	template <typename type2> bool operator!=(const volatile ref<type2>& src) const volatile { return src != get_obj(); }
+
+	template <typename type2> bool operator==(type2* const& src) const { return src == get_obj(); }
+	template <typename type2> bool operator==(type2* const& src) const volatile { return src == get_obj(); }
+	template <typename type2> bool operator!=(type2* const& src) const { return src != get_obj(); }
+	template <typename type2> bool operator!=(type2* const& src) const volatile { return src != get_obj(); }
+
+	template <typename type2> bool operator==(type2* const volatile& src) const { return atomic::load(src) == get_obj(); }
+	template <typename type2> bool operator==(type2* const volatile& src) const volatile { return atomic::load(src) == get_obj(); }
+	template <typename type2> bool operator!=(type2* const volatile& src) const { return atomic::load(src) != get_obj(); }
+	template <typename type2> bool operator!=(type2* const volatile& src) const volatile { return atomic::load(src) != get_obj(); }
 
 	// swap
-	template <typename type2>
-	void swap(rc_container_base<type2, refStrengthType>& wth)
+	
+	// It's caller error (and nonsensical) to pass *this as wth.  The behavior of doing so is undefined.
+
+	void swap(this_t& wth)
+	{
+		m_contents.swap(wth.m_contents);
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	void swap(rc_container<type2, refStrengthType2>& wth)
 	{
 		this_t tmp(wth);
 		m_contents.swap(tmp.m_contents);
@@ -774,7 +1145,69 @@ protected:
 	}
 
 	template <typename type2>
-	void swap(rc_container_base<type2, refStrengthType>& wth) volatile
+	void swap(ptr<type2>& wth)
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+	template <typename type2>
+	void swap(ref<type2>& wth)
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+	template <typename type2>
+	void swap(type2*& wth)
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	void swap(volatile rc_container<type2, refStrengthType2>& wth)
+	{
+		wth.swap(*this);
+	}
+
+	template <typename type2>
+	void swap(volatile ptr<type2>& wth)
+	{
+		ptr<type2> tmp = m_contents->m_obj;
+		cogs::swap(wth, tmp);
+		*this = tmp;
+	}
+
+	template <typename type2>
+	void swap(volatile ref<type2>& wth)
+	{
+		ref<type2> tmp;
+		tmp.get_ptr_ref() = m_contents->m_obj;
+		cogs::swap(wth, tmp);
+		*this = tmp;
+	}
+
+	template <typename type2>
+	void swap(type2* volatile& wth)
+	{
+		type2* tmp = m_contents->m_obj;
+		cogs::swap(wth, tmp);
+		*this = tmp;
+	}
+
+
+	void swap(this_t& wth) volatile
+	{
+		m_contents.swap(wth.m_contents);
+	}
+
+	template <typename type2, reference_strength_type refStrengthType2>
+	void swap(rc_container<type2, refStrengthType2>& wth) volatile
 	{
 		this_t tmp(wth);
 		m_contents.swap(tmp.m_contents);
@@ -782,156 +1215,96 @@ protected:
 	}
 
 	template <typename type2>
-	void swap(volatile rc_container_base<type2, refStrengthType>& wth) { wth.swap(*this); }
+	void swap(ptr<type2>& wth) volatile
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+	template <typename type2>
+	void swap(ref<type2>& wth) volatile
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+	template <typename type2>
+	void swap(type2*& wth) volatile
+	{
+		this_t tmp(wth);
+		m_contents.swap(tmp.m_contents);
+		wth = tmp->m_obj;
+	}
+
+
+	//template <typename T2>
+	//void swap(volatile T2& wth) volatile = delete;
+
 
 
 	// exchange
-	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(const rc_container_base<type2, refStrengthType2>& src)
+
+	// It's caller error (and nonsensical) to pass *this as src.  The behavior of doing so is undefined.
+
+	template <typename T2>
+	this_t exchange(T2&& src)
 	{
-		this_t rtn(src);
-		swap(rtn);
-		return rtn;
+			return *this;
+		this_t tmp(std::forward<T2>(src));
+		m_contents.swap(tmp.m_contents);
+		return tmp;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(const rc_container_base<type2, refStrengthType2>& src) volatile
+	template <typename T2>
+	this_t exchange(T2&& src) volatile
 	{
-		this_t rtn(src);
-		swap(rtn);
-		return rtn;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(rc_container_base<type2, refStrengthType2>&& src)
-	{
-		this_t rtn(std::move(src));
-		swap(rtn);
-		return rtn;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	this_t exchange(rc_container_base<type2, refStrengthType2>&& src) volatile
-	{
-		this_t rtn(std::move(src));
-		swap(rtn);
-		return rtn;
+			return *this;
+		this_t tmp(std::forward<T2>(src));
+		m_contents.swap(tmp.m_contents);
+		return tmp;
 	}
 
 
-	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(const rc_container_base<type2, refStrengthType2>& src, this_t& rtn)
+	// If src and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+	// It's caller error (and nonsensical) to pass *this as rtn, or src.  The behavior of doing so is undefined.
+
+	template <typename T2, typename T3>
+	void exchange(T2&& src, T3& rtn)
 	{
-		this_t tmp(src);
-		swap(tmp);
-		rtn = std::move(tmp);
+		this_t tmp(std::forward<T2>(src));
+		m_contents.swap(tmp.m_contents);
+		set_return(rtn, std::move(tmp));
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(const rc_container_base<type2, refStrengthType2>& src, this_t& rtn) volatile
+	template <typename T2, typename T3>
+	void exchange(T2&& src, T3& rtn) volatile
 	{
-		this_t tmp(src);
-		swap(tmp);
-		rtn = std::move(tmp);
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn)
-	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		rtn = std::move(tmp);
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2>
-	void exchange(rc_container_base<type2, refStrengthType2>&& src, this_t& rtn) volatile
-	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		rtn = std::move(tmp);
+		this_t tmp(std::forward<T2>(src));
+		m_contents.swap(tmp.m_contents);
+		set_return(rtn, std::move(tmp));
 	}
 
 
 	// compare_exchange
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp)
+	// It's caller error (and nonsensical) to pass *this as src or cmp, or to pass the same instance for both src and cmp.  The behavior of doing so is undefined.
+
+	template <typename T2, typename T3>
+	bool compare_exchange(T2&& src, T3&& cmp)
 	{
-		bool b = (*this == cmp);
+		bool b = (*this == std::forward<T3>(cmp));
 		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-		}
+			*this = std::forward<T2>(src);
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp)
+	template <typename T2, typename T3>
+	bool compare_exchange(T2&& src, T3&& cmp) volatile
 	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, typename type3>
-	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(src);
-			swap(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp)
-	{
-		bool b = (*this == cmp);
-		if (b)
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-		}
-		return b;
-	}
-
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
-	{
-		this_t tmpSrc(src);
-		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
+		this_t tmpSrc(std::forward<T2>(src));
+		content_t tmpCmp = make_content(cmp);
 		content_t tmpRtn;
 		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
 		if (b)
@@ -943,218 +1316,28 @@ protected:
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		bool result;
-		for (;;)
-		{
-			begin_read(rt);
-			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
-			{
-				result = false;
-				break;
-			}
 
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc) // release the reference we just removed from this
-					oldDesc->release(refStrengthType);
-				result = true;
-				break;
-			}
-		}
-		return result;
-	}
+	// If src and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+	// If cmp and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+	// It's caller error (and nonsensical) to pass *this as src, cmp, or rtn, or to pass the same instance for both src and cmp.  The behavior of doing so is undefined.
 
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
-	{
-		this_t tmpSrc(src);
-		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
-		content_t tmpRtn;
-		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
-		if (b)
-		{
-			//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc) // release the reference we just removed from this
-				tmpRtn.m_desc->release(refStrengthType);
-		}
-		return b;
-	}
-
-	template <typename type2, typename type3>
-	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		bool result;
-		for (;;)
-		{
-			begin_read(rt);
-			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				//tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc) // release the reference we just removed from this
-					oldDesc->release(refStrengthType);
-				result = true;
-				break;
-			}
-		}
-		return result;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		content_t tmpCmp{ cmp.m_contents->m_obj, cmp.m_contents->m_desc };
-		content_t tmpRtn;
-		bool b = m_contents.compare_exchange_contents(*tmpSrc.m_contents, tmpCmp, tmpRtn);
-		if (b)
-		{
-			tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-			if (!!tmpRtn.m_desc) // release the reference we just removed from this
-				tmpRtn.m_desc->release(refStrengthType);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		bool result;
-		for (;;)
-		{
-			begin_read(rt);
-			rc_obj_base* oldDesc = rt->m_desc;
-			if (rt->m_obj != cmp.get_ptr()) // <- A failure here means type conversion (user) error.
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				if (!!oldDesc) // release the reference we just removed from this
-					oldDesc->release(refStrengthType);
-				result = true;
-				break;
-			}
-		}
-		return result;
-	}
-
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
+	template <typename T2, typename T3, typename T4>
+	bool compare_exchange(T2&& src, T3&& cmp, T4& rtn)
 	{
 		bool b = (*this == cmp);
 		if (!b)
-			rtn = *this;
-		else
 		{
-			this_t tmp(src);
-			swap(tmp);
-			rtn = std::move(tmp);
+			this_t tmp(std::forward<T2>(src));
+			m_contents.swap(tmp.m_contents);
+			set_return(rtn, std::move(tmp));
 		}
 		return b;
 	}
 
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp, this_t& rtn)
+	template <typename T2, typename T3, typename T4>
+	bool compare_exchange(T2&& src, T3&& cmp, T4& rtn) volatile
 	{
-		bool b = (*this == cmp);
-		if (!b)
-			rtn = *this;
-		else
-		{
-			this_t tmp(src);
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (!b)
-			rtn = *this;
-		else
-		{
-			this_t tmp(src);
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, typename type3>
-	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (!b)
-			rtn = *this;
-		else
-		{
-			this_t tmp(src);
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (!b)
-			rtn = *this;
-		else
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn)
-	{
-		bool b = (*this == cmp);
-		if (!b)
-			rtn = *this;
-		else
-		{
-			this_t tmp(std::move(src));
-			swap(tmp);
-			rtn = std::move(tmp);
-		}
-		return b;
-	}
-
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(src);
+		this_t tmpSrc(std::forward<T2>(src));
 		read_token rt;
 		this_t tmp; // contain, to handle hand-off of ownership.  or not.
 		bool result;
@@ -1163,7 +1346,7 @@ protected:
 			guarded_acquire(rt);
 			*tmp.m_contents = *rt;
 
-			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
+			if (!compare_content(*rt, cmp))
 			{
 				result = false;
 				break;
@@ -1178,162 +1361,7 @@ protected:
 			}
 			tmp.release_inner();
 		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(const rc_container_base<type2, refStrengthType2>& src, const ptr<type3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if (rt->m_obj != cmp.get_ptr())
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(const ptr<type2>& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, typename type3>
-	bool compare_exchange(const ptr<type2>& src, const ptr<type3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(src);
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if (rt->m_obj != cmp.get_ptr())
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3, reference_strength_type refStrengthType3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const rc_container_base<type3, refStrengthType3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if ((rt->m_obj != cmp.m_contents->m_obj) || (rt->m_desc != cmp.m_contents->m_desc))
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
-		return result;
-	}
-
-	template <typename type2, reference_strength_type refStrengthType2, typename type3>
-	bool compare_exchange(rc_container_base<type2, refStrengthType2>&& src, const ptr<type3>& cmp, this_t& rtn) volatile
-	{
-		this_t tmpSrc(std::move(src));
-		read_token rt;
-		this_t tmp; // contain, to handle hand-off of ownership.  or not.
-		bool result;
-		for (;;)
-		{
-			guarded_acquire(rt);
-			*tmp.m_contents = *rt;
-
-			if (rt->m_obj != cmp.get_ptr())
-			{
-				result = false;
-				break;
-			}
-
-			if (end_write(rt, *tmpSrc.m_contents))
-			{
-				tmpSrc.disown(); // tmpSrc has been swapped into this, so tmpSrc needs to disown
-				tmp.release_inner(); // release the reference we just removed from this
-				result = true;
-				break;
-			}
-			tmp.release_inner();
-		}
-		rtn = std::move(tmp);
+		set_return(rtn, std::move(tmp));
 		return result;
 	}
 

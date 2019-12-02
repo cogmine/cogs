@@ -485,7 +485,7 @@ public:
 		/// @param src Volatile reference to pointer to acquire.
 		/// @return The value of the pointer acquired, or 0.
 		template <typename type>
-		type* acquire(volatile hazard& h, type* const volatile & src)
+		type* acquire(volatile hazard& h, type* const volatile& src)
 		{
 			type* oldValue = atomic::load(src);
 			for (;;)

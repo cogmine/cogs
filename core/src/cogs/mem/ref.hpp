@@ -19,11 +19,8 @@
 namespace cogs {
 
 
-template <typename T>
-class ref; // not nullable
-
 template <typename type>
-class ptr; // nullable
+class ptr;
 
 
 // forward declared for to_string().
@@ -1308,16 +1305,6 @@ private:
 	void set(std::nullptr_t) volatile { atomic::store(m_value, (type*)0); }
 	ref(std::nullptr_t) : m_value(nullptr) { }
 
-	template <typename type2>
-	this_t exchange(type2*& src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* volatile & src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* src) volatile { return cogs::exchange(get_ptr_ref(), src); }
-
-
 	type*& get_ptr_ref() { return m_value; }
 	type* volatile& get_ptr_ref() volatile { return m_value; }
 
@@ -1772,16 +1759,6 @@ private:
 	void set(std::nullptr_t) volatile { atomic::store(m_value, (type*)0); }
 	ref(std::nullptr_t) : m_value(nullptr) { }
 
-	template <typename type2>
-	this_t exchange(type2*& src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* volatile & src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* src) volatile { return cogs::exchange(get_ptr_ref(), src); }
-
-
 	type*& get_ptr_ref() { return m_value; }
 	type* volatile& get_ptr_ref() volatile { return m_value; }
 
@@ -1814,7 +1791,7 @@ public:
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
 
-	type* const & get_ptr_ref() const { return m_value; }
+	type* const& get_ptr_ref() const { return m_value; }
 	type* const volatile& get_ptr_ref() const volatile { return m_value; }
 
 	bool is_empty() const { return false; }
@@ -2237,15 +2214,6 @@ private:
 	void set(std::nullptr_t) { m_value = nullptr; }
 	void set(std::nullptr_t) volatile { atomic::store(m_value, (type*)0); }
 	ref(std::nullptr_t) : m_value(nullptr) { }
-
-	template <typename type2>
-	this_t exchange(type2*& src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* volatile & src) { return cogs::exchange(get_ptr_ref(), src); }
-
-	template <typename type2>
-	this_t exchange(type2* src) volatile { return cogs::exchange(get_ptr_ref(), src); }
 
 	type*& get_ptr_ref() { return m_value; }
 	type* volatile& get_ptr_ref() volatile { return m_value; }

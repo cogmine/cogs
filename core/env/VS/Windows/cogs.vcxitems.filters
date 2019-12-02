@@ -1005,9 +1005,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ptr.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_container_base.hpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
@@ -1284,6 +1281,36 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\no_aba_stack.hpp">
       <Filter>core\collections</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_same_instance.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_static_castable.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_container.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_pointer_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_rc_pointer_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_rc_reference_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_reference_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_raw_pointer_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_raw_reference_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_rc_type.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">
@@ -1292,9 +1319,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\makefile">
-      <Filter>env\gcc</Filter>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)..\..\gcc\test.cpp">
       <Filter>env\gcc</Filter>
     </None>
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">

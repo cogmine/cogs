@@ -95,49 +95,49 @@ private:
 	}
 
 public:
-	class preallocated_t;
+	class preallocated;
 	class value_token;
 	class remove_token;
 
 	/// @brief A preallocated priority_queue element
-	class preallocated_t
+	class preallocated
 	{
 	protected:
 		friend class priority_queue;
 
-		typename map_t::preallocated_t m_preallocated;
+		typename map_t::preallocated m_contents;
 
-		payload& get_payload() { return *m_preallocated; }
+		payload& get_payload() { return *m_contents; }
 
-		preallocated_t(const typename map_t::preallocated_t& i) : m_preallocated(i) { }
-		preallocated_t& operator=(const typename map_t::preallocated_t& i) { m_preallocated = i; return *this; }
+		preallocated(const typename map_t::preallocated& i) : m_contents(i) { }
+		preallocated& operator=(const typename map_t::preallocated& i) { m_contents = i; return *this; }
 
 	public:
-		void disown() { m_preallocated.disown(); }
-		void disown() volatile { m_preallocated.disown(); }
+		preallocated() { }
+		preallocated(const preallocated& src) : m_contents(src.m_contents) { }
 
-		preallocated_t() { }
-		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
+		void disown() { m_contents.disown(); }
+		void disown() volatile { m_contents.disown(); }
 
-		void release() { m_preallocated.release(); }
+		void release() { m_contents.release(); }
 
-		bool operator!() const { return !m_preallocated; }
-		bool operator==(const preallocated_t& i) const { return m_preallocated == i.m_preallocated; }
-		bool operator!=(const preallocated_t& i) const { return !operator==(i); }
-		preallocated_t& operator=(const preallocated_t& i) { m_preallocated = i.m_preallocated; return *this; }
+		bool operator!() const { return !m_contents; }
+		bool operator==(const preallocated& i) const { return m_contents == i.m_contents; }
+		bool operator!=(const preallocated& i) const { return !operator==(i); }
+		preallocated& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
 
-		key_t& get_key() const { return m_preallocated.get_key(); }
-		type& get_value() const { return m_preallocated->get_value(); }
+		key_t& get_key() const { return m_contents.get_key(); }
+		type& get_value() const { return m_contents->get_value(); }
 
-		type& operator*() const { return m_preallocated->get_value(); }
-		type* operator->() const { return &(m_preallocated->get_value()); }
+		type& operator*() const { return m_contents->get_value(); }
+		type* operator->() const { return &(m_contents->get_value()); }
 
-		rcptr<key_t> get_key_obj() const { return m_preallocated.get_key_obj(); }
+		rcptr<key_t> get_key_obj() const { return m_contents.get_key_obj(); }
 
 		rcptr<type> get_value_obj() const
 		{
 			rcptr<type> result;
-			rcptr<payload> obj = m_preallocated.get_value_obj();
+			rcptr<payload> obj = m_contents.get_value_obj();
 			if (!!obj)
 			{
 				result.set(&(obj->get_value()), obj.get_desc());
@@ -148,61 +148,62 @@ public:
 
 		rcptr<type> get_obj() const { return get_value_obj(); }
 
-		rc_obj_base* get_desc() const { return m_preallocated.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_preallocated.get_desc(); }
+		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
 	};
 
 	/// @brief A priority_queue value token
 	class value_token
 	{
 	protected:
-		typename map_t::volatile_iterator m_iterator;
+		typename map_t::volatile_iterator m_contents;
 
-		value_token(const typename map_t::volatile_iterator& i) : m_iterator(i) { }
-		value_token(const typename map_t::volatile_remove_token& rt) : m_iterator(rt) { }
-		value_token(const volatile typename map_t::volatile_iterator& i) : m_iterator(i) { }
-		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_iterator(rt) { }
+		value_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
+		value_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		value_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
+		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 
 		friend class priority_queue;
+
 	public:
-		void disown() { m_iterator.disown(); }
-		void disown() volatile { m_iterator.disown(); }
-
 		value_token() { }
-		value_token(const value_token& vt) : m_iterator(vt.m_iterator) { }
-		value_token(const remove_token& rt) : m_iterator(rt.m_removeToken) { }
-		value_token(const volatile value_token& vt) : m_iterator(vt.m_iterator) { }
-		value_token(const volatile remove_token& rt) : m_iterator(rt.m_removeToken) { }
+		value_token(const value_token& vt) : m_contents(vt.m_contents) { }
+		value_token(const remove_token& rt) : m_contents(rt.m_contents) { }
+		value_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
+		value_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 
-		value_token& operator=(const value_token& vt) { m_iterator = vt.m_iterator; return *this; }
-		value_token& operator=(const volatile value_token& vt) { m_iterator = vt.m_iterator; return *this; }
-		void operator=(const value_token& vt) volatile { m_iterator = vt.m_iterator; }
+		value_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
+		value_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
+		void operator=(const value_token& vt) volatile { m_contents = vt.m_contents; }
 
-		value_token& operator=(const remove_token& rt) { m_iterator = rt.m_removeToken; return *this; }
-		value_token& operator=(const volatile remove_token& rt) { m_iterator = rt.m_removeToken; return *this; }
-		void operator=(const remove_token& rt) volatile { m_iterator = rt.m_removeToken; }
+		value_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		value_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
 
-		bool is_active() const { return m_iterator.is_active(); }
-		bool is_active() const volatile { return m_iterator.is_active(); }
+		void disown() { m_contents.disown(); }
+		void disown() volatile { m_contents.disown(); }
 
-		bool is_removed() const { return m_iterator.is_removed(); }
-		bool is_removed() const volatile { return m_iterator.is_removed(); }
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
-		void release() { m_iterator.release(); }
-		void release() volatile { m_iterator.release(); }
+		bool is_active() const { return m_contents.is_active(); }
+		bool is_active() const volatile { return m_contents.is_active(); }
 
-		bool is_removed() { return m_iterator.is_removed(); }
+		bool is_removed() const { return m_contents.is_removed(); }
+		bool is_removed() const volatile { return m_contents.is_removed(); }
 
-		bool operator!() const { return !m_iterator; }
-		bool operator!() const volatile { return !m_iterator; }
+		bool is_removed() { return m_contents.is_removed(); }
 
-		bool operator==(const value_token& vt) const { return m_iterator == vt.m_iterator; }
-		bool operator==(const volatile value_token& vt) const { return m_iterator == vt.m_iterator; }
-		bool operator==(const value_token& vt) const volatile { return m_iterator == vt.m_iterator; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_iterator == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_iterator == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_iterator == rt.m_removeToken; }
+		bool operator==(const value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const volatile value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const value_token& vt) const volatile { return m_contents == vt.m_contents; }
+
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
 
 		bool operator!=(const value_token& vt) const { return !operator==(vt); }
 		bool operator!=(const volatile value_token& vt) const { return !operator==(vt); }
@@ -212,17 +213,17 @@ public:
 		bool operator!=(const volatile remove_token& rt) const { return !operator==(rt); }
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 
-		const key_t& get_key() const { return m_iterator.get_key(); }
-		type& get_value() const { return m_iterator->get_value(); }
-		type& operator*() const { return m_iterator->get_value(); }
-		type* operator->() const { return &(m_iterator->get_value()); }
+		const key_t& get_key() const { return m_contents.get_key(); }
+		type& get_value() const { return m_contents->get_value(); }
+		type& operator*() const { return m_contents->get_value(); }
+		type* operator->() const { return &(m_contents->get_value()); }
 
-		rcptr<const key_t> get_key_obj() const { return m_iterator.get_key_obj(); }
+		rcptr<const key_t> get_key_obj() const { return m_contents.get_key_obj(); }
 
 		rcptr<type> get_value_obj() const
 		{
 			rcptr<type> result;
-			rcptr<payload> obj = m_iterator.get_value_obj();
+			rcptr<payload> obj = m_contents.get_value_obj();
 			if (!!obj)
 			{
 				result.set(&(obj->get_value()), obj.get_desc());
@@ -233,8 +234,8 @@ public:
 
 		rcptr<type> get_obj() const { return get_value_obj(); }
 
-		rc_obj_base* get_desc() const { return m_iterator.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_iterator.get_desc(); }
+		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
 	};
 
 	/// @brief A priority_queue element remove token
@@ -245,51 +246,51 @@ public:
 	protected:
 		friend class priority_queue;
 
-		typename map_t::volatile_remove_token m_removeToken;
+		typename map_t::volatile_remove_token m_contents;
 
-		remove_token(const typename map_t::volatile_iterator& i) : m_removeToken(i) { }
-		remove_token(const typename map_t::volatile_remove_token& rt) : m_removeToken(rt) { }
+		remove_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
+		remove_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 	public:
 		remove_token() { }
-		remove_token(const preallocated_t& i) : m_removeToken(i.m_preallocated) { }
-		remove_token(const remove_token& rt) : m_removeToken(rt.m_removeToken) { }
-		remove_token(const value_token& vt) : m_removeToken(vt.m_iterator) { }
-		remove_token(const volatile remove_token& rt) : m_removeToken(rt.m_removeToken) { }
-		remove_token(const volatile value_token& vt) : m_removeToken(vt.m_iterator) { }
+		remove_token(const preallocated& i) : m_contents(i.m_contents) { }
+		remove_token(const remove_token& rt) : m_contents(rt.m_contents) { }
+		remove_token(const value_token& vt) : m_contents(vt.m_contents) { }
+		remove_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
+		remove_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
 
-		remove_token& operator=(const preallocated_t& i) { m_removeToken = i.m_preallocated; return *this; }
-		remove_token& operator=(const preallocated_t& i) volatile { m_removeToken = i.m_preallocated; return *this; }
+		remove_token& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
+		remove_token& operator=(const preallocated& i) volatile { m_contents = i.m_contents; return *this; }
 
-		remove_token& operator=(const remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		remove_token& operator=(const volatile remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		void operator=(const remove_token& rt) volatile { m_removeToken = rt.m_removeToken; }
+		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
 
-		remove_token& operator=(const value_token& vt) { m_removeToken = vt.m_iterator; return *this; }
-		remove_token& operator=(const volatile value_token& vt) { m_removeToken = vt.m_iterator; return *this; }
-		void operator=(const value_token& vt) volatile { m_removeToken = vt.m_iterator; }
+		remove_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
+		remove_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
+		void operator=(const value_token& vt) volatile { m_contents = vt.m_contents; }
 
-		bool is_active() const { return m_removeToken.is_active(); }
-		bool is_active() const volatile { return m_removeToken.is_active(); }
+		bool is_active() const { return m_contents.is_active(); }
+		bool is_active() const volatile { return m_contents.is_active(); }
 
-		void release() { m_removeToken.release(); }
-		void release() volatile { m_removeToken.release(); }
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
-		bool operator!() const { return !m_removeToken; }
-		bool operator!() const volatile { return !m_removeToken; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const value_token& vt) const { return m_removeToken == vt.m_iterator; }
-		bool operator==(const value_token& vt) const volatile { return m_removeToken == vt.m_iterator; }
-		bool operator==(const volatile value_token& vt) const { return m_removeToken == vt.m_iterator; }
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const value_token& vt) const volatile { return m_contents == vt.m_contents; }
+		bool operator==(const volatile value_token& vt) const { return m_contents == vt.m_contents; }
 
-		bool operator!=(const remove_token& rt) const { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const remove_token& rt) const volatile { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const volatile remove_token& rt) const { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const value_token& vt) const { return m_removeToken != vt.m_iterator; }
-		bool operator!=(const value_token& vt) const volatile { return m_removeToken != vt.m_iterator; }
-		bool operator!=(const volatile value_token& vt) const { return m_removeToken != vt.m_iterator; }
+		bool operator!=(const remove_token& rt) const { return m_contents != rt.m_contents; }
+		bool operator!=(const remove_token& rt) const volatile { return m_contents != rt.m_contents; }
+		bool operator!=(const volatile remove_token& rt) const { return m_contents != rt.m_contents; }
+		bool operator!=(const value_token& vt) const { return m_contents != vt.m_contents; }
+		bool operator!=(const value_token& vt) const volatile { return m_contents != vt.m_contents; }
+		bool operator!=(const volatile value_token& vt) const { return m_contents != vt.m_contents; }
 	};
 
 	priority_queue() { }
@@ -305,7 +306,7 @@ public:
 
 	value_token insert(const key_t& k, const type& t) volatile
 	{
-		typename map_t::preallocated_t i = m_contents.preallocate_key(k);
+		typename map_t::preallocated i = m_contents.preallocate_key(k);
 		i.get_value().construct(t);
 		value_token result(m_contents.insert_preallocated(i));
 		return result;
@@ -315,7 +316,7 @@ public:
 	{
 		for (size_t i = 0; i < n; i++)
 		{
-			typename map_t::preallocated_t p = m_contents.preallocate_key(k);
+			typename map_t::preallocated p = m_contents.preallocate_key(k);
 			p.get_value().construct(t);
 			m_contents.insert_preallocated(p);
 		}
@@ -324,7 +325,7 @@ public:
 
 	value_token insert(const key_t& k, const type& t, bool& wasEmpty) volatile
 	{
-		typename map_t::preallocated_t i = m_contents.preallocate_key(k);
+		typename map_t::preallocated i = m_contents.preallocate_key(k);
 		i.get_value().construct(t);
 		value_token result(m_contents.insert_preallocated(i, wasEmpty));
 		return result;
@@ -334,7 +335,7 @@ public:
 	{
 		for (size_t i = 0; i < n; i++)
 		{
-			typename map_t::preallocated_t p = m_contents.preallocate_key(k);
+			typename map_t::preallocated p = m_contents.preallocate_key(k);
 			p.get_value().construct(t);
 			m_contents.insert_preallocated(p, wasEmpty);
 		}
@@ -342,54 +343,54 @@ public:
 
 
 
-	preallocated_t preallocate() const volatile
+	preallocated preallocate() const volatile
 	{
-		preallocated_t i = m_contents.preallocate();
+		preallocated i = m_contents.preallocate();
 		i.get_payload().construct();
 		return i;
 	}
 
-	preallocated_t preallocate(const key_t& k, const type& t) const volatile
+	preallocated preallocate(const key_t& k, const type& t) const volatile
 	{
-		preallocated_t i = m_contents.preallocate_key(k);
+		preallocated i = m_contents.preallocate_key(k);
 		i.get_payload().construct(t);
 		return i;
 	}
 
-	preallocated_t preallocate_key(const key_t& k) const volatile
+	preallocated preallocate_key(const key_t& k) const volatile
 	{
-		preallocated_t i = m_contents.preallocate_key(k);
+		preallocated i = m_contents.preallocate_key(k);
 		i.get_payload().construct();
 		return i;
 	}
 
 	template <typename T>
-	const rcref<T>& preallocate_with_aux(preallocated_t& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
+	const rcref<T>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{
-		m_contents.template preallocate_with_aux<T>(i.m_preallocated, storage);
+		m_contents.template preallocate_with_aux<T>(i.m_contents, storage);
 		i.get_payload().construct();
 		return storage.dereference();
 	}
 
 	template <typename T>
-	const rcref<T>& preallocate_with_aux(const key_t& k, const type& t, preallocated_t& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
+	const rcref<T>& preallocate_with_aux(const key_t& k, const type& t, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{
-		m_contents.template preallocate_key_with_aux<T>(k, i.m_preallocated, storage);
+		m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
 		i.get_payload().construct(t);
 		return storage.dereference();
 	}
 
 	template <typename T>
-	const rcref<T>& preallocate_key_with_aux(const key_t& k, preallocated_t& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
+	const rcref<T>& preallocate_key_with_aux(const key_t& k, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{
-		m_contents.template preallocate_key_with_aux<T>(k, i.m_preallocated, storage);
+		m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
 		i.get_payload().construct();
 		return storage.dereference();
 	}
 
-	value_token insert_preallocated(const preallocated_t& i) volatile { value_token result(m_contents.insert_preallocated(i.m_preallocated)); return result; }
+	value_token insert_preallocated(const preallocated& i) volatile { value_token result(m_contents.insert_preallocated(i.m_contents)); return result; }
 
-	value_token insert_preallocated(const preallocated_t& i, bool& wasEmpty) volatile { value_token result(m_contents.insert_preallocated(i.m_preallocated, wasEmpty)); return result; }
+	value_token insert_preallocated(const preallocated& i, bool& wasEmpty) volatile { value_token result(m_contents.insert_preallocated(i.m_contents, wasEmpty)); return result; }
 
 	value_token get() volatile
 	{
@@ -398,8 +399,8 @@ public:
 		{
 			if (m_contents.is_empty())
 				break;
-			result.m_iterator = m_contents.pop_first();
-			if (!result.m_iterator || get_inner(result.m_iterator))
+			result.m_contents = m_contents.pop_first();
+			if (!result.m_contents || get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -412,15 +413,15 @@ public:
 		{
 			if (m_contents.is_empty())
 				break;
-			result.m_iterator = m_contents.get_first();
-			if (!result.m_iterator)
+			result.m_contents = m_contents.get_first();
+			if (!result.m_contents)
 				break;
-			if (result.m_iterator.get_key() > lowestPriority)
+			if (result.m_contents.get_key() > lowestPriority)
 			{
 				result.release();
 				break;
 			}
-			if (m_contents.remove(result.m_iterator) && get_inner(result.m_iterator))
+			if (m_contents.remove(result.m_contents) && get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -433,39 +434,39 @@ public:
 		bool b = false;
 
 		// Remove risk of a race for priority change of same element.
-		// We will replace m_iterator if able to set m_priorityChanged to true.
-		// Any callers attempting to change priority prior to m_iterator being replaces, will no-op.
-		if (!!vt && vt.m_iterator->m_priorityChanged.compare_exchange(true, false))
+		// We will replace m_contents if able to set m_priorityChanged to true.
+		// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
+		if (!!vt && vt.m_contents->m_priorityChanged.compare_exchange(true, false))
 		{
-			int oldPriority = vt.m_iterator.get_key();
+			int oldPriority = vt.m_contents.get_key();
 			b = oldPriority == newPriority;
 			if (!b)
 			{
 				typename map_t::volatile_iterator itor;
-				rcptr<payload> oldRemoved = vt.m_iterator->m_removed;
+				rcptr<payload> oldRemoved = vt.m_contents->m_removed;
 				for (;;)
 				{
 					if (!oldRemoved)
-						oldRemoved = vt.m_iterator.get_value_obj();
+						oldRemoved = vt.m_contents.get_value_obj();
 					else if (oldRemoved.get_mark() != 0) // Already scheduled/removed, nothing to do.
 						break;
 					else if (oldRemoved->m_removed.get_mark() != 0)
 						break;
 
 					// Add new element at new priority
-					preallocated_t i = m_contents.preallocate_key(newPriority);
+					preallocated i = m_contents.preallocate_key(newPriority);
 					i.get_payload().set_removed(std::move(oldRemoved));
-					itor = m_contents.insert_preallocated(i.m_preallocated);
+					itor = m_contents.insert_preallocated(i.m_contents);
 
 					// Link old to new element
-					vt.m_iterator->m_rescheduledTo = itor;
+					vt.m_contents->m_rescheduledTo = itor;
 
 					// Try to remove the old element
-					bool removedOld = m_contents.remove(vt.m_iterator);
+					bool removedOld = m_contents.remove(vt.m_contents);
 					if (removedOld) // We were able to remove the old one, done
 					{
 						b = true;
-						vt.m_iterator = itor; // TODO: Does this write to vt.m_iterator need to be atomic?
+						vt.m_contents = itor; // TODO: Does this write to vt.m_contents need to be atomic?
 						break;
 					}
 					// Failed to remove it.  Must have been scheduled/removed.
@@ -500,7 +501,7 @@ public:
 
 	bool change_priority(remove_token& rt, const key_t& newPriority) volatile
 	{
-		value_token vt(rt.m_removeToken);
+		value_token vt(rt.m_contents);
 		if (change_priority(vt, newPriority))
 		{
 			rt = vt;
@@ -509,8 +510,8 @@ public:
 		return false;
 	}
 
-	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_iterator); }
-	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_removeToken); }
+	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
 template <typename key_t, class comparator_t, class allocator_type>
@@ -562,94 +563,94 @@ private:
 	}
 
 public:
-	class preallocated_t;
+	class preallocated;
 	class remove_token;
 	class value_token;
 
 	/// @brief A preallocated priority_queue element
-	class preallocated_t
+	class preallocated
 	{
 	protected:
-		typename map_t::preallocated_t m_preallocated;
+		typename map_t::preallocated m_contents;
 
-		preallocated_t(const typename map_t::preallocated_t& i) : m_preallocated(i) { }
+		preallocated(const typename map_t::preallocated& i) : m_contents(i) { }
 
 		friend class priority_queue;
 
 	public:
-		void disown() { m_preallocated.disown(); }
-		void disown() volatile { m_preallocated.disown(); }
+		preallocated() { }
+		preallocated(const preallocated& src) : m_contents(src.m_contents) { }
 
-		preallocated_t() { }
-		preallocated_t(const preallocated_t& src) : m_preallocated(src.m_preallocated) { }
+		void disown() { m_contents.disown(); }
+		void disown() volatile { m_contents.disown(); }
 
-		void release() { m_preallocated.release(); }
+		void release() { m_contents.release(); }
 
-		bool operator!() const { return !m_preallocated; }
-		bool operator==(const preallocated_t& i) const { return m_preallocated == i.m_preallocated; }
-		bool operator!=(const preallocated_t& i) const { return !operator==(i); }
-		preallocated_t& operator=(const preallocated_t& i) { m_preallocated = i.m_preallocated; return *this; }
+		bool operator!() const { return !m_contents; }
+		bool operator==(const preallocated& i) const { return m_contents == i.m_contents; }
+		bool operator!=(const preallocated& i) const { return !operator==(i); }
+		preallocated& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
 
-		key_t& operator*() const { return *m_preallocated; }
-		key_t* operator->() const { return &*m_preallocated; }
+		key_t& operator*() const { return *m_contents; }
+		key_t* operator->() const { return &*m_contents; }
 
-		rcptr<key_t> get_obj() const { return m_preallocated.get_key_obj(); }
+		rcptr<key_t> get_obj() const { return m_contents.get_key_obj(); }
 
-		rc_obj_base* get_desc() const { return m_preallocated.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_preallocated.get_desc(); }
+		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
 	};
 
 	/// @brief A priority_queue value token
 	class value_token
 	{
 	protected:
-		typename map_t::volatile_iterator m_iterator;
+		typename map_t::volatile_iterator m_contents;
 
-		value_token(const typename map_t::volatile_iterator& i) : m_iterator(i) { }
-		value_token(const typename map_t::volatile_remove_token& rt) : m_iterator(rt) { }
-		value_token(const volatile typename map_t::volatile_iterator& i) : m_iterator(i) { }
-		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_iterator(rt) { }
+		value_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
+		value_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		value_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
+		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 
 		friend class priority_queue;
 	public:
-		void disown() { m_iterator.disown(); }
-		void disown() volatile { m_iterator.disown(); }
-
 		value_token() { }
-		value_token(const value_token& vt) : m_iterator(vt.m_iterator) { }
-		value_token(const remove_token& rt) : m_iterator(rt.m_removeToken) { }
-		value_token(const volatile value_token& vt) : m_iterator(vt.m_iterator) { }
-		value_token(const volatile remove_token& rt) : m_iterator(rt.m_removeToken) { }
+		value_token(const value_token& vt) : m_contents(vt.m_contents) { }
+		value_token(const remove_token& rt) : m_contents(rt.m_contents) { }
+		value_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
+		value_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 
-		value_token& operator=(const value_token& vt) { m_iterator = vt.m_iterator; return *this; }
-		value_token& operator=(const volatile value_token& vt) { m_iterator = vt.m_iterator; return *this; }
-		void operator=(const value_token& vt) volatile { m_iterator = vt.m_iterator; }
+		value_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
+		value_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
+		void operator=(const value_token& vt) volatile { m_contents = vt.m_contents; }
 
-		value_token& operator=(const remove_token& rt) { m_iterator = rt.m_removeToken; return *this; }
-		value_token& operator=(const volatile remove_token& rt) { m_iterator = rt.m_removeToken; return *this; }
-		void operator=(const remove_token& rt) volatile { m_iterator = rt.m_removeToken; }
+		value_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		value_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
 
-		bool is_active() const { return m_iterator.is_active(); }
-		bool is_active() const volatile { return m_iterator.is_active(); }
+		void disown() { m_contents.disown(); }
+		void disown() volatile { m_contents.disown(); }
 
-		bool is_removed() const { return m_iterator.is_removed(); }
-		bool is_removed() const volatile { return m_iterator.is_removed(); }
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
-		void release() { m_iterator.release(); }
-		void release() volatile { m_iterator.release(); }
+		bool is_active() const { return m_contents.is_active(); }
+		bool is_active() const volatile { return m_contents.is_active(); }
 
-		bool is_removed() { return m_iterator.is_removed(); }
+		bool is_removed() const { return m_contents.is_removed(); }
+		bool is_removed() const volatile { return m_contents.is_removed(); }
 
-		bool operator!() const { return !m_iterator; }
-		bool operator!() const volatile { return !m_iterator; }
+		bool is_removed() { return m_contents.is_removed(); }
 
-		bool operator==(const value_token& vt) const { return m_iterator == vt.m_iterator; }
-		bool operator==(const volatile value_token& vt) const { return m_iterator == vt.m_iterator; }
-		bool operator==(const value_token& vt) const volatile { return m_iterator == vt.m_iterator; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_iterator == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_iterator == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_iterator == rt.m_removeToken; }
+		bool operator==(const value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const volatile value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const value_token& vt) const volatile { return m_contents == vt.m_contents; }
+
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
 
 		bool operator!=(const value_token& vt) const { return !operator==(vt); }
 		bool operator!=(const volatile value_token& vt) const { return !operator==(vt); }
@@ -659,13 +660,13 @@ public:
 		bool operator!=(const volatile remove_token& rt) const { return !operator==(rt); }
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 
-		const key_t& operator*() const { return m_iterator.get_key(); }
-		const key_t* operator->() const { return &(m_iterator.get_key()); }
+		const key_t& operator*() const { return m_contents.get_key(); }
+		const key_t* operator->() const { return &(m_contents.get_key()); }
 
-		rcptr<const key_t> get_obj() const { return m_iterator.get_key_obj(); }
+		rcptr<const key_t> get_obj() const { return m_contents.get_key_obj(); }
 
-		rc_obj_base* get_desc() const { return m_iterator.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_iterator.get_desc(); }
+		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
+		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
 	};
 
 	/// @brief A preallocated element remove token
@@ -676,51 +677,51 @@ public:
 	protected:
 		friend class priority_queue;
 
-		typename map_t::volatile_remove_token m_removeToken;
+		typename map_t::volatile_remove_token m_contents;
 
-		remove_token(const typename map_t::volatile_iterator& i) : m_removeToken(i) { }
-		remove_token(const typename map_t::volatile_remove_token& rt) : m_removeToken(rt) { }
+		remove_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
+		remove_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 	public:
 		remove_token() { }
-		remove_token(const preallocated_t& i) : m_removeToken(i.m_preallocated) { }
-		remove_token(const remove_token& rt) : m_removeToken(rt.m_removeToken) { }
-		remove_token(const value_token& vt) : m_removeToken(vt.m_iterator) { }
-		remove_token(const volatile remove_token& rt) : m_removeToken(rt.m_removeToken) { }
-		remove_token(const volatile value_token& vt) : m_removeToken(vt.m_iterator) { }
+		remove_token(const preallocated& i) : m_contents(i.m_contents) { }
+		remove_token(const remove_token& rt) : m_contents(rt.m_contents) { }
+		remove_token(const value_token& vt) : m_contents(vt.m_contents) { }
+		remove_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
+		remove_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
 
-		remove_token& operator=(const preallocated_t& i) { m_removeToken = i.m_preallocated; return *this; }
-		remove_token& operator=(const preallocated_t& i) volatile { m_removeToken = i.m_preallocated; return *this; }
+		remove_token& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
+		remove_token& operator=(const preallocated& i) volatile { m_contents = i.m_contents; return *this; }
 
-		remove_token& operator=(const remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		remove_token& operator=(const volatile remove_token& rt) { m_removeToken = rt.m_removeToken; return *this; }
-		void operator=(const remove_token& rt) volatile { m_removeToken = rt.m_removeToken; }
+		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
 
-		remove_token& operator=(const value_token& vt) { m_removeToken = vt.m_iterator; return *this; }
-		remove_token& operator=(const volatile value_token& vt) { m_removeToken = vt.m_iterator; return *this; }
-		void operator=(const value_token& vt) volatile { m_removeToken = vt.m_iterator; }
+		remove_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
+		remove_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
+		void operator=(const value_token& vt) volatile { m_contents = vt.m_contents; }
 
-		bool is_active() const { return m_removeToken.is_active(); }
-		bool is_active() const volatile { return m_removeToken.is_active(); }
+		bool is_active() const { return m_contents.is_active(); }
+		bool is_active() const volatile { return m_contents.is_active(); }
 
-		void release() { m_removeToken.release(); }
-		void release() volatile { m_removeToken.release(); }
+		void release() { m_contents.release(); }
+		void release() volatile { m_contents.release(); }
 
-		bool operator!() const { return !m_removeToken; }
-		bool operator!() const volatile { return !m_removeToken; }
+		bool operator!() const { return !m_contents; }
+		bool operator!() const volatile { return !m_contents; }
 
-		bool operator==(const remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const remove_token& rt) const volatile { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const volatile remove_token& rt) const { return m_removeToken == rt.m_removeToken; }
-		bool operator==(const value_token& vt) const { return m_removeToken == vt.m_iterator; }
-		bool operator==(const value_token& vt) const volatile { return m_removeToken == vt.m_iterator; }
-		bool operator==(const volatile value_token& vt) const { return m_removeToken == vt.m_iterator; }
+		bool operator==(const remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const remove_token& rt) const volatile { return m_contents == rt.m_contents; }
+		bool operator==(const volatile remove_token& rt) const { return m_contents == rt.m_contents; }
+		bool operator==(const value_token& vt) const { return m_contents == vt.m_contents; }
+		bool operator==(const value_token& vt) const volatile { return m_contents == vt.m_contents; }
+		bool operator==(const volatile value_token& vt) const { return m_contents == vt.m_contents; }
 
-		bool operator!=(const remove_token& rt) const { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const remove_token& rt) const volatile { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const volatile remove_token& rt) const { return m_removeToken != rt.m_removeToken; }
-		bool operator!=(const value_token& vt) const { return m_removeToken != vt.m_iterator; }
-		bool operator!=(const value_token& vt) const volatile { return m_removeToken != vt.m_iterator; }
-		bool operator!=(const volatile value_token& vt) const { return m_removeToken != vt.m_iterator; }
+		bool operator!=(const remove_token& rt) const { return m_contents != rt.m_contents; }
+		bool operator!=(const remove_token& rt) const volatile { return m_contents != rt.m_contents; }
+		bool operator!=(const volatile remove_token& rt) const { return m_contents != rt.m_contents; }
+		bool operator!=(const value_token& vt) const { return m_contents != vt.m_contents; }
+		bool operator!=(const value_token& vt) const volatile { return m_contents != vt.m_contents; }
+		bool operator!=(const volatile value_token& vt) const { return m_contents != vt.m_contents; }
 	};
 
 	priority_queue(this_t&& src)
@@ -756,30 +757,30 @@ public:
 			m_contents.insert_preallocated(m_contents.preallocate_key(k));
 	}
 
-	preallocated_t preallocate() const volatile { return preallocated_t(m_contents.preallocate()); }
-	preallocated_t preallocate(const key_t& k) const volatile { return preallocated_t(m_contents.preallocate_key(k)); }
+	preallocated preallocate() const volatile { return preallocated(m_contents.preallocate()); }
+	preallocated preallocate(const key_t& k) const volatile { return preallocated(m_contents.preallocate_key(k)); }
 
 	template <typename T>
-	const rcref<T>& preallocate_with_aux(preallocated_t& i, rcref<T>& storage = unowned_t<rcref<T> >().get_unowned()) const volatile
+	const rcref<T>& preallocate_with_aux(preallocated& i, rcref<T>& storage = unowned_t<rcref<T> >().get_unowned()) const volatile
 	{
-		return m_contents.template preallocate_with_aux<T>(i.m_preallocated, storage);
+		return m_contents.template preallocate_with_aux<T>(i.m_contents, storage);
 	}
 
 	template <typename T>
-	const rcref<T>& preallocate_with_aux(const key_t& k, preallocated_t& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
+	const rcref<T>& preallocate_with_aux(const key_t& k, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{
-		return m_contents.template preallocate_key_with_aux<T>(k, i.m_preallocated, storage);
+		return m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
 	}
 
-	value_token insert_preallocated(const preallocated_t& i) volatile { value_token result(m_contents.insert_preallocated(i.m_preallocated)); return result; }
+	value_token insert_preallocated(const preallocated& i) volatile { value_token result(m_contents.insert_preallocated(i.m_contents)); return result; }
 
 	value_token get() volatile
 	{
 		value_token result;
 		for (;;)
 		{
-			result.m_iterator = m_contents.pop_first();
-			if (!result.m_iterator || get_inner(result.m_iterator))
+			result.m_contents = m_contents.pop_first();
+			if (!result.m_contents || get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -790,15 +791,15 @@ public:
 		value_token result;
 		for (;;)
 		{
-			result.m_iterator = m_contents.get_first();
-			if (!result.m_iterator)
+			result.m_contents = m_contents.get_first();
+			if (!result.m_contents)
 				break;
-			if (result.m_iterator.get_key() > lowestPriority)
+			if (result.m_contents.get_key() > lowestPriority)
 			{
 				result.release();
 				break;
 			}
-			if (m_contents.remove(result.m_iterator) && get_inner(result.m_iterator))
+			if (m_contents.remove(result.m_contents) && get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -811,17 +812,17 @@ public:
 		bool b = false;
 
 		// Remove risk of a race for priority change of same element.
-		// We will replace m_iterator if able to set m_priorityChanged to true.
-		// Any callers attempting to change priority prior to m_iterator being replaces, will no-op.
-		if (!!vt && vt.m_iterator->m_priorityChanged.compare_exchange(true, false))
+		// We will replace m_contents if able to set m_priorityChanged to true.
+		// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
+		if (!!vt && vt.m_contents->m_priorityChanged.compare_exchange(true, false))
 		{
-			int oldPriority = vt.m_iterator.get_key();
+			int oldPriority = vt.m_contents.get_key();
 			b = oldPriority == newPriority;
 			if (!b)
 			{
 				typename map_t::volatile_iterator itor;
 				rcptr<volatile boolean> newRemoved;
-				rcptr<volatile boolean> oldRemoved = vt.m_iterator->m_removed;
+				rcptr<volatile boolean> oldRemoved = vt.m_contents->m_removed;
 				for (;;)
 				{
 					if (!oldRemoved)
@@ -830,19 +831,19 @@ public:
 						break;
 
 					// Add new element at new priority
-					preallocated_t i = m_contents.preallocate_key(newPriority);
+					preallocated i = m_contents.preallocate_key(newPriority);
 					i.get_payload().set_removed(oldRemoved);
-					itor = m_contents.insert_preallocated(i.m_preallocated);
+					itor = m_contents.insert_preallocated(i.m_contents);
 
 					// Link old to new element
-					vt.m_iterator->m_rescheduledTo = itor;
+					vt.m_contents->m_rescheduledTo = itor;
 
 					// Try to remove the old element
-					bool removedOld = m_contents.remove(vt.m_iterator);
+					bool removedOld = m_contents.remove(vt.m_contents);
 					if (removedOld) // We were able to remove the old one, done
 					{
 						b = true;
-						vt.m_iterator = itor; // TODO: Does this write to vt.m_iterator need to be atomic?
+						vt.m_contents = itor; // TODO: Does this write to vt.m_contents need to be atomic?
 						break;
 					}
 					// Failed to remove it.  Must have been scheduled/removed.
@@ -877,7 +878,7 @@ public:
 
 	bool change_priority(remove_token& rt, const key_t& newPriority) volatile
 	{
-		value_token vt(rt.m_removeToken);
+		value_token vt(rt.m_contents);
 		if (change_priority(vt, newPriority))
 		{
 			rt = vt;
@@ -886,8 +887,8 @@ public:
 		return false;
 	}
 
-	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_iterator); }
-	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_removeToken); }
+	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
 

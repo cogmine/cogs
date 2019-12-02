@@ -204,7 +204,7 @@ private:
 	void install_tracker()
 	{
 		m_tracker = (rc_obj_base::tracking_header*)malloc(sizeof(rc_obj_base::tracking_header));
-		new (m_tracker) tracking_header(this); // placement new
+		new (m_tracker) tracking_header(*this); // placement new
 
 		volatile no_aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
 		allocRecord.push(m_tracker);
@@ -382,26 +382,26 @@ public:
 
 	bool acquire(reference_strength_type refStrengthType = strong, size_t n = 1)
 	{
-		if (!n)
-			return false;
-
 		bool result = true;
-
-		// This should NOT be optimized to only allow weak acquires if currently strongly acquired.
-		// Weak re-acquires are necessary to support making compariable copies of weak references, and
-		// to prevent ABA issues with those comparisons.
-
-		size_t newCount;
 		size_t oldCount = atomic::load(m_counts[refStrengthType]);
-		do {
-			COGS_ASSERT((refStrengthType == strong) || !!oldCount);
-			if (!oldCount)
-			{
-				result = false;
-				break;
-			}
-			newCount = oldCount + n;
-		} while (!atomic::compare_exchange(m_counts[refStrengthType], newCount, oldCount, oldCount));
+		if (!n)
+			result = oldCount != 0;
+		else
+		{
+			// This should NOT be changed to disallow weak acquires if all strong references have been released.
+			// These weak acquires are necessary to support making compariable copies of weak references, and
+			// to prevent ABA issues with those comparisons.
+			size_t newCount;
+			do {
+				COGS_ASSERT((refStrengthType == strong) || !!oldCount);
+				if (!oldCount)
+				{
+					result = false;
+					break;
+				}
+				newCount = oldCount + n;
+			} while (!atomic::compare_exchange(m_counts[refStrengthType], newCount, oldCount, oldCount));
+		}
 		return result;
 	}
 

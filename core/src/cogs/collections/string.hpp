@@ -172,35 +172,35 @@ public:
 		template <typename>
 		friend class string_t;
 
-		typename vector_t::iterator m_iterator;
+		typename vector_t::iterator m_contents;
 
 		iterator(const typename vector_t::iterator& i)
-			: m_iterator(i)
+			: m_contents(i)
 		{ }
 
 	public:
 		iterator() { }
-		iterator(const iterator& i) : m_iterator(i.m_iterator) { }
+		iterator(const iterator& i) : m_contents(i.m_contents) { }
 
-		void release() { m_iterator.release(); }
+		void release() { m_contents.release(); }
 
-		iterator& operator++() { ++m_iterator; return *this; }
-		iterator& operator--() { --m_iterator; return *this; }
+		iterator& operator++() { ++m_contents; return *this; }
+		iterator& operator--() { --m_contents; return *this; }
 
 		iterator operator++(int) { iterator i(*this); ++*this; return i; }
 		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
-		bool operator!() const { return !m_iterator; }
+		bool operator!() const { return !m_contents; }
 
-		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
-		iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+		iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
 
-		type* get() const { m_iterator.get(); }
+		type* get() const { m_contents.get(); }
 		type& operator*() const { return *get(); }
 		type* operator->() const { return get(); }
 
-		size_t get_position() const { m_iterator.get_position(); }
+		size_t get_position() const { m_contents.get_position(); }
 
 		iterator next() const { iterator result(*this); ++result; return result; }
 		iterator prev() const { iterator result(*this); --result; return result; }
@@ -213,39 +213,39 @@ public:
 		template <typename>
 		friend class string_t;
 
-		typename vector_t::const_iterator m_iterator;
+		typename vector_t::const_iterator m_contents;
 
 		const_iterator(const typename vector_t::const_iterator& i)
-			: m_iterator(i)
+			: m_contents(i)
 		{ }
 
 	public:
 		const_iterator() { }
-		const_iterator(const const_iterator& i) : m_iterator(i.m_iterator) { }
-		const_iterator(const iterator& i) : m_iterator(i.m_iterator) { }
+		const_iterator(const const_iterator& i) : m_contents(i.m_contents) { }
+		const_iterator(const iterator& i) : m_contents(i.m_contents) { }
 
-		void release() { m_iterator.release(); }
+		void release() { m_contents.release(); }
 
-		const_iterator& operator++() { ++m_iterator; return *this; }
-		const_iterator& operator--() { --m_iterator; return *this; }
+		const_iterator& operator++() { ++m_contents; return *this; }
+		const_iterator& operator--() { --m_contents; return *this; }
 
 		const_iterator operator++(int) { const_iterator i(*this); ++*this; return i; }
 		const_iterator operator--(int) { const_iterator i(*this); --*this; return i; }
 
-		bool operator!() const { return !m_iterator; }
+		bool operator!() const { return !m_contents; }
 
-		bool operator==(const const_iterator& i) const { return m_iterator == i.m_iterator; }
-		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator==(const const_iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
-		const_iterator& operator=(const const_iterator& i) { m_iterator = i.m_iterator; return *this; }
-		const_iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+		const_iterator& operator=(const const_iterator& i) { m_contents = i.m_contents; return *this; }
+		const_iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
 
-		const type* get() const { m_iterator.get(); }
+		const type* get() const { m_contents.get(); }
 		const type& operator*() const { return *get(); }
 		const type* operator->() const { return get(); }
 
-		size_t get_position() const { m_iterator.get_position(); }
+		size_t get_position() const { m_contents.get_position(); }
 
 		const_iterator next() const { const_iterator result(*this); ++result; return result; }
 		const_iterator prev() const { const_iterator result(*this); --result; return result; }

@@ -2,9 +2,8 @@
 //  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-
+#include <iostream>
 #include "cogs/cogs.hpp"
-
 
 namespace cogs
 {
@@ -16,7 +15,6 @@ using namespace cogs::gui;
 using namespace cogs::io;
 using namespace cogs::io::net;
 using namespace cogs::io::net::ip;
-
 
 class box : public background
 {
@@ -101,26 +99,29 @@ COGS_MAIN
 {
 	return cogs::main([](const auto& uiSubsystem)
 	{
+		{
+			rcref<http::server> httpServer = rcnew(http::server);
+			rcref<smtp::server> smtpServer = rcnew(smtp::server);
+			rcref<tcp::listener> httpListener = ip::tcp::server_listen(httpServer, 8080);// 80);
+			rcref<tcp::listener> smtpListener = ip::tcp::server_listen(smtpServer, 8081);// 25);
+			cleanup_queue::get()->add(httpServer);
+			cleanup_queue::get()->add(smtpServer);
+			cleanup_queue::get()->add(httpListener);
+			cleanup_queue::get()->add(smtpListener);
+		}
+
 		auto guiSubsystem = gui::subsystem::get_default();
 		if (!guiSubsystem)
 		{
 			printf("Console UI - TBD\n");
+			int i;
+			std::cin >> i;
+
 			cogs::request_quit();
 			return EXIT_SUCCESS;
 		}
 
 		rcref<count_down_event> quitCountDown = rcnew(count_down_event, 0, []() { cogs::request_quit(); });
-
-		//{
-		//	rcptr<http::server> m_httpServer = rcnew(http::server);
-		//	rcptr<smtp::server> m_smtpServer = rcnew(smtp::server);
-		//	rcptr<tcp::listener> m_httpListener = ip::tcp::server_listen(m_httpServer.dereference(), 8080);// 80);
-		//	rcptr<tcp::listener> m_smtpListener = ip::tcp::server_listen(m_smtpServer.dereference(), 8081);// 25);
-		//	cleanup_queue::get()->add(m_httpServer);
-		//	cleanup_queue::get()->add(m_smtpServer);
-		//	cleanup_queue::get()->add(m_httpListener);
-		//	cleanup_queue::get()->add(m_smtpListener);
-		//}
 
 		//{
 		//	rcref<background> box1 = rcnew(background, color(0xFF, 0x00, 0x00, 0xFF));
@@ -1139,3 +1140,5 @@ COGS_MAIN
 		return EXIT_SUCCESS;
 	});
 }
+
+

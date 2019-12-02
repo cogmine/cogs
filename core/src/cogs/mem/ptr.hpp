@@ -525,7 +525,7 @@ public:
 	void swap(volatile ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
 	template <typename type2>
-	void swap(type2 volatile *& wth) { cogs::swap(get_ptr_ref(), wth); }
+	void swap(type2* volatile& wth) { cogs::swap(get_ptr_ref(), wth); }
 
 	template <typename type2>
 	void swap(ptr<type2>& wth) volatile { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
@@ -946,7 +946,7 @@ public:
 	/// @}
 
 	type*& get_ptr_ref() { return m_ref.get_ptr_ref(); }
-	type* const & get_ptr_ref() const { return m_ref.get_ptr_ref(); }
+	type* const& get_ptr_ref() const { return m_ref.get_ptr_ref(); }
 	type* volatile& get_ptr_ref() volatile { return m_ref.get_ptr_ref(); }
 	type* const volatile& get_ptr_ref() const volatile { return m_ref.get_ptr_ref(); }
 
@@ -1049,7 +1049,7 @@ public:
 	void swap(volatile ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
 	template <typename type2>
-	void swap(type2 volatile *& wth) { cogs::swap(get_ptr_ref(), wth); }
+	void swap(type2* volatile& wth) { cogs::swap(get_ptr_ref(), wth); }
 
 	template <typename type2>
 	void swap(ptr<type2>& wth) volatile { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
@@ -1355,8 +1355,8 @@ public:
 	const volatile ref<type>& dereference() const volatile { COGS_ASSERT(get_ptr() != 0); return m_ref; }
 	/// @}
 
-	type* & get_ptr_ref() { return m_ref.get_ptr_ref(); }
-	type* const & get_ptr_ref() const { return m_ref.get_ptr_ref(); }
+	type*& get_ptr_ref() { return m_ref.get_ptr_ref(); }
+	type* const& get_ptr_ref() const { return m_ref.get_ptr_ref(); }
 	type* volatile& get_ptr_ref() volatile { return m_ref.get_ptr_ref(); }
 	type* const volatile& get_ptr_ref() const volatile { return m_ref.get_ptr_ref(); }
 
@@ -1459,7 +1459,7 @@ public:
 	void swap(volatile ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
 	template <typename type2>
-	void swap(type2 volatile *& wth) { cogs::swap(get_ptr_ref(), wth); }
+	void swap(type2* volatile& wth) { cogs::swap(get_ptr_ref(), wth); }
 
 	template <typename type2>
 	void swap(ptr<type2>& wth) volatile { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
@@ -1868,7 +1868,7 @@ public:
 	void swap(volatile ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
 	template <typename type2>
-	void swap(type2 volatile *& wth) { cogs::swap(get_ptr_ref(), wth); }
+	void swap(type2* volatile& wth) { cogs::swap(get_ptr_ref(), wth); }
 
 	template <typename type2>
 	void swap(ptr<type2>& wth) volatile { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
@@ -2277,7 +2277,7 @@ public:
 	void swap(volatile ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
 	template <typename type2>
-	void swap(type2 volatile *& wth) { cogs::swap(get_ptr_ref(), wth); }
+	void swap(type2* volatile& wth) { cogs::swap(get_ptr_ref(), wth); }
 
 	template <typename type2>
 	void swap(ptr<type2>& wth) volatile { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }

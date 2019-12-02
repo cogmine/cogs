@@ -60,7 +60,7 @@ private:
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<priority_dispatched> >::preallocated_t i;
+		priority_queue<int, ptr<priority_dispatched> >::preallocated i;
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<priority_dispatched> >(priority, i);
 		priority_dispatched* d = &(r->get());
 		i.get_value() = d;

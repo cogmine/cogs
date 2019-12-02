@@ -20,13 +20,15 @@ include_directories(
   core/src
 )
 
-# TODO: Add support for architetures other than x64 and x86
+# TODO: Add support for architectures other than x64 and x86
 if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
+  set(X64 1)
   message(STATUS "Configured for x64")
   include_directories(
     core/arch/x64/src
   )
 elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)  # 32-bit
+  set(X86 1)
   message(STATUS "Configured for x86")
   include_directories(
     core/arch/x86/src
@@ -92,9 +94,9 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 ###################################################################### CLANG
-
-  if (WIN32)
+  if (CMAKE_CXX_SIMULATE_ID MATCHES "MSVC")
   ################################################################ CLANG/MSVC WIN32
+    set(CLANGCL 1)
     message(STATUS "Configured for clang-cl")
     # TODO: Create a separate env layer for Clang on Win32?
     include_directories(
@@ -102,6 +104,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     )
     # On Windows, clang-cl and MSVC linker are used, so MSVC settings are used (below)
   else()
+    set(CLANG 1)
     message(STATUS "Configured for clang")
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules)
     if (APPLE)
@@ -121,9 +124,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
   ################################################################
  
-  if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
+  if (X64)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16) 
-  elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)  # 32-bit
+  elseif (X32)
   endif()
 
   # TODO
@@ -132,6 +135,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 ###################################################################### GCC
+  set(GCC 1)
   message(STATUS "Configured for gcc")
 
   include_directories(
@@ -148,9 +152,10 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
   ################################################################
 
-  if (CMAKE_SIZEOF_VOID_P MATCHES 8)  # 64-bit
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16) 
-  elseif (CMAKE_SIZEOF_VOID_P MATCHES 4)  # 32-bit
+  if (X64)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64) 
+  elseif (X86)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m32) 
   endif()
 
   #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:>)
@@ -158,6 +163,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 ###################################################################### INTEL
+  set(INTEL 1)
   message(STATUS "Configured for Intel")
 
   include_directories(
@@ -171,6 +177,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") 
 ###################################################################### MSVC
+  set(MSVC 1)
   message(STATUS "Configured for msvc")
   
   include_directories(
@@ -193,11 +200,11 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 ######################################################################
 
-###################################################################### MSVC OR CLANG/MSVC WIN32
-if ((("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang")) AND (WIN32))
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
+###################################################################### MSVC OR CLANG-CL
+if (MSVC OR CLANGCL)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
   target_link_options(${EXECUTABLE_NAME} PUBLIC /INCREMENTAL:NO /NXCOMPAT /DYNAMICBASE)
 endif()
 ######################################################################

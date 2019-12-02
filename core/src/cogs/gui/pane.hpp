@@ -212,7 +212,7 @@ private:
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<serial_dispatched> >::preallocated_t i;
+		priority_queue<int, ptr<serial_dispatched> >::preallocated i;
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;
@@ -461,7 +461,7 @@ private:
 		typedef std::invoke_result_t<F> result_t2;
 		typedef forwarding_function_task<result_t2, void> task_t;
 		rcref<task<result_t2> > result = rcnew(task_t, std::forward<F>(f), priority).template static_cast_to<task<result_t2> >();
-		priority_queue<int, ptr<serial_dispatched> >::preallocated_t i;
+		priority_queue<int, ptr<serial_dispatched> >::preallocated i;
 		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
 		serial_dispatched* d = &(r->get());
 		i.get_value() = d;

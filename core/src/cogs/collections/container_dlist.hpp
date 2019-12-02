@@ -27,7 +27,6 @@ namespace cogs {
 #pragma warning (disable: 4521) // multiple copy constructors specified
 #pragma warning (disable: 4522) // multiple assignment operators specified
 
-
 /// @ingroup LockFreeCollections
 /// @brief A double-link list container collection
 /// @tparam T Type to contain.
@@ -618,7 +617,11 @@ public:
 	class volatile_iterator;
 	class remove_token;
 	class volatile_remove_token;
-	class preallocated_t;
+	class preallocated;
+
+	template <typename T2> static constexpr bool is_iterator_type_v = std::is_same_v<iterator, std::remove_cv_t<T2> > || std::is_same_v<volatile_iterator, std::remove_cv_t<T2> >;
+	template <typename T2> static constexpr bool is_remove_token_type_v = std::is_same_v<remove_token, std::remove_cv_t<T2> > || std::is_same_v<volatile_remove_token, std::remove_cv_t<T2> >;
+	template <typename T2> static constexpr bool is_element_reference_type_v = std::is_same_v<preallocated, std::remove_cv_t<T2> > || is_iterator_type_v<T2> || is_remove_token_type_v<T2>;
 
 	/// @brief A container_dlist element iterator
 	class iterator
@@ -627,41 +630,124 @@ public:
 		rcptr<link_t> m_link;
 
 		friend class container_dlist;
+		friend class volatile_iterator;
 		friend class remove_token;
-		friend class preallocated_t;
+		friend class volatile_remove_token;
+		friend class preallocated;
 
 		iterator(const rcptr<link_t>& l) : m_link(l) { }
+		iterator(const volatile rcptr<link_t>& l) : m_link(l) { }
+		iterator(rcptr<link_t>&& l) : m_link(std::move(l)) { }
+
+		iterator(const rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		iterator(const volatile rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		iterator(rcptr<volatile link_t>&& l) : m_link(std::move(l).template const_cast_to<link_t>()) { }
+
+		iterator(const weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
+		iterator(const volatile weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
+
+		iterator(const weak_rcptr<volatile link_t>& l)
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
+
+		iterator(const volatile weak_rcptr<volatile link_t>& l)
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
+
+		void assign(const rcptr<link_t>& l) { m_link = l; }
+		void assign(const rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(rcptr<link_t>&& l) { m_link = std::move(l); }
+		void assign(rcptr<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(rcptr<volatile link_t>&& l) { m_link = std::move(l).template const_cast_to<link_t>(); }
+		void assign(rcptr<volatile link_t>&& l) volatile { m_link = std::move(l).template const_cast_to<link_t>(); }
+
+		void assign(const weak_rcptr<link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const weak_rcptr<link_t>& l) volatile
+		{
+			rcptr<link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk);
+		}
+
+		void assign(const volatile weak_rcptr<link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const volatile weak_rcptr<link_t>& l) volatile
+		{
+			rcptr<link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk);
+		}
+
+		void assign(const weak_rcptr<volatile link_t>& l)
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
+
+		void assign(const weak_rcptr<volatile link_t>& l) volatile
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
+
+		void assign(const volatile weak_rcptr<volatile link_t>& l)
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
+
+		void assign(const volatile weak_rcptr<volatile link_t>& l) volatile
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk).template const_cast_to<link_t>();
+		}
 
 	public:
+		iterator() { }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		iterator(T2&& i) : iterator(forward_member<T2>(i.m_link)) { }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
-
-		iterator() { }
-		iterator(const iterator& i) : m_link(i.m_link) { }
-		iterator(const remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
-		iterator(const volatile iterator& i) : m_link(i.m_link) { }
-		iterator(const volatile remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
-
-		iterator(iterator&& i) : m_link(std::move(i.m_link)) { }
-		iterator(remove_token&& rt) : m_link(std::move(rt.m_link)) { if (is_removed()) release(); }
-
-		iterator& operator=(const iterator& i) { m_link = i.m_link; return *this; }
-		iterator& operator=(const remove_token& i) { m_link = i.m_link; if (is_removed()) release(); return *this; }
-		iterator& operator=(const volatile iterator& i) { m_link = i.m_link; return *this; }
-		iterator& operator=(const volatile remove_token& i) { m_link = i.m_link; if (is_removed()) release(); return *this; }
-		volatile iterator& operator=(const iterator& i) volatile { m_link = i.m_link; return *this; }
-		volatile iterator& operator=(const remove_token& i) volatile { m_link = i.m_link; return *this; }
-
-		iterator& operator=(iterator&& i) { m_link = std::move(i.m_link); return *this; }
-		iterator& operator=(remove_token&& i) { m_link = std::move(i.m_link); if (is_removed()) release(); return *this; }
-		volatile iterator& operator=(iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile iterator& operator=(remove_token&& i) volatile { m_link = std::move(i.m_link); return *this; }
 
 		void release() { m_link.release(); }
 		void release() volatile { m_link.release(); }
 
 		bool is_active() const { return !!m_link && !m_link->is_removed(); }
-		bool is_active() const volatile { iterator i(*this); return i.is_action(); }
+		bool is_active() const volatile { iterator i(*this); return i.is_active(); }
 
 		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
 		bool is_removed() const volatile { iterator i(*this); return i.is_removed(); }
@@ -681,22 +767,26 @@ public:
 			return result;
 		}
 
+		rcptr<type> get_obj() const volatile
+		{
+			iterator tmp = *this;
+			return tmp.get_obj();
+		}
+
 		bool operator!() const { return !m_link; }
 		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const iterator& i) const volatile { return m_link == i.m_link; }
-		bool operator==(const remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const remove_token& i) const volatile  { return m_link == i.m_link; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const { return m_link == i.m_link; }
 
-		bool operator!=(const iterator& i) const { return !operator==(i); }
-		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
-		bool operator!=(const iterator& i) const volatile { return !operator==(i); }
-		bool operator!=(const remove_token& i) const { return !operator==(i); }
-		bool operator!=(const volatile remove_token& i) const { return !operator==(i); }
-		bool operator!=(const remove_token& i) const volatile { return !operator==(i); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
 
 		iterator next() const
 		{
@@ -862,63 +952,44 @@ public:
 			return oldValue;
 		}
 
-		void swap(iterator& wth) { m_link.swap(wth); }
-		void swap(iterator& wth) volatile { m_link.swap(wth); }
-		void swap(volatile iterator& wth) { return wth.swap(*this); }
 
-		void exchange(const iterator& src, iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const iterator& src, iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile iterator& src, iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile iterator& src, iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const iterator& src, volatile iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const iterator& src, volatile iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile iterator& src, volatile iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile iterator& src, volatile iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		void exchange(iterator&& src, iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(iterator&& src, iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(iterator&& src, volatile iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(iterator&& src, volatile iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		void swap(T2& wth) volatile  { m_link.swap(wth.m_link); }
 
-		bool compare_exchange(const iterator& src, const iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const iterator& src, const iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
-		bool compare_exchange(iterator&& src, const iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(iterator&& src, const iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
 
-		bool compare_exchange(const iterator& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const iterator& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile iterator& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		iterator exchange(T2&& src) { return iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
 
-		bool compare_exchange(iterator&& src, const iterator& cmp, iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp, iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp, iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp, volatile iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(iterator&& src, const volatile iterator& cmp, volatile iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		iterator exchange(T2&& src) volatile { return iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
+
 	};
 
 	/// @brief A volatile container_dlist element iterator
@@ -928,41 +999,94 @@ public:
 		mutable rcptr<volatile link_t> m_link;
 
 		friend class container_dlist;
+		friend class iterator;
+		friend class remove_token;
 		friend class volatile_remove_token;
+		friend class preallocated;
+
+		volatile_iterator(const rcptr<link_t>& l) : m_link(l) { }
+		volatile_iterator(const volatile rcptr<link_t>& l) : m_link(l) { }
+		volatile_iterator(rcptr<link_t>&& l) : m_link(std::move(l)) { }
 
 		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l) { }
+		volatile_iterator(const volatile rcptr<volatile link_t>& l) : m_link(l) { }
+		volatile_iterator(rcptr<volatile link_t>&& l) : m_link(std::move(l)) { }
 
-	public:
-		void disown() { m_link.disown(); }
-		void disown() volatile { m_link.disown(); }
+		volatile_iterator(const weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
+		volatile_iterator(const volatile weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
 
-		volatile_iterator() { }
-		volatile_iterator(const volatile_iterator& i) : m_link(i.m_link) { }
-		volatile_iterator(const volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
-		volatile_iterator(const volatile volatile_iterator& i) : m_link(i.m_link) { }
-		volatile_iterator(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { if (is_removed()) release(); }
+		volatile_iterator(const weak_rcptr<volatile link_t>& l) : m_link(l) { if (is_removed()) release(); }
+		volatile_iterator(const volatile weak_rcptr<volatile link_t>& l) : m_link(l) { if (is_removed()) release(); }
 
-		volatile_iterator(volatile_iterator&& i) : m_link(std::move(i.m_link)) { }
-		volatile_iterator(volatile_remove_token&& rt) : m_link(std::move(rt.m_link)) { if (is_removed()) release(); }
 
-		volatile_iterator& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		volatile_iterator& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
-		volatile_iterator& operator=(const volatile volatile_remove_token& rt) { m_link = rt.m_link; if (is_removed()) release(); return *this; }
-		volatile volatile_iterator& operator=(const volatile_iterator& i) volatile { m_link = i.m_link; return *this; }
-		volatile volatile_iterator& operator=(const volatile_remove_token& rt) volatile
+		void assign(const rcptr<link_t>& l) { m_link = l; }
+		void assign(const rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(rcptr<link_t>&& l) { m_link = std::move(l); }
+		void assign(rcptr<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const rcptr<volatile link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l; }
+		void assign(rcptr<volatile link_t>&& l) { m_link = std::move(l); }
+		void assign(rcptr<volatile link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const weak_rcptr<link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const weak_rcptr<link_t>& l) volatile
 		{
-			rcptr<volatile link_t> lnk = rt.m_link;
+			rcptr<volatile link_t> lnk = l;
 			if (!!lnk && lnk->is_removed())
 				lnk.release();
-			m_link = lnk; 
-			return *this;
+			m_link = std::move(lnk);
 		}
 
-		volatile_iterator& operator=(volatile_iterator&& i) { m_link = std::move(i.m_link); return *this; }
-		volatile_iterator& operator=(volatile_remove_token&& rt) { m_link = std::move(rt.m_link); if (is_removed()) release(); return *this; }
-		volatile volatile_iterator& operator=(volatile_iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile volatile_iterator& operator=(volatile_remove_token&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		void assign(const volatile weak_rcptr<link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const volatile weak_rcptr<link_t>& l) volatile
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk);
+		}
+
+		void assign(const weak_rcptr<volatile link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const weak_rcptr<volatile link_t>& l) volatile
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk);
+		}
+
+		void assign(const volatile weak_rcptr<volatile link_t>& l) { m_link = l; if (is_removed()) release(); }
+
+		void assign(const volatile weak_rcptr<volatile link_t>& l) volatile
+		{
+			rcptr<volatile link_t> lnk = l;
+			if (!!lnk && lnk->is_removed())
+				lnk.release();
+			m_link = std::move(lnk);
+		}
+
+	public:
+		volatile_iterator() { }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_iterator(T2&& i) : volatile_iterator(forward_member<T2>(i.m_link)) { }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile volatile_iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+
+		void disown() { m_link.disown(); }
+		void disown() volatile { m_link.disown(); }
 
 		void release() { m_link.release(); }
 		void release() volatile { m_link.release(); }
@@ -988,22 +1112,26 @@ public:
 			return result;
 		}
 
+		rcptr<type> get_obj() const volatile
+		{
+			volatile_iterator tmp = *this;
+			return tmp.get_obj();
+		}
+
 		bool operator!() const { return !m_link; }
 		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile volatile_remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const volatile { return m_link == i.m_link; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const { return m_link == i.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const { return !operator==(i); }
-		bool operator!=(const volatile volatile_remove_token& i) const { return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const volatile { return !operator==(i); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
 
 		volatile_iterator next() const
 		{
@@ -1311,93 +1439,81 @@ public:
 			return oldValue;
 		}
 
-		void swap(volatile_iterator& wth) { m_link.swap(wth); }
-		void swap(volatile_iterator& wth) volatile { m_link.swap(wth); }
-		void swap(volatile volatile_iterator& wth) { return wth.swap(*this); }
 
-		void exchange(const volatile_iterator& src, volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile_iterator& src, volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile volatile_iterator& src, volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile volatile_iterator& src, volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile_iterator& src, volatile volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile_iterator& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile volatile_iterator& src, volatile volatile_iterator& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-		void exchange(const volatile volatile_iterator& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		void exchange(volatile_iterator&& src, volatile_iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(volatile_iterator&& src, volatile_iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(volatile_iterator&& src, volatile volatile_iterator& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-		void exchange(volatile_iterator&& src, volatile volatile_iterator& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
 
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
 
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-		bool compare_exchange(const volatile volatile_iterator& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_iterator exchange(T2&& src) { return volatile_iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
 
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-		bool compare_exchange(volatile_iterator&& src, const volatile volatile_iterator& cmp, volatile volatile_iterator& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_iterator exchange(T2&& src) volatile { return volatile_iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
 	/// @brief A preallocated container_dlist element
-	class preallocated_t
+	class preallocated
 	{
 	private:
 		rcptr<link_t> m_link;
 
 		friend class container_dlist;
+		friend class iterator;
+		friend class volatile_iterator;
+		friend class remove_token;
+		friend class volatile_remove_token;
 
-		preallocated_t(const rcptr<link_t>& l) : m_link(l) { }
+		preallocated(const rcptr<link_t>& l) : m_link(l) { }
+		preallocated(const volatile rcptr<link_t>& l) : m_link(l) { }
+		preallocated(rcptr<link_t>&& l) : m_link(std::move(l)) { }
 
 	public:
+		preallocated() { }
+		preallocated(const preallocated& src) : m_link(src.m_link) { }
+		preallocated(const volatile preallocated& src) : m_link(src.m_link) { }
+
+		preallocated(preallocated&& src) : m_link(std::move(src.m_link)) { }
+
+		preallocated& operator=(const preallocated& i) { m_link = i.m_link; return *this; }
+		preallocated& operator=(const volatile preallocated& i) { m_link = i.m_link; return *this; }
+		volatile preallocated& operator=(const preallocated& i) volatile { m_link = i.m_link; return *this; }
+		volatile preallocated& operator=(const volatile preallocated& i) volatile { m_link = i.m_link; return *this; }
+
+		preallocated& operator=(preallocated&& i) { m_link = std::move(i.m_link); return *this; }
+		preallocated& operator=(preallocated&& i) volatile { m_link = std::move(i.m_link); return *this; }
+
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
 
-		preallocated_t() { }
-		preallocated_t(const preallocated_t& src) : m_link(src.m_link) { }
-		preallocated_t(const volatile preallocated_t& src) : m_link(src.m_link) { }
-
-		preallocated_t(preallocated_t&& src) : m_link(std::move(src.m_link)) { }
-
-		preallocated_t& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
-		preallocated_t& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
-		preallocated_t& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
-
-		preallocated_t& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
-		preallocated_t& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
-
 		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
 
 		type* get() const { return (!m_link) ? (type*)0 : m_link->get(); }
 		type& operator*() const { return *(m_link->get()); }
@@ -1414,9 +1530,100 @@ public:
 			return result;
 		}
 
+		rcptr<type> get_obj() const volatile
+		{
+			preallocated tmp = *this;
+			return tmp.get_obj();
+		}
+
 		bool operator!() const { return !m_link; }
-		bool operator==(const preallocated_t& i) const { return m_link == i.m_link; }
-		bool operator!=(const preallocated_t& i) const { return !operator==(i); }
+		bool operator!() const volatile { return !m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
+
+
+		void swap(preallocated& wth) { m_link.swap(wth.m_link); }
+		void swap(preallocated& wth) volatile { m_link.swap(wth.m_link); }
+		void swap(volatile preallocated& wth) { m_link.swap(wth.m_link); }
+
+
+		preallocated exchange(const preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
+		preallocated exchange(const volatile preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
+		preallocated exchange(preallocated&& src) { return preallocated(m_link.exchange(std::move(src.m_link))); }
+
+		preallocated exchange(const preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
+		preallocated exchange(const volatile preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
+		preallocated exchange(preallocated&& src) volatile { return preallocated(m_link.exchange(std::move(src.m_link))); }
+
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(const preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(const volatile preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(preallocated&& src, T3& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(const preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(const volatile preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
+		void exchange(preallocated&& src, T3& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(const preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(preallocated&& src, const T3& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(const preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+
+		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
+		bool compare_exchange(preallocated&& src, const T3& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+
+		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
+		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+
+
+
 	};
 
 	/// @brief A container_dlist element remove token
@@ -1427,47 +1634,124 @@ public:
 		weak_rcptr<link_t> m_link;
 
 		friend class container_dlist;
+		friend class iterator;
+		friend class volatile_iterator;
+		friend class volatile_remove_token;
+		friend class preallocated;
+
+		remove_token(const weak_rcptr<link_t>& l) : m_link(l) { }
+		remove_token(const volatile weak_rcptr<link_t>& l) : m_link(l) { }
+		remove_token(weak_rcptr<link_t>&& l) : m_link(std::move(l)) { }
+
+		remove_token(const weak_rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		remove_token(const volatile weak_rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		remove_token(weak_rcptr<volatile link_t>&& l) : m_link(std::move(l).template const_cast_to<link_t>()) { }
+
+		remove_token(const rcptr<link_t>& l) : m_link(l) { }
+		remove_token(const volatile rcptr<link_t>& l) : m_link(l) { }
+
+		remove_token(const rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		remove_token(const volatile rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+
+
+
+		void assign(const weak_rcptr<link_t>& l) { m_link = l; }
+		void assign(const weak_rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile weak_rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile weak_rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(weak_rcptr<link_t>&& l) { m_link = std::move(l); }
+		void assign(weak_rcptr<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const weak_rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const weak_rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile weak_rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile weak_rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(weak_rcptr<volatile link_t>&& l) { m_link = std::move(l).template const_cast_to<link_t>(); }
+		void assign(weak_rcptr<volatile link_t>&& l) volatile { m_link = std::move(l).template const_cast_to<link_t>(); }
+
+		void assign(const rcptr<link_t>& l) { m_link = l; }
+		void assign(const rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) volatile { m_link = l; }
+
+		void assign(const rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+
 	public:
 		remove_token() { }
-		remove_token(const preallocated_t& i) : m_link(i.m_link) { }
-		remove_token(const iterator& i) : m_link(i.m_link) { }
-		remove_token(const remove_token& rt) : m_link(rt.m_link) { }
-		remove_token(const volatile preallocated_t& i) : m_link(i.m_link) { }
-		remove_token(const volatile iterator& i) : m_link(i.m_link) { }
-		remove_token(const volatile remove_token& rt) : m_link(rt.m_link) { }
 
-		remove_token(preallocated_t&& i) : m_link(std::move(i.m_link)) { }
-		remove_token(iterator&& i) : m_link(std::move(i.m_link)) { }
-		remove_token(remove_token&& rt) : m_link(std::move(rt.m_link)) { }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		remove_token(T2&& i) : remove_token(forward_member<T2>(i.m_link)) { }
 
-		remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
-		remove_token& operator=(const iterator& i) { m_link = i.m_link; return *this; }
-		remove_token& operator=(const remove_token& rt) { m_link = rt.m_link; return *this; }
-		remove_token& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
-		remove_token& operator=(const volatile iterator& i) { m_link = i.m_link; return *this; }
-		remove_token& operator=(const volatile remove_token& rt) { m_link = rt.m_link; return *this; }
-		volatile remove_token& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
-		volatile remove_token& operator=(const iterator& i) volatile { m_link = i.m_link; return *this; }
-		volatile remove_token& operator=(const remove_token& rt) volatile { m_link = rt.m_link; return *this; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
-		remove_token& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
-		remove_token& operator=(iterator&& i) { m_link = std::move(i.m_link); return *this; }
-		remove_token& operator=(remove_token&& rt) { m_link = std::move(rt.m_link); return *this; }
-		volatile remove_token& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile remove_token& operator=(iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile remove_token& operator=(remove_token&& rt) volatile { m_link = std::move(rt.m_link); return *this; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
 
-		bool is_active() const { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		void disown() { m_link.disown(); }
+		void disown() volatile { m_link.disown(); }
 
 		void release() { m_link.release(); }
+		void release() volatile { m_link.release(); }
+
+		bool is_active() const { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
+		bool is_active() const volatile { rcptr<link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 
 		bool operator!() const { return !m_link; }
+		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const remove_token& rt) const { return m_link == rt.m_link; }
 
-		bool operator!=(const iterator& i) const { return !operator==(i); }
-		bool operator!=(const remove_token& rt) const { return !operator==(rt); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(T2& wth) { m_link.swap(wth.m_link); }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
+
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		remove_token exchange(T2&& src) { return remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		remove_token exchange(T2&& src) volatile { return remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
 	/// @brief A volatile container_dlist element remove token
@@ -1479,35 +1763,61 @@ public:
 		weak_rcptr<volatile link_t> m_link;
 
 		friend class container_dlist;
+		friend class iterator;
+		friend class volatile_iterator;
+		friend class remove_token;
+		friend class preallocated;
+
+		volatile_remove_token(const weak_rcptr<link_t>& l) : m_link(l) { }
+		volatile_remove_token(const volatile weak_rcptr<link_t>& l) : m_link(l) { }
+		volatile_remove_token(weak_rcptr<link_t>&& l) : m_link(std::move(l)) { }
+
+		volatile_remove_token(const weak_rcptr<volatile link_t>& l) : m_link(l) { }
+		volatile_remove_token(const volatile weak_rcptr<volatile link_t>& l) : m_link(l) { }
+		volatile_remove_token(weak_rcptr<volatile link_t>&& l) : m_link(std::move(l)) { }
+
+		volatile_remove_token(const rcptr<link_t>& l) : m_link(l) { }
+		volatile_remove_token(const volatile rcptr<link_t>& l) : m_link(l) { }
+
+		volatile_remove_token(const rcptr<volatile link_t>& l) { m_link = l; }
+		volatile_remove_token(const volatile rcptr<volatile link_t>& l) { m_link = l; }
+
+		void assign(const weak_rcptr<link_t>& l) { m_link = l; }
+		void assign(const weak_rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile weak_rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile weak_rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(weak_rcptr<link_t>&& l) { m_link = std::move(l); }
+		void assign(weak_rcptr<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const weak_rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const weak_rcptr<volatile link_t>& l) volatile { m_link = l; }
+		void assign(const volatile weak_rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const volatile weak_rcptr<volatile link_t>& l) volatile { m_link = l; }
+		void assign(weak_rcptr<volatile link_t>&& l) { m_link = std::move(l); }
+		void assign(weak_rcptr<volatile link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcptr<link_t>& l) { m_link = l; }
+		void assign(const rcptr<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<link_t>& l) volatile { m_link = l; }
+
+		void assign(const rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const rcptr<volatile link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l; }
+		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l; }
+
+
 	public:
 		volatile_remove_token() { }
-		volatile_remove_token(const preallocated_t& i) : m_link(i.m_link) { }
-		volatile_remove_token(const volatile_iterator& i) : m_link(i.m_link) { }
-		volatile_remove_token(const volatile_remove_token& rt) : m_link(rt.m_link) { }
-		volatile_remove_token(const volatile preallocated_t& i) : m_link(i.m_link) { }
-		volatile_remove_token(const volatile volatile_iterator& i) : m_link(i.m_link) { }
-		volatile_remove_token(const volatile volatile_remove_token& rt) : m_link(rt.m_link) { }
 
-		volatile_remove_token(preallocated_t&& i) : m_link(std::move(i.m_link)) { }
-		volatile_remove_token(volatile_iterator&& i) : m_link(std::move(i.m_link)) { }
-		volatile_remove_token(volatile_remove_token&& rt) : m_link(std::move(rt.m_link)) { }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_remove_token(T2&& i) : volatile_remove_token(forward_member<T2>(i.m_link)) { }
 
-		volatile_remove_token& operator=(const preallocated_t& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_iterator& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile_remove_token& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile preallocated_t& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_iterator& i) { m_link = i.m_link; return *this; }
-		volatile_remove_token& operator=(const volatile volatile_remove_token& i) { m_link = i.m_link; return *this; }
-		volatile volatile_remove_token& operator=(const preallocated_t& i) volatile { m_link = i.m_link; return *this; }
-		volatile volatile_remove_token& operator=(const volatile_iterator& i) volatile { m_link = i.m_link; return *this; }
-		volatile volatile_remove_token& operator=(const volatile_remove_token& i) volatile { m_link = i.m_link; return *this; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
-		volatile_remove_token& operator=(preallocated_t&& i) { m_link = std::move(i.m_link); return *this; }
-		volatile_remove_token& operator=(volatile_iterator&& i) { m_link = std::move(i.m_link); return *this; }
-		volatile_remove_token& operator=(volatile_remove_token&& i) { m_link = std::move(i.m_link); return *this; }
-		volatile volatile_remove_token& operator=(preallocated_t&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile volatile_remove_token& operator=(volatile_iterator&& i) volatile { m_link = std::move(i.m_link); return *this; }
-		volatile volatile_remove_token& operator=(volatile_remove_token&& i) volatile { m_link = std::move(i.m_link); return *this; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile volatile_remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		bool is_active() const { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
@@ -1518,19 +1828,54 @@ public:
 		bool operator!() const { return !m_link; }
 		bool operator!() const volatile { return !m_link; }
 
-		bool operator==(const volatile_iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile volatile_iterator& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile_iterator& i) const volatile { return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile volatile_remove_token& i) const { return m_link == i.m_link; }
-		bool operator==(const volatile_remove_token& i) const volatile { return m_link == i.m_link; }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const { return m_link == i.m_link; }
 
-		bool operator!=(const volatile_iterator& i) const { return !operator==(i); }
-		bool operator!=(const volatile volatile_iterator& i) const { return !operator==(i); }
-		bool operator!=(const volatile_iterator& i) const volatile { return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const { return !operator==(i); }
-		bool operator!=(const volatile volatile_remove_token& i) const { return !operator==(i); }
-		bool operator!=(const volatile_remove_token& i) const volatile { return !operator==(i); }
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
+		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(T2& wth) { m_link.swap(wth.m_link); }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
+
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
+
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_remove_token exchange(T2&& src) { return volatile_remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
+		volatile_remove_token exchange(T2&& src) volatile { return volatile_remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
+
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+		template <typename T2, typename T3, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> > >
+		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
+
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
+
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
 	container_dlist()
@@ -1663,11 +2008,11 @@ public:
 		return i;
 	}
 
-	preallocated_t preallocate() const volatile { preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
-	preallocated_t preallocate(const type& t) const volatile { preallocated_t i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
+	preallocated preallocate() const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
+	preallocated preallocate(const type& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
 
 	template <typename T2>
-	const rcref<T2>& preallocate_with_aux(preallocated_t& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
+	const rcref<T2>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
 	{
 		typedef aux_payload_link_t<T2> aux_payload_t;
 		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t);
@@ -1676,7 +2021,7 @@ public:
 	}
 
 	template <typename T2>
-	const rcref<T2>& preallocate_with_aux(const type& t, preallocated_t& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
+	const rcref<T2>& preallocate_with_aux(const type& t, preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
 	{
 		typedef aux_payload_link_t<T2> aux_payload_t;
 		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t, t);
@@ -1684,7 +2029,7 @@ public:
 		return p->get_aux_ref(storage);
 	}
 
-	iterator prepend_preallocated(const preallocated_t& i, insert_mode insertMode = insert_mode::normal) const volatile
+	iterator prepend_preallocated(const preallocated& i, insert_mode insertMode = insert_mode::normal) const volatile
 	{
 		iterator result;
 		if (!!i.m_link->insert_after(lazy_init_sentinel(), insertMode))
@@ -1692,7 +2037,7 @@ public:
 		return result;
 	}
 
-	iterator append_preallocated(const preallocated_t& i, insert_mode insertMode = insert_mode::normal) const volatile
+	iterator append_preallocated(const preallocated& i, insert_mode insertMode = insert_mode::normal) const volatile
 	{
 		iterator result;
 		if (!!i.m_link->insert_before(lazy_init_sentinel(), insertMode))
@@ -1700,7 +2045,7 @@ public:
 		return result;
 	}
 
-	volatile_iterator prepend_preallocated(const preallocated_t& i, insert_mode insertMode = insert_mode::normal) volatile
+	volatile_iterator prepend_preallocated(const preallocated& i, insert_mode insertMode = insert_mode::normal) volatile
 	{
 		volatile_iterator result;
 		if (!!i.m_link->insert_after(lazy_init_sentinel(), insertMode))
@@ -1708,7 +2053,7 @@ public:
 		return result;
 	}
 
-	volatile_iterator append_preallocated(const preallocated_t& i, insert_mode insertMode = insert_mode::normal) volatile
+	volatile_iterator append_preallocated(const preallocated& i, insert_mode insertMode = insert_mode::normal) volatile
 	{
 		volatile_iterator result;
 		if (!i.m_link->insert_before(lazy_init_sentinel(), insertMode))
@@ -1789,7 +2134,7 @@ public:
 
 	// insert_after/insert_before return an empty iterator if insertAfter/insertBefore node was already removed
 
-	iterator insert_preallocated_before(const preallocated_t& i, const iterator& insertBefore)
+	iterator insert_preallocated_before(const preallocated& i, const iterator& insertBefore)
 	{ 
 		iterator result;
 		if (!!insertBefore && i.m_link->insert_before(insertBefore.m_link))
@@ -1797,7 +2142,7 @@ public:
 		return result;
 	}
 
-	iterator insert_preallocated_after(const preallocated_t& i, const iterator& insertAfter)
+	iterator insert_preallocated_after(const preallocated& i, const iterator& insertAfter)
 	{
 		iterator result;
 		if (!!insertAfter && i.m_link->insert_after(insertAfter.m_link))
@@ -1805,7 +2150,7 @@ public:
 		return result;
 	}
 
-	volatile_iterator insert_preallocated_before(const preallocated_t& i, const volatile_iterator& insertBefore) volatile
+	volatile_iterator insert_preallocated_before(const preallocated& i, const volatile_iterator& insertBefore) volatile
 	{
 		volatile_iterator result;
 		if (!!insertBefore && i.m_link->insert_before(insertBefore.m_link))
@@ -1813,7 +2158,7 @@ public:
 		return result;
 	}
 
-	volatile_iterator insert_preallocated_after(const preallocated_t& i, const volatile_iterator& insertAfter) volatile
+	volatile_iterator insert_preallocated_after(const preallocated& i, const volatile_iterator& insertAfter) volatile
 	{
 		volatile_iterator result;
 		if (!!insertAfter && i.m_link->insert_after(insertAfter.m_link))
@@ -2114,13 +2459,13 @@ static constexpr size_t container_dlist_iterator_size = sizeof(container_dlist<i
 static constexpr size_t container_dlist_volatile_iterator_size = sizeof(container_dlist<int>::volatile_iterator);
 static constexpr size_t container_dlist_remove_token_size = sizeof(container_dlist<int>::remove_token);
 static constexpr size_t container_dlist_volatile_remove_token_size = sizeof(container_dlist<int>::volatile_remove_token);
-static constexpr size_t container_dlist_preallocated_t_size = sizeof(container_dlist<int>::preallocated_t);
+static constexpr size_t container_dlist_preallocated_size = sizeof(container_dlist<int>::preallocated);
 
 static constexpr size_t container_dlist_iterator_alignment = std::alignment_of_v<typename container_dlist<int>::iterator>;
 static constexpr size_t container_dlist_volatile_iterator_alignment = std::alignment_of_v<typename container_dlist<int>::volatile_iterator>;
 static constexpr size_t container_dlist_remove_token_alignment = std::alignment_of_v<typename container_dlist<int>::remove_token>;
 static constexpr size_t container_dlist_volatile_remove_token_alignment = std::alignment_of_v<typename container_dlist<int>::volatile_remove_token>;
-static constexpr size_t container_dlist_preallocated_t_alignment = std::alignment_of_v<typename container_dlist<int>::preallocated_t>;
+static constexpr size_t container_dlist_preallocated_alignment = std::alignment_of_v<typename container_dlist<int>::preallocated>;
 
 
 #pragma warning(pop)

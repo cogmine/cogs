@@ -16,7 +16,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/os/sync/timeout.hpp"
-#include "cogs/mem/rc_container_base.hpp"
+#include "cogs/mem/rc_container.hpp"
 
 
 namespace cogs {

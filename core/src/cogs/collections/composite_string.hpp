@@ -96,37 +96,37 @@ public:
 		template <typename>
 		friend class composite_string_t;
 
-		typename content_t::iterator m_iterator;
+		typename content_t::iterator m_contents;
 
-		iterator(const typename content_t::iterator& i) : m_iterator(i) { }
+		iterator(const typename content_t::iterator& i) : m_contents(i) { }
 
 	public:
 		iterator() { }
-		iterator(const iterator& i) : m_iterator(i.m_iterator) { }
+		iterator(const iterator& i) : m_contents(i.m_contents) { }
 
-		iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+		iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
 
-		void release() { m_iterator.release(); }
+		void release() { m_contents.release(); }
 
-		iterator& operator++() { ++m_iterator; return *this; }
-		iterator& operator--() { --m_iterator; return *this; }
+		iterator& operator++() { ++m_contents; return *this; }
+		iterator& operator--() { --m_contents; return *this; }
 
 		iterator operator++(int) { iterator i(*this); ++*this; return i; }
 		iterator operator--(int) { iterator i(*this); --*this; return i; }
 
-		bool operator!() const { return !m_iterator; }
+		bool operator!() const { return !m_contents; }
 
-		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
 
-		type* get() const { return m_iterator.get(); }
+		type* get() const { return m_contents.get(); }
 		type& operator*() const { return *get(); }
 		type* operator->() const { return get(); }
 
-		position_t get_position() const { return m_iterator.get_position(); }
+		position_t get_position() const { return m_contents.get_position(); }
 
-		iterator next() const { return m_iterator.next(); }
-		iterator prev() const { return m_iterator.prev(); }
+		iterator next() const { return m_contents.next(); }
+		iterator prev() const { return m_contents.prev(); }
 	};
 
 	/// @brief A composite_string constant element iterator
@@ -136,41 +136,41 @@ public:
 		template <typename>
 		friend class composite_string_t;
 
-		typename content_t::const_iterator m_iterator;
+		typename content_t::const_iterator m_contents;
 
-		const_iterator(const typename content_t::const_iterator& i) : m_iterator(i) { }
+		const_iterator(const typename content_t::const_iterator& i) : m_contents(i) { }
 
 	public:
 		const_iterator() { }
-		const_iterator(const const_iterator& i) : m_iterator(i.m_iterator) { }
-		const_iterator(const iterator& i) : m_iterator(i.m_iterator) { }
+		const_iterator(const const_iterator& i) : m_contents(i.m_contents) { }
+		const_iterator(const iterator& i) : m_contents(i.m_contents) { }
 
-		const_iterator& operator=(const const_iterator& i) { m_iterator = i.m_iterator; return *this; }
-		const_iterator& operator=(const iterator& i) { m_iterator = i.m_iterator; return *this; }
+		const_iterator& operator=(const const_iterator& i) { m_contents = i.m_contents; return *this; }
+		const_iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
 
-		void release() { m_iterator.release(); }
+		void release() { m_contents.release(); }
 
-		const_iterator& operator++() { ++m_iterator; return *this; }
-		const_iterator& operator--() { --m_iterator; return *this; }
+		const_iterator& operator++() { ++m_contents; return *this; }
+		const_iterator& operator--() { --m_contents; return *this; }
 
 		const_iterator operator++(int) { const_iterator i(*this); ++*this; return i; }
 		const_iterator operator--(int) { const_iterator i(*this); --*this; return i; }
 
-		bool operator!() const { return !m_iterator; }
+		bool operator!() const { return !m_contents; }
 
-		bool operator==(const const_iterator& i) const { return m_iterator == i.m_iterator; }
-		bool operator==(const iterator& i) const { return m_iterator == i.m_iterator; }
+		bool operator==(const const_iterator& i) const { return m_contents == i.m_contents; }
+		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
 		bool operator!=(const iterator& i) const { return !operator==(i); }
 
-		const type* get() const { return m_iterator.get(); }
+		const type* get() const { return m_contents.get(); }
 		const type& operator*() const { return *get(); }
 		const type* operator->() const { return get(); }
 
-		position_t get_position() const { return m_iterator.get_position(); }
+		position_t get_position() const { return m_contents.get_position(); }
 
-		const_iterator next() const { return m_iterator.next(); }
-		const_iterator prev() const { return m_iterator.prev(); }
+		const_iterator next() const { return m_contents.next(); }
+		const_iterator prev() const { return m_contents.prev(); }
 	};
 
 	const_iterator get_first_const_iterator() const { return m_contents.get_first_const_iterator(); }

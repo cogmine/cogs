@@ -33,6 +33,7 @@
 #include "cogs/math/fixed_integer.hpp"
 #include "cogs/env/mem/bit_scan.hpp"
 #include "cogs/env/mem/bit_count.hpp"
+#include "cogs/mem/is_same_instance.hpp"
 
 
 namespace cogs
@@ -1691,7 +1692,9 @@ lcm(const T& t, const A1& a)
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(lcm)
 
 
-template <typename T, typename S> inline std::enable_if_t<std::is_scalar_v<T> && !std::is_volatile_v<T>, T>
+// It's caller error (and nonsensical) to pass the same instance for both t and src.  The behavior of doing so is undefined.
+
+template <typename T, typename S> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, T>
 exchange(T& t, S&& src)
 {
 	T rtn;
@@ -1700,7 +1703,7 @@ exchange(T& t, S&& src)
 	return rtn;
 }
 
-template <typename T, typename S> inline std::enable_if_t<std::is_scalar_v<T> && std::is_volatile_v<T>, std::remove_volatile_t<T> >
+template <typename T, typename S> inline std::enable_if_t<!std::is_class_v<T> && std::is_volatile_v<T>, std::remove_volatile_t<T> >
 exchange(T& t, S&& src)
 {
 	std::remove_volatile_t<T> tmpSrc;
@@ -1709,7 +1712,10 @@ exchange(T& t, S&& src)
 }
 
 
-template <typename T, typename S, typename R> inline std::enable_if_t<std::is_scalar_v<T> && !std::is_volatile_v<T>, void>
+// If src and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+// It's caller error (and nonsensical) to pass the same instance for both t and src, or t and rtn.  The behavior of doing so is undefined.
+
+template <typename T, typename S, typename R> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, void>
 exchange(T& t, S&& src, R& rtn)
 {
 	T tmp;
@@ -1718,7 +1724,7 @@ exchange(T& t, S&& src, R& rtn)
 	assign(t, std::move(tmp));
 }
 
-template <typename T, typename S, typename R> inline std::enable_if_t<std::is_scalar_v<T> && std::is_volatile_v<T>, void>
+template <typename T, typename S, typename R> inline std::enable_if_t<!std::is_class_v<T> && std::is_volatile_v<T>, void>
 exchange(T& t, S&& src, R& rtn)
 {
 	std::remove_volatile_t<T> tmpSrc;
@@ -1730,12 +1736,14 @@ exchange(T& t, S&& src, R& rtn)
 
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(exchange)
 
+// It's caller error (and nonsensical) to pass the same instance for both t and src, t and cmp, or src and cmp.  The behavior of doing so is undefined.
 
 template <typename T, typename S, typename C> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, bool>
 compare_exchange(T& t, S&& src, C&& cmp)
 {
 	bool b = equals(t, std::forward<C>(cmp));
-	assign(t, std::forward<S>(src));
+	if (b)
+		assign(t, std::forward<S>(src));
 	return b;
 }
 
@@ -1749,6 +1757,10 @@ compare_exchange(T& t, S&& src, C&& cmp)
 	return atomic::compare_exchange(t, tmpSrc, tmpCmp);
 }
 
+
+// If src and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+// If cmp and rtn are references to the same volatile instance, it will not be both read and written in the same atomic operation.
+// It's caller error (and nonsensical) to pass the same instance for both t and src, t and cmp, t and rtn, or src and cmp.  The behavior of doing so is undefined.
 
 template <typename T, typename S, typename C, typename R> inline std::enable_if_t<!std::is_class_v<T> && !std::is_volatile_v<T>, bool>
 compare_exchange(T& t, S&& src, C&& cmp, R& rtn)
@@ -1776,6 +1788,7 @@ compare_exchange(T& t, S&& src, C&& cmp, R& rtn)
 
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare_exchange)
 
+// It's caller error (and nonsensical) to pass the same instance for both args to swap.  The behavior of doing so is undefined.
 
 template <typename T, typename A1> inline std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().swap(std::declval<T&>()))>
 swap(T& t, const A1& a) { return a.swap(t); }

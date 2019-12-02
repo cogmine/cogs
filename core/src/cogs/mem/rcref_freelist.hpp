@@ -177,6 +177,8 @@ private:
 		static descriptor_t* from_obj(T* obj) { return placement_with_header<descriptor_t, T>::get_header_from_obj(obj); }
 	};
 
+	typedef placement_with_header<descriptor_t, T>  placement_t;
+
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
 
 	volatile versioned_ptr<descriptor_t> m_head;
