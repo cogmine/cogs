@@ -95,6 +95,8 @@ private:
 	rc_obj_base(const rc_obj_base&) = delete;
 	rc_obj_base& operator=(const rc_obj_base&) = delete;
 
+	void deallocate_released_handlers();
+
 	struct counts_t
 	{
 		// Destructed  when m_reference[strong] == 0
@@ -286,7 +288,7 @@ public:
 
 	~rc_obj_base()
 	{
-		default_allocator::destruct_deallocate_type(m_releasedHandlers);
+		deallocate_released_handlers();
 
 		m_tracker->m_destructed = true;
 
@@ -325,7 +327,7 @@ public:
 
 	~rc_obj_base()
 	{
-		default_allocator::destruct_deallocate_type(m_releasedHandlers);
+		deallocate_released_handlers();
 
 #if COGS_DEBUG_RC_LOGGING
 		printf("RC_DELETE: %p %s @ %s\n", this, m_typeName, m_debugStr);

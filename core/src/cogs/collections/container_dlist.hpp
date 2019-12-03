@@ -2564,6 +2564,11 @@ inline bool rc_obj_base::uninstall_released_handler(const released_handler_remov
 }
 
 
+inline void rc_obj_base::deallocate_released_handlers()
+{
+	default_allocator::destruct_deallocate_type(m_releasedHandlers);
+}
+
 }
 
 

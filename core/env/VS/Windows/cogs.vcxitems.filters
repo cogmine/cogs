@@ -1311,6 +1311,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_rc_type.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\Code\Cogs\core\src\cogs\mem\unowned.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">

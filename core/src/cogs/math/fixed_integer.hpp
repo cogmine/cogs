@@ -12,6 +12,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/math/bits_to_int.hpp"
+#include "cogs/math/range_to_bits.hpp"
 #include "cogs/load.hpp"
 
 

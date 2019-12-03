@@ -16,6 +16,7 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
+#include "cogs/mem/unowned.hpp"
 #include "cogs/sync/hazard.hpp"
 #include "cogs/sync/transactable.hpp"
 

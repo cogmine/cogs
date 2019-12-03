@@ -1,10 +1,6 @@
 ## TODO
 
-* Remove use of unowned_t default arg pattern in favor of move assignments
-* Rework allocators to align with allocators in std
-* Create separte high vs low level implementation of lock-free types.
-    * Low-level = simpler and prioritize performance and simplicity.
-    * High-level = more robust.  i.e. Support thread-safe assignments including allocator. 
+* Move these TODO items to GitHub issues.
 * exchange/compare_exchange overloads with move semantics
 * Drag and flick scrolling
 * Single/static dependency property for preferred scroll bar style

@@ -10,6 +10,7 @@
 
 #include <type_traits>
 
+#include "cogs/assert.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/math/bytes_to_int.hpp"
