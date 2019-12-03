@@ -184,15 +184,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     core/env/VS/Windows/src
   )
   if (WIN32)
-    # Can't use /permissive- yet, due to a compiler bug: https://developercommunity.visualstudio.com/content/problem/643831/use-of-permissive-results-in-unresolved-external-s.html
-    #target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /permissive-)
-    #target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
-    #target_compile_options(${EXECUTABLE_NAME} PUBLIC /JMC /MP /W3 /Zc:wchar_t /Zi /Gm- /Ob0 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /Oy- /Oi /std:c++latest /FC /EHa /nologo /bigobj /MP3 /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
-
-    #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
-    #target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
-
-    #target_link_options(${EXECUTABLE_NAME} PUBLIC /NXCOMPAT /DYNAMICBASE /DEBUG /MACHINE:X64 /INCREMENTAL:NO /SUBSYSTEM:WINDOWS /TLBID:1)
   else()
     message(ERROR ": Unsupported target for MSVC")
   endif()
@@ -202,7 +193,7 @@ endif()
 
 ###################################################################### MSVC OR CLANG-CL
 if (MSVC OR CLANGCL)
-  target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /MP3 /Oi /Gm- /Zi /Zc:referenceBinding /Zc:strictStrings /Zc:rvalueCast /Zc:ternary)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /Oi /Zi /permissive-)
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
   target_link_options(${EXECUTABLE_NAME} PUBLIC /INCREMENTAL:NO /NXCOMPAT /DYNAMICBASE)

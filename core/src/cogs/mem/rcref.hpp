@@ -963,7 +963,7 @@ public:
 	template <typename F>
 	void on_released(F&& f) const
 	{
-		m_container.on_released(std::forward<T>(f));
+		m_container.on_released(std::forward<F>(f));
 	}
 };
 
@@ -1574,7 +1574,7 @@ public:
 	template <typename F>
 	void on_released(F&& f) const
 	{
-		m_container.on_released(std::forward<T>(f));
+		m_container.on_released(std::forward<F>(f));
 	}
 };
 
@@ -2178,7 +2178,7 @@ public:
 	template <typename F>
 	void on_released(F&& f) const
 	{
-		m_container.on_released(std::forward<T>(f));
+		m_container.on_released(std::forward<F>(f));
 	}
 };
 
@@ -2788,7 +2788,7 @@ public:
 	template <typename F>
 	void on_released(F&& f) const
 	{
-		m_container.on_released(std::forward<T>(f));
+		m_container.on_released(std::forward<F>(f));
 	}
 };
 
@@ -3394,7 +3394,7 @@ public:
 	template <typename F>
 	void on_released(F&& f) const
 	{
-		m_container.on_released(std::forward<T>(f));
+		m_container.on_released(std::forward<F>(f));
 	}
 };
 

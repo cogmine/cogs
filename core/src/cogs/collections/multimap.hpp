@@ -463,16 +463,16 @@ public:
 		bool operator!() const volatile { return !m_contents; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const { return m_link == i.m_link; }
+		bool operator==(const T2& i) const { return m_contents == i.m_contents; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
+		bool operator==(const T2& i) const volatile { return m_contents == i.m_contents; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const { return m_link != i.m_link; }
+		bool operator!=(const T2& i) const { return m_contents != i.m_contents; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
+		bool operator!=(const T2& i) const volatile { return m_contents != i.m_contents; }
 
 		key_t& get_key() const { return m_contents->get_key(); }
 		value_t& get_value() const { return m_contents->get_value(); }
@@ -508,75 +508,75 @@ public:
 		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
 		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
 
-		void swap(preallocated& wth) { m_link.swap(wth.m_link); }
-		void swap(preallocated& wth) volatile { m_link.swap(wth.m_link); }
-		void swap(volatile preallocated& wth) { m_link.swap(wth.m_link); }
+		void swap(preallocated& wth) { m_contents.swap(wth.m_contents); }
+		void swap(preallocated& wth) volatile { m_contents.swap(wth.m_contents); }
+		void swap(volatile preallocated& wth) { m_contents.swap(wth.m_contents); }
 
 
-		preallocated exchange(const preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(const volatile preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(preallocated&& src) { return preallocated(m_link.exchange(std::move(src.m_link))); }
+		preallocated exchange(const preallocated& src) { return preallocated(m_contents.exchange(src.m_contents)); }
+		preallocated exchange(const volatile preallocated& src) { return preallocated(m_contents.exchange(src.m_contents)); }
+		preallocated exchange(preallocated&& src) { return preallocated(m_contents.exchange(std::move(src.m_contents))); }
 
-		preallocated exchange(const preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(const volatile preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(preallocated&& src) volatile { return preallocated(m_link.exchange(std::move(src.m_link))); }
+		preallocated exchange(const preallocated& src) volatile { return preallocated(m_contents.exchange(src.m_contents)); }
+		preallocated exchange(const volatile preallocated& src) volatile { return preallocated(m_contents.exchange(src.m_contents)); }
+		preallocated exchange(preallocated&& src) volatile { return preallocated(m_contents.exchange(std::move(src.m_contents))); }
 
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const preallocated& src, T3& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile preallocated& src, T3& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(preallocated&& src, T3& rtn) { m_contents.exchange(std::move(src.m_contents), rtn.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const preallocated& src, T3& rtn) volatile { m_contents.exchange(src.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
+		void exchange(const volatile preallocated& src, T3& rtn) volatile { m_contents.exchange(src.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
+		void exchange(preallocated&& src, T3& rtn) volatile { m_contents.exchange(std::move(src.m_contents), rtn.m_contents); }
 
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const preallocated& src, const T3& cmp) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(preallocated&& src, const T3& cmp) { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const preallocated& src, const T3& cmp) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
 
 		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
+		bool compare_exchange(preallocated&& src, const T3& cmp) volatile { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents); }
 
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
+		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
 
 		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
+		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents, rtn.m_contents); }
 	};
 
 	/// @brief A multimap element remove token
