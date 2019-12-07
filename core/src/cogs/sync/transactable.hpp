@@ -2593,7 +2593,7 @@ public:
 }
 
 
-#include "cogs/collections/container_dlist.hpp"
+#include "cogs/mem/rcnew.hpp"
 
 
 #endif

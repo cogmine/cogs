@@ -10,8 +10,8 @@
 
 
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/rc_container.hpp"
+#include "cogs/mem/rc_obj.hpp"
+#include "cogs/mem/unowned.hpp"
 
 
 namespace cogs {
@@ -19,6 +19,12 @@ namespace cogs {
 
 template <typename T>
 class rcptr;
+
+template <typename T>
+class rcref;
+
+template <typename T>
+class weak_rcptr;
 
 
 /// @ingroup Mem
