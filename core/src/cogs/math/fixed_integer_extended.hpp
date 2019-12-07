@@ -17,9 +17,9 @@
 #include "cogs/env/math/umul.hpp"
 #include "cogs/io/buffer.hpp"
 #include "cogs/math/bits_to_int.hpp"
-#include "cogs/math/is_integral.hpp"
-#include "cogs/math/is_arithmetic.hpp"
-#include "cogs/math/is_signed.hpp"
+#include "cogs/math/is_integer_type.hpp"
+#include "cogs/math/is_arithmetic_type.hpp"
+#include "cogs/math/is_signed_type.hpp"
 #include "cogs/math/random.hpp"
 #include "cogs/math/range_to_bits.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -41,11 +41,11 @@ class fixed_integer_extended;
 
 
 
-template <bool has_sign, size_t bits> class is_arithmetic<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
+template <bool has_sign, size_t bits> class is_arithmetic_type<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
 
-template <bool has_sign, size_t bits> class is_integral<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
+template <bool has_sign, size_t bits> class is_integer_type<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
 
-template <bool has_sign, size_t bits> class is_signed<fixed_integer_extended<has_sign, bits> > { public: static constexpr bool value = has_sign; };
+template <bool has_sign, size_t bits> class is_signed_type<fixed_integer_extended<has_sign, bits> > { public: static constexpr bool value = has_sign; };
 
 
 template <bool has_sign, size_t bits>

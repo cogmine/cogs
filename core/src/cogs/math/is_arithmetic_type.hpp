@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS_HEADER_MATH_IS_ARITHMETIC
-#define COGS_HEADER_MATH_IS_ARITHMETIC
+#ifndef COGS_HEADER_MATH_IS_ARITHMETIC_TYPE
+#define COGS_HEADER_MATH_IS_ARITHMETIC_TYPE
 
 
 #include <type_traits>
@@ -18,35 +18,35 @@ namespace cogs {
 
 
 template <typename T>
-class is_arithmetic
+class is_arithmetic_type
 {
 public:
 	static constexpr bool value = std::is_arithmetic_v<T>;
 };
 template <typename T>
-static constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+static constexpr bool is_arithmetic_type_v = is_arithmetic_type<T>::value;
 
 
 // By default, map const and/or volatile to the version with no CV qualifier
 template <typename T>
-class is_arithmetic<const T>
+class is_arithmetic_type<const T>
 {
 public:
-	static constexpr bool value = is_arithmetic_v<T>;
+	static constexpr bool value = is_arithmetic_type_v<T>;
 };
 
 template <typename T>
-class is_arithmetic<volatile T>
+class is_arithmetic_type<volatile T>
 {
 public:
-	static constexpr bool value = is_arithmetic_v<T>;
+	static constexpr bool value = is_arithmetic_type_v<T>;
 };
 
 template <typename T>
-class is_arithmetic<const volatile T>
+class is_arithmetic_type<const volatile T>
 {
 public:
-	static constexpr bool value = is_arithmetic_v<T>;
+	static constexpr bool value = is_arithmetic_type_v<T>;
 };
 
 

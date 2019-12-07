@@ -9,7 +9,7 @@
 #define COGS_HEADER_MATH_IS_NEGATIVE_VALUE
 
 
-#include "cogs/math/is_signed.hpp"
+#include "cogs/math/is_signed_type.hpp"
 
 namespace cogs {
 
@@ -38,7 +38,7 @@ private:
 	};
 
 public:
-	static bool get(const T& t) { return std::conditional_t<is_signed_v<T>, signed_getter, unsigned_getter>::get(t); }
+	static bool get(const T& t) { return std::conditional_t<is_signed_type_v<T>, signed_getter, unsigned_getter>::get(t); }
 };
 
 

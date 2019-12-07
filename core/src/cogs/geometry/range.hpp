@@ -14,7 +14,7 @@
 #include "cogs/collections/string.hpp"
 #include "cogs/math/dynamic_integer.hpp"
 #include "cogs/math/fraction.hpp"
-#include "cogs/math/is_signed.hpp"
+#include "cogs/math/is_signed_type.hpp"
 #include "cogs/sync/transactable.hpp"
 #include "cogs/geometry/margin.hpp"
 

@@ -1048,4 +1048,7 @@ public:
 }
 
 
+#include "cogs/collections/container_dlist.hpp"
+
+
 #endif

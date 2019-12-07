@@ -10,6 +10,7 @@
 
 
 #include "cogs/env.hpp"
+#include "cogs/collections/container_dlist.hpp"
 #include "cogs/mem/is_pointer_type.hpp"
 #include "cogs/mem/is_reference_type.hpp"
 #include "cogs/mem/is_rc_type.hpp"

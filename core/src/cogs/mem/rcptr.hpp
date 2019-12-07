@@ -10,6 +10,7 @@
 
 
 #include "cogs/env.hpp"
+#include "cogs/collections/container_dlist.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj.hpp"
 #include "cogs/mem/rc_obj_base.hpp"

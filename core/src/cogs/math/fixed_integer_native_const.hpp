@@ -16,9 +16,9 @@
 #include "cogs/math/extumul.hpp"
 #include "cogs/math/bits_to_int.hpp"
 #include "cogs/math/range_to_bits.hpp"
-#include "cogs/math/is_integral.hpp"
-#include "cogs/math/is_arithmetic.hpp"
-#include "cogs/math/is_signed.hpp"
+#include "cogs/math/is_integer_type.hpp"
+#include "cogs/math/is_arithmetic_type.hpp"
+#include "cogs/math/is_signed_type.hpp"
 #include "cogs/math/is_const_type.hpp"
 #include "cogs/math/value_to_bits.hpp"
 #include "cogs/math/random.hpp"
@@ -74,11 +74,11 @@ template <typename T1, typename T2>
 inline constexpr int const_compared_v = const_compared<T1, T2>::value;
 
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_arithmetic<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_arithmetic_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_integral<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_integer_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_signed<fixed_integer_native_const<has_sign, bits, value_in> > { public: static constexpr bool value = has_sign; };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_signed_type<fixed_integer_native_const<has_sign, bits, value_in> > { public: static constexpr bool value = has_sign; };
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_const_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 

@@ -11,7 +11,7 @@ add_executable(UISample)
 set(EXECUTABLE_NAME "UISample")
 
 target_sources(${EXECUTABLE_NAME} PUBLIC
-  ./apps/UISample/UISample.cpp
+  apps/UISample/UISample.cpp
 )
 
 target_compile_definitions(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:COGS_DEBUG>)
@@ -98,7 +98,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   ################################################################ CLANG/MSVC WIN32
     set(CLANGCL 1)
     message(STATUS "Configured for clang-cl")
-    # TODO: Create a separate env layer for Clang on Win32?
+    # If clang + MSVC, MSVC intrinsics, headers, and libraries are used.
     include_directories(
       core/env/VS/Windows/src
     )

@@ -37,7 +37,7 @@
 /// - core/src
 /// - core/arch/AMD64/src
 /// - core/os/windows/src
-/// - core/env/VS2013/Windows/src
+/// - core/env/VS/Windows/src
 ///
 ///
 /// @section Concepts
@@ -390,11 +390,11 @@
 #include "cogs/math/fixed_integer_native.hpp"
 #include "cogs/math/fixed_integer_native_const.hpp"
 #include "cogs/math/fraction.hpp"
-#include "cogs/math/is_arithmetic.hpp"
+#include "cogs/math/is_arithmetic_type.hpp"
 #include "cogs/math/is_const_type.hpp"
-#include "cogs/math/is_integral.hpp"
+#include "cogs/math/is_integer_type.hpp"
 #include "cogs/math/is_negative_value.hpp"
-#include "cogs/math/is_signed.hpp"
+#include "cogs/math/is_signed_type.hpp"
 #include "cogs/math/least_multiple_of.hpp"
 #include "cogs/math/measure.hpp"
 #include "cogs/math/measurement_types.hpp"

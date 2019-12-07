@@ -22,8 +22,8 @@
 #include "cogs/env/math/umul.hpp"
 #include "cogs/math/fraction.hpp"
 #include "cogs/math/is_const_type.hpp"
-#include "cogs/math/is_signed.hpp"
-#include "cogs/math/is_arithmetic.hpp"
+#include "cogs/math/is_signed_type.hpp"
+#include "cogs/math/is_arithmetic_type.hpp"
 #include "cogs/mem/const_bit_scan.hpp"
 #include "cogs/sync/hazard.hpp"
 
@@ -43,11 +43,11 @@ class fraction;
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
-template <> class is_arithmetic<dynamic_integer> : public std::true_type { };
+template <> class is_arithmetic_type<dynamic_integer> : public std::true_type { };
 
-template <> class is_integral<dynamic_integer> : public std::true_type { };
+template <> class is_integer_type<dynamic_integer> : public std::true_type { };
 
-template <> class is_signed<dynamic_integer> : public std::true_type { };
+template <> class is_signed_type<dynamic_integer> : public std::true_type { };
 
 class dynamic_integer_content
 {

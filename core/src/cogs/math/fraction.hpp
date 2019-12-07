@@ -14,9 +14,9 @@
 #include "cogs/operators.hpp"
 #include "cogs/compatible.hpp"
 #include "cogs/math/bits_to_int.hpp"
-#include "cogs/math/is_signed.hpp"
-#include "cogs/math/is_integral.hpp"
-#include "cogs/math/is_arithmetic.hpp"
+#include "cogs/math/is_signed_type.hpp"
+#include "cogs/math/is_integer_type.hpp"
+#include "cogs/math/is_arithmetic_type.hpp"
 #include "cogs/math/is_const_type.hpp"
 #include "cogs/math/fixed_integer_native.hpp"
 #include "cogs/math/fixed_integer_native_const.hpp"
@@ -42,17 +42,17 @@ template <typename numerator_t, typename denominator_t>
 class fraction;
 
 template <typename numerator_t, typename denominator_t>
-class is_arithmetic<fraction<numerator_t, denominator_t> >
+class is_arithmetic_type<fraction<numerator_t, denominator_t> >
 {
 public:
 	static constexpr bool value = true;
 };
 
 template <typename numerator_t, typename denominator_t>
-class is_signed<fraction<numerator_t, denominator_t> >
+class is_signed_type<fraction<numerator_t, denominator_t> >
 {
 public:
-	static constexpr bool value = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
+	static constexpr bool value = is_signed_type_v<numerator_t> || is_signed_type_v<denominator_t>;
 };
 
 template <typename numerator_type, typename denominator_type = numerator_type>
@@ -226,9 +226,9 @@ public:
 
 	void assign_negative()
 	{
-		if (is_signed_v<numerator_t>)
+		if (is_signed_type_v<numerator_t>)
 			cogs::assign_negative(m_numerator);
-		else if (is_signed_v<denominator_t>)
+		else if (is_signed_type_v<denominator_t>)
 			cogs::assign_negative(m_denominator);
 	}
 
@@ -1592,7 +1592,7 @@ public:
 	friend class fraction;
 
 private:
-	static constexpr bool has_sign = is_signed_v<numerator_t> || is_signed_v<denominator_t>;
+	static constexpr bool has_sign = is_signed_type_v<numerator_t> || is_signed_type_v<denominator_t>;
 
 	static_assert(!std::is_same_v<denominator_type, fixed_integer_native_const<false, 0, 0> >);
 	static_assert(!std::is_reference_v<numerator_type>);

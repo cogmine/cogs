@@ -906,19 +906,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\fraction.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic.hpp">
-      <Filter>core\math</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_const_type.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp">
-      <Filter>core\math</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_negative_value.hpp">
-      <Filter>core\math</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_signed.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\least_multiple_of.hpp">
@@ -1314,6 +1305,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\Code\Cogs\core\src\cogs\mem\unowned.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp">
+      <Filter>core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_arithmetic_type.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integer_type.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_signed_type.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">

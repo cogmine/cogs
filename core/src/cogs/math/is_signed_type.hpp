@@ -21,36 +21,36 @@ namespace cogs {
 /// @brief Template helpers to test if an integer type is signed
 /// @tparam T integeral or fixed_integer type
 template <typename T>
-class is_signed
+class is_signed_type
 {
 public:
 	static constexpr bool value = std::is_signed<T>::value;
 };
 template <typename T>
-inline constexpr bool is_signed_v = is_signed<T>::value;
+inline constexpr bool is_signed_type_v = is_signed_type<T>::value;
 
 
 
 // By default, map const and/or volatile to the version with no CV qualifier
 template <typename T>
-class is_signed<const T>
+class is_signed_type<const T>
 {
 public:
-	static constexpr bool value = is_signed_v<T>;
+	static constexpr bool value = is_signed_type_v<T>;
 };
 
 template <typename T>
-class is_signed<volatile T>
+class is_signed_type<volatile T>
 {
 public:
-	static constexpr bool value = is_signed_v<T>;
+	static constexpr bool value = is_signed_type_v<T>;
 };
 
 template <typename T>
-class is_signed<const volatile T>
+class is_signed_type<const volatile T>
 {
 public:
-	static constexpr bool value = is_signed_v<T>;
+	static constexpr bool value = is_signed_type_v<T>;
 };
 
 

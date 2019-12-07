@@ -29,7 +29,7 @@
 #include "cogs/sync/atomic_compare_exchange.hpp"
 #include "cogs/math/bits_to_int.hpp"
 #include "cogs/math/is_const_type.hpp"
-#include "cogs/math/is_integral.hpp"
+#include "cogs/math/is_integer_type.hpp"
 #include "cogs/math/fixed_integer.hpp"
 #include "cogs/env/mem/bit_scan.hpp"
 #include "cogs/env/mem/bit_count.hpp"

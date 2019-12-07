@@ -19,7 +19,8 @@
 #include <cstdlib>
 #include <ctype.h>
 #include <wctype.h>
-#include <unistd.h>
+#include <type_traits>
+//#include <unistd.h>
 
 #include "cogs/os.hpp"
 #include "cogs/math/bytes_to_int.hpp"
@@ -39,6 +40,7 @@ template <> class bytes_to_int<sizeof(int32_t), true> { public: typedef int32_t 
 template <> class bytes_to_int<sizeof(uint64_t), false> { public: typedef uint64_t type; };
 template <> class bytes_to_int<sizeof(int64_t), true> { public: typedef int64_t type; };
 
+
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
 template <> class bytes_to_int<sizeof(unsigned __int128), false> { public: typedef unsigned __int128 type; };
 template <> class bytes_to_int<sizeof(__int128), true> { public: typedef __int128 type; };
@@ -55,7 +57,6 @@ static constexpr size_t longest_bits = sizeof(longest) * 8;
 
 
 }
-
 
 
 #endif
