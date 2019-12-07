@@ -209,10 +209,10 @@ rcnew_inner(
 }
 
 
-#include "cogs/collections/container_dlist.hpp"
 #include "cogs/mem/rcptr.hpp"
 #include "cogs/mem/rcref.hpp"
 #include "cogs/mem/weak_rcptr.hpp"
+#include "cogs/collections/container_dlist.hpp"
 
 
 #endif

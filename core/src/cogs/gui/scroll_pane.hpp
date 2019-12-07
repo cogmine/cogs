@@ -45,7 +45,7 @@ private:
 		delegated_dependency_property<bool, io::write_only> m_canAutoFadeProperty;
 
 		scroll_bar_info(rc_obj_base& desc, scroll_pane& scrollPane, dimension d)
-			: m_scrollBar(rcnew(scroll_bar, d, scrollPane.m_hideInactiveScrollBar)),
+			: m_scrollBar(rcnew(scroll_bar, d, false)),
 			m_frame(rcnew(override_bounds_frame, m_scrollBar)),
 			m_stateProperty(desc, scrollPane, [this]()
 			{
