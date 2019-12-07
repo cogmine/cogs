@@ -10,7 +10,6 @@
 
 
 #include "cogs/env.hpp"
-#include "cogs/collections/container_dlist.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/is_pointer_type.hpp"
 #include "cogs/mem/is_reference_type.hpp"
@@ -507,28 +506,28 @@ public:
 	template <typename type2> bool operator==(type2* const volatile& cmp) const { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 
 	bool operator==(type& cmp) const volatile { return get_ptr() == &cmp; }
 	template <typename type2> bool operator==(type2* const& cmp) const volatile { return get_ptr() == cmp; }
 	template <typename type2> bool operator==(type2* const volatile& cmp) const volatile { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -540,28 +539,28 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 
 	bool operator!=(type& cmp) const volatile { return get_ptr() != &cmp; }
 	template <typename type2> bool operator!=(type2* const& cmp) const volatile { return get_ptr() != cmp; }
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const volatile { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -573,28 +572,28 @@ public:
 	template <typename type2> bool operator>(type2* const volatile& cmp) const { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 
 	bool operator>(type& cmp) const volatile { return get_ptr() > &cmp; }
 	template <typename type2> bool operator>(type2* const& cmp) const volatile { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(type2* const volatile& cmp) const volatile { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -606,28 +605,28 @@ public:
 	template <typename type2> bool operator<(type2* const volatile& cmp) const { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 
 	bool operator<(type& cmp) const volatile { return get_ptr() < &cmp; }
 	template <typename type2> bool operator<(type2* const& cmp) const volatile { return get_ptr() < cmp; }
 	template <typename type2> bool operator<(type2* const volatile& cmp) const volatile { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -639,28 +638,28 @@ public:
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 
 	bool operator>=(type& cmp) const volatile { return get_ptr() >= &cmp; }
 	template <typename type2> bool operator>=(type2* const& cmp) const volatile { return get_ptr() >= cmp; }
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const volatile { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -672,28 +671,28 @@ public:
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 
 	bool operator<=(type& cmp) const volatile { return get_ptr() <= &cmp; }
 	template <typename type2> bool operator<=(type2* const& cmp) const volatile { return get_ptr() <= cmp; }
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const volatile { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	/// @}
 
 	///// @{
@@ -1198,27 +1197,27 @@ public:
 	template <typename type2> bool operator==(type2* const volatile& cmp) const { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 
 	template <typename type2> bool operator==(type2* const& cmp) const volatile { return get_ptr() == cmp; }
 	template <typename type2> bool operator==(type2* const volatile& cmp) const volatile { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1229,27 +1228,27 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 
 	template <typename type2> bool operator!=(type2* const& cmp) const volatile { return get_ptr() != cmp; }
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const volatile { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1260,27 +1259,27 @@ public:
 	template <typename type2> bool operator>(type2* const volatile& cmp) const { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 
 	template <typename type2> bool operator>(type2* const& cmp) const volatile { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(type2* const volatile& cmp) const volatile { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1291,27 +1290,27 @@ public:
 	template <typename type2> bool operator<(type2* const volatile& cmp) const { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 
 	template <typename type2> bool operator<(type2* const& cmp) const volatile { return get_ptr() < cmp; }
 	template <typename type2> bool operator<(type2* const volatile& cmp) const volatile { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1322,27 +1321,27 @@ public:
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 
 	template <typename type2> bool operator>=(type2* const& cmp) const volatile { return get_ptr() >= cmp; }
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const volatile { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1353,27 +1352,27 @@ public:
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 
 	template <typename type2> bool operator<=(type2* const& cmp) const volatile { return get_ptr() <= cmp; }
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const volatile { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	/// @}
 
 
@@ -1802,27 +1801,27 @@ public:
 	template <typename type2> bool operator==(type2* const volatile& cmp) const { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 
 	template <typename type2> bool operator==(type2* const& cmp) const volatile { return get_ptr() == cmp; }
 	template <typename type2> bool operator==(type2* const volatile& cmp) const volatile { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1833,27 +1832,27 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 
 	template <typename type2> bool operator!=(type2* const& cmp) const volatile { return get_ptr() != cmp; }
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const volatile { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1864,27 +1863,27 @@ public:
 	template <typename type2> bool operator>(type2* const volatile& cmp) const { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 
 	template <typename type2> bool operator>(type2* const& cmp) const volatile { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(type2* const volatile& cmp) const volatile { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1895,27 +1894,27 @@ public:
 	template <typename type2> bool operator<(type2* const volatile& cmp) const { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 
 	template <typename type2> bool operator<(type2* const& cmp) const volatile { return get_ptr() < cmp; }
 	template <typename type2> bool operator<(type2* const volatile& cmp) const volatile { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1926,27 +1925,27 @@ public:
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 
 	template <typename type2> bool operator>=(type2* const& cmp) const volatile { return get_ptr() >= cmp; }
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const volatile { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -1957,27 +1956,27 @@ public:
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 
 	template <typename type2> bool operator<=(type2* const& cmp) const volatile { return get_ptr() <= cmp; }
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const volatile { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	/// @}
 
 
@@ -2409,27 +2408,27 @@ public:
 	template <typename type2> bool operator==(type2* const volatile& cmp) const { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 
 	template <typename type2> bool operator==(type2* const& cmp) const volatile { return get_ptr() == cmp; }
 	template <typename type2> bool operator==(type2* const volatile& cmp) const volatile { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -2440,27 +2439,27 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 
 	template <typename type2> bool operator!=(type2* const& cmp) const volatile { return get_ptr() != cmp; }
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const volatile { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -2471,27 +2470,27 @@ public:
 	template <typename type2> bool operator>(type2* const volatile& cmp) const { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 
 	template <typename type2> bool operator>(type2* const& cmp) const volatile { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(type2* const volatile& cmp) const volatile { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -2502,27 +2501,27 @@ public:
 	template <typename type2> bool operator<(type2* const volatile& cmp) const { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 
 	template <typename type2> bool operator<(type2* const& cmp) const volatile { return get_ptr() < cmp; }
 	template <typename type2> bool operator<(type2* const volatile& cmp) const volatile { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -2533,27 +2532,27 @@ public:
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 
 	template <typename type2> bool operator>=(type2* const& cmp) const volatile { return get_ptr() >= cmp; }
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const volatile { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -2564,27 +2563,27 @@ public:
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 
 	template <typename type2> bool operator<=(type2* const& cmp) const volatile { return get_ptr() <= cmp; }
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const volatile { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	/// @}
 
 
@@ -3017,27 +3016,27 @@ public:
 	template <typename type2> bool operator==(type2* const volatile& cmp) const { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const { return m_container == cmp.m_container; }
 
 	template <typename type2> bool operator==(type2* const& cmp) const volatile { return get_ptr() == cmp; }
 	template <typename type2> bool operator==(type2* const volatile& cmp) const volatile { return get_ptr() == atomic::load(cmp); }
 	template <typename type2> bool operator==(const ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	template <typename type2> bool operator==(const volatile ptr<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
 	template <typename type2> bool operator==(const volatile ref<type2>& cmp) const volatile { return get_ptr() == cmp.get_ptr(); }
-	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
-	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_ref.m_container); }
-	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator==(cmp.m_container); }
+	template <typename type2> bool operator==(const volatile rcref<type2>& cmp) const volatile { return m_container == cmp.m_container; }
+	template <typename type2> bool operator==(const volatile rcptr<type2>& cmp) const volatile { return m_container == cmp.m_ref.m_container; }
+	template <typename type2> bool operator==(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container == cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -3048,27 +3047,27 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const { return m_container != cmp.m_container; }
 
 	template <typename type2> bool operator!=(type2* const& cmp) const volatile { return get_ptr() != cmp; }
 	template <typename type2> bool operator!=(type2* const volatile& cmp) const volatile { return get_ptr() != atomic::load(cmp); }
 	template <typename type2> bool operator!=(const ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	template <typename type2> bool operator!=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
 	template <typename type2> bool operator!=(const volatile ref<type2>& cmp) const volatile { return get_ptr() != cmp.get_ptr(); }
-	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
-	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator!=(cmp.m_container); }
+	template <typename type2> bool operator!=(const volatile rcref<type2>& cmp) const volatile { return m_container != cmp.m_container; }
+	template <typename type2> bool operator!=(const volatile rcptr<type2>& cmp) const volatile { return m_container != cmp.m_ref.m_container; }
+	template <typename type2> bool operator!=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container != cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -3079,27 +3078,27 @@ public:
 	template <typename type2> bool operator>(type2* const volatile& cmp) const { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const { return m_container > cmp.m_container; }
 
 	template <typename type2> bool operator>(type2* const& cmp) const volatile { return get_ptr() > cmp; }
 	template <typename type2> bool operator>(type2* const volatile& cmp) const volatile { return get_ptr() > atomic::load(cmp); }
 	template <typename type2> bool operator>(const ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	template <typename type2> bool operator>(const volatile ptr<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
 	template <typename type2> bool operator>(const volatile ref<type2>& cmp) const volatile { return get_ptr() > cmp.get_ptr(); }
-	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
-	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>(cmp.m_container); }
+	template <typename type2> bool operator>(const volatile rcref<type2>& cmp) const volatile { return m_container > cmp.m_container; }
+	template <typename type2> bool operator>(const volatile rcptr<type2>& cmp) const volatile { return m_container > cmp.m_ref.m_container; }
+	template <typename type2> bool operator>(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container > cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -3110,27 +3109,27 @@ public:
 	template <typename type2> bool operator<(type2* const volatile& cmp) const { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const { return m_container < cmp.m_container; }
 
 	template <typename type2> bool operator<(type2* const& cmp) const volatile { return get_ptr() < cmp; }
 	template <typename type2> bool operator<(type2* const volatile& cmp) const volatile { return get_ptr() < atomic::load(cmp); }
 	template <typename type2> bool operator<(const ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	template <typename type2> bool operator<(const volatile ptr<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
 	template <typename type2> bool operator<(const volatile ref<type2>& cmp) const volatile { return get_ptr() < cmp.get_ptr(); }
-	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
-	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<(cmp.m_container); }
+	template <typename type2> bool operator<(const volatile rcref<type2>& cmp) const volatile { return m_container < cmp.m_container; }
+	template <typename type2> bool operator<(const volatile rcptr<type2>& cmp) const volatile { return m_container < cmp.m_ref.m_container; }
+	template <typename type2> bool operator<(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container < cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -3141,27 +3140,27 @@ public:
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const { return m_container >= cmp.m_container; }
 
 	template <typename type2> bool operator>=(type2* const& cmp) const volatile { return get_ptr() >= cmp; }
 	template <typename type2> bool operator>=(type2* const volatile& cmp) const volatile { return get_ptr() >= atomic::load(cmp); }
 	template <typename type2> bool operator>=(const ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	template <typename type2> bool operator>=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
 	template <typename type2> bool operator>=(const volatile ref<type2>& cmp) const volatile { return get_ptr() >= cmp.get_ptr(); }
-	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
-	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator>=(cmp.m_container); }
+	template <typename type2> bool operator>=(const volatile rcref<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
+	template <typename type2> bool operator>=(const volatile rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_ref.m_container; }
+	template <typename type2> bool operator>=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container >= cmp.m_container; }
 	/// @}
 
 	/// @{
@@ -3172,27 +3171,27 @@ public:
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const { return m_container <= cmp.m_container; }
 
 	template <typename type2> bool operator<=(type2* const& cmp) const volatile { return get_ptr() <= cmp; }
 	template <typename type2> bool operator<=(type2* const volatile& cmp) const volatile { return get_ptr() <= atomic::load(cmp); }
 	template <typename type2> bool operator<=(const ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	template <typename type2> bool operator<=(const volatile ptr<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
 	template <typename type2> bool operator<=(const volatile ref<type2>& cmp) const volatile { return get_ptr() <= cmp.get_ptr(); }
-	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
-	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_ref.m_container); }
-	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container.operator<=(cmp.m_container); }
+	template <typename type2> bool operator<=(const volatile rcref<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
+	template <typename type2> bool operator<=(const volatile rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_ref.m_container; }
+	template <typename type2> bool operator<=(const volatile weak_rcptr<type2>& cmp) const volatile { return m_container <= cmp.m_container; }
 	/// @}
 
 
@@ -3401,6 +3400,9 @@ public:
 
 
 }
+
+
+#include "cogs/mem/rcnew.hpp"
 
 
 #endif

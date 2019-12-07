@@ -105,7 +105,6 @@ public:
 
 private:
 	typedef rc_container_content_t<type> content_t;
-	typedef rc_container_content_t<type> content_t;
 	typedef transactable<content_t> transactable_t;
 	transactable_t m_contents;
 

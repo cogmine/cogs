@@ -12,10 +12,13 @@
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/mem/rc_container.hpp"
-#include "cogs/mem/rcptr.hpp"
 
 
 namespace cogs {
+
+
+template <typename T>
+class rcptr;
 
 
 /// @ingroup Mem
@@ -228,6 +231,9 @@ public:
 	{ return base1::get_self_weak_rcptr(obj); }
 
 }
+
+
+#include "cogs/mem/rcnew.hpp"
 
 
 #endif

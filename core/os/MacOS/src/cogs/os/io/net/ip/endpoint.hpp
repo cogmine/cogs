@@ -109,7 +109,7 @@ public:
 		return s;
 	}
 
-	virtuaL address& get_address() { return m_address; }
+	virtual address& get_address() { return m_address; }
 	virtual const address& get_address() const { return m_address; }
 
 	sockaddr* get_sockaddr() { return get_address().get_sockaddr(); }
