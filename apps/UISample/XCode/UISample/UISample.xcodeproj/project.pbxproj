@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3D0AA726222B50A700CA6CA3 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA725222B50A700CA6CA3 /* AppDelegate.m */; };
 		3D0AA728222B50A800CA6CA3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA727222B50A800CA6CA3 /* Assets.xcassets */; };
-		3D0AA72B222B50A800CA6CA3 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA729222B50A800CA6CA3 /* MainMenu.xib */; };
-		3D0AA72E222B50A800CA6CA3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA72D222B50A800CA6CA3 /* main.m */; };
 		3D0AA737222B50FA00CA6CA3 /* UISample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA735222B50FA00CA6CA3 /* UISample.cpp */; };
 		3D0AA738222B50FA00CA6CA3 /* guitar.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA736222B50FA00CA6CA3 /* guitar.bmp */; };
+		3D0E4202239CDAB100566F4A /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E4201239CDAB100566F4A /* main.mm */; };
+		3DCB9A97239CDE410090B184 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DCB9A96239CDE410090B184 /* AppKit.framework */; };
+		3DCB9A99239CDE500090B184 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DCB9A98239CDE500090B184 /* CoreFoundation.framework */; };
+		3DCB9A9B239CDE5E0090B184 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DCB9A9A239CDE5D0090B184 /* Cocoa.framework */; };
 		3DF3570E231C769000F04989 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF3570D231C769000F04989 /* CoreGraphics.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D0AA721222B50A700CA6CA3 /* UISample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UISample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3D0AA724222B50A700CA6CA3 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		3D0AA725222B50A700CA6CA3 /* AppDelegate.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = AppDelegate.m; sourceTree = "<group>"; };
 		3D0AA727222B50A800CA6CA3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		3D0AA72A222B50A800CA6CA3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		3D0AA72C222B50A800CA6CA3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3D0AA72D222B50A800CA6CA3 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		3D0AA72F222B50A800CA6CA3 /* UISample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UISample.entitlements; sourceTree = "<group>"; };
 		3D0AA735222B50FA00CA6CA3 /* UISample.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = UISample.cpp; path = ../../../UISample.cpp; sourceTree = "<group>"; };
 		3D0AA736222B50FA00CA6CA3 /* guitar.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; name = guitar.bmp; path = ../../../guitar.bmp; sourceTree = "<group>"; };
+		3D0E4201239CDAB100566F4A /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = ../../../MacOS/main.mm; sourceTree = "<group>"; };
+		3DCB9A96239CDE410090B184 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		3DCB9A98239CDE500090B184 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		3DCB9A9A239CDE5D0090B184 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3DF3570D231C769000F04989 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -35,7 +35,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DCB9A9B239CDE5E0090B184 /* Cocoa.framework in Frameworks */,
 				3DF3570E231C769000F04989 /* CoreGraphics.framework in Frameworks */,
+				3DCB9A97239CDE410090B184 /* AppKit.framework in Frameworks */,
+				3DCB9A99239CDE500090B184 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,15 +65,11 @@
 		3D0AA723222B50A700CA6CA3 /* UISample */ = {
 			isa = PBXGroup;
 			children = (
+				3D0E4201239CDAB100566F4A /* main.mm */,
 				3D0AA736222B50FA00CA6CA3 /* guitar.bmp */,
 				3D0AA735222B50FA00CA6CA3 /* UISample.cpp */,
-				3D0AA724222B50A700CA6CA3 /* AppDelegate.h */,
-				3D0AA725222B50A700CA6CA3 /* AppDelegate.m */,
 				3D0AA727222B50A800CA6CA3 /* Assets.xcassets */,
-				3D0AA729222B50A800CA6CA3 /* MainMenu.xib */,
 				3D0AA72C222B50A800CA6CA3 /* Info.plist */,
-				3D0AA72D222B50A800CA6CA3 /* main.m */,
-				3D0AA72F222B50A800CA6CA3 /* UISample.entitlements */,
 			);
 			path = UISample;
 			sourceTree = "<group>";
@@ -78,6 +77,9 @@
 		3DF3570C231C769000F04989 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3DCB9A9A239CDE5D0090B184 /* Cocoa.framework */,
+				3DCB9A98239CDE500090B184 /* CoreFoundation.framework */,
+				3DCB9A96239CDE410090B184 /* AppKit.framework */,
 				3DF3570D231C769000F04989 /* CoreGraphics.framework */,
 			);
 			name = Frameworks;
@@ -142,7 +144,6 @@
 			files = (
 				3D0AA738222B50FA00CA6CA3 /* guitar.bmp in Resources */,
 				3D0AA728222B50A800CA6CA3 /* Assets.xcassets in Resources */,
-				3D0AA72B222B50A800CA6CA3 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -153,24 +154,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D0AA72E222B50A800CA6CA3 /* main.m in Sources */,
-				3D0AA726222B50A700CA6CA3 /* AppDelegate.m in Sources */,
+				3D0E4202239CDAB100566F4A /* main.mm in Sources */,
 				3D0AA737222B50FA00CA6CA3 /* UISample.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		3D0AA729222B50A800CA6CA3 /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D0AA72A222B50A800CA6CA3 /* Base */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		3D0AA730222B50A800CA6CA3 /* Debug */ = {
@@ -312,7 +301,7 @@
 					../../../../core/src,
 					../../../../core/arch/x64/src,
 					../../../../core/os/MacOS/src,
-					../../../../core/env/XCode/MacOS/src,
+					../../../../core/env/gcc/src,
 				);
 				USE_HEADERMAP = YES;
 			};
@@ -341,7 +330,7 @@
 					../../../../core/src,
 					../../../../core/arch/x64/src,
 					../../../../core/os/MacOS/src,
-					../../../../core/env/XCode/MacOS/src,
+					../../../../core/env/gcc/src,
 				);
 				USE_HEADERMAP = YES;
 			};

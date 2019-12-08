@@ -28,11 +28,11 @@ namespace cogs {
 //template <typename type_in> class get_aligned_type<type_in, 8> { public: typedef type_in type __attribute__ ((aligned( 8))); };
 //template <typename type_in> class get_aligned_type<type_in, 16> { public: typedef type_in type __attribute__ ((aligned(16))); };
 
-#ifdef _M_X64
+#if defined(__LP64__) || defined(_LP64) || defined(__x86_64__)
 //template <typename type_in> class get_aligned_type<type_in, 32> { public: typedef __declspec(align(32)) type_in type; };
 	static constexpr size_t largest_alignment = 16; // 32;
 #else
-	static constexpr size_t largest_alignment = 32; // 16;
+	static constexpr size_t largest_alignment = 8; // 16;
 #endif
 
 

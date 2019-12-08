@@ -59,18 +59,17 @@ elseif (APPLE)
     core/os/macos/src
   )
 
-  target_sources(${EXECUTABLE_NAME} PUBLIC
-    ./apps/UISample/XCode/UISample/UISample/AppDelegate.m
-    ./apps/UISample/XCode/UISample/UISample/main.m
-    ./apps/UISample/XCode/UISample/UISample/Base.lproj/MainMenu.xib
-  )
-
   set_target_properties(${EXECUTABLE_NAME} PROPERTIES
+    MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.cogmine.cogs.UISample"
-    RESOURCE "./apps/UISample/XCode/UISample/UISample/Base.lproj/MainMenu.xib"
+    RESOURCE "./apps/UISample/guitar.bmp"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS YES
     MACOSX_BUNDLE_INFO_PLIST ./Info.plist
-    BUNDLE TRUE
+  )
+
+  target_sources(${EXECUTABLE_NAME} PUBLIC
+    ./apps/UISample/MacOS/main.mm
+    ./apps/UISample/guitar.bmp
   )
 
   target_link_libraries(${EXECUTABLE_NAME} "-framework CoreFoundation" "-framework CoreGraphics" "-framework Cocoa")
@@ -106,21 +105,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   else()
     set(CLANG 1)
     message(STATUS "Configured for clang")
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fmodules)
-    if (APPLE)
-    ################################################################ CLANG MACOS
-      # TODO: Create a separate env layer for Clang on MacOS?
-      include_directories(
-        core/env/XCode/MacOS/src
-      )
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -fobjc-arc -ObjC++)
-    elseif (LINUX OR UNIX)
-    ################################################################ CLANG LINUX/UNIX
-      # TODO: Create a separate env layer for Clang on *nux?
-      include_directories(
-        core/env/gcc/src
-      )
-    endif()
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fobjc-arc -ObjC++ -fmodules)
+    include_directories(
+      core/env/gcc/src
+    )
   endif()
   ################################################################
  
