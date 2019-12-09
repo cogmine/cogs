@@ -171,11 +171,10 @@ private:
 	static void set_return(volatile ref<type2>& rtn, const volatile this_t& src) { atomic::store(rtn.get_ptr_ref(), src.m_contents->m_obj); }
 
 	template <typename type2>
-	static void set_return(type2*& rtn, const volatile this_t& src) { rtn.get_ptr_ref() = src.begin_read()->m_obj; }
+	static void set_return(type2*& rtn, const volatile this_t& src) { rtn = src.begin_read()->m_obj; }
 
 	template <typename type2>
 	static void set_return(type2* volatile& rtn, const volatile this_t& src) { atomic::store(rtn, src.begin_read()->m_obj); }
-
 
 	template <typename type2, reference_strength_type refStrengthType2>
 	static void set_return(rc_container<type2, refStrengthType2>& rtn, this_t&& src) { rtn = std::move(src); }

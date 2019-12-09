@@ -69,7 +69,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   else()
     set(CLANG 1)
     message(STATUS "Configured for clang")
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=c++17 -fobjc-arc -ObjC++ -fmodules)
+    if (APPLE)
+    ################################################################ CLANG MACOS
+      target_compile_options(${EXECUTABLE_NAME} PUBLIC -fobjc-arc -ObjC++)
+    endif()
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++17)
     include_directories(
       ${CMAKE_CURRENT_LIST_DIR}/core/env/gcc/src
     )

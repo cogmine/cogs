@@ -916,7 +916,7 @@ COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(round)
 template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, int>
 fractional_part(const T& t) { return 0; }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), std::declval<nullptr_t>()))>
+template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), std::declval<std::nullptr_t>()))>
 fractional_part(const T& t) { return std::modf(load(t), nullptr); }
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(fractional_part)
