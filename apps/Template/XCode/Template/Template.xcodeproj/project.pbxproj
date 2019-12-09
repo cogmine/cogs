@@ -8,8 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3D0AA728222B50A800CA6CA3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA727222B50A800CA6CA3 /* Assets.xcassets */; };
-		3D0AA737222B50FA00CA6CA3 /* UISample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA735222B50FA00CA6CA3 /* UISample.cpp */; };
-		3D0AA738222B50FA00CA6CA3 /* guitar.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 3D0AA736222B50FA00CA6CA3 /* guitar.bmp */; };
+		3D0AA737222B50FA00CA6CA3 /* Template.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D0AA735222B50FA00CA6CA3 /* Template.cpp */; };
 		3D0E4202239CDAB100566F4A /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3D0E4201239CDAB100566F4A /* main.mm */; };
 		3DCB9A97239CDE410090B184 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DCB9A96239CDE410090B184 /* AppKit.framework */; };
 		3DCB9A99239CDE500090B184 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DCB9A98239CDE500090B184 /* CoreFoundation.framework */; };
@@ -18,11 +17,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3D0AA721222B50A700CA6CA3 /* UISample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UISample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D0AA721222B50A700CA6CA3 /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D0AA727222B50A800CA6CA3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D0AA72C222B50A800CA6CA3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3D0AA735222B50FA00CA6CA3 /* UISample.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = UISample.cpp; path = ../../../UISample.cpp; sourceTree = "<group>"; };
-		3D0AA736222B50FA00CA6CA3 /* guitar.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; name = guitar.bmp; path = ../../../guitar.bmp; sourceTree = "<group>"; };
+		3D0AA735222B50FA00CA6CA3 /* Template.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Template.cpp; path = ../../../Template.cpp; sourceTree = "<group>"; };
 		3D0E4201239CDAB100566F4A /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = ../../../MacOS/main.mm; sourceTree = "<group>"; };
 		3DCB9A96239CDE410090B184 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		3DCB9A98239CDE500090B184 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -48,7 +46,7 @@
 		3D0AA718222B50A700CA6CA3 = {
 			isa = PBXGroup;
 			children = (
-				3D0AA723222B50A700CA6CA3 /* UISample */,
+				3D0AA723222B50A700CA6CA3 /* Template */,
 				3D0AA722222B50A700CA6CA3 /* Products */,
 				3DF3570C231C769000F04989 /* Frameworks */,
 			);
@@ -57,21 +55,20 @@
 		3D0AA722222B50A700CA6CA3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3D0AA721222B50A700CA6CA3 /* UISample.app */,
+				3D0AA721222B50A700CA6CA3 /* Template.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3D0AA723222B50A700CA6CA3 /* UISample */ = {
+		3D0AA723222B50A700CA6CA3 /* Template */ = {
 			isa = PBXGroup;
 			children = (
 				3D0E4201239CDAB100566F4A /* main.mm */,
-				3D0AA736222B50FA00CA6CA3 /* guitar.bmp */,
-				3D0AA735222B50FA00CA6CA3 /* UISample.cpp */,
+				3D0AA735222B50FA00CA6CA3 /* Template.cpp */,
 				3D0AA727222B50A800CA6CA3 /* Assets.xcassets */,
 				3D0AA72C222B50A800CA6CA3 /* Info.plist */,
 			);
-			path = UISample;
+			path = Template;
 			sourceTree = "<group>";
 		};
 		3DF3570C231C769000F04989 /* Frameworks */ = {
@@ -88,9 +85,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3D0AA720222B50A700CA6CA3 /* UISample */ = {
+		3D0AA720222B50A700CA6CA3 /* Template */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3D0AA732222B50A800CA6CA3 /* Build configuration list for PBXNativeTarget "UISample" */;
+			buildConfigurationList = 3D0AA732222B50A800CA6CA3 /* Build configuration list for PBXNativeTarget "Template" */;
 			buildPhases = (
 				3D0AA71D222B50A700CA6CA3 /* Sources */,
 				3D0AA71E222B50A700CA6CA3 /* Frameworks */,
@@ -100,9 +97,9 @@
 			);
 			dependencies = (
 			);
-			name = UISample;
-			productName = UISample;
-			productReference = 3D0AA721222B50A700CA6CA3 /* UISample.app */;
+			name = Template;
+			productName = Template;
+			productReference = 3D0AA721222B50A700CA6CA3 /* Template.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -119,7 +116,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 3D0AA71C222B50A700CA6CA3 /* Build configuration list for PBXProject "UISample" */;
+			buildConfigurationList = 3D0AA71C222B50A700CA6CA3 /* Build configuration list for PBXProject "Template" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -132,7 +129,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3D0AA720222B50A700CA6CA3 /* UISample */,
+				3D0AA720222B50A700CA6CA3 /* Template */,
 			);
 		};
 /* End PBXProject section */
@@ -142,7 +139,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D0AA738222B50FA00CA6CA3 /* guitar.bmp in Resources */,
 				3D0AA728222B50A800CA6CA3 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -155,7 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D0E4202239CDAB100566F4A /* main.mm in Sources */,
-				3D0AA737222B50FA00CA6CA3 /* UISample.cpp in Sources */,
+				3D0AA737222B50FA00CA6CA3 /* Template.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,7 +275,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
-				CODE_SIGN_ENTITLEMENTS = UISample/UISample.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Template/Template.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -290,12 +286,12 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = UISample/Info.plist;
+				INFOPLIST_FILE = Template/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = cogmine.UISample;
+				PRODUCT_BUNDLE_IDENTIFIER = cogmine.Template;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					../../../../core/src,
@@ -313,18 +309,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
-				CODE_SIGN_ENTITLEMENTS = UISample/UISample.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Template/Template.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "COGS_USE_COGS_MAIN=1";
 				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = UISample/Info.plist;
+				INFOPLIST_FILE = Template/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = cogmine.UISample;
+				PRODUCT_BUNDLE_IDENTIFIER = cogmine.Template;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					../../../../core/src,
@@ -339,7 +335,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3D0AA71C222B50A700CA6CA3 /* Build configuration list for PBXProject "UISample" */ = {
+		3D0AA71C222B50A700CA6CA3 /* Build configuration list for PBXProject "Template" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3D0AA730222B50A800CA6CA3 /* Debug */,
@@ -348,7 +344,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3D0AA732222B50A800CA6CA3 /* Build configuration list for PBXNativeTarget "UISample" */ = {
+		3D0AA732222B50A800CA6CA3 /* Build configuration list for PBXNativeTarget "Template" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3D0AA733222B50A800CA6CA3 /* Debug */,

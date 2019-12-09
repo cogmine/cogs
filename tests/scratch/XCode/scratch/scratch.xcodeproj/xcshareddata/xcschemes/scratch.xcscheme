@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3D0AA720222B50A700CA6CA3"
-               BuildableName = "UISample.app"
-               BlueprintName = "UISample"
-               ReferencedContainer = "container:UISample.xcodeproj">
+               BuildableName = "scratch.app"
+               BlueprintName = "scratch"
+               ReferencedContainer = "container:scratch.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -31,9 +31,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3D0AA720222B50A700CA6CA3"
-            BuildableName = "UISample.app"
-            BlueprintName = "UISample"
-            ReferencedContainer = "container:UISample.xcodeproj">
+            BuildableName = "scratch.app"
+            BlueprintName = "scratch"
+            ReferencedContainer = "container:scratch.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -54,9 +54,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3D0AA720222B50A700CA6CA3"
-            BuildableName = "UISample.app"
-            BlueprintName = "UISample"
-            ReferencedContainer = "container:UISample.xcodeproj">
+            BuildableName = "scratch.app"
+            BlueprintName = "scratch"
+            ReferencedContainer = "container:scratch.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -71,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3D0AA720222B50A700CA6CA3"
-            BuildableName = "UISample.app"
-            BlueprintName = "UISample"
-            ReferencedContainer = "container:UISample.xcodeproj">
+            BuildableName = "scratch.app"
+            BlueprintName = "scratch"
+            ReferencedContainer = "container:scratch.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
