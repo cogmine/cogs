@@ -113,7 +113,7 @@ COGS_MAIN
 		auto guiSubsystem = gui::subsystem::get_default();
 		if (!guiSubsystem)
 		{
-			printf("Console UI - TBD\n");
+			std:: cout << "Console UI - TBD" << std::endl;
 			int i;
 			std::cin >> i;
 

@@ -17,7 +17,7 @@ COGS_MAIN
 		auto guiSubsystem = gui::subsystem::get_default();
 		if (!guiSubsystem)
 		{
-			printf("Hello World.\n");
+			std:: cout << "Hello World!" << std::endl;
 			cogs::request_quit();
 			return EXIT_SUCCESS;
 		}
