@@ -5,16 +5,12 @@
 #include <iostream>
 #include "cogs/cogs.hpp"
 
-namespace cogs
-{
-	int main(const rcref<gui::windowing::subsystem>&);
-};
-
 using namespace cogs;
 using namespace cogs::gui;
 using namespace cogs::io;
 using namespace cogs::io::net;
 using namespace cogs::io::net::ip;
+
 
 class box : public background
 {

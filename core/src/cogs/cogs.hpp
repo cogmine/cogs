@@ -12,15 +12,13 @@
 ///
 /// @section MainPageWorkInProgress Work In Progress
 ///
-/// This documentation is a work in progress.  Few classes (etc.) are yet completely documented, but I've
-/// added at least brief descriptions for most.  Check the
-/// 'Modules' section for classes organized into groups.
+/// This documentation is a work in progress.
+/// Check the 'Modules' section for classes organized into groups.
 ///
 ///
 /// @section MainPageIntro Introduction
 ///
 /// Cogs is a lock-free, cross-platform, C++ template class library and application framework.
-/// Cogs is an alternative to the standard C++ library.
 ///
 /// @section GettingStarted Getting Started
 ///
@@ -28,17 +26,18 @@
 ///
 /// @subsection MainPageDirectoryStructure Directory Structure and Include Search Paths
 ///
-/// Cogs source code is organized into 4 main areas: Core, Architecture, Environment, OS.
-/// Some cross-architecture (x86, AMD64, etc.), cross-environment (Visual Studio, XCode), and cross-OS
-/// (Windows, MacOS, Linux) support is accomplished by providing alternate versions of headers and classes.
-/// A project must add the appropriate arch, env and OS include paths for the desired platform.
-/// i.e.  To target AMD64, MS Windows, using Visual Studio, a project would add the following include paths: 
+/// Cogs source code is organized into 4 main areas: Core, Architecture, Operating System, and Build Environment.
+///
+/// Some cross arch/OS/env support is accomplished by providing alternate headers and classes.
+/// Project should add the desired arch, env and OS specific include paths for the desired platform.
+/// i.e.  To target AMD64, MS Windows, using Visual Studio, a project should add:
 ///
 /// - core/src
 /// - core/arch/AMD64/src
 /// - core/os/windows/src
 /// - core/env/VS/Windows/src
 ///
+/// This addressed in the included Template projects, and CMakeList.txt files.
 ///
 /// @section Concepts
 /// @subsection MainPageVolatileCorrectness Volatile Correctness
@@ -53,7 +52,7 @@
 /// qualifier, to indicate one version of the function is to be used when called on a non-const reference,
 /// and the other is to be used when called on a const reference.
 ///
-/// The const and volatile keywords are syntactically equivalent (defined together in C++ specs as "cv-qualifiers").  The same
+/// The const and volatile keywords are syntactically equivalent (defined together as "cv-qualifiers").  The same
 /// language features that apply to distinguishing between const and non-const types, can be used
 /// to distinguish between volatile and non-volatile types.  Cogs leverages this to provide thread
 /// safe (volatile) and more efficient thread-unsafe (non-volatile) implementations of an algorithm
@@ -89,24 +88,23 @@
 ///		a4.foo(); // Calls #4
 ///	}
 /// @endcode
-/// 
+///
 ///
 /// @subsection MainPageAtomics Atomics
 ///
-/// Underlying Cogs' lock-free algorithms is a set of atomic functionality.  See: @ref cogs::atomic
+/// Included is a library of atomic operations that leverage compiler intrisics.  See: @ref cogs::atomic
+///
 ///
 /// @subsection MainPageMemoryAllocation Memory Allocation 
 ///
-/// Cogs supports allocator classes. A @ref cogs::allocator may be static or 
-/// instance-based.  The default allocator (@ref cogs::buddy_block_allocator) is lock-free.
+/// Cogs supports an allocator type. A @ref cogs::allocator may be static or 
+/// instance-based.  The default allocator (@ref cogs::buddy_block_allocator , aka bballoc) is lock-free.
+/// bballoc is a general purpose allocator that uses a cascading set of free-lists.
 ///
 ///
 /// @subsection MainPageRefCountedObjects Lock-Free RAII Reference-Counted Objects
 ///
-/// Cogs heavily leverages lock-free <A href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization">RAII</A> 
-/// reference-counted reference containers (i.e. smart pointers).  These
-/// reference objects are copied by value, and the object referred to is disposed when its last
-/// reference goes out of scope.
+/// Cogs uses it's own reference-counted pointer type, and new-like operator.
 ///
 /// @code{.cpp}
 ///		volatile rcptr<A> a1 = rcnew(A, constructorArgs);
@@ -121,15 +119,13 @@
 /// container using @ref this_rcptr or @ref this_rcref.
 ///
 /// A @ref cogs::rcref is similar to a @ref cogs::rcptr, but cannot refer to null.  @ref cogs::rcptr and @ref cogs::rcref are
-/// both considered "strong" references.  (See @ref cogs::reference_strength_type)  A @ref cogs::weak_rcptr can be used to
-/// retain a conditional reference to an object, which automatically becomes NULL when there are no longer any strong references.
-/// @ref cogs::weak_rcptr assists in preventing circular dependencies.  Generally, a @ref cogs::weak_rcptr
-/// should be used for any reference that is not specifically intended to extend the scope of the object.
+/// both "strong" references.  (@ref cogs::reference_strength_type)  A @ref cogs::weak_rcptr can be used to
+/// retain a conditional reference to an object, which automatically becomes null when there are no longer any strong references.
 ///
 ///
 /// @subsection MainPageLockFreeAlgorithms Lock-Free Algorithms
 ///
-/// Noteworthy lock-free algorithms include:
+/// Noteworthy lock-free algorithms:
 ///
 /// @ref cogs::hazard (Hazard pointers) - Based loosely on a <a href="https://www.research.ibm.com/people/m/michael/ieeetpds-2004.pdf">paper</a> by Maged M. Michael
 ///
@@ -159,7 +155,7 @@
 ///
 /// As a cross-platform framework, Cogs abstracts thread synchronization on the target platform.  As a lock-free
 /// framework, use of blocking synchronization is discouraged.  Most cogs synchronization objects provide a way to be
-/// notified of resource availability using a callback delegate, which allows traditional thread synchronization objects
+/// notified of resource availability using a callback, which allows traditional thread synchronization objects
 /// to be used in a lock-free manner.
 ///
 /// Cogs synchronization objects avoid locks internally, and leverage only a simple OS-specific semaphore when
@@ -174,21 +170,17 @@
 /// @ref cogs::thread, @ref cogs::thread_pool
 ///
 ///
-/// @subsection MainPageDelegatesAndDispatchers Delegates and Dispatchers
+/// @subsection MainPageFunctionsDispatchersTasks Function Objects, Dispatchers and Tasks
 ///
-/// Cogs is heavily functional.  (See: <a href="https://en.wikipedia.org/wiki/Functional_programming">Functional Programming</a>)
-/// 
-/// A @ref cogs::delegate_t can opaquely encapsulate any of the following:
+/// @ref cogs::function<> is similar to std::function<>, with the following differences:
+/// - It's embbeded storage size (used to avoid dynamic allocations) can be specified
+/// - It can contain a lambda with a different signature than provided, if the call is compatible.
 ///
-/// - A function pointer
-/// - A member function and pointer to an object to invoke it on
-/// - A member function and a strong or weak reference to a reference-counted object to invoke it on
-/// - Any of the above with the addition of 'piggy-backed' parameter data
+/// @ref cogs::dispatcher is an interface for objects that dispatch invoke lambda, such as a @ref cogs::thread_pool or a @cogs::event .
 ///
-/// @ref cogs::delegate_t does not need to precisely match expected parameters or return types, as long as 
-/// types are compatible.
-///
-/// A @ref cogs::dispatcher is an interface for objects that dispatch delegates, such as a @ref cogs::thread_pool.
+/// @ref cogs::task is similar to a ppl task, or a JavScript promise.  It's a type returned by asynchronous operations, and can be used to cancel,
+/// wait for, and potential change the priority of an operation.  cogs::task is a dispatcher, so can also return a task that will complete after it's
+/// been invoked.  If a lamba returning a task is used, the next chained task will not complete until that returned task completes.
 ///
 ///
 /// @subsection MainPageIO Asynchronous I/O
@@ -201,7 +193,7 @@
 /// Cogs I/O makes use of composite buffers (@ref cogs::io::composite_buffer_t).  A composite buffer is a single logical buffer potentially
 /// comprised of multiple incontiguous buffers.  This is intended to minimize large buffer copies.
 ///
-/// Cogs includes highly scalable cross-platform Network I/O.  
+/// Cogs includes scalable cross-platform Network I/O.  
 /// - On Windows, <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365198(v=vs.85).aspx">IOCompletionPorts</a> are used.
 /// - On Linux, <a href="https://en.wikipedia.org/wiki/Epoll">epoll</a> is used.
 /// - On MacOS, <a href="https://en.wikipedia.org/wiki/Kqueue">kqueue</a> is used.
@@ -211,13 +203,13 @@
 ///
 /// @subsection MainPageMath Math
 ///
-/// Cogs includes classes for both fixed and dynamic <a href="https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic">arbitrary precision</a>
+/// Cogs includes classes for fixed, dynamic and compile-time constant <a href="https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic">arbitrary precision</a>
 /// integers (@ref cogs::fixed_integer, @ref cogs::dynamic_integer).  Where applicable, mathematical operations generate results with increasing bits,
 /// making range overflows avoidable.
 ///
-/// cogs::number is a wrapper type that encapsulates both an underlying representation
+/// @ref cogs::measure iencapsulates a numeric representation
 /// (such as a @ref cogs::fixed_integer or @ref cogs::dynamic_integer) and a unit base (such as seconds, minutes, meters, liters).
-/// Mathematical operations automatically perform the appropriate type, value and unit base conversions.
+/// Conversations are automatically applied for operations with mixed unit based.
 ///
 ///
 /// @subsection ManiPageCrypto Cryptography, Hashes, CRCs and Checksums
