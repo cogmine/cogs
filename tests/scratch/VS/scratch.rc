@@ -44,7 +44,7 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-guitar             BITMAP                  "..\\guitar.bmp"
+guitar.bmp         BITMAP                  "..\\guitar.bmp"
 
 
 #endif    // English (United States) resources

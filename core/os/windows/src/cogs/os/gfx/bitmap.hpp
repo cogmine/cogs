@@ -91,13 +91,11 @@ private:
 			return result;
 		}
 
-		static gdi_bitmap load_rgba(const composite_string& location, bool* isOpaque = nullptr)
+		static gdi_bitmap load_rgba(const composite_string& location, bool& isOpaque)
 		{
 			gdi_bitmap result = load(location);
-			bool isBitmapOpaque = result.m_depth != 32;
+			isOpaque = result.m_depth != 32;
 			if (isOpaque)
-				*isOpaque = isBitmapOpaque;
-			if (isBitmapOpaque)
 				result.resample(32);
 			return result;
 		}
@@ -297,18 +295,18 @@ private:
 
 		// Takes advantage of the fact that TransparentBlt will write 0 values to the alpha it writes, but leaves
 		// alpha alone where it did not copy due to transparent color.
-		void mask_out(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, bool transparentPlane) const
+		void mask_out(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, bool inversed) const
 		{
 			COGS_ASSERT(m_depth == 1);
 			SetStretchBltMode(dstDC, COLORONCOLOR);
-			if (transparentPlane)
+			if (inversed)
 				SetBkColor(dstDC, RGB(0, 0, 0));
 			else
 				SetTextColor(dstDC, RGB(0, 0, 0));
 			TransparentBlt(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
-				transparentPlane ? RGB(255, 255, 255) : RGB(0, 0, 0));
+				inversed ? RGB(255, 255, 255) : RGB(0, 0, 0));
 		}
 
 		void stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds) const
@@ -460,9 +458,11 @@ public:
 
 	bitmap(rc_obj_base& desc, const composite_string& location, image_type imageType)
 		: device_context(desc, dip_dpi),
-		m_gdiBitmap(gdi_bitmap::load_rgba(location, &m_isOpaque)),
+		m_gdiBitmap(gdi_bitmap::load(location)),
 		m_logicalSize(m_gdiBitmap.get_size())
 	{
+		m_isOpaque = m_gdiBitmap.get_depth() != (int)image_type::rgba || imageType != image_type::rgba;
+		m_gdiBitmap.resample((int)imageType);
 		set_HDC(m_gdiBitmap.get_HDC());
 		m_logicalDipSize = make_size(m_logicalSize);
 		COGS_ASSERT(get_HDC());
