@@ -123,7 +123,7 @@ public:
 		virtual void fill(const bounds& b, fill_mode fillMode = fill_mode::set_mode) = 0;
 		virtual void draw_line(const point& startPt, const point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode) = 0;
 
-		virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) = 0;
+		virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
 		virtual gfx::font get_default_font() const = 0;
 
 		virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, bool value = true) = 0;
@@ -163,7 +163,7 @@ public:
 	//	virtual void fill(const bounds& b, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
 	//	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
 	//
-	//	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) = 0;
+	//	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
 	//	virtual gfx::font get_default_font() const = 0;
 	//
 	//	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, std::uint8_t alpha = 0xFF) = 0;
@@ -198,7 +198,7 @@ public:
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) = 0;
 
 	// text and font primatives
-	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) = 0;
+	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
 	virtual gfx::font get_default_font() const = 0;
 
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) = 0;

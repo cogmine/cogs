@@ -73,6 +73,9 @@ public:
 	NSSize m_nativeSize;
 	__strong NSTrackingArea* m_trackingArea;
 	ui::modifier_keys_state m_lastModifierKeysState = {};
+	bool m_inResize = false;
+	bool m_widthChanged;
+	bool m_heightChanged;
 
 	window(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem)
@@ -244,18 +247,48 @@ public:
 	NSSize proposing_size(NSSize newNSSize)
 	{
 		NSRect frameRect = [m_nsWindow frame];
-		NSRect contentRect = [m_nsWindow contentRectForFrameRect : frameRect];
 
+		if (!m_widthChanged)
+			m_widthChanged = frameRect.size.width != newNSSize.width;
+
+		if (!m_heightChanged)
+			m_heightChanged = frameRect.size.height != newNSSize.height;
+
+		if (!m_widthChanged && !m_heightChanged)
+			return newNSSize;
+
+		NSRect contentRect = [m_nsWindow contentRectForFrameRect : frameRect];
 		m_preSizingBounds.set(point(contentRect.origin.x, contentRect.origin.y), size(contentRect.size.width, contentRect.size.height));
 
 		NSRect r;
 		r.origin.x = 0;
 		r.origin.y = 0;
 		r.size = newNSSize;
-		NSRect newFrameRect = [m_nsWindow contentRectForFrameRect:r];
+		NSRect newContentRect = [m_nsWindow contentRectForFrameRect:r];
 
-		size newSize = graphics_context::make_size(newFrameRect);
-		newSize = nsview_pane::propose_size(newSize);
+		size newSize = graphics_context::make_size(newContentRect);
+		for (;;)
+		{
+			if (m_widthChanged)
+			{
+				if (!m_heightChanged)
+				{
+					newSize = nsview_pane::propose_lengths(dimension::horizontal, newSize);
+					break;
+				}
+			}
+			else if (m_heightChanged)
+			{
+				newSize = nsview_pane::propose_lengths(dimension::vertical, newSize);
+				break;
+			}
+			newSize = nsview_pane::propose_size(newSize);
+			break;
+		}
+
+		// Always round up the next whole pixel, to avoid the wandering window problem
+		newSize.assign_ceil();
+
 		r.size = graphics_context::make_NSSize(newSize);
 		r = [m_nsWindow frameRectForContentRect : r];
 		return r.size;
@@ -493,6 +526,23 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 	[super resignKeyWindow];
 }
 
+-(void)windowWillStartLiveResize:(NSNotification*)notification
+{
+    cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+    if (!!cppWindow)
+    {
+        cppWindow->m_inResize = true;
+        cppWindow->m_widthChanged = false;
+        cppWindow->m_heightChanged = false;
+    }
+}
+
+-(void)windowWillEndLiveResize:(NSNotification*)notification
+{
+    cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+    if (!!cppWindow)
+        cppWindow->m_inResize = false;
+}
 
 -(NSSize)windowWillResize:(NSWindow *) window toSize:(NSSize)newSize
 {

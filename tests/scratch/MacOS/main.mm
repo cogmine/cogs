@@ -51,20 +51,21 @@
 int main(int argc, const char * argv[]) {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-    id menubar = [NSMenu new];
-    id appMenuItem = [NSMenuItem new];
-    [menubar addItem:appMenuItem];
-    [NSApp setMainMenu:menubar];
-    id appMenu = [NSMenu new];
-    id appName = [[NSProcessInfo processInfo] processName];
-    id quitTitle = [@"Quit " stringByAppendingString:appName];
-    id quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"];
+
+    __strong NSString* appName = [[NSProcessInfo processInfo] processName];
+    __strong NSString* quitTitle = [@"Quit " stringByAppendingString:appName];
+    __strong NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"];
+    __strong NSMenu* appMenu = [NSMenu new];
     [appMenu addItem:quitMenuItem];
+    __strong NSMenuItem* appMenuItem = [NSMenuItem new];
     [appMenuItem setSubmenu:appMenu];
-	AppDelegate* appDelegate = [[AppDelegate alloc] init];
+    __strong NSMenu* menuBar = [NSMenu new];
+    [menuBar addItem:appMenuItem];
+    [NSApp setMainMenu:menuBar];
+    
+    __strong AppDelegate* appDelegate = [[AppDelegate alloc] init];
     [NSApp setDelegate:appDelegate];
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp run];
     return EXIT_SUCCESS;
 }
-

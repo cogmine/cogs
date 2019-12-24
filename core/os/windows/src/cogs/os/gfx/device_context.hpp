@@ -446,10 +446,10 @@ public:
 	}
 
 	// text and font primatives
-	virtual rcref<canvas::font> load_font(const gfx::font& guiFont)
+	virtual rcref<canvas::font> load_font(const gfx::font& f)
 	{
 		COGS_ASSERT(!!m_hDC);
-		return rcnew(font, guiFont, this_rcref);
+		return rcnew(font, f, this_rcref);
 	}
 
 	virtual gfx::font get_default_font() const

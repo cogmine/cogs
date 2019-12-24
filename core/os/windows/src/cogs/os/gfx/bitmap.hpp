@@ -538,9 +538,9 @@ public:
 		m_gdiBitmap.draw_line(startPt2, endPt2, width2, fillMode);
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& guiFont)
+	virtual rcref<canvas::font> load_font(const gfx::font& f)
 	{
-		return device_context::load_font(guiFont);
+		return device_context::load_font(f);
 	}
 
 	virtual gfx::font get_default_font() const

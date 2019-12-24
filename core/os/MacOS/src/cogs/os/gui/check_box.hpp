@@ -86,7 +86,7 @@ public:
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSFont* nsFont = m_cachedFont->get_NSFont();
 		[buttonCell setFont:nsFont];
-	}
+    }
 
 	virtual void installing()
 	{
@@ -97,12 +97,11 @@ public:
 		objcCheckBox->m_cppCheckBox = this_rcptr;
 
 		install_NSView(objcCheckBox);
-		nsview_pane::installing();
-
 		set_text(cb->get_text());
 		set_checked(cb->is_checked());
 		set_font(cb->get_font());
 		set_enabled(cb->is_enabled());
+		nsview_pane::installing();
 	}
 
 	virtual void calculate_range()

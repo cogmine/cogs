@@ -15,6 +15,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/collections/composite_string.hpp"
+#include "cogs/collections/set.hpp"
 #include "cogs/gfx/canvas.hpp"
 #include "cogs/gfx/color.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -27,7 +28,10 @@ namespace gfx {
 namespace os {
 
 
-// MacOS canvas contextual to current drawing device.  Uses NSGraphicsContext mostly.
+class bitmap_graphics_context;
+class bitmap;
+class bitmask;
+
 
 class graphics_context
 {
@@ -35,72 +39,165 @@ public:
 	class state_token
 	{
 	private:
-		NSGraphicsContext* m_nsGraphicsContext;
 		CGContextRef m_cgContext;
 
 	public:
 		state_token()
-			: m_nsGraphicsContext([NSGraphicsContext currentContext]),
-			m_cgContext([m_nsGraphicsContext CGContext])
+			: m_cgContext([[NSGraphicsContext currentContext] CGContext])
 		{
 			[NSGraphicsContext saveGraphicsState];
+			CGContextSaveGState(m_cgContext);
 		}
 
-		state_token(NSGraphicsContext* ctx)
-			: m_nsGraphicsContext(ctx)
+		state_token(const CGContextRef& ctx)
+			: m_cgContext(ctx)
 		{
 			[NSGraphicsContext saveGraphicsState];
-			[NSGraphicsContext setCurrentContext : ctx];
+			CGContextSaveGState(m_cgContext);
 		}
 
 		~state_token()
 		{
+			CGContextRestoreGState(m_cgContext);
 			[NSGraphicsContext restoreGraphicsState];
 		}
 
-		NSGraphicsContext* get_NSGraphicsContext() const { return m_nsGraphicsContext; }
-		const CGContextRef& get_CGContent() const { return m_cgContext; }
+		const CGContextRef& get_CGContext() const { return m_cgContext; }
 	};
-
 
 	class font : public canvas::font
 	{
 	private:
+		CTFontRef m_font;
+		CFDictionaryRef m_attributes;
+		CGContextRef m_context;
+		bool m_underlined;
+
+		// Uses a nonvolatile_set as creation is synchronized and is then read-only
+		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
+		{
+		protected:
+			fontlist()
+			{
+				// Load fonts.  (Fonts added or removed will not be observed until relaunch)
+				__strong NSArray* fonts = [[NSFontManager sharedFontManager]availableFontFamilies];
+				size_t numFonts = [fonts count];
+				for (size_t i = 0; i < numFonts; ++i)
+					try_insert(NSString_to_string(fonts[i]));
+			}
+		};
+
+		// Uses prioritized list of font names to find best match font.
+		// If no match is found, name of default font is returned.
+		static const composite_string& resolve(const vector<composite_string>& fontNames)
+		{
+			size_t numFontNames = fontNames.get_length();
+			composite_string fontName;
+			for (size_t i = 0; i < numFontNames; i++)
+			{
+				auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
+				if (!!itor)
+					return *itor; // Use case from font list, just in case.  ha
+			}
+			return singleton<default_font>::get()->get_font_names()[0];
+		}
+
 		friend class graphics_context;
 
-		__strong NSFont* m_nsFont;
-		bool m_isUnderlined;
-
 	public:
-		font(NSFont* nsFont, bool isUnderlined)
-			: m_nsFont(nsFont),
-			m_isUnderlined(isUnderlined)
+		font(const gfx::font& f, const CGContextRef& ctx)
+			: m_context(ctx)
 		{
+			CGContextRetain(ctx);
+
+			// Get point size as CGFloat
+			CGFloat pointSize = f.get_point_size();
+			if (pointSize == 0)
+				pointSize = [NSFont systemFontSize];
+
+			// Get font name as NSString
+			composite_string fontName = resolve(f.get_font_names());
+			__strong NSString* fontName2;
+			if (!!fontName)
+				fontName2 = string_to_NSString(fontName);
+			else
+			{
+				__strong NSFont *nsFont = [NSFont systemFontOfSize: pointSize];
+				fontName2 = [nsFont fontName];
+			}
+
+			// Get traits as CTFontSymbolicTraits
+			CTFontSymbolicTraits traits = 0;
+			if (f.is_bold())
+				traits |= kCTFontTraitBold;
+			if (f.is_italic())
+				traits |= kCTFontTraitItalic;
+
+			// Build a dictionary tree in order to pass traits and font name to CTFontDescriptor
+			__strong NSMutableDictionary* fontAttributes = [NSMutableDictionary dictionary];
+			__strong NSMutableDictionary* traitsDict = [NSMutableDictionary dictionary];
+			if (traits)
+			{
+				[traitsDict setObject: [NSNumber numberWithUnsignedInt: traits] forKey: (id)kCTFontSymbolicTrait];
+				[fontAttributes setObject: traitsDict forKey: (id)kCTFontTraitsAttribute];
+			}
+			[fontAttributes setObject: fontName2 forKey: (id)kCTFontNameAttribute];
+
+			// Create CTFontDescriptior
+			CTFontDescriptorRef fontDescriptor = CTFontDescriptorCreateWithAttributes((__bridge CFDictionaryRef)fontAttributes);
+
+			// Create CTFont
+			m_font = CTFontCreateWithFontDescriptor(fontDescriptor, pointSize, NULL);
+
+			// Create set of attribites containing underlined state, to pass to CFAttributedString later
+			m_underlined = f.is_underlined();
+			if (m_underlined)
+			{
+				SInt32 underlineType = kCTUnderlineStyleSingle;
+				CFNumberRef underlineRef = CFNumberCreate(NULL, kCFNumberSInt32Type, &underlineType);
+				CFTypeRef keys[] = { kCTFontAttributeName, kCTUnderlineStyleAttributeName };
+				CFTypeRef vals[] = { m_font, underlineRef };
+				m_attributes = CFDictionaryCreate(NULL, keys, vals, sizeof(keys), NULL, &kCFTypeDictionaryValueCallBacks);
+				CFRelease(underlineRef);
+			}
+			else
+			{
+				const void* keys[] = { kCTFontAttributeName };
+				const void* vals[] = { m_font };
+				m_attributes = CFDictionaryCreate(NULL, keys, vals, std::size(keys), NULL, &kCFTypeDictionaryValueCallBacks);
+			}
 		}
 
-		NSFont* get_NSFont()
+		~font()
 		{
-			return m_nsFont;
+			CFRelease(m_font);
+			CFRelease(m_attributes);
+			CGContextRelease(m_context);
 		}
+
+		const CTFontRef& get_CTFont() const { return m_font; }
+		NSFont* get_NSFont() const { return (__bridge NSFont*)m_font; }
+		const CGContextRef& get_CGContext() const { return m_context; }
 
 		virtual font::metrics get_metrics() const
 		{
 			font::metrics result;
-			result.m_ascent = [m_nsFont ascender];
-			result.m_descent = -[m_nsFont descender];
-			result.m_spacing = result.m_ascent + result.m_descent + [m_nsFont leading];
+			result.m_ascent = CTFontGetAscent(m_font);
+			result.m_descent = CTFontGetDescent(m_font);
+			result.m_spacing = result.m_ascent + result.m_descent + CTFontGetLeading(m_font);
 			return result;
 		}
 
 		virtual canvas::size calc_text_bounds(const composite_string& s) const
 		{
 			__strong NSString* str = string_to_NSString(s);
-			__strong NSMutableDictionary* attribs = [[NSMutableDictionary alloc] initWithCapacity:2];
-			[attribs setObject:m_nsFont forKey:NSFontAttributeName]; 
-			if (m_isUnderlined)
-				[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
-			NSRect r = [str boundingRectWithSize:NSMakeSize(16000.0, 16000.0) options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs]; // NSStringDrawingUsesDeviceMetrics | 
-			return canvas::size(r.size.width, r.size.height);
+			CFStringRef strRef = (__bridge CFStringRef)str;
+			CFAttributedStringRef attribStr = CFAttributedStringCreate(NULL, strRef, m_attributes);
+			CTLineRef line = CTLineCreateWithAttributedString(attribStr);
+			CGRect r = CTLineGetImageBounds(line, m_context);
+			CFRelease(line);
+			CFRelease(attribStr);
+			return make_size(r);
 		}
 	};
 
@@ -112,7 +209,7 @@ public:
 			CGFloat fontSize = [NSFont systemFontSize];
 			set_point_size(fontSize);
 
-			NSFont *nsFont = [NSFont systemFontOfSize:fontSize];
+			__strong NSFont *nsFont = [NSFont systemFontOfSize:fontSize];
 			string str = NSString_to_string([nsFont fontName]);
 			append_font_name(str);
 
@@ -128,66 +225,49 @@ public:
 	{
 		if (!blendAlpha || !c.is_fully_transparent())
 		{
-			auto& ctx = token.get_CGContent();
-			CGColorRef c2 = make_CGColorRef(c);
-			CGContextSetFillColorWithColor(ctx, c2);
-			CGContextSetBlendMode(ctx, blendAlpha ? kCGBlendModeNormal : kCGBlendModeCopy);
-			CGContextFillRect(ctx, make_CGRect(b));
+			CGContextSetRGBFillColor(token.get_CGContext(), (CGFloat)c.get_red() / 0xFF, (CGFloat)c.get_green() / 0xFF, (CGFloat)c.get_blue() / 0xFF, (CGFloat)c.get_alpha() / 0xFF);
+			CGBlendMode blendMode = blendAlpha ? kCGBlendModeNormal : kCGBlendModeCopy;
+			fill(b, blendMode, token);
 		}
+	}
+
+	static void fill(const canvas::bounds& b, CGBlendMode blendMode, const state_token& token = state_token())
+	{
+		CGContextRef ctx = token.get_CGContext();
+		CGContextSetBlendMode(ctx, blendMode);
+		CGContextFillRect(ctx, make_CGRect(b));
 	}
 
 	static void invert(const canvas::bounds& b, const state_token& token = state_token())
 	{
-		auto& ctx = token.get_CGContent();
+		CGContextRef ctx = token.get_CGContext();
 		CGContextSetBlendMode(ctx, kCGBlendModeDifference);
 		CGContextSetRGBFillColor(ctx, 1.0, 1.0, 1.0, 1.0);
 		CGContextFillRect(ctx, make_CGRect(b));
 	}
 
-	static void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true, const state_token& token = state_token())
+	static void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width, CGBlendMode blendMode, const state_token& token = state_token())
 	{
-		auto& ctx = token.get_CGContent();
-		CGColorRef c2 = make_CGColorRef(c);
-		CGContextSetStrokeColorWithColor(ctx, c2);
-		CGContextSetBlendMode(ctx, blendAlpha ? kCGBlendModeNormal : kCGBlendModeCopy); 
+		CGContextRef ctx = token.get_CGContext();
+		CGContextSetBlendMode(ctx, blendMode);
 		CGContextSetLineWidth(ctx, width);
 		CGContextMoveToPoint(ctx, startPt.get_x(), startPt.get_y());
 		CGContextAddLineToPoint(ctx, endPt.get_x(), endPt.get_y());
 		CGContextStrokePath(ctx);
 	}
 
-	// text and font primatives
-	static rcref<canvas::font> load_font(const gfx::font& guiFont)
+	static void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true, const state_token& token = state_token())
 	{
-		__strong NSFont* nsFont;
-		CGFloat fontSize;
-		if (!guiFont.get_point_size())
-			fontSize = [NSFont systemFontSize];
-		else
-			fontSize = guiFont.get_point_size();
+		CGContextRef ctx = token.get_CGContext();
+		CGContextSetRGBStrokeColor(ctx, (CGFloat)c.get_red() / 0xFF, (CGFloat)c.get_green() / 0xFF, (CGFloat)c.get_blue() / 0xFF, (CGFloat)c.get_alpha() / 0xFF);
+		CGBlendMode blendMode = blendAlpha ? kCGBlendModeNormal : kCGBlendModeCopy;
+		draw_line(startPt, endPt, width, blendMode, token);
+	}
 
-		size_t numFontNames = guiFont.get_num_font_names();
-		size_t i = 0;
-		for (; i < numFontNames; i++)
-		{
-			__strong NSString* fontName = string_to_NSString(guiFont.get_font_names()[i]);
-			nsFont = [NSFont fontWithName:fontName size:fontSize];
-			if (!!nsFont)
-				break;
-		}
-
-		if (i == numFontNames)
-		{
-			nsFont = [NSFont systemFontOfSize:fontSize];
-			COGS_ASSERT(!!nsFont);
-		}
-
-		NSFontManager* nsFontManager = [NSFontManager sharedFontManager];
-		if (guiFont.is_italic())
-			[nsFontManager convertFont:nsFont toHaveTrait:NSItalicFontMask];
-		if (guiFont.is_bold())
-			[nsFontManager convertFont:nsFont toHaveTrait:NSBoldFontMask];
-		return rcnew(font, nsFont, guiFont.is_underlined());
+	// text and font primatives
+	static rcref<canvas::font> load_font(const gfx::font& f, const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
+	{
+		return rcnew(font, f, ctx);
 	}
 
 	static gfx::font get_default_font()
@@ -195,70 +275,99 @@ public:
 		return *singleton<default_font>::get();
 	}
 
-	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
+	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black, const state_token& token = state_token())
 	{
-		font* derivedFont = f.template static_cast_to<font>().get_ptr();
-		NSFont* nsFont = derivedFont->get_NSFont();
+		CGColorRef colorRef = CGColorCreateGenericRGB((CGFloat)c.get_red() / 0xFF, (CGFloat)c.get_green() / 0xFF, (CGFloat)c.get_blue() / 0xFF, (CGFloat)c.get_alpha() / 0xFF);
+		draw_text(s, b, f, colorRef, token);
+		CGColorRelease(colorRef);
+	}
 
-		__strong NSString* str = string_to_NSString(s);
-		__strong NSMutableDictionary* attribs = [[NSMutableDictionary alloc] initWithCapacity:2];
-		[attribs setObject:nsFont forKey:NSFontAttributeName];
-
-		__strong NSColor* nsColor = make_NSColor(c);
-		[attribs setObject:nsColor forKey:NSForegroundColorAttributeName]; 
-
-		if (derivedFont->m_isUnderlined)
-			[attribs setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSUnderlineStyleAttributeName]; 
-
-		NSRect r2 = make_NSRect(b);
-		[str drawWithRect:r2 options:NSStringDrawingUsesLineFragmentOrigin attributes:attribs];
+	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const CGColorRef& c, const state_token& token = state_token())
+	{
+		auto inner = [&](font& f2)
+		{
+			__strong NSString* str = string_to_NSString(s);
+			CFStringRef strRef = (__bridge CFStringRef)str;
+			CFDictionaryRef attributes;
+			if (f2.m_underlined)
+			{
+				SInt32 underlineType = kCTUnderlineStyleSingle;
+				CFNumberRef underlineRef = CFNumberCreate(NULL, kCFNumberSInt32Type, &underlineType);
+				CFTypeRef keys[] = { kCTFontAttributeName, kCTUnderlineStyleAttributeName, kCTForegroundColorAttributeName };
+				CFTypeRef vals[] = { f2.m_font, underlineRef, c };
+				attributes = CFDictionaryCreate(NULL, keys, vals, std::size(keys), NULL, &kCFTypeDictionaryValueCallBacks);
+				CFRelease(underlineRef);
+			}
+			else
+			{
+				CFTypeRef keys[] = { kCTFontAttributeName, kCTForegroundColorAttributeName };
+				CFTypeRef vals[] = { f2.m_font, c };
+				attributes = CFDictionaryCreate(NULL, keys, vals, std::size(keys), NULL, &kCFTypeDictionaryValueCallBacks);
+			}
+			CFAttributedStringRef attribStr = CFAttributedStringCreate(NULL, strRef, attributes);
+			CTLineRef line = CTLineCreateWithAttributedString(attribStr);
+			CGContextRef ctx = token.get_CGContext();
+			CGRect r = make_CGRect(b);
+			CGContextClipToRect(ctx, r);
+			CGContextSetTextMatrix(ctx, CGAffineTransformMakeScale(1.0f, -1.0f));
+			CGContextTranslateCTM(ctx, 0.0f, r.size.height - CTFontGetDescent(f2.m_font));
+			CTLineDraw(line, ctx);
+			CFRelease(line);
+			CFRelease(attribStr);
+			CFRelease(attributes);
+		};
+		if (!f)
+			inner(*load_font(gfx::font()).template static_cast_to<font>());
+		else
+		{
+			font& derivedFont = *f.template static_cast_to<font>().get_ptr();
+			inner(derivedFont);
+		}
 	}
 
 	// Compositing images
-	static void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);
-	static void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
-	static void mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted = false);
-	static void draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
+	static void draw_image(const bitmap_graphics_context& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, CGBlendMode blendMode, const state_token& token = state_token());
+
+	static void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, const state_token& token = state_token());
+	static void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true, const state_token& token = state_token());
+	static void mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted = false, const state_token& token = state_token());
+	static void draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, bool inverted = false, const state_token& token = state_token());
 
 	static rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor = std::nullopt);
 	static rcref<canvas::bitmap> load_bitmap(const composite_string& location);
 	static rcref<canvas::bitmask> create_bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt);
 	static rcref<canvas::bitmask> load_bitmask(const composite_string& location);
 
-	static void save_clip()
+	static void save_clip(const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		[NSGraphicsContext saveGraphicsState];
+		CGContextSaveGState(ctx);
 	}
 
-	static void restore_clip()
+	static void restore_clip(const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		[NSGraphicsContext restoreGraphicsState];
+		CGContextRestoreGState(ctx);
 	}
 
-	static void clip_out(const canvas::bounds& b, const canvas::size& cellSize)
+	static void clip_out(const canvas::bounds& b, const canvas::size& cellSize, const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		NSRect outerRect = make_NSRect(cellSize);
-		NSRect r2 = make_NSRect(b);
-		NSBezierPath* clipPath = [NSBezierPath bezierPath];
-		[clipPath setWindingRule:NSNonZeroWindingRule];
-		[clipPath appendBezierPathWithRect:outerRect];
-		[clipPath appendBezierPathWithRect:r2];
-		[clipPath addClip];
+		CGRect outerRect = make_CGRect(cellSize);
+		CGRect r2 = make_CGRect(b);
+		CGContextBeginPath(ctx);
+		CGContextAddRect(ctx, outerRect);
+		CGContextAddRect(ctx, r2);
+		CGContextClip(ctx);
 	}
 
-	static void clip_to(const canvas::bounds& b)
+	static void clip_to(const canvas::bounds& b, const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		NSRectClip(make_NSRect(b));
+		CGContextClipToRect(ctx, make_CGRect(b));
 	}
 
-	static bool is_unclipped(const canvas::bounds& b)
+	static bool is_unclipped(const canvas::bounds& b, const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		// TODO: Test to make sure this is same clip
-		NSGraphicsContext* curContext = [NSGraphicsContext currentContext];
-		CGContextRef context = [curContext CGContext];
-		CGRect clipBox = CGContextGetClipBoundingBox(context);
-		NSRect testRect = make_NSRect(b);
-		return CGRectIntersectsRect(clipBox, *(CGRect*)&testRect);
+		CGRect clipBox = CGContextGetClipBoundingBox(ctx);
+		CGRect testRect = make_CGRect(b);
+		return CGRectIntersectsRect(clipBox, testRect);
 	}
 
 	static NSRect make_NSRect(const canvas::bounds& b)
@@ -320,18 +429,6 @@ public:
 		return CGRectMake(pt.get_x(), pt.get_y(), sz.get_width(), sz.get_height());
 	}
 
-	static CGColorRef make_CGColorRef(const color& c)
-	{
-		CGFloat c2[4] = {
-			((CGFloat)c.get_red() / 0xFF),
-			((CGFloat)c.get_green() / 0xFF),
-			((CGFloat)c.get_blue() / 0xFF),
-			((CGFloat)c.get_alpha() / 0xFF)
-		};
-		return CGColorCreate(CGColorSpaceCreateDeviceRGB(), c2);
-	}
-
-
 	static canvas::point make_point(const NSPoint& pt)
 	{
 		return canvas::point(pt.x, pt.y);
@@ -352,7 +449,6 @@ public:
 		return canvas::size(r.size.width, r.size.height);
 	}
 
-
 	static canvas::bounds make_bounds(const NSPoint& pt, const NSSize& sz)
 	{
 		return canvas::bounds(make_point(pt), make_size(sz));
@@ -362,7 +458,6 @@ public:
 	{
 		return canvas::bounds(make_point(b.origin), make_size(b.size));
 	}
-
 };
 
 
@@ -372,7 +467,6 @@ public:
 
 
 #include "cogs/os/gfx/bitmap.hpp"
-#include "cogs/os/gfx/bitmask.hpp"
 
 
 #endif

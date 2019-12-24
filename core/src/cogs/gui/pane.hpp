@@ -2447,7 +2447,7 @@ public:
 	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
 	virtual void invert(const bounds& b) { pane::invert(b); }
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
-	virtual rcref<font> load_font(const gfx::font& guiFont = gfx::font()) { return pane::load_font(guiFont); }
+	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) { return pane::load_font(f); }
 	virtual gfx::font get_default_font() const { return pane::get_default_font(); }
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) { pane::draw_text(s, b, f, c); }
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) { return pane::draw_bitmap(src, srcBounds, dstBounds, blendAlpha); }

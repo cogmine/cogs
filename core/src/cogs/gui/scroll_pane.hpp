@@ -249,17 +249,13 @@ public:
 		pane::nest_last(m_clippingPane.dereference(), m_clippingFrame);
 		pane::nest_last(m_cornerPane.dereference(), m_cornerFrame);
 
-		if ((scrollDimensions & scroll_horizontally) != 0)
-		{
-			m_hasScrollBar[(int)dimension::horizontal] = true;
+		m_hasScrollBar[(int)dimension::horizontal] = (scrollDimensions & scroll_horizontally) != 0;
+		if (m_hasScrollBar[(int)dimension::horizontal])
 			new (&get_scroll_bar_info(dimension::horizontal)) scroll_bar_info(desc, *this, dimension::horizontal);
-		}
 
-		if ((scrollDimensions & scroll_vertically) != 0)
-		{
-			m_hasScrollBar[(int)dimension::vertical] = true;
+		m_hasScrollBar[(int)dimension::vertical] = (scrollDimensions & scroll_vertically) != 0;
+		if (m_hasScrollBar[(int)dimension::vertical])
 			new (&get_scroll_bar_info(dimension::vertical)) scroll_bar_info(desc, *this, dimension::vertical);
-		}
 	}
 
 	~scroll_pane()
@@ -332,8 +328,11 @@ public:
 		{
 			dimension d = (dimension)i;
 			if (has_scroll_bar(d))
-				get_scroll_bar_info(d).m_frame->get_fixed_size(!d) = get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
-		}
+            {
+                auto& sbinfo = get_scroll_bar_info(d);
+				sbinfo.m_frame->get_fixed_size(!d) = sbinfo.m_scrollBar->get_const_cell().get_default_size()[!d];
+            }
+        }
 
 		m_calculatedRange.set_min(0, 0);
 		m_calculatedRange.clear_max();

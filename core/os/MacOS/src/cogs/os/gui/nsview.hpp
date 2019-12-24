@@ -539,9 +539,9 @@ public:
 		gfx::os::graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 	}
 
-	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
-		gfx::os::graphics_context::draw_bitmask(src, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
+		gfx::os::graphics_context::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 	}
 
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false)

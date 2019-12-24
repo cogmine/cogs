@@ -92,17 +92,16 @@ public:
 		objcButton->m_cppButton = this_rcptr;
 		[objcButton setButtonType: NSButtonTypeMomentaryLight];
 		[objcButton setBordered:YES];
-		[objcButton setBezelStyle: NSBezelStyleRounded];
+		[objcButton setBezelStyle: NSBezelStyleRegularSquare];
 		[objcButton setTarget:objcButton];
 		[objcButton setAction:@selector(on_click:)];
 
 		install_NSView(objcButton);
-		nsview_pane::installing();
-
 		set_text(btn->get_text());
 		set_font(btn->get_font());
 		set_enabled(btn->is_enabled());
 		set_default(btn->is_default());
+		nsview_pane::installing();
 	}
 
 	virtual void calculate_range()
