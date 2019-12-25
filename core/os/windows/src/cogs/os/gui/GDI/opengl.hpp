@@ -181,7 +181,7 @@
 //	{
 //	}
 //
-//	virtual void draw_bitmap(const gfx::bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
+//	virtual void draw_bitmap(const gfx::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
 //	{
 //	}
 //

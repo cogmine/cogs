@@ -299,10 +299,8 @@ private:
 		{
 			COGS_ASSERT(m_depth == 1);
 			SetStretchBltMode(dstDC, COLORONCOLOR);
-			if (inversed)
-				SetBkColor(dstDC, RGB(0, 0, 0));
-			else
-				SetTextColor(dstDC, RGB(0, 0, 0));
+			SetBkColor(dstDC, RGB(0, 0, 0));
+			SetTextColor(dstDC, RGB(0, 0, 0));
 			TransparentBlt(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
@@ -571,9 +569,9 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
-		const bitmap* srcMask = static_cast<const bitmap*>(&src);
+		const bitmap* msk2 = static_cast<const bitmap*>(&msk);
 
 		uint8_t foreAlpha = fore.get_alpha();
 		uint8_t backAlpha = back.get_alpha();
@@ -588,15 +586,15 @@ public:
 			BOUNDS dstBounds2 = make_BOUNDS(dstBounds);
 
 			// masks don't vary in DPI
-			//BOUNDS srcBounds2 = make_BOUNDS(srcBounds);
-			BOUNDS srcBounds2;
-			canvas::bounds b = srcBounds.normalized();
-			srcBounds2.pt.x = (LONG)std::lround(b.get_x());
-			srcBounds2.pt.y = (LONG)std::lround(b.get_y());
-			srcBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - srcBounds2.pt.x;
-			srcBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - srcBounds2.pt.y;
+			//BOUNDS mskBounds2 = make_BOUNDS(mskBounds);
+			BOUNDS mskBounds2;
+			canvas::bounds b = mskBounds.normalized();
+			mskBounds2.pt.x = (LONG)std::lround(b.get_x());
+			mskBounds2.pt.y = (LONG)std::lround(b.get_y());
+			mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
+			mskBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - mskBounds2.pt.y;
 
-			device_context::draw_bitmask_inner(*srcMask, srcBounds2, dstBounds2, fore, back, blendForeAlpha, blendBackAlpha);
+			device_context::draw_bitmask_inner(*msk2, mskBounds2, dstBounds2, fore, back, blendForeAlpha, blendBackAlpha);
 			if ((!blendForeAlpha && !fore.is_opaque()) || (!blendBackAlpha && !back.is_opaque()))
 				m_isOpaque = false;
 			else if (!blendForeAlpha && !blendBackAlpha && fore.is_opaque() && back.is_opaque())
@@ -604,17 +602,17 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
+	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
 	{
-		const bitmap* srcImage = static_cast<const bitmap*>(&src);
+		const bitmap* msk2 = static_cast<const bitmap*>(&msk);
 
 		// masks don't vary in DPI
-		BOUNDS srcBounds2;
-		bounds b = srcBounds.normalized();
-		srcBounds2.pt.x = (LONG)std::lround(b.get_x());
-		srcBounds2.pt.y = (LONG)std::lround(b.get_y());
-		srcBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - srcBounds2.pt.x;
-		srcBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - srcBounds2.pt.y;
+		BOUNDS mskBounds2;
+		bounds b = mskBounds.normalized();
+		mskBounds2.pt.x = (LONG)std::lround(b.get_x());
+		mskBounds2.pt.y = (LONG)std::lround(b.get_y());
+		mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
+		mskBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - mskBounds2.pt.y;
 
 		BOUNDS dstBounds2;
 		b = dstBounds.normalized();
@@ -622,13 +620,13 @@ public:
 		dstBounds2.pt.y = (LONG)std::lround(b.get_y());
 		dstBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - dstBounds2.pt.x;
 		dstBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - dstBounds2.pt.y;
-		if (srcBounds2.sz == dstBounds2.sz)
-			srcImage->m_gdiBitmap.blit(get_HDC(), dstBounds2, srcBounds2.pt, compositeMode);
+		if (mskBounds2.sz == dstBounds2.sz)
+			msk2->m_gdiBitmap.blit(get_HDC(), dstBounds2, mskBounds2.pt, compositeMode);
 		else
 		{
 			bitmap::gdi_bitmap& tmpBmp = bitmap::setup_scratch_1(dstBounds2.sz);
-			srcImage->m_gdiBitmap.stretch(tmpBmp.get_HDC(), { { 0, 0 }, dstBounds2.sz }, srcBounds2);
-			srcImage->m_gdiBitmap.blit(get_HDC(), dstBounds2, { 0, 0 }, compositeMode);
+			msk2->m_gdiBitmap.stretch(tmpBmp.get_HDC(), { { 0, 0 }, dstBounds2.sz }, mskBounds2);
+			tmpBmp.blit(get_HDC(), dstBounds2, { 0, 0 }, compositeMode);
 		}
 	}
 
@@ -808,9 +806,9 @@ inline void device_context::draw_bitmap_inner(gdi::bitmap* bmp, const gdi::bitma
 	}
 }
 
-inline void device_context::draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
+inline void device_context::draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
 {
-	const gdi::bitmap* srcMask = static_cast<const gdi::bitmap*>(&src);
+	const gdi::bitmap* msk2 = static_cast<const gdi::bitmap*>(&msk);
 
 	uint8_t foreAlpha = fore.get_alpha();
 	uint8_t backAlpha = back.get_alpha();
@@ -825,15 +823,15 @@ inline void device_context::draw_bitmask(const canvas::bitmask& src, const canva
 		BOUNDS dstBounds2 = make_BOUNDS(dstBounds);
 
 		// masks don't vary in DPI
-		//BOUNDS srcBounds2 = make_BOUNDS(srcBounds);
-		BOUNDS srcBounds2;
-		canvas::bounds b = srcBounds.normalized();
-		srcBounds2.pt.x = (LONG)std::lround(b.get_x());
-		srcBounds2.pt.y = (LONG)std::lround(b.get_y());
-		srcBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - srcBounds2.pt.x;
-		srcBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - srcBounds2.pt.y;
+		//BOUNDS mskBounds2 = make_BOUNDS(mskBounds);
+		BOUNDS mskBounds2;
+		canvas::bounds b = mskBounds.normalized();
+		mskBounds2.pt.x = (LONG)std::lround(b.get_x());
+		mskBounds2.pt.y = (LONG)std::lround(b.get_y());
+		mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
+		mskBounds2.sz.cy = (LONG)std::lround((b.get_y() + b.get_height())) - mskBounds2.pt.y;
 
-		draw_bitmask_inner(*srcMask, srcBounds2, dstBounds2, fore, back, blendForeAlpha, blendBackAlpha);
+		draw_bitmask_inner(*msk2, mskBounds2, dstBounds2, fore, back, blendForeAlpha, blendBackAlpha);
 	}
 }
 

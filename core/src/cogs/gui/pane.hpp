@@ -2451,7 +2451,7 @@ public:
 	virtual gfx::font get_default_font() const { return pane::get_default_font(); }
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) { pane::draw_text(s, b, f, c); }
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) { return pane::draw_bitmap(src, srcBounds, dstBounds, blendAlpha); }
-	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(src, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) { pane::composite_vector_image(src, dstBounds); }
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false) { pane::mask_out(msk, mskBounds, dstBounds, inverted); }
 	virtual void draw_bitmap_with_bitmask(const bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false) { pane::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted); }

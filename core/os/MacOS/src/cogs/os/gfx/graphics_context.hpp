@@ -329,7 +329,7 @@ public:
 	static void draw_image(const bitmap_graphics_context& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, CGBlendMode blendMode, const state_token& token = state_token());
 
 	static void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, const state_token& token = state_token());
-	static void draw_bitmask(const canvas::bitmask& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true, const state_token& token = state_token());
+	static void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true, const state_token& token = state_token());
 	static void mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted = false, const state_token& token = state_token());
 	static void draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, bool inverted = false, const state_token& token = state_token());
 

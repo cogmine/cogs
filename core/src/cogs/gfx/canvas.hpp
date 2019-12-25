@@ -138,7 +138,7 @@ public:
 			xor_mode
 		};
 
-		virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+		virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
 
 		virtual rcref<bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt) = 0;
 
@@ -176,8 +176,8 @@ public:
 	//		add_mode
 	//	};
 	//
-	//	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
-	//	virtual void draw_alpha_mask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+	//	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+	//	virtual void draw_alpha_mask(const alpha_mask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
 	//
 	//	virtual rcref<bitmask> create_alpha_mask(const size& sz) = 0;
 	//
@@ -205,7 +205,7 @@ public:
 
 	// Compositing images
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) = 0;
-	virtual void draw_bitmask(const bitmask& src, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) = 0;
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) = 0;
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) = 0;
 
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false) = 0;
