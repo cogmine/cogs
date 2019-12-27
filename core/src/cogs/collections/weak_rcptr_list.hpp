@@ -62,8 +62,8 @@ public:
 		iterator& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		iterator& operator=(const volatile iterator& i) { m_contents = i.m_contents; return *this; }
 		iterator& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
-		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
-		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
+		volatile iterator& operator=(const iterator& i) volatile { m_contents = i.m_contents; return *this; }
+		volatile iterator& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
 
 		void disown() { m_contents.disown(); }
 		void disown() volatile { m_contents.disown(); }
@@ -270,8 +270,8 @@ public:
 		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		remove_token& operator=(const volatile iterator& i) { m_contents = i.m_contents; return *this; }
 		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
-		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
-		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
+		volatile remove_token& operator=(const iterator& i) volatile { m_contents = i.m_contents; return *this; }
+		volatile remove_token& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
 
 		bool is_active() const { iterator itor(*this); return itor.is_active(); }
 		bool is_active() const volatile { iterator itor(*this); return itor.is_active(); }

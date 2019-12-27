@@ -219,28 +219,28 @@ public:
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(const volatile weak_rcptr<type2>& src) { m_ref = src; return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	void operator=(type* src) volatile { m_ref = src; }
+	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	void operator=(const this_t& src) volatile { m_ref = src; }
-	/// @brief Thread-safe implementation of operator=()
-	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void operator=(const rcref<type2>& src) volatile { m_ref = src; }
+	volatile this_t& operator=(const this_t& src) volatile { m_ref = src; return *this; }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; }
+	volatile this_t& operator=(const rcref<type2>& src) volatile { m_ref = src; return *this; }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; }
+	volatile this_t& operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; return *this; }
+	/// @brief Thread-safe implementation of operator=()
+	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
+	volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; return *this; }
 	/// @}
 
 
-	void operator=(this_t&& src) volatile { m_ref = std::move(src); }
+	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); }
+	volatile this_t& operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); return *this; }
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	void operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); }
+	volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
 
 
 
@@ -1110,18 +1110,18 @@ public:
 
 
 
-	void operator=(type* src) volatile { m_ref = src; }
+	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
 
-	void operator=(this_t&& src) volatile { m_ref = std::move(src); }
-	void operator=(const this_t& src) volatile { m_ref = src; }
+	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); }
-	template <typename type2> void operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); }
+	template <typename type2> volatile this_t& operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); return *this; }
+	template <typename type2> volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
 
 
-	template <typename type2> void operator=(const rcref<type2>& src) volatile { m_ref = src; }
-	template <typename type2> void operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; }
-	template <typename type2> void operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; }
+	template <typename type2> volatile this_t& operator=(const rcref<type2>& src) volatile { m_ref = src; return *this; }
+	template <typename type2> volatile this_t& operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; return *this; }
+	template <typename type2> volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; return *this; }
 
 	void set(const ptr<type>& obj) { m_ref.m_container.set(obj); }
 	void set(const ptr<type>& obj) volatile { m_ref.m_container.set(obj); }
@@ -1709,16 +1709,16 @@ public:
 	template <typename type2> this_t& operator=(rcptr<type2>&& src) { m_ref = std::move(src); return *this; }
 
 
-	void operator=(type* src) volatile { m_ref = src; }
-	void operator=(this_t&& src) volatile { m_ref = std::move(src); }
-	void operator=(const this_t& src) volatile { m_ref = src; }
+	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
+	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(const rcref<type2>& src) volatile { m_ref = src; }
-	template <typename type2> void operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; }
-	template <typename type2> void operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; }
+	template <typename type2> volatile this_t& operator=(const rcref<type2>& src) volatile { m_ref = src; return *this; }
+	template <typename type2> volatile this_t& operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; return *this; }
+	template <typename type2> volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); }
-	template <typename type2> void operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); }
+	template <typename type2> volatile this_t& operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); return *this; }
+	template <typename type2> volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
 
 	void set(const ptr<type>& obj) { m_ref.m_container.set(obj); }
 	void set(const ptr<type>& obj) volatile { m_ref.m_container.set(obj); }
@@ -2306,16 +2306,16 @@ public:
 	template <typename type2> this_t& operator=(rcptr<type2>&& src) { m_ref = std::move(src.m_ref); return *this; }
 
 
-	void operator=(type* src) volatile { m_ref = src; }
-	void operator=(this_t&& src) volatile { m_ref = std::move(src); }
-	void operator=(const this_t& src) volatile { m_ref = src; }
+	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
+	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(const rcref<type2>& src) volatile { m_ref = src; }
-	template <typename type2> void operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; }
-	template <typename type2> void operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; }
+	template <typename type2> volatile this_t& operator=(const rcref<type2>& src) volatile { m_ref = src; return *this; }
+	template <typename type2> volatile this_t& operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; return *this; }
+	template <typename type2> volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); }
-	template <typename type2> void operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); }
+	template <typename type2> volatile this_t& operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); return *this; }
+	template <typename type2> volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
 
 	void set(const ptr<type>& obj) { m_ref.m_container.set(obj); }
 	void set(const ptr<type>& obj) volatile { m_ref.m_container.set(obj); }
@@ -2903,16 +2903,16 @@ public:
 	template <typename type2> this_t& operator=(rcref<type2>&& src) { m_ref = std::move(src); return *this; }
 	template <typename type2> this_t& operator=(rcptr<type2>&& src) { m_ref = std::move(src.m_ref); return *this; }
 
-	void operator=(type* src) volatile { m_ref = src; }
-	void operator=(this_t&& src) volatile { m_ref = std::move(src); }
-	void operator=(const this_t& src) volatile { m_ref = src; }
+	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
+	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(const rcref<type2>& src) volatile { m_ref = src; }
-	template <typename type2> void operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; }
-	template <typename type2> void operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; }
+	template <typename type2> volatile this_t& operator=(const rcref<type2>& src) volatile { m_ref = src; return *this; }
+	template <typename type2> volatile this_t& operator=(const rcptr<type2>& src) volatile { m_ref = src.m_ref; return *this; }
+	template <typename type2> volatile this_t& operator=(const weak_rcptr<type2>& src) volatile { m_ref = src; return *this; }
 
-	template <typename type2> void operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); }
-	template <typename type2> void operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); }
+	template <typename type2> volatile this_t& operator=(rcref<type2>&& src) volatile { m_ref = std::move(src); return *this; }
+	template <typename type2> volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
 
 	void set(const ptr<type>& obj) { m_ref.m_container.set(obj); }
 	void set(const ptr<type>& obj) volatile { m_ref.m_container.set(obj); }

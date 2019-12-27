@@ -6541,8 +6541,8 @@
 //
 //		iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
 //		iterator& operator=(const volatile iterator& i) { m_itor = i.m_itor; return *this; }
-//		void operator=(const iterator& i) volatile { m_itor = i.m_itor; }
-//		void operator=(const volatile iterator& i) volatile { m_itor = i.m_itor; }
+//		volatile iterator& operator=(const iterator& i) volatile { m_itor = i.m_itor; return *this; }
+//		volatile iterator& operator=(const volatile iterator& i) volatile { m_itor = i.m_itor; return *this; }
 //
 //		iterator& operator++() { ++m_itor; return *this; }
 //		iterator operator++(int) { return m_itor++; }

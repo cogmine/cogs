@@ -879,10 +879,11 @@ public:
 	void assign(const volatile this_t& src) { m_contents.assign(src.m_contents); }
 
 	this_t& operator=(const type& src) { m_contents.assign(1, src); return *this; }
-	this_t operator=(const type& src) volatile { this_t tmp(1, src); m_contents.assign(tmp); return tmp; }
+	volatile this_t& operator=(const type& src) volatile { m_contents.assign(1, src); return *this; }
+
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
-	this_t operator=(const this_t& src) volatile { assign(src); return src; }
 	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { assign(src); return *this; }
 
 	void append(const type& src) { m_contents.append(1, src); }
 	void append(size_t n, const type& src) { m_contents.append(n, src); }

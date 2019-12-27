@@ -229,10 +229,10 @@ public:
 	color& operator=(const rgb_t& c) { set(c); return *this; }
 	color& operator=(constant c) { set(c); return *this; }
 
-	void operator=(const color& c) volatile { set(c); }
-	void operator=(const rgba_t& c) volatile { set(c); }
-	void operator=(const rgb_t& c) volatile { set(c); }
-	void operator=(constant c) volatile { set(c); }
+	volatile color& operator=(const color& c) volatile { set(c); return *this; }
+	volatile color& operator=(const rgba_t& c) volatile { set(c); return *this; }
+	volatile color& operator=(const rgb_t& c) volatile { set(c); return *this; }
+	volatile color& operator=(constant c) volatile { set(c); return *this; }
 
 	bool operator==(constant c) const { return get_constant() == c; }
 	bool operator==(constant c) const volatile { return get().get_constant() == c; }

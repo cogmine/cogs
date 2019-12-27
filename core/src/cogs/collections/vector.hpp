@@ -2227,14 +2227,14 @@ public:
 		return *this;
 	}
 
-	this_t operator=(const this_t& src) volatile
+	volatile this_t& operator=(const this_t& src) volatile
 	{
 		assign(src);
-		return src;
+		return *this;
 	}
 
 	template <typename type2>
-	this_t operator=(const vector<type2>& src) volatile
+	volatile this_t& operator=(const vector<type2>& src) volatile
 	{
 		assign(src);
 		return *this;

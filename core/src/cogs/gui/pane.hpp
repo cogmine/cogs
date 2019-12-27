@@ -1061,13 +1061,13 @@ protected:
 		}
 	}
 
-	priority_queue<int, function<function<void()>(bool&)> > m_requestCloseHandlers;
-	typedef priority_queue<int, function<function<void()>(bool&)> >::remove_token request_close_handler_token;
+	priority_queue<int, function<bool(pane&, pane&, function<void(bool)>&)> > m_requestCloseHandlers;
+	typedef priority_queue<int, function<bool(pane&, pane&, function<void(bool)>&)> >::remove_token request_close_handler_token;
 
 	template <typename F>
 	request_close_handler_token register_request_close_handler(F&& f, int priority = 0)
 	{
-		return m_requestCloseHandlers.insert(priority, std::move(f));
+		return m_requestCloseHandlers.insert(priority, std::forward<F>(f));
 	}
 
 	bool deregister_request_close_handler(request_close_handler_token& t)
@@ -1081,15 +1081,15 @@ protected:
 			return true;
 
 		container_dlist<function<void(bool)> > cb;
-		bool b = for_each_subtree<true>([&cb](pane& p)
+		bool b = for_each_subtree<true>([&cb, closingPane{ this }](pane& p)
 		{
 			for (;;)
 			{
 				auto vt = p.m_requestCloseHandlers.get();
 				if (!vt)
 					return true;
-				bool allowClose = true;
-				auto f = (*vt)(allowClose);
+				function<void(bool)> f;
+				bool allowClose = (*vt)(*closingPane, p, f);
 				if (!!f)
 					cb.append(std::move(f));
 				if (!allowClose)

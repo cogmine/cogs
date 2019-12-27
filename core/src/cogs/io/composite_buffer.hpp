@@ -3741,13 +3741,13 @@ public:
 
 	this_t& operator=(const composite_buffer& src) { assign(src); return *this; }
 	this_t& operator=(const volatile composite_buffer& src) { assign(src); return *this; }
-	void operator=(const composite_buffer& src) volatile { assign(src); }
+	volatile this_t& operator=(const composite_buffer& src) volatile { assign(src); return *this; }
 
 	this_t& operator=(const buffer& src) { assign(src); return *this; }
 
 	this_t& operator=(const volatile buffer& src) { assign(src); return *this; }
 
-	void operator=(const buffer& src) volatile { assign(src); }
+	volatile this_t& operator=(const buffer& src) volatile { assign(src); return *this; }
 
 	void append(size_t n, const char& src) { m_contents->append(buffer(n, src)); }
 

@@ -55,8 +55,7 @@ public:
 	{ }
 
 	this_t& operator=(const this_t& src) { m_allocator = src.m_allocator; return *this; }
-	void operator=(const this_t& src) volatile { m_allocator = src.m_allocator; }
-	//volatile this_t& operator=(const this_t& src) volatile { m_allocator = src.m_allocator; return *this; }
+	volatile this_t& operator=(const this_t& src) volatile { m_allocator = src.m_allocator; return *this; }
 	this_t& operator=(const volatile this_t& src) { m_allocator = src.m_allocator; return *this; }
 
 	ref<volatile allocator_type> get_allocator() const { return *m_allocator; }

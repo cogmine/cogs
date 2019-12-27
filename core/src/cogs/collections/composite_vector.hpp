@@ -5367,7 +5367,7 @@ public:
 
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
 	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
-	void operator=(const this_t& src) volatile { assign(src); }
+	volatile this_t& operator=(const this_t& src) volatile { assign(src); return *this; }
 
 	this_t& operator=(this_t&& src)
 	{
@@ -5388,7 +5388,7 @@ public:
 	this_t& operator=(const volatile vector<type2>& src) { assign(src); return *this; }
 
 	template <typename type2>
-	void operator=(const vector<type2>& src) volatile { assign(src); }
+	volatile this_t& operator=(const vector<type2>& src) volatile { assign(src); return *this; }
 
 	template <typename type2>
 	void append(size_t n, const type2& src) { m_contents->append(n, src); }

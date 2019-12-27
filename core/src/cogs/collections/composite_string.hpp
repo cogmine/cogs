@@ -2731,7 +2731,7 @@ public:
 
 	this_t& operator=(const this_t& src) { m_contents.assign(src.m_contents); return *this; }
 
-	void operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); }
+	volatile this_t& operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); return *this; }
 
 	this_t& operator=(const volatile this_t& src) { m_contents.assign(src.m_contents); return *this; }
 
@@ -2743,7 +2743,7 @@ public:
 
 	this_t& operator=(const volatile string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
 
-	void operator=(const string_t<type>& src) volatile { m_contents.assign(src.get_vector()); }
+	volatile this_t& operator=(const string_t<type>& src) volatile { m_contents.assign(src.get_vector()); return *this; }
 
 	void append(const type& src) { m_contents.append(1, src); }
 	void append(size_t n, const type& src) { m_contents.append(n, src); }

@@ -128,9 +128,10 @@ public:
 		return *this;
 	}
 
-	void operator=(const font& src) volatile
+	volatile font& operator=(const font& src) volatile
 	{
 		m_contents.set(*(src.m_contents));
+		return *this;
 	}
 
 	bool operator==(const font& cmp) const { return *m_contents == *(cmp.m_contents); }
