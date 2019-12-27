@@ -95,7 +95,7 @@ public:
 		if (!itor)
 		{
 			return_t result{};
-			return get_immediate_task(std::move(result));
+			return signaled(std::move(result));
 		}
 
 		return continue_invoke(itor, a...);

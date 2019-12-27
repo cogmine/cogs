@@ -67,9 +67,8 @@ public:
 };
 
 template <size_t n, typename type1, typename type2>
-class compatible_type<vec<n, type1>, vec<n, type2> >
+struct compatible_type<vec<n, type1>, vec<n, type2> >
 {
-public:
 	typedef vec<n, typename compatible_type<type1, type2>::type> type;
 };
 

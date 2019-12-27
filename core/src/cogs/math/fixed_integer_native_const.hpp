@@ -74,13 +74,13 @@ template <typename T1, typename T2>
 inline constexpr int const_compared_v = const_compared<T1, T2>::value;
 
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_arithmetic_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> struct is_arithmetic_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_integer_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> struct is_integer_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_signed_type<fixed_integer_native_const<has_sign, bits, value_in> > { public: static constexpr bool value = has_sign; };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> struct is_signed_type<fixed_integer_native_const<has_sign, bits, value_in> > { static constexpr bool value = has_sign; };
 
-template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> class is_const_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
+template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in> struct is_const_type<fixed_integer_native_const<has_sign, bits, value_in> > : public std::true_type { };
 
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
@@ -1509,9 +1509,8 @@ public:
 
 
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-class compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native_const<has_sign2, bits2, value2> >
+struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2),
 		(bits1 > bits2) ?
 			(bits1 + ((has_sign2 && !has_sign1) ? 1 : 0))
@@ -1520,45 +1519,39 @@ public:
 };
 
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, bool has_sign2, size_t bits2, ulongest... values2>
-class compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
+struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
+	: public compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, fixed_integer_native_const<has_sign1, bits1, value1> >
 {
-public:
-	typedef typename compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, fixed_integer_native_const<has_sign1, bits1, value1> >::type type;
 };
 
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, bool has_sign2, size_t bits2>
-class compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native<has_sign2, bits2> >
+struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native<has_sign2, bits2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2), bits1 + ((has_sign1 && !has_sign2) ? 1 : 0)> type;
 };
 
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, bool has_sign2, size_t bits2>
-class compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_extended<has_sign2, bits2> >
+struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_extended<has_sign2, bits2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2), (bits1 > bits2 ? bits1 : bits2) + (((has_sign1 != has_sign2) && ((!has_sign1 && (bits1 >= bits2)) || (!has_sign2 && (bits2 >= bits1)))) ? 1 : 0)> type;
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-class compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+	: public compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_to_fixed_integer_t<int_t2> >
 {
-public:
-	typedef typename compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_to_fixed_integer_t<int_t2> >::type type;
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-class compatible<int_t2, fixed_integer_native_const<has_sign2, bits2, value2>, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<int_t2, fixed_integer_native_const<has_sign2, bits2, value2>, std::enable_if_t<std::is_integral_v<int_t2> > >
+	: public compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
-public:
-	typedef typename compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_native_const<has_sign2, bits2, value2> >::type type;
 };
 
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1>
-class compatible<fixed_integer_native_const<has_sign1, bits1, value1>, dynamic_integer>
+struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, dynamic_integer>
+	: public compatible<dynamic_integer, fixed_integer_native_const<has_sign1, bits1, value1> >
 {
-public:
-	typedef typename compatible<dynamic_integer, fixed_integer_native_const<has_sign1, bits1, value1> >::type type;
 };
 
 

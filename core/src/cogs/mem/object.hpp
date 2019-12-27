@@ -37,7 +37,7 @@ protected:
 	object() = delete;
 
 public:
-	object(rc_obj_base& desc) : m_desc(&desc) { }
+	explicit object(rc_obj_base& desc) : m_desc(&desc) { }
 
 	rc_obj_base* get_desc() const { return m_desc; }
 	rc_obj_base* get_desc() const volatile { return m_desc; } // Set on construction and not modified.

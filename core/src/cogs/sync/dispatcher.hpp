@@ -50,10 +50,10 @@ template <typename arg_t>
 class task_arg_base;
 
 
-rcref<task<void> > get_immediate_task();
+rcref<task<void> > signaled();
 
 template <typename T>
-rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t);
+rcref<task<std::remove_reference_t<T> > > signaled(T&& t);
 
 
 template <typename T> struct is_rcref_task : std::false_type {};
@@ -152,7 +152,7 @@ protected:
 	// change_priority_inner() and cancel_inner() are called by tasks, on the dispatcher that created them.
 	// They do not need to be implemented by a derived dispatcher if it is a proxy of another dispatcher.
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile { }
-	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile { return get_immediate_task(false); }
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile { return signaled(false); }
 
 	template <typename F>
 	class linked_task;
@@ -258,7 +258,7 @@ inline void dispatcher::dispatch_inner(const volatile waitable& w, const rcref<t
 class event_base : public waitable
 {
 public:
-	// Returns true if transitioned from unsignaled to signalled state.
+	// Returns true if transitioned from unsignaled to signaled state.
 	// Returns false if already signaled, or cancelled, or if still in the process of signaling
 	// (in which case, a previous call to signal() will have returned true).
 	virtual bool signal() volatile = 0;
@@ -297,7 +297,7 @@ protected:
 		volatile continuation_dispatched& d2 = *(volatile continuation_dispatched*)&d;
 		priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt = d2.get_remove_token();
 		bool b = m_continuationSubTasks.remove(rt);
-		return get_immediate_task(b);
+		return signaled(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
@@ -638,7 +638,7 @@ protected:
 	{
 		TaskState oldTaskState;
 		bool b = try_cancel(oldTaskState);
-		return get_immediate_task(b);
+		return signaled(b);
 	}
 
 	virtual bool signal() volatile
@@ -1459,7 +1459,7 @@ public:
 	virtual rcref<task<bool> > cancel() volatile
 	{
 		if (!base_t::is_pending())
-			return get_immediate_task<bool>(false);
+			return signaled(false);
 
 		rcptr<task<result_t> > oldValue = m_innerTask2;
 		while (!oldValue)
@@ -1548,7 +1548,7 @@ public:
 	virtual rcref<task<bool> > cancel() volatile
 	{
 		if (!is_pending())
-			return get_immediate_task<bool>(false);
+			return signaled(false);
 
 		rcptr<task<void> > oldValue = m_innerTask2;
 		while (!oldValue)

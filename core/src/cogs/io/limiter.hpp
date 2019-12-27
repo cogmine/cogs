@@ -47,7 +47,7 @@ public:
 			result = src.split_off_before(n);
 			m_remaining -= n;
 		}
-		return get_immediate_task(result);
+		return signaled(result);
 	}
 };
 

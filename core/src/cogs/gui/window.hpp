@@ -59,7 +59,7 @@ private:
 		virtual rcref<task<bool> > cancel() volatile
 		{
 			m_window->close();
-			return get_immediate_task(true);
+			return signaled(true);
 		}
 	};
 

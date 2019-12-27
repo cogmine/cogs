@@ -393,7 +393,7 @@ protected:
 	// transitioned into a signaled state.
 	//
 	// reset() does not provide that level of granularity.
-	// reset() is useful to start or restart a timer that is known to be aborted or signalled, but not pending,
+	// reset() is useful to start or restart a timer that is known to be aborted or signaled, but not pending,
 	// when there is no potentially trhead contention with other calls to reset(), refire(), or reschedule().
 	void reset(const timeout_t& t)
 	{

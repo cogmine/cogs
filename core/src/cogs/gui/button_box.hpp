@@ -30,7 +30,7 @@
 //		virtual void set_text(const composite_string&) = 0;
 //		virtual void set_enabled(bool) = 0;
 //
-//		button(rc_obj_base& desc)
+//		explicit button(rc_obj_base& desc)
 //		: object(desc)
 //		{
 //		}

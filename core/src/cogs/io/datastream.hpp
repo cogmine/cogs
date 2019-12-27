@@ -95,7 +95,7 @@ public:
 	}
 
 protected:
-	virtual rcref<closer> create_closer(const rcref<datastream>& proxy) { return rcnew(bypass_constructor_permission<closer>, proxy); }
+	virtual rcref<closer> create_closer(const rcref<datastream>& proxy) { return rcnew(closer, proxy); }
 };
 
 

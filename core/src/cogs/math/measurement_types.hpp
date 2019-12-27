@@ -170,33 +170,30 @@ public:
 
 // based on conversion, determine which type is more course and which is more fine
 template <typename T1, typename T2>
-class is_finer
+struct is_finer
 {
-public: 
 	static constexpr bool value = const_compared<decltype(std::declval<typename unit_conversion<T1, T2>::ratio_const_t>().floor()), one_t>::value < 0;
 };
 template <typename T1, typename T2>
 constexpr bool is_finer_v = is_finer<T1, T2>::value;
 
-template <typename T> class is_finer<T, T> : public std::false_type { };
+template <typename T> struct is_finer<T, T> : public std::false_type { };
 
 
 template <typename T1, typename T2>
-class is_courser
+struct is_courser
 {
-public:
 	static constexpr bool value = !is_finer_v<T1, T2>;
 };
 template <typename T1, typename T2>
 constexpr bool is_courser_v = is_courser<T1, T2>::value;
 
-template <typename T> class is_courser<T, T> : public std::false_type { };
+template <typename T> struct is_courser<T, T> : public std::false_type { };
 
 
 template <typename T1, typename T2>
-class finer
+struct finer
 {
-public:
 	typedef std::conditional_t<is_finer_v<T1, T2>, T1, T2> type;
 };
 
@@ -205,9 +202,8 @@ using finer_t = typename finer<T1, T2>::type;
 
 
 template <typename T1, typename T2>
-class courser
+struct courser
 {
-public:
 	typedef std::conditional_t<is_courser_v<T1, T2>, T1, T2> type;
 };
 

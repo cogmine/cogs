@@ -114,7 +114,7 @@ public:
 			if (!notAborted)
 				return false;
 			timeout_t::period_t t2 = m_inactivityTimeoutPeriod; // If changed since what we set it to, one more try should ensure reasonable ordering.
-			if (t1 == t2)
+			if (t1.get() == t2.get())
 				return true;
 			if (!t2)
 				newTimeout = timeout_t::infinite();
@@ -347,7 +347,7 @@ public:
 	typedef connection::response response;
 
 public:
-	request_response_server(rc_obj_base& desc)
+	explicit request_response_server(rc_obj_base& desc)
 		: server(desc)
 	{ }
 };

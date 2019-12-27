@@ -403,7 +403,7 @@ private:
 	}
 
 public:
-	virtual_dependency_property(rc_obj_base& desc)
+	explicit virtual_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
@@ -568,7 +568,7 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	backed_dependency_property(rc_obj_base& desc)
+	explicit backed_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 
@@ -600,7 +600,7 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	backed_dependency_property(rc_obj_base& desc)
+	explicit backed_dependency_property(rc_obj_base& desc)
 		: base_t(desc)
 	{ }
 

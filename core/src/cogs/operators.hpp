@@ -41,7 +41,7 @@ namespace cogs
 
 
 // is_array - matches T[n], or std::array<T, n>
-template <typename T, typename enable = void> struct is_array { static constexpr bool value = std::is_array_v<T>; };
+template <typename T, typename enable = void> struct is_array : public std::is_array<T> {};
 template <typename T, size_t n> struct is_array<std::array<T, n> > : std::true_type {};
 template <typename T, size_t n> struct is_array<const std::array<T, n> > : std::true_type {};
 template <typename T, size_t n> struct is_array<volatile std::array<T, n> > : std::true_type {};
@@ -49,15 +49,11 @@ template <typename T, size_t n> struct is_array<const volatile std::array<T, n> 
 template <typename T> constexpr bool is_array_v = is_array<T>::value;
 
 // is_array_type - matches T[n], std::array<T, n>, or array_view<n, T>
-template <typename T, typename enable = void> struct is_array_type { static constexpr bool value = is_array_v<T>; };
-template <typename T, size_t n> struct is_array_type<std::array<T, n> > : std::true_type {};
-template <typename T, size_t n> struct is_array_type<const std::array<T, n> > : std::true_type {};
-template <typename T, size_t n> struct is_array_type<volatile std::array<T, n> > : std::true_type {};
-template <typename T, size_t n> struct is_array_type<const volatile std::array<T, n> > : std::true_type {};
+template <typename T, typename enable = void> struct is_array_type : public is_array<T> {};
 template <typename T> constexpr bool is_array_type_v = is_array_type<T>::value;
 
 // is_reference_container - Indicates if a collection type will (or may) actually contain references to elements in another collection.
-template <typename T, typename enable = void> struct is_reference_container { static constexpr bool value = false; };
+template <typename T, typename enable = void> struct is_reference_container : public std::false_type {};
 template <typename T> constexpr bool is_reference_container_v = is_reference_container<T>::value;
 
 // extent - same as std::extent, but also supports std::array<T, n>, array_view<n, T>
@@ -2000,22 +1996,13 @@ template <class setType1, class setType2>
 struct are_same_set;
 
 template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename... Ts2> // matches both empty
-struct are_same_set<setType1<Ts1...>, setType2<Ts2...> >
-{
-	static constexpr bool value = true;
-};
+struct are_same_set<setType1<Ts1...>, setType2<Ts2...> > : public std::true_type { };
 
 template <template <typename...> class setType1, template <typename...> class setType2, typename T1, typename... Ts1, typename... Ts2> // matches empty Ts2
-struct are_same_set<setType1<T1, Ts1...>, setType2<Ts2...> >
-{
-	static constexpr bool value = false;
-};
+struct are_same_set<setType1<T1, Ts1...>, setType2<Ts2...> > : public std::false_type { };
 
 template <template <typename...> class setType1, template <typename...> class setType2, typename... Ts1, typename T2, typename... Ts2> // matches empty Ts1
-struct are_same_set<setType1<Ts1...>, setType2<T2, Ts2...> >
-{
-	static constexpr bool value = false;
-};
+struct are_same_set<setType1<Ts1...>, setType2<T2, Ts2...> > : public std::false_type { };
 
 template <template <typename...> class setType1, template <typename...> class setType2, typename T1, typename... Ts1, typename T2, typename... Ts2>
 struct are_same_set<setType1<T1, Ts1...>, setType2<T2, Ts2...> >
@@ -2030,29 +2017,17 @@ static constexpr bool are_same_set_v = are_same_set<setType1, setType2>::value;
 template <typename... Ts>
 struct pack
 {
-	template <typename T>
-	class is_any
-	{
-		static constexpr bool value = cogs::is_any<T, Ts...>::value;
-	};
+	template <typename T> struct is_any : public cogs::is_any<T, Ts...> { };
+	template <typename T> static constexpr bool is_any_v = is_any<T>::value;
 
-	template <typename T>
-	static constexpr bool is_any_v = is_any<T>::value;
-
-	template <typename T>
-	class are_same
-	{
-		static constexpr bool value = cogs::are_same<T, Ts...>::value;
-	};
-
-	template <typename T>
-	static constexpr bool are_same_v = are_same<T>::value;
+	template <typename T> struct are_same : public cogs::are_same<T, Ts...> { };
+	template <typename T> static constexpr bool are_same_v = are_same<T>::value;
 
 	typedef typename cogs::first_type<Ts...> first_type;
 	typedef typename cogs::last_type<Ts...> last_type;
 
 	template <typename T>
-	class prepend_type
+	struct prepend_type
 	{
 		typedef typename cogs::prepend_type<T, pack<Ts...> > type;
 	};
@@ -2061,7 +2036,7 @@ struct pack
 	using prepend_type_t = typename prepend_type<T>::type;
 
 	template <typename T>
-	class append_type
+	struct append_type
 	{
 		typedef typename cogs::append_type<T, pack<Ts...> > type;
 	};
@@ -2070,7 +2045,7 @@ struct pack
 	using append_type_t = typename append_type<T>::type;
 
 	template <typename T>
-	class remove_type
+	struct remove_type
 	{
 		typedef typename cogs::remove_type<T, pack<Ts...> > type;
 	};
@@ -2079,15 +2054,11 @@ struct pack
 	using remove_type_t = typename remove_type<T>::type;
 
 	template <typename... Ts2>
-	class are_same_set
-	{
-		static constexpr bool value = cogs::are_same_set<pack<Ts...>, pack<Ts2...> >::value;
-	};
+	struct are_same_set : public cogs::are_same_set<pack<Ts...>, pack<Ts2...> > { };
 };
 
 
 }
-
 
 
 #include "cogs/env/sync/atomic_operators.hpp"

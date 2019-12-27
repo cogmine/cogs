@@ -152,7 +152,7 @@ private:
 	public:
 		rc_obj_base* m_desc;
 
-		link(rc_obj_base& desc)
+		explicit link(rc_obj_base& desc)
 			: m_desc(&desc)
 		{ }
 	};
@@ -170,7 +170,7 @@ public:
 		rc_obj_base* m_desc;
 		void* m_objPtr = 0;
 
-		tracking_header(rc_obj_base& desc)
+		explicit tracking_header(rc_obj_base& desc)
 			: m_desc(&desc)
 		{ }
 	};

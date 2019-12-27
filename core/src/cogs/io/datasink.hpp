@@ -358,13 +358,13 @@ protected:
 	/// @param ds A datasink reference to encapsulate in the flusher.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds) { return rcnew(bypass_constructor_permission<flusher>, ds); }
+	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds) { return rcnew(flusher, ds); }
 
 	/// @brief Create a datasink::closer.  Used by derived datasinks to create derived closer
 	/// @param ds A datasink reference to encapsulate in the closer.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds) { return rcnew(bypass_constructor_permission<closer>, ds); }
+	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds) { return rcnew(closer, ds); }
 
 	/// @brief Create a datasink::writer.  Used by derived datasinks to create derived writer
 	/// @param ds A datasink reference to encapsulate in the writer.  This may different from this datasink, if
@@ -374,7 +374,7 @@ protected:
 	{
 		if (!!m_writeFunc)
 			return rcnew(callback_writer, ds, this_rcref);
-		return rcnew(bypass_constructor_permission<writer>, ds);
+		return rcnew(writer, ds);
 	}
 
 public:

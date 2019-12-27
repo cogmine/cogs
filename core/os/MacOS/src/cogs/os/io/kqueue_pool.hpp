@@ -113,7 +113,7 @@ private:
 	}
 
 protected:
-	kqueue_pool(rc_obj_base& desc)
+	explicit kqueue_pool(rc_obj_base& desc)
 		: object(desc),
 		m_fd(rcnew(auto_fd))
 	{

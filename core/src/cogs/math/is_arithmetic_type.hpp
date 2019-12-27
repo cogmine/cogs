@@ -17,39 +17,13 @@
 namespace cogs {
 
 
-template <typename T>
-class is_arithmetic_type
-{
-public:
-	static constexpr bool value = std::is_arithmetic_v<T>;
-};
-template <typename T>
-static constexpr bool is_arithmetic_type_v = is_arithmetic_type<T>::value;
-
+template <typename T> struct is_arithmetic_type : public std::is_arithmetic<T> { };
+template <typename T> static constexpr bool is_arithmetic_type_v = is_arithmetic_type<T>::value;
 
 // By default, map const and/or volatile to the version with no CV qualifier
-template <typename T>
-class is_arithmetic_type<const T>
-{
-public:
-	static constexpr bool value = is_arithmetic_type_v<T>;
-};
-
-template <typename T>
-class is_arithmetic_type<volatile T>
-{
-public:
-	static constexpr bool value = is_arithmetic_type_v<T>;
-};
-
-template <typename T>
-class is_arithmetic_type<const volatile T>
-{
-public:
-	static constexpr bool value = is_arithmetic_type_v<T>;
-};
-
-
+template <typename T> struct is_arithmetic_type<const T> : public is_arithmetic_type<T> { };
+template <typename T> struct is_arithmetic_type<volatile T> : public is_arithmetic_type<T> { };
+template <typename T> struct is_arithmetic_type<const volatile T> : public is_arithmetic_type<T> { };
 
 
 }

@@ -11,6 +11,7 @@
 
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/function.hpp"
+#include "cogs/mem/bypass_constructor_permission.hpp"
 #include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
@@ -72,7 +73,7 @@ public:
 	rcref<task<void> > add(const rcptr<type>& obj, int priority = 0) volatile
 	{
 		if (obj.get_desc() == nullptr)
-			return get_immediate_task();
+			return signaled();
 		return m_tasks.dispatch([r{ obj }]() {}, priority);
 	}
 
@@ -80,7 +81,7 @@ public:
 	rcref<task<void> > add(const weak_rcptr<type>& obj, int priority = 0) volatile
 	{
 		if (obj.get_desc() == nullptr)
-			return get_immediate_task();
+			return signaled();
 		return m_tasks.dispatch([r{ obj }]() {}, priority);
 	}
 
@@ -130,7 +131,7 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 			isNew = true;
 			result = std::move(newValue); // Return the one we just created.
 			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
-				cleanup_queue::get()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+				cleanup_queue::get()->dispatch(&singleton_base<T>::template shutdown<posthumous_behavior>);
 		}
 	}
 
@@ -145,5 +146,6 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 
 
 #include "cogs/sync/thread_pool.hpp"
+
 
 #endif

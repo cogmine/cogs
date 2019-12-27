@@ -1813,11 +1813,6 @@
 //	static constexpr unsigned char HTS = 0x88;
 //
 //public:
-//	rcref<ansiterm> create(unsigned int fontSize, unsigned int bufHeight, unsigned int bufWidth, bool whiteBackground = false)
-//	{
-//		return rcnew(bypass_constructor_permission<ansiterm>, fontSize, bufHeight, bufWidth, whiteBackground);
-//	}
-//
 //	virtual rcref<dependency_property<scroll_bar_state, io::read_only> > get_state_property()
 //	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state, io::read_only>>(); }
 //

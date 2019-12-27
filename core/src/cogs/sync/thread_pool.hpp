@@ -203,7 +203,7 @@ public:
 	{
 		rcptr<thread_pool> threadPool = get_default();
 		if (!threadPool)
-			return get_immediate_task().template static_cast_to<volatile dispatcher>();
+			return signaled().template static_cast_to<volatile dispatcher>();
 		return threadPool.template static_cast_to<volatile dispatcher>().dereference();
 	}
 

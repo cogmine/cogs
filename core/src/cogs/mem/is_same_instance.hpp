@@ -16,7 +16,7 @@ namespace cogs {
 
 
 template <typename T1, typename T2>
-static inline constexpr bool is_same_instance(T1&& t1, T2&& t2)
+constexpr bool is_same_instance(T1&& t1, T2&& t2)
 {
 	if constexpr (std::is_lvalue_reference_v<T1> && std::is_lvalue_reference_v<T2>)
 	{

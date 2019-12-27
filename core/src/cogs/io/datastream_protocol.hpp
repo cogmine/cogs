@@ -39,9 +39,9 @@ private:
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
-				return get_immediate_task(dsp->filtering_source(src));
+				return signaled(dsp->filtering_source(src));
 			composite_buffer empty;
-			return get_immediate_task(empty);
+			return signaled(empty);
 		}
 	};
 
@@ -60,9 +60,9 @@ private:
 		{
 			rcptr<datastream_protocol> dsp = m_datastreamProtocol;
 			if (!!dsp)
-				return get_immediate_task(dsp->filtering_sink(src));
+				return signaled(dsp->filtering_sink(src));
 			composite_buffer empty;
-			return get_immediate_task(empty);
+			return signaled(empty);
 		}
 	};
 

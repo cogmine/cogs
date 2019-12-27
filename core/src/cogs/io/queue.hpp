@@ -195,7 +195,7 @@ public:
 
 	protected:
 		/// @brief Constructor
-		task_base(rc_obj_base& desc)
+		explicit task_base(rc_obj_base& desc)
 			: object(desc),
 			m_state(queued_state),
 			m_wasClosed(false)
@@ -279,7 +279,7 @@ public:
 
 			// IO operations will always return false from cancel, as they support partial completion,
 			// and because a task can become cancelled due to the queue being closes, not by direct task cancallation.
-			return get_immediate_task(false);
+			return signaled(false);
 		}
 
 	protected:

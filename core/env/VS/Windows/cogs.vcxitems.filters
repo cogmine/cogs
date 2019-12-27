@@ -1317,6 +1317,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_signed_type.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bypass_constructor_permission.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\count_args.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">

@@ -42,20 +42,30 @@ template <typename numerator_t, typename denominator_t>
 class fraction;
 
 template <typename numerator_t, typename denominator_t>
-class is_arithmetic_type<fraction<numerator_t, denominator_t> >
-{
-public:
-	static constexpr bool value = true;
-};
+struct is_arithmetic_type<fraction<numerator_t, denominator_t> > : public std::true_type { };
 
 template <typename numerator_t, typename denominator_t>
-class is_signed_type<fraction<numerator_t, denominator_t> >
+struct is_signed_type<fraction<numerator_t, denominator_t> >
 {
-public:
 	static constexpr bool value = is_signed_type_v<numerator_t> || is_signed_type_v<denominator_t>;
 };
 
+
+template <typename T> struct is_fraction_content_type : public std::false_type { };
+template <typename T> static constexpr bool is_fraction_content_type_v = is_fraction_content_type<T>::value;
+
+template <typename T> struct is_fraction_content_type<const T> : public is_fraction_content_type<T> { };
+template <typename T> struct is_fraction_content_type<volatile T> : public is_fraction_content_type<T> { };
+template <typename T> struct is_fraction_content_type<const volatile T> : public is_fraction_content_type<T> { };
+
 template <typename numerator_type, typename denominator_type = numerator_type>
+class fraction_content;
+
+template <typename numerator_type, typename denominator_type>
+struct is_fraction_content_type<fraction_content<numerator_type, denominator_type> > : public std::true_type { };
+
+
+template <typename numerator_type, typename denominator_type>
 class fraction_content
 {
 private:
@@ -136,22 +146,13 @@ public:
 		return *this;
 	}
 
-	template <typename numerator_t2, typename = std::enable_if_t<!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator=(numerator_t2&& n)
 	{
 		cogs::assign(m_numerator, std::forward<numerator_t2>(n));
 		cogs::assign(m_denominator, one_t());
 		return *this;
 	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator=(numerator_t2& n)
-	{
-		cogs::assign(m_numerator, n);
-		cogs::assign(m_denominator, one_t());
-		return *this;
-	}
-
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	void assign(numerator_t2&& n, denominator_t2&& d)
@@ -279,16 +280,10 @@ public:
 		cogs::assign_subtract(m_numerator, m_denominator);
 	}
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator==(numerator_t2&& n) const
 	{
-		return cogs::equals(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	bool operator==(const numerator_t2& n) const
-	{
-		return cogs::equals(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::equals(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -304,16 +299,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator!=(numerator_t2&& n) const
 	{
-		return cogs::not_equals(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	bool operator!=(const numerator_t2& n) const
-	{
-		return cogs::not_equals(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::not_equals(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -329,16 +318,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	int compare(numerator_t2&& n) const
 	{
-		return cogs::compare(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	int compare(const numerator_t2& n) const
-	{
-		return cogs::compare(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::compare(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -354,16 +337,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator<(numerator_t2&& n) const
 	{
-		return cogs::is_less_than(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	bool operator<(const numerator_t2& n) const
-	{
-		return cogs::is_less_than(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::is_less_than(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -379,17 +356,12 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator<=(numerator_t2&& n) const
 	{
-		return cogs::is_less_than_or_equal(m_numerator, cogs::multiply(std::move(n), m_denominator));
+		return cogs::is_less_than_or_equal(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
-	template <typename numerator_t2 = numerator_t>
-	bool operator<=(const numerator_t2& n) const
-	{
-		return cogs::is_less_than_or_equal(m_numerator, cogs::multiply(n, m_denominator));
-	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	bool operator<=(const fraction_content<numerator_t2, denominator_t2>& src) const
@@ -404,16 +376,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator>(numerator_t2&& n) const
 	{
-		return cogs::is_greater_than(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	bool operator>(const numerator_t2& n) const
-	{
-		return cogs::is_greater_than(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::is_greater_than(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -429,16 +395,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	bool operator>=(numerator_t2&& n) const
 	{
-		return cogs::is_greater_than_or_equal(m_numerator, cogs::multiply(std::move(n), m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	bool operator>=(const numerator_t2& n) const
-	{
-		return cogs::is_greater_than_or_equal(m_numerator, cogs::multiply(n, m_denominator));
+		return cogs::is_greater_than_or_equal(m_numerator, cogs::multiply(std::forward<numerator_t2>(n), m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -455,16 +415,10 @@ public:
 
 
 	// add
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto operator+(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::add(m_numerator, cogs::multiply(m_denominator, std::move(n))), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto operator+(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::add(m_numerator, cogs::multiply(m_denominator, n)), m_denominator);
+		return cogs::divide(cogs::add(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -484,17 +438,10 @@ public:
 			std::move(denom));
 	}
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator+=(numerator_t2&& n) const
 	{
-		cogs::assign_add(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		return *this;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator+=(const numerator_t2& n) const
-	{
-		cogs::assign_add(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_add(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		return *this;
 	}
 
@@ -520,16 +467,10 @@ public:
 
 
 	// subtract
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto operator-(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::subtract(m_numerator, cogs::multiply(m_denominator, std::move(n))), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto operator-(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::subtract(m_numerator, cogs::multiply(m_denominator, n)), m_denominator);
+		return cogs::divide(cogs::subtract(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -554,17 +495,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator-=(numerator_t2&& n) const
 	{
-		cogs::assign_subtract(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		return *this;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator-=(const numerator_t2& n) const
-	{
-		cogs::assign_subtract(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_subtract(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		return *this;
 	}
 
@@ -593,16 +527,10 @@ public:
 
 
 	// inverse_subtract
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto inverse_subtract(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::inverse_subtract(m_numerator, cogs::multiply(m_denominator, std::move(n))), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto inverse_subtract(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::inverse_subtract(m_numerator, cogs::multiply(m_denominator, n)), m_denominator);
+		return cogs::divide(cogs::inverse_subtract(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -627,16 +555,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_inverse_subtract(numerator_t2&& n) const
 	{
-		cogs::assign_inverse_subtract(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_inverse_subtract(const numerator_t2& n) const
-	{
-		cogs::assign_inverse_subtract(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_inverse_subtract(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -663,16 +585,10 @@ public:
 
 
 	// multiply
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto operator*(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::multiply(m_numerator, std::move(n)), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto operator*(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::multiply(m_numerator, n), m_denominator);
+		return cogs::divide(cogs::multiply(m_numerator, std::forward<numerator_t2>(n)), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -688,17 +604,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator*=(numerator_t2&& n) const
 	{
-		cogs::assign_multiply(m_numerator, std::move(n));
-		return *this;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator*=(const numerator_t2& n) const
-	{
-		cogs::assign_multiply(m_numerator, n);
+		cogs::assign_multiply(m_numerator, std::forward<numerator_t2>(n));
 		return *this;
 	}
 
@@ -735,16 +644,10 @@ public:
 
 
 	// divide
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto operator/(numerator_t2&& n) const
 	{
-		return cogs::divide(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto operator/(const numerator_t2& n) const
-	{
-		return cogs::divide(m_numerator, cogs::multiply(m_denominator, n));
+		return cogs::divide(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -760,17 +663,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator/=(numerator_t2&& n) const
 	{
-		cogs::assign_multiply(m_denominator, std::move(n));
-		return *this;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator/=(const numerator_t2& n) const
-	{
-		cogs::assign_multiply(m_denominator, n);
+		cogs::assign_multiply(m_denominator, std::forward<numerator_t2>(n));
 		return *this;
 	}
 
@@ -792,16 +688,10 @@ public:
 
 
 	// inverse_divide
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto inverse_divide(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::multiply(m_denominator, std::move(n)), m_numerator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto inverse_divide(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::multiply(m_denominator, n), m_numerator);
+		return cogs::divide(cogs::multiply(m_denominator, std::forward<numerator_t2>(n)), m_numerator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -817,19 +707,11 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_inverse_divide(numerator_t2&& n) const
 	{
 		numerator_t tmp(m_numerator);
-		cogs::assign(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign(m_denominator, std::move(tmp));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_inverse_divide(const numerator_t2& n) const
-	{
-		numerator_t tmp(m_numerator);
-		cogs::assign(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		cogs::assign(m_denominator, std::move(tmp));
 	}
 
@@ -851,16 +733,10 @@ public:
 
 
 	// divide_whole
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto divide_whole(numerator_t2&& n) const
 	{
-		return cogs::divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto divide_whole(const numerator_t2& n) const
-	{
-		return cogs::divide_whole(m_numerator, cogs::multiply(m_denominator, n));
+		return cogs::divide_whole(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -876,17 +752,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_divide_whole(numerator_t2&& n) const
 	{
-		cogs::assign_divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign(m_denominator, one_t());
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_divide_whole(const numerator_t2& n) const
-	{
-		cogs::assign_divide_whole(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_divide_whole(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		cogs::assign(m_denominator, one_t());
 	}
 
@@ -913,16 +782,10 @@ public:
 
 
 	// inverse_divide_whole
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto inverse_divide_whole(numerator_t2&& n) const
 	{
-		return cogs::inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto inverse_divide_whole(const numerator_t2& n) const
-	{
-		return cogs::inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, n));
+		return cogs::inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -938,17 +801,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_inverse_divide_whole(numerator_t2&& n) const
 	{
-		cogs::assign_inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign(m_denominator, one_t());
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_inverse_divide_whole(const numerator_t2& n) const
-	{
-		cogs::assign_inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_inverse_divide_whole(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		cogs::assign(m_denominator, one_t());
 	}
 
@@ -974,16 +830,10 @@ public:
 
 
 	// modulo
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto operator%(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::modulo(m_numerator, cogs::multiply(m_denominator, std::move(n))), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto operator%(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::modulo(m_numerator, cogs::multiply(m_denominator, n)), m_denominator);
+		return cogs::divide(cogs::modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1008,17 +858,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator%=(numerator_t2&& n) const
 	{
-		cogs::assign_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		return *this;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	this_t& operator%=(const numerator_t2& n) const
-	{
-		cogs::assign_modulo(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		return *this;
 	}
 
@@ -1048,16 +891,10 @@ public:
 
 
 	// inverse_modulo
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto inverse_modulo(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::inverse_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n))), m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto inverse_modulo(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::inverse_modulo(m_numerator, cogs::multiply(m_denominator, n)), m_denominator);
+		return cogs::divide(cogs::inverse_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), m_denominator);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1082,16 +919,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_inverse_modulo(numerator_t2&& n) const
 	{
-		cogs::assign_inverse_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_inverse_modulo(const numerator_t2& n) const
-	{
-		cogs::assign_inverse_modulo(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_inverse_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1116,24 +947,11 @@ public:
 	}
 
 
-
-
-
-
-
-
 	// divide_whole_and_modulo
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto divide_whole_and_modulo(numerator_t2&& n) const
 	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n))));
-		return std::make_pair(divmod.first, cogs::divide(divmod.second, m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto divide_whole_and_modulo(const numerator_t2& n) const
-	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, n)));
+		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))));
 		return std::make_pair(divmod.first, cogs::divide(divmod.second, m_denominator));
 	}
 
@@ -1153,18 +971,10 @@ public:
 
 
 	// divide_whole_and_assign_modulo
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto divide_whole_and_assign_modulo(numerator_t2&& n) const
 	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n))));
-		cogs::assign(m_numerator, divmod.second);
-		return divmod.first;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto divide_whole_and_assign_modulo(const numerator_t2& n) const
-	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, n)));
+		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))));
 		cogs::assign(m_numerator, divmod.second);
 		return divmod.first;
 	}
@@ -1189,20 +999,10 @@ public:
 
 
 	// modulo_and_assign_divide_whole
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto modulo_and_assign_divide_whole(numerator_t2&& n) const
 	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::move(n))));
-		cogs::assign(m_numerator, divmod.first);
-		auto result(cogs::divide(divmod.second, m_denominator));
-		cogs::assign(m_denominator, one_t());
-		return result;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto modulo_and_assign_divide_whole(const numerator_t2& n) const
-	{
-		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, n)));
+		auto divmod(cogs::divide_whole_and_modulo(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))));
 		cogs::assign(m_numerator, divmod.first);
 		auto result(cogs::divide(divmod.second, m_denominator));
 		cogs::assign(m_denominator, one_t());
@@ -1230,16 +1030,10 @@ public:
 	}
 
 	// gcd
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto gcd(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::gcd(m_numerator, cogs::multiply(m_denominator, std::move(n))), cogs::abs(m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto gcd(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::gcd(m_numerator, cogs::multiply(m_denominator, n)), cogs::abs(m_denominator));
+		return cogs::divide(cogs::gcd(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), cogs::abs(m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1266,17 +1060,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_gcd(numerator_t2&& n) const
 	{
-		cogs::assign_gcd(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign_abs(m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_gcd(const numerator_t2& n) const
-	{
-		cogs::assign_gcd(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_gcd(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		cogs::assign_abs(m_denominator);
 	}
 
@@ -1306,16 +1093,10 @@ public:
 	}
 
 	// lcm
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto lcm(numerator_t2&& n) const
 	{
-		return cogs::divide(cogs::lcm(m_numerator, cogs::multiply(m_denominator, std::move(n))), cogs::abs(m_denominator));
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto lcm(const numerator_t2& n) const
-	{
-		return cogs::divide(cogs::lcm(m_numerator, cogs::multiply(m_denominator, n)), cogs::abs(m_denominator));
+		return cogs::divide(cogs::lcm(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n))), cogs::abs(m_denominator));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1342,17 +1123,10 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_lcm(numerator_t2&& n) const
 	{
-		cogs::assign_lcm(m_numerator, cogs::multiply(m_denominator, std::move(n)));
-		cogs::assign_abs(m_denominator);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_lcm(const numerator_t2& n) const
-	{
-		cogs::assign_lcm(m_numerator, cogs::multiply(m_denominator, n));
+		cogs::assign_lcm(m_numerator, cogs::multiply(m_denominator, std::forward<numerator_t2>(n)));
 		cogs::assign_abs(m_denominator);
 	}
 
@@ -1382,7 +1156,7 @@ public:
 	}
 
 	// greater
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto greater(numerator_t2&& n) const
 	{
 		typedef decltype(cogs::greater(std::declval<numerator_t>(), std::declval<numerator_t2>())) new_numerator_t;
@@ -1391,20 +1165,7 @@ public:
 		if (*this > n)
 			result = *this;
 		else
-			result = std::move(n);
-		return result;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto greater(const numerator_t2& n) const
-	{
-		typedef decltype(cogs::greater(std::declval<numerator_t>(), std::declval<numerator_t2>())) new_numerator_t;
-		typedef compatible_t<denominator_t, one_t> new_denominator_t;
-		fraction<new_numerator_t, new_denominator_t> result;
-		if (*this > n)
-			result = *this;
-		else
-			result = n;
+			result = std::forward<numerator_t2>(n);
 		return result;
 	}
 
@@ -1435,18 +1196,11 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_greater(numerator_t2&& n) const
 	{
 		if (n > *this)
-			*this = std::move(n);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_greater(const numerator_t2& n) const
-	{
-		if (n > *this)
-			*this = n;
+			*this = std::forward<numerator_t2>(n);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1465,7 +1219,7 @@ public:
 
 
 	// lesser
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	auto lesser(numerator_t2&& n) const
 	{
 		typedef decltype(cogs::lesser(std::declval<numerator_t>(), std::declval<numerator_t2>())) new_numerator_t;
@@ -1474,20 +1228,7 @@ public:
 		if (*this < n)
 			result = *this;
 		else
-			result = std::move(n);
-		return result;
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	auto lesser(const numerator_t2& n) const
-	{
-		typedef decltype(cogs::lesser(std::declval<numerator_t>(), std::declval<numerator_t2>())) new_numerator_t;
-		typedef compatible_t<denominator_t, one_t> new_denominator_t;
-		fraction<new_numerator_t, new_denominator_t> result;
-		if (*this < n)
-			result = *this;
-		else
-			result = n;
+			result = std::forward<numerator_t2>(n);
 		return result;
 	}
 
@@ -1518,18 +1259,11 @@ public:
 	}
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_reference_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	void assign_lesser(numerator_t2&& n) const
 	{
 		if (n < *this)
-			*this = std::move(n);
-	}
-
-	template <typename numerator_t2 = numerator_t>
-	void assign_lesser(const numerator_t2& n) const
-	{
-		if (n < *this)
-			*this = n;
+			*this = std::forward<numerator_t2>(n);
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -1545,34 +1279,25 @@ public:
 		if (src < *this)
 			*this = std::move(src);
 	}
-
-
-
-
 };
 
 
 template <typename numerator_type, typename denominator_type>
-class is_const_type<fraction_content<numerator_type, denominator_type> >
+struct is_const_type<fraction_content<numerator_type, denominator_type> >
 {
-public:
 	static constexpr bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
 };
 
 
+template <typename T> struct is_fraction_type : public std::false_type { };
+template <typename T> static constexpr bool is_fraction_type_v = is_fraction_type<T>::value;
 
-template <typename T> class is_fraction : public std::false_type { };
-template <typename T> static constexpr bool is_fraction_v = is_fraction<T>::value;
-
-
-// By default, map const and/or volatile to the version with no CV qualifier
-template <typename T> class is_fraction<const T> { public: static constexpr bool value = is_fraction_v<T>; };
-template <typename T> class is_fraction<volatile T> { public: static constexpr bool value = is_fraction_v<T>; };
-template <typename T> class is_fraction<const volatile T> { public: static constexpr bool value = is_fraction_v<T>; };
-
+template <typename T> struct is_fraction_type<const T> : public is_fraction_type<T> { };
+template <typename T> struct is_fraction_type<volatile T> : public is_fraction_type<T> { };
+template <typename T> struct is_fraction_type<const volatile T> : public is_fraction_type<T> { };
 
 template <typename numerator_type, typename denominator_type>
-class is_fraction<fraction<numerator_type, denominator_type> > : public std::true_type { };
+struct is_fraction_type<fraction<numerator_type, denominator_type> > : public std::true_type { };
 
 
 /// @ingroup Math
@@ -1790,7 +1515,7 @@ private:
 				cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
 		>::simplified_t type;
 
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1826,7 +1551,7 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1861,7 +1586,7 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_native_const<has_sign, bits, value> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1896,7 +1621,7 @@ private:
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))),
 			decltype(cogs::divide_whole(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >(), cogs::gcd(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >(), std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >())))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1927,7 +1652,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1957,7 +1682,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -1988,7 +1713,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2019,7 +1744,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2053,7 +1778,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2083,7 +1808,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2114,7 +1839,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_native_const<has_sign, bits, value> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2145,7 +1870,7 @@ private:
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign, bits, values...> >())),
 			decltype(cogs::negative(std::declval<fixed_integer_extended_const<has_sign2, bits2, values2...> >()))
 		>::simplified_t type;
-		static constexpr bool is_fract = is_fraction_v<type>;
+		static constexpr bool is_fract = is_fraction_type_v<type>;
 		static constexpr bool is_simplifiable = true;
 	};
 
@@ -2199,11 +1924,8 @@ private:
 	template <class functor_t, class on_fail_t>
 	auto try_write_retry_loop_post(functor_t&& fctr, on_fail_t&& onFail) volatile { return m_contents.try_write_retry_loop_post(std::forward<functor_t>(fctr), std::forward<on_fail_t>(onFail)); }
 
-	template <typename T, typename = std::enable_if_t<!std::is_const_v<T> && !std::is_volatile_v<T> > >
+	template <typename T, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<T> > > >
 	static T&& simplify_type(T&& f) { return std::forward<T>(f); }
-
-	template <typename T>
-	static T& simplify_type(T& f) { return f; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2326,12 +2048,8 @@ private:
 	simplify_type(const volatile fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
 
 
-
-	template <typename T, typename = std::enable_if_t<!std::is_const_v<T> && !std::is_volatile_v<T> > >
+	template <typename T, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<T> > && !is_fraction_content_type_v<std::remove_reference_t<T> > > >
 	static T&& simplify_content_type(T&& f) { return std::forward<T>(f); }
-
-	template <typename T>
-	static T& simplify_content_type(T& f) { return f; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2703,38 +2421,21 @@ public:
 
 	// Need superfluous non-const copy constructors and assignment operators to avoid this_t& matching T&& instead of const this_t&
 
-	fraction(this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *src.m_contents) { }
 	fraction(const this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *src.m_contents) { }
-	fraction(volatile this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *src.begin_read()) { }
 	fraction(const volatile this_t& src) : m_contents(typename transactable_t::construct_embedded_t(), *src.begin_read()) { }
 
 	fraction(this_t&& src) : m_contents(typename transactable_t::construct_embedded_t(), simplify_content_type(std::move(src))) { }
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2> > >
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<numerator_t2> > && !is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	fraction(numerator_t2&& n)
 		: m_contents(typename transactable_t::construct_embedded_t(), std::forward<numerator_t2>(n), one_t())
-	{ }
-
-	template <typename numerator_t2 = numerator_t>
-	fraction(numerator_t2& n)
-		: m_contents(typename transactable_t::construct_embedded_t(), n, one_t())
 	{ }
 
 
 	// Hypothetically, this could do something to better represent the original value, if the destination type has an insufficient range
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	fraction(fraction<numerator_t2, denominator_t2>& src)
-		: m_contents(typename transactable_t::construct_embedded_t(), simplify_content_type(src))
-	{ }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	fraction(const fraction<numerator_t2, denominator_t2>& src)
-		: m_contents(typename transactable_t::construct_embedded_t(), simplify_content_type(src))
-	{ }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	fraction(volatile fraction<numerator_t2, denominator_t2>& src)
 		: m_contents(typename transactable_t::construct_embedded_t(), simplify_content_type(src))
 	{ }
 
@@ -2756,14 +2457,10 @@ public:
 			simplify_denominator_type(std::forward<numerator_t2>(n), std::forward<denominator_t2>(d)))
 	{ }
 
-	this_t& operator=(this_t& src) { if (this != &src) *m_contents = *src.m_contents; return *this; }
 	this_t& operator=(const this_t& src) { if (this != &src) *m_contents = *src.m_contents; return *this; }
-	this_t& operator=(volatile this_t& src) { COGS_ASSERT(this != &src); *m_contents = *src.begin_read(); return *this; }
 	this_t& operator=(const volatile this_t& src) { COGS_ASSERT(this != &src); *m_contents = *src.begin_read(); return *this; }
 
-	volatile this_t& operator=(this_t& src) volatile { COGS_ASSERT(this != &src); m_contents.set(*src.m_contents); return *this; }
 	volatile this_t& operator=(const this_t& src) volatile { COGS_ASSERT(this != &src); m_contents.set(*src.m_contents); return *this; }
-	volatile this_t& operator=(volatile this_t& src) volatile { if (this != &src) m_contents.set(*src.begin_read()); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { if (this != &src) m_contents.set(*src.begin_read()); return *this; }
 
 	this_t& operator=(this_t&& src) { *m_contents = std::move(*src.m_contents); return *this; }
@@ -2771,26 +2468,14 @@ public:
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	this_t& operator=(fraction<numerator_t2, denominator_t2>& src) { *m_contents = simplify_content_type(src); return *this; }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	this_t& operator=(const fraction<numerator_t2, denominator_t2>& src) { *m_contents = simplify_content_type(src); return *this; }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	this_t& operator=(volatile fraction<numerator_t2, denominator_t2>& src) { *m_contents = simplify_content_type(src); return *this; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	this_t& operator=(const volatile fraction<numerator_t2, denominator_t2>& src) { *m_contents = simplify_content_type(src); return *this; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	volatile this_t& operator=(const fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
-
-	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(volatile fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	volatile this_t& operator=(const volatile fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
@@ -2803,18 +2488,11 @@ public:
 	volatile this_t& operator=(fraction<numerator_t2, denominator_t2>&& src) volatile { m_contents.set(simplify_content_type(std::move(src))); return *this; }
 
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<numerator_t2> || (!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2>) > >
-	this_t& operator=(numerator_t2&& n) { m_contents->assign(std::move(n), one_t()); return *this; }
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<numerator_t2> > && !is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
+	this_t& operator=(numerator_t2&& n) { m_contents->assign(std::forward<numerator_t2>(n), one_t()); return *this; }
 
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t< std::is_reference_v<numerator_t2> || (!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2>) > >
-	volatile this_t& operator=(numerator_t2&& n) volatile { m_contents.set(std::move(n), one_t()); return *this; }
-
-
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2> > >
-	this_t& operator=(numerator_t2& n) { m_contents->assign(n, one_t()); return *this; }
-
-	template <typename numerator_t2 = numerator_t, typename = std::enable_if_t<!std::is_const_v<numerator_t2> && !std::is_volatile_v<numerator_t2> > >
-	volatile this_t& operator=(numerator_t2& n) volatile { m_contents.set(n, one_t()); return *this; }
+	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<numerator_t2> > && !is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
+	volatile this_t& operator=(numerator_t2&& n) volatile { m_contents.set(std::forward<numerator_t2>(n), one_t()); return *this; }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -4023,23 +3701,20 @@ public:
 
 
 template <typename numerator_type1, typename denominator_type1, typename type2>
-class compatible<fraction<numerator_type1, denominator_type1>, type2>
+struct compatible<fraction<numerator_type1, denominator_type1>, type2>
 {
-public:
 	typedef fraction<compatible_t<numerator_type1, decltype(cogs::multiply(std::declval<type2>(), std::declval<denominator_type1>()))>, denominator_type1> type;
 };
 
 template <typename type2, typename numerator_type1, typename denominator_type1>
-class compatible<type2, fraction<numerator_type1, denominator_type1> >
+struct compatible<type2, fraction<numerator_type1, denominator_type1> >
 {
-public:
 	typedef compatible_t<fraction<numerator_type1, denominator_type1>, type2> type;
 };
 
 template <typename numerator_type1, typename denominator_type1, typename numerator_type2, typename denominator_type2>
-class compatible<fraction<numerator_type1, denominator_type1>, fraction<numerator_type2, denominator_type2> >
+struct compatible<fraction<numerator_type1, denominator_type1>, fraction<numerator_type2, denominator_type2> >
 {
-public:
 	typedef fraction<compatible_t<numerator_type1, numerator_type2>, compatible_t<denominator_type1, denominator_type2> > type;
 };
 
@@ -4049,24 +3724,18 @@ public:
 
 
 template <typename numerator_type, typename denominator_type>
-class is_const_type<fraction<numerator_type, denominator_type> >
+struct is_const_type<fraction<numerator_type, denominator_type> >
 {
-public:
 	static constexpr bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
 };
 
 
-template <typename numerator_t>
+
+template <typename numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t> > > >
 inline auto make_reciprocal(numerator_t&& n) { return fraction<one_t, numerator_t>(one_t(), std::forward<numerator_t>(n)); }
 
 template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
-
-template <typename numerator_t, typename denominator_t>
 inline auto make_reciprocal(const fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
-
-template <typename numerator_t, typename denominator_t>
-inline auto make_reciprocal(volatile fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }
 
 template <typename numerator_t, typename denominator_t>
 inline auto make_reciprocal(const volatile fraction_content<numerator_t, denominator_t>& src) { return src.reciprocal(); }

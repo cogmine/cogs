@@ -86,7 +86,7 @@ protected:
 	//			isNew = true;
 	//			result = std::move(newValue); // Return the one we just created.
 	//			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
-	//				cleanup_queue::get()->dispatch(&singleton_base<T>::shutdown<posthumous_behavior>);
+	//				cleanup_queue::get()->dispatch(&singleton_base<T>::template shutdown<posthumous_behavior>);
 	//		}
 	//	}
 	//
@@ -118,7 +118,6 @@ protected:
 		}
 	}
 
-
 	// Returns null if never allocated or was already shut down.
 	// Safe to call 0 or N times - will be released on the first release.
 	static rcptr<T> release()
@@ -142,7 +141,7 @@ protected:
 			result = oldValue;
 			if (!result)
 				break;
-			volatile boolean * b = &s_isReleased.get();
+			volatile boolean* b = &s_isReleased.get();
 			if (b->compare_exchange(true, false))
 				result.get_desc()->release(strong);
 			break;

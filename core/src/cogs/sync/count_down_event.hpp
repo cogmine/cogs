@@ -87,7 +87,7 @@ public:
 	rcref<task<void> > count(const rcref<waitable>& waitFor)
 	{
 		if (!count_up())
-			return get_immediate_task();
+			return signaled();
 
 		return waitFor->dispatch([e{ this_rcptr }]()
 		{

@@ -73,12 +73,10 @@ public:
 		connection(const connection&) = delete;
 		connection& operator=(const connection&) = delete;
 
-	protected:
 		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
 			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
 		{ }
 
-	public:
 		virtual void start()
 		{
 			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
@@ -94,6 +92,7 @@ public:
 
 		virtual rcref<net::request_response_server::request> create_request() { return server::default_create_request(this_rcref); }
 
+	public:
 		// Since SMTP is state-based, the connection holds the current email state
 		void clear_mail_state()
 		{
@@ -259,14 +258,14 @@ public:
 				m_currentCommand.clear();
 			}
 
-			return get_immediate_task(closing);
+			return signaled(closing);
 		}
 
 	public:
 		rcref<response> begin_response(response::reply_code replyCode, const composite_cstring& text)
 		{
 			m_coupler->cancel();
-			rcref<response> r = rcnew(bypass_constructor_permission<response>, this_rcref, replyCode, text);
+			rcref<response> r = rcnew(response, this_rcref, replyCode, text);
 			r->start();
 			return r;
 		}
@@ -277,7 +276,7 @@ public:
 			{
 				rcptr<request> r2 = r;
 				if (!r2)
-					return get_immediate_task(true);
+					return signaled(true);
 				return r2->process_write(b);
 			}))
 		{ }
@@ -305,7 +304,7 @@ private:
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
-		return rcnew(bypass_constructor_permission<connection>, this_rcref, ds);
+		return rcnew(connection, this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
 	}
 
 public:

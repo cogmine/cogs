@@ -18,36 +18,13 @@ namespace cogs {
 /// @ingroup Math
 /// @brief Template helpers to test if an integer type is const.  i.e. fixed_integer_native_const or fixed_integer_extended_const
 /// @tparam T fixed_integer type
-template <typename T>
-class is_const_type
-{
-public:
-	static constexpr bool value = false;
-};
-template <typename T>
-static constexpr bool is_const_type_v = is_const_type<T>::value;
+template <typename T> struct is_const_type : public std::false_type { };
+template <typename T> static constexpr bool is_const_type_v = is_const_type<T>::value;
 
 // By default, map const and/or volatile to the version with no CV qualifier
-template <typename T>
-class is_const_type<const T>
-{
-public:
-	static constexpr bool value = is_const_type_v<T>;
-};
-
-template <typename T>
-class is_const_type<volatile T>
-{
-public:
-	static constexpr bool value = is_const_type_v<T>;
-};
-
-template <typename T>
-class is_const_type<const volatile T>
-{
-public:
-	static constexpr bool value = is_const_type_v<T>;
-};
+template <typename T> struct is_const_type<const T> : public is_const_type<T> { };
+template <typename T> struct is_const_type<volatile T> : public is_const_type<T> { };
+template <typename T> struct is_const_type<const volatile T> : public is_const_type<T> { };
 
 
 }

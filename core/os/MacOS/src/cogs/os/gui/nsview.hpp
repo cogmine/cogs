@@ -69,7 +69,7 @@ private:
 	class control_queue_t : public priority_dispatcher
 	{
 	public:
-		control_queue_t(rc_obj_base& desc)
+		explicit control_queue_t(rc_obj_base& desc)
 			: priority_dispatcher(desc)
 		{ }
 
@@ -145,7 +145,7 @@ private:
 	}
 
 protected:
-	ui_thread(rc_obj_base& desc)
+	explicit ui_thread(rc_obj_base& desc)
 		: object(desc),
 		m_controlQueue(rcnew(control_queue_t)),
 		m_dispatchMode(0)
@@ -170,7 +170,7 @@ public:
 		rcptr<ui_thread> d = singleton<ui_thread, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::use_cleanup_queue>::get();
 		if (!!d)
 			return d.dereference().template static_cast_to<dispatcher>();
-		return get_immediate_task();
+		return signaled();
 	}
 };
 
@@ -196,7 +196,7 @@ private:
 	}
 
 public:
-	nsview_subsystem(rc_obj_base& desc)
+	explicit nsview_subsystem(rc_obj_base& desc)
 		: gui::windowing::subsystem(desc),
 		m_visibleWindows(rcnew(visible_windows_list_t)),
 		m_mainThreadDispatcher(ui_thread::get()),
@@ -251,7 +251,7 @@ public:
 		[alert addButtonWithTitle:@"OK"];
 		[alert setInformativeText:str];
 		[alert runModal];
-		return get_immediate_task();
+		return signaled();
 	}
 
 	virtual vector<gfx::canvas::bounds> get_screens() volatile

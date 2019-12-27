@@ -299,7 +299,7 @@ public:
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 	};
 
-	weak_rcptr_list(rc_obj_base& desc)
+	explicit weak_rcptr_list(rc_obj_base& desc)
 		: object(desc)
 	{ }
 

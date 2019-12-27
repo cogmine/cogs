@@ -222,7 +222,7 @@ public:
 			// Only continue if there is more data, and m_remainingChunk changed to non-zero
 		} while (!!src && !!m_remainingChunk);
 
-		return get_immediate_task(result);
+		return signaled(result);
 	}
 
 	const trailer_map_t& get_trailers() const { return m_trailers; }
@@ -249,7 +249,7 @@ public:
 			result.append(src);     // DATA
 			result.append(crlfBuf); // CRLF
 			src.clear();
-			return get_immediate_task(result);
+			return signaled(result);
 		},
 		[]()
 		{
@@ -264,7 +264,7 @@ public:
 
 			// TBD: Send trailers?
 
-			return get_immediate_task(compBuf);
+			return signaled(compBuf);
 		})
 	{ }
 };
@@ -479,23 +479,22 @@ private:
 	class connection : public net::request_response_server::connection
 	{
 	private:
-		connection() = delete;
-		connection(const connection&) = delete;
-		connection& operator=(const connection&) = delete;
-
-	protected:
 		friend class server;
 		friend class request;
 		friend class response;
 
-		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
-			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
-		{ }
+		connection() = delete;
+		connection(const connection&) = delete;
+		connection& operator=(const connection&) = delete;
 
 		virtual rcref<net::request_response_server::request> create_request()
 		{
 			return server::default_create_request(this_rcref);
 		}
+
+		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
+		{ }
 	};
 
 	class response : public net::request_response_server::response
@@ -1002,7 +1001,7 @@ private:
 				}
 			}
 
-			return get_immediate_task(closing);
+			return signaled(closing);
 		}
 
 		virtual void start()
@@ -1029,7 +1028,7 @@ private:
 			{
 				rcptr<request> r2 = r;
 				if (!r2)
-					return get_immediate_task(true);
+					return signaled(true);
 				return r2->process_write(b);
 			}))
 		{
@@ -1115,7 +1114,7 @@ private:
 				m = response::raw;
 
 			m_coupler->cancel();
-			rcref<response> r = rcnew(bypass_constructor_permission<response>, this_rcref, code, statusPhrase, m, contentLength, reuseConnection);
+			rcref<response> r = rcnew(response, this_rcref, code, statusPhrase, m, contentLength, reuseConnection);
 			r->start();
 			return r;
 		}
@@ -1157,7 +1156,7 @@ private:
 private:
 	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c)
 	{
-		return rcnew(bypass_constructor_permission<request>, c);
+		return rcnew(request, c);
 	}
 
 	rcref<verb_handler_map_t> m_verbHandlerMap;
@@ -1166,7 +1165,7 @@ private:
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
-		return rcnew(bypass_constructor_permission<connection>, this_rcref, ds);
+		return rcnew(connection, this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
 	}
 
 	static void default_get_handler(const rcref<request>& r)

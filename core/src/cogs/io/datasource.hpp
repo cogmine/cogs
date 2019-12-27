@@ -562,19 +562,19 @@ protected:
 	/// @param ds A datasource reference to encapsulate in the flusher.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<flusher>, ds); }
+	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds) { return rcnew(flusher, ds); }
 
 	/// @brief Create a datasource::closer.  Used by derived datasources to create derived closer
 	/// @param ds A datasource reference to encapsulate in the closer.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<closer>, ds); }
+	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds) { return rcnew(closer, ds); }
 
 	/// @brief Create a datasource::reader.  Used by derived datasources to create derived reader
 	/// @param ds A datasource reference to encapsulate in the reader.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new writer
-	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(bypass_constructor_permission<reader>, ds); }
+	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(reader, ds); }
 
 };
 
@@ -1138,7 +1138,7 @@ inline rcref<task<void> > datasource::create_coupler(
 	const dynamic_integer& maxLength,
 	size_t bufferBlockSize)
 {
-	rcref<task<void> > result = rcnew(bypass_constructor_permission<default_coupler>, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+	rcref<task<void> > result = rcnew(default_coupler, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
 	result.template static_cast_to<default_coupler>()->start_coupler();
 	return result;
 }

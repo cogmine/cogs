@@ -30,13 +30,13 @@ private:
 	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int priority = 0) volatile
 	{
 		onComplete();
-		return get_immediate_task().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
+		return signaled().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
 	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function& onCancel, int priority = 0) volatile
 	{
 		onComplete();
-		return get_immediate_task().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
+		return signaled().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
@@ -65,19 +65,19 @@ public:
 	template <typename T>
 	static rcref<task<std::remove_reference_t<T> > > create(T&& t)
 	{
-		return rcnew(bypass_constructor_permission<this_t>, std::forward<T>(t));
+		return rcnew(this_t, std::forward<T>(t));
 	}
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
 
 	virtual const result_t& get() const volatile { return *const_cast<const result_t*>(&m_result); }
 
-	virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
+	virtual rcref<task<bool> > cancel() volatile { return signaled(false); }
 };
 
 
 template <typename T>
-inline rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t)
+inline rcref<task<std::remove_reference_t<T> > > signaled(T&& t)
 {
 	return immediate_task<std::remove_reference_t<T> >::create(std::forward<T>(t));
 }
@@ -85,7 +85,7 @@ inline rcref<task<std::remove_reference_t<T> > > get_immediate_task(T&& t)
 
 // Use singletons for true and false
 
-inline rcref<task<bool> > get_immediate_task(bool b)
+inline rcref<task<bool> > signaled(bool b)
 {
 	class immediate_task_true : public immediate_task<bool>
 	{
@@ -152,11 +152,11 @@ public:
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
 
-	virtual rcref<task<bool> > cancel() volatile { return get_immediate_task(false); }
+	virtual rcref<task<bool> > cancel() volatile { return signaled(false); }
 };
 
 
-inline rcref<task<void> > get_immediate_task()
+inline rcref<task<void> > signaled()
 {
 	return immediate_task<void>::create();
 }

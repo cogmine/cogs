@@ -389,7 +389,7 @@ public:
 		weak_rcptr<pane> m_pane;
 	};
 
-	wrap_list(rc_obj_base& desc)
+	explicit wrap_list(rc_obj_base& desc)
 		: pane(desc)
 	{
 		m_verticalAlignment = 0;

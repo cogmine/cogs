@@ -43,11 +43,11 @@ class fraction;
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
-template <> class is_arithmetic_type<dynamic_integer> : public std::true_type { };
+template <> struct is_arithmetic_type<dynamic_integer> : public std::true_type { };
 
-template <> class is_integer_type<dynamic_integer> : public std::true_type { };
+template <> struct is_integer_type<dynamic_integer> : public std::true_type { };
 
-template <> class is_signed_type<dynamic_integer> : public std::true_type { };
+template <> struct is_signed_type<dynamic_integer> : public std::true_type { };
 
 class dynamic_integer_content
 {
@@ -7155,54 +7155,43 @@ public:
 
 
 template <bool has_sign2, size_t bits2, ulongest... values2>
-class compatible<dynamic_integer, fixed_integer_extended_const<has_sign2, bits2, values2...> >
+struct compatible<dynamic_integer, fixed_integer_extended_const<has_sign2, bits2, values2...> >
 {
-public:
 	typedef dynamic_integer type;
 };
 
 template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-class compatible<dynamic_integer, fixed_integer_native_const<has_sign2, bits2, value2> >
+struct compatible<dynamic_integer, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
-public:
 	typedef dynamic_integer type;
 };
 
 template <bool has_sign2, size_t bits2>
-class compatible<dynamic_integer, fixed_integer_native<has_sign2, bits2> >
+struct compatible<dynamic_integer, fixed_integer_native<has_sign2, bits2> >
 {
-public:
 	typedef dynamic_integer type;
 };
 
 template <bool has_sign2, size_t bits2>
-class compatible<dynamic_integer, fixed_integer_extended<has_sign2, bits2> >
+struct compatible<dynamic_integer, fixed_integer_extended<has_sign2, bits2> >
 {
-public:
 	typedef dynamic_integer type;
 };
 
 template <typename int_t2>
-class compatible<dynamic_integer, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<dynamic_integer, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
-public:
 	typedef dynamic_integer type;
 };
 
 template <typename int_t2>
-class compatible<int_t2, dynamic_integer, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<int_t2, dynamic_integer, std::enable_if_t<std::is_integral_v<int_t2> > >
 {
-public:
 	typedef dynamic_integer type;
 };
-
-
 
 
 // interop for fixed_integer_native
-
-
-
 
 
 template <bool has_sign, size_t n_bits>
@@ -9970,17 +9959,11 @@ template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits
 inline int fixed_integer_extended_const<has_sign, bits, low_digit, highDigits...>::compare(const volatile dynamic_integer& cmp) const volatile { return -cmp.compare(*this); }
 
 
-
-
-
 template <bool has_sign, size_t bits>
-class compatible<fixed_integer_extended<has_sign, bits>, dynamic_integer>
+struct compatible<fixed_integer_extended<has_sign, bits>, dynamic_integer>
 {
-public:
 	typedef dynamic_integer type;
 };
-
-
 
 
 }

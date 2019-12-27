@@ -174,7 +174,7 @@ private:
 			// move to main thread
 			rcptr<scroll_bar> r2 = r;
 			if (!r2)
-				return get_immediate_task();
+				return signaled();
 			return r2->get_subsystem()->dispatch([r]()
 			{
 				rcptr<scroll_bar> r2 = r;

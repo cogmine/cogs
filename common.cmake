@@ -65,6 +65,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     include_directories(
       ${CMAKE_CURRENT_LIST_DIR}/core/env/VS/Windows/src
     )
+    
+    # clang 10 can't currently compile ATL headers, so disable use of ATL thunk
+    target_compile_definitions(${EXECUTABLE_NAME} PUBLIC -DCOGS_USE_ATL_THUNK=0)
+
     # On Windows, clang-cl and MSVC linker are used, so MSVC settings are used (below)
   else()
     set(CLANG 1)

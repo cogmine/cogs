@@ -199,7 +199,7 @@ private:
 		bool b = m_priorityQueue.remove(rt);
 		if (b)
 			serial_dispatch();
-		return get_immediate_task(b);
+		return signaled(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
@@ -455,7 +455,7 @@ private:
 		}
 	}
 
-	template <typename F, std::enable_if_t<std::is_invocable_v<F> >...>
+	template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F> > >
 	auto dispatch_async(F&& f, int priority = 0) volatile
 	{
 		typedef std::invoke_result_t<F> result_t2;
@@ -2398,11 +2398,6 @@ public:
 	container_pane(rc_obj_base& desc, compositing_behavior cb)
 		: pane(desc, cb)
 	{
-	}
-
-	static rcref<container_pane> create(compositing_behavior cb = compositing_behavior::no_buffer)
-	{
-		return rcnew(container_pane, cb);
 	}
 
 	using pane_container::nest;

@@ -320,12 +320,12 @@ public:
 	// Any addr string, including host name or FQDN
 	static rcref<lookup_result> lookup(const composite_string& addr)
 	{
-		return rcnew(bypass_constructor_permission<lookup_result>, addr);
+		return rcnew(lookup_result, addr);
 	}
 
 	virtual rcref<net::address::reverse_lookup_result> reverse_lookup() const
 	{
-		return rcnew(bypass_constructor_permission<reverse_lookup_result>, *this);
+		return rcnew(reverse_lookup_result, *this);
 	}
 
 	static address get_local_host(address_family addressFamily = inetv4)

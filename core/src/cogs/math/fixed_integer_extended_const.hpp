@@ -40,13 +40,13 @@ namespace cogs {
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
-template <bool has_sign, size_t bits, ulongest... values> class is_arithmetic_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
+template <bool has_sign, size_t bits, ulongest... values> struct is_arithmetic_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, ulongest... values> class is_integer_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
+template <bool has_sign, size_t bits, ulongest... values> struct is_integer_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
 
-template <bool has_sign, size_t bits, ulongest... values> class is_signed_type<fixed_integer_extended_const<has_sign, bits, values...> > { public: static constexpr bool value = has_sign; };
+template <bool has_sign, size_t bits, ulongest... values> struct is_signed_type<fixed_integer_extended_const<has_sign, bits, values...> > { static constexpr bool value = has_sign; };
 
-template <bool has_sign, size_t bits, ulongest... values> class is_const_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
+template <bool has_sign, size_t bits, ulongest... values> struct is_const_type<fixed_integer_extended_const<has_sign, bits, values...> > : public std::true_type { };
 
 
 template <bool has_sign, size_t bits, ulongest... values>
@@ -3094,9 +3094,8 @@ public:
 
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2, ulongest... values2>
-class compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
+struct compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2),
 		(bits1 > bits2) ?
 		(bits1 + ((has_sign2 && !has_sign1) ? 1 : 0))
@@ -3105,40 +3104,35 @@ public:
 };
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-class compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_native_const<has_sign2, bits2, value2> >
+struct compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2),
 		(bits1 + ((has_sign2 && !has_sign1) ? 1 : 0))
 	> type;
 };
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2>
-class compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_native<has_sign2, bits2> >
+struct compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_native<has_sign2, bits2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2), bits1 + ((has_sign1 && !has_sign2) ? 1 : 0)> type;
 };
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2>
-class compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_extended<has_sign2, bits2> >
+struct compatible<fixed_integer_extended_const<has_sign1, bits1, values1...>, fixed_integer_extended<has_sign2, bits2> >
 {
-public:
 	typedef fixed_integer<(has_sign1 || has_sign2), (bits1 > bits2 ? bits1 : bits2) + (((has_sign1 != has_sign2) && ((!has_sign1 && (bits1 >= bits2)) || (!has_sign2 && (bits2 >= bits1)))) ? 1 : 0)> type;
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, ulongest... values2>
-class compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+	: public compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, int_to_fixed_integer_t<int_t2> >
 {
-public:
-	typedef typename compatible<fixed_integer_extended_const<has_sign2, bits2, values2...>, int_to_fixed_integer_t<int_t2> >::type type;
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, ulongest... values2>
-class compatible<int_t2, fixed_integer_extended_const<has_sign2, bits2, values2...>, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<int_t2, fixed_integer_extended_const<has_sign2, bits2, values2...>, std::enable_if_t<std::is_integral_v<int_t2> > >
+	: public compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_extended_const<has_sign2, bits2, values2...> >
 {
-public:
-	typedef typename compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_extended_const<has_sign2, bits2, values2...> >::type type;
 };
 
 template <bool has_sign, size_t bits, ulongest... values>

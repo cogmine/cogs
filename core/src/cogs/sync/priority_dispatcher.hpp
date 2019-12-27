@@ -49,7 +49,7 @@ private:
 	{
 		priority_dispatched& d = *(priority_dispatched*)&t;
 		bool b = m_priorityQueue.remove(d.m_removeToken);
-		return get_immediate_task(b);
+		return signaled(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& t, int newPriority) volatile

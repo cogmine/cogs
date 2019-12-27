@@ -27,40 +27,40 @@ namespace cogs {
 //class function;
 
 template <typename T>
-class is_function_class : public std::false_type { };
+struct is_function_class : public std::false_type { };
 
 template <typename T>
-class is_function_class<const T> : public is_function_class<T> { };
+struct is_function_class<const T> : public is_function_class<T> { };
 
 template <typename T>
-class is_function_class<volatile T> : public is_function_class<T> { };
+struct is_function_class<volatile T> : public is_function_class<T> { };
 
 template <typename T>
-class is_function_class<const volatile T> : public is_function_class<T> { };
+struct is_function_class<const volatile T> : public is_function_class<T> { };
 
 template <typename T>
 constexpr bool is_function_class_v = is_function_class<T>::value;
 
 template <typename signature, size_t n>
-class is_function_class<function<signature, n> > : public std::true_type { };
+struct is_function_class<function<signature, n> > : public std::true_type { };
 
 template <typename T, typename signature>
-class is_same_function_class : public std::false_type { };
+struct is_same_function_class : public std::false_type { };
 
 template <typename T, typename signature>
-class is_same_function_class<const T, signature> : public is_same_function_class<T, signature> { };
+struct is_same_function_class<const T, signature> : public is_same_function_class<T, signature> { };
 
 template <typename T, typename signature>
-class is_same_function_class<volatile T, signature> : public is_same_function_class<T, signature> { };
+struct is_same_function_class<volatile T, signature> : public is_same_function_class<T, signature> { };
 
 template <typename T, typename signature>
-class is_same_function_class<const volatile T, signature> : public is_same_function_class<T, signature> { };
+struct is_same_function_class<const volatile T, signature> : public is_same_function_class<T, signature> { };
 
 template <typename T, typename signature>
 constexpr bool is_same_function_class_v = is_same_function_class<T, signature>::value;
 
 template <typename signature, size_t n>
-class is_same_function_class<function<signature, n>, signature> : public std::true_type { };
+struct is_same_function_class<function<signature, n>, signature> : public std::true_type { };
 
 
 template <typename return_t, typename... args_t, size_t n>

@@ -51,8 +51,6 @@ bypass_strict_aliasing(const S& src, T& dst)
 }
 
 
-
 }
 
 #endif
-

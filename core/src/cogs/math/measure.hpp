@@ -28,11 +28,23 @@ template <typename storage_type, class unit_type>
 class measure;
 
 
-template <typename unit_type, typename T>
-auto make_measure(T&& t)
+template <typename unit_type, typename storage_type>
+auto make_measure(storage_type&& t)
 {
-	return measure<std::remove_cv_t<std::remove_reference_t<T> >, unit_type>(std::forward<T>(t));
+	return measure<std::remove_cv_t<std::remove_reference_t<storage_type> >, unit_type>(std::forward<storage_type>(t));
 }
+
+
+template <typename T, typename enable = void> struct is_measure_type : public std::false_type {};
+template <typename T> struct is_measure_type<const T> : public is_measure_type<T> {};
+template <typename T> struct is_measure_type<volatile T> : public is_measure_type<T> {};
+template <typename T> struct is_measure_type<const volatile T> : public is_measure_type<T> {};
+template <typename T> static constexpr bool is_measure_type_v = is_measure_type<T>::value;
+
+
+template <typename storage_type, class unit_type> struct is_measure_type<measure<storage_type, unit_type> > : public std::true_type {};
+
+
 
 
 // What if storage_type is an int?  Or a param?  Do we do what we need to, to ensure volatile reads are routed?
@@ -51,20 +63,14 @@ private:
 	template <typename, typename>
 	friend class measure;
 
-	template <typename, typename T>
-	friend auto make_measure(T&& t);
+	template <typename, typename storage_type2>
+	friend auto make_measure(storage_type2&& t);
 
-	template <typename storage_type2 = storage_t, typename = std::enable_if_t<!std::is_const_v<storage_type2> && !std::is_volatile_v<storage_type2> > >
-	this_t& operator=(storage_type2&& n) { cogs::assign(m_contents, std::move(n)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
+	this_t& operator=(storage_type2&& n) { cogs::assign(m_contents, std::forward<storage_type2>(n)); }
 
-	template <typename storage_type2 = storage_t, typename = std::enable_if_t<!std::is_const_v<storage_type2> && !std::is_volatile_v<storage_type2> > >
-	this_t& operator=(storage_type2&& n) volatile { cogs::assign(m_contents, std::move(n)); }
-
-	template <typename storage_type2 = storage_t>
-	this_t& operator=(storage_type2& n) { cogs::assign(m_contents, n); }
-
-	template <typename storage_type2 = storage_t>
-	this_t& operator=(storage_type2& n) volatile { cogs::assign(m_contents, n); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
+	this_t& operator=(storage_type2&& n) volatile { cogs::assign(m_contents, std::forward<storage_type2>(n)); }
 
 public:
 	storage_t& get() { return m_contents; }
@@ -74,36 +80,19 @@ public:
 
 	measure() { }
 
-	explicit measure(storage_t& src) : m_contents(src) { }
 	explicit measure(const storage_t& src) : m_contents(src) { }
-	explicit measure(volatile storage_t& src) : m_contents(load(src)) { }
 	explicit measure(const volatile storage_t& src) : m_contents(load(src)) { }
 
-	template <typename storage_type2 = storage_t>
-	explicit measure(storage_type2&& n) : m_contents(load(std::move(n))) { }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
+	explicit measure(storage_type2&& n) : m_contents(load(std::forward<storage_type2>(n))) { }
 
-	template <typename storage_type2 = storage_t>
-	explicit measure(storage_type2& n) : m_contents(load(n)) { }
-
-	measure(this_t& src) : m_contents(src.m_contents) { }
 	measure(const this_t& src) : m_contents(src.m_contents) { }
-	measure(volatile this_t& src) : m_contents(load(src.m_contents)) { }
 	measure(const volatile this_t& src) : m_contents(load(src.m_contents)) { }
 
 	measure(this_t&& src) : m_contents(std::move(src.m_contents)) { }
 
 	template <typename storage_type2 = storage_t>
-	measure(measure<storage_type2, unit_t>& src)
-		: m_contents(src.m_contents)
-	{ }
-
-	template <typename storage_type2 = storage_t>
 	measure(const measure<storage_type2, unit_t>& src)
-		: m_contents(src.m_contents)
-	{ }
-
-	template <typename storage_type2 = storage_t>
-	measure(volatile measure<storage_type2, unit_t>& src)
 		: m_contents(src.m_contents)
 	{ }
 
@@ -117,19 +106,8 @@ public:
 		: m_contents(std::move(src.m_contents))
 	{ }
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	measure(measure<storage_type2, unit_type2>& src)
-		: m_contents(cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents))
-	{ }
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	measure(const measure<storage_type2, unit_type2>& src)
-		: m_contents(cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents))
-	{ }
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	measure(volatile measure<storage_type2, unit_type2>& src)
 		: m_contents(cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents))
 	{ }
 
@@ -156,37 +134,17 @@ public:
 		return make_measure<unit_type2>(cogs::multiply(typename unit_conversion<unit_t, unit_type2>::ratio_const_t(), m_contents));
 	}
 
-
-	this_t& operator=(this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
 	this_t& operator=(const this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
-	this_t& operator=(volatile this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
 	this_t& operator=(const volatile this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
 
-	volatile this_t& operator=(this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
 	volatile this_t& operator=(const this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
-	volatile this_t& operator=(volatile this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
 	volatile this_t& operator=(const volatile this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
 
 	this_t& operator=(this_t&& src) { cogs::assign(m_contents, std::move(src.m_contents)); return *this; }
 	volatile this_t& operator=(this_t&& src) volatile { cogs::assign(m_contents, std::move(src.m_contents)); return *this; }
 
-
-	template <typename storage_type2 = storage_t>
-	this_t& operator=(measure<storage_type2, unit_t>& src)
-	{
-		cogs::assign(m_contents, src.m_contents);
-		return *this;
-	}
-
 	template <typename storage_type2 = storage_t>
 	this_t& operator=(const measure<storage_type2, unit_t>& src)
-	{
-		cogs::assign(m_contents, src.m_contents);
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t>
-	this_t& operator=(volatile measure<storage_type2, unit_t>& src)
 	{
 		cogs::assign(m_contents, src.m_contents);
 		return *this;
@@ -200,21 +158,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t>
-	volatile this_t& operator=(measure<storage_type2, unit_t>& src) volatile
-	{
-		cogs::assign(m_contents, src.m_contents);
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t>
 	volatile this_t& operator=(const measure<storage_type2, unit_t>& src) volatile
-	{
-		cogs::assign(m_contents, src.m_contents);
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t>
-	volatile this_t& operator=(volatile measure<storage_type2, unit_t>& src) volatile
 	{
 		cogs::assign(m_contents, src.m_contents);
 		return *this;
@@ -242,21 +186,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t& operator=(measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t& operator=(const measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t& operator=(volatile measure<storage_type2, unit_type2>& src)
 	{
 		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 		return *this;
@@ -270,21 +200,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	volatile this_t& operator=(measure<storage_type2, unit_type2>& src) volatile
-	{
-		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	volatile this_t& operator=(const measure<storage_type2, unit_type2>& src) volatile
-	{
-		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	volatile this_t& operator=(volatile measure<storage_type2, unit_type2>& src) volatile
 	{
 		cogs::assign(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 		return *this;
@@ -1214,35 +1130,22 @@ public:
 
 
 	// modulo
-	auto operator%(this_t& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	auto operator%(const this_t& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-	auto operator%(volatile this_t& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	auto operator%(const volatile this_t& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 
-	auto operator%(this_t& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	auto operator%(const this_t& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-	auto operator%(volatile this_t& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	auto operator%(const volatile this_t& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 
 	auto operator%(this_t&& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, std::move(src.m_contents))); }
 	auto operator%(this_t&& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, std::move(src.m_contents))); }
 
-
-	template <typename storage_type2 = storage_t>
-	auto operator%(measure<storage_type2, unit_t>& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	template <typename storage_type2 = storage_t>
 	auto operator%(const measure<storage_type2, unit_t>& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-	template <typename storage_type2 = storage_t>
-	auto operator%(volatile measure<storage_type2, unit_t>& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	template <typename storage_type2 = storage_t>
 	auto operator%(const volatile measure<storage_type2, unit_t>& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 
 	template <typename storage_type2 = storage_t>
-	auto operator%(measure<storage_type2, unit_t>& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-	template <typename storage_type2 = storage_t>
 	auto operator%(const measure<storage_type2, unit_t>& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-	template <typename storage_type2 = storage_t>
-	auto operator%(volatile measure<storage_type2, unit_t>& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	template <typename storage_type2 = storage_t>
 	auto operator%(const volatile measure<storage_type2, unit_t>& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 
@@ -1250,15 +1153,6 @@ public:
 	auto operator%(measure<storage_type2, unit_t>&& src) const { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
 	template <typename storage_type2 = storage_t>
 	auto operator%(measure<storage_type2, unit_t>&& src) const volatile { return make_measure<unit_t>(cogs::modulo(m_contents, src.m_contents)); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	auto operator%(measure<storage_type2, unit_type2>& src) const
-	{
-		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
-			cogs::multiply(typename unit_conversion<unit_type2, finer_t<unit_t, unit_type2> >::ratio_const_t(), src.m_contents)));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	auto operator%(const measure<storage_type2, unit_type2>& src) const
@@ -1269,24 +1163,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	auto operator%(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
-			cogs::multiply(typename unit_conversion<unit_type2, finer_t<unit_t, unit_type2> >::ratio_const_t(), src.m_contents)));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	auto operator%(const volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
-			cogs::multiply(typename unit_conversion<unit_type2, finer_t<unit_t, unit_type2> >::ratio_const_t(), src.m_contents)));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	auto operator%(measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
@@ -1302,21 +1179,12 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	auto operator%(volatile measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
-			cogs::multiply(typename unit_conversion<unit_type2, finer_t<unit_t, unit_type2> >::ratio_const_t(), src.m_contents)));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	auto operator%(const volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return make_measure<finer_t<unit_t, unit_type2> >(cogs::modulo(
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t()(), m_contents),
 			cogs::multiply(typename unit_conversion<unit_type2, finer_t<unit_t, unit_type2> >::ratio_const_t(), src.m_contents)));
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	auto operator%(measure<storage_type2, unit_type2>&& src) const
@@ -1335,41 +1203,24 @@ public:
 	}
 
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	auto operator%(storage_type2&& src) const
 	{
-		return make_measure<unit_t>(cogs::modulo(m_contents, std::move(src)));
+		return make_measure<unit_t>(cogs::modulo(m_contents, std::forward<storage_type2>(src)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	auto operator%(storage_type2&& src) const volatile
 	{
-		return make_measure<unit_t>(cogs::modulo(m_contents, std::move(src)));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	auto operator%(storage_type2& src) const
-	{
-		return make_measure<unit_t>(cogs::modulo(m_contents, src));
-	}
-
-	template <typename storage_type2 = storage_t>
-	auto operator%(storage_type2& src) const volatile
-	{
-		return make_measure<unit_t>(cogs::modulo(m_contents, src));
+		return make_measure<unit_t>(cogs::modulo(m_contents, std::forward<storage_type2>(src)));
 	}
 
 
 	// %=
-	this_t& operator%=(this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	this_t& operator%=(const this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	this_t& operator%=(volatile this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	this_t& operator%=(const volatile this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
-	volatile this_t& operator%=(this_t& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	volatile this_t& operator%=(const this_t& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	volatile this_t& operator%=(volatile this_t& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	volatile this_t& operator%=(const volatile this_t& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
 	this_t& operator%=(this_t&& src) { cogs::assign_modulo(m_contents, std::move(src.m_contents)); return *this; }
@@ -1377,20 +1228,12 @@ public:
 
 
 	template <typename storage_type2 = storage_t>
-	this_t& operator%=(measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
 	this_t& operator%=(const measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
-	this_t& operator%=(volatile measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	template <typename storage_type2 = storage_t>
 	this_t& operator%=(const volatile measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
 	template <typename storage_type2 = storage_t>
-	volatile this_t& operator%=(measure<storage_type2, unit_t>& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
 	volatile this_t& operator%=(const measure<storage_type2, unit_t>& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
-	volatile this_t& operator%=(volatile measure<storage_type2, unit_t>& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	template <typename storage_type2 = storage_t>
 	volatile this_t& operator%=(const volatile measure<storage_type2, unit_t>& src) volatile { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
@@ -1398,14 +1241,6 @@ public:
 	this_t& operator%=(measure<storage_type2, unit_t>&& src) { cogs::assign_modulo(m_contents, std::move(src.m_contents)); return *this; }
 	template <typename storage_type2 = storage_t>
 	volatile this_t& operator%=(measure<storage_type2, unit_t>&& src) volatile { cogs::assign_modulo(m_contents, std::move(src.m_contents)); return *this; }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t& operator%=(measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t& operator%=(const measure<storage_type2, unit_type2>& src)
@@ -1415,22 +1250,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t& operator%=(volatile measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t& operator%=(const volatile measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	volatile this_t& operator%=(measure<storage_type2, unit_type2>& src) volatile
 	{
 		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 		return *this;
@@ -1444,19 +1264,11 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	volatile this_t& operator%=(volatile measure<storage_type2, unit_type2>& src) volatile
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	volatile this_t& operator%=(const volatile measure<storage_type2, unit_type2>& src) volatile
 	{
 		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 		return *this;
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t& operator%=(measure<storage_type2, unit_type2>&& src)
@@ -1472,46 +1284,26 @@ public:
 		return *this;
 	}
 
-
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	this_t& operator%=(storage_type2&& src)
 	{
-		cogs::assign_modulo(m_contents, std::move(src));
+		cogs::assign_modulo(m_contents, std::forward<storage_type2>(src));
 		return *this;
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	volatile this_t& operator%=(storage_type2&& src) volatile
 	{
-		cogs::assign_modulo(m_contents, std::move(src));
-		return *this;
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	this_t& operator%=(storage_type2& src)
-	{
-		cogs::assign_modulo(m_contents, std::move(src));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t>
-	volatile this_t& operator%=(storage_type2& src) volatile
-	{
-		cogs::assign_modulo(m_contents, std::move(src));
+		cogs::assign_modulo(m_contents, std::forward<storage_type2>(src));
 		return *this;
 	}
 
 
 	// pre_assign_modulo
-	const this_t& pre_assign_modulo(this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	const this_t& pre_assign_modulo(const this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	const this_t& pre_assign_modulo(volatile this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	const this_t& pre_assign_modulo(const volatile this_t& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
-	this_t pre_assign_modulo(this_t& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
 	this_t pre_assign_modulo(const this_t& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
-	this_t pre_assign_modulo(volatile this_t& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
 	this_t pre_assign_modulo(const volatile this_t& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
 
 	const this_t& pre_assign_modulo(this_t&& src) { cogs::assign_modulo(m_contents, std::move(src.m_contents)); return *this; }
@@ -1519,20 +1311,12 @@ public:
 
 
 	template <typename storage_type2 = storage_t>
-	const this_t& pre_assign_modulo(measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
 	const this_t& pre_assign_modulo(const measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
-	template <typename storage_type2 = storage_t>
-	const this_t& pre_assign_modulo(volatile measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 	template <typename storage_type2 = storage_t>
 	const this_t& pre_assign_modulo(const volatile measure<storage_type2, unit_t>& src) { cogs::assign_modulo(m_contents, src.m_contents); return *this; }
 
 	template <typename storage_type2 = storage_t>
-	this_t pre_assign_modulo(measure<storage_type2, unit_t>& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	this_t pre_assign_modulo(const measure<storage_type2, unit_t>& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	this_t pre_assign_modulo(volatile measure<storage_type2, unit_t>& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	this_t pre_assign_modulo(const volatile measure<storage_type2, unit_t>& src) volatile { return cogs::pre_assign_modulo(m_contents, src.m_contents); }
 
@@ -1541,23 +1325,8 @@ public:
 	template <typename storage_type2 = storage_t>
 	this_t pre_assign_modulo(measure<storage_type2, unit_t>&& src) volatile { return cogs::pre_assign_modulo(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	const this_t& pre_assign_modulo(measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	const this_t& pre_assign_modulo(const measure<storage_type2, unit_type2>& src)
-	{
-		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	const this_t& pre_assign_modulo(volatile measure<storage_type2, unit_type2>& src)
 	{
 		cogs::assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 		return *this;
@@ -1570,22 +1339,8 @@ public:
 		return *this;
 	}
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t pre_assign_modulo(measure<storage_type2, unit_type2>& src) volatile
-	{
-		return cogs::pre_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t pre_assign_modulo(const measure<storage_type2, unit_type2>& src) volatile
-	{
-		return cogs::pre_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t pre_assign_modulo(volatile measure<storage_type2, unit_type2>& src) volatile
 	{
 		return cogs::pre_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
@@ -1611,43 +1366,25 @@ public:
 	}
 
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	const this_t& pre_assign_modulo(storage_type2&& src)
 	{
-		cogs::assign_modulo(m_contents, std::move(src));
+		cogs::assign_modulo(m_contents, std::forward<storage_type2>(src));
 		return *this;
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	this_t pre_assign_modulo(storage_type2&& src) volatile
 	{
-		return cogs::pre_assign_modulo(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	const this_t& pre_assign_modulo(storage_type2& src)
-	{
-		cogs::assign_modulo(m_contents, src);
-		return *this;
-	}
-
-	template <typename storage_type2 = storage_t>
-	this_t pre_assign_modulo(storage_type2& src) volatile
-	{
-		return cogs::pre_assign_modulo(m_contents, src);
+		return cogs::pre_assign_modulo(m_contents, std::forward<storage_type2>(src));
 	}
 
 
 	// post_assign_modulo
-	this_t post_assign_modulo(this_t& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	this_t post_assign_modulo(const this_t& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	this_t post_assign_modulo(volatile this_t& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	this_t post_assign_modulo(const volatile this_t& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 
-	this_t post_assign_modulo(this_t& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	this_t post_assign_modulo(const this_t& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	this_t post_assign_modulo(volatile this_t& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	this_t post_assign_modulo(const volatile this_t& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 
 	this_t post_assign_modulo(this_t&& src) { return cogs::post_assign_modulo(m_contents, std::move(src.m_contents)); }
@@ -1655,21 +1392,13 @@ public:
 
 
 	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(measure<storage_type2, unit_t>& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	this_t post_assign_modulo(const measure<storage_type2, unit_t>& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(volatile measure<storage_type2, unit_t>& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	this_t post_assign_modulo(const volatile measure<storage_type2, unit_t>& src) { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 
 
 	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(measure<storage_type2, unit_t>& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	this_t post_assign_modulo(const measure<storage_type2, unit_t>& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(volatile measure<storage_type2, unit_t>& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	this_t post_assign_modulo(const volatile measure<storage_type2, unit_t>& src) volatile { return cogs::post_assign_modulo(m_contents, src.m_contents); }
 
@@ -1679,21 +1408,8 @@ public:
 	template <typename storage_type2 = storage_t>
 	this_t post_assign_modulo(measure<storage_type2, unit_t>&& src) volatile { return cogs::post_assign_modulo(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t post_assign_modulo(measure<storage_type2, unit_type2>& src)
-	{
-		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t post_assign_modulo(const measure<storage_type2, unit_type2>& src)
-	{
-		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t post_assign_modulo(volatile measure<storage_type2, unit_type2>& src)
 	{
 		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
@@ -1704,21 +1420,8 @@ public:
 		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t post_assign_modulo(measure<storage_type2, unit_type2>& src) volatile
-	{
-		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	this_t post_assign_modulo(const measure<storage_type2, unit_type2>& src) volatile
-	{
-		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	this_t post_assign_modulo(volatile measure<storage_type2, unit_type2>& src) volatile
 	{
 		return cogs::post_assign_modulo(m_contents, cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
@@ -1743,29 +1446,16 @@ public:
 	}
 
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	this_t post_assign_modulo(storage_type2&& src)
 	{
-		return cogs::post_assign_modulo(m_contents, std::move(src));
+		return cogs::post_assign_modulo(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	this_t post_assign_modulo(storage_type2&& src) volatile
 	{
-		return cogs::post_assign_modulo(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(storage_type2& src)
-	{
-		return cogs::post_assign_modulo(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	this_t post_assign_modulo(storage_type2& src) volatile
-	{
-		return cogs::post_assign_modulo(m_contents, src);
+		return cogs::post_assign_modulo(m_contents, std::forward<storage_type2>(src));
 	}
 
 
@@ -2048,221 +1738,149 @@ public:
 	}
 
 	// multiply
-	template <typename storage_type2 = storage_t> auto operator*(storage_type2&& src) const { return make_measure<unit_t>(cogs::multiply(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto operator*(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::multiply(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto operator*(storage_type2& src) const { return make_measure<unit_t>(cogs::multiply(m_contents, src)); }
-	template <typename storage_type2 = storage_t> auto operator*(storage_type2& src) const volatile { return make_measure<unit_t>(cogs::multiply(m_contents, src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto operator*(storage_type2&& src) const { return make_measure<unit_t>(cogs::multiply(m_contents, std::forward<storage_type2>(src))); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto operator*(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::multiply(m_contents, std::forward<storage_type2>(src))); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> auto operator*(measure<storage_type2, unit_type2>&& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator*(measure<storage_type2, unit_type2>&& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto operator*(measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto operator*(measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto operator*(const measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator*(const measure<storage_type2, unit_type2>& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto operator*(volatile measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto operator*(volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto operator*(const volatile measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator*(const volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 
 	// *=
-	template <typename storage_type2 = storage_t> this_t& operator*=(storage_type2&& src) { cogs::assign_multiply(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> this_t& operator*=(storage_type2& src) { cogs::assign_multiply(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> volatile this_t& operator*=(storage_type2&& src) volatile { cogs::assign_multiply(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> volatile this_t& operator*=(storage_type2& src) volatile { cogs::assign_multiply(m_contents, std::move(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t& operator*=(storage_type2&& src) { cogs::assign_multiply(m_contents, std::forward<storage_type2>(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > volatile this_t& operator*=(storage_type2&& src) volatile { cogs::assign_multiply(m_contents, std::forward<storage_type2>(src)); return *this; }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> this_t& operator*=(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t& operator*=(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t& operator*=(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t& operator*=(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t& operator*=(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator*=(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> volatile this_t& operator*=(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator*=(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> volatile this_t& operator*=(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator*=(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// pre_assign_multiply
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_multiply(storage_type2&& src) { cogs::assign_multiply(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_multiply(storage_type2& src) { cogs::assign_multiply(m_contents, src); return *this; }
-	template <typename storage_type2 = storage_t> this_t pre_assign_multiply(storage_type2&& src) volatile { return cogs::pre_assign_multiply(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t pre_assign_multiply(storage_type2& src) volatile { return cogs::pre_assign_multiply(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > const this_t& pre_assign_multiply(storage_type2&& src) { cogs::assign_multiply(m_contents, std::forward<storage_type2>(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t pre_assign_multiply(storage_type2&& src) volatile { return cogs::pre_assign_multiply(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_multiply(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_multiply(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_multiply(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_multiply(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_multiply(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_multiply(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_multiply(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_multiply(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_multiply(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_multiply(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// post_assign_multiply
-	template <typename storage_type2 = storage_t> this_t post_assign_multiply(storage_type2&& src) { return cogs::post_assign_multiply(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_multiply(storage_type2&& src) volatile { return cogs::post_assign_multiply(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_multiply(storage_type2& src) { return cogs::post_assign_multiply(m_contents, src); }
-	template <typename storage_type2 = storage_t> this_t post_assign_multiply(storage_type2& src) volatile { return cogs::post_assign_multiply(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_multiply(storage_type2&& src) { return cogs::post_assign_multiply(m_contents, std::forward<storage_type2>(src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_multiply(storage_type2&& src) volatile { return cogs::post_assign_multiply(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_multiply(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// divide
-	template <typename storage_type2 = storage_t> auto operator/(storage_type2&& src) const { return make_measure<unit_t>(cogs::divide(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto operator/(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::divide(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto operator/(storage_type2& src) const { return make_measure<unit_t>(cogs::divide(m_contents, src)); }
-	template <typename storage_type2 = storage_t> auto operator/(storage_type2& src) const volatile { return make_measure<unit_t>(cogs::divide(m_contents, src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto operator/(storage_type2&& src) const { return make_measure<unit_t>(cogs::divide(m_contents, std::forward<storage_type2>(src))); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto operator/(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::divide(m_contents, std::forward<storage_type2>(src))); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> auto operator/(measure<storage_type2, unit_type2>&& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator/(measure<storage_type2, unit_type2>&& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto operator/(measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto operator/(measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto operator/(const measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator/(const measure<storage_type2, unit_type2>& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto operator/(volatile measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto operator/(volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto operator/(const volatile measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto operator/(const volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 
 	// /=
-	template <typename storage_type2 = storage_t> this_t& operator/=(storage_type2&& src) { cogs::assign_divide(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> this_t& operator/=(storage_type2& src) { cogs::assign_divide(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> volatile this_t& operator/=(storage_type2&& src) volatile { cogs::assign_divide(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> volatile this_t& operator/=(storage_type2& src) volatile { cogs::assign_divide(m_contents, std::move(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t& operator/=(storage_type2&& src) { cogs::assign_divide(m_contents, std::forward<storage_type2>(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > volatile this_t& operator/=(storage_type2&& src) volatile { cogs::assign_divide(m_contents, std::forward<storage_type2>(src)); return *this; }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> this_t& operator/=(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t& operator/=(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t& operator/=(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t& operator/=(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t& operator/=(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator/=(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> volatile this_t& operator/=(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator/=(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> volatile this_t& operator/=(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> volatile this_t& operator/=(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// pre_assign_divide
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_divide(storage_type2&& src) { cogs::assign_divide(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_divide(storage_type2& src) { cogs::assign_divide(m_contents, src); return *this; }
-	template <typename storage_type2 = storage_t> this_t pre_assign_divide(storage_type2&& src) volatile { return cogs::pre_assign_divide(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t pre_assign_divide(storage_type2& src) volatile { return cogs::pre_assign_divide(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > const this_t& pre_assign_divide(storage_type2&& src) { cogs::assign_divide(m_contents, std::forward<storage_type2>(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t pre_assign_divide(storage_type2&& src) volatile { return cogs::pre_assign_divide(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// post_assign_divide
-	template <typename storage_type2 = storage_t> this_t post_assign_divide(storage_type2&& src) { return cogs::post_assign_divide(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide(storage_type2&& src) volatile { return cogs::post_assign_divide(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide(storage_type2& src) { return cogs::post_assign_divide(m_contents, src); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide(storage_type2& src) volatile { return cogs::post_assign_divide(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_divide(storage_type2&& src) { return cogs::post_assign_divide(m_contents, std::forward<storage_type2>(src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_divide(storage_type2&& src) volatile { return cogs::post_assign_divide(m_contents, std::forward<storage_type2>(src)); }
 
 	// TBD
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 
 
 	// divide_whole
-	template <typename storage_type2 = storage_t> auto divide_whole(storage_type2&& src) const { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto divide_whole(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::move(src))); }
-	template <typename storage_type2 = storage_t> auto divide_whole(storage_type2& src) const { return make_measure<unit_t>(cogs::divide_whole(m_contents, src)); }
-	template <typename storage_type2 = storage_t> auto divide_whole(storage_type2& src) const volatile { return make_measure<unit_t>(cogs::divide_whole(m_contents, src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto divide_whole(storage_type2&& src) const { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::forward<storage_type2>(src))); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto divide_whole(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::forward<storage_type2>(src))); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> auto divide_whole(measure<storage_type2, unit_type2>&& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto divide_whole(measure<storage_type2, unit_type2>&& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto divide_whole(measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto divide_whole(measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto divide_whole(const measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto divide_whole(const measure<storage_type2, unit_type2>& src) const volatile = delete;
-	template <typename storage_type2, typename unit_type2> auto divide_whole(volatile measure<storage_type2, unit_type2>& src) const = delete;
-	template <typename storage_type2, typename unit_type2> auto divide_whole(volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 	template <typename storage_type2, typename unit_type2> auto divide_whole(const volatile measure<storage_type2, unit_type2>& src) const = delete;
 	template <typename storage_type2, typename unit_type2> auto divide_whole(const volatile measure<storage_type2, unit_type2>& src) const volatile = delete;
 
 	// assign_divide_whole
-	template <typename storage_type2 = storage_t> void assign_divide_whole(storage_type2&& src) { cogs::assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> void assign_divide_whole(storage_type2& src) { cogs::assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> void assign_divide_whole(storage_type2&& src) volatile { cogs::assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> void assign_divide_whole(storage_type2& src) volatile { cogs::assign_divide_whole(m_contents, std::move(src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > void assign_divide_whole(storage_type2&& src) { cogs::assign_divide_whole(m_contents, std::forward<storage_type2>(src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > void assign_divide_whole(storage_type2&& src) volatile { cogs::assign_divide_whole(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> void assign_divide_whole(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> void assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> void assign_divide_whole(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> void assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> void assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// pre_assign_divide_whole
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_divide_whole(storage_type2&& src) { cogs::assign_divide_whole(m_contents, std::move(src)); return *this; }
-	template <typename storage_type2 = storage_t> const this_t& pre_assign_divide_whole(storage_type2& src) { cogs::assign_divide_whole(m_contents, src); return *this; }
-	template <typename storage_type2 = storage_t> this_t pre_assign_divide_whole(storage_type2&& src) volatile { return cogs::pre_assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t pre_assign_divide_whole(storage_type2& src) volatile { return cogs::pre_assign_divide_whole(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > const this_t& pre_assign_divide_whole(storage_type2&& src) { cogs::assign_divide_whole(m_contents, std::forward<storage_type2>(src)); return *this; }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t pre_assign_divide_whole(storage_type2&& src) volatile { return cogs::pre_assign_divide_whole(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide_whole(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide_whole(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide_whole(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> const this_t& pre_assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide_whole(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide_whole(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide_whole(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t pre_assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 	// post_assign_divide_whole
-	template <typename storage_type2 = storage_t> this_t post_assign_divide_whole(storage_type2&& src) { return cogs::post_assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide_whole(storage_type2&& src) volatile { return cogs::post_assign_divide_whole(m_contents, std::move(src)); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide_whole(storage_type2& src) { return cogs::post_assign_divide_whole(m_contents, src); }
-	template <typename storage_type2 = storage_t> this_t post_assign_divide_whole(storage_type2& src) volatile { return cogs::post_assign_divide_whole(m_contents, src); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_divide_whole(storage_type2&& src) { return cogs::post_assign_divide_whole(m_contents, std::forward<storage_type2>(src)); }
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > this_t post_assign_divide_whole(storage_type2&& src) volatile { return cogs::post_assign_divide_whole(m_contents, std::forward<storage_type2>(src)); }
 
 		// TBD
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(measure<storage_type2, unit_type2>&& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(const measure<storage_type2, unit_type2>& src) = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(measure<storage_type2, unit_type2>&& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(const measure<storage_type2, unit_type2>& src) volatile = delete;
-	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide_whole(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 
@@ -2429,35 +2047,22 @@ public:
 
 
 	// equals
-	bool operator==(this_t& src) const { return cogs::equals(m_contents, src.m_contents); }
 	bool operator==(const this_t& src) const { return cogs::equals(m_contents, src.m_contents); }
-	bool operator==(volatile this_t& src) const { return cogs::equals(m_contents, src.m_contents); }
 	bool operator==(const volatile this_t& src) const { return cogs::equals(m_contents, src.m_contents); }
 
-	bool operator==(this_t& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
 	bool operator==(const this_t& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
 	bool operator==(volatile this_t& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
-	bool operator==(const volatile this_t& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
 
 	bool operator==(this_t&& src) const { return cogs::equals(m_contents, std::move(src.m_contents)); }
 	bool operator==(this_t&& src) const volatile { return cogs::equals(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator==(measure<storage_type2, unit_t>& src) const { return cogs::equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator==(const measure<storage_type2, unit_t>& src) const { return cogs::equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator==(volatile measure<storage_type2, unit_t>& src) const { return cogs::equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator==(const volatile measure<storage_type2, unit_t>& src) const { return cogs::equals(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator==(measure<storage_type2, unit_t>& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator==(const measure<storage_type2, unit_t>& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator==(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator==(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
 
@@ -2465,14 +2070,6 @@ public:
 	bool operator==(measure<storage_type2, unit_t>&& src) const { return cogs::equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator==(measure<storage_type2, unit_t>&& src) const volatile { return cogs::equals(m_contents, src.m_contents); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator==(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator==(const measure<storage_type2, unit_type2>& src) const
@@ -2482,14 +2079,6 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator==(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator==(const volatile measure<storage_type2, unit_type2>& src) const
 	{
 		return cogs::equals(m_contents,
@@ -2497,21 +2086,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator==(measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator==(const measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator==(volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::equals(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -2539,62 +2114,36 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator==(storage_type2&& src) const
 	{
-		return cogs::equals(m_contents, std::move(src));
+		return cogs::equals(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator==(storage_type2&& src) const volatile
 	{
-		return cogs::equals(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	bool operator==(storage_type2& src) const
-	{
-		return cogs::equals(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator==(storage_type2& src) const volatile
-	{
-		return cogs::equals(m_contents, src);
+		return cogs::equals(m_contents, std::forward<storage_type2>(src));
 	}
 
 
 	// not_equals
-	bool operator!=(this_t& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 	bool operator!=(const this_t& src) const { return cogs::not_equals(m_contents, src.m_contents); }
-	bool operator!=(volatile this_t& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 	bool operator!=(const volatile this_t& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 
-	bool operator!=(this_t& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
 	bool operator!=(const this_t& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
-	bool operator!=(volatile this_t& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
 	bool operator!=(const volatile this_t& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
 
 	bool operator!=(this_t&& src) const { return cogs::not_equals(m_contents, std::move(src.m_contents)); }
 	bool operator!=(this_t&& src) const volatile { return cogs::not_equals(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator!=(measure<storage_type2, unit_t>& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator!=(const measure<storage_type2, unit_t>& src) const { return cogs::not_equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator!=(volatile measure<storage_type2, unit_t>& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator!=(const volatile measure<storage_type2, unit_t>& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator!=(measure<storage_type2, unit_t>& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator!=(const measure<storage_type2, unit_t>& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator!=(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator!=(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
 
@@ -2602,14 +2151,6 @@ public:
 	bool operator!=(measure<storage_type2, unit_t>&& src) const { return cogs::not_equals(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator!=(measure<storage_type2, unit_t>&& src) const volatile { return cogs::not_equals(m_contents, src.m_contents); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator!=(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::not_equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator!=(const measure<storage_type2, unit_type2>& src) const
@@ -2619,22 +2160,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator!=(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::not_equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator!=(const volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::not_equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator!=(measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::not_equals(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -2648,19 +2174,11 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator!=(volatile measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::not_equals(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator!=(const volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::not_equals(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator!=(measure<storage_type2, unit_type2>&& src) const
@@ -2676,62 +2194,36 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator!=(storage_type2&& src) const
 	{
-		return cogs::not_equals(m_contents, std::move(src));
+		return cogs::not_equals(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator!=(storage_type2&& src) const volatile
 	{
-		return cogs::not_equals(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	bool operator!=(storage_type2& src) const
-	{
-		return cogs::not_equals(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator!=(storage_type2& src) const volatile
-	{
-		return cogs::not_equals(m_contents, src);
+		return cogs::not_equals(m_contents, std::forward<storage_type2>(src));
 	}
 
 
 	// is_less_than
-	bool operator<(this_t& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 	bool operator<(const this_t& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
-	bool operator<(volatile this_t& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 	bool operator<(const volatile this_t& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 
-	bool operator<(this_t& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
 	bool operator<(const this_t& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
-	bool operator<(volatile this_t& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
 	bool operator<(const volatile this_t& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
 
 	bool operator<(this_t&& src) const { return cogs::is_less_than(m_contents, std::move(src.m_contents)); }
 	bool operator<(this_t&& src) const volatile { return cogs::is_less_than(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator<(measure<storage_type2, unit_t>& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<(const measure<storage_type2, unit_t>& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator<(volatile measure<storage_type2, unit_t>& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<(const volatile measure<storage_type2, unit_t>& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator<(measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator<(const measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator<(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
 
@@ -2739,14 +2231,6 @@ public:
 	bool operator<(measure<storage_type2, unit_t>&& src) const { return cogs::is_less_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<(measure<storage_type2, unit_t>&& src) const volatile { return cogs::is_less_than(m_contents, src.m_contents); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_less_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<(const measure<storage_type2, unit_type2>& src) const
@@ -2756,14 +2240,6 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_less_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<(const volatile measure<storage_type2, unit_type2>& src) const
 	{
 		return cogs::is_less_than(m_contents,
@@ -2771,21 +2247,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<(measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_less_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<(const measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_less_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<(volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_less_than(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -2813,62 +2275,36 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator<(storage_type2&& src) const
 	{
-		return cogs::is_less_than(m_contents, std::move(src));
+		return cogs::is_less_than(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator<(storage_type2&& src) const volatile
 	{
-		return cogs::is_less_than(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	bool operator<(storage_type2& src) const
-	{
-		return cogs::is_less_than(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator<(storage_type2& src) const volatile
-	{
-		return cogs::is_less_than(m_contents, src);
+		return cogs::is_less_than(m_contents, std::forward<storage_type2>(src));
 	}
 
 
 	// is_greater_than
-	bool operator>(this_t& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 	bool operator>(const this_t& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
-	bool operator>(volatile this_t& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 	bool operator>(const volatile this_t& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 
-	bool operator>(this_t& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
 	bool operator>(const this_t& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
-	bool operator>(volatile this_t& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
 	bool operator>(const volatile this_t& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
 
 	bool operator>(this_t&& src) const { return cogs::is_greater_than(m_contents, std::move(src.m_contents)); }
 	bool operator>(this_t&& src) const volatile { return cogs::is_greater_than(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator>(measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>(const measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator>(volatile measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>(const volatile measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator>(measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator>(const measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator>(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
 
@@ -2876,14 +2312,6 @@ public:
 	bool operator>(measure<storage_type2, unit_t>&& src) const { return cogs::is_greater_than(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>(measure<storage_type2, unit_t>&& src) const volatile { return cogs::is_greater_than(m_contents, src.m_contents); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>(const measure<storage_type2, unit_type2>& src) const
@@ -2893,22 +2321,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>(const volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>(measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_greater_than(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -2922,19 +2335,11 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>(volatile measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_greater_than(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>(const volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_greater_than(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>(measure<storage_type2, unit_type2>&& src) const
@@ -2950,61 +2355,36 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator>(storage_type2&& src) const
 	{
-		return cogs::is_greater_than(m_contents, std::move(src));
+		return cogs::is_greater_than(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator>(storage_type2&& src) const volatile
 	{
-		return cogs::is_greater_than(m_contents, std::move(src));
+		return cogs::is_greater_than(m_contents, std::forward<storage_type2>(src));
 	}
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator>(storage_type2& src) const
-	{
-		return cogs::is_greater_than(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator>(storage_type2& src) const volatile
-	{
-		return cogs::is_greater_than(m_contents, src);
-	}
 
 	// is_less_than_or_equal
-	bool operator<=(this_t& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	bool operator<=(const this_t& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
-	bool operator<=(volatile this_t& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	bool operator<=(const volatile this_t& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 
-	bool operator<=(this_t& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	bool operator<=(const this_t& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
-	bool operator<=(volatile this_t& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	bool operator<=(const volatile this_t& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 
 	bool operator<=(this_t&& src) const { return cogs::is_less_than_or_equal(m_contents, std::move(src.m_contents)); }
 	bool operator<=(this_t&& src) const volatile { return cogs::is_less_than_or_equal(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator<=(measure<storage_type2, unit_t>& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<=(const measure<storage_type2, unit_t>& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator<=(volatile measure<storage_type2, unit_t>& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<=(const volatile measure<storage_type2, unit_t>& src) const { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator<=(measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator<=(const measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator<=(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator<=(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 
@@ -3013,23 +2393,8 @@ public:
 	template <typename storage_type2 = storage_t>
 	bool operator<=(measure<storage_type2, unit_t>&& src) const volatile { return cogs::is_less_than_or_equal(m_contents, src.m_contents); }
 
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<=(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_less_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<=(const measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_less_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<=(volatile measure<storage_type2, unit_type2>& src) const
 	{
 		return cogs::is_less_than_or_equal(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -3043,21 +2408,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<=(measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_less_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<=(const measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_less_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator<=(volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_less_than_or_equal(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -3069,7 +2420,6 @@ public:
 		return cogs::is_less_than_or_equal(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator<=(measure<storage_type2, unit_type2>&& src) const
@@ -3085,62 +2435,36 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator<=(storage_type2&& src) const
 	{
-		return cogs::is_less_than_or_equal(m_contents, std::move(src));
+		return cogs::is_less_than_or_equal(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator<=(storage_type2&& src) const volatile
 	{
-		return cogs::is_less_than_or_equal(m_contents, std::move(src));
-	}
-
-
-	template <typename storage_type2 = storage_t>
-	bool operator<=(storage_type2& src) const
-	{
-		return cogs::is_less_than_or_equal(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator<=(storage_type2& src) const volatile
-	{
-		return cogs::is_less_than_or_equal(m_contents, src);
+		return cogs::is_less_than_or_equal(m_contents, std::forward<storage_type2>(src));
 	}
 
 
 	// is_greater_than_or_equal
-	bool operator>=(this_t& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	bool operator>=(const this_t& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-	bool operator>=(volatile this_t& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	bool operator>=(const volatile this_t& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 
-	bool operator>=(this_t& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	bool operator>=(const this_t& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-	bool operator>=(volatile this_t& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	bool operator>=(const volatile this_t& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 
 	bool operator>=(this_t&& src) const { return cogs::is_greater_than_or_equal(m_contents, std::move(src.m_contents)); }
 	bool operator>=(this_t&& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, std::move(src.m_contents)); }
 
-
-	template <typename storage_type2 = storage_t>
-	bool operator>=(measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>=(const measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator>=(volatile measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>=(const volatile measure<storage_type2, unit_t>& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 
 	template <typename storage_type2 = storage_t>
-	bool operator>=(measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
 	bool operator>=(const measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-	template <typename storage_type2 = storage_t>
-	bool operator>=(volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>=(const volatile measure<storage_type2, unit_t>& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 
@@ -3148,14 +2472,6 @@ public:
 	bool operator>=(measure<storage_type2, unit_t>&& src) const { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
 	template <typename storage_type2 = storage_t>
 	bool operator>=(measure<storage_type2, unit_t>&& src) const volatile { return cogs::is_greater_than_or_equal(m_contents, src.m_contents); }
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>=(measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>=(const measure<storage_type2, unit_type2>& src) const
@@ -3165,22 +2481,7 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>=(volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>=(const volatile measure<storage_type2, unit_type2>& src) const
-	{
-		return cogs::is_greater_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>=(measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_greater_than_or_equal(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
@@ -3194,19 +2495,11 @@ public:
 	}
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
-	bool operator>=(volatile measure<storage_type2, unit_type2>& src) const volatile
-	{
-		return cogs::is_greater_than_or_equal(m_contents,
-			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
-	}
-
-	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>=(const volatile measure<storage_type2, unit_type2>& src) const volatile
 	{
 		return cogs::is_greater_than_or_equal(m_contents,
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), src.m_contents));
 	}
-
 
 	template <typename storage_type2 = storage_t, typename unit_type2 = unit_t>
 	bool operator>=(measure<storage_type2, unit_type2>&& src) const
@@ -3222,37 +2515,22 @@ public:
 			cogs::multiply(typename unit_conversion<unit_type2, unit_t>::ratio_const_t(), std::move(src.m_contents)));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator>=(storage_type2&& src) const
 	{
-		return cogs::is_greater_than_or_equal(m_contents, std::move(src));
+		return cogs::is_greater_than_or_equal(m_contents, std::forward<storage_type2>(src));
 	}
 
-	template <typename storage_type2 = storage_t>
+	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > >
 	bool operator>=(storage_type2&& src) const volatile
 	{
-		return cogs::is_greater_than_or_equal(m_contents, std::move(src));
+		return cogs::is_greater_than_or_equal(m_contents, std::forward<storage_type2>(src));
 	}
-
-
-	template <typename storage_type2 = storage_t>
-	bool operator>=(storage_type2& src) const
-	{
-		return cogs::is_greater_than_or_equal(m_contents, src);
-	}
-
-	template <typename storage_type2 = storage_t>
-	bool operator>=(storage_type2& src) const volatile
-	{
-		return cogs::is_greater_than_or_equal(m_contents, src);
-	}
-
 
 	// compare
 	// swap
 	// exchange
 	// compare_exchange
-
 };
 
 

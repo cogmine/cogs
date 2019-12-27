@@ -882,7 +882,7 @@ public:
 		{
 			// TODO: Update to use button_box, allow async
 			MessageBox(NULL, s.composite().cstr(), L"", MB_OK);
-			return get_immediate_task();
+			return signaled();
 		}
 
 		virtual vector<gfx::canvas::bounds> get_screens() volatile
@@ -928,7 +928,7 @@ private:
 	AtlThunkData_t* m_atlThunk;
 	static LRESULT CALLBACK AtlThunkWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #else
-	nonvolatile_map<HWND, hwnd*>::remove_token m_hWndMapRemoveToken;
+	nonvolatile_map<HWND, hwnd*>::iterator m_hWndMapRemoveToken;
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
@@ -1980,6 +1980,7 @@ public:
 #if COGS_USE_ATL_THUNK
 								return SendMessage(childHWND, msg, wParam, 0);
 #else
+								auto itor = hwnd::get_hwnd_map().find(childHWND);
 								if (!!itor)
 								{
 									hwnd* childPtr = *itor;
@@ -2009,6 +2010,7 @@ public:
 #if COGS_USE_ATL_THUNK
 						return SendMessage(childHWND, msg, wParam, 0);
 #else
+						auto itor = hwnd::get_hwnd_map().find(childHWND);
 						if (!!itor)
 						{
 							hwnd* childPtr = *itor;

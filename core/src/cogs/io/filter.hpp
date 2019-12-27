@@ -764,7 +764,7 @@ public:
 	}
 
 	/// @brief Constructor
-	filter(rc_obj_base& desc)
+	explicit filter(rc_obj_base& desc)
 		: datasink(desc),
 		datasource(desc),
 		m_state(rcnew(state, this_rcref))
@@ -829,7 +829,7 @@ public:
 	{
 		if (!!m_filterFunc)
 			return m_filterFunc(src);
-		return get_immediate_task(src);
+		return signaled(src);
 	}
 
 	/// @brief Derived class may override finalize() to return a final buffer to terminate the filtered stream with.
@@ -842,7 +842,7 @@ public:
 			return m_finalizeFunc();
 
 		composite_buffer emptyBuffer;
-		return get_immediate_task(emptyBuffer);
+		return signaled(emptyBuffer);
 	}
 };
 
