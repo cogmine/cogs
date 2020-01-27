@@ -125,6 +125,11 @@ public:
 		return (m_contents[0] < sz.m_contents[0]) ? -1 : 1;
 	}
 
+	bool contains(const size& sz) const
+	{
+		return (sz.get_height() <= get_height() && sz.get_width() <= get_width());
+	}
+
 	size abs() const { size sz(cogs::abs(m_contents[0]), cogs::abs(m_contents[1])); return sz; }
 	void assign_abs() { cogs::assign_abs(m_contents[0]); cogs::assign_abs(m_contents[1]); }
 	const size& pre_assign_abs() { assign_abs(); return *this; }

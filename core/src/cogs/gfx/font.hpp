@@ -173,8 +173,8 @@ public:
 	const vector<composite_string>& get_font_names() const { return m_contents->m_fontNames; }
 	vector<composite_string> get_font_names() const volatile { return m_contents.begin_read()->m_fontNames; }
 
-	size_t get_num_font_names() const { return m_contents->m_fontNames.get_length(); }
-	size_t get_num_font_names() const volatile { return m_contents.begin_read()->m_fontNames.get_length(); }
+	size_t get_font_name_count() const { return m_contents->m_fontNames.get_length(); }
+	size_t get_font_name_count() const volatile { return m_contents.begin_read()->m_fontNames.get_length(); }
 
 	bool is_underlined() const { return m_contents->m_isUnderlined; }
 	bool is_bold() const { return m_contents->m_isBold; }

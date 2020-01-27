@@ -519,6 +519,9 @@ public:
 	void set_size(const size& sz) { m_size = sz; }
 	void set_size(dimension d, double sz) { m_size[d] = sz; }
 
+	void set_height(double d) { m_size.set_height(d); }
+	void set_width(double d) { m_size.set_width(d); }
+
 	void clear() { m_position.clear(); m_size.clear(); }
 
 	// normalize

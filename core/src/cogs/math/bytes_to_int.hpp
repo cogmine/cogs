@@ -26,8 +26,8 @@ class bytes_to_int
 public:
 	typedef void type;
 };
-template <size_t num_bytes, bool has_sign = true>
-using bytes_to_int_t = typename bytes_to_int<num_bytes, has_sign>::type;
+template <size_t bytes, bool has_sign = true>
+using bytes_to_int_t = typename bytes_to_int<bytes, has_sign>::type;
 
 
 template <size_t bytes, bool has_sign>

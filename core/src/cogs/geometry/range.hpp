@@ -99,6 +99,16 @@ private:
 	bool m_hasMax = false;
 
 public:
+	static range make_unbounded() { range r; return r; }
+
+	static range make_fixed(double d) { range r(d, d, true); return r; }
+
+	static range make_empty()
+	{
+		range r(1, 0, true);
+		return r;
+	}
+
 	range()
 	{ }
 
@@ -127,12 +137,6 @@ public:
 
 	void clear() { clear_min(); clear_max(); }
 	void set_empty() { m_min = 1; m_max = 0; m_hasMax = true; }
-
-	static range make_empty()
-	{
-		range r(1, 0, true);
-		return r;
-	}
 
 	void set(double mn, double mx)
 	{
@@ -166,6 +170,8 @@ public:
 	bool operator!() const { return is_empty(); }
 
 	bool is_fixed() const { return m_hasMax && (m_min == m_max); }
+
+	bool contains(double d) const { return (d >= m_min) && (!m_hasMax || (d <= m_max )); }
 
 	// equality
 	bool operator==(const range& cmp) const
@@ -255,19 +261,14 @@ public:
 	auto operator+(const range& r) const
 	{
 		range result;
-		if (is_empty())
+		if (is_empty() || r.is_empty())
 			result.set_empty();
 		else
 		{
 			result.get_min() = m_min + r.get_min();
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-			{
-				if (!r.has_max())
-					result.has_max() = false;
-				else
-					result.get_max() = m_max + r.get_max();
-			}
+			result.has_max() = m_hasMax && r.has_max();
+			if (result.has_max())
+				result.get_max() = m_max + r.get_max();
 		}
 
 		return result;
@@ -277,12 +278,13 @@ public:
 	{
 		if (!is_empty())
 		{
-			m_min += r.get_min();
-			if (m_hasMax)
+			if (r.is_empty())
+				set_empty();
+			else
 			{
-				if (!r.has_max())
-					m_hasMax = false;
-				else
+				m_min += r.get_min();
+				m_hasMax &= r.has_max();
+				if (m_hasMax)
 					m_max += r.get_max();
 			}
 		}
@@ -292,10 +294,16 @@ public:
 	// range + size = range
 	auto operator+(double sz) const
 	{
-		range result(
-			m_min + sz,
-			m_max + sz,
-			m_hasMax);
+		range result;
+		if (is_empty())
+			result.set_empty();
+		else
+		{
+			result.get_min() = m_min + sz;
+			result.has_max() = m_hasMax;
+			if (m_hasMax)
+				result.get_max() = m_max + sz;
+		}
 		return result;
 	}
 
@@ -344,19 +352,14 @@ public:
 	auto operator-(const range& r) const
 	{
 		range result;
-		if (is_empty())
+		if (is_empty() || r.is_empty())
 			result.set_empty();
 		else
 		{
-			result.get_min() = m_min - r.get_min();
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-			{
-				if (!r.has_max())
-					result.has_max() = false;
-				else
-					result.get_max() = m_max - r.get_max();
-			}
+			result.get_min() = (m_min > r.get_min()) ? (m_min - r.get_min()) : 0;
+			result.has_max() = m_hasMax && r.has_max();
+			if (result.has_max())
+				result.get_max() = (m_max > r.get_max()) ? (m_max - r.get_max()) : 0;
 		}
 
 		return result;
@@ -366,13 +369,14 @@ public:
 	{
 		if (!is_empty())
 		{
-			m_min -= r.get_min();
-			if (m_hasMax)
+			if (r.is_empty())
+				set_empty();
+			else
 			{
-				if (!r.has_max())
-					m_hasMax = false;
-				else
-					m_max -= r.get_max();
+				m_min = (m_min > r.get_min()) ? (m_min - r.get_min()) : 0;
+				m_hasMax &= r.has_max();
+				if (m_hasMax)
+					m_max = (m_max > r.get_max()) ? (m_max - r.get_max()) : 0;
 			}
 		}
 		return *this;
@@ -381,10 +385,16 @@ public:
 	// range - size = range
 	auto operator-(double sz) const
 	{
-		range result(
-			m_min - sz,
-			m_max - sz,
-			m_hasMax);
+		range result;
+		if (is_empty())
+			result.set_empty();
+		else
+		{
+			result.get_min() = (m_min > sz) ? (m_min - sz) : 0;
+			result.has_max() = m_hasMax;
+			if (m_hasMax)
+				result.get_max() = (m_max > sz) ? (m_max - sz) : 0;
+		}
 		return result;
 	}
 
@@ -392,9 +402,9 @@ public:
 	{
 		if (!is_empty())
 		{
-			m_min -= sz;
+			m_min = (m_min > sz) ? (m_min - sz) : 0;
 			if (m_hasMax)
-				m_max -= sz;
+				m_max = (m_max > sz) ? (m_max - sz) : 0;
 		}
 		return *this;
 	}
@@ -408,10 +418,10 @@ public:
 		else
 		{
 			double t = m.get_size();
-			result.get_min() = m_min - t;
+			result.get_min() = (m_min > t) ? (m_min - t) : 0;
 			result.m_hasMax = m_hasMax;
 			if (m_hasMax)
-				result.get_max() = m_max - t;
+				result.get_max() = (m_max > t) ? (m_max - t) : 0;
 		}
 		return result;
 	}
@@ -421,9 +431,9 @@ public:
 		if (!is_empty())
 		{
 			double t = m.get_size();
-			m_min -= t;
+			m_min = (m_min > t) ? (m_min - t) : 0;
 			if (m_hasMax)
-				m_max -= t;
+				m_max = (m_max > t) ? (m_max - t) : 0;
 		}
 		return *this;
 	}
@@ -432,7 +442,16 @@ public:
 	// range * number = range
 	range operator*(double d) const
 	{
-		range result(m_min * d, m_max * d, m_hasMax);
+		range result;
+		if (is_empty())
+			result.set_empty();
+		else
+		{
+			result.get_min() = m_min * d;
+			result.has_max() = m_hasMax;
+			if (m_hasMax)
+				result.get_max() = m_max * d;
+		}
 		return result;
 	}
 
@@ -450,7 +469,16 @@ public:
 	// range / number = range
 	range operator/(double d) const
 	{
-		range result(m_min / d, m_max / d, m_hasMax);
+		range result;
+		if (is_empty())
+			result.set_empty();
+		else
+		{
+			result.get_min() = m_min / d;
+			result.has_max() = m_hasMax;
+			if (m_hasMax)
+				result.get_max() = m_max / d;
+		}
 		return result;
 	}
 
@@ -475,21 +503,11 @@ public:
 			result = *this;
 		else
 		{
-			if (m_min > r.get_min())
-				result.m_min = r.get_min();
-			else
-				result.m_min = m_min;
-
-			result.m_hasMax = (r.has_max() && m_hasMax);
-			if (result.m_hasMax)
-			{
-				if (m_max < r.get_max())
-					result.m_max = r.get_max();
-				else
-					result.m_max = m_max;
-			}
+			result.get_min() = (m_min > r.get_min()) ? r.get_min() : m_min;
+			result.has_max() = m_hasMax && r.has_max() && m_hasMax;
+			if (result.has_max())
+				result.m_max = (m_max < r.get_max()) ? r.get_max() : m_max;
 		}
-
 		return result;
 	}
 
@@ -503,7 +521,6 @@ public:
 			{
 				if (m_min > r.get_min())
 					m_min = r.get_min();
-
 				if (!r.has_max())
 					m_hasMax = false;
 				else if (m_hasMax && (m_max < r.get_max()))
@@ -522,18 +539,11 @@ public:
 			result.set_empty();
 		else
 		{
-			if (m_min < r.get_min())
-				result.m_min = r.get_min();
-			else
-				result.m_min = m_min;
-
+			result.m_min = (m_min < r.get_min()) ? r.get_min() : m_min;
 			if (r.has_max())
 			{
+				result.m_max = (!m_hasMax || (m_max > r.get_max())) ? r.get_max() : m_max;
 				result.m_hasMax = true;
-				if (!m_hasMax || (m_max > r.get_max()))
-					result.m_max = r.get_max();
-				else
-					result.m_max = m_max;
 			}
 			else
 			{
@@ -554,7 +564,6 @@ public:
 		{
 			if (m_min < r.get_min())
 				m_min = r.get_min();
-
 			if (r.has_max())
 			{
 				if (!m_hasMax || (m_max > r.get_max()))
@@ -575,19 +584,10 @@ public:
 			result.set_empty();
 		else
 		{
-			if (m_min < r.get_min())
-				result.m_min = r.get_min();
-			else
-				result.m_min = m_min;
-
+			result.m_min = (m_min < r.get_min()) ? r.get_min() : m_min;
 			result.m_hasMax = (r.has_max() && m_hasMax);
 			if (result.m_hasMax)
-			{
-				if (m_max > r.get_max())
-					result.m_max = r.get_max();
-				else
-					result.m_max = m_max;
-			}
+				result.m_max = (m_max > r.get_max()) ? r.get_max() : m_max;
 		}
 		return result;
 	}
@@ -602,14 +602,9 @@ public:
 			{
 				if (m_min < r.get_min())
 					m_min = r.get_min();
-
-				if (m_hasMax)
-				{
-					if (!r.has_max())
-						m_hasMax = false;
-					else if (m_max < r.get_max())
-						m_max = r.get_max();
-				}
+				m_hasMax &= r.has_max();
+				if (m_hasMax && (m_max < r.get_max()))
+					m_max = r.get_max();
 			}
 		}
 		return *this;
@@ -617,10 +612,7 @@ public:
 
 	double limit(double d) const
 	{
-		double rtn = cogs::greater(d, m_min);
-		if (m_hasMax)
-			rtn = cogs::lesser(rtn, m_max);
-		return rtn;
+		return (m_hasMax && d > m_max) ? m_max : cogs::greater(d, m_min);
 	}
 
 	double limit_min(double d) const
@@ -679,6 +671,16 @@ private:
 public:
 	typedef linear::range linear_t;
 
+	static range make_unbounded() { range r; return r; }
+
+	static range make_fixed(const size& sz) { range r(sz, sz, true, true); return r; }
+
+	static range make_empty()
+	{
+		range r(size(1, 1), size(0, 0), true, true);
+		return r;
+	}
+
 	range()
 	{ }
 
@@ -709,6 +711,22 @@ public:
 		m_hasMaxWidth(hasMaxWidth),
 		m_hasMaxHeight(hasMaxHeight)
 	{ }
+
+	range(dimension d, double mn, double mx)
+	{
+		if (d == dimension::horizontal)
+			set_width(mn, mx);
+		else
+			set_height(mn, mx);
+	}
+
+	range(dimension d, const linear::range& r)
+	{
+		if (d == dimension::horizontal)
+			set_width(r);
+		else
+			set_height(r);
+	}
 
 	range& operator=(const range& src)
 	{
@@ -742,6 +760,22 @@ public:
 		m_maxSize = maxSize;
 		m_hasMaxWidth = hasMaxWidth;
 		m_hasMaxHeight = hasMaxHeight;
+	}
+
+	void set(dimension d, double mn, double mx)
+	{
+		if (d == dimension::horizontal)
+			set_width(mn, mx);
+		else
+			set_height(mn, mx);
+	}
+
+	void set(dimension d, const linear::range& r)
+	{
+		if (d == dimension::horizontal)
+			set_width(r);
+		else
+			set_height(r);
 	}
 
 	void set_min_width(double w) { m_minSize.set_width(w); }
@@ -815,13 +849,6 @@ public:
 	// Sets to an invalid/empty range, which can contain nothing.
 	void set_empty() { set_empty_height(); set_empty_width(); }
 
-	static range make_empty()
-	{
-		range r(size(1, 1), size(0, 0), true, true);
-		return r;
-	}
-
-
 	void set_empty_width() { set_min_width(1); set_max_width(0); m_hasMaxWidth = true; }
 	void set_empty_height() { set_min_height(1); set_max_height(0); m_hasMaxHeight = true; }
 
@@ -883,22 +910,6 @@ public:
 		m_maxSize = sz;
 	}
 
-	void set(dimension d, double mn, double mx)
-	{
-		if (d == dimension::horizontal)
-			set_width(mn, mx);
-		else
-			set_height(mn, mx);
-	}
-
-	void set(dimension d, const linear::range& r)
-	{
-		if (d == dimension::horizontal)
-			set_width(r);
-		else
-			set_height(r);
-	}
-
 	bool& has_max_width() { return m_hasMaxWidth; }
 	bool has_max_width() const { return m_hasMaxWidth; }
 
@@ -950,20 +961,29 @@ public:
 		return m_hasMaxWidth && m_hasMaxHeight && (get_min() == get_max());
 	}
 
-	bool is_fixed(dimension d) const
+	bool is_width_fixed() const
 	{
-		if (d == dimension::horizontal)
-			return m_hasMaxWidth && (get_min_width() == get_max_width());
+		return m_hasMaxWidth && (get_min_width() == get_max_height());
+	}
+
+	bool is_height_fixed() const
+	{
 		return m_hasMaxHeight && (get_min_height() == get_max_height());
 	}
 
-	bool contains(const size& sz)
+	bool is_fixed(dimension d) const
 	{
-		return (!is_empty()
-			&& ((sz.get_width() >= get_min_width())
+		if (d == dimension::horizontal)
+			return is_width_fixed();
+		return is_height_fixed();
+	}
+
+	bool contains(const size& sz) const
+	{
+		return ((sz.get_width() >= get_min_width())
 			&& (sz.get_height() >= get_min_height())
 			&& (!m_hasMaxWidth || (sz.get_width() <= get_max_width()))
-			&& (!m_hasMaxHeight || (sz.get_height() <= get_max_height()))));
+			&& (!m_hasMaxHeight || (sz.get_height() <= get_max_height())));
 	}
 
 	// equality
@@ -987,11 +1007,25 @@ public:
 	// range + range = range
 	range operator+(const range& r) const
 	{
-		range result(
-			m_minSize + r.get_min(),
-			m_maxSize + r.get_max(),
-			r.has_max_width() && m_hasMaxWidth,
-			r.has_max_height() && m_hasMaxHeight);
+		range result;
+		if (is_width_empty() || r.is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = get_min_width() + r.get_min_width();
+			result.has_max_width() = m_hasMaxWidth && r.has_max_width();
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() + r.get_max_width();
+		}
+		if (is_height_empty() || r.is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = get_min_height() + r.get_min_height();
+			result.has_max_height() = m_hasMaxWidth && r.has_max_height();
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() + r.get_max_height();
+		}
 		return result;
 	}
 
@@ -1000,25 +1034,17 @@ public:
 		if (!is_width_empty())
 		{
 			get_min_width() += r.get_min_width();
+			has_max_width() &= r.has_max_width();
 			if (has_max_width())
-			{
-				if (!r.has_max_width())
-					get_max_width() = false;
-				else
-					get_max_width() += r.get_max_width();
-			}
+				get_max_width() += r.get_max_width();
 		}
 
 		if (!is_height_empty())
 		{
 			get_min_height() += r.get_min_height();
+			has_max_height() &= r.has_max_height();
 			if (has_max_height())
-			{
-				if (!r.has_max_height())
-					get_max_height() = false;
-				else
-					get_max_height() += r.get_max_height();
-			}
+				get_max_height() += r.get_max_height();
 		}
 		return *this;
 	}
@@ -1027,11 +1053,25 @@ public:
 	// range + size = range
 	range operator+(const size& sz) const
 	{
-		range result(
-			m_minSize + sz,
-			m_maxSize + sz,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = get_min_width() + sz.get_width();
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() + sz.get_width();
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = get_min_height() + sz.get_height();
+			result.has_max_height() = m_hasMaxWidth;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() + sz.get_height();
+		}
 		return result;
 	}
 
@@ -1058,11 +1098,27 @@ public:
 	// range + margin = range
 	range operator+(const margin& m) const
 	{
-		range result(
-			m_minSize + m.get_top_left(),
-			m_maxSize + m.get_bottom_right(),
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double t = m.get_width();
+			result.get_min_width() = get_min_width() + t;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() + t;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double t = m.get_height();
+			result.get_min_height() = get_min_height() + t;
+			result.has_max_height() = m_hasMaxWidth;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() + t;
+		}
 		return result;
 	}
 
@@ -1089,11 +1145,25 @@ public:
 	// range - range = range
 	range operator-(const range& r) const
 	{
-		range result(
-			m_minSize - r.get_min(),
-			m_maxSize - r.get_max(),
-			r.has_max_width() && m_hasMaxWidth,
-			r.has_max_height() && m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = (get_min_width() > r.get_min_width()) ? (get_min_width() - r.get_min_width()) : 0;
+			result.has_max_width() = m_hasMaxWidth && r.has_max_width();
+			if (m_hasMaxWidth)
+				result.get_max_width() = (get_max_width() > r.get_max_width()) ? (get_max_width() - r.get_max_width()) : 0;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = (get_min_height() > r.get_min_height()) ? (get_min_height() - r.get_min_height()) : 0;
+			result.has_max_height() = m_hasMaxHeight && r.has_max_height();
+			if (m_hasMaxHeight)
+				result.get_max_height() = (get_max_height() > r.get_max_height()) ? (get_max_height() - r.get_max_height()) : 0;
+		}
 		return result;
 	}
 
@@ -1101,26 +1171,18 @@ public:
 	{
 		if (!is_width_empty())
 		{
-			get_min_width() -= r.get_min_width();
+			get_min_width() = (get_min_width() > r.get_min_width()) ? (get_min_width() - r.get_min_width()) : 0;
+			has_max_width() &= r.has_max_width();
 			if (has_max_width())
-			{
-				if (!r.has_max_width())
-					get_max_width() = false;
-				else
-					get_max_width() -= r.get_max_width();
-			}
+				get_max_width() = (get_max_width() > r.get_max_width()) ? (get_max_width() - r.get_max_width()) : 0;
 		}
 
 		if (!is_height_empty())
 		{
-			get_min_height() -= r.get_min_height();
+			get_min_height() = (get_min_height() > r.get_min_height()) ? (get_min_height() - r.get_min_height()) : 0;
+			has_max_height() &= r.has_max_height();
 			if (has_max_height())
-			{
-				if (!r.has_max_height())
-					get_max_height() = false;
-				else
-					get_max_height() -= r.get_max_height();
-			}
+				get_max_height() = (get_max_height() > r.get_max_height()) ? (get_max_height() - r.get_max_height()) : 0;
 		}
 		return *this;
 	}
@@ -1128,11 +1190,25 @@ public:
 	// range - size = range
 	range operator-(const size& sz) const
 	{
-		range result(
-			m_minSize - sz,
-			m_maxSize - sz,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = (get_min_width() > sz.get_width()) ? (get_min_width() - sz.get_width()) : 0;
+			result.has_max_width() = m_hasMaxWidth;
+			if (m_hasMaxWidth)
+				result.get_max_width() = (get_max_width() > sz.get_width()) ? (get_max_width() - sz.get_width()) : 0;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = (get_min_height() > sz.get_height()) ? (get_min_height() - sz.get_height()) : 0;
+			result.has_max_height() = m_hasMaxHeight;
+			if (m_hasMaxHeight)
+				result.get_max_height() = (get_max_height() > sz.get_height()) ? (get_max_height() - sz.get_height()) : 0;
+		}
 		return result;
 	}
 
@@ -1140,17 +1216,15 @@ public:
 	{
 		if (!is_width_empty())
 		{
-			double d = sz.get_width();
-			get_min_width() -= d;
+			get_min_width() = (get_min_width() > sz.get_width()) ? (get_min_width() - sz.get_width()) : 0;
 			if (has_max_width())
-				get_max_width() -= d;
+				get_max_width() = (get_max_width() > sz.get_width()) ? (get_max_width() - sz.get_width()) : 0;
 		}
 		if (!is_height_empty())
 		{
-			double d = sz.get_height();
-			get_min_height() -= d;
+			get_min_height() = (get_min_height() > sz.get_height()) ? (get_min_height() - sz.get_height()) : 0;
 			if (has_max_height())
-				get_max_height() -= d;
+				get_max_height() = (get_max_height() > sz.get_height()) ? (get_max_height() - sz.get_height()) : 0;
 		}
 		return *this;
 	}
@@ -1158,11 +1232,27 @@ public:
 	// range - margin = range
 	range operator-(const margin& m) const
 	{
-		range result(
-			m_minSize - m.get_top_left(),
-			m_maxSize - m.get_bottom_right(),
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double t = m.get_width();
+			result.get_min_width() = (get_min_width() > t) ? (get_min_width() - t) : 0;
+			result.m_hasMaxWidth = m_hasMaxWidth;
+			if (m_hasMaxWidth)
+				result.get_max_width() = (get_max_width() > t) ? (get_max_width() - t) : 0;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double t = m.get_height();
+			result.get_min_height() = (get_min_height() > t) ? (get_min_height() - t) : 0;
+			result.m_hasMaxHeight = m_hasMaxHeight;
+			if (m_hasMaxHeight)
+				result.get_max_height() = (get_max_height() > t) ? (get_max_height() - t) : 0;
+		}
 		return result;
 	}
 
@@ -1170,17 +1260,17 @@ public:
 	{
 		if (!is_width_empty())
 		{
-			double d = m.get_width();
-			get_min_width() -= d;
+			double t = m.get_width();
+			get_min_width() = (get_min_width() > t) ? (get_min_width() - t) : 0;
 			if (has_max_width())
-				get_max_width() -= d;
+				get_max_width() = (get_max_width() > t) ? (get_max_width() - t) : 0;
 		}
 		if (!is_height_empty())
 		{
-			double d = m.get_height();
-			get_min_height() -= d;
+			double t = m.get_height();
+			get_min_height() = (get_min_height() > t) ? (get_min_height() - t) : 0;
 			if (has_max_height())
-				get_max_height() -= d;
+				get_max_height() = (get_max_height() > t) ? (get_max_height() - t) : 0;
 		}
 		return *this;
 	}
@@ -1189,11 +1279,25 @@ public:
 	// range * number = range
 	range operator*(double d) const
 	{
-		range result(
-			m_minSize * d,
-			m_maxSize * d,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = get_min_width() * d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() * d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = get_min_height() * d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() * d;
+		}
 		return result;
 	}
 
@@ -1217,11 +1321,27 @@ public:
 	// range * proportion = range
 	range operator*(const proportion& p) const
 	{
-		range result(
-			m_minSize * p,
-			m_maxSize * p,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[dimension::horizontal];
+			result.get_min_width() = get_min_width() * d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() * d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[dimension::vertical];
+			result.get_min_height() = get_min_height() * d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() * d;
+		}
 		return result;
 	}
 
@@ -1248,11 +1368,27 @@ public:
 	// range * double[2] = range
 	range operator*(const double(&p)[2]) const
 	{
-		range result(
-			m_minSize * p,
-			m_maxSize * p,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[0];
+			result.get_min_width() = get_min_width() * d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() * d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[1];
+			result.get_min_height() = get_min_height() * d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() * d;
+		}
 		return result;
 	}
 
@@ -1279,11 +1415,25 @@ public:
 	// range / number = range
 	range operator/(double d) const
 	{
-		range result(
-			m_minSize / d,
-			m_maxSize / d,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = get_min_width() / d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() / d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = get_min_height() / d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() / d;
+		}
 		return result;
 	}
 
@@ -1307,11 +1457,27 @@ public:
 	// range / proportion = range
 	range operator/(const proportion& p) const
 	{
-		range result(
-			m_minSize / p,
-			m_maxSize / p,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[dimension::horizontal];
+			result.get_min_width() = get_min_width() / d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() / d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[dimension::vertical];
+			result.get_min_height() = get_min_height() / d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() / d;
+		}
 		return result;
 	}
 
@@ -1337,11 +1503,27 @@ public:
 	// range / proportion = range
 	range operator/(const double(&p)[2]) const
 	{
-		range result(
-			m_minSize / p,
-			m_maxSize / p,
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[0];
+			result.get_min_width() = get_min_width() / d;
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = get_max_width() / d;
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[1];
+			result.get_min_height() = get_min_height() / d;
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = get_max_height() / d;
+		}
 		return result;
 	}
 
@@ -1368,11 +1550,25 @@ public:
 	// range divide_whole number = range
 	range divide_whole(double d) const
 	{
-		range result(
-			cogs::divide_whole(m_minSize, d),
-			cogs::divide_whole(m_maxSize, d),
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
+		}
 		return result;
 	}
 
@@ -1395,11 +1591,27 @@ public:
 	// range divide_whole proportion = range
 	range divide_whole(const proportion& p) const
 	{
-		range result(
-			cogs::divide_whole(m_minSize, p),
-			cogs::divide_whole(m_maxSize, p),
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[dimension::horizontal];
+			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[dimension::vertical];
+			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
+		}
 		return result;
 	}
 
@@ -1424,11 +1636,27 @@ public:
 	// range divide_whole proportion = range
 	range divide_whole(const double(&p)[2]) const
 	{
-		range result(
-			cogs::divide_whole(m_minSize, p),
-			cogs::divide_whole(m_maxSize, p),
-			m_hasMaxWidth,
-			m_hasMaxHeight);
+		range result;
+		if (is_width_empty())
+			result.set_empty_width();
+		else
+		{
+			double d = p[0];
+			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
+			result.has_max_width() = m_hasMaxWidth;
+			if (result.has_max_width())
+				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
+		}
+		if (is_height_empty())
+			result.set_empty_height();
+		else
+		{
+			double d = p[1];
+			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
+			result.has_max_height() = m_hasMaxHeight;
+			if (result.has_max_height())
+				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
+		}
 		return result;
 	}
 
@@ -1471,19 +1699,10 @@ public:
 		}
 		else
 		{
-			if (get_min_width() > r.get_min_width())
-				result.get_min_width() = r.get_min_width();
-			else
-				result.get_min_width() = get_min_width();
-
+			result.get_min_width() = (get_min_width() > r.get_min_width()) ? r.get_min_width() : get_min_width();
 			result.has_max_width() = (r.has_max_width() && has_max_width());
 			if (result.has_max_width())
-			{
-				if (get_max_width() < r.get_max_width())
-					result.get_max_width() = r.has_max_width();
-				else
-					result.get_max_width() = get_max_width();
-			}
+				result.get_max_width() = (get_max_width() < r.get_max_width()) ? r.has_max_width() : get_max_width();
 		}
 
 		if (is_height_empty())
@@ -1502,19 +1721,10 @@ public:
 		}
 		else
 		{
-			if (get_min_height() > r.get_min_height())
-				result.get_min_height() = r.get_min_height();
-			else
-				result.get_min_height() = get_min_height();
-
+			result.get_min_height() = (get_min_height() > r.get_min_height()) ? r.get_min_height() : get_min_height();
 			result.has_max_height() = (r.has_max_height() && has_max_height());
 			if (result.has_max_height())
-			{
-				if (get_max_height() < r.get_max_height())
-					result.get_max_height() = r.get_max_height();
-				else
-					result.get_max_height() = get_max_height();
-			}
+				result.get_max_height() = (get_max_height() < r.get_max_height()) ? r.get_max_height() : get_max_height();
 		}
 		return result;
 	}
@@ -1535,9 +1745,8 @@ public:
 				if (get_min_width() > r.get_min_width())
 					get_min_width() = r.get_min_width();
 
-				if (!r.has_max_width())
-					has_max_width() = false;
-				else if (has_max_width() && (get_max_width() < r.get_max_width()))
+				has_max_width() &= r.has_max_width();
+				if (has_max_width() && (get_max_width() < r.get_max_width()))
 					get_max_width() = r.get_max_width();
 			}
 		}
@@ -1556,9 +1765,8 @@ public:
 				if (get_min_height() > r.get_min_height())
 					get_min_height() = r.get_min_height();
 
-				if (!r.has_max_height())
-					has_max_height() = false;
-				else if (has_max_height() && (get_max_height() < r.get_max_height()))
+				has_max_height() &= r.has_max_height();
+				if (has_max_height() && (get_max_height() < r.get_max_height()))
 					get_max_height() = r.get_max_height();
 			}
 		}
@@ -1574,18 +1782,11 @@ public:
 			result.set_empty_width();
 		else
 		{
-			if (get_min_width() < r.get_min_width())
-				result.get_min_width() = r.get_min_width();
-			else
-				result.get_min_width() = get_min_width();
-
+			result.get_min_width() = (get_min_width() < r.get_min_width()) ? r.get_min_width() : get_min_width();
 			if (r.has_max_width())
 			{
 				result.has_max_width() = true;
-				if (!has_max_width() || (get_max_width() > r.get_max_width()))
-					result.get_max_width() = r.get_max_width();
-				else
-					result.get_max_width() = get_max_width();
+				result.get_max_width() = (!has_max_width() || (get_max_width() > r.get_max_width())) ? r.get_max_width() : get_max_width();
 			}
 			else
 			{
@@ -1598,18 +1799,11 @@ public:
 			result.set_empty_height();
 		else
 		{
-			if (get_min_height() < r.get_min_height())
-				result.get_min_height() = r.get_min_height();
-			else
-				result.get_min_height() = get_min_height();
-
+			result.get_min_height() = (get_min_height() < r.get_min_height()) ? r.get_min_height() : get_min_height();
 			if (r.has_max_height())
 			{
 				result.has_max_height() = true;
-				if (!has_max_height() || (get_max_height() > r.get_max_height()))
-					result.get_max_height() = r.get_max_height();
-				else
-					result.get_max_height() = get_max_height();
+				result.get_max_height() = (!has_max_height() || (get_max_height() > r.get_max_height())) ? r.get_max_height() : get_max_height();
 			}
 			else
 			{
@@ -1670,39 +1864,20 @@ public:
 			result.set_empty_width();
 		else
 		{
-			if (get_min_width() < r.get_min_width())
-				result.get_min_width() = r.get_min_width();
-			else
-				result.get_min_width() = get_min_width();
-
+			result.get_min_width() = (get_min_width() < r.get_min_width()) ? r.get_min_width() : get_min_width();
 			result.has_max_width() = (r.has_max_width() && has_max_width());
 			if (result.has_max_width())
-			{
-				if (get_max_width() > r.get_max_width())
-					result.get_max_width() = r.get_max_width();
-				else
-					result.get_max_width() = get_max_width();
-			}
+				result.get_max_width() = (get_max_width() > r.get_max_width()) ? r.get_max_width() : get_max_width();
 		}
 		if (r.is_height_empty() || is_height_empty())
 			result.set_empty_height();
 		else
 		{
-			if (get_min_height() < r.get_min_height())
-				result.get_min_height() = r.get_min_height();
-			else
-				result.get_min_height() = get_min_height();
-
+			result.get_min_height() = (get_min_height() < r.get_min_height()) ? r.get_min_height() : get_min_height();
 			result.has_max_height() = (r.has_max_height() && has_max_height());
 			if (result.has_max_height())
-			{
-				if (get_max_height() > r.get_max_height())
-					result.get_max_height() = r.get_max_height();
-				else
-					result.get_max_height() = get_max_height();
-			}
+				result.get_max_height() = (get_max_height() > r.get_max_height()) ? r.get_max_height() : get_max_height();
 		}
-
 		return result;
 	}
 
@@ -1717,13 +1892,9 @@ public:
 				if (get_min_width() < r.get_min_width())
 					get_min_width() = r.get_min_width();
 
-				if (has_max_width())
-				{
-					if (!r.has_max_width())
-						has_max_width() = false;
-					else if (get_max_width() < r.get_max_width())
-						get_max_width() = r.get_max_width();
-				}
+				has_max_width() &= r.has_max_width();
+				if (has_max_width() && (get_max_width() < r.get_max_width()))
+					get_max_width() = r.get_max_width();
 			}
 		}
 		if (!is_height_empty())
@@ -1735,13 +1906,9 @@ public:
 				if (get_min_height() < r.get_min_height())
 					get_min_height() = r.get_min_height();
 
-				if (has_max_height())
-				{
-					if (!r.has_max_height())
-						has_max_height() = false;
-					else if (get_max_height() < r.get_max_height())
-						get_max_height() = r.get_max_height();
-				}
+				has_max_height() &= r.has_max_height();
+				if (has_max_height() && (get_max_height() < r.get_max_height()))
+					get_max_height() = r.get_max_height();
 			}
 		}
 
@@ -1754,19 +1921,30 @@ public:
 
 	size limit(const size& sz) const
 	{
-		size rtn(get_width().limit(sz.get_width()), get_height().limit(sz.get_height()));
+		size rtn;
+		rtn.get_width() = (has_max_width() && sz.get_width() > get_max_width()) ? get_max_width() : cogs::greater(sz.get_width(), get_min_width());
+		rtn.get_height() = (has_max_height() && sz.get_height() > get_max_height()) ? get_max_height() : cogs::greater(sz.get_height(), get_min_height());
 		return rtn;
+	}
+
+	double limit(dimension d, double d2) const
+	{
+		return (has_max(d) && d2 > get_max(d)) ? get_max(d) : cogs::greater(d2, get_max(d));
 	}
 
 	size limit_min(const size& sz) const
 	{
-		size rtn(get_width().limit_min(sz.get_width()), get_height().limit_min(sz.get_height()));
+		size rtn;
+		rtn.get_width() = cogs::greater(sz.get_width(), get_min_width());
+		rtn.get_height() = cogs::greater(sz.get_height(), get_min_height());
 		return rtn;
 	}
 
 	size limit_max(const size& sz) const
 	{
-		size rtn(get_width().limit_max(sz.get_width()), get_height().limit_max(sz.get_height()));
+		size rtn;
+		rtn.get_width() = (has_max_width()) ? cogs::lesser(sz.get_width(), get_max_width()) : sz.get_width();
+		rtn.get_height() = (has_max_height()) ? cogs::lesser(sz.get_height(), get_max_height()) : sz.get_height();
 		return rtn;
 	}
 

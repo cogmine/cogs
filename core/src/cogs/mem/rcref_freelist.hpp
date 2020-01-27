@@ -28,12 +28,12 @@ namespace cogs {
 /// A free-list grows but does not shrink.  Elements are retained until the free-list is destructed.
 /// @tparam T Type to contain
 /// @tparam allocator_type Type of allocator to use to allocate from if the free-list is empty.  Default: default_allocator
-/// @tparam num_preallocated Number of objects to prepopulate the free-list with.  Default: 0
-template <typename T, class allocator_type = default_allocator, size_t num_preallocated = 0>
+/// @tparam preallocated_count Number of objects to prepopulate the free-list with.  Default: 0
+template <typename T, class allocator_type = default_allocator, size_t preallocated_count = 0>
 class rcref_freelist
 {
 private:
-	typedef rcref_freelist<T, allocator_type, num_preallocated> this_t;
+	typedef rcref_freelist<T, allocator_type, preallocated_count> this_t;
 
 	allocator_container<allocator_type> m_allocator;
 
@@ -64,7 +64,7 @@ private:
 	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
 
 	volatile versioned_ptr<descriptor_t> m_head;
-	placement_t m_preallocated[num_preallocated];
+	placement_t m_preallocated[preallocated_count];
 	alignas (atomic::get_alignment_v<size_t>) volatile size_t m_curPos;
 
 	void release(descriptor_t* n) volatile
@@ -97,7 +97,7 @@ public:
 			ptr<descriptor_t> next = n->m_next;
 			n->get_obj()->~type();
 			n->descriptor_t::~descriptor_t();
-			if ((n < (descriptor_t*)&(m_preallocated[0])) || (n >= (descriptor_t*)&(m_preallocated[num_preallocated])))
+			if ((n < (descriptor_t*)&(m_preallocated[0])) || (n >= (descriptor_t*)&(m_preallocated[preallocated_count])))
 				m_allocator.deallocate(n);
 			n = next;
 		}
@@ -122,7 +122,7 @@ public:
 			}
 
 			size_t oldPos = atomic::load(m_curPos);
-			if (oldPos >= num_preallocated)
+			if (oldPos >= preallocated_count)
 				desc = m_allocator.template allocate_type<placement_t>()->get_header();
 			else
 			{

@@ -65,12 +65,12 @@
 //
 //	container_dlist<rcref<button> > m_buttonList;
 //	rcptr<button> m_defaultButton;
-//	size_t m_numButtons;
+//	size_t m_buttonCount;
 //
 //public:
 //	button_box()
 //		: m_childPanel(rcnew(pane)),
-//		m_numButtons(0)
+//		m_buttonCount(0)
 //	{ }
 //	
 //	~button_box()
@@ -181,7 +181,7 @@
 //	{
 //		if (m_defaultButton == b)
 //			m_defaultButton.release();
-//		--m_numButtons;
+//		--m_buttonCount;
 //		m_buttonList.remove(b->m_removeToken);
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
@@ -206,7 +206,7 @@
 //
 //	rcref<button> append_button(const function<void(const rcref<button>&)>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		m_numButtons++;
+//		m_buttonCount++;
 //		rcref<button> b = rcnew(button, this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -227,7 +227,7 @@
 //
 //	rcref<button> prepend_button(const function<void(const rcref<button>&)>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		m_numButtons++;
+//		m_buttonCount++;
 //		rcref<button> b = rcnew(button, this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -250,7 +250,7 @@
 //
 //	rcref<button> insert_button_before(const function<void(const rcref<button>&)>& action, const rcref<button>& before, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		m_numButtons++;
+//		m_buttonCount++;
 //		rcref<button> b = rcnew(button, this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -273,7 +273,7 @@
 //
 //	rcref<button> insert_button_after(const function<void(const rcref<button>&)>& action, const rcref<button>& after, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
 //	{
-//		m_numButtons++;
+//		m_buttonCount++;
 //		rcref<button> b = rcnew(button, this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
@@ -296,7 +296,7 @@
 //
 //	void clear_buttons()
 //	{
-//		m_numButtons = 0;
+//		m_buttonCount = 0;
 //		m_defaultButton.release();
 //		m_buttonList.clear();
 //		rcptr<button_box_interface> buttonBox = get_bridged();
@@ -304,7 +304,7 @@
 //			buttonBox->clear_buttons();
 //	}
 //
-//	size_t get_num_buttons() { return m_numButtons; }
+//	size_t get_button_count() { return m_buttonCount; }
 //
 //	const container_dlist<rcref<button> >& get_button_list() const { return m_buttonList; }
 //

@@ -307,6 +307,13 @@ public:
 		return sz;
 	}
 
+	double get_size(dimension d) const
+	{
+		if (d == dimension::horizontal)
+			return get_width();
+		return get_height();
+	}
+
 	linear::margin get_width_margin() const { return linear::margin(get_left(), get_right()); }
 	linear::margin get_height_margin() const { return linear::margin(get_top(), get_bottom()); }
 

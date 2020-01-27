@@ -22,16 +22,16 @@ namespace cogs {
 // used.  This is reasonable for 'char' parsers, but using larger values may result in very
 // inefficient use of memory.  Instead, reduce the range of tokens (with another layer/class).
 
-template <size_t num_tokens = 256>
+template <size_t token_count = 256>
 class expression
 {
 public:
-	typedef typename range_to_int_t<0, num_tokens - 1> token_t;
+	typedef typename range_to_int_t<0, token_count - 1> token_t;
 
-	typedef expression<num_tokens> this_t;
+	typedef expression<token_count> this_t;
 
 private:
-	token_t m_tokenClassTable[num_tokens]; // token -> tokenClass
+	token_t m_tokenClassTable[token_count]; // token -> tokenClass
 
 	array<token_t> m_tokenClassCounts; // tokenClass -> token
 
@@ -51,13 +51,13 @@ private:
 	size_t get_num_token_classes() const { return m_tokenClassCounts.length(); }
 	size_t get_num_states() const { return m_stateTables.length(); }
 
-	// illegal to pass duplicate tokens, n==0, or n>=num_tokens
+	// illegal to pass duplicate tokens, n==0, or n>=token_count
 	static this_t literal_or_exclusion_set(token_t* t, size_t n, bool exclude)
 	{
 		this_t e;
 		for (size_t i = 0; i < n; i++)
 			e.m_tokenClassTable[t[i]] = 1;
-		e.m_tokenClassCounts[0] = num_tokens - n;
+		e.m_tokenClassCounts[0] = token_count - n;
 		e.m_tokenClassCounts.append(n);
 		e.m_stateTables.grow(1);
 		e.m_stateTables[0].m_table.grow(2);
@@ -117,9 +117,9 @@ private:
 public:
 	expression()
 	{
-		m_tokenClassCounts.append((token_t)num_tokens);
+		m_tokenClassCounts.append((token_t)token_count);
 
-		for (size_t i = 0; i < num_tokens; i++)
+		for (size_t i = 0; i < token_count; i++)
 			m_tokenClassTable[i] = 0;
 	}
 

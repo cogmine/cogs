@@ -6552,7 +6552,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(src, &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -6562,7 +6562,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(src, &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const volatile fixed_integer_native<has_sign2, bits2>& src) const { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole_and_modulo(tmp); }
@@ -6575,7 +6575,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(*(src.m_contents), &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -6585,7 +6585,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(*(src.m_contents), &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -6595,7 +6595,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(*(src.begin_read()), &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	template <bool has_sign2, size_t bits2>
@@ -6605,7 +6605,7 @@ public:
 		this_t remainder(*this);
 		remainder.m_contents->divide_whole_and_assign_modulo(*(src.begin_read()), &*(divided.m_contents));
 		fixed_integer<has_sign, (bits2 - ((!has_sign && has_sign2) ? 1 : 0))> remainderResult(remainder);
-		return make_pair(divided, remainderResult);
+		return std::make_pair(divided, remainderResult);
 	}
 
 	auto divide_whole_and_modulo(const dynamic_integer& src) const;

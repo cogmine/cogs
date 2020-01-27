@@ -235,25 +235,11 @@ protected:
 		return paneBridge->pane::get_primary_flow_dimension();
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual cell::propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), cell::size_mode horizontalMode = cell::size_mode::both, cell::size_mode verticalMode = cell::size_mode::both) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::propose_length(d, proposed, rtnOtherRange);
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::propose_lengths(d, proposedSize);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::propose_size(proposedSize);
+		return paneBridge->pane::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 	}
 
 	virtual void calculate_range()
@@ -433,22 +419,10 @@ protected:
 		return m_bridgedPane->get_primary_flow_dimension();
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual cell::propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), cell::size_mode horizontalMode = cell::size_mode::both, cell::size_mode verticalMode = cell::size_mode::both) const
 	{
 		COGS_ASSERT(!!m_bridgedPane);
-		return m_bridgedPane->propose_length(d, proposed, rtnOtherRange);
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		COGS_ASSERT(!!m_bridgedPane);
-		return m_bridgedPane->propose_lengths(d, proposedSize);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		COGS_ASSERT(!!m_bridgedPane);
-		return m_bridgedPane->propose_size(proposedSize);
+		return m_bridgedPane->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 	}
 
 	virtual void calculate_range()

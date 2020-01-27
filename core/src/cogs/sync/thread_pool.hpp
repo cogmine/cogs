@@ -72,10 +72,10 @@ private:
 		volatile parallel_task_level_map_t m_parallelTaskLevelMap;
 		volatile boolean m_exiting;
 
-		explicit main_loop(rc_obj_base& desc, size_t numThreads)
+		explicit main_loop(rc_obj_base& desc, size_t threadCount)
 			: object(desc),
 			m_tasks(desc),
-			m_semaphore(0, numThreads)
+			m_semaphore(0, threadCount)
 		{
 		}
 
@@ -172,7 +172,7 @@ private:
 		}
 	};
 
-	const size_t m_numThreads;
+	const size_t m_threadCount;
 	rcref<main_loop> m_mainLoop;
 
 	volatile container_dlist<rcref<thread> > m_threads;
@@ -256,9 +256,9 @@ public:
 		return n;
 	}
 
-	explicit thread_pool(bool startNow = false, size_t numThreads = get_default_size())
-		: m_numThreads(numThreads),
-		m_mainLoop(rcnew(main_loop, numThreads)),
+	explicit thread_pool(bool startNow = false, size_t threadCount = get_default_size())
+		: m_threadCount(threadCount),
+		m_mainLoop(rcnew(main_loop, threadCount)),
 		m_state(0)
 	{
 		if (startNow)
@@ -276,7 +276,7 @@ public:
 		bool result = (m_state.compare_exchange(one_t(), zero_t()));
 		if (result)
 		{
-			for (size_t i = 0; i < m_numThreads; i++)
+			for (size_t i = 0; i < m_threadCount; i++)
 			{
 				m_threads.append(thread::spawn([r{ m_mainLoop }]()
 				{
@@ -287,7 +287,7 @@ public:
 		return result;
 	}
 
-	size_t get_num_threads() const { return m_numThreads; }
+	size_t get_thread_count() const { return m_threadCount; }
 
 	void dispatch_parallel(size_t n, const function<void(size_t)>& d, const function<void()>& doneDelegate = function<void()>(), int priority = 0) volatile
 	{
@@ -357,7 +357,7 @@ public:
 		if (result)
 		{
 			m_mainLoop->m_exiting = true;
-			m_mainLoop->m_semaphore.release(m_numThreads);
+			m_mainLoop->m_semaphore.release(m_threadCount);
 		}
 		return result;
 	}

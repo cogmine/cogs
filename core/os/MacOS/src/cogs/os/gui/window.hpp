@@ -273,13 +273,13 @@ public:
 			{
 				if (!m_heightChanged)
 				{
-					newSize = nsview_pane::propose_lengths(dimension::horizontal, newSize);
+					newSize = propose_size(newSize, dimension::horizontal).find_first_valid_size(dimension::horizontal);
 					break;
 				}
 			}
 			else if (m_heightChanged)
 			{
-				newSize = nsview_pane::propose_lengths(dimension::vertical, newSize);
+				newSize = propose_size(newSize, dimension::vertical).find_first_valid_size(dimension::vertical);
 				break;
 			}
 			newSize = nsview_pane::propose_size(newSize);

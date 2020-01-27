@@ -71,18 +71,18 @@
 //
 //	void recalculate()
 //	{
-//		size_t numRows = m_rows.size();
-//		size_t numColumns = m_columns.size();
+//		size_t rowCount = m_rows.size();
+//		size_t columnCount = m_columns.size();
 //
 //		size_t newValue = 0;
-//		m_rowHeights.assign(newValue, numRows);
-//		m_columnWidths.assign(newValue, numColumns);
+//		m_rowHeights.assign(newValue, rowCount);
+//		m_columnWidths.assign(newValue, columnCount);
 //
 //		size_t totalHeight = 0;
 //		size_t totalWidth = 0;
 //		size_t i;
 //		size_t i2;
-//		for (i = 0; i < numRows; i++)
+//		for (i = 0; i < rowCount; i++)
 //		{
 //			size_t curHeight = 0;
 //			vector<rcref<frame> >& v = m_rows[i];
@@ -99,7 +99,7 @@
 //			}
 //		}
 //		
-//		for (i = 0; i < numColumns; i++)
+//		for (i = 0; i < columnCount; i++)
 //		{
 //			size_t curWidth = 0;
 //			vector<rcref<frame> >& v = m_columns[i];
@@ -121,20 +121,20 @@
 //	table()
 //	{ }
 //
-//	table(int numRows, int numColumns)
+//	table(int rowCount, int columnCount)
 //	{ }
 //
-//	size_t get_num_rows() const { return m_rows.size(); }
-//	size_t get_num_columns() const { return m_columns.size(); }
+//	size_t get_row_count() const { return m_rows.size(); }
+//	size_t get_columns_count() const { return m_columns.size(); }
 //
 //	// row and column are 0-based
-//	void nest(const rcref<frame>& child, size_t row, size_t column, size_t numRows = 1, size_t numColumns = 1)
+//	void nest(const rcref<frame>& child, size_t row, size_t column, size_t rowCount = 1, size_t columnCount = 1)
 //	{
-//		if (numRows && numColumns)
+//		if (rowCount && columnCount)
 //		{
 //			bool needsReshape = false;
-//			size_t pastEndRow = row + numRows;
-//			size_t pastEndColumn = row + numColumns;
+//			size_t pastEndRow = row + rowCount;
+//			size_t pastEndColumn = row + columnCount;
 //
 //			if (pastEndRow > m_rows.size())
 //			{
@@ -142,16 +142,16 @@
 //				needsReshape = true;
 //			}
 //
-//			if (pastEndColumn > m_numColumns)
+//			if (pastEndColumn > m_columnCount)
 //			{
-//				m_numColumns = pastEndColumn;
+//				m_columnCount = pastEndColumn;
 //				needsReshape = true;
 //			}
 //
 //			if (needsReshape)
 //				reshape_children();
 //
-//			panel::nest(child, rcnew(cell_frame, row, column, numRows, numColumns));
+//			panel::nest(child, rcnew(cell_frame, row, column, rowCount, columnCount));
 //		}
 //	}
 //

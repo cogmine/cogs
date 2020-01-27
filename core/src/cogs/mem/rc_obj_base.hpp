@@ -536,9 +536,9 @@ class debug_default_allocator : public default_allocator_t
 public:
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION
-	volatile size_type m_numRecords;
+	volatile size_type m_recordCount;
 
-	debug_default_allocator() { m_numRecords = 0; }
+	debug_default_allocator() { m_recordCount = 0; }
 
 	~debug_default_allocator() { COGS_ASSERT(m_allocRecord.is_empty()); }
 #endif
@@ -629,7 +629,7 @@ public:
 		if (m_allocRecord.push(hdr))
 			m_firstAdded = hdr;
 		m_lastAdded = hdr;
-		++m_numRecords;
+		++m_recordCount;
 #endif
 
 		ptr = (unsigned char*)ptr + header_size;
@@ -780,9 +780,9 @@ public:
 			if (!tracker)
 				break;
 			default_allocator_t::deallocate(tracker);
-			--m_numRecords;
+			--m_recordCount;
 		}
-		COGS_ASSERT(m_numRecords == 0);
+		COGS_ASSERT(m_recordCount == 0);
 		COGS_ASSERT(m_allocRecord.is_empty());
 		printf("All allocations deallocated.\n");
 	}

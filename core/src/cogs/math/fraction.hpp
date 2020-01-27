@@ -959,14 +959,14 @@ public:
 	auto divide_whole_and_modulo(const fraction_content<numerator_t2, denominator_t2>& src)
 	{
 		auto divmod(cogs::divide_whole_and_modulo(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, src.m_numerator)));
-		return make_pair(divmod.first, cogs::divide(divmod.second, cogs::multiply(m_denominator, src.m_denominator)));
+		return std::make_pair(divmod.first, cogs::divide(divmod.second, cogs::multiply(m_denominator, src.m_denominator)));
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	auto divide_whole_and_modulo(fraction_content<numerator_t2, denominator_t2>&& src)
 	{
 		auto divmod(cogs::divide_whole_and_modulo(cogs::multiply(m_numerator, src.m_denominator), cogs::multiply(m_denominator, std::move(src.m_numerator))));
-		return make_pair(divmod.first, cogs::divide(divmod.second, cogs::multiply(m_denominator, std::move(src.m_denominator))));
+		return std::make_pair(divmod.first, cogs::divide(divmod.second, cogs::multiply(m_denominator, std::move(src.m_denominator))));
 	}
 
 
@@ -3164,14 +3164,14 @@ public:
 	auto divide_whole_and_modulo(T&& t) const
 	{
 		auto result(cogs::divide_whole_and_modulo(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
-		return make_pair(simplify_type(result.first), simplify_type(result.second));
+		return std::make_pair(simplify_type(result.first), simplify_type(result.second));
 	}
 
 	template <typename T>
 	auto divide_whole_and_modulo(T&& t) const volatile
 	{
 		auto result(cogs::divide_whole_and_modulo(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
-		return make_pair(simplify_type(result.first), simplify_type(result.second));
+		return std::make_pair(simplify_type(result.first), simplify_type(result.second));
 	}
 
 	// divide_whole_and_assign_modulo

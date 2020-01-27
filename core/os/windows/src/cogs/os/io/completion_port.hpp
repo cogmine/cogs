@@ -33,7 +33,7 @@ public:
 		function<void()> m_delegate;
 
 	public:
-		size_t m_numTransferred;
+		size_t m_transferCount;
 		bool m_success;
 
 		explicit overlapped_t(const function<void()>& d)
@@ -112,7 +112,7 @@ private:
 				if (!ovrlppd)
 					break;
 				overlapped_t* o = static_cast<overlapped_t*>(ovrlppd);
-				o->m_numTransferred = n;
+				o->m_transferCount = n;
 				o->m_success = !!b;
 				o->run();
 			}
@@ -123,7 +123,7 @@ private:
 	{
 		m_pool.start();
 		rcref<task> r = rcnew(task, m_handle);
-		m_pool.dispatch_parallel(m_pool.get_num_threads(), [r{ std::move(r) }]()
+		m_pool.dispatch_parallel(m_pool.get_thread_count(), [r{ std::move(r) }]()
 		{
 			r->run();
 		});
@@ -142,7 +142,7 @@ protected:
 public:
 	~completion_port()
 	{
-		for (size_t n = m_pool.get_num_threads(); n != 0; n--)
+		for (size_t n = m_pool.get_thread_count(); n != 0; n--)
 			PostQueuedCompletionStatus(m_handle->get(), 0, 0, 0);
 		m_pool.shutdown();
 		m_pool.join();

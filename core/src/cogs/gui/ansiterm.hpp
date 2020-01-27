@@ -81,7 +81,7 @@
 //	color m_backPallete[8];
 //	size_t m_bufSize;
 //	uint8_t m_stripMode; // 0xFF for no strip, 0x7F to strip high bit
-//	uint8_t m_numTabSpaces; // Number of spaces for tab code
+//	uint8_t m_tabSpaces; // Number of spaces for tab code
 //	bool m_localEcho;
 //	bool m_cursorMode; // true = block, false = underline
 //	bool m_rawMode; // Just raw-insert everything
@@ -477,8 +477,8 @@
 //		{
 //			unsigned int screenWidthInChars = m_screenWidthInChars;
 //			invalidate_cursor();
-//			uint8_t tabSpaces = m_numTabSpaces - (m_cursorX % m_numTabSpaces);
-//			if (m_cursorX > screenWidthInChars - m_numTabSpaces)
+//			uint8_t tabSpaces = m_tabSpaces - (m_cursorX % m_tabSpaces);
+//			if (m_cursorX > screenWidthInChars - m_tabSpaces)
 //				m_cursorX = screenWidthInChars;
 //			else
 //				m_cursorX += tabSpaces;
@@ -1699,7 +1699,7 @@
 //		m_isMidSeq(false),
 //		m_wrapMode(true), // wrapping behavior can be affected by certain ANSI sequences
 //		m_addCRonLF(false),
-//		m_numTabSpaces(8),
+//		m_tabSpaces(8),
 //		m_hasBufferLooped(false),
 //		m_cursorVis(true),
 //		m_vt52Compat(false),
@@ -2345,7 +2345,7 @@
 //	planar::point<uint16_t> m_cursor;
 //
 //	bool m_whiteBackground; // reversed meaning of default back/fore
-//	uint8_t m_numTabSpaces;
+//	uint8_t m_tabSpaces;
 //
 //	bool m_hasBufferLooped;
 //
@@ -2754,8 +2754,8 @@
 //			{
 //				uint16_t screenWidthInChars = m_screenWidthInChars;
 //				invalidate_cursor();
-//				uint8_t tabSpaces = m_numTabSpaces - (m_cursorX % m_numTabSpaces);
-//				if (m_cursorX > screenWidthInChars - m_numTabSpaces)
+//				uint8_t tabSpaces = m_tabSpaces - (m_cursorX % m_tabSpaces);
+//				if (m_cursorX > screenWidthInChars - m_tabSpaces)
 //					m_cursorX = screenWidthInChars;
 //				else
 //					m_cursorX += tabSpaces;
@@ -3963,7 +3963,7 @@
 //			m_isMidSeq(false),
 //			m_wrapMode(true), // wrapping behavior can be affected by certain ANSI sequences
 //			m_addCRonLF(false),
-//			m_numTabSpaces(8),
+//			m_tabSpaces(8),
 //			m_hasBufferLooped(false),
 //			m_cursorVis(true),
 //			m_vt52Compat(false),

@@ -49,33 +49,23 @@ private:
 	// Preserved position from last reshape, in parent coordinates (in which 0,0 is parent's origin).
 	point m_childPosition;
 
-protected:
-	void aligned_reshape(const alignment& a, const size& calculatedSize, const bounds& originalBounds, const point& oldOrigin = point(0, 0))
-	{
-		size remaining = originalBounds.get_size() - calculatedSize;
-		size newChildPosition = remaining * a;
-		point childOldPosition = get_child_position(); // not set first time called, but oldOrigin is undefined then anyway.
-		bounds b(originalBounds.get_position() + newChildPosition, calculatedSize);
-		frame::reshape(b, oldOrigin + (childOldPosition - b.get_position()));
-	}
-
 public:
 	const rcptr<cell>& get_cell() const { return m_cell; }
 
 	const rcptr<cell>& get_innermost_cell() const
 	{
 		rcptr<const frame> f = this;
-		rcptr<cell> r = m_cell;
-		while (!!r && r->is_frame())
+		rcptr<cell> c = m_cell;
+		while (!!c && c->is_frame())
 		{
-			f = r.template static_cast_to<frame>();
-			r = f->get_cell();
+			f = c.template static_cast_to<frame>();
+			c = f->get_cell();
 		}
 		return f->get_cell();
 	}
 
-	frame(const rcref<cell>& r)
-		: m_cell(r),
+	frame(const rcref<cell>& c)
+		: m_cell(c),
 		m_childPosition(0, 0)
 	{ }
 
@@ -89,69 +79,59 @@ public:
 	point get_innermost_child_position() const
 	{
 		rcptr<const frame> f = this;
-		rcptr<cell> r = m_cell;
-		while (!!r && r->is_frame())
+		rcptr<cell> c = m_cell;
+		while (!!c && c->is_frame())
 		{
-			f = r.template static_cast_to<frame>();
-			r = f->get_cell();
+			f = c.template static_cast_to<frame>();
+			c = f->get_cell();
 		}
 		return f->get_child_position();
 	}
 
 	virtual size get_default_size() const
 	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->get_default_size();
+		rcptr<cell> c = m_cell;
+		if (!!c)
+			return c->get_default_size();
+		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
 		return size(0, 0);
 	}
 
 	virtual range get_range() const
 	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->get_range();
-		return range();
+		rcptr<cell> c = m_cell;
+		if (!!c)
+			return c->get_range();
+		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		return cell::get_range();
 	}
 
 	virtual dimension get_primary_flow_dimension() const
 	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->get_primary_flow_dimension();
-		return dimension::horizontal;
+		rcptr<cell> c = m_cell;
+		if (!!c)
+			return c->get_primary_flow_dimension();
+		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		return cell::get_primary_flow_dimension();
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->propose_length(d, proposed, rtnOtherRange);
-		return proposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->propose_lengths(d, proposedSize);
-		return proposedSize;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			return r->propose_size(proposedSize);
-		return proposedSize;
+		rcptr<cell> c = m_cell;
+		if (!!c)
+			return c->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		return cell::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 	}
 
 protected:
 	virtual void calculate_range()
 	{
-		rcptr<cell> r = m_cell;
-		if (!!r)
-			cell::calculate_range(*r);
+		rcptr<cell> c = m_cell;
+		if (!!c)
+			cell::calculate_range(*c);
+		else
+			COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
@@ -161,22 +141,124 @@ protected:
 		rcptr<cell> c = m_cell;
 		if (!!c)
 			cell::reshape(*c, b, oldOrigin);
+		else
+			COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
 	}
 };
 
 
+// A frame that overrides the default size of the cell
 class override_default_size_frame : public frame
 {
 private:
 	size m_defaultSize;
+	size m_calculatedDefaultSize;
+
+	// Changes to a default size require recalculation, as ranges and default sizes of enclosing cells/frames may
+	// be dependant on our default size.  If the specified default size is modified, the caller is exptected to trigger
+	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	override_default_size_frame(const rcref<cell>& r, const size& defaultSize)
-		: frame(r),
+	override_default_size_frame(const rcref<cell>& c, const size& defaultSize)
+		: frame(c),
 		m_defaultSize(defaultSize)
 	{ }
 
-	virtual size get_default_size() const { return propose_size(m_defaultSize); }
+	override_default_size_frame(const rcref<cell>& c)
+		: frame(c),
+		m_defaultSize(0, 0)
+	{ }
+
+	size& get_default_size_override(const size& sz) { return m_defaultSize; }
+	const size& get_default_size_override(const size& sz) const { return m_defaultSize; }
+	void set_default_size_override(const size& sz) { m_defaultSize = sz; }
+
+	virtual size get_default_size() const { return m_calculatedDefaultSize; }
+
+protected:
+	virtual void calculate_range()
+	{
+		frame::calculate_range();
+		m_calculatedDefaultSize = propose_size(m_defaultSize).find_first_valid_size(get_primary_flow_dimension());
+	}
+};
+
+
+class aligned_frame_base : public frame
+{
+private:
+	alignment m_alignment;
+
+	void validate_alignment()
+	{
+		if (m_alignment[dimension::horizontal] > 1.0)
+			m_alignment[dimension::horizontal] = 1.0;
+		if (m_alignment[dimension::horizontal] < 0.0)
+			m_alignment[dimension::horizontal] = 0.0;
+		if (m_alignment[dimension::vertical] > 1.0)
+			m_alignment[dimension::vertical] = 1.0;
+		if (m_alignment[dimension::vertical] < 0.0)
+			m_alignment[dimension::vertical] = 0.0;
+	}
+
+public:
+	aligned_frame_base(const rcref<cell>& c, const alignment& a = alignment::center())
+		: frame(c),
+		m_alignment(a)
+	{
+		validate_alignment();
+	}
+
+	const alignment get_alignment() const { return m_alignment; }
+
+	void set_alignment(const alignment& a)
+	{
+		m_alignment = a;
+		validate_alignment();
+	}
+
+protected:
+	void aligned_reshape(const bounds& calculatedBounds, const bounds& originalBounds, const point& oldOrigin = point(0, 0))
+	{
+		size calculatedSize = calculatedBounds.get_size() + calculatedBounds.get_position();
+		size remaining = originalBounds.get_size() - calculatedSize;
+		size newChildPosition = remaining * m_alignment;
+		point childOldPosition = get_child_position(); // not set first time called, but oldOrigin is undefined then anyway.
+		bounds b(originalBounds.get_position() + newChildPosition + calculatedBounds.get_position(), calculatedBounds.get_size());
+		frame::reshape(b, oldOrigin + (childOldPosition - b.get_position()));
+	}
+};
+
+
+// A frame with a size fixed to the default size of the cell
+class fixed_default_size_frame : public aligned_frame_base
+{
+public:
+	fixed_default_size_frame(const rcref<cell>& c, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a)
+	{ }
+
+	virtual range get_range() const { return range::make_fixed(get_default_size()); }
+
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	{
+		propose_size_result result;
+		size sz2 = get_default_size();
+		if (!r.contains(sz2))
+			result.set_empty();
+		else
+		{
+			result.set(sz2);
+			result.make_relative(sz);
+		}
+		return result;
+	}
+
+protected:
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	{
+		aligned_reshape(get_default_size(), b, oldOrigin);
+	}
 };
 
 
@@ -184,495 +266,266 @@ class inset_frame : public frame
 {
 private:
 	margin m_margin;
+	range m_calculatedRange;
+	size m_calculatedDefaultSize;
+
+	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
+	// be dependant on them.  If the specified margin is modified, the caller is exptected to trigger
+	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	inset_frame(const rcref<cell>& r, const margin& m)
-		: frame(r),
+	inset_frame(const rcref<cell>& c, const margin& m)
+		: frame(c),
 		m_margin(m)
 	{ }
 
-	virtual size get_default_size() const
-	{
-		return frame::get_default_size() + m_margin;
-	}
+	inset_frame(const rcref<cell>& c)
+		: frame(c)
+	{ }
 
-	virtual range get_range() const
-	{
-		return frame::get_range() + m_margin;
-	}
+	margin& get_margin() { return m_margin; }
+	const margin& get_margin() const { return m_margin; }
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		double marginTotal = m_margin[d].get_size();
-		if (proposed > marginTotal)
-			proposed -= marginTotal;
-		else
-			proposed = 0;
-		proposed = frame::propose_length(d, proposed, rtnOtherRange);
-		rtnOtherRange += m_margin[!d].get_size();
-		return proposed + marginTotal;
-	}
+	void set_margin(const margin& m) { m_margin = m; }
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size newProposedSize = proposedSize;
-		double marginTotalWidth = m_margin.get_width();
-		if (newProposedSize.get_width() > marginTotalWidth)
-			newProposedSize.get_width() -= marginTotalWidth;
-		else
-			newProposedSize.get_width() = 0;
-		double marginTotalHeight = m_margin.get_height();
-		if (newProposedSize.get_height() > marginTotalHeight)
-			newProposedSize.get_height() -= marginTotalHeight;
-		else
-			newProposedSize.get_height() = 0;
-		return frame::propose_lengths(d, newProposedSize) + m_margin.get_size();
-	}
+	virtual size get_default_size() const { return m_calculatedDefaultSize; }
 
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size newProposedSize = proposedSize;
-		double marginTotalWidth = m_margin.get_width();
-		if (newProposedSize.get_width() > marginTotalWidth)
-			newProposedSize.get_width() -= marginTotalWidth;
-		else
-			newProposedSize.get_width() = 0;
-		double marginTotalHeight = m_margin.get_height();
-		if (newProposedSize.get_height() > marginTotalHeight)
-			newProposedSize.get_height() -= marginTotalHeight;
-		else
-			newProposedSize.get_height() = 0;
-		return frame::propose_size(newProposedSize) + m_margin.get_size();
-	}
+	virtual range get_range() const { return m_calculatedRange; }
 
-protected:
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		size topLeftMargin = m_margin.get_top_left();
-		size calculatedSize = b.get_size();
-		double marginTotalWidth = m_margin.get_width();
-		if (calculatedSize.get_width() > marginTotalWidth)
-			calculatedSize.get_width() -= marginTotalWidth;
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
 		else
 		{
-			topLeftMargin.get_width() = calculatedSize.get_width();
-			calculatedSize.get_width() = 0;
+			size marginSize = m_margin.get_size();
+			bool doesMarginWidthFit = sz.get_width() >= marginSize.get_width();
+			bool doesMarginHeightFit = sz.get_height() >= marginSize.get_height();
+			size adjustedBy;
+			adjustedBy.get_width() = doesMarginWidthFit ? marginSize.get_width() : sz.get_width();
+			adjustedBy.get_height() = doesMarginHeightFit ? marginSize.get_height() : sz.get_height();
+			size newSize = sz - adjustedBy;
+			result = frame::propose_size(newSize, resizeDimension, r - adjustedBy, horizontalMode, verticalMode);
+			result.m_sizes[0].m_size += marginSize;
+			result.m_sizes[1].m_size += marginSize;
+			result.m_sizes[2].m_size += marginSize;
+			result.m_sizes[3].m_size += marginSize;
+			if (!doesMarginWidthFit)
+				result.m_sizes[0].m_isValid = result.m_sizes[1].m_isValid = false;
+			if (!doesMarginHeightFit)
+				result.m_sizes[0].m_isValid = result.m_sizes[2].m_isValid = false;
 		}
-		double marginTotalHeight = m_margin.get_height();
-		if (calculatedSize.get_height() > marginTotalHeight)
-			calculatedSize.get_height() -= marginTotalHeight;
-		else
-		{
-			topLeftMargin.get_height() = calculatedSize.get_height();
-			calculatedSize.get_height() = 0;
-		}
-
-		point childOldPosition = get_child_position();
-		bounds r2(b.get_position() + topLeftMargin, calculatedSize);
-		point childOldOrigin = oldOrigin + (childOldPosition - r2.get_position());
-		frame::reshape(r2, childOldOrigin);
-	}
-};
-
-
-class fixed_default_size_frame : public frame
-{
-private:
-	alignment m_alignment;
-
-public:
-	fixed_default_size_frame(const rcref<cell>& r, const alignment& a = alignment::center())
-		: frame(r),
-		m_alignment(a)
-	{
-		if (m_alignment[dimension::horizontal] > 1.0)
-			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::vertical] > 1.0)
-			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
-			m_alignment[dimension::horizontal] = 0.0;
-		if (m_alignment[dimension::vertical] < 0.0)
-			m_alignment[dimension::vertical] = 0.0;
-	}
-
-	virtual range get_range() const
-	{
-		size sz = get_default_size();
-		range r(sz, sz, true, true);
-		return r;
-	}
-
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		size sz = get_default_size();
-		rtnOtherRange.set_fixed(sz[!d]);
-		return sz[d];
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		return get_default_size();
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		return get_default_size();
-	}
-
-protected:
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-	{
-		aligned_reshape(m_alignment, get_default_size(), b, oldOrigin);
-	}
-
-};
-
-
-class fixed_size_frame : public frame
-{
-private:
-	size m_size;
-
-public:
-	fixed_size_frame(const rcref<cell>& r, const size& sz)
-		: frame(r),
-		m_size(sz)
-	{ }
-
-	fixed_size_frame(const rcref<cell>& r)
-		: frame(r),
-		m_size(0, 0)
-	{ }
-
-	size& get_fixed_size() { return m_size; }
-	const size& get_fixed_size() const { return m_size; }
-
-	double& get_fixed_size(dimension d) { return m_size[d]; }
-	const double get_fixed_size(dimension d) const { return m_size[d]; }
-
-	double& get_fixed_height() { return m_size.get_height(); }
-	const double get_fixed_height() const { return m_size.get_height(); }
-
-	double& get_fixed_width() { return m_size.get_width(); }
-	const double get_fixed_width() const { return m_size.get_width(); }
-
-	virtual size get_default_size() const
-	{
-		return frame::propose_size(m_size);
-	}
-
-	virtual range get_range() const
-	{
-		size sz = frame::propose_size(m_size);
-		range r(sz, sz, true, true);
-		return r;
-	}
-
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		size sz = frame::propose_lengths(d, m_size);
-		rtnOtherRange.set_fixed(sz[!d]);
-		return sz[d];
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		return frame::propose_lengths(d, m_size);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		return frame::propose_size(m_size);
-	}
-
-protected:
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-	{
-		size sz = frame::propose_size(m_size);
-		frame::reshape(bounds(b.get_position(), sz), oldOrigin);
-	}
-};
-
-class fixed_position_frame : public frame
-{
-private:
-	point m_position;
-
-public:
-	fixed_position_frame(const rcref<cell>& r, const point& pt)
-		: frame(r),
-		m_position(pt)
-	{ }
-
-	fixed_position_frame(const rcref<cell>& r)
-		: frame(r),
-		m_position(0, 0)
-	{ }
-
-	point& get_position() { return m_position; }
-	const point& get_position() const { return m_position; }
-
-	double& get_position(dimension d) { return m_position[d]; }
-	const double get_position(dimension d) const { return m_position[d]; }
-
-	double& get_x() { return m_position.get_x(); }
-	const double get_x() const { return m_position.get_x(); }
-
-	double& get_y() { return m_position.get_y(); }
-	const double get_y() const { return m_position.get_y(); }
-
-	virtual size get_default_size() const
-	{
-		return frame::get_default_size() + m_position.to_size();
-	}
-
-	virtual range get_range() const
-	{
-		return frame::get_range() + m_position.to_size();
-	}
-
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		if (proposed > m_position[d])
-			proposed -= m_position[d];
-		else
-			proposed = 0;
-
-		double result = frame::propose_length(d, proposed, rtnOtherRange);
-		result += m_position[d];
-		rtnOtherRange += m_position[!d];
 		return result;
 	}
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size newProposedSize;
-		if (proposedSize[dimension::horizontal] > m_position[dimension::horizontal])
-			newProposedSize[dimension::horizontal] = proposedSize[dimension::horizontal] - m_position[dimension::horizontal];
-		else
-			newProposedSize[dimension::horizontal] = 0;
-		if (proposedSize[dimension::vertical] > m_position[dimension::vertical])
-			newProposedSize[dimension::vertical] = proposedSize[dimension::vertical] - m_position[dimension::vertical];
-		else
-			newProposedSize[dimension::vertical] = 0;
-		return frame::propose_lengths(d, newProposedSize) + m_position.to_size();
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size newProposedSize;
-		if (proposedSize[dimension::horizontal] > m_position[dimension::horizontal])
-			newProposedSize[dimension::horizontal] = proposedSize[dimension::horizontal] - m_position[dimension::horizontal];
-		else
-			newProposedSize[dimension::horizontal] = 0;
-		if (proposedSize[dimension::vertical] > m_position[dimension::vertical])
-			newProposedSize[dimension::vertical] = proposedSize[dimension::vertical] - m_position[dimension::vertical];
-		else
-			newProposedSize[dimension::vertical] = 0;
-		return frame::propose_size(newProposedSize) + m_position.to_size();
-	}
-
-
 protected:
+	virtual void calculate_range()
+	{
+		frame::calculate_range();
+		m_calculatedRange = frame::get_range();
+		if (m_calculatedRange.is_empty())
+			m_calculatedDefaultSize.set(0, 0);
+		else
+		{
+			m_calculatedRange += m_margin;
+			m_calculatedDefaultSize = frame::get_default_size() + m_margin;
+		}
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		bounds newBounds;
-		newBounds.set_position(b.get_position() + m_position);
-		newBounds.set_size(b.get_size() - m_position.to_size());
+		size topLeftMargin = m_margin.get_top_left();
+		newBounds.get_size() = b.get_size();
+		size marginSize = m_margin.get_size();
+		if (newBounds.get_width() >= marginSize.get_width())
+			newBounds.get_width() -= marginSize.get_width();
+		else
+		{
+			topLeftMargin.get_width() = 0; // Keep empty child within bounds?
+			newBounds.get_width() = 0;
+		}
+		if (newBounds.get_height() >= marginSize.get_height())
+			newBounds.get_height() -= marginSize.get_height();
+		else
+		{
+			topLeftMargin.get_height() = 0; // Keep empty child within bounds?
+			newBounds.get_height() = 0;
+		}
+		newBounds.get_position() = b.get_position() + topLeftMargin;
 		point childOldPosition = get_child_position();
 		point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
 		frame::reshape(newBounds, childOldOrigin);
 	}
 };
 
-class fixed_bounds_frame : public frame
+
+class fixed_size_frame : public aligned_frame_base
+{
+private:
+	size m_size;
+	size m_calculatedSize;
+
+	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
+	// be dependant on them.  If the specified size is modified, the caller is exptected to trigger
+	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
+
+public:
+	fixed_size_frame(const rcref<cell>& c, const size& sz, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a),
+		m_size(sz)
+	{ }
+
+	fixed_size_frame(const rcref<cell>& c, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a),
+		m_size(0, 0)
+	{ }
+
+	size& get_fixed_size() { return m_size; }
+	const size& get_fixed_size() const { return m_size; }
+	void set_fixed_size(const size& sz) { m_size = sz; }
+
+	double& get_fixed_size(dimension d) { return m_size[d]; }
+	const double get_fixed_size(dimension d) const { return m_size[d]; }
+	void set_fixed_size(dimension d, double sz) { m_size[d] = sz; }
+
+	double& get_fixed_height() { return m_size.get_height(); }
+	const double get_fixed_height() const { return m_size.get_height(); }
+	void set_fixed_height(double sz) { m_size.set_height(sz); }
+
+	double& get_fixed_width() { return m_size.get_width(); }
+	const double get_fixed_width() const { return m_size.get_width(); }
+	void set_fixed_width(double sz) { m_size.set_width(sz); }
+
+	virtual size get_default_size() const { return m_calculatedSize; }
+
+	virtual range get_range() const { return range(m_calculatedSize, m_calculatedSize, true, true); }
+
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	{
+		propose_size_result result;
+		if (!r.contains(m_calculatedSize))
+			result.set_empty();
+		else
+		{
+			result.set(m_calculatedSize);
+			result.make_relative(sz);
+		}
+		return result;
+	}
+
+protected:
+	virtual void calculate_range()
+	{
+		frame::calculate_range();
+		m_calculatedSize = frame::propose_size(m_size).find_first_valid_size(get_primary_flow_dimension());
+	}
+
+	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	{
+		aligned_reshape(m_calculatedSize, b, oldOrigin);
+	}
+};
+
+
+// Does not modify the range, but applies a bounds on reshape().
+// This is useful in the case of a parent pane internally handling the sizes and positions of descendant panes.
+class override_bounds_frame : public aligned_frame_base
 {
 private:
 	bounds m_bounds;
 
 public:
-	fixed_bounds_frame(const rcref<cell>& r, const bounds& b)
-		: frame(r),
+	override_bounds_frame(const rcref<cell>& c, const bounds& b, const alignment& a = alignment::top_left())
+		: aligned_frame_base(c, a),
 		m_bounds(b)
 	{ }
 
-	fixed_bounds_frame(const rcref<cell>& r)
-		: frame(r),
+	override_bounds_frame(const rcref<cell>& c, const alignment& a = alignment::top_left())
+		: aligned_frame_base(c, a),
 		m_bounds(0, 0, 0, 0)
 	{ }
 
 	bounds& get_bounds() { return m_bounds; }
 	const bounds& get_bounds() const { return m_bounds; }
+	void set_bounds(const bounds& b) { m_bounds = b; }
 
 	point& get_position() { return m_bounds.get_position(); }
 	const point& get_position() const { return m_bounds.get_position(); }
+	void set_position(const point& pt) { m_bounds.set_position(pt); }
 
 	double& get_position(dimension d) { return m_bounds.get_position(d); }
 	const double get_position(dimension d) const { return m_bounds.get_position(d); }
+	void set_position(dimension d, double d2) { return m_bounds.set_position(d, d2); }
 
 	size& get_fixed_size() { return m_bounds.get_size(); }
 	const size& get_fixed_size() const { return m_bounds.get_size(); }
+	void set_fixed_size(const size& sz) { m_bounds.set_size(sz); }
 
 	double& get_fixed_size(dimension d) { return m_bounds.get_size(d); }
 	const double get_fixed_size(dimension d) const { return m_bounds.get_size(d); }
+	void set_fixed_size(dimension d, double d2) { m_bounds.set_size(d, d2); }
 
 	double& get_fixed_height() { return m_bounds.get_height(); }
 	const double get_fixed_height() const { return m_bounds.get_height(); }
+	void set_fixed_height(double d) { m_bounds.set_height(d); }
 
 	double& get_fixed_width() { return m_bounds.get_width(); }
 	const double get_fixed_width() const { return m_bounds.get_width(); }
-
-	virtual size get_default_size() const
-	{
-		if (!m_bounds)
-			return frame::get_default_size();
-		return frame::propose_size(m_bounds.get_size()) + m_bounds.get_position().to_size();
-	}
-
-	virtual range get_range() const
-	{
-		if (!m_bounds)
-			return frame::get_range();
-
-		size sz = frame::propose_size(m_bounds.get_size()) + m_bounds.get_position().to_size();
-		range r(sz);
-		return r;
-	}
-
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		if (!m_bounds)
-			return propose_length(d, proposed, rtnOtherRange);
-
-		size sz = frame::propose_size(m_bounds.get_size());
-		rtnOtherRange.set_fixed(sz[!d]);
-		return sz[d];
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		return frame::propose_lengths(d, !m_bounds ? proposedSize : m_bounds.get_size());
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		return frame::propose_size(!m_bounds ? proposedSize : m_bounds.get_size());
-	}
+	void set_fixed_width(double d) { m_bounds.set_width(d); }
 
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		if (!m_bounds)
-			frame::reshape(b, oldOrigin);
-		else
-		{
-			size sz = frame::propose_size(m_bounds.get_size());
-			bounds newBounds = { m_bounds.get_position() + b.get_position(), sz };
-			point childOldPosition = get_child_position();
-			point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
-			frame::reshape(newBounds, childOldOrigin);
-		}
+		aligned_reshape(m_bounds, b, oldOrigin);
 	}
 };
-
-
-// Like fixed_bounds_frame, but only applies the fixed bounds on reshape().
-// All other calls behave as if no fixed size is set.
-// This is useful in the case of a parent pane directly handing the shapes of internally managed descendant panes.
-class override_bounds_frame : public frame
-{
-private:
-	bounds m_bounds;
-
-public:
-	override_bounds_frame(const rcref<cell>& r, const bounds& b)
-		: frame(r),
-		m_bounds(b)
-	{ }
-
-	override_bounds_frame(const rcref<cell>& r)
-		: frame(r),
-		m_bounds(0, 0, 0, 0)
-	{ }
-
-	bounds& get_fixed_bounds() { return m_bounds; }
-	const bounds& get_fixed_bounds() const { return m_bounds; }
-
-	point& get_position() { return m_bounds.get_position(); }
-	const point& get_position() const { return m_bounds.get_position(); }
-
-	double& get_position(dimension d) { return m_bounds.get_position(d); }
-	const double get_position(dimension d) const { return m_bounds.get_position(d); }
-
-	size& get_fixed_size() { return m_bounds.get_size(); }
-	const size& get_fixed_size() const { return m_bounds.get_size(); }
-
-	double& get_fixed_size(dimension d) { return m_bounds.get_size(d); }
-	const double get_fixed_size(dimension d) const { return m_bounds.get_size(d); }
-
-	double& get_fixed_height() { return m_bounds.get_height(); }
-	const double get_fixed_height() const { return m_bounds.get_height(); }
-
-	double& get_fixed_width() { return m_bounds.get_width(); }
-	const double get_fixed_width() const { return m_bounds.get_width(); }
-
-protected:
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-	{
-		if (!m_bounds)
-			frame::reshape(b, oldOrigin);
-		else
-		{
-			size sz = frame::propose_size(m_bounds.get_size());
-			bounds newBounds = { m_bounds.get_position() + b.get_position(), sz };
-			point childOldPosition = get_child_position();
-			point childOldOrigin = oldOrigin + (childOldPosition - newBounds.get_position());
-			frame::reshape(newBounds, childOldOrigin);
-		}
-	}
-};
-
-
-// fixed_width_frame?
-// fixed_height_frame?
 
 
 class limit_range_frame : public frame
 {
 private:
 	range m_range;
+	range m_calculatedRange;
+	size m_calculatedDefaultSize;
+
+	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
+	// be dependant on them.  If the specified size is modified, the caller is exptected to trigger
+	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	limit_range_frame(const rcref<cell>& r, const range& rng)
-		: frame(r),
+	limit_range_frame(const rcref<cell>& c, const range& rng)
+		: frame(c),
 		m_range(rng)
 	{ }
 
-	virtual size get_default_size() const { return get_range().limit(frame::get_default_size()); }
+	limit_range_frame(const rcref<cell>& c)
+		: frame(c)
+	{ }
 
-	virtual range get_range() const { return m_range & frame::get_range(); }
+	const range& get_limit_range() const { return m_range; }
+	range& get_limit_range() { return m_range; }
+	void set_limit_range(const range& r) { m_range = r; }
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual size get_default_size() const { return m_calculatedDefaultSize; }
+
+	virtual range get_range() const { return m_calculatedRange; }
+
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		range r = get_range();
-		double newProposed = r[d].limit(proposed);
-		newProposed = frame::propose_length(d, newProposed, rtnOtherRange);
-		rtnOtherRange &= r[!d];
-		return newProposed;
+		return frame::propose_size(sz, resizeDimension, r & m_calculatedRange, horizontalMode, verticalMode);
 	}
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
+protected:
+	virtual void calculate_range()
 	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_lengths(d, sz);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_size(sz);
+		frame::calculate_range();
+		m_calculatedRange = m_range & frame::get_range();
+		if (m_calculatedRange.is_empty())
+			m_calculatedDefaultSize.set(0, 0);
+		else
+			m_calculatedDefaultSize = propose_size(frame::get_default_size()).find_first_valid_size(get_primary_flow_dimension());
 	}
 };
 
@@ -680,8 +533,8 @@ public:
 class unstretchable_frame : public frame
 {
 public:
-	unstretchable_frame(const rcref<cell>& r)
-		: frame(r)
+	unstretchable_frame(const rcref<cell>& c)
+		: frame(c)
 	{ }
 
 	virtual range get_range() const
@@ -690,27 +543,10 @@ public:
 		return frame::get_range() & stretchRange;
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		range r = get_range();
-		double newProposed = r[d].limit(proposed);
-		newProposed = frame::propose_length(d, newProposed, rtnOtherRange);
-		rtnOtherRange &= r[!d];
-		return newProposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_lengths(d, sz);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_size(sz);
+		range stretchRange(size(0, 0), get_default_size(), true, true);
+		return frame::propose_size(sz, resizeDimension, r & stretchRange, horizontalMode, verticalMode);
 	}
 };
 
@@ -718,8 +554,8 @@ public:
 class unshrinkable_frame : public frame
 {
 public:
-	unshrinkable_frame(const rcref<cell>& r)
-		: frame(r)
+	unshrinkable_frame(const rcref<cell>& c)
+		: frame(c)
 	{ }
 
 	virtual range get_range() const
@@ -728,27 +564,10 @@ public:
 		return frame::get_range() & shrinkRange;
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		range r = get_range();
-		double newProposed = r[d].limit(proposed);
-		newProposed = frame::propose_length(d, newProposed, rtnOtherRange);
-		rtnOtherRange &= r[!d];
-		return newProposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_lengths(d, sz);
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		range r = get_range();
-		size sz = r.limit(proposedSize);
-		return frame::propose_size(sz);
+		range shrinkRange(get_default_size(), size(0, 0), false, false);
+		return frame::propose_size(sz, resizeDimension, r & shrinkRange, horizontalMode, verticalMode);
 	}
 };
 
@@ -757,256 +576,214 @@ public:
 // propose_aspect_ratio_frame - Proposes new size with aspect ratio, but allows content cell to decide
 // maintain_aspect_ratio_frame2? - Alway maintains the aspect ratio (based on default size), and aligns contents if necessary.
 
+
+// Proposes an aspect ratio based on the default size
 class propose_aspect_ratio_frame : public frame
 {
-public:
-	propose_aspect_ratio_frame(const rcref<cell>& r)
-		: frame(r)
-	{ }
+private:
+	range m_calculatedRange;
 
-	virtual range get_range() const
+protected:
+	virtual void calculate_range()
 	{
+		frame::calculate_range();
+		dimension d = frame::get_primary_flow_dimension();
+		size defaultSize = frame::get_default_size();
 		range r = frame::get_range();
-		size sz = frame::get_default_size();
-		if (!!sz.get_width() && !!sz.get_height())
+		if (!r.is_empty())
 		{
-			if (r.get_min_width() != 0)
+			size newSize;
+			m_calculatedRange.has_max_width() = r.has_max_width();
+			m_calculatedRange.has_max_height() = r.has_max_height();
+			for (;;)
 			{
-				double newMinHeight = (r.get_min_width() * sz.get_width()) / sz.get_height();
-				if (r.get_min_height() != 0)
+				if (r.has_max_width())
 				{
-					if (r.get_min_height() <= newMinHeight)
-						r.get_min_height() = newMinHeight;
-					else
+					newSize.get_width() = r.get_max_width();
+					newSize.get_height() = (r.get_max_width() * defaultSize.get_height()) / defaultSize.get_width();
+					if (r.has_max_height() && r.get_max_height() != newSize.get_height())
 					{
-						double newMinWidth = (r.get_min_height() * sz.get_height()) / sz.get_width();
-						COGS_ASSERT(r.get_min_width() < newMinWidth);
-						r.get_min_width() = newMinWidth;
+						double otherWidth = (r.get_max_height() * defaultSize.get_width()) / defaultSize.get_height();
+						if (newSize.get_width() > otherWidth)
+						{
+							newSize.get_height() = r.get_max_height();
+							newSize.get_width() = otherWidth;
+						}
 					}
 				}
 				else
-					r.get_min_height() = newMinHeight;
-			}
-			else if (r.get_min_height() != 0)
-			{
-				double newMinWidth = (r.get_min_height() * sz.get_height()) / sz.get_width();
-				r.get_min_width() = newMinWidth;
+				{
+					if (!r.has_max_height())
+						break;
+					newSize.get_height() = r.get_max_height();
+					newSize.get_width() = (r.get_max_height() * defaultSize.get_width()) / defaultSize.get_height();
+				}
+				m_calculatedRange.set_max(frame::propose_size(newSize).find_first_valid_size(d, true));
+				break;
 			}
 
-			if (r.has_max_width())
+			for (;;)
 			{
-				double newMaxHeight = (r.get_max_width() * sz.get_width()) / sz.get_height();
-				if (r.has_max_height())
+				if (r.get_min_width() > 0)
 				{
-					if (r.get_max_height() >= newMaxHeight)
-						r.get_max_height() = newMaxHeight;
-					else
+					newSize.get_width() = r.get_min_width();
+					newSize.get_height() = (r.get_min_width() * defaultSize.get_height()) / defaultSize.get_width();
+					if (r.get_min_height() != 0 && r.get_min_height() != newSize.get_height())
 					{
-						double newMaxWidth = (r.get_max_height() * sz.get_height()) / sz.get_width();
-						COGS_ASSERT(r.get_max_width() < newMaxWidth);
-						r.get_max_width() = newMaxWidth;
+						double otherWidth = (r.get_min_height() * defaultSize.get_width()) / defaultSize.get_height();
+						if (newSize.get_width() < otherWidth)
+						{
+							newSize.get_height() = r.get_min_height();
+							newSize.get_width() = otherWidth;
+						}
 					}
 				}
 				else
 				{
-					r.get_max_height() = newMaxHeight;
-					r.get_max_height() = true;
+					if (r.get_min_height() == 0)
+						break;
+					newSize.get_height() = r.get_min_height();
+					newSize.get_width() = (r.get_min_height() * defaultSize.get_width()) / defaultSize.get_height();
 				}
-			}
-			else if (r.has_max_height())
-			{
-				double newMaxWidth = (r.get_max_height() * sz.get_height()) / sz.get_width();
-				r.get_max_width() = newMaxWidth;
-				r.has_max_width() = true;
+				m_calculatedRange.set_min(frame::propose_size(newSize).find_first_valid_size(d, false));
+				break;
 			}
 		}
-
-		return r;
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		size newSize;
-		range r = get_range();
-		newSize[d] = r[d].limit(proposed);
-		size sz = frame::get_default_size();
-		newSize[!d] = (newSize[d] * sz[!d]) / sz[d];
-		newSize = frame::propose_size(newSize);
-		rtnOtherRange.set_fixed(newSize[!d]);
-		return newSize[d];
-	}
+public:
+	propose_aspect_ratio_frame(const rcref<cell>& c)
+		: frame(c)
+	{ }
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size newProposedSize = get_range().limit(proposedSize);
-		size sz = frame::get_default_size();
-		sz[!d] = ((newProposedSize[d] * sz[!d]) / sz[d]);
-		sz[d] = newProposedSize[d];
-		return frame::propose_size(sz);
-	}
+	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual size propose_size(const size& proposedSize) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		size result;
-		size newProposedSize = get_range().limit(proposedSize);
-		size sz = frame::get_default_size();
-		dimension d = get_primary_flow_dimension();
-		result[!d] = cogs::ceil((newProposedSize[d] * sz[!d]) / sz[d]);
-		if (result[!d] <= newProposedSize[!d])
-			result[d] = newProposedSize[d];
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
 		else
 		{
-			result[!d] = newProposedSize[!d];
-			result[d] = cogs::ceil((newProposedSize[!d] * sz[d]) / sz[!d]);
+			size defaultSize = frame::get_default_size();
+			dimension d = (resizeDimension.has_value()) ? resizeDimension.value() : get_primary_flow_dimension();
+			size newSize;
+			newSize[d] = sz[d];
+			newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
+			result = frame::propose_size(newSize, resizeDimension, r & m_calculatedRange, horizontalMode, verticalMode); // Need m_calculatedRange here?
+			result.make_relative(sz);
 		}
 		return result;
 	}
 };
 
 
-class proportional_frame : public frame
+class proportional_frame : public aligned_frame_base
 {
 private:
-	proportion m_proportionalSize; // proportion of enclosing area to fill
-	alignment m_alignment; // positioning in parent
+	proportion m_proportion; // proportion of enclosing area to fill
+
+	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
+	// be dependant on them.  If the specified proportion is modified, the caller is exptected to trigger
+	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
+
+	void validate_proportion()
+	{
+		if (m_proportion[dimension::horizontal] > 1.0)
+			m_proportion[dimension::horizontal] = 1.0;
+		if (m_proportion[dimension::horizontal] < 0.0)
+			m_proportion[dimension::horizontal] = 0.0;
+		if (m_proportion[dimension::vertical] > 1.0)
+			m_proportion[dimension::vertical] = 1.0;
+		if (m_proportion[dimension::vertical] < 0.0)
+			m_proportion[dimension::vertical] = 0.0;
+	}
 
 public:
-	proportional_frame(const rcref<cell>& r, const proportion& p, const alignment& a = alignment::center())
-		: frame(r),
-		m_proportionalSize(p),
-		m_alignment(a)
+	proportional_frame(const rcref<cell>& c, const proportion& p, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a),
+		m_proportion(p)
 	{
-		if (m_proportionalSize[dimension::horizontal] > 1.0)
-			m_proportionalSize[dimension::horizontal] = 1.0;
-		if (m_proportionalSize[dimension::vertical] > 1.0)
-			m_proportionalSize[dimension::vertical] = 1.0;
-		if (m_proportionalSize[dimension::horizontal] < 0.0)
-			m_proportionalSize[dimension::horizontal] = 0.0;
-		if (m_proportionalSize[dimension::vertical] < 0.0)
-			m_proportionalSize[dimension::vertical] = 0.0;
-		if (m_alignment[dimension::horizontal] > 1.0)
-			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::vertical] > 1.0)
-			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
-			m_alignment[dimension::horizontal] = 0.0;
-		if (m_alignment[dimension::vertical] < 0.0)
-			m_alignment[dimension::vertical] = 0.0;
+		validate_proportion();
 	}
 
-	virtual size get_default_size() const
+	const proportion& get_proportion() const { return m_proportion; }
+
+	void set_proportion(const proportion& p)
 	{
-		size sz = frame::get_default_size();
-		sz /= m_proportionalSize;
-		return sz;
+		m_proportion = p;
+		validate_proportion();
 	}
 
-	virtual range get_range() const
-	{
-		range r = frame::get_range();
-		r /= m_proportionalSize;
-		return r;
-	}
+	virtual size get_default_size() const { return frame::get_default_size() / m_proportion; }
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		double newProposed = proposed * m_proportionalSize[d];
-		newProposed = frame::propose_length(d, newProposed, rtnOtherRange);
-		rtnOtherRange /= m_proportionalSize[!d];
-		return newProposed;
-	}
+	virtual range get_range() const { return frame::get_range() / m_proportion; }
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		size sz = proposedSize * m_proportionalSize;
-		return frame::propose_lengths(d, sz) / m_proportionalSize;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size sz = proposedSize * m_proportionalSize;
-		return frame::propose_size(sz) / m_proportionalSize;
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
+		else
+		{
+			// Do we have rounding issues here?
+			size sz2 = sz * m_proportion;
+			propose_size_result result = frame::propose_size(sz2, resizeDimension, r, horizontalMode, verticalMode);
+			result.m_sizes[0].m_size /= m_proportion;
+			result.m_sizes[1].m_size /= m_proportion;
+			result.m_sizes[2].m_size /= m_proportion;
+			result.m_sizes[3].m_size /= m_proportion;
+		}
+		return result;
 	}
 
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = b.get_size() * m_proportionalSize;
-		aligned_reshape(m_alignment, sz, b, oldOrigin);
+		size sz = b.get_size() * m_proportion;
+		aligned_reshape(sz, b, oldOrigin);
 	}
 };
 
 
-class unconstrained_frame : public frame
+class unconstrained_frame : public aligned_frame_base
 {
-private:
-	alignment m_alignment; // positioning in parent, if smaller than requested size
-
 public:
-	unconstrained_frame(const rcref<cell>& r, const alignment& a = alignment::center())
-		: frame(r),
-		m_alignment(a)
-	{
-		if (m_alignment[dimension::horizontal] > 1.0)
-			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::vertical] > 1.0)
-			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
-			m_alignment[dimension::horizontal] = 0.0;
-		if (m_alignment[dimension::vertical] < 0.0)
-			m_alignment[dimension::vertical] = 0.0;
-	}
+	unconstrained_frame(const rcref<cell>& c, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a)
+	{ }
 
-	virtual range get_range() const
-	{
-		range r(size(0, 0), size(0, 0), false, false);
-		return r;
-	}
+	virtual range get_range() const { return range::make_unbounded(); }
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		return proposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		return proposedSize;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		return proposedSize;
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
+		else
+		{
+			size sz2 = r.limit(sz);
+			result.set(sz2);
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(b.get_size());
-		aligned_reshape(m_alignment, sz, b, oldOrigin);
+		size sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
+		aligned_reshape(sz, b, oldOrigin);
 	}
 };
 
 
-
-class unconstrained_min_frame : public frame
+class unconstrained_min_frame : public aligned_frame_base
 {
-private:
-	alignment m_alignment;
-
 public:
-	unconstrained_min_frame(const rcref<cell>& r, const alignment& a = alignment::center())
-		: frame(r),
-		m_alignment(a)
-	{
-		if (m_alignment[dimension::horizontal] > 1.0)
-			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::vertical] > 1.0)
-			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
-			m_alignment[dimension::horizontal] = 0.0;
-		if (m_alignment[dimension::vertical] < 0.0)
-			m_alignment[dimension::vertical] = 0.0;
-	}
+	unconstrained_min_frame(const rcref<cell>& c, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a)
+	{ }
 
 	virtual range get_range() const
 	{
@@ -1016,63 +793,91 @@ public:
 		return r;
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		double newProposed = frame::propose_length(d, proposed, rtnOtherRange);
-		if (newProposed > proposed)
-			newProposed = proposed;
-		rtnOtherRange.get_min() = 0;
-		return newProposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size sz = frame::propose_lengths(d, proposedSize);
-		if (sz.get_height() > proposedSize.get_height())
-			sz.get_height() = proposedSize.get_height();
-		if (sz.get_width() > proposedSize.get_width())
-			sz.get_width() = proposedSize.get_width();
-		return sz;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size sz = frame::propose_size(proposedSize);
-		if (sz.get_height() > proposedSize.get_height())
-			sz.get_height() = proposedSize.get_height();
-		if (sz.get_width() > proposedSize.get_width())
-			sz.get_width() = proposedSize.get_width();
-		return sz;
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
+		else
+		{
+			result = frame::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+			if (!result.m_sizes[0].m_isValid)
+			{
+				size sz2 = r.limit(sz);
+				result.m_sizes[0].m_isValid = true;
+				if (!result.m_sizes[1].m_isValid)
+				{
+					result.m_sizes[0].m_size.get_width() = sz2.get_width();
+					result.m_sizes[2].m_size.get_width() = sz2.get_width();
+					if (!result.m_sizes[2].m_isValid)
+					{
+						result.m_sizes[1].m_isValid = true;
+						result.m_sizes[2].m_isValid = true;
+						result.m_sizes[3].m_isValid = true;
+						result.m_sizes[0].m_size.get_height() = sz2.get_height();
+						result.m_sizes[2].m_size.get_height() = sz2.get_height();
+						result.m_sizes[1].m_size = sz2;
+						result.m_sizes[3].m_size = sz2;
+					}
+					else
+					{
+						result.m_sizes[0].m_size.get_height() = result.m_sizes[2].m_size.get_height();
+						if (result.m_sizes[3].m_isValid)
+						{
+							result.m_sizes[1].m_isValid = true;
+							result.m_sizes[1].m_size.get_height() = result.m_sizes[3].m_size.get_height();
+							result.m_sizes[3].m_size.get_width() = sz2.get_width();
+							result.m_sizes[1].m_size.get_width() = sz2.get_width();
+						}
+					}
+				}
+				else
+				{
+					result.m_sizes[0].m_size.get_height() = sz2.get_height();
+					result.m_sizes[1].m_size.get_height() = sz2.get_height();
+					if (!result.m_sizes[2].m_isValid)
+					{
+						result.m_sizes[0].m_size.get_width() = result.m_sizes[1].m_size.get_width();
+						if (result.m_sizes[3].m_isValid)
+						{
+							result.m_sizes[2].m_isValid = true;
+							result.m_sizes[2].m_size.get_width() = result.m_sizes[3].m_size.get_width();
+							result.m_sizes[3].m_size.get_height() = sz2.get_height();
+							result.m_sizes[2].m_size.get_height() = sz2.get_height();
+						}
+					}
+					else
+					{
+						result.m_sizes[1].m_isValid = true;
+						result.m_sizes[2].m_isValid = true;
+						result.m_sizes[3].m_isValid = true;
+						result.m_sizes[0].m_size.get_width() = sz2.get_width();
+						result.m_sizes[1].m_size.get_width() = sz2.get_width();
+						result.m_sizes[2].m_size = sz2;
+						result.m_sizes[3].m_size = sz2;
+					}
+				}
+			}
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(b.get_size());
-		aligned_reshape(m_alignment, sz, b, oldOrigin);
+		size sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
+		aligned_reshape(sz, b, oldOrigin);
 	}
 
 };
 
-class unconstrained_max_frame : public frame
+class unconstrained_max_frame : public aligned_frame_base
 {
-private:
-	alignment m_alignment;
-
 public:
-	unconstrained_max_frame(const rcref<cell>& r, const alignment& a = alignment::center())
-		: frame(r),
-		m_alignment(a)
-	{
-		if (m_alignment[dimension::horizontal] > 1.0)
-			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::vertical] > 1.0)
-			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
-			m_alignment[dimension::horizontal] = 0.0;
-		if (m_alignment[dimension::vertical] < 0.0)
-			m_alignment[dimension::vertical] = 0.0;
-	}
+	unconstrained_max_frame(const rcref<cell>& c, const alignment& a = alignment::center())
+		: aligned_frame_base(c, a)
+	{ }
 
 	virtual range get_range() const
 	{
@@ -1082,40 +887,79 @@ public:
 		return r;
 	}
 
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		double newProposed = frame::propose_length(d, proposed, rtnOtherRange);
-		if (newProposed < proposed)
-			newProposed = proposed;
-		rtnOtherRange.has_max() = false;
-		return newProposed;
-	}
-
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size sz = frame::propose_lengths(d, proposedSize);
-		if (sz.get_height() < proposedSize.get_height())
-			sz.get_height() = proposedSize.get_height();
-		if (sz.get_width() < proposedSize.get_width())
-			sz.get_width() = proposedSize.get_width();
-		return sz;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size sz = frame::propose_size(proposedSize);
-		if (sz.get_height() < proposedSize.get_height())
-			sz.get_height() = proposedSize.get_height();
-		if (sz.get_width() < proposedSize.get_width())
-			sz.get_width() = proposedSize.get_width();
-		return sz;
+		propose_size_result result;
+		if (r.is_empty())
+			result.set_empty();
+		else
+		{
+			result = frame::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+			size sz2 = r.limit(sz);
+			if (!result.m_sizes[3].m_isValid)
+			{
+				result.m_sizes[3].m_isValid = true;
+				if (result.m_sizes[2].m_isValid)
+				{
+					result.m_sizes[3].m_size.get_height() = sz2.get_height();
+					result.m_sizes[2].m_size.get_height() = sz2.get_height();
+					if (result.m_sizes[1].m_isValid)
+					{
+						result.m_sizes[0].m_isValid = true;
+						result.m_sizes[0].m_size = sz2;
+						result.m_sizes[1].m_size = sz2;
+						result.m_sizes[2].m_size.get_width() = sz2.get_width();
+						result.m_sizes[3].m_size.get_width() = sz2.get_width();
+					}
+					else
+					{
+						result.m_sizes[3].m_size.get_width() = result.m_sizes[2].m_size.get_width();
+						if (result.m_sizes[0].m_isValid)
+						{
+							result.m_sizes[1].m_isValid = true;
+							result.m_sizes[1].m_size.get_width() = result.m_sizes[0].m_size.get_width();
+							result.m_sizes[1].m_size.get_height() = sz2.get_height();
+							result.m_sizes[0].m_size.get_height() = sz2.get_height();
+						}
+					}
+				}
+				else
+				{
+					result.m_sizes[1].m_size.get_width() = sz2.get_width();
+					result.m_sizes[3].m_size.get_width() = sz2.get_width();
+					if (result.m_sizes[1].m_isValid)
+					{
+						result.m_sizes[3].m_size.get_height() = result.m_sizes[1].m_size.get_height();
+						if (result.m_sizes[0].m_isValid)
+						{
+							result.m_sizes[2].m_isValid = true;
+							result.m_sizes[2].m_size.get_height() = result.m_sizes[0].m_size.get_height();
+							result.m_sizes[2].m_size.get_width() = sz2.get_width();
+							result.m_sizes[0].m_size.get_width() = sz2.get_width();
+						}
+					}
+					else
+					{
+						result.m_sizes[0].m_isValid = true;
+						result.m_sizes[1].m_isValid = true;
+						result.m_sizes[2].m_isValid = true;
+						result.m_sizes[1].m_size = sz2;
+						result.m_sizes[2].m_size = sz2;
+						result.m_sizes[0].m_size.get_height() = sz2.get_height();
+						result.m_sizes[3].m_size.get_height() = sz2.get_height();
+					}
+				}
+			}
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz = frame::propose_size(b.get_size());
-		aligned_reshape(m_alignment, sz, b, oldOrigin);
+		size sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
+		aligned_reshape(sz, b, oldOrigin);
 	}
 };
 

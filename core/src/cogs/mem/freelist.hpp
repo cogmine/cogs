@@ -33,8 +33,8 @@ class default_allocator;
 ///
 /// @tparam T Type allocated by the freelist 
 /// @tparam allocator_type Type of allocator to use to allocate from if the freelist is empty.  Default: default_allocator
-/// @tparam num_preallocated Number of objects to prepopulate the freelist with.  Default: 0
-template <typename T, class allocator_type = default_allocator, size_t num_preallocated = 0>
+/// @tparam preallocated_count Number of objects to prepopulate the freelist with.  Default: 0
+template <typename T, class allocator_type = default_allocator, size_t preallocated_count = 0>
 class freelist
 {
 public:
@@ -57,7 +57,7 @@ private:
 
 	versioned_ptr<node_t> m_head;
 	alignas (atomic::get_alignment_v<size_t>) size_t m_curPos;
-	node_placement_t m_preallocated[num_preallocated];
+	node_placement_t m_preallocated[preallocated_count];
 
 public:
 	freelist()
@@ -76,7 +76,7 @@ public:
 		{
 			ptr<node_t> next = n->m_next;
 			n->get_contents()->~type();
-			if ((n < &(m_preallocated[0])) || (n >= &(m_preallocated[num_preallocated])))
+			if ((n < &(m_preallocated[0])) || (n >= &(m_preallocated[preallocated_count])))
 				m_allocator.deallocate(n);
 			n = next;
 		}
@@ -92,7 +92,7 @@ public:
 		}
 		else
 		{
-			if (m_curPos >= num_preallocated)
+			if (m_curPos >= preallocated_count)
 				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			else
 			{
@@ -124,7 +124,7 @@ public:
 			}
 
 			size_t oldPos = atomic::load(m_curPos);
-			if (oldPos >= num_preallocated)
+			if (oldPos >= preallocated_count)
 				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
 			else
 			{

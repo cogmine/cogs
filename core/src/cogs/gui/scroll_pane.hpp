@@ -140,71 +140,6 @@ private:
 		return get_scroll_bar_info(d).m_canAutoFade;
 	}
 
-	// Removes inactive scroll bars
-	size propose_inner(const size& proposedSize) const
-	{
-		size sz = proposedSize;
-		if (use_scroll_bar_auto_fade())
-			return sz;
-
-		if (m_hideInactiveScrollBar)
-		{
-			range contentRange = m_contentFrame->get_range();
-			size contentMins = contentRange.get_min();
-			for (;;)
-			{
-				const dimension d = dimension::horizontal; // Doesn't matter which, logic is symmetrical
-				double min = contentMins[d];
-				if (has_scroll_bar(d))
-				{
-					if (has_scroll_bar(!d))
-					{
-						if (contentRange.get_min(d) > 0)
-							if (contentRange.get_min(!d) > 0)
-								if ((sz[d] >= min) && (sz[!d] >= contentMins[!d])) // remove both scroll bars
-								{
-									if (contentRange.has_max(d) && contentRange.get_max(d) == contentMins[d])
-										sz[d] = contentMins[d];
-									if (contentRange.has_max(!d) && contentRange.get_max(!d) == contentMins[!d])
-										sz[!d] = contentMins[!d];
-									break;
-								}
-						min += get_scroll_bar_info(!d).m_scrollBar->get_const_cell().get_default_size()[d];
-					}
-
-					if (sz[d] >= min)
-					{
-						if (contentRange.has_max(!d))
-							sz[!d] = contentRange[!d].limit_max(sz[!d]);
-					}
-					else
-					{
-						double minWithScrollBar = m_calculatedRange.get_min(!d) + get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
-						if (sz[!d] < minWithScrollBar)
-							sz[!d] = minWithScrollBar;
-					}
-				}
-
-				if (has_scroll_bar(!d))
-				{
-					if (sz[!d] >= contentMins[!d])
-					{
-						if (contentRange.has_max(d))
-							sz[d] = contentRange[d].limit_max(sz[d]);
-					}
-					else
-					{
-						double minWithScrollBar = m_calculatedRange.get_min(d) + get_scroll_bar_info(!d).m_scrollBar->get_const_cell().get_default_size()[d];
-						if (sz[d] < minWithScrollBar)
-							sz[d] = minWithScrollBar;
-					}
-				}
-
-				break;
-			}
-		}
-		return sz;
-	}
 
 public:
 	// The behavior of scroll_pane varies depending on the input device.
@@ -373,20 +308,53 @@ public:
 		}
 	}
 
-	virtual double propose_length(dimension d, double proposed, geometry::linear::range& rtnOtherRange) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		return cell::propose_length(d, proposed, rtnOtherRange);
-	}
+		propose_size_result result;
+		range r2 = get_range() & r;
+		if (r2.is_empty())
+			result.set_empty();
+		else
+		{
+			size newSize = r2.limit(sz);
+			range contentRange = m_contentFrame->get_range();
+			constexpr dimension d = dimension::horizontal;
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		return propose_inner(cell::propose_lengths(d, proposedSize));
-	}
+			// If we are not hiding inactive scroll bars or are showing scroll bars over content (auto fade), use as is
+			if (!use_scroll_bar_auto_fade() && m_hideInactiveScrollBar)
+			{
+				if (has_scroll_bar(d))
+				{
+					if (contentRange.has_max(!d) && newSize[!d] > contentRange.get_max(!d) && newSize[d] >= contentRange.get_min(d))
+						newSize[!d] = contentRange.get_max(!d);
+				}
+				else
+				{
+					double min = contentRange.get_min(d);
+					if (newSize[!d] < contentRange.get_min(!d))
+						min += get_scroll_bar_info(!d).m_frame->get_fixed_size(d);
+					if (newSize[d] < min)
+						newSize[d] = min;
+				}
 
-	virtual size propose_size(const size& proposedSize) const
-	{
-		size sz = cell::propose_size(proposedSize);
-		return propose_inner(sz);
+				if (has_scroll_bar(!d))
+				{
+					if (contentRange.has_max(d) && newSize[d] > contentRange.get_max(d) && newSize[!d] >= contentRange.get_min(!d))
+						newSize[d] = contentRange.get_max(d);
+				}
+				else
+				{
+					double min = contentRange.get_min(!d);
+					if (newSize[d] < contentRange.get_min(d))
+						min += get_scroll_bar_info(d).m_frame->get_fixed_size(!d);
+					if (newSize[!d] < min)
+						newSize[!d] = min;
+				}
+			}
+			result.set(newSize);
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
@@ -511,7 +479,7 @@ public:
 			double hScrollBarHeight = get_scroll_bar_info(dimension::horizontal).m_frame->get_fixed_height();
 			get_scroll_bar_info(dimension::horizontal).m_frame->get_fixed_width() -= vScrollBarWidth;
 			get_scroll_bar_info(dimension::vertical).m_frame->get_fixed_height() -= hScrollBarHeight;
-			m_cornerFrame->get_fixed_bounds() = bounds(
+			m_cornerFrame->get_bounds() = bounds(
 				point(
 					get_scroll_bar_info(dimension::vertical).m_frame->get_position().get_x(),
 					get_scroll_bar_info(dimension::horizontal).m_frame->get_position().get_y()),
@@ -520,9 +488,9 @@ public:
 					hScrollBarHeight));
 		}
 
-		contentBounds.get_size() = m_contentFrame->propose_size(contentBounds.get_size());
-		m_contentFrame->get_fixed_bounds() = contentBounds;
-		m_clippingFrame->get_fixed_bounds() = contentBounds & visibleBounds; // clip to smaller of content and visible bounds
+		contentBounds.get_size() = m_contentFrame->propose_size(contentBounds.get_size()).find_first_valid_size(m_contentFrame->get_primary_flow_dimension());;
+		m_contentFrame->get_bounds() = contentBounds;
+		m_clippingFrame->get_bounds() = contentBounds & visibleBounds; // clip to smaller of content and visible bounds
 
 		for (int i = 0; i < 2; i++)
 		{
@@ -536,7 +504,7 @@ public:
 		if (m_cornerPane->is_hidden() == showBothScrollBars)
 			m_cornerPane->show_or_hide(showBothScrollBars);
 
-		bool visible = (m_clippingFrame->get_fixed_bounds().get_width() != 0 && m_clippingFrame->get_fixed_bounds().get_height() != 0);
+		bool visible = (m_clippingFrame->get_bounds().get_width() != 0 && m_clippingFrame->get_bounds().get_height() != 0);
 		if (m_clippingPane->is_hidden() == visible)
 			m_clippingPane->show_or_hide(visible);
 

@@ -370,7 +370,7 @@ public:
 
 				calculate_range();
 
-				size newSize = propose_size(currentSize);
+				size newSize = propose_size(currentSize).find_first_valid_size(get_primary_flow_dimension());
 				SIZE borderSize = get_unmaximized_border_SIZE(dpi);
 				SIZE newSIZE = get_device_context().make_SIZE(newSize);
 				newSIZE.cx += borderSize.cx;
@@ -455,7 +455,7 @@ public:
 				RECT r;
 				GetWindowRect(get_HWND(), &r);
 				SIZE sz = { r.right - r.left, r.bottom - r.top };
-				if (newSizeWithoutBorder != sz)
+				if (newSizeWithBorder != sz)
 				{
 					for (;;)
 					{
@@ -463,17 +463,17 @@ public:
 						{
 							if (!changedHeight)
 							{
-								m_pendingSize = propose_lengths(dimension::horizontal, m_pendingSize);
+								m_pendingSize = propose_size(m_pendingSize, dimension::horizontal).find_first_valid_size(dimension::horizontal);
 								break;
 							}
 						}
 						else if (changedHeight)
 						{
-							m_pendingSize = propose_lengths(dimension::vertical, m_pendingSize);
+							m_pendingSize = propose_size(m_pendingSize, dimension::vertical).find_first_valid_size(dimension::vertical);
 							break;
 						}
 
-						m_pendingSize = propose_size(m_pendingSize);
+						m_pendingSize = propose_size(m_pendingSize).find_first_valid_size(get_primary_flow_dimension());
 						break;
 					}
 				}
@@ -558,7 +558,7 @@ public:
 						}
 					}
 					size requestedClientSize = get_device_context().make_size(requestedClientSIZE);
-					proposedSize = propose_size(requestedClientSize);
+					proposedSize = propose_size(requestedClientSize).find_first_valid_size(get_primary_flow_dimension());
 					break;
 				}
 
@@ -629,37 +629,22 @@ public:
 
 				if (r.has_max_width() || r.has_max_height())
 				{
-					// Due to a DPI awareness bug (which I filed here: https://aka.ms/AA5zw3c ),
+					// Due to a Windows bug with DPI awareness bug,
 					// We never touch ptMaxSize, only ptMaxTrackSize.
-					// If being called in response to an even that might result in maximizing,
+					// If being called in response to an event that might result in maximizing,
 					// we set ptMaxTrackSize to the maximized size.  Otherwise, we set ptMaxTrackSize
 					// to represent separate X and Y maximimum.
 					POINT maxTrackSize = minMaxInfo->ptMaxTrackSize;
 					if (m_processingZoomRequest)
 					{
-						if (r.has_max_width() && r.has_max_height())
-						{
-							size proposedSize = propose_size(r.get_max());
-							SIZE proposedSIZE = get_device_context().make_SIZE(proposedSize);
-							maxTrackSize.x = proposedSIZE.cx + borderSize.cx;
-							maxTrackSize.y = proposedSIZE.cy + borderSize.cy;
-						}
-						else if (r.has_max_width())
-						{
-							geometry::linear::range otherRange;
-							double maxSizeX = propose_length(dimension::horizontal, r.get_max_width(), otherRange);
-							maxTrackSize.x = get_device_context().make_SIZE(maxSizeX) + borderSize.cx;
-							if (otherRange.has_max())
-								maxTrackSize.y = get_device_context().make_SIZE(otherRange.get_max()) + borderSize.cy;
-						}
-						else // if (r.has_max_height())
-						{
-							geometry::linear::range otherRange;
-							double maxSizeY = propose_length(dimension::vertical, r.get_max_height(), otherRange);
-							maxTrackSize.y = get_device_context().make_SIZE(maxSizeY) + borderSize.cy;
-							if (otherRange.has_max())
-								maxTrackSize.x = get_device_context().make_SIZE(otherRange.get_max()) + borderSize.cx;
-						}
+						MONITORINFO mi;
+						mi.cbSize = sizeof(mi);
+						GetMonitorInfo(MonitorFromWindow(get_HWND(), MONITOR_DEFAULTTONEAREST), &mi);
+						size proposedSize = get_device_context().make_size(mi.rcWork);
+						proposedSize = propose_size(proposedSize).find_first_valid_size(get_primary_flow_dimension());
+						SIZE proposedSIZE = get_device_context().make_SIZE(proposedSize);
+						maxTrackSize.x = proposedSIZE.cx + borderSize.cx;
+						maxTrackSize.y = proposedSIZE.cy + borderSize.cy;
 					}
 					else
 					{

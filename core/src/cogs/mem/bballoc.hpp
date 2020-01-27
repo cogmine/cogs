@@ -126,7 +126,7 @@ private:
 
 	static constexpr size_t last_index_div = ((max_block_size + (overhead * 2)) - 1) / (smallest_block_size + (overhead * 2));
 	static constexpr size_t last_index = !last_index_div ? 0 : (const_bit_scan_reverse<last_index_div>::value + 1);
-	static constexpr size_t num_indexes = last_index + 1;
+	static constexpr size_t index_count = last_index + 1;
 	static constexpr size_t largest_block_size = (((size_t)(1 << last_index))*(smallest_block_size + (overhead * 2))) - (overhead * 2);
 
 	static size_t SizeToIndex(size_t requestSize)
@@ -465,11 +465,11 @@ private:
 		link* peek() const volatile { return m_head.get_ptr(); }
 	};
 
-	free_list m_freeLists[num_indexes];
+	free_list m_freeLists[index_count];
 
 	void init()
 	{
-		for (size_t i = 0; i < num_indexes; i++)
+		for (size_t i = 0; i < index_count; i++)
 			m_freeLists[i].get_allocator() = this;
 	}
 
@@ -509,7 +509,7 @@ public:
 				return nullptr; // TBD ?
 			}
 			link* linkPtr = (link*)(block.get_ptr());
-			linkPtr->set_selector(num_indexes, false); // Selector of m_numIndexes means a large block
+			linkPtr->set_selector(index_count, false); // Selector of index_count means a large block
 			return linkPtr->get_block();
 		}
 
@@ -567,10 +567,10 @@ public:
 		link* l = link::from_block(p.get_ptr());
 		size_t i = l->get_selector();
 
-		COGS_ASSERT(i <= num_indexes);
+		COGS_ASSERT(i <= index_count);
 		COGS_ASSERT(l->m_prev.get_mark() == allocated_link_state);
 
-		if (i == num_indexes)
+		if (i == index_count)
 			get_large_block_allocator().deallocate((void*)l);
 		else
 			m_freeLists[i].insert(*l);
@@ -584,7 +584,7 @@ public:
 		link* l = link::from_block(p.get_ptr());
 		size_t i = l->get_selector();
 
-		if (i == num_indexes)
+		if (i == index_count)
 			return get_large_block_allocator().try_reallocate(l, newSize + overhead);
 		return (newSize <= IndexToSize(i));
 	}
@@ -593,7 +593,7 @@ public:
 	{
 		link* l = link::from_block(p.get_ptr());
 		size_t i = l->get_selector();
-		if (i == num_indexes)
+		if (i == index_count)
 			return get_large_block_allocator().get_allocation_size(l, align, knownSize + overhead) - overhead;
 		return IndexToSize(i);
 	}

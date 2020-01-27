@@ -9368,7 +9368,7 @@ inline auto fixed_integer_extended<has_sign, bits>::divide_whole_and_modulo(cons
 	fixed_integer<true, bits + 1> divided;
 	this_t remainder(*this);
 	remainder.m_contents->divide_whole_and_assign_modulo(*(src.m_contents), &*(divided.m_contents));
-	return make_pair(divided, remainder);
+	return std::make_pair(divided, remainder);
 }
 
 template <bool has_sign, size_t bits>
@@ -9377,7 +9377,7 @@ inline auto fixed_integer_extended<has_sign, bits>::divide_whole_and_modulo(cons
 	fixed_integer<true, bits + 1> divided;
 	this_t remainder(*this);
 	remainder.m_contents->divide_whole_and_assign_modulo(*(src.m_contents), &*(divided.m_contents));
-	return make_pair(divided, remainder);
+	return std::make_pair(divided, remainder);
 }
 
 template <bool has_sign, size_t bits>

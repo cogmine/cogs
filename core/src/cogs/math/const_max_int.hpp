@@ -36,10 +36,10 @@ private:
 		static constexpr int_t value = prev;
 	};
 
-	static constexpr int_t num_positive_signed_bits = (sizeof(int_t)*8)-1;
+	static constexpr int_t positive_signed_bit_count = (sizeof(int_t)*8)-1;
 
 public:
-	static constexpr int_t value = has_sign ? shift_and_inc<0, num_positive_signed_bits>::value : (int_t)~(int_t)0;
+	static constexpr int_t value = has_sign ? shift_and_inc<0, positive_signed_bit_count>::value : (int_t)~(int_t)0;
 };
 
 template <typename int_t> inline constexpr int_t const_max_int_v = const_max_int<int_t>::value;

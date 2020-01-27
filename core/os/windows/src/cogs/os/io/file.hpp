@@ -1036,7 +1036,7 @@
 //
 //		void read_done()
 //		{
-//			size_t n = m_overlapped->m_numTransferred;
+//			size_t n = m_overlapped->m_transferCount;
 //			m_currentBuffer.truncate_to(n);
 //			get_buffer().append(m_currentBuffer);
 //			complete();
@@ -1097,7 +1097,7 @@
 //
 //		void write_done()
 //		{
-//			size_t n = m_overlapped->m_numTransferred;
+//			size_t n = m_overlapped->m_transferCount;
 //			if (!n)
 //			{
 //				get_buffer().prepend(m_currentBuffer);

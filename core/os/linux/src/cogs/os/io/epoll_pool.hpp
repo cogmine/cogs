@@ -41,7 +41,7 @@ private:
 	public:
 		rcref<auto_fd> m_fd;
 		int m_shutdownSocket[2];
-		size_t m_numThreadsLeft;
+		size_t m_remainingThreads;
 		volatile map_t m_tasks;
 		weak_rcptr<epoll_pool> m_epollPool;
 
@@ -67,7 +67,7 @@ private:
 					{
 						close(m_shutdownSocket[0]);
 						close(m_shutdownSocket[1]);
-						if (--m_numThreadsLeft > 0) // if more threads waiting, signal another
+						if (--m_remainingThreads > 0) // if more threads waiting, signal another
 						{
 							i = pipe(m_shutdownSocket); // Use a pipe to tell epoll threads to shut down
 							COGS_ASSERT(i != -1);
@@ -99,9 +99,9 @@ private:
 	void start()
 	{
 		m_pool.start();
-		size_t numThreads = m_pool.get_num_threads();
-		m_func->m_numThreadsLeft = numThreads;
-		m_pool.dispatch_parallel(numThreads, [r{ m_func.dereference() }]()
+		size_t threadCount = m_pool.get_thread_count();
+		m_func->m_remainingThreads = threadCount;
+		m_pool.dispatch_parallel(threadCount, [r{ m_func.dereference() }]()
 		{
 			r->run();
 		});

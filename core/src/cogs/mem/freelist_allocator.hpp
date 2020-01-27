@@ -32,8 +32,8 @@ namespace cogs {
 /// @tparam block_size The block size of allocations in the free-list
 /// @tparam alignment The alignment of allocations in the free-list
 /// @tparam allocator_type Type of allocator to use to allocate from if the freelist is empty.  Default: default_allocator
-/// @tparam num_preallocated Number of objects to prepopulate the free-list with.  Default: 0
-template <size_t block_size, size_t alignment, class allocator_type = default_allocator, size_t num_preallocated = 0>
+/// @tparam preallocated_count Number of objects to prepopulate the free-list with.  Default: 0
+template <size_t block_size, size_t alignment, class allocator_type = default_allocator, size_t preallocated_count = 0>
 class freelist_allocator 
 {
 private:
@@ -47,7 +47,7 @@ private:
 
 	volatile versioned_ptr<node_t> m_head;
 	alignas (atomic::get_alignment_v<size_t>) volatile size_t m_curPos;
-	node_t m_preallocated[num_preallocated];
+	node_t m_preallocated[preallocated_count];
 
 public:
 	typedef ptr<void> ref_t;
@@ -69,7 +69,7 @@ public:
 		while (!!n)
 		{
 			ptr<node_t> next = n->get_second();
-			if ((n < &(m_preallocated[0])) || (n >= &(m_preallocated[num_preallocated])))
+			if ((n < &(m_preallocated[0])) || (n >= &(m_preallocated[preallocated_count])))
 				m_allocator.deallocate(n);
 			n = next;
 		}
@@ -93,7 +93,7 @@ public:
 		size_t oldPos = atomic::load(m_curPos);
 		for (;;)
 		{
-			if (oldPos < num_preallocated)
+			if (oldPos < preallocated_count)
 			{
 				if (!atomic::compare_exchange(m_curPos, oldPos + 1, oldPos, oldPos))
 					continue;

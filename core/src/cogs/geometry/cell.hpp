@@ -10,6 +10,8 @@
 #define COGS_HEADER_GEOMETRY_CELL
 
 
+#include <optional>
+
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/string.hpp"
 #include "cogs/geometry/point.hpp"
@@ -50,38 +52,143 @@ public:
 
 	virtual bool is_frame() const { return false; } // used to support nesting frames
 
-
-	// propose functions propose a size for 'enclosing area' of the cell.
-	// If a frame does not impose constraints on its enclosure, it should return whatever proposed.
-	// The base cell will constrain the 'enclosure area' by default.
-
-	virtual double propose_length(dimension d, double proposed, linear::range& rtnOtherRange) const
+	// Using a size_mode other than size_mode::both in calls to propose_size() allows
+	// implementions to avoid unnecessary work to determine values that will not be used by the caller.
+	// Because determining the size of a cell may require requesting all possible sizes to find a valid one,
+	// use of a size_mode other than size_mode::both is generally isolated to parent cell sizing of multiple child cells.
+	enum class size_mode : int
 	{
-		double rtn = proposed;
-		range planarRange = get_range();
-		rtnOtherRange = planarRange[!d];
-		const linear::range& linearRange = planarRange[d];
-		if (rtn < linearRange.get_min())
-			rtn = linearRange.get_min();
-		else if (linearRange.has_max() && linearRange.get_max() < rtn)
-			rtn = linearRange.get_max();
-		return rtn;
+		// Only the lesser value is needed.  A valid greater value may not be returned, even if possible.
+		lesser = -1,
+
+		// Both lesser and greater values should be returned, if possible.
+		both = 0,
+
+		// Only the greater value is needed.  A valid lesser value may not be returned, even if possible.
+		greater = 1
+	};
+	
+	// When proposing a size, 4 values are returned.
+	//
+	// If a length cannot be satisfied as proposed, lesser and greater values are returned.
+	// If a lesser length is not possible, the lesser value will be omitted/invalid.
+	// If a greater length is not possible, the greater value will be omitted/invalid.
+	// If the value can be matched exactly, all lesser and greater values will be set/valid and equal to the proposed value.
+	// If the call is incapable of being successfully sized to any size, no values will be set/valid.
+
+	struct proposed_size
+	{
+		size m_size;
+
+		// False if this index cannot be matched due to a minimum or maximum being imposed.
+		// For example, if the requested size is below minimums for both height/width, only the greater/greater position will be valid,
+		// and set to minimum lengths.
+		bool m_isValid;
+
+		void set(const size& sz)
+		{
+			m_size = sz;
+			m_isValid = true;
+		}
+	};
+
+	struct propose_size_result
+	{
+		// Sizes are in the following order:
+		//     [<=, <=] - lesser or equal width and lesser or equal height
+		//     [<=, >=] - lesser or equal width and greater or equal height
+		//     [>=, <=] - greater or equal width and lesser or equal height
+		//     [>=, >=] - greater or equal width and greater or equal height
+		proposed_size m_sizes[4];
+
+		static int get_index(bool greaterWidth, bool greaterHeight) { return greaterWidth ? (greaterHeight ? 3 : 2) : (greaterHeight ? 1 : 0); }
+
+		size& get_size(bool greaterWidth, bool greaterHeight) { return m_sizes[get_index(greaterWidth, greaterHeight)].m_size; }
+		const size& get_size(bool greaterWidth, bool greaterHeight) const { return m_sizes[get_index(greaterWidth, greaterHeight)].m_size; }
+
+		void set(const size& sz)
+		{
+			m_sizes[0].set(sz);
+			m_sizes[1].set(sz);
+			m_sizes[2].set(sz);
+			m_sizes[3].set(sz);
+		}
+
+		enum class first_valid_size_order : int
+		{
+			order_0_1_2_3 = 0x0123,
+			order_0_1_3_2 = 0x0132,
+			order_0_2_1_3 = 0x0213,
+			order_0_2_3_1 = 0x0231,
+			order_0_3_1_2 = 0x0312,
+			order_0_3_2_1 = 0x0321,
+			order_1_0_2_3 = 0x1023,
+			order_1_0_3_2 = 0x1032,
+			order_1_2_0_3 = 0x1203,
+			order_1_2_3_0 = 0x1230,
+			order_1_3_0_2 = 0x1302,
+			order_1_3_2_0 = 0x1320,
+			order_2_0_1_3 = 0x2013,
+			order_2_0_3_1 = 0x2031,
+			order_2_1_0_3 = 0x2103,
+			order_2_1_3_0 = 0x2130,
+			order_2_3_0_1 = 0x2301,
+			order_2_3_1_0 = 0x2310,
+			order_3_0_1_2 = 0x3012,
+			order_3_0_2_1 = 0x3021,
+			order_3_1_0_2 = 0x3102,
+			order_3_1_2_0 = 0x3120,
+			order_3_2_0_1 = 0x3201,
+			order_3_2_1_0 = 0x3210
+		};
+
+		size find_first_valid_size(first_valid_size_order order = first_valid_size_order::order_0_1_2_3)
+		{
+			for (int i = 0; i < 16; i += 4)
+			{
+				int i2 = ((int)order >> i) & 0x0F;
+				if (m_sizes[i2].m_isValid)
+					return m_sizes[i2].m_size;
+			}
+			return size(0, 0);
+		}
+
+		size find_first_valid_size(dimension primaryDimension, bool preferGreater = false)
+		{
+			first_valid_size_order order = (primaryDimension == dimension::horizontal)
+				? (preferGreater ? first_valid_size_order::order_3_2_1_0 : first_valid_size_order::order_0_1_2_3)
+				: (preferGreater ? first_valid_size_order::order_3_1_2_0 : first_valid_size_order::order_0_2_1_3);
+			return find_first_valid_size(order);
+		}
+
+		bool is_empty() const { return !m_sizes[0].m_isValid && !m_sizes[1].m_isValid && !m_sizes[2].m_isValid && !m_sizes[3].m_isValid; }
+		void set_empty() { m_sizes[0].m_isValid = m_sizes[1].m_isValid = m_sizes[2].m_isValid = m_sizes[3].m_isValid = false; }
+
+		void make_relative(const size& sz)
+		{
+			m_sizes[0].m_isValid &= m_sizes[0].m_size.get_width() <= sz.get_width() && m_sizes[0].m_size.get_height() <= sz.get_height();
+			m_sizes[1].m_isValid &= m_sizes[1].m_size.get_width() <= sz.get_width() && m_sizes[1].m_size.get_height() <= sz.get_height();
+			m_sizes[2].m_isValid &= m_sizes[2].m_size.get_width() >= sz.get_width() && m_sizes[2].m_size.get_height() >= sz.get_height();
+			m_sizes[3].m_isValid &= m_sizes[3].m_size.get_width() >= sz.get_width() && m_sizes[3].m_size.get_height() >= sz.get_height();
+		}
+
+	};
+
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	{
+		propose_size_result result;
+		range r2 = get_range() & r;
+		if (r2.is_empty())
+			result.set_empty();
+		else
+		{
+			size sz2 = r2.limit(sz);
+			result.set(sz2);
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
-	{
-		size newSize;
-		linear::range otherRange;
-		newSize[d] = cell::propose_length(d, proposedSize[d], otherRange);
-		newSize[!d] = otherRange.limit(proposedSize[!d]);
-		return newSize;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		dimension d = get_primary_flow_dimension();
-		return cell::propose_lengths(d, proposedSize);
-	}
 
 protected:
 	virtual void calculate_range() { }
@@ -106,7 +213,7 @@ protected:
 	//		the child pane in the same location in a grandparent pane, as the child pane position refers only the the coordinate
 	//		system of the immediate parent.  This is still processed as a reshape, in case parent coordinate system changes are relevant.
 	//		This is essentially a notification that the coordinate system changed out from under it.  Contents may need to be moved,
-	//		but it may not be necessary to redraw them.  
+	//		but it might not be necessary to redraw them.  
 
 	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{

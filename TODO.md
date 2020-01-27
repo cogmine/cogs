@@ -1,6 +1,7 @@
 ## TODO
 
 * Move these TODO items to GitHub issues.
+* Add optional internal N elements for vector (Short vector will deep copy. Does not require dynamic allocation. Applies to string, buffer, composite_vector, composite_string, compositive_buffer, dynamic_integer)
 * exchange/compare_exchange overloads with move semantics
 * Drag and flick scrolling
 * Single/static dependency property for preferred scroll bar style
@@ -20,7 +21,6 @@
 * Rework dependency_property to use tasks for async set()
 * Implement more UI properties as dependency_property's
 * Rework serial dispatcher (currently embedded in pane) to use task completion to kick off next task, instead of call to serial_resume().
-* Add internal single elements for vector<> (so single element vector does not require dynamic allocation.  Useful to collapse single-element composite_single, composite_vector, compositive_buffer)
 * Get ANSI terminal w/telnet up and running again
 * Add gui::stack_panel
 * Add/rework gui::wrap_list

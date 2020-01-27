@@ -929,26 +929,33 @@ protected:
 		COGS_ASSERT(!m_installing);
 		COGS_ASSERT(!m_uninstalling);
 		m_recomposing = false; // only works to guard redundant calls to recompose() while in queue
-		cell& r = get_outermost_cell();
+		cell& c = get_outermost_cell();
 		rcptr<pane> parent = m_parent;
-		if (!parent)
+		for (;;)
 		{
-			m_recomposeDescendants = recomposeDescendants;
-			cell::calculate_range(r);
-			m_recomposeDescendants = true;
-			cell::reshape(r, r.propose_size(get_size()));
-		}
-		else
-		{
-			range oldParentRange = r.get_range();
-			m_recomposeDescendants = recomposeDescendants;
-			cell::calculate_range(r);
-			m_recomposeDescendants = true;
-			range newParentRange = r.get_range();
-			if (newParentRange == oldParentRange) // if parent would be unaffected
-				cell::reshape(r, r.propose_size(get_size()));
+			if (!parent)
+			{
+				m_recomposeDescendants = recomposeDescendants;
+				cell::calculate_range(c);
+				m_recomposeDescendants = true;
+			}
 			else
-				parent->recompose();
+			{
+				range oldParentRange = c.get_range();
+				size oldDefaultSize = c.get_default_size();
+				m_recomposeDescendants = recomposeDescendants;
+				cell::calculate_range(c);
+				m_recomposeDescendants = true;
+				range newParentRange = c.get_range();
+				size newDefaultSize = c.get_default_size();
+				if (newParentRange != oldParentRange || newDefaultSize != oldDefaultSize) // if parent would be unaffected
+				{
+					parent->recompose();
+					break;
+				}
+			}
+			cell::reshape(c, c.propose_size(get_size()).find_first_valid_size(get_primary_flow_dimension()));
+			break;
 		}
 	}
 
@@ -1126,11 +1133,11 @@ protected:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			cell& r = (*itor)->get_outermost_cell();
+			cell& c = (*itor)->get_outermost_cell();
 			if (m_recomposeDescendants)
-				cell::calculate_range(r);
-			m_currentDefaultSize |= r.get_default_size();
-			m_currentRange &= r.get_range();
+				cell::calculate_range(c);
+			m_currentDefaultSize |= c.get_default_size();
+			m_currentRange &= c.get_range();
 			++itor;
 		}
 
@@ -1729,8 +1736,8 @@ protected:
 
 	virtual void reshape_top()
 	{
-		cell& r = get_outermost_cell();
-		cell::reshape(r, r.get_default_size());
+		cell& c = get_outermost_cell();
+		cell::reshape(c, c.get_default_size());
 	}
 
 private:
@@ -2250,97 +2257,172 @@ public:
 	virtual range get_range() const { return m_currentRange; }
 	virtual size get_default_size() const { return m_currentDefaultSize; }
 
-	virtual size propose_lengths(dimension d, const size& proposedSize) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
 		// Since the default behavior is to constrain the parent,
 		// we need to give children a chance to consider the proposed size.
-		// There is no need to limit to m_currentRange, as it's solely based on child ranges
-		size currentProposed = proposedSize;
-		container_dlist<rcref<pane> >::iterator itorToSkip;
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-		while (!!itor)
+		if (!m_children.get_first())
+			return cell::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+
+		propose_size_result result;
+		result.set_empty();
+		range r2 = get_range() & r;
+		if (!r2.is_empty())
 		{
-			if (itor != itorToSkip)
+			struct sizing_state_per_index
 			{
-				size newProposed = (*itor)->get_outermost_cell().propose_lengths(d, currentProposed);
-				if (currentProposed != newProposed) // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
-				{
-					if (!newProposed.get_height() || !newProposed.get_width())
-						break; // give up
-					currentProposed = newProposed;
-					itorToSkip = itor;
-					itor = m_children.get_first();
-					continue; // skip the ++itor
-				}
+				bool m_isNeeded;
+				bool m_isAsProposed;
+			};
+
+			struct sizing_state
+			{
+				size m_size;
+				sizing_state_per_index m_perIndex[4];
+				int m_indexCount;
+			};
+
+			sizing_state sizingStates[4];
+			int numSizingStates = 1;
+			sizingStates[0].m_size = sz;
+			sizingStates[0].m_perIndex[0].m_isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::greater;
+			sizingStates[0].m_perIndex[1].m_isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::lesser;
+			sizingStates[0].m_perIndex[2].m_isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::greater;
+			sizingStates[0].m_perIndex[3].m_isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::lesser;
+			sizingStates[0].m_indexCount = 0;
+			for (int i = 0; i < 4; i++)
+			{
+				if (sizingStates[0].m_perIndex[i].m_isNeeded)
+					sizingStates[0].m_indexCount++;
 			}
-			++itor;
-		}
 
-		return currentProposed;
-	}
-
-	virtual size propose_size(const size& proposedSize) const
-	{
-		// Since the default behavior is to constrain the parent,
-		// we need to give children a chance to consider the proposed size.
-		// There is no need to limit to m_currentRange, as it's solely based on child ranges
-		size currentProposed = proposedSize;
-		container_dlist<rcref<pane> >::iterator itorToSkip;
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-		while (!!itor)
-		{
-			if (itor != itorToSkip)
+			int sizesIndex = 0;
+			while (sizesIndex < numSizingStates)
 			{
-				size newProposed = (*itor)->get_outermost_cell().propose_size(currentProposed);
-				if (currentProposed != newProposed) // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
+				propose_size_result childResult;
+				sizing_state& sizingState = sizingStates[sizesIndex];
+				size currentProposed = sizingState.m_size;
+
+				horizontalMode =
+					(!sizingState.m_perIndex[0].m_isNeeded && !sizingState.m_perIndex[1].m_isNeeded)
+					? size_mode::greater
+					: ((!sizingState.m_perIndex[2].m_isNeeded && !sizingState.m_perIndex[3].m_isNeeded)
+						? size_mode::lesser
+						: size_mode::both);
+
+				verticalMode =
+					(!sizingState.m_perIndex[0].m_isNeeded && !sizingState.m_perIndex[2].m_isNeeded)
+					? size_mode::greater
+					: ((!sizingState.m_perIndex[1].m_isNeeded && !sizingState.m_perIndex[3].m_isNeeded)
+						? size_mode::lesser
+						: size_mode::both);
+
+				container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+				container_dlist<rcref<pane> >::iterator itorToSkip;
+				while (!!itor)
 				{
-					if (!newProposed.get_height() || !newProposed.get_width())
-						break; // give up
-					currentProposed = newProposed;
-					itorToSkip = itor;
-					itor = m_children.get_first();
-					continue; // skip the ++itor
-				}
-			}
-			++itor;
-		}
-
-		return currentProposed;
-	}
-
-	virtual double propose_length(dimension d, double proposed, range::linear_t& rtnOtherRange) const
-	{
-		double rtn = proposed;
-		rtnOtherRange.clear();
-
-		double currentProposed = proposed;
-		container_dlist<rcref<pane> >::iterator itorToSkip;
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-		while (!!itor)
-		{
-			if (itor != itorToSkip)
-			{
-				range::linear_t newOtherRange;
-				rtn = (*itor)->get_outermost_cell().propose_length(d, currentProposed, newOtherRange);
-				if (rtn == currentProposed)
-					rtnOtherRange &= newOtherRange;
-				else // If any subframe doesn't like our size, we need to RE propose the new size to all subframes.
-				{
-					if (!rtn)
-					{ // give up
-						rtnOtherRange.set_empty();
-						break;
+					if (itor != itorToSkip)
+					{
+						childResult = (*itor)->get_outermost_cell().propose_size(currentProposed, resizeDimension, r2, horizontalMode, verticalMode);
+						int asProposedIndex;
+						int foundIndex = -1;
+						bool resetScan = false;
+						bool isAnyAsProposed = false;
+						bool isAllSame = true;
+						for (int i = 0; i < 4; i++)
+						{
+							sizing_state_per_index& indexInfo = sizingState.m_perIndex[i];
+							if (indexInfo.m_isNeeded)
+							{
+								proposed_size& proposedSize = childResult.m_sizes[i];
+								if (!proposedSize.m_isValid)
+								{
+									if (!--sizingState.m_indexCount)
+										break;
+									continue;
+								}
+								bool b = proposedSize.m_size == currentProposed;
+								if (b)
+									asProposedIndex = i;
+								indexInfo.m_isAsProposed = b;
+								isAnyAsProposed |= b;
+								if (foundIndex == -1)
+									foundIndex = i;
+								else
+									isAllSame &= proposedSize.m_size == childResult.m_sizes[foundIndex].m_size;
+							}
+						}
+						if (sizingState.m_indexCount == 0)
+							break;
+						if (isAllSame)
+							resetScan = !sizingState.m_perIndex[foundIndex].m_isAsProposed;
+						else
+						{
+							for (int i = 0; i < 4; i++)
+							{
+								sizing_state_per_index& indexInfo = sizingState.m_perIndex[i];
+								if (indexInfo.m_isNeeded && !indexInfo.m_isAsProposed)
+								{
+									if (!isAnyAsProposed)
+									{
+										resetScan = true;
+										foundIndex = i;
+										isAnyAsProposed = true;
+									}
+									else
+									{
+										// Create a new context for this
+										sizing_state& sizingState2 = sizingStates[numSizingStates];
+										++numSizingStates;
+										sizingState2.m_indexCount = 1;
+										sizingState2.m_size = childResult.m_sizes[i].m_size;
+										sizingState2.m_perIndex[3].m_isNeeded = sizingState2.m_perIndex[2].m_isNeeded = sizingState2.m_perIndex[1].m_isNeeded = sizingState2.m_perIndex[0].m_isNeeded = false;
+										sizingState2.m_perIndex[i].m_isNeeded = true;
+										// If any indexes ahead have the same value, move them also
+										for (int j = i + 1; j < 4; j++)
+										{
+											bool& isNeeded = sizingState.m_perIndex[j].m_isNeeded;
+											if (isNeeded && sizingState2.m_size == childResult.m_sizes[j].m_size)
+											{
+												isNeeded = false;
+												sizingState.m_indexCount--; // Will not hit 0 here, due to isAnyAsProposed
+												sizingState2.m_perIndex[j].m_isNeeded = true;
+												sizingState2.m_indexCount++;
+											}
+										}
+									}
+								}
+							}
+						}
+						if (resetScan)
+						{
+							currentProposed = childResult.m_sizes[foundIndex].m_size;
+							itorToSkip = itor;
+							itor = m_children.get_first();
+							continue;
+						}
 					}
-					rtnOtherRange.clear(); // clean rtnOtherRange and start over
-					itorToSkip = itor;
-					itor = m_children.get_first();
-					continue; // skip the ++itor
+					++itor;
+					//continue;
 				}
-			}
-			++itor;
-		}
 
-		return rtn;
+				if (sizingState.m_indexCount != 0)
+				{
+					if (sizingState.m_perIndex[0].m_isNeeded)
+						result.m_sizes[0].set(currentProposed);
+					if (sizingState.m_perIndex[1].m_isNeeded)
+						result.m_sizes[1].set(currentProposed);
+					if (sizingState.m_perIndex[2].m_isNeeded)
+						result.m_sizes[2].set(currentProposed);
+					if (sizingState.m_perIndex[3].m_isNeeded)
+						result.m_sizes[3].set(currentProposed);
+				}
+
+				sizesIndex++;
+			}
+			result.make_relative(sz);
+		}
+		return result;
 	}
 
 	const rcptr<frame>& get_outermost_frame() const { return m_frame; } // will return null if not nested in a parent frame

@@ -546,7 +546,7 @@ protected:
 
 	struct TaskState
 	{
-		alignas (atomic::get_alignment_v<size_t>) size_t m_numWaiting;
+		alignas (atomic::get_alignment_v<size_t>) size_t m_waitingCount;
 		alignas (atomic::get_alignment_v<os::semaphore*>) os::semaphore* m_osSemaphore;
 
 		// 0 = initial state, 1 = nextTask deployed, 2 = cancelled, 3 = invoked
@@ -589,7 +589,7 @@ protected:
 
 	~signallable_task_base()
 	{
-		COGS_ASSERT(!m_taskState.m_numWaiting); // Should not be possible to destruct when some threads still in timed_wait().
+		COGS_ASSERT(!m_taskState.m_waitingCount); // Should not be possible to destruct when some threads still in timed_wait().
 		ptr<os::semaphore> p = m_taskState.m_osSemaphore;
 		COGS_ASSERT(!p.get_unmarked()); // Should be no semaphore
 	}
@@ -605,8 +605,8 @@ protected:
 		ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
 		if (!!osSemaphore)
 		{
-			COGS_ASSERT(oldTaskState.m_numWaiting > 0);
-			osSemaphore->release(oldTaskState.m_numWaiting);
+			COGS_ASSERT(oldTaskState.m_waitingCount > 0);
+			osSemaphore->release(oldTaskState.m_waitingCount);
 		}
 	}
 
@@ -618,7 +618,7 @@ protected:
 			if (oldTaskState.get_state() >= 2)
 				return false;
 			ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
-			TaskState newTaskState{ oldTaskState.m_numWaiting, osSemaphore.get_marked(newState) };
+			TaskState newTaskState{ oldTaskState.m_waitingCount, osSemaphore.get_marked(newState) };
 			if (atomic::compare_exchange(m_taskState, newTaskState, oldTaskState, oldTaskState))
 				return true;
 			//continue;
@@ -686,7 +686,7 @@ public:
 			}
 			bool useCachedOsSemaphore = false;
 			TaskState newTaskState;
-			newTaskState.m_numWaiting = oldTaskState.m_numWaiting + 1;
+			newTaskState.m_waitingCount = oldTaskState.m_waitingCount + 1;
 			ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
 			if (!!osSemaphore)
 			{
@@ -715,10 +715,10 @@ public:
 			for (;;)
 			{
 				COGS_ASSERT(oldTaskState.get_semaphore() == osSemaphore.get_ptr()); // Should not have changed
-				COGS_ASSERT(oldTaskState.m_numWaiting > 0);
+				COGS_ASSERT(oldTaskState.m_waitingCount > 0);
 				state = oldTaskState.get_state();
-				newTaskState.m_numWaiting = oldTaskState.m_numWaiting - 1;
-				newTaskState.m_osSemaphore = (newTaskState.m_numWaiting == 0) ? (os::semaphore*)(size_t)state : oldTaskState.m_osSemaphore;
+				newTaskState.m_waitingCount = oldTaskState.m_waitingCount - 1;
+				newTaskState.m_osSemaphore = (newTaskState.m_waitingCount == 0) ? (os::semaphore*)(size_t)state : oldTaskState.m_osSemaphore;
 				if (atomic::compare_exchange(m_taskState, newTaskState, oldTaskState, oldTaskState))
 					break;
 				//continue;
@@ -732,7 +732,7 @@ public:
 					COGS_ASSERT(b);
 				}
 			}
-			if (newTaskState.m_numWaiting == 0)
+			if (newTaskState.m_waitingCount == 0)
 				osSemaphore->self_release();
 			break;
 		}

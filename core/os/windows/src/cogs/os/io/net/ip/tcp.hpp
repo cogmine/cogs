@@ -185,7 +185,7 @@ private:
 							}
 							else // if (taskType == complete_task)
 							{
-								size_t n = m_overlapped->m_numTransferred;
+								size_t n = m_overlapped->m_transferCount;
 								m_progress += n;
 
 								// unset flags
@@ -346,7 +346,7 @@ private:
 
 		void write_done()
 		{
-			size_t n = m_overlapped->m_numTransferred;
+			size_t n = m_overlapped->m_transferCount;
 			get_buffer().advance(n);
 
 			bool closing = false;
