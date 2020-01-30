@@ -80,7 +80,7 @@ private:
 
 		void read_more() { read_more_or_abort(task_type::read); }
 
-		virtual void aborting() { read_more_or_abort(task::abort); }
+		virtual void aborting() { read_more_or_abort(task_type::abort); }
 
 		// Some socket implementations (Winsock, being one, not sure about sockets with epoll)
 		// may incur significant overhead just checking how many bytes of data are available,
@@ -131,7 +131,7 @@ private:
 						if (!m_aborted)
 							read_inner();
 					}
-					else // if (taskType == task::abort)
+					else // if (taskType == task_type::abort)
 					{
 						if (!m_complete)
 						{
@@ -178,7 +178,7 @@ private:
 
 		void write_more() { write_more_or_abort(task_type::write); }
 
-		virtual void aborting() { write_more_or_abort(task::abort); }
+		virtual void aborting() { write_more_or_abort(task_type::abort); }
 
 		void write_more_or_abort(task_type taskType)
 		{
@@ -191,7 +191,7 @@ private:
 						if (!m_aborted)
 							write_inner();
 					}
-					else // if (taskType == task::abort)
+					else // if (taskType == task_type::abort)
 					{
 						if (!m_complete)
 						{
@@ -390,7 +390,7 @@ public:
 							}
 						}
 					}
-					else // if (taskType == task::abort)
+					else // if (taskType == task_type::abortccc)
 					{
 						if (!m_aborted)
 						{
@@ -442,7 +442,7 @@ public:
 		{
 			auto t = signallable_task_base<connecter>::cancel(); // will complete immediately
 			if (t->get())
-				((connecter*)this)->complete_or_abort(task::abort);
+				((connecter*)this)->complete_or_abort(task_type::abort);
 			return t;
 		}
 	};

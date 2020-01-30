@@ -314,7 +314,7 @@ public:
 			{
 				result.resize(bufSize);
 				socklen_t prevBufSize = bufSize;
-				const char* s = inet_ntop(get_address_family(), &m_sockAddr, result.get_ptr(), bufSize);
+				const char* s = inet_ntop((int)get_address_family(), &m_sockAddr, result.get_ptr(), bufSize);
 				if (s != NULL)
 					result.resize(result.index_of(0));
 				else
