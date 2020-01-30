@@ -666,10 +666,26 @@ public:
 		else
 		{
 			size defaultSize = frame::get_default_size();
-			dimension d = (resizeDimension.has_value()) ? resizeDimension.value() : get_primary_flow_dimension();
 			size newSize;
-			newSize[d] = sz[d];
-			newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
+			if (resizeDimension.has_value())
+			{
+				dimension d = resizeDimension.value();
+				newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
+				newSize[d] = sz[d];
+			}
+			else
+			{
+				dimension d = get_primary_flow_dimension();
+				newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
+				if (newSize[!d] <= sz[!d])
+					newSize[d] = sz[d];
+				else
+				{
+					newSize[!d] = sz[!d];
+					newSize[d] = (sz[!d] * defaultSize[d]) / defaultSize[!d];
+				}
+			}
+
 			result = frame::propose_size(newSize, resizeDimension, r & m_calculatedRange, horizontalMode, verticalMode); // Need m_calculatedRange here?
 			result.make_relative(sz);
 		}

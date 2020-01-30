@@ -43,7 +43,7 @@ public:
 
 	void get_detail(datetime_detail& d) const { m_dt.get_detail(d); }
 
-	enum string_format
+	enum class format
 	{
 		RFC1123DateTime = 1,             // Thu, 30 Apr 1998 15:59:59 GMT
 		RFC850DateTime = 2,              // Thursday, 30-Apr-98 15:59:59 GMT
@@ -71,7 +71,7 @@ public:
 	};
 
 	template <typename char_t>
-	composite_string_t<char_t> to_string_t(string_format strFormat = RFC1123DateTime) const
+	composite_string_t<char_t> to_string_t(format strFormat = format::RFC1123DateTime) const
 	{
 		static constexpr char_t space = (char_t)' ';
 		static constexpr char_t colon = (char_t)':';
@@ -121,7 +121,7 @@ public:
 		composite_string_t<char_t> result;
 		switch (strFormat)
 		{
-		case RFC1123DateTime: // Thu, 30 Apr 1998 15:59:59 GMT
+		case format::RFC1123DateTime: // Thu, 30 Apr 1998 15:59:59 GMT
 		{
 			result = string_t<char_t>::literal(WeekDay3[d.m_dayOfWeek.get_int()]);
 			result += string_t<char_t>::literal(commaSpace);
@@ -153,7 +153,7 @@ public:
 			result += string_t<char_t>::contain(gmt, 4);
 			break;
 		}
-		case RFC850DateTime: // Thursday, 30-Apr-98 15:59:59 GMT
+		case format::RFC850DateTime: // Thursday, 30-Apr-98 15:59:59 GMT
 		{
 			result = string_t<char_t>::literal(WeekDay[d.m_dayOfWeek.get_int()]);
 			result += string_t<char_t>::literal(commaSpace);
@@ -186,7 +186,7 @@ public:
 			result += string_t<char_t>::contain(gmt, 4);
 			break;
 		}
-		case ANSICasctime: // Thu Apr 30 15:59:59 1998   OR   Thu Apr  9 15:59:59 1998
+		case format::ANSICasctime: // Thu Apr 30 15:59:59 1998   OR   Thu Apr  9 15:59:59 1998
 		{
 			result = string_t<char_t>::literal(WeekDay3[d.m_dayOfWeek.get_int()]);
 			string_t<char_t> spaceStr = string_t<char_t>::contain(&space, 1);
@@ -217,7 +217,7 @@ public:
 			break;
 		}
 
-		case ISO8601Date: // 1998-04-30
+		case format::ISO8601Date: // 1998-04-30
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -231,7 +231,7 @@ public:
 			result += dayString;
 			break;
 		}
-		case ISO8601Month: // 1998-04
+		case format::ISO8601Month: // 1998-04
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -242,25 +242,25 @@ public:
 			result += monthString;
 			break;
 		}
-		case ISO8601Year: // 1998
+		case format::ISO8601Year: // 1998
 		{
 			result = d.m_year.to_string_t<char_t>(10, 4);
 			result.truncate_to_right(4);
 			break;
 		}
-		//case ISO8601WeekYear: // 1998-W19
+		//case format::ISO8601WeekYear: // 1998-W19
 		//{
 		//	break;
 		//}
-		//case ISO8601WeekYearDay: // 1998-W19-5
+		//case format::ISO8601WeekYearDay: // 1998-W19-5
 		//{
 		//	break;
 		//}
-		//case ISO8601YearDay: // 1998-120
+		//case format::ISO8601YearDay: // 1998-120
 		//{
 		//	break;
 		//}
-		case ISO8601DateCompact: // 19980430
+		case format::ISO8601DateCompact: // 19980430
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -271,7 +271,7 @@ public:
 			result += dayString;
 			break;
 		}
-		case ISO8601MonthCompact: // 199804
+		case format::ISO8601MonthCompact: // 199804
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -280,19 +280,19 @@ public:
 			result += monthString;
 			break;
 		}
-		//case ISO8601WeekYearCompact: // 1998W19
+		//case format::ISO8601WeekYearCompact: // 1998W19
 		//{
 		//	break;
 		//}
-		//case ISO8601WeekYearDayCompact: // 1998W195
+		//case format::ISO8601WeekYearDayCompact: // 1998W195
 		//{
 		//	break;
 		//}
-		//case ISO8601YearDayCompact: // 1998120
+		//case format::ISO8601YearDayCompact: // 1998120
 		//{
 		//	break;
 		//}
-		case ISO8601Time: // 23:59:59
+		case format::ISO8601Time: // 23:59:59
 		{
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;
@@ -307,11 +307,11 @@ public:
 			result += secondString;
 			break;
 		}
-		//case ISO8601TimeMilliseconds: // 23:59:59.9942
+		//case format::ISO8601TimeMilliseconds: // 23:59:59.9942
 		//{
 		//	break;
 		//}
-		case ISO8601TimeMinutes: // 23:59
+		case format::ISO8601TimeMinutes: // 23:59
 		{
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;
@@ -322,7 +322,7 @@ public:
 			result += minuteString;
 			break;
 		}
-		case ISO8601TimeCompact: // 235959
+		case format::ISO8601TimeCompact: // 235959
 		{
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;
@@ -334,7 +334,7 @@ public:
 			result += secondString;
 			break;
 		}
-		case ISO8601TimeMinutesCompact: // 2359
+		case format::ISO8601TimeMinutesCompact: // 2359
 		{
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;
@@ -343,13 +343,13 @@ public:
 			result += minuteString;
 			break;
 		}
-		case ISO8601Hour: // 23
+		case format::ISO8601Hour: // 23
 		{
 			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 			break;
 		}
-		case ISO8601DateTime: // 1998-04-30T23:59:59
+		case format::ISO8601DateTime: // 1998-04-30T23:59:59
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -376,7 +376,7 @@ public:
 			result += secondString;
 			break;
 		}
-		case ISO8601DateTimeCompact: // 19980430T235959
+		case format::ISO8601DateTimeCompact: // 19980430T235959
 		{
 			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
@@ -404,12 +404,12 @@ public:
 		return result;
 	}
 
-	composite_string to_string(string_format strFormat = RFC1123DateTime) const
+	composite_string to_string(format strFormat = format::RFC1123DateTime) const
 	{
 		return to_string_t<wchar_t>(strFormat);
 	}
 
-	composite_cstring to_cstring(string_format strFormat = RFC1123DateTime) const
+	composite_cstring to_cstring(format strFormat = format::RFC1123DateTime) const
 	{
 		return to_string_t<char>(strFormat);
 	}

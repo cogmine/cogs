@@ -20,7 +20,7 @@ namespace geometry {
 namespace planar {
 
 
-enum flow {
+enum class flow {
 	x_ascending_y_ascending = 0x06,   // 110
 	y_ascending_x_ascending = 0x07,   // 111
 

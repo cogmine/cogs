@@ -74,10 +74,10 @@ protected:
 	//	if (b)
 	//	{
 	//		rcptr<T> newValue = rcnew(bypass_constructor_permission<T>);
-	//		newValue.get_desc()->acquire(strong);
+	//		newValue.get_desc()->acquire(reference_strength::strong);
 	//		if (!g->compare_exchange(newValue, oldValue, oldValue))
 	//		{
-	//			newValue.get_desc()->release(strong);
+	//			newValue.get_desc()->release(reference_strength::strong);
 	//			if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
 	//				result = oldValue;
 	//		}
@@ -105,7 +105,7 @@ protected:
 			weak_rcptr<T> tmp;
 			g->swap(tmp);
 			if (tmp.get_desc() != nullptr)
-				tmp.get_desc()->release(strong);
+				tmp.get_desc()->release(reference_strength::strong);
 		}
 		else
 		{
@@ -114,7 +114,7 @@ protected:
 			g->swap(tmp);
 			volatile boolean* b = &s_isReleased.get();
 			if ((tmp.get_desc() != nullptr) && (b->compare_exchange(true, false)))
-				tmp.get_desc()->release(strong);
+				tmp.get_desc()->release(reference_strength::strong);
 		}
 	}
 
@@ -143,7 +143,7 @@ protected:
 				break;
 			volatile boolean* b = &s_isReleased.get();
 			if (b->compare_exchange(true, false))
-				result.get_desc()->release(strong);
+				result.get_desc()->release(reference_strength::strong);
 			break;
 		}
 		return result;

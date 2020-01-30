@@ -294,7 +294,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& msk, const can
 	if (!!mskBounds && !!dstBounds)
 	{
 		const os::bitmask& msk2 = *static_cast<const os::bitmask*>(&msk);
-		bool isBackNeeded = (back != color::transparent || !blendBackAlpha);
+		bool isBackNeeded = (back != color::constant::transparent || !blendBackAlpha);
 		if (isBackNeeded)
 		{
 			msk2.cache_inverted_mask();
@@ -317,7 +317,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& msk, const can
 			if (isMaskCropped)
 				CGImageRelease(croppedMaskImage);
 		}
-		bool isForeNeeded = (fore != color::transparent || !blendForeAlpha);
+		bool isForeNeeded = (fore != color::constant::transparent || !blendForeAlpha);
 		if (isForeNeeded)
 		{
 			msk2.cache_image();

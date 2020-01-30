@@ -20,7 +20,7 @@ namespace cogs {
 #pragma warning (disable: 4521) // multiple copy constructors specified
 
 /// @brief Tree traversal order
-enum class btree_traversal_order
+enum class btree_traversal
 {
 	/// @brief In-order binary tree traversal
 	inorder,// = 0x01,
@@ -331,20 +331,20 @@ public:
 	/// @brief Get the first node, based on a constant traversal order
 	/// @tparam order The traversal order
 	/// @return The first node, based on the specified traversal order.
-	template <btree_traversal_order order>
+	template <btree_traversal order>
 	const ref_t get_first()
 	{
-		if (order == btree_traversal_order::inorder)
+		if (order == btree_traversal::inorder)
 			return get_first_inorder();
-		else if (order == btree_traversal_order::preorder)
+		else if (order == btree_traversal::preorder)
 			return get_first_preorder();
-		else if (order == btree_traversal_order::postorder)
+		else if (order == btree_traversal::postorder)
 			return get_first_postorder();
-		else if (order == btree_traversal_order::reverse_inorder)
+		else if (order == btree_traversal::reverse_inorder)
 			return get_last_inorder();
-		else if (order == btree_traversal_order::reverse_preorder)
+		else if (order == btree_traversal::reverse_preorder)
 			return get_last_preorder();
-		else if (order == btree_traversal_order::reverse_postorder)
+		else if (order == btree_traversal::reverse_postorder)
 			return get_last_postorder();
 	}
 	/// @}
@@ -353,20 +353,20 @@ public:
 	/// @brief Get the last node, based on a constant traversal order
 	/// @tparam order The traversal order
 	/// @return The last node, based on the specified traversal order.
-	template <btree_traversal_order order>
+	template <btree_traversal order>
 	const ref_t get_last()
 	{
-		if (order == btree_traversal_order::inorder)
+		if (order == btree_traversal::inorder)
 			return get_last_inorder();
-		else if (order == btree_traversal_order::preorder)
+		else if (order == btree_traversal::preorder)
 			return get_last_preorder();
-		else if (order == btree_traversal_order::postorder)
+		else if (order == btree_traversal::postorder)
 			return get_last_postorder();
-		else if (order == btree_traversal_order::reverse_inorder)
+		else if (order == btree_traversal::reverse_inorder)
 			return get_first_inorder();
-		else if (order == btree_traversal_order::reverse_preorder)
+		else if (order == btree_traversal::reverse_preorder)
 			return get_first_preorder();
-		else if (order == btree_traversal_order::reverse_postorder)
+		else if (order == btree_traversal::reverse_postorder)
 			return get_first_postorder();
 	}
 	/// @}
@@ -418,20 +418,20 @@ public:
 	/// @tparam order The traversal order
 	/// @param cur The node to get the next node from
 	/// @return The next node, based on the specified traversal order.
-	template <btree_traversal_order order>
+	template <btree_traversal order>
 	ref_t get_next(const ref_t& cur) const
 	{
-		if (order == btree_traversal_order::inorder)
+		if (order == btree_traversal::inorder)
 			return get_next_inorder(cur);
-		else if (order == btree_traversal_order::preorder)
+		else if (order == btree_traversal::preorder)
 			return get_next_preorder(cur);
-		else if (order == btree_traversal_order::postorder)
+		else if (order == btree_traversal::postorder)
 			return get_next_postorder(cur);
-		else if (order == btree_traversal_order::reverse_inorder)
+		else if (order == btree_traversal::reverse_inorder)
 			return get_prev_inorder(cur);
-		else if (order == btree_traversal_order::reverse_preorder)
+		else if (order == btree_traversal::reverse_preorder)
 			return get_prev_preorder(cur);
-		else if (order == btree_traversal_order::reverse_postorder)
+		else if (order == btree_traversal::reverse_postorder)
 			return get_prev_postorder(cur);
 	}
 	/// @}
@@ -441,20 +441,20 @@ public:
 	/// @tparam order The traversal order
 	/// @param cur The node to get the previous node from
 	/// @return The previous node, based on the specified traversal order.
-	template <btree_traversal_order order>
+	template <btree_traversal order>
 	ref_t get_prev(const ref_t& cur) const
 	{
-		if (order == btree_traversal_order::inorder)
+		if (order == btree_traversal::inorder)
 			return get_prev_inorder(cur);
-		else if (order == btree_traversal_order::preorder)
+		else if (order == btree_traversal::preorder)
 			return get_prev_preorder(cur);
-		else if (order == btree_traversal_order::postorder)
+		else if (order == btree_traversal::postorder)
 			return get_prev_postorder(cur);
-		else if (order == btree_traversal_order::reverse_inorder)
+		else if (order == btree_traversal::reverse_inorder)
 			return get_next_inorder(cur);
-		else if (order == btree_traversal_order::reverse_preorder)
+		else if (order == btree_traversal::reverse_preorder)
 			return get_next_preorder(cur);
-		else if (order == btree_traversal_order::reverse_postorder)
+		else if (order == btree_traversal::reverse_postorder)
 			return get_next_postorder(cur);
 	}
 	/// @}

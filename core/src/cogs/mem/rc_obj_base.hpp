@@ -38,7 +38,7 @@ class rc_object_base; // seems ambiguous, need better names for these different 
 /// Generally, when circular references may be present, strong references should
 /// be used only to explicitly control the scope of an object, and weak references used
 /// otherwise.
-enum reference_strength_type
+enum class reference_strength
 {
 	/// @brief A strong reference is basically a reference-counting smart-pointer.
 	///
@@ -99,36 +99,36 @@ private:
 
 	struct counts_t
 	{
-		// Destructed  when m_reference[strong] == 0
-		// Deallocated when m_reference[weak] == 0
+		// Destructed  when m_reference[reference_strength::strong] == 0
+		// Deallocated when m_reference[reference_strength::weak] == 0
 		alignas (atomic::get_alignment_v<size_t>) size_t m_references[2];
 
-		volatile size_t& operator[](reference_strength_type refStrengthType) volatile { return m_references[refStrengthType]; }
-		const volatile size_t& operator[](reference_strength_type refStrengthType) const volatile { return m_references[refStrengthType]; }
+		volatile size_t& operator[](reference_strength referenceStrength) volatile { return m_references[(int)referenceStrength]; }
+		const volatile size_t& operator[](reference_strength referenceStrength) const volatile { return m_references[(int)referenceStrength]; }
 
-		bool operator==(const counts_t& c) const { return (m_references[strong] == c.m_references[strong]) && (m_references[weak] == c.m_references[weak]); }
+		bool operator==(const counts_t& c) const { return (m_references[(int)reference_strength::strong] == c.m_references[(int)reference_strength::strong]) && (m_references[(int)reference_strength::weak] == c.m_references[(int)reference_strength::weak]); }
 		bool operator!=(const counts_t& c) const { return !operator==(c); }
 
 		int compare(const counts_t& c) const
 		{
-			if (m_references[strong] > c.m_references[strong])
+			if (m_references[(int)reference_strength::strong] > c.m_references[(int)reference_strength::strong])
 				return 1;
-			if (m_references[strong] < c.m_references[strong])
+			if (m_references[(int)reference_strength::strong] < c.m_references[(int)reference_strength::strong])
 				return -1;
-			if (m_references[weak] > c.m_references[weak])
+			if (m_references[(int)reference_strength::weak] > c.m_references[(int)reference_strength::weak])
 				return 1;
-			if (m_references[weak] < c.m_references[weak])
+			if (m_references[(int)reference_strength::weak] < c.m_references[(int)reference_strength::weak])
 				return -1;
 			return 0;
 		}
 
 		bool operator<(const counts_t& c) const
 		{
-			if (m_references[strong] < c.m_references[strong])
+			if (m_references[(int)reference_strength::strong] < c.m_references[(int)reference_strength::strong])
 				return true;
-			if (m_references[strong] > c.m_references[strong])
+			if (m_references[(int)reference_strength::strong] > c.m_references[(int)reference_strength::strong])
 				return false;
-			if (m_references[weak] < c.m_references[weak])
+			if (m_references[(int)reference_strength::weak] < c.m_references[(int)reference_strength::weak])
 				return true;
 			return false;
 		}
@@ -246,7 +246,7 @@ public:
 			if (!tracker->m_destructed)
 			{
 				rc_obj_base* desc = tracker->m_desc;
-				size_t strongReferences = desc->m_counts.m_references[1];
+				size_t strongReferences = desc->m_counts.m_references[(int)reference_strength::strong];
 				if (strongReferences == 0)
 					++numWeakLeaks;
 				else
@@ -257,7 +257,7 @@ public:
 						printf("RC LEAKS:\n");
 						printf("Index|Strong|Weak|rc_obj_base*|ptr|Type|Location\n");
 					}
-					size_t weakReferences = desc->m_counts.m_references[0];
+					size_t weakReferences = desc->m_counts.m_references[(int)reference_strength::weak];
 					printf("%zd|%zd|%zd|%p|%p|\"%s\"|\"%s\"\n", index, strongReferences, weakReferences, desc, tracker->m_objPtr, tracker->m_typeName, tracker->m_debugStr);
 
 					++numStrongLeaks;
@@ -340,7 +340,7 @@ public:
 
 	bool is_released() const
 	{
-		size_t tmp = atomic::load(m_counts[strong]);
+		size_t tmp = atomic::load(m_counts[reference_strength::strong]);
 		return !tmp;
 	}
 
@@ -348,14 +348,14 @@ public:
 	{
 		counts_t oldCounts;
 		atomic::load(m_counts, oldCounts);
-		return (oldCounts.m_references[strong] == 0) && (oldCounts.m_references[weak] == 0);
+		return (oldCounts.m_references[(int)reference_strength::strong] == 0) && (oldCounts.m_references[(int)reference_strength::weak] == 0);
 	}
 
 	bool is_owned() const
 	{
 		counts_t oldCounts;
 		atomic::load(m_counts, oldCounts);
-		return (oldCounts.m_references[strong] == 1) && (oldCounts.m_references[weak] == 1);
+		return (oldCounts.m_references[(int)reference_strength::strong] == 1) && (oldCounts.m_references[(int)reference_strength::weak] == 1);
 	}
 
 	counts_t get_counts()
@@ -368,24 +368,24 @@ public:
 	size_t get_strong_count()
 	{
 		size_t n;
-		atomic::load(m_counts[strong], n);
+		atomic::load(m_counts[reference_strength::strong], n);
 		return n;
 	}
 
 	size_t get_weak_count()
 	{
 		size_t n;
-		atomic::load(m_counts[weak], n);
+		atomic::load(m_counts[reference_strength::weak], n);
 		return n;
 	}
 
-	bool acquire_strong() { return acquire(strong); }
-	bool acquire_weak() { return acquire(weak); }
+	bool acquire_strong() { return acquire(reference_strength::strong); }
+	bool acquire_weak() { return acquire(reference_strength::weak); }
 
-	bool acquire(reference_strength_type refStrengthType = strong, size_t n = 1)
+	bool acquire(reference_strength referenceStrength = reference_strength::strong, size_t n = 1)
 	{
 		bool result = true;
-		size_t oldCount = atomic::load(m_counts[refStrengthType]);
+		size_t oldCount = atomic::load(m_counts[referenceStrength]);
 		if (!n)
 			result = oldCount != 0;
 		else
@@ -395,14 +395,14 @@ public:
 			// to prevent ABA issues with those comparisons.
 			size_t newCount;
 			do {
-				COGS_ASSERT((refStrengthType == strong) || !!oldCount);
+				COGS_ASSERT((referenceStrength == reference_strength::strong) || !!oldCount);
 				if (!oldCount)
 				{
 					result = false;
 					break;
 				}
 				newCount = oldCount + n;
-			} while (!atomic::compare_exchange(m_counts[refStrengthType], newCount, oldCount, oldCount));
+			} while (!atomic::compare_exchange(m_counts[referenceStrength], newCount, oldCount, oldCount));
 		}
 		return result;
 	}
@@ -410,7 +410,7 @@ public:
 	static volatile hazard& get_hazard() { return s_hazard.get(); }
 
 	template <class derived_t>
-	static derived_t* guarded_acquire(derived_t* const volatile& srcDesc, reference_strength_type refStrengthType = strong, size_t n = 1)
+	static derived_t* guarded_acquire(derived_t* const volatile& srcDesc, reference_strength referenceStrength = reference_strength::strong, size_t n = 1)
 	{
 		if (!n)
 			return 0;
@@ -437,7 +437,7 @@ public:
 				continue;
 			}
 
-			bool acquired = oldDesc->acquire(refStrengthType, n);
+			bool acquired = oldDesc->acquire(referenceStrength, n);
 
 			if (p.release())
 			{
@@ -456,7 +456,7 @@ public:
 
 				// There is no reason for a failure to
 				// acquire a weak reference, if srcDesc is still set to it.
-				COGS_ASSERT(refStrengthType != weak);
+				COGS_ASSERT(referenceStrength != reference_strength::weak);
 				oldDesc = 0;
 			}
 
@@ -471,10 +471,10 @@ public:
 	{
 		if (i > 0)
 		{
-			size_t oldCount = atomic::load(m_counts[strong]);
+			size_t oldCount = atomic::load(m_counts[reference_strength::strong]);
 			do {
 				COGS_ASSERT(oldCount >= i);
-			} while (!atomic::compare_exchange(m_counts[strong], oldCount - i, oldCount, oldCount));
+			} while (!atomic::compare_exchange(m_counts[reference_strength::strong], oldCount - i, oldCount, oldCount));
 			if (oldCount == i)
 			{
 				run_released_handlers();
@@ -490,10 +490,10 @@ public:
 	{
 		if (i > 0)
 		{
-			size_t oldCount = atomic::load(m_counts[weak]);
+			size_t oldCount = atomic::load(m_counts[reference_strength::weak]);
 			do {
 				COGS_ASSERT(oldCount >= i);
-			} while (!atomic::compare_exchange(m_counts[weak], oldCount - i, oldCount, oldCount));
+			} while (!atomic::compare_exchange(m_counts[reference_strength::weak], oldCount - i, oldCount, oldCount));
 			if (oldCount == i)
 			{
 				volatile hazard& h = get_hazard();
@@ -505,9 +505,9 @@ public:
 		return false;
 	}
 
-	bool release(reference_strength_type refStrengthType = strong, size_t i = 1)
+	bool release(reference_strength referenceStrength = reference_strength::strong, size_t i = 1)
 	{
-		if (refStrengthType == strong)
+		if (referenceStrength == reference_strength::strong)
 			return release_strong(i);
 		return release_weak(i);
 	}
@@ -515,8 +515,8 @@ public:
 	// Can be useful if reusing a descriptor to reset it to the initialized state.
 	void reset_counts()
 	{
-		m_counts[strong] = 1;
-		m_counts[weak] = 1;
+		m_counts[reference_strength::strong] = 1;
+		m_counts[reference_strength::weak] = 1;
 	}
 
 	virtual void released() = 0;

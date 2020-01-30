@@ -221,7 +221,7 @@ public:
 
 	virtual bool is_opaque() const { return m_isOpaque; }
 
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		clear_cached();
 		graphics_context::fill(b, c, blendAlpha, m_context);
@@ -233,7 +233,7 @@ public:
 		graphics_context::invert(b, m_context);
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		clear_cached();
 		graphics_context::draw_line(startPt, endPt, width, c, blendAlpha, m_context);
@@ -243,7 +243,7 @@ public:
 
 	virtual gfx::font get_default_font() const { return graphics_context::get_default_font(); }
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::constant::black)
 	{
 		clear_cached();
 		graphics_context::draw_text(s, b, f, c, m_context);
@@ -260,7 +260,7 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
+	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 
 	virtual rcref<canvas::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
 	{
@@ -323,7 +323,7 @@ public:
 			if (widthIncreased)
 			{
 				double widthDifference = newWidth - oldWidth;
-				graphics_context::fill({ { (double)oldWidth, 0 }, { (double)widthDifference, (double)oldHeight } }, m_isOpaque ? color::black : color::transparent, false, token);
+				graphics_context::fill({ { (double)oldWidth, 0 }, { (double)widthDifference, (double)oldHeight } }, m_isOpaque ? color::constant::black : color::constant::transparent, false, token);
 			}
 			if (heightIncreased)
 			{
@@ -333,7 +333,7 @@ public:
 					width = oldWidth;
 				else
 					width = newWidth;
-				graphics_context::fill({ { 0, (double)oldHeight }, { (double)width, (double)heightDifference } }, m_isOpaque ? color::black : color::transparent, false, token);
+				graphics_context::fill({ { 0, (double)oldHeight }, { (double)width, (double)heightDifference } }, m_isOpaque ? color::constant::black : color::constant::transparent, false, token);
 			}
 		}
 	}

@@ -42,21 +42,21 @@ namespace cogs {
 
 // Interface class for dependency_property.
 //    Most references should be to rcptr<dependency_property<type, readWriteType> >
-template <typename type, io::permission readWriteType = io::read_write>
+template <typename type, io::permission readWriteType = io::permission::read_write>
 class dependency_property;
 
 // Base class to use when deriving dependency_property types (implementing virtual setting() and/or getting()
 //    Calls to set() are asynchronous and serialized.  User implementation of setting() must call set_complete() to indicate completion.
-template <typename type, io::permission readWriteType = io::read_write>
+template <typename type, io::permission readWriteType = io::permission::read_write>
 class virtual_dependency_property;
 
 // A concrete class for delegate-based properties.
-template <typename type, io::permission readWriteType = io::read_write>
+template <typename type, io::permission readWriteType = io::permission::read_write>
 class delegated_dependency_property;
 
 // A concrete class for a backed dependency_property.
 //    Simply wraps a variable in a dependency_property.
-template <typename type, io::permission readWriteType = io::read_write>
+template <typename type, io::permission readWriteType = io::permission::read_write>
 class backed_dependency_property;
 
 template <typename type>
@@ -65,14 +65,14 @@ class virtual_dependency_property_base;
 // dependency_property<> is used as an interface only.
 // Derived properties should be derived from virtual_dependency_property.
 template <typename type, io::permission readWriteType> // read_write
-class dependency_property : public dependency_property<type, io::read_only>, public dependency_property<type, io::write_only>
+class dependency_property : public dependency_property<type, io::permission::read>, public dependency_property<type, io::permission::write>
 {
 public:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() = 0;
 
-	virtual void bind(const rcref<dependency_property<type, io::read_write> >& src, bool useThisValue = false) = 0;
-	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk) = 0;
-	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src) = 0;
+	virtual void bind(const rcref<dependency_property<type, io::permission::read_write> >& src, bool useThisValue = false) = 0;
+	virtual void bind_to(const rcref<dependency_property<type, io::permission::write> >& snk) = 0;
+	virtual void bind_from(const rcref<dependency_property<type, io::permission::read> >& src) = 0;
 
 	type get() const { return getting(); } // inline for API symmetry with set/setting
 
@@ -86,12 +86,12 @@ public:
 };
 
 template <typename type>
-class dependency_property<type, io::read_only>
+class dependency_property<type, io::permission::read>
 {
 public:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() = 0;
 
-	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk) = 0;
+	virtual void bind_to(const rcref<dependency_property<type, io::permission::write> >& snk) = 0;
 
 	type get() const { return getting(); } // inline for API symmetry with set/setting
 
@@ -100,16 +100,16 @@ public:
 	virtual void changed() = 0;
 
 	template <typename F>
-	rcref<dependency_property<type, io::write_only> > on_changed(const rcref<volatile dispatcher>& d, F&& f);
+	rcref<dependency_property<type, io::permission::write> > on_changed(const rcref<volatile dispatcher>& d, F&& f);
 };
 
 template <typename type>
-class dependency_property<type, io::write_only>
+class dependency_property<type, io::permission::write>
 {
 public:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() = 0;
 
-	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src) = 0;
+	virtual void bind_from(const rcref<dependency_property<type, io::permission::read> >& src) = 0;
 
 	virtual void set(const type& t) = 0; // Overloaded by virtual_dependency_property to defer setting() to appropriate thread
 
@@ -328,17 +328,17 @@ public:
 		: base_t(desc, d)
 	{ }
 
-	virtual void bind(const rcref<dependency_property<type, io::read_write> >& srcSnk, bool useThisValue = false)
+	virtual void bind(const rcref<dependency_property<type, io::permission::read_write> >& srcSnk, bool useThisValue = false)
 	{
 		base_t::bind(srcSnk->get_virtual_dependency_property_base(), useThisValue);
 	}
 
-	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk)
+	virtual void bind_to(const rcref<dependency_property<type, io::permission::write> >& snk)
 	{
 		base_t::bind_to(snk->get_virtual_dependency_property_base());
 	}
 
-	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src)
+	virtual void bind_from(const rcref<dependency_property<type, io::permission::read> >& src)
 	{
 		base_t::bind_from(src->get_virtual_dependency_property_base());
 	}
@@ -356,10 +356,10 @@ public:
 };
 
 template <typename type>
-class virtual_dependency_property<type, io::read_only> : public dependency_property<type, io::read_only>, public virtual_dependency_property_base<type>
+class virtual_dependency_property<type, io::permission::read> : public dependency_property<type, io::permission::read>, public virtual_dependency_property_base<type>
 {
 private:
-	typedef virtual_dependency_property<type, io::read_only> this_t;
+	typedef virtual_dependency_property<type, io::permission::read> this_t;
 	typedef virtual_dependency_property_base<type> base_t;
 
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
@@ -375,7 +375,7 @@ public:
 		: base_t(desc, d)
 	{ }
 
-	virtual void bind_to(const rcref<dependency_property<type, io::write_only> >& snk)
+	virtual void bind_to(const rcref<dependency_property<type, io::permission::write> >& snk)
 	{
 		base_t::bind_to(snk->get_virtual_dependency_property_base());
 	}
@@ -386,10 +386,10 @@ public:
 };
 
 template <typename type>
-class virtual_dependency_property<type, io::write_only> : public dependency_property<type, io::write_only>, public virtual_dependency_property_base<type>
+class virtual_dependency_property<type, io::permission::write> : public dependency_property<type, io::permission::write>, public virtual_dependency_property_base<type>
 {
 private:
-	typedef virtual_dependency_property<type, io::write_only> this_t;
+	typedef virtual_dependency_property<type, io::permission::write> this_t;
 	typedef virtual_dependency_property_base<type> base_t;
 
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
@@ -411,7 +411,7 @@ public:
 		: base_t(desc, d)
 	{ }
 
-	virtual void bind_from(const rcref<dependency_property<type, io::read_only> >& src)
+	virtual void bind_from(const rcref<dependency_property<type, io::permission::read> >& src)
 	{
 		base_t::bind_from(src->get_virtual_dependency_property_base());
 	}
@@ -426,14 +426,14 @@ public:
 
 
 template <typename type>
-class delegated_dependency_property<type, io::read_write> : public virtual_dependency_property<type, io::read_write>
+class delegated_dependency_property<type, io::permission::read_write> : public virtual_dependency_property<type, io::permission::read_write>
 {
 private:
-	typedef delegated_dependency_property<type, io::read_write> this_t;
-	typedef virtual_dependency_property<type, io::read_write> base_t;
+	typedef delegated_dependency_property<type, io::permission::read_write> this_t;
+	typedef virtual_dependency_property<type, io::permission::read_write> base_t;
 
 public:
-	typedef function<void(const type&,const rcref<dependency_property<type, io::write_only> >&)> set_delegate_type;
+	typedef function<void(const type&,const rcref<dependency_property<type, io::permission::write> >&)> set_delegate_type;
 	typedef function<type()> get_delegate_type;
 
 private:
@@ -463,11 +463,11 @@ public:
 
 
 template <typename type>
-class delegated_dependency_property<type, io::read_only> : public virtual_dependency_property<type, io::read_only>
+class delegated_dependency_property<type, io::permission::read> : public virtual_dependency_property<type, io::permission::read>
 {
 private:
-	typedef delegated_dependency_property<type, io::read_only> this_t;
-	typedef virtual_dependency_property<type, io::read_only> base_t;
+	typedef delegated_dependency_property<type, io::permission::read> this_t;
+	typedef virtual_dependency_property<type, io::permission::read> base_t;
 
 public:
 	typedef function<type()> get_delegate_type;
@@ -490,14 +490,14 @@ public:
 };
 
 template <typename type>
-class delegated_dependency_property<type, io::write_only> : public virtual_dependency_property<type, io::write_only>
+class delegated_dependency_property<type, io::permission::write> : public virtual_dependency_property<type, io::permission::write>
 {
 private:
-	typedef delegated_dependency_property<type, io::write_only> this_t;
-	typedef virtual_dependency_property<type, io::write_only> base_t;
+	typedef delegated_dependency_property<type, io::permission::write> this_t;
+	typedef virtual_dependency_property<type, io::permission::write> base_t;
 
 public:
-	typedef function<void(const type&, const rcref<dependency_property<type, io::write_only> >&)> set_delegate_type;
+	typedef function<void(const type&, const rcref<dependency_property<type, io::permission::write> >&)> set_delegate_type;
 
 private:
 	set_delegate_type m_setDelegate;
@@ -520,11 +520,11 @@ public:
 };
 
 template <typename type>
-class backed_dependency_property<type, io::read_write> : public virtual_dependency_property<type, io::read_write>
+class backed_dependency_property<type, io::permission::read_write> : public virtual_dependency_property<type, io::permission::read_write>
 {
 private:
-	typedef backed_dependency_property<type, io::read_write> this_t;
-	typedef virtual_dependency_property<type, io::read_write> base_t;
+	typedef backed_dependency_property<type, io::permission::read_write> this_t;
+	typedef virtual_dependency_property<type, io::permission::read_write> base_t;
 
 	typedef transactable<type> transactable_t;
 	volatile transactable_t m_contents;
@@ -553,16 +553,16 @@ public:
 	virtual void setting(const type& t)
 	{
 		m_contents.set(t);
-		virtual_dependency_property<type, io::read_write>::set_complete(true);
+		virtual_dependency_property<type, io::permission::read_write>::set_complete(true);
 	}
 };
 
 template <typename type>
-class backed_dependency_property<type, io::read_only> : public virtual_dependency_property<type, io::read_only>
+class backed_dependency_property<type, io::permission::read> : public virtual_dependency_property<type, io::permission::read>
 {
 private:
-	typedef backed_dependency_property<type, io::read_only> this_t;
-	typedef virtual_dependency_property<type, io::read_only> base_t;
+	typedef backed_dependency_property<type, io::permission::read> this_t;
+	typedef virtual_dependency_property<type, io::permission::read> base_t;
 
 	typedef transactable<type> transactable_t;
 	volatile transactable_t m_contents;
@@ -590,11 +590,11 @@ public:
 };
 
 template <typename type>
-class backed_dependency_property<type, io::write_only> : public virtual_dependency_property<type, io::write_only>
+class backed_dependency_property<type, io::permission::write> : public virtual_dependency_property<type, io::permission::write>
 {
 private:
-	typedef backed_dependency_property<type, io::write_only> this_t;
-	typedef virtual_dependency_property<type, io::write_only> base_t;
+	typedef backed_dependency_property<type, io::permission::write> this_t;
+	typedef virtual_dependency_property<type, io::permission::write> base_t;
 
 	typedef transactable<type> transactable_t;
 	volatile transactable_t m_contents;
@@ -621,19 +621,19 @@ public:
 	virtual void setting(const type& t)
 	{
 		m_contents.set(t);
-		virtual_dependency_property<type, io::write_only>::set_complete(true);
+		virtual_dependency_property<type, io::permission::write>::set_complete(true);
 	}
 };
 
 template <typename type>
 template <typename F>
-inline rcref<dependency_property<type, io::write_only> > dependency_property<type, io::read_only>::on_changed(const rcref<volatile dispatcher>& d, F&& f)
+inline rcref<dependency_property<type, io::permission::write> > dependency_property<type, io::permission::read>::on_changed(const rcref<volatile dispatcher>& d, F&& f)
 {
-	typedef delegated_dependency_property<type, io::write_only> property_t;
-	rcref<dependency_property<type, io::write_only> > result = rcnew(property_t, d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::write_only> >& p)
+	typedef delegated_dependency_property<type, io::permission::write> property_t;
+	rcref<dependency_property<type, io::permission::write> > result = rcnew(property_t, d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::permission::write> >& p)
 	{
 		f(t, p);
-	}).template static_cast_to<dependency_property<type, io::write_only> >();
+	}).template static_cast_to<dependency_property<type, io::permission::write> >();
 	bind_to(result);
 	return result;
 }

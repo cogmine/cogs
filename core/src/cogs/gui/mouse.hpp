@@ -12,10 +12,10 @@
 namespace cogs {
 
 
-enum mouse_button {
-	left_mouse_button,
-	right_mouse_button,
-	middle_mouse_button
+enum class mouse_button {
+	left,
+	right,
+	middle
 };
 
 
@@ -23,4 +23,3 @@ enum mouse_button {
 
 
 #endif
-

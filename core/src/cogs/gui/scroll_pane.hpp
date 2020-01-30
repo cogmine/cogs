@@ -18,13 +18,6 @@
 namespace cogs {
 namespace gui {
 
-enum scroll_dimensions
-{
-	scroll_horizontally                = 0x01, // 01
-	scroll_vertically                  = 0x02, // 10
-	scroll_horizontally_and_vertically = 0x03  // 11
-};
-
 /// @ingroup GUI
 /// @brief A scrollable GUI outer pane, providing a view of an inner pane.
 /// Inner pane should have a minimum size, under which size the need for a scroll bar is incurred
@@ -40,9 +33,9 @@ private:
 		volatile double m_position = 0;
 		volatile boolean m_canAutoFade;
 
-		delegated_dependency_property<scroll_bar_state, io::read_only> m_stateProperty;
+		delegated_dependency_property<scroll_bar_state, io::permission::read> m_stateProperty;
 		delegated_dependency_property<double> m_positionProperty;
-		delegated_dependency_property<bool, io::write_only> m_canAutoFadeProperty;
+		delegated_dependency_property<bool, io::permission::write> m_canAutoFadeProperty;
 
 		scroll_bar_info(rc_obj_base& desc, scroll_pane& scrollPane, dimension d)
 			: m_scrollBar(rcnew(scroll_bar, d, false)),
@@ -140,8 +133,14 @@ private:
 		return get_scroll_bar_info(d).m_canAutoFade;
 	}
 
-
 public:
+	enum dimensions
+	{
+		horizontal = 0x01, // 01
+		vertical = 0x02,   // 10
+		both = 0x03        // 11
+	};
+
 	// The behavior of scroll_pane varies depending on the input device.
 	// Mode A: For traditional mouse-based input, scroll bars are always shown (though can optionally be hidden when inactive).
 	// Mode B: For touch screen, or if scrolling is otherwise provided by a device, scroll bars are displayed overlaying
@@ -149,7 +148,7 @@ public:
 	// On MacOS, there is a user setting to dynamically switch between these modes.
 	explicit scroll_pane(
 		rc_obj_base& desc,
-		scroll_dimensions scrollDimensions = scroll_horizontally_and_vertically,
+		dimensions scrollDimensions = dimensions::both,
 		bool hideInactiveScrollBar = true,
 		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
 		bool dragAndFlickScrolling = true) // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
@@ -184,11 +183,11 @@ public:
 		pane::nest_last(m_clippingPane.dereference(), m_clippingFrame);
 		pane::nest_last(m_cornerPane.dereference(), m_cornerFrame);
 
-		m_hasScrollBar[(int)dimension::horizontal] = (scrollDimensions & scroll_horizontally) != 0;
+		m_hasScrollBar[(int)dimension::horizontal] = ((int)scrollDimensions & (int)dimensions::horizontal) != 0;
 		if (m_hasScrollBar[(int)dimension::horizontal])
 			new (&get_scroll_bar_info(dimension::horizontal)) scroll_bar_info(desc, *this, dimension::horizontal);
 
-		m_hasScrollBar[(int)dimension::vertical] = (scrollDimensions & scroll_vertically) != 0;
+		m_hasScrollBar[(int)dimension::vertical] = ((int)scrollDimensions & (int)dimensions::vertical) != 0;
 		if (m_hasScrollBar[(int)dimension::vertical])
 			new (&get_scroll_bar_info(dimension::vertical)) scroll_bar_info(desc, *this, dimension::vertical);
 	}

@@ -221,7 +221,7 @@ public:
 	};
 
 	// Drawing primatives
-	static void fill(const canvas::bounds& b, const color& c = color::black, bool blendAlpha = true, const state_token& token = state_token())
+	static void fill(const canvas::bounds& b, const color& c = color::constant::black, bool blendAlpha = true, const state_token& token = state_token())
 	{
 		if (!blendAlpha || !c.is_fully_transparent())
 		{
@@ -256,7 +256,7 @@ public:
 		CGContextStrokePath(ctx);
 	}
 
-	static void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true, const state_token& token = state_token())
+	static void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true, const state_token& token = state_token())
 	{
 		CGContextRef ctx = token.get_CGContext();
 		CGContextSetRGBStrokeColor(ctx, (CGFloat)c.get_red() / 0xFF, (CGFloat)c.get_green() / 0xFF, (CGFloat)c.get_blue() / 0xFF, (CGFloat)c.get_alpha() / 0xFF);
@@ -275,7 +275,7 @@ public:
 		return *singleton<default_font>::get();
 	}
 
-	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black, const state_token& token = state_token())
+	static void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::constant::black, const state_token& token = state_token())
 	{
 		CGColorRef colorRef = CGColorCreateGenericRGB((CGFloat)c.get_red() / 0xFF, (CGFloat)c.get_green() / 0xFF, (CGFloat)c.get_blue() / 0xFF, (CGFloat)c.get_alpha() / 0xFF);
 		draw_text(s, b, f, colorRef, token);
@@ -329,7 +329,7 @@ public:
 	static void draw_image(const bitmap_graphics_context& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, CGBlendMode blendMode, const state_token& token = state_token());
 
 	static void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, const state_token& token = state_token());
-	static void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true, const state_token& token = state_token());
+	static void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true, const state_token& token = state_token());
 	static void mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted = false, const state_token& token = state_token());
 	static void draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha = true, bool inverted = false, const state_token& token = state_token());
 

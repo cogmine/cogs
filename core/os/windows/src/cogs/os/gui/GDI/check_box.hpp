@@ -31,7 +31,7 @@ public:
 	HBRUSH m_backgroundBrush = NULL;
 
 	check_box(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, system_drawn_direct)
+		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, hwnd_draw_mode::system_direct)
 	{ }
 
 	virtual void installing()

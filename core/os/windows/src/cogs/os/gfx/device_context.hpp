@@ -419,7 +419,7 @@ public:
 		InvertRect(m_hDC, &r);
 	}
 
-	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		COGS_ASSERT(!!m_hDC);
 
@@ -457,7 +457,7 @@ public:
 		return *singleton<default_font>::get();
 	}
 
-	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::constant::black)
 	{
 		COGS_ASSERT(!!m_hDC);
 		if (!!s)
@@ -522,7 +522,7 @@ public:
 	}
 
 	virtual void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);
-	virtual void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
+	virtual void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false);
 	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
 

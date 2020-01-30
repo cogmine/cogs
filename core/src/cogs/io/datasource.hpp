@@ -65,7 +65,7 @@ public:
 	class transaction;
 
 	/// @brief Mode of a read operation
-	enum read_mode
+	enum class read_mode
 	{
 		/// @brief Read data if available, completing immediately
 		///
@@ -73,21 +73,21 @@ public:
 		/// If no data is available, a result of 0 bytes is returned.
 		/// An empty read does not indicate the datasource is no longer readable (closed, or EOF).
 		/// If there is data available, a read of this type must not complete with a result of 0 bytes.
-		read_now = 1, // 01
+		now = 1, // 01
 
 		/// @brief Read some data
 		///
 		/// The read will wait for data to become available before completing.
 		/// It may complete with less than the requested number of bytes, but will wait until at least 1 byte is available.
 		/// If not aborted, an empty read would indicate the datasource is no longer readable (closed, or EOF).
-		read_some = 2, // 10
+		some = 2, // 10
 
 		/// @brief Read all data requested
 		///
 		/// The read will wait for all requested data to be available before returning.
 		/// Fewer bytes may be returned if the read is aborted or the datasource is no longer readable (closed, or EOF)
 		/// If not aborted, an empty read would indicate the datasource is no longer readable (closed, or EOF).
-		read_all = 3, // 11
+		all = 3, // 11
 	}; 
 
 private:
@@ -261,7 +261,7 @@ public:
 					if (availableOverflowSize > unreadSize)
 						availableOverflowSize = unreadSize;
 					m_readBuffer.append(m_overflow->split_off_before(availableOverflowSize));
-					if ((unreadSize == availableOverflowSize) || (m_mode != read_all))
+					if ((unreadSize == availableOverflowSize) || (m_mode != read_mode::all))
 					{
 						datasource_task<reader>::complete();
 						return;
@@ -276,7 +276,7 @@ public:
 		reader(rc_obj_base& desc, const rcref<datasource>& ds)
 			: datasource_task<reader>(desc, ds),
 			m_overflow(ds->m_overflow),
-			m_mode(read_all)
+			m_mode(read_mode::all)
 		{ }
 
 		/// @brief Derived readers should implement reading() to perform the read operation
@@ -310,7 +310,7 @@ public:
 		/// smaller buffers from it.  This allows larger blocks to be coalesced, if 
 		/// recombined in a composite_buffer in the course of processing I/O.
 		///
-		/// If the read_mode is not read_all, it's possible a smaller block than requested will be returned.
+		/// If the read_mode is not read_mode::all, it's possible a smaller block than requested will be returned.
 		/// @param n The size of the buffer to allocate
 		/// @return A buffer of the required size, but possibly smaller.
 		buffer allocate_buffer(size_t n)
@@ -324,7 +324,7 @@ public:
 					size_t internalBufferRemaining = src->m_internalBuffer.get_length();
 					if (internalBufferRemaining < n)
 					{
-						if ((internalBufferRemaining > 0) && (m_mode != read_all))
+						if ((internalBufferRemaining > 0) && (m_mode != read_mode::all))
 							n = internalBufferRemaining;
 						else
 						{
@@ -386,13 +386,13 @@ public:
 
 	/// @brief Reads some data
 	/// @return A rcref to a reader
-	rcref<reader> read() { return read(COGS_DEFAULT_BLOCK_SIZE, read_some); }
+	rcref<reader> read() { return read(COGS_DEFAULT_BLOCK_SIZE, read_mode::some); }
 
 	/// @brief Reads data
 	/// @param n Number of bytes to read
 	/// @param m Mode of the read operation
 	/// @return A rcref to a reader
-	rcref<reader> read(size_t n, read_mode m = read_all)
+	rcref<reader> read(size_t n, read_mode m = read_mode::all)
 	{
 		rcref<reader> r = create_reader(this_rcref);
 		read(n, m, r);
@@ -584,16 +584,16 @@ class datasource::transaction : public datasource
 {
 public:
 	/// @brief Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	enum close_propagation_mode
+	enum class propagate_close
 	{
 		/// @brief No close propagation.  The target datasink will not be closed if the datasink::transaction closes or aborts
-		no_close_propagation = 0,
+		no = 0,
 
-		/// @brief The target datasink will aborted if the datasink::transaction is aborted, but will not be closed if the datasink::transaction closes.
-		propagate_abort_only = 1,
+		/// @brief The target datasink will be aborted if the datasink::transaction is aborted, but will not be closed if the datasink::transaction closes.
+		on_abort = 1,
 
 		/// @brief The target datasink will close if the datasink::transaction closes or aborts.
-		propagate_close_and_abort = 2,
+		on_close_or_abort = 2,
 	};
 
 private:
@@ -633,7 +633,7 @@ private:
 		rcptr<io::queue> m_transactionIoQueue; // extends the scope of the transaction's io queue
 		volatile rcptr<plug> m_plug;
 		volatile boolean m_completeOrAbortGuard;
-		const close_propagation_mode m_closePropagationMode;
+		const propagate_close m_propagateClose;
 		volatile boolean m_transactionAborted;
 
 		virtual void executing()
@@ -645,10 +645,10 @@ private:
 				p->complete();
 		}
 
-		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
+		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, propagate_close propagateClose)
 			: io::queue::io_task<transaction_task>(desc),
 			m_transactionIoQueue(ioQueue),
-			m_closePropagationMode(closePropagationMode)
+			m_propagateClose(propagateClose)
 		{ }
 
 		void queue_plug()
@@ -673,12 +673,12 @@ private:
 
 		void aborted()
 		{
-			switch (m_closePropagationMode)
+			switch (m_propagateClose)
 			{
-			case no_close_propagation:
+			case propagate_close::no:
 				io::queue::io_task<transaction_task>::complete();
 				break;
-			case propagate_abort_only:
+			case propagate_close::on_abort:
 				if (!m_transactionAborted)
 				{
 					io::queue::io_task<transaction_task>::complete();
@@ -686,7 +686,7 @@ private:
 				}
 				// fall through
 			default:
-			//case propagate_close_and_abort:
+			//case propagate_close::on_close_or_abort:
 				io::queue::io_task<transaction_task>::complete(true);
 				break;
 			}
@@ -769,7 +769,7 @@ private:
 		rcptr<datasource> ds = m_source;
 		if (!ds)
 			abort_source();
-		else if (m_transactionTask->m_closePropagationMode == propagate_close_and_abort)
+		else if (m_transactionTask->m_propagateClose == propagate_close::on_close_or_abort)
 			return ds->create_source_closer(proxy);
 		return datasource::create_source_closer(proxy);
 	}
@@ -787,12 +787,12 @@ public:
 	/// @param ds Target datasource
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasource.
-	/// @param closePropagationMode Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
-	transaction(rc_obj_base& desc, const rcref<datasource>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
+	/// @param propagateClose Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
+	transaction(rc_obj_base& desc, const rcref<datasource>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
 		: datasource(desc, ds->m_overflow),
 		m_source(ds),
 		m_started(startImmediately),
-		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
+		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), propagateClose))
 	{
 		if (startImmediately)
 			ds->source_enqueue(m_transactionTask);
@@ -811,7 +811,7 @@ public:
 	{
 		if (m_transactionTask->m_transactionAborted.compare_exchange(true, false))
 		{
-			if (m_transactionTask->m_closePropagationMode == no_close_propagation)
+			if (m_transactionTask->m_propagateClose == propagate_close::no)
 				m_ioQueue->close();
 			else
 			{
@@ -883,7 +883,7 @@ private:
 					break;
 				m_completionSerializer.peek_first(t);
 			}
-			get_desc()->release(strong, releaseCount);
+			get_desc()->release(reference_strength::strong, releaseCount);
 		}
 	}
 
@@ -933,7 +933,7 @@ private:
 				if (!!readSize) // else limit reached, allow write to complete the coupler when it's done.
 				{
 					m_reading = true;
-					m_currentReader = m_coupledRead->read(readSize, datasource::read_some);
+					m_currentReader = m_coupledRead->read(readSize, datasource::read_mode::some);
 					m_currentReader->dispatch([this]()
 					{
 						process(&default_coupler::process_read);
@@ -1015,7 +1015,7 @@ private:
 					if (!!readSize) // else limit reached, allow write to complete the coupler when it's done.
 					{
 						m_reading = true;
-						m_currentReader = m_coupledRead->read(readSize, datasource::read_some);
+						m_currentReader = m_coupledRead->read(readSize, datasource::read_mode::some);
 						m_currentReader->dispatch([this]()
 						{
 							process(&default_coupler::process_read);
@@ -1111,7 +1111,7 @@ protected:
 	{
 		self_acquire();
 		m_reading = true;
-		m_currentReader = m_coupledRead->read(m_bufferBlockSize, datasource::read_some);
+		m_currentReader = m_coupledRead->read(m_bufferBlockSize, datasource::read_mode::some);
 		m_currentReader->dispatch([this]()
 		{
 			process(&default_coupler::process_read);

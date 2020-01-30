@@ -42,20 +42,20 @@ public:
 	rc_obj_base* get_desc() const { return m_desc; }
 	rc_obj_base* get_desc() const volatile { return m_desc; } // Set on construction and not modified.
 
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const
 	{
-		m_desc->acquire(refStrengthType);
+		m_desc->acquire(referenceStrength);
 		return m_desc;
 	}
 
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const
 	{
-		m_desc->release(refStrengthType);
+		m_desc->release(referenceStrength);
 		return m_desc;
 	}
 
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const volatile { return const_cast<const object*>(this)->self_acquire(refStrengthType); }
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const volatile { return const_cast<const object*>(this)->self_release(refStrengthType); }
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const volatile { return const_cast<const object*>(this)->self_acquire(referenceStrength); }
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const volatile { return const_cast<const object*>(this)->self_release(referenceStrength); }
 
 	template <class type> const rcref<type>& get_self_rcref(type* obj,
 		unowned_t<rcptr<type> >& storage = unowned_t<rcptr<type> >().get_unowned()) const
@@ -128,14 +128,14 @@ public:
 #define COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(derived_type, base1, base2) \
 	rc_obj_base* get_desc() const { return base1::get_desc(); } \
 	rc_obj_base* get_desc() const volatile { return base1::get_desc(); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_release(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_release(refStrengthType); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_release(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_release(referenceStrength); } \
 	template <typename type> rcref<type> get_self_rcref(type* obj) const \
 	{ return base1::get_self_rcref(obj); } \
 	template <typename type> rcref<const type> get_self_rcref(const type* obj) const \
@@ -166,14 +166,14 @@ public:
 #define COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE3(derived_type, base1, base2, base3) \
 	rc_obj_base* get_desc() const { return base1::get_desc(); } \
 	rc_obj_base* get_desc() const volatile { return base1::get_desc(); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_release(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_release(refStrengthType); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_release(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_release(referenceStrength); } \
 	template <typename type> rcref<type> get_self_rcref(type* obj) const \
 	{ return base1::get_self_rcref(obj); } \
 	template <typename type> rcref<const type> get_self_rcref(const type* obj) const \
@@ -203,14 +203,14 @@ public:
 #define COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE4(derived_type, base1, base2, base3, base4) \
 	rc_obj_base* get_desc() const { return base1::get_desc(); } \
 	rc_obj_base* get_desc() const volatile { return base1::get_desc(); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_acquire(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_acquire(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const \
-	{ return base1::self_release(refStrengthType); } \
-	rc_obj_base* self_release(reference_strength_type refStrengthType = strong) const volatile \
-	{ return base1::self_release(refStrengthType); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_acquire(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_acquire(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const \
+	{ return base1::self_release(referenceStrength); } \
+	rc_obj_base* self_release(reference_strength referenceStrength = reference_strength::strong) const volatile \
+	{ return base1::self_release(referenceStrength); } \
 	template <typename type> rcref<type> get_self_rcref(type* obj) const \
 	{ return base1::get_self_rcref(obj); } \
 	template <typename type> rcref<const type> get_self_rcref(const type* obj) const \

@@ -56,7 +56,7 @@ public:
 	// implementions to avoid unnecessary work to determine values that will not be used by the caller.
 	// Because determining the size of a cell may require requesting all possible sizes to find a valid one,
 	// use of a size_mode other than size_mode::both is generally isolated to parent cell sizing of multiple child cells.
-	enum class size_mode : int
+	enum class size_mode
 	{
 		// Only the lesser value is needed.  A valid greater value may not be returned, even if possible.
 		lesser = -1,

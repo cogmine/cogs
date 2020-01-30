@@ -747,7 +747,7 @@
 //		void dispatch(const dispatch_t& d) const { dispatch(delegate(d, this_rcref)); }
 //	};
 //
-//	enum create_mode
+//	enum class create_mode
 //	{
 //		open_if_exists = 0x01,
 //		create_only = 0x02,
@@ -1009,7 +1009,7 @@
 //			// Defer initiating the actual read to the completion port thread.
 //			// This is because, on Windows, if the thread initiating asynchronous IO
 //			// terminates, so does the IO request.
-//			m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::execute_in_completion_port_thread, this_rcref, strong));
+//			m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::execute_in_completion_port_thread, this_rcref, reference_strength::strong));
 //		}
 //
 //		void execute_in_completion_port_thread()
@@ -1019,7 +1019,7 @@
 //				complete();
 //			else
 //			{
-//				m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::read_done, this_rcref, strong));
+//				m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::read_done, this_rcref, reference_strength::strong));
 //				LARGE_INTEGER offset;
 //				offset.QuadPart = m_offset;
 //				m_overlapped->Offset = offset.LowPart;
@@ -1066,7 +1066,7 @@
 //			// This is because, on Windows, if the thread initiating asynchronous IO
 //			// terminates, so does the IO request.
 //			m_curOffset = m_offset;
-//			m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::execute_in_completion_port_thread, this_rcref, strong));
+//			m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::execute_in_completion_port_thread, this_rcref, reference_strength::strong));
 //		}
 //
 //		void execute_in_completion_port_thread()
@@ -1077,7 +1077,7 @@
 //			else
 //			{
 //				if (!m_overlapped)
-//					m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::write_done, this_rcref, strong));
+//					m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::write_done, this_rcref, reference_strength::strong));
 //				else
 //					m_overlapped->clear();
 //				LARGE_INTEGER offset;
@@ -1115,7 +1115,7 @@
 //				else
 //				{
 //					m_curOffset += n;
-//					m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::execute_in_completion_port_thread, this_rcref, strong));
+//					m_completionPort->dispatch(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::execute_in_completion_port_thread, this_rcref, reference_strength::strong));
 //				}
 //			}
 //		}

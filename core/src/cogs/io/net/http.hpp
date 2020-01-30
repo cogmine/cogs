@@ -445,7 +445,7 @@ composite_cstring url_decode(const composite_cstring& s);
 //	static rcref<request> create_request(const url& u)
 //	{
 //		unsigned short port = 80;
-//		bool useSSL = u.get_scheme().equals("https", is_case_insensitive);
+//		bool useSSL = u.get_scheme().equals("https", case_sensitive::no);
 //		if (useSSL)
 //			port = 443;
 //
@@ -500,71 +500,71 @@ private:
 	class response : public net::request_response_server::response
 	{
 	public:
-		enum status_code
+		enum class status
 		{
-			status_continue = 100,
-			status_switching_protocols = 101,
-			status_processing = 102, // WebDAV, RFC2518
+			continue_status = 100,
+			switching_protocols = 101,
+			processing = 102, // WebDAV, RFC2518
 
-			status_ok = 200,
-			status_created = 201,
-			status_accepted = 202,
-			status_nonauthoritative_information = 203,
-			status_no_content = 204,
-			status_reset_content = 205,
-			status_multi_status = 207, // WebDAV, RFC4918
-			status_im_used = 226, // WebDAV, RFC3229
+			ok = 200,
+			created = 201,
+			accepted = 202,
+			nonauthoritative_information = 203,
+			no_content = 204,
+			reset_content = 205,
+			multi_status = 207, // WebDAV, RFC4918
+			im_used = 226, // WebDAV, RFC3229
 
-			status_multiple_choices = 300,
-			status_moved_permanently = 301,
-			status_found = 302,
-			status_see_other = 303,
-			status_not_modified = 304,
-			status_use_proxy = 305,
-			status_temporary_redirect = 307,
+			multiple_choices = 300,
+			moved_permanently = 301,
+			found = 302,
+			see_other = 303,
+			not_modified = 304,
+			use_proxy = 305,
+			temporary_redirect = 307,
 
-			status_bad_request = 400,
-			status_unauthorized = 401,
-			status_payment_required = 402,
-			status_forbidden = 403,
-			status_not_found = 404,
-			status_method_not_allowed = 405,
-			status_not_acceptable = 406,
-			status_proxy_authentication_required = 407,
-			status_request_timeout = 408,
-			status_conflict = 409,
-			status_gone = 410,
-			status_length_required = 411,
-			status_precondition_failed = 412,
-			status_request_entity_too_large = 413,
-			status_request_uri_too_large = 414,
-			status_unsupported_media_type = 415,
-			status_request_range_not_satisfiable = 416,
-			status_expectation_failed = 417,
-			status_iam_a_teapot = 418, // joke
-			status_unprocessable_entity = 422, // WebDAV, RFC4918
-			status_locked = 423, // WebDAV, RFC4918
-			status_failed_dependency = 424, // WebDAV, RFC4918
-			status_unordered_collection = 425, // RFC3649
-			status_upgrade_required = 426, // RFC2817
-			status_no_response = 444, // Nginx
-			status_retry_with = 449,
-			status_blocked_by_windows_parental_controls = 450,
-			status_client_closed_request = 499,
+			bad_request = 400,
+			unauthorized = 401,
+			payment_required = 402,
+			forbidden = 403,
+			not_found = 404,
+			method_not_allowed = 405,
+			not_acceptable = 406,
+			proxy_authentication_required = 407,
+			request_timeout = 408,
+			conflict = 409,
+			gone = 410,
+			length_required = 411,
+			precondition_failed = 412,
+			request_entity_too_large = 413,
+			request_uri_too_large = 414,
+			unsupported_media_type = 415,
+			request_range_not_satisfiable = 416,
+			expectation_failed = 417,
+			iam_a_teapot = 418, // joke
+			unprocessable_entity = 422, // WebDAV, RFC4918
+			locked = 423, // WebDAV, RFC4918
+			failed_dependency = 424, // WebDAV, RFC4918
+			unordered_collection = 425, // RFC3649
+			upgrade_required = 426, // RFC2817
+			no_response = 444, // Nginx
+			retry_with = 449,
+			blocked_by_windows_parental_controls = 450,
+			client_closed_request = 499,
 
-			status_internal_server_error = 500,
-			status_not_implemented = 501,
-			status_bad_gateway = 502,
-			status_service_unavailable = 503,
-			status_gateway_timeout = 504,
-			status_http_version_not_supported = 505,
-			status_variant_also_negotiates = 506, // RFC2295
-			status_insufficient_storage = 507, // WebDAV, RFC4918
-			status_bandwidth_limit_exceeded = 509, // Apache bw/limited extension
-			status_not_extended = 510 // RFC2274
+			internal_server_error = 500,
+			not_implemented = 501,
+			bad_gateway = 502,
+			service_unavailable = 503,
+			gateway_timeout = 504,
+			http_version_not_supported = 505,
+			variant_also_negotiates = 506, // RFC2295
+			insufficient_storage = 507, // WebDAV, RFC4918
+			bandwidth_limit_exceeded = 509, // Apache bw/limited extension
+			not_extended = 510 // RFC2274
 		};
 
-		enum mode
+		enum class mode
 		{
 			// A response of a known fixed size allows the connection to be
 			// reused for additional requests.  The size is sent in header
@@ -594,7 +594,7 @@ private:
 		rcptr<chunk_sink> m_chunkSink;
 		rcptr<io::limiter> m_sinkContentLengthLimiter;
 		rcptr<datasink> m_sink; // Will vary depending on whether chunking filter is used
-		const status_code m_statusCode;
+		const status m_statusCode;
 		const composite_cstring m_statusPhrase;
 		const bool m_reuseConnection;
 
@@ -603,7 +603,7 @@ private:
 		friend class connection;
 		friend class request;
 
-		response(rc_obj_base& desc, const rcref<request>& r, status_code code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
+		response(rc_obj_base& desc, const rcref<request>& r, status code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
 			: net::request_response_server::response(desc, r),
 			m_mode(m),
 			m_contentLength(contentLength),
@@ -641,9 +641,9 @@ private:
 				rcref<header_map_t> headers = r->m_responseHeaders;
 
 				// Date header.  (rfc2616,  14.18 Date)
-				headers->insert_replace(cstring::literal("Date"), datetime::now().to_cstring(datetime::RFC1123DateTime));
+				headers->insert_replace(cstring::literal("Date"), datetime::now().to_cstring(datetime::format::RFC1123DateTime));
 
-				if (!m_reuseConnection || m_mode == raw)
+				if (!m_reuseConnection || m_mode == mode::raw)
 					c->set_connection_reuse(false);
 				if (!c->is_connection_reusable())
 				{ // If connection is not persistent, indicate Connection: close
@@ -651,7 +651,7 @@ private:
 					headers->insert_replace(cstring::literal("Connection"), cstring::literal("close"));
 				}
 
-				m_chunkOutgoing = (m_mode == chunked);
+				m_chunkOutgoing = (m_mode == mode::chunked);
 				if (m_chunkOutgoing)
 				{
 					// Transfer-Encoding header.  (rfc2616,  14.41 Transfer-Encoding)
@@ -659,7 +659,7 @@ private:
 					m_chunkSink = rcnew(chunk_sink);
 				}
 
-				if (m_mode == fixed_size)
+				if (m_mode == mode::fixed_size)
 				{
 					if (m_contentLength != 0)
 					{
@@ -764,7 +764,7 @@ private:
 			{
 				if (++requestSize > max_request_length)
 				{
-					error_reply(response::status_bad_request, cstring::literal("Request Too Large"))->complete();
+					error_reply(response::status::bad_request, cstring::literal("Request Too Large"))->complete();
 					closing = true; // Don't bother catching up with the buffer, we're closing it before it finishes.
 					break;
 				}
@@ -796,18 +796,18 @@ private:
 
 			if (completeRequest)
 			{
-				enum state {
-					read_buffer_request = 0,
-					process_request_line = 1,
-					process_header = 2,
-					process_message_body = 3
+				enum class state
+				{
+					process_request_line = 0,
+					process_header = 1,
+					process_message_body = 2
 				};
 
 				bool lastCharWasLF = false;
-				state curState = process_request_line;
+				state curState = state::process_request_line;
 				for (;;)
 				{
-					if (curState == process_request_line)
+					if (curState == state::process_request_line)
 					{
 						for (; !!m_bufferedWrite; m_bufferedWrite.advance(1))
 						{
@@ -844,7 +844,7 @@ private:
 									{
 										m_httpVersionMajor = parts[0].to_int<uint16_t>();
 										m_httpVersionMinor = parts[1].to_int<uint16_t>();
-										curState = process_header;
+										curState = state::process_header;
 										break;
 									}
 								}
@@ -855,7 +855,7 @@ private:
 					}
 
 					lastCharWasLF = true;
-					if (curState == process_header)
+					if (curState == state::process_header)
 					{
 						composite_cstring currentHeader;
 						for (; !!m_bufferedWrite; m_bufferedWrite.advance(1))
@@ -870,7 +870,7 @@ private:
 								if (c == special_characters<char>::LF)
 								{
 									// A blank line indicates the end of headers.  Message body is next.
-									curState = process_message_body;
+									curState = state::process_message_body;
 									m_bufferedWrite.advance(1);
 									break;
 								}
@@ -915,11 +915,11 @@ private:
 						}
 					}
 
-					if (curState == process_message_body) // Done reading.  Validate the request.
+					if (curState == state::process_message_body) // Done reading.  Validate the request.
 					{
 						// Before we receive a message body, we need to validate the request.
 						if (m_httpVersionMajor != 1)
-							error_reply(response::status_http_version_not_supported, cstring::literal("HTTP Version Not Supported"))->complete(); // TDB: bad_request
+							error_reply(response::status::http_version_not_supported, cstring::literal("HTTP Version Not Supported"))->complete(); // TDB: bad_request
 						else
 						{
 							bool useIncomingChunking = false;
@@ -934,7 +934,7 @@ private:
 							}
 
 							if (abort)
-								error_reply(response::status_not_implemented, cstring::literal("Transfer-Encoding \"") + *itor + cstring::literal("\" not implemented"))->complete();
+								error_reply(response::status::not_implemented, cstring::literal("Transfer-Encoding \"") + *itor + cstring::literal("\" not implemented"))->complete();
 							else
 							{
 								rcptr<connection> c = m_connection.template static_cast_to<connection>();
@@ -950,11 +950,11 @@ private:
 								itor = m_requestHeaders->find(cstring::literal("Connection"));
 								if (!!itor)
 								{
-									if (itor->starts_with(cstring::literal("close"), is_case_insensitive))
+									if (itor->starts_with(cstring::literal("close"), case_sensitive::no))
 										c->set_connection_reuse(false);
 
 									// Repeat Keep-Alive back to the client.
-									if (itor->starts_with(cstring::literal("Keep-Alive"), is_case_insensitive))
+									if (itor->starts_with(cstring::literal("Keep-Alive"), case_sensitive::no))
 										m_responseHeaders->insert_replace(cstring::literal("Connection"), cstring::literal("Keep-Alive"));
 								}
 
@@ -1048,7 +1048,7 @@ private:
 			{
 				if (expects_continue())
 				{
-					response::status_code code = response::status_continue;
+					response::status code = response::status::continue_status;
 					cstring statusPhrase = cstring::literal("Continue");
 
 					rcptr<datasink> snk = c->get_net_connection();
@@ -1074,19 +1074,19 @@ private:
 			}
 		}
 
-		rcref<response> simple_reply(const composite_cstring& body = composite_cstring(), response::status_code code = response::status_ok, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
+		rcref<response> simple_reply(const composite_cstring& body = composite_cstring(), response::status code = response::status::ok, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
 		{
-			rcref<response> r = begin_response(response::fixed_size, body.get_length(), code, statusPhrase, reuseConnection);
+			rcref<response> r = begin_response(response::mode::fixed_size, body.get_length(), code, statusPhrase, reuseConnection);
 			r->get_datasink()->write(composite_buffer::from_composite_cstring(body));
 			return r;
 		}
 
-		rcref<response> simple_reply(response::status_code code, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
+		rcref<response> simple_reply(response::status code, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
 		{
 			return simple_reply(composite_cstring(), code, statusPhrase, reuseConnection);
 		}
 
-		rcref<response> error_reply(response::status_code code = response::status_bad_request, const composite_cstring& statusPhrase = cstring::literal("Bad Request"), bool reuseConnection = true)
+		rcref<response> error_reply(response::status code = response::status::bad_request, const composite_cstring& statusPhrase = cstring::literal("Bad Request"), bool reuseConnection = true)
 		{
 			int_type statusCode = (int)code;
 			composite_cstring statusCodeString = statusCode.to_cstring();
@@ -1108,10 +1108,10 @@ private:
 			return simple_reply(body, code, statusPhrase, false);
 		}
 
-		rcref<response> begin_response(response::mode m, size_t contentLength, response::status_code code = response::status_ok, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
+		rcref<response> begin_response(response::mode m, size_t contentLength, response::status code = response::status::ok, const composite_cstring& statusPhrase = cstring::literal("OK"), bool reuseConnection = true)
 		{
-			if ((m == response::chunked) && !m_supportOutgoingChunking)
-				m = response::raw;
+			if ((m == response::mode::chunked) && !m_supportOutgoingChunking)
+				m = response::mode::raw;
 
 			m_coupler->cancel();
 			rcref<response> r = rcnew(response, this_rcref, code, statusPhrase, m, contentLength, reuseConnection);
@@ -1149,7 +1149,7 @@ private:
 		bool expects_continue() const
 		{
 			header_map_t::iterator itor = m_requestHeaders->find(cstring::literal("Expect"));
-			return !!itor && itor->equals(cstring::literal("100-continue"), is_case_insensitive);
+			return !!itor && itor->equals(cstring::literal("100-continue"), case_sensitive::no);
 		}
 	};
 
@@ -1170,32 +1170,32 @@ private:
 
 	static void default_get_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_post_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_head_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_put_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_delete_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_trace_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_options_handler(const rcref<request>& r)
@@ -1217,12 +1217,12 @@ private:
 
 	static void default_connect_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static void default_patch_handler(const rcref<request>& r)
 	{
-		r->error_reply(response::status_not_implemented, cstring::literal("Not Implemented"))->complete();
+		r->error_reply(response::status::not_implemented, cstring::literal("Not Implemented"))->complete();
 	}
 
 	static rcref<verb_handler_map_t> get_default_verb_handlers()

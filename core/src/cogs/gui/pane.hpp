@@ -54,7 +54,7 @@ class subsystem;
 /// The top-most pane implicitly buffers the drawing of itself and all children, to avoid flicker.
 /// This is either supported automatically by the platform, rendering engine, or use of a compositing
 /// buffer in the top-most pane.
-enum compositing_behavior
+enum class compositing_behavior
 {
 	/// Does not buffer drawing.  draw() may be called frequently, as parent, child, or overlapping
 	/// sibling panes are invalidated and redrawn to a common backing buffer.  This is useful for
@@ -236,14 +236,11 @@ private:
 	rcptr<task<void> > m_expireTask;
 	boolean m_expireDone;
 
-	enum serial_dispatch_state_flags
-	{
-		busy_flag = 0x01,      // 00001
-		dirty_flag = 0x02,     // 00010
-		scheduled_flag = 0x04, // 00100
-		expired_flag = 0x08,   // 01000
-		hand_off_flag = 0x10,  // 10000
-	};
+	constexpr static int serial_dispatch_busy_flag = 0x01;      // 00001
+	constexpr static int serial_dispatch_dirty_flag = 0x02;     // 00010
+	constexpr static int serial_dispatch_scheduled_flag = 0x04; // 00100
+	constexpr static int serial_dispatch_expired_flag = 0x08;   // 01000
+	constexpr static int serial_dispatch_hand_off_flag = 0x10;  // 10000
 
 	void serial_dispatch() volatile
 	{
@@ -251,15 +248,15 @@ private:
 		atomic::load(m_serialDispatchState, oldState);
 		for (;;)
 		{
-			if ((oldState.m_flags & dirty_flag) != 0)
+			if ((oldState.m_flags & serial_dispatch_dirty_flag) != 0)
 				break;
 
 			serial_dispatch_state newState = oldState;
-			bool own = (oldState.m_flags & busy_flag) == 0;
+			bool own = (oldState.m_flags & serial_dispatch_busy_flag) == 0;
 			if (own)
-				newState.m_flags |= busy_flag;
+				newState.m_flags |= serial_dispatch_busy_flag;
 			else
-				newState.m_flags |= dirty_flag;
+				newState.m_flags |= serial_dispatch_dirty_flag;
 
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
@@ -285,13 +282,13 @@ private:
 		atomic::load(m_serialDispatchState, oldState);
 		for (;;)
 		{
-			COGS_ASSERT((oldState.m_flags & expired_flag) == 0);
+			COGS_ASSERT((oldState.m_flags & serial_dispatch_expired_flag) == 0);
 			serial_dispatch_state newState = oldState;
-			newState.m_flags &= ~scheduled_flag & ~hand_off_flag & ~dirty_flag; // remove scheduled flag, and hand_off_flag if it was present
-			newState.m_flags |= busy_flag | expired_flag;
-			bool own = ((oldState.m_flags & busy_flag) == 0) || ((oldState.m_flags & hand_off_flag) != 0);
+			newState.m_flags &= ~serial_dispatch_scheduled_flag & ~serial_dispatch_hand_off_flag & ~serial_dispatch_dirty_flag; // remove scheduled flag, and hand-off flag if it was present
+			newState.m_flags |= serial_dispatch_busy_flag | serial_dispatch_expired_flag;
+			bool own = ((oldState.m_flags & serial_dispatch_busy_flag) == 0) || ((oldState.m_flags & serial_dispatch_hand_off_flag) != 0);
 			if (!own)
-				newState.m_flags |= dirty_flag;
+				newState.m_flags |= serial_dispatch_dirty_flag;
 
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
@@ -310,11 +307,11 @@ private:
 		atomic::load(m_serialDispatchState, oldState);
 		for (;;)
 		{
-			COGS_ASSERT((oldState.m_flags & hand_off_flag) == 0);
-			if ((oldState.m_flags & dirty_flag) != 0) // Immediately remove the retry tripwire
+			COGS_ASSERT((oldState.m_flags & serial_dispatch_hand_off_flag) == 0);
+			if ((oldState.m_flags & serial_dispatch_dirty_flag) != 0) // Immediately remove the retry tripwire
 			{
 				newState = oldState;
-				newState.m_flags &= ~dirty_flag;
+				newState.m_flags &= ~serial_dispatch_dirty_flag;
 				if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 					continue;
 				oldState.m_flags = newState.m_flags;
@@ -325,10 +322,10 @@ private:
 			bool removeScheduled = false;
 			if (!vt)
 			{
-				if ((oldState.m_flags & scheduled_flag) == 0) // Nothing scheduled, done if we can transition out
+				if ((oldState.m_flags & serial_dispatch_scheduled_flag) == 0) // Nothing scheduled, done if we can transition out
 				{
 					newState = oldState;
-					newState.m_flags &= ~busy_flag & ~expired_flag;
+					newState.m_flags &= ~serial_dispatch_busy_flag & ~serial_dispatch_expired_flag;
 					if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 						continue;
 					break;
@@ -339,12 +336,12 @@ private:
 			else
 			{
 				priority = vt.get_key();
-				if ((oldState.m_flags & scheduled_flag) != 0)
+				if ((oldState.m_flags & serial_dispatch_scheduled_flag) != 0)
 				{
 					if (priority == oldState.m_scheduledPriority) // Something the same priority is already scheduled, done if we can transition out
 					{
 						newState = oldState;
-						newState.m_flags &= ~busy_flag;
+						newState.m_flags &= ~serial_dispatch_busy_flag;
 						if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 							continue;
 						break;
@@ -363,8 +360,8 @@ private:
 					for (;;) // Nothing is scheduled now.  Remove scheduled bit foracbly.
 					{
 						newState = oldState;
-						newState.m_flags &= ~scheduled_flag;
-						newState.m_flags &= ~dirty_flag; // slight efficiency
+						newState.m_flags &= ~serial_dispatch_scheduled_flag;
+						newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
 						if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 							continue;
 						oldState.m_flags = newState.m_flags;
@@ -375,18 +372,18 @@ private:
 				for (;;) // Try to release update to expiring thread, if it doesn't expire before we get the chance
 				{
 					newState = oldState;
-					newState.m_flags |= hand_off_flag;
-					newState.m_flags &= ~dirty_flag; // slight efficiency
+					newState.m_flags |= serial_dispatch_hand_off_flag;
+					newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
 					if (atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 						return;
-					if (((oldState.m_flags & expired_flag) != 0)) // Already expired
+					if (((oldState.m_flags & serial_dispatch_expired_flag) != 0)) // Already expired
 						break;
 					//continue;
 				}
 				continue; // Start from the beginning, in case other flags have changed
 			}
 
-			if ((oldState.m_flags & expired_flag) != 0)
+			if ((oldState.m_flags & serial_dispatch_expired_flag) != 0)
 			{
 				if (priority <= oldState.m_scheduledPriority)
 				{
@@ -407,8 +404,8 @@ private:
 				for (;;) // Expired, but too soon.  Need to reschedule anyway.  Remove expired bit foracbly.
 				{
 					newState = oldState;
-					newState.m_flags &= ~expired_flag;
-					newState.m_flags &= ~dirty_flag; // slight efficiency
+					newState.m_flags &= ~serial_dispatch_expired_flag;
+					newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
 					if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 						continue;
 					oldState.m_flags = newState.m_flags;
@@ -419,8 +416,8 @@ private:
 
 			COGS_ASSERT(!!vt);
 			newState.m_scheduledPriority = priority;
-			newState.m_flags = oldState.m_flags & ~busy_flag;
-			newState.m_flags |= scheduled_flag;
+			newState.m_flags = oldState.m_flags & ~serial_dispatch_busy_flag;
+			newState.m_flags |= serial_dispatch_scheduled_flag;
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
 
@@ -439,11 +436,11 @@ private:
 		atomic::load(m_serialDispatchState, oldState);
 		for (;;)
 		{
-			COGS_ASSERT((oldState.m_flags & expired_flag) != 0);
-			COGS_ASSERT((oldState.m_flags & busy_flag) != 0);
+			COGS_ASSERT((oldState.m_flags & serial_dispatch_expired_flag) != 0);
+			COGS_ASSERT((oldState.m_flags & serial_dispatch_busy_flag) != 0);
 
 			serial_dispatch_state newState = oldState;
-			newState.m_flags &= ~dirty_flag & ~expired_flag;
+			newState.m_flags &= ~serial_dispatch_dirty_flag & ~serial_dispatch_expired_flag;
 			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
 				continue;
 
@@ -556,7 +553,7 @@ protected:
 	point get_render_position()
 	{
 		point offset(0, 0);
-		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
+		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
 			offset = get_ancestor_render_position();
 		return offset;
 	}
@@ -568,7 +565,7 @@ protected:
 		if (!!p)
 		{
 			offset += get_position();
-			while ((p->m_compositingBehavior != buffer_self_and_children) && (!p->is_externally_drawn()))
+			while ((p->m_compositingBehavior != compositing_behavior::buffer_self_and_children) && (!p->is_externally_drawn()))
 			{
 				rcptr<pane> p2 = p->get_parent();
 				if (!p2)
@@ -582,21 +579,21 @@ protected:
 
 	rcptr<pane> get_render_pane()
 	{
-		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
+		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
 			return get_ancestor_render_pane();
 		return this_rcptr;
 	}
 
 	rcptr<pane> get_render_pane(point& offset)
 	{
-		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
+		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
 			return get_ancestor_render_pane(offset);
 		return this_rcptr;
 	}
 
 	rcptr<pane> get_render_pane(point& offset, bounds& visibleBounds)
 	{
-		if ((m_compositingBehavior == no_buffer) && (!is_externally_drawn()))
+		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
 			return get_ancestor_render_pane(offset, visibleBounds);
 		visibleBounds = get_size();
 		return this_rcptr;
@@ -607,7 +604,7 @@ protected:
 		rcptr<pane> p = m_parent;
 		if (!!p)
 		{
-			while ((p->m_compositingBehavior != buffer_self_and_children) && (!p->is_externally_drawn()))
+			while ((p->m_compositingBehavior != compositing_behavior::buffer_self_and_children) && (!p->is_externally_drawn()))
 			{
 				rcptr<pane> p2 = p->get_parent();
 				if (!p2)
@@ -625,7 +622,7 @@ protected:
 		while (!!parent)
 		{
 			offset += child->get_position();
-			if (parent->is_externally_drawn() || parent->m_compositingBehavior == buffer_self_and_children)
+			if (parent->is_externally_drawn() || parent->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
 				break;
 			child = parent.get_ptr();
 			parent = child->m_parent;
@@ -645,7 +642,7 @@ protected:
 			offset += childPosition;
 			visibleBounds += childPosition;
 			visibleBounds &= bounds(parent->get_size());
-			if (parent->is_externally_drawn() || parent->m_compositingBehavior == buffer_self_and_children)
+			if (parent->is_externally_drawn() || parent->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
 				break;
 			child = parent.get_ptr();
 			parent = child->m_parent;
@@ -747,15 +744,15 @@ protected:
 				m_compositingBehavior = cb;
 			else
 			{
-				if (cb == no_buffer)
+				if (cb == compositing_behavior::no_buffer)
 					m_offScreenBuffer.release();
 
-				if (cb == buffer_self) // invalidate before, to ensure children get invalidated.
+				if (cb == compositing_behavior::buffer_self) // invalidate before, to ensure children get invalidated.
 					invalidate(get_size());
 
 				m_compositingBehavior = cb;
 
-				if (cb != buffer_self)
+				if (cb != compositing_behavior::buffer_self)
 					invalidate(get_size());
 			}
 		}
@@ -785,17 +782,17 @@ protected:
 			};
 
 			prepare_offscreen_buffer();
-			if (!!m_offScreenBuffer && !m_needsDraw)      // --- Buffer already available:
+			if (!!m_offScreenBuffer && !m_needsDraw) // --- Buffer already available:
 			{
-				composite_offscreen_buffer();             // Fully clip, Blit, Unclip
-				if (m_compositingBehavior == buffer_self) // If buffering only this pane,
-					draw_children();                      // Draw children (they clip themselves)
+				composite_offscreen_buffer();                                   // Fully clip, Blit, Unclip
+				if (m_compositingBehavior == compositing_behavior::buffer_self) // If buffering only this pane,
+					draw_children();                                            // Draw children (they clip themselves)
 			}
 			else
 			{
 				m_needsDraw = false;
-				if (m_compositingBehavior == no_buffer)   // --- Not buffering:
-				{                                         // Fully clip
+				if (m_compositingBehavior == compositing_behavior::no_buffer) // --- Not buffering:
+				{                                                             // Fully clip
 					point offset(0, 0);
 					bounds visibleBounds;
 					rcptr<pane> p = get_render_pane(offset, visibleBounds);
@@ -809,19 +806,19 @@ protected:
 					p->restore_clip();                    // Unclip
 					draw_children();                      // Draw children (they clip themselves)
 				}
-				else if (m_compositingBehavior == buffer_self) // --- Only buffering this pane:
+				else if (m_compositingBehavior == compositing_behavior::buffer_self) // --- Only buffering this pane:
 				{
 					size sz = get_size();
 					bounds b = sz;
 					save_clip();
 					clip_to(b);                           // Clip to bounds
-					fill(b, color::transparent, false);
+					fill(b, color::constant::transparent, false);
 					drawing();                            // Draw this pane
 					restore_clip();                       // Unclip
 					composite_offscreen_buffer();         // Fully clip, Blit, Unclip
 					draw_children();                      // Draw children (they clip themselves)
 				}
-				else //if (m_compositingBehavior == buffer_self_and_children) // --- Buffer this pane and children:
+				else //if (m_compositingBehavior == compositing_behavior::buffer_self_and_children) // --- Buffer this pane and children:
 				{
 					size sz = get_size();
 					bounds b = sz;
@@ -829,7 +826,7 @@ protected:
 					clip_to(b);                                // Clip to bounds
 					point offset(0, 0);
 					clip_opaque_descendants(*this, offset, b); // Clip descendants
-					fill(sz, color::transparent, false);
+					fill(sz, color::constant::transparent, false);
 					drawing();                                 // Draw this pane
 					restore_clip();                            // Unclip
 					draw_children();                           // Draw children (they clip themselves)
@@ -967,7 +964,7 @@ protected:
 			m_needsDraw = true;
 			invalidating(b2);
 			invalidating_up(b2);
-			if (m_compositingBehavior != buffer_self) // no need to invalidate children if we're buffering only ourselves.
+			if (m_compositingBehavior != compositing_behavior::buffer_self) // no need to invalidate children if we're buffering only ourselves.
 				invalidating_children(b2);
 		}
 	}
@@ -1146,7 +1143,7 @@ protected:
 
 	// canvas interface
 
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
 			m_offScreenBuffer->fill(b, c, blendAlpha);
@@ -1184,7 +1181,7 @@ protected:
 		}
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
 			m_offScreenBuffer->draw_line(startPt, endPt, width, c, blendAlpha);
@@ -1231,7 +1228,7 @@ protected:
 		return parent->get_default_font();
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& fnt = 0, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& fnt = 0, const color& c = color::constant::black)
 	{
 		if (!!m_offScreenBuffer)
 			m_offScreenBuffer->draw_text(s, b, fnt, c);
@@ -1269,7 +1266,7 @@ protected:
 		}
 	}
 
-	virtual void draw_bitmask(const bitmask& msk, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const bitmask& msk, const bounds& srcBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		if (!!m_offScreenBuffer)
 			m_offScreenBuffer->draw_bitmask(msk, srcBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
@@ -1688,7 +1685,7 @@ protected:
 		else
 		{
 			//bool positionChanged = renderOffset != m_lastRenderOffset;
-			bool isBuffered = m_compositingBehavior != no_buffer;
+			bool isBuffered = m_compositingBehavior != compositing_behavior::no_buffer;
 
 			// Maybe an assumption here that any externally drawn pane that is only repositioned, will have own invalidate/redraw.
 			if (!!p)
@@ -1896,7 +1893,7 @@ private:
 				parentRect &= bounds(point(0, 0), parent->get_size());
 				if (!!parentRect.get_width() && !!parentRect.get_height())
 				{
-					if ((parent->m_compositingBehavior != buffer_self_and_children) && (!parent->is_externally_drawn()))
+					if ((parent->m_compositingBehavior != compositing_behavior::buffer_self_and_children) && (!parent->is_externally_drawn()))
 					{
 						child = parent;
 						parent = parent->m_parent;
@@ -1985,7 +1982,7 @@ private:
 				}
 			}
 			curPane = curPane->m_parent;
-			if (!curPane || curPane->is_externally_drawn() || curPane->m_compositingBehavior == buffer_self_and_children)
+			if (!curPane || curPane->is_externally_drawn() || curPane->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
 				break;
 		}
 	}
@@ -2057,14 +2054,14 @@ private:
 
 	void prepare_offscreen_buffer()
 	{
-		if (m_compositingBehavior != no_buffer)
+		if (m_compositingBehavior != compositing_behavior::no_buffer)
 		{
 			size sz = get_size();
 			if (!!m_offScreenBuffer)
 				m_offScreenBuffer->set_size(sz, size(100, 100), false);
 			else
 			{
-				m_offScreenBuffer = create_offscreen_buffer(*this, sz, is_opaque() ? color::black : color::transparent);
+				m_offScreenBuffer = create_offscreen_buffer(*this, sz, is_opaque() ? color::constant::black : color::constant::transparent);
 				m_needsDraw = true;
 				invalidating(sz);
 			}
@@ -2521,14 +2518,14 @@ public:
 	{
 	}
 
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
 	virtual void invert(const bounds& b) { pane::invert(b); }
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
 	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) { return pane::load_font(f); }
 	virtual gfx::font get_default_font() const { return pane::get_default_font(); }
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) { pane::draw_text(s, b, f, c); }
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::constant::black) { pane::draw_text(s, b, f, c); }
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) { return pane::draw_bitmap(src, srcBounds, dstBounds, blendAlpha); }
-	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) { pane::composite_vector_image(src, dstBounds); }
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false) { pane::mask_out(msk, mskBounds, dstBounds, inverted); }
 	virtual void draw_bitmap_with_bitmask(const bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false) { pane::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted); }

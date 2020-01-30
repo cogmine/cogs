@@ -86,7 +86,7 @@ private:
 
 public:
 	window(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, user_drawn)
+		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, hwnd_draw_mode::user)
 	{
 	}
 

@@ -53,11 +53,11 @@ private:
 		}
 	};
 
-	enum state
+	enum class state
 	{
-		unset_state = 0,
-		set_state = 1,
-		trigger_state = 2
+		unset = 0,
+		set = 1,
+		trigger = 2
 	};
 
 	class content_t
@@ -70,7 +70,7 @@ private:
 		rcptr<delegates_t> m_delegates;
 
 		content_t()
-			: m_state(unset_state),
+			: m_state(state::unset),
 			m_stallCount(0),
 			m_delegateCount(0)
 		{ }
@@ -98,7 +98,7 @@ private:
 				if (rt->m_delegates != lastSeenDelegates) // state has changed sufficiently to already have dispatched.
 					break;
 			}
-			else if (rt->m_state == set_state)
+			else if (rt->m_state == state::set)
 			{
 				t->signal();
 				if (!!newDelegates)
@@ -110,9 +110,9 @@ private:
 				continue;
 			if (!insertedToExisting)
 			{
-				if (wt->m_state == trigger_state)
+				if (wt->m_state == state::trigger)
 				{
-					wt->m_state = unset_state;
+					wt->m_state = state::unset;
 					if (!m_contents.end_write(wt))
 						continue;
 					t->signal();
@@ -166,14 +166,14 @@ public:
 		{
 			read_token rt;
 			m_contents.begin_read(rt);
-			result = (rt->m_state == unset_state);
-			if (rt->m_state == set_state)
+			result = (rt->m_state == state::unset);
+			if (rt->m_state == state::set)
 				break;
 			size_t wakeCount = rt->m_stallCount;
 			write_token wt;
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
-			wt->m_state = set_state;
+			wt->m_state = state::set;
 			rcptr<os::semaphore> osSemaphore;
 			if (wakeCount)
 			{
@@ -202,13 +202,13 @@ public:
 		{
 			read_token rt;
 			m_contents.begin_read(rt);
-			wasUnset = (rt->m_state == unset_state);
+			wasUnset = (rt->m_state == state::unset);
 			if (wasUnset)
 				break;
 			write_token wt;
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
-			wt->m_state = unset_state;
+			wt->m_state = state::unset;
 			if (m_contents.end_write(wt))
 				break;
 		}
@@ -226,7 +226,7 @@ public:
 			// if triggered, change to unset.
 			// If unset, wake/dispatch, leave unset
 			size_t wakeCount = rt->m_stallCount;
-			if (!wakeCount && (rt->m_state == unset_state) && !!rt->m_delegates && !rt->m_delegates->get().is_empty())
+			if (!wakeCount && (rt->m_state == state::unset) && !!rt->m_delegates && !rt->m_delegates->get().is_empty())
 				break;
 			write_token wt;
 			if (!m_contents.promote_read_token(rt, wt))
@@ -241,7 +241,7 @@ public:
 			rcptr<delegates_t> delegates = wt->m_delegates;
 			wt->m_delegates.release();
 			wt->m_delegateCount = 0;
-			wt->m_state = unset_state;
+			wt->m_state = state::unset;
 			if (!m_contents.end_write(wt))
 				continue;
 			if (!!wakeCount)
@@ -262,7 +262,7 @@ public:
 		{
 			read_token rt;
 			m_contents.begin_read(rt);
-			if (rt->m_state == trigger_state) // if trigger, already done
+			if (rt->m_state == state::trigger) // if trigger, already done
 				break;
 			write_token wt;
 			if (!m_contents.promote_read_token(rt, wt))
@@ -280,7 +280,7 @@ public:
 				if (wt->m_delegates->get().is_empty())
 				{
 					wt->m_delegateCount = 0;
-					wt->m_state = trigger_state;
+					wt->m_state = state::trigger;
 				}
 				else
 				{
@@ -289,7 +289,7 @@ public:
 				}
 			}
 			else
-				wt->m_state = trigger_state;
+				wt->m_state = state::trigger;
 			if (!m_contents.end_write(wt))
 				continue;
 			if (!!osSemaphore)
@@ -318,12 +318,12 @@ public:
 			rcptr<delegates_t> delegates;
 			read_token rt;
 			m_contents.begin_read(rt);
-			if ((rt->m_state == unset_state) && !rt->m_stallCount && !rt->m_delegateCount)
+			if ((rt->m_state == state::unset) && !rt->m_stallCount && !rt->m_delegateCount)
 				break;
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
-			if (rt->m_state != unset_state)
-				wt->m_state = unset_state;
+			if (rt->m_state != state::unset)
+				wt->m_state = state::unset;
 			else
 			{
 				if (!!wt->m_stallCount)
@@ -337,7 +337,7 @@ public:
 					if (wt->m_delegates->get().is_empty())
 					{
 						wt->m_delegateCount = 0;
-						wt->m_state = trigger_state;
+						wt->m_state = state::trigger;
 					}
 					else
 					{
@@ -346,7 +346,7 @@ public:
 					}
 				}
 				else
-					wt->m_state = trigger_state;
+					wt->m_state = state::trigger;
 			}
 			if (!m_contents.end_write(wt))
 				continue;
@@ -378,13 +378,13 @@ public:
 			osSemaphore.release();
 			read_token rt;
 			m_contents.begin_read(rt);
-			if (rt->m_state == set_state)
+			if (rt->m_state == state::set)
 			{
 				result = true;
 				break;
 			}
 
-			if (rt->m_state == unset_state) // else trigger_state
+			if (rt->m_state == state::unset) // else state::trigger
 			{
 				if (!timeout)
 				{
@@ -400,7 +400,7 @@ public:
 				}
 			}
 
-			if ((!timeout) && (rt->m_state != trigger_state))
+			if ((!timeout) && (rt->m_state != state::trigger))
 			{
 				result = false;
 				break;
@@ -410,8 +410,8 @@ public:
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
 
-			if (wt->m_state == trigger_state)
-				wt->m_state = unset_state;
+			if (wt->m_state == state::trigger)
+				wt->m_state = state::unset;
 			else
 			{
 				if (!wt->m_stallCount)

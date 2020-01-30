@@ -241,7 +241,7 @@ public:
 			request(rc_obj_base& desc, const rcref<connection>& c)
 				: object(desc),
 				m_connection(c),
-				m_transaction(rcnew(datasource::transaction, c->get_datasource(), false, datasource::transaction::propagate_abort_only))
+				m_transaction(rcnew(datasource::transaction, c->get_datasource(), false, datasource::transaction::propagate_close::on_abort))
 			{
 			}
 
@@ -297,7 +297,7 @@ public:
 				: object(desc),
 				m_request(r),
 				m_connection(r->get_connection()),
-				m_transaction(rcnew(datasink::transaction, r->get_connection()->get_datasink(), false, datasink::transaction::propagate_abort_only))
+				m_transaction(rcnew(datasink::transaction, r->get_connection()->get_datasink(), false, datasink::transaction::propagate_close::on_abort))
 			{ }
 
 		public:

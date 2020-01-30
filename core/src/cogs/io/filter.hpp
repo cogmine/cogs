@@ -216,7 +216,7 @@ private:
 			m_finalized = true;
 			m_finalizeTask->dispatch([r{ this_rcref }]()
 			{
-				r->process(&state::finalize_done);
+				r->process(&filter::state::finalize_done);
 			});
 		}
 
@@ -240,7 +240,7 @@ private:
 				{
 					if (!m_writer) // No closer or write, do nothing
 					{
-						completeRead = (m_reader->get_read_mode() == datasource::read_now);
+						completeRead = (m_reader->get_read_mode() == datasource::read_mode::now);
 						break;
 					}
 					for (;;) // this loop never executes twice
@@ -276,8 +276,8 @@ private:
 				readBufferList.append(curBufferList);
 
 				completeRead = (readBufferList.get_length() == m_reader->get_requested_size())
-					|| (m_reader->get_read_mode() == datasource::read_now)
-					|| ((m_reader->get_read_mode() == datasource::read_some) && (m_reader->get_read_size() != 0));
+					|| (m_reader->get_read_mode() == datasource::read_mode::now)
+					|| ((m_reader->get_read_mode() == datasource::read_mode::some) && (m_reader->get_read_size() != 0));
 
 
 			} while (!completeRead); // one, the other, or both, will complete.
@@ -382,7 +382,7 @@ private:
 			m_asyncInProgress = true;
 			m_coupledWriter->dispatch([this]()
 			{
-				process(&state::complete_coupled_write);
+				process(&filter::state::complete_coupled_write);
 			});
 		}
 
@@ -401,7 +401,7 @@ private:
 				{
 					if (isCancelled)
 					{
-						r->process(&state::filtering_done);
+						r->process(&filter::state::filtering_done);
 					}
 				});
 			}
@@ -413,7 +413,7 @@ private:
 	class reader : public datasource::reader
 	{
 	public:
-		friend class state;
+		friend class filter::state;
 
 		const rcref<filter::state> m_state;
 
@@ -427,13 +427,13 @@ private:
 		virtual void reading()
 		{
 			m_state->m_nextReader = this_rcref;
-			m_state->process(&state::read);
+			m_state->process(&filter::state::read);
 		}
 
 		virtual void aborting()
 		{ 
 			m_state->m_abortReader = this_rcref;
-			m_state->process(&state::read_abort);
+			m_state->process(&filter::state::read_abort);
 		}
 
 		void read()
@@ -464,7 +464,7 @@ private:
 	class writer_base : public datasink::writer
 	{
 	public:
-		friend class state;
+		friend class filter::state;
 
 		const rcref<filter::state> m_state;
 
@@ -479,12 +479,12 @@ private:
 		virtual void writing()
 		{
 			m_state->m_nextWriter = this_rcref;
-			m_state->process(&state::write);
+			m_state->process(&filter::state::write);
 		}
 
 		virtual void aborting()
 		{
-			m_state->process(&state::write_abort);
+			m_state->process(&filter::state::write_abort);
 		}
 
 		void write()
@@ -532,7 +532,7 @@ private:
 					m_state->m_asyncInProgress = true;
 					m_state->m_filteringTask->dispatch([r{ this_rcref }]()
 					{
-						r->m_state->process(&state::filtering_done);
+						r->m_state->process(&filter::state::filtering_done);
 					});
 					return -1;
 				}
@@ -570,7 +570,7 @@ private:
 	class closer : public datasink::closer
 	{
 	public:
-		friend class state;
+		friend class filter::state;
 
 		const rcref<filter::state> m_state;
 
@@ -582,7 +582,7 @@ private:
 		virtual void closing()
 		{
 			m_state->m_nextCloser = this_rcref;
-			m_state->process(&state::close);
+			m_state->process(&filter::state::close);
 		}
 
 		void close()
@@ -603,7 +603,7 @@ private:
 	class coupler : public io::queue::io_task<void>
 	{
 	public:
-		friend class state;
+		friend class filter::state;
 
 		const rcref<datasink::transaction> m_sink;
 		const rcref<filter::state> m_state;
@@ -638,7 +638,7 @@ private:
 				if (!!r2)
 				{
 					r2->m_state->m_sinkCloseCoupler = r2;
-					r2->m_state->process(&state::sink_closed);
+					r2->m_state->process(&filter::state::sink_closed);
 				}
 			});
 		}
@@ -672,13 +672,13 @@ private:
 		virtual void executing()
 		{
 			m_state->m_nextCoupler = this_rcref;
-			m_state->process(&state::start);
+			m_state->process(&filter::state::start);
 		}
 
 		virtual void aborting()
 		{
 			m_state->m_abortCoupler = this_rcref;
-			m_state->process(&state::coupler_abort);
+			m_state->process(&filter::state::coupler_abort);
 		}
 
 		void start()
@@ -752,7 +752,7 @@ public:
 	{
 		// Maybe we don't need shutdown, as coupler will do the right thing?
 		// Any pending reads and write will also get cancelled, as queues are gone
-		m_state->process(&state::shutdown);
+		m_state->process(&filter::state::shutdown);
 	}
 
 	/// @brief Writes data that bypasses the filter.
@@ -934,13 +934,13 @@ public:
 //			size_t bufSize = buf.get_length();
 //			for (;;)
 //			{
-//				if (!bufSize && (get_read_mode() == read_now))
+//				if (!bufSize && (get_read_mode() == read_mode::now))
 //					break;
 //
 //				size_t unreadSize = get_unread_size();
 //				size_t n = (unreadSize < bufSize) ? unreadSize : bufSize;
 //				get_buffer().append(buf.split_off_before(n));
-//				if ((unreadSize == n) || (get_read_mode() != read_all))
+//				if ((unreadSize == n) || (get_read_mode() != read_mode::all))
 //					break;
 //
 //				return;

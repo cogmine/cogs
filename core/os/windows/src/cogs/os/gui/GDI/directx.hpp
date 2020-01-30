@@ -76,7 +76,7 @@ public:
 		}
 	}
 
-	//virtual color get_background_color() const { return color::green; }
+	//virtual color get_background_color() const { return color::constant::green; }
 
 	virtual void installing()
 	{
@@ -198,7 +198,7 @@ public:
 	}
 
 	// 2D
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		point topRight = b.calc_top_right();
 		point bottomLeft = b.calc_bottom_left();
@@ -209,11 +209,11 @@ public:
 	{
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const bounds& b, const color& c = color::constant::black)
 	{
 	}
 
@@ -221,7 +221,7 @@ public:
 	{
 	}
 
-	virtual void draw_bitmap(const gfx::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
+	virtual void draw_bitmap(const gfx::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
 	{
 	}
 

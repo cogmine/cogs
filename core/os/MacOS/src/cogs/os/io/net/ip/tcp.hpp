@@ -39,10 +39,10 @@ private:
 		bool m_complete = false;
 		os::io::kqueue_pool::remove_token m_waiterRemoveToken;
 
-		enum task_type
+		enum class task_type
 		{
-			read_task = 0,
-			abort_task = 1
+			read = 0,
+			abort = 1
 		};
 
 		volatile container_queue<task_type> m_completionSerializer;
@@ -77,9 +77,9 @@ private:
 			read_more();
 		}
 
-		void read_more() { read_more_or_abort(read_task); }
+		void read_more() { read_more_or_abort(task_type::read); }
 
-		virtual void aborting() { read_more_or_abort(abort_task); }
+		virtual void aborting() { read_more_or_abort(task_type::abort); }
 
 		// Some socket implementations (Winsock, being one, not sure about sockets with kqueue)
 		// may incur significant overhead just checking how many bytes of data are available,
@@ -91,7 +91,7 @@ private:
 		{
 			if (!!m_tcp && !!immediate_read(m_socket->get(), m_adjustedRequestedSize - m_progress))
 			{
-				if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_some) || !m_progress) && (get_read_mode() != read_now))
+				if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_mode::some) || !m_progress) && (get_read_mode() != read_mode::now))
 				{
 					m_waiterRemoveToken = m_socket->get_pool().wait_readable(m_socket->get(), [r{ this_weak_rcptr }]()
 					{
@@ -125,12 +125,12 @@ private:
 			{
 				for (;;)
 				{
-					if (taskType == read_task)
+					if (taskType == task_type::read)
 					{
 						if (!m_aborted)
 							read_inner();
 					}
-					else // if (taskType == abort_task)
+					else // if (taskType == task_type::abort)
 					{
 						if (!m_complete)
 						{
@@ -159,10 +159,10 @@ private:
 		bool m_complete = false;
 		os::io::kqueue_pool::remove_token m_waiterRemoveToken;
 
-		enum task_type
+		enum class task_type
 		{
-			write_task = 0,
-			abort_task = 1
+			write = 0,
+			abort = 1
 		};
 
 		volatile container_queue<task_type> m_completionSerializer;
@@ -175,9 +175,9 @@ private:
 
 		virtual void writing() { write_more(); }
 
-		void write_more() { write_more_or_abort(write_task); }
+		void write_more() { write_more_or_abort(task_type::write); }
 
-		virtual void aborting() { write_more_or_abort(abort_task); }
+		virtual void aborting() { write_more_or_abort(task_type::abort); }
 
 		void write_more_or_abort(task_type taskType)
 		{
@@ -185,12 +185,12 @@ private:
 			{
 				for (;;)
 				{
-					if (taskType == write_task)
+					if (taskType == task_type::write)
 					{
 						if (!m_aborted)
 							write_inner();
 					}
-					else // if (taskType == abort_task)
+					else // if (taskType == task_type::abort)
 					{
 						if (!m_complete)
 						{
@@ -272,12 +272,12 @@ private:
 	}
 
 public:
-	tcp(rc_obj_base& desc, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	tcp(rc_obj_base& desc, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: connection(desc),
 		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
 	{ }
 
-	tcp(rc_obj_base& desc, int sckt, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	tcp(rc_obj_base& desc, int sckt, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: connection(desc),
 		m_socket(rcnew(socket, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, kq))
 	{ }
@@ -297,10 +297,10 @@ public:
 		unsigned short m_remotePort;
 		bool m_aborted = false;
 
-		enum task_type
+		enum class task_type
 		{
-			complete_task = 0,
-			abort_task = 1
+			complete = 0,
+			abort = 1
 		};
 
 		volatile container_queue<task_type> m_serializer;
@@ -368,7 +368,7 @@ public:
 			{
 				for (;;)
 				{
-					if (taskType == complete_task)
+					if (taskType == task_type::complete)
 					{
 						if (!m_aborted)
 						{
@@ -389,7 +389,7 @@ public:
 							}
 						}
 					}
-					else // if (taskType == abort_task)
+					else // if (taskType == task_type::abort)
 					{
 						if (!m_aborted)
 						{
@@ -409,7 +409,7 @@ public:
 			}
 		}
 
-		void complete() { complete_or_abort(complete_task); }
+		void complete() { complete_or_abort(task_type::complete); }
 
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
@@ -440,7 +440,7 @@ public:
 		{
 			auto t = signallable_task_base<connecter>::cancel(); // will complete immediately
 			if (t->get())
-				((connecter*)this)->complete_or_abort(abort_task);
+				((connecter*)this)->complete_or_abort(task_type::abort);
 			return t;
 		}
 	};
@@ -476,15 +476,15 @@ public:
 			address_family m_addressFamily;
 			bool m_closed = false;
 
-			enum task_type
+			enum class task_type
 			{
-				accept_task = 0,
-				close_task = 1
+				accept = 0,
+				close = 1
 			};
 
 			volatile container_queue<task_type> m_serializer;
 
-			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 				: object(desc),
 				m_kqueuePool(kq),
 				m_listener(l),
@@ -515,9 +515,9 @@ public:
 				}
 			}
 
-			void close() { close_or_accept_connection(close_task); }
+			void close() { close_or_accept_connection(task_type::close); }
 
-			void accept_connection() { close_or_accept_connection(accept_task); }
+			void accept_connection() { close_or_accept_connection(task_type::accept); }
 
 			void close_or_accept_connection(task_type taskType)
 			{
@@ -525,7 +525,7 @@ public:
 				{
 					for (;;)
 					{
-						if (taskType == accept_task)
+						if (taskType == task_type::accept)
 						{
 							if (!m_closed)
 							{
@@ -556,7 +556,7 @@ public:
 								}
 							}
 						}
-						else // if (taskType == close_task)
+						else // if (taskType == task_type::close)
 						{
 							m_closed = true;
 							m_kqueuePool->deregister_listener(m_listenerRemoveToken);
@@ -598,7 +598,7 @@ public:
 		}
 
 	public:
-		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 			: object(desc),
 			m_closeEvent(desc),
 			m_port(port)
@@ -613,17 +613,17 @@ public:
 		unsigned short get_port() const { return m_port; }
 	};
 
-	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 	{
 		return rcnew(listener, acceptDelegate, port, addressFamily, kq);
 	}
 
-	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = inetv4)
+	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = address_family::inetv4)
 	{
 		return listen([srvr](const rcref<tcp>& r)
 		{
 			srvr->connecting(r.template static_cast_to<net::connection>());
-		}, port, addressFamily);
+		}, port*, addressFamily);
 	}
 
 	virtual rcref<const net::endpoint> get_local_endpoint() const { return m_socket->get_local_endpoint_ref(); }

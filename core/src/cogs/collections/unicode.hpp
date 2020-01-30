@@ -27,7 +27,7 @@ public:
 		const char* m_name;
 	};
 
-	enum normalization_form
+	enum class normalization_form
 	{
 		NFD,  // Normalization Form D (NFD) Canonical Decomposition 
 		NFC,  // Normalization Form C (NFC) Canonical Decomposition, followed by Canonical Composition

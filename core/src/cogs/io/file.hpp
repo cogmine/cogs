@@ -236,7 +236,7 @@
 //// Because the access_mode is built into the type as a template arg, file<> provides compile-time
 //// enforcement of read/write access permission.  file<read_write_access> is redrived from file<read_access>
 //// and file<write_access>, so can be cast down.
-//enum access_mode
+//enum class access_mode
 //{
 //	read_access       = 0x01, // 01
 //	write_access      = 0x02, // 10
@@ -2275,13 +2275,13 @@
 //};
 //
 ///*
-//enum transaction_submit_type
+//enum class transaction_submit_type
 //{
 //	auto_submit_transaction = 0,
 //	manual_submit_transaction = 1
 //};
 //
-//enum file_transaction_type
+//enum class file_transaction_type
 //{
 //	composed_transaction = 0,
 //	locking_transaction = 1,
@@ -2903,7 +2903,7 @@
 //
 //		file_mask<file_size_t> m_writeMask; // If locking_transaction, identifies target write mask.
 //
-//		enum state
+//		enum class state
 //		{
 //			pending              = 0x00,          // 0000
 //			submit_initiated_bit = 0x01,          // 0001
@@ -2983,12 +2983,12 @@
 //
 //		void register_failable_transaction()
 //		{ // Because this is called from a constructor, we know it's first in the queue
-//			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_failable_transaction2, this_rcref, strong));
+//			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_failable_transaction2, this_rcref, reference_strength::strong));
 //		}
 //
 //		void register_locking_transaction()
 //		{ // Because this is called from a constructor, we know it's first in the queue
-//			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_locking_transaction2, this_rcref, strong));
+//			m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::register_locking_transaction2, this_rcref, reference_strength::strong));
 //		}
 //
 //		void register_failable_transaction2()
@@ -3012,7 +3012,7 @@
 //				number<int_type> newState = (oldState.get_internal().get_int() | abort_initiated_bit);
 //				if (m_state.compare_exchange(newState, oldState, oldState))
 //				{
-//					m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::abort2, this_rcref, strong));
+//					m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::abort2, this_rcref, reference_strength::strong));
 //					break;
 //				}
 //			}
@@ -3051,7 +3051,7 @@
 //				newState = oldState.get_internal().get_int() | submit_initiated_bit; // set initiated bit
 //				if (m_state.compare_exchange(newState, oldState, oldState))
 //				{
-//					m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::submit2, this_rcref, strong));
+//					m_serialQueue->submit(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&transaction_internals::submit2, this_rcref, reference_strength::strong));
 //					break;
 //				}
 //			}
@@ -4541,7 +4541,7 @@
 //		return rcnew(locking_transaction, this_rcref);
 //	}
 //
-//	enum create_mode
+//	enum class create_mode
 //	{
 //		open_if_exists = 0x01,
 //		create_only = 0x02,
@@ -6405,7 +6405,7 @@
 //		return rcnew(locking_transaction, this_rcref);
 //	}
 //
-//	enum create_mode
+//	enum class create_mode
 //	{
 //		open_if_exists = 0x01,
 //		create_only = 0x02,
@@ -7514,7 +7514,7 @@
 //		}
 //	};
 //
-//	enum create_mode
+//	enum class create_mode
 //	{
 //		open_if_exists = 0x01,
 //		create_only = 0x02,

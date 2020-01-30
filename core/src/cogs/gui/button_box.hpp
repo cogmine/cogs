@@ -214,7 +214,7 @@
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
-//			rcref<button_box_interface::button> bridgedButton = buttonBox->append_button([r{ b.weak() }]()
+//			rcref<button_box_interface::button> bridgedButton = buttonBox->append_button([r{ b.reference_strength::weak() }]()
 //			{
 //				rcptr<button> r2 = r;
 //				if (!!r2)
@@ -235,7 +235,7 @@
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
-//			rcref<button_box_interface::button> bridgedButton = buttonBox->prepend_button([r{ b.weak() }]()
+//			rcref<button_box_interface::button> bridgedButton = buttonBox->prepend_button([r{ b.reference_strength::weak() }]()
 //			{
 //				rcptr<button> r2 = r;
 //				if (!!r2)
@@ -258,7 +258,7 @@
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
-//			rcref<button_box_interface::button> bridgedButton = buttonBox->insert_button_before(before->m_bridgedButton.dereference(), [r{ b.weak() }]()
+//			rcref<button_box_interface::button> bridgedButton = buttonBox->insert_button_before(before->m_bridgedButton.dereference(), [r{ b.reference_strength::weak() }]()
 //			{
 //				rcptr<button> r2 = r;
 //				if (!!r2)
@@ -281,7 +281,7 @@
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
-//			rcref<button_box_interface::button> bridgedButton = buttonBox->insert_button_after(after->m_bridgedButton.dereference(), [r{ b.weak() }]()
+//			rcref<button_box_interface::button> bridgedButton = buttonBox->insert_button_after(after->m_bridgedButton.dereference(), [r{ b.reference_strength::weak() }]()
 //			{
 //				rcptr<button> r2 = r;
 //				if (!!r2)
@@ -318,7 +318,7 @@
 //		while (!!itor)
 //		{
 //			const rcref<button>& b = *itor;
-//			b->m_bridgedButton = buttonBox->append_button([r{ b.weak() }]()
+//			b->m_bridgedButton = buttonBox->append_button([r{ b.reference_strength::weak() }]()
 //			{
 //				rcptr<button> r2 = r;
 //				if (!!r2)

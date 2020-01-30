@@ -671,68 +671,68 @@ public:
 	this_t split_off_back(size_t n2) volatile { return m_contents.split_off_back(n2); }
 
 
-	vector<this_t> split_on(const array_t& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on(const array_t& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return array_t::template split_on_any_inner<this_t>(*this, &splitOn, 1, opt);
 	}
 
-	vector<this_t> split_on(const array_t& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on(const array_t& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return array_t::template split_on_any_inner<this_t>(tmp, &splitOn, 1, opt);
 	}
 
-	vector<this_t> split_on_any(const array_t* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const array_t* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return array_t::template split_on_any_inner<this_t>(*this, splitOn, n, opt);
 	}
 
-	vector<this_t> split_on_any(const array_t* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const array_t* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return array_t::template split_on_any_inner<this_t>(tmp, splitOn, n, opt);
 	}
 
-	vector<this_t> split_on_any(const vector<array_t>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const vector<array_t>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return array_t::template split_on_any_inner<this_t>(*this, splitOn, opt);
 	}
 
-	vector<this_t> split_on_any(const volatile vector<array_t>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const volatile vector<array_t>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<array_t> tmp(splitOn);
 		return array_t::template split_on_any_inner<this_t>(*this, tmp, opt);
 	}
 
-	vector<this_t> split_on_any(const vector<array_t>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const vector<array_t>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return array_t::template split_on_any_inner<this_t>(tmp, splitOn, opt);
 	}
 
-	vector<this_t> split_on_segment(const array_t* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const array_t* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return array_t::template split_on_segment_inner<this_t>(*this, splitOn, n, opt);
 	}
 
-	vector<this_t> split_on_segment(const array_t* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_segment(const array_t* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return array_t::template split_on_segment_inner<this_t>(tmp, splitOn, n, opt);
 	}
 
-	vector<this_t> split_on_segment(const this_t& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const this_t& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return array_t::template split_on_segment_inner<this_t>(*this, splitOn.m_contents, opt);
 	}
 
-	vector<this_t> split_on_segment(const volatile this_t& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const volatile this_t& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		this_t tmp(splitOn.m_contents);
 		return array_t::template split_on_segment_inner<this_t>(*this, tmp, opt);
 	}
 
-	vector<this_t> split_on_segment(const this_t& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_segment(const this_t& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return array_t::template split_on_segment_inner<this_t>(tmp, splitOn.m_contents, opt);

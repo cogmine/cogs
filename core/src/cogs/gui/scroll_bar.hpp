@@ -137,7 +137,7 @@ public:
 	rcref<dependency_property<scroll_bar_state> > get_state_property() { return get_self_rcref(&m_stateProperty).template static_cast_to<dependency_property<scroll_bar_state> >(); }
 	rcref<dependency_property<double> > get_position_property() { return get_self_rcref(&m_positionProperty).template static_cast_to<dependency_property<double> >(); }
 	rcref<dependency_property<bool> > get_should_auto_fade_property() { return get_self_rcref(&m_shouldAutoFadeProperty).template static_cast_to<dependency_property<bool> >(); }
-	rcref<dependency_property<bool, io::read_only> > get_can_auto_fade_property() { return get_self_rcref(&m_canAutoFadeProperty).template static_cast_to<dependency_property<bool, io::read_only> >(); }
+	rcref<dependency_property<bool, io::permission::read> > get_can_auto_fade_property() { return get_self_rcref(&m_canAutoFadeProperty).template static_cast_to<dependency_property<bool, io::permission::read> >(); }
 
 	bool will_auto_fade() const { return m_canAutoFade && m_shouldAutoFade; }
 

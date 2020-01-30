@@ -193,19 +193,19 @@ public:
 	//};
 
 	// Drawing primatives
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true) = 0;
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) = 0;
 	virtual void invert(const bounds& b) = 0;
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true) = 0;
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true) = 0;
 
 	// text and font primatives
 	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
 	virtual gfx::font get_default_font() const = 0;
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::black) = 0;
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::constant::black) = 0;
 
 	// Compositing images
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) = 0;
-	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true) = 0;
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true) = 0;
 	//virtual void composite_vector_image(const vector_image& src, const bounds& dstBounds) = 0;
 
 	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false) = 0;

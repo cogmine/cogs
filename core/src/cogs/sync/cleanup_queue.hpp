@@ -119,10 +119,10 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 	if (b)
 	{
 		rcptr<T> newValue = rcnew(bypass_constructor_permission<T>);
-		newValue.get_desc()->acquire(strong);
+		newValue.get_desc()->acquire(reference_strength::strong);
 		if (!g->compare_exchange(newValue, oldValue, oldValue))
 		{
-			newValue.get_desc()->release(strong);
+			newValue.get_desc()->release(reference_strength::strong);
 			if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
 				result = oldValue;
 		}

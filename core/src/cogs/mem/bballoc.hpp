@@ -44,12 +44,12 @@ private:
 		return const_cast<this_t*>(this)->m_largeBlockAllocator;
 	}
 
-	enum link_state
+	enum class link_state
 	{
-		free_link_state = 0,       // State of a link in a freelist
-		allocated_link_state = 1,  // State of a link on an allocated block
-		coalescing_link_state = 2, // State of a link queued for insertion into a freelist (coalesc attempt)
-		promoting_link_state = 3,  // State of a link queued for insertion into the next larger freelist
+		free = 0,       // State of a link in a freelist
+		allocated = 1,  // State of a link on an allocated block
+		coalescing = 2, // State of a link queued for insertion into a freelist (coalesc attempt)
+		promoting = 3,  // State of a link queued for insertion into the next larger freelist
 	};
 
 	class link
@@ -214,8 +214,8 @@ private:
 
 				ptr<volatile link> volatileLink = l;
 				size_t mark = volatileLink->m_prev.get_mark();
-				COGS_ASSERT((mark == coalescing_link_state) || (mark == promoting_link_state));
-				if (mark == coalescing_link_state)
+				COGS_ASSERT((mark == (int)link_state::coalescing) || (mark == (int)link_state::promoting));
+				if (mark == (int)link_state::coalescing)
 				{
 					ptr<link> otherBuddy = l->get_buddy();
 					ptr<volatile link> volatileOtherBuddy = otherBuddy;
@@ -228,27 +228,27 @@ private:
 					for (;;)
 					{
 						otherBuddyPrevMark = otherBuddyPrev.get_mark();
-						COGS_ASSERT(otherBuddyPrevMark != promoting_link_state);
-						if (otherBuddyPrevMark == allocated_link_state) // other buddy is allocated.
+						COGS_ASSERT(otherBuddyPrevMark != (int)link_state::promoting);
+						if (otherBuddyPrevMark == (int)link_state::allocated) // other buddy is allocated.
 						{
 							insert_inner(*l);
 							break;
 						}
 						ptr<link> newOtherBuddyPrev;
-						if (otherBuddyPrevMark == coalescing_link_state) // Other buddy queued to coalesc as well.
-							newOtherBuddyPrev.set_to_mark(promoting_link_state);
-						else //if (otherBuddyPrevMark == free_link_state)
+						if (otherBuddyPrevMark == (int)link_state::coalescing) // Other buddy queued to coalesc as well.
+							newOtherBuddyPrev.set_to_mark((int)link_state::promoting);
+						else //if (otherBuddyPrevMark == link_state::free)
 						{ // attempt mid-removal
-							// Try to change otherBuddyPrevMark to allocated_link_state
+							// Try to change otherBuddyPrevMark to link_state::allocated
 							newOtherBuddyPrev = otherBuddyPrev;
-							newOtherBuddyPrev.set_mark(allocated_link_state);
+							newOtherBuddyPrev.set_mark((int)link_state::allocated);
 						}
 						if (!volatileOtherBuddy->m_prev.versioned_exchange(newOtherBuddyPrev, otherBuddyPrevVersion, otherBuddyPrev))
 							continue;
 						break;
 					}
 
-					if (otherBuddyPrevMark != free_link_state) // else, attempt mid-removal
+					if (otherBuddyPrevMark != (int)link_state::free) // else, attempt mid-removal
 						continue;
 
 					if (!!otherBuddyPrev) // otherwise, it was at the head of the list and complete_lingering should suffice
@@ -264,14 +264,14 @@ private:
 					}
 					complete_lingering();
 				}
-				else if (mark != promoting_link_state) // else, was in coalesc queue when buddy was free'd, now represents both.
+				else if (mark != (int)link_state::promoting) // else, was in coalesc queue when buddy was free'd, now represents both.
 					continue;
 
 				ptr<link> leftBuddy = l->get_left_buddy();
 				COGS_ASSERT(leftBuddy->get_selector() == l->get_selector());
 				ptr<link> promotedBuddy = link::from_block(leftBuddy.get_ptr());
 				COGS_ASSERT(promotedBuddy->get_selector() == l->get_selector() + 1);
-				COGS_ASSERT((promotedBuddy->get_selector() == last_index) || (promotedBuddy->m_prev.get_mark() == allocated_link_state));
+				COGS_ASSERT((promotedBuddy->get_selector() == last_index) || (promotedBuddy->m_prev.get_mark() == (int)link_state::allocated));
 				free_list* nextFreeList = get_next_free_list();
 				if (!nextFreeList)
 					get_allocator()->get_large_block_allocator().deallocate(promotedBuddy);
@@ -302,7 +302,7 @@ private:
 
 				COGS_ASSERT(oldHead != oldHeadPrev);
 
-				if (oldHeadPrev.get_mark() == free_link_state) // no mark - it must include a ptr since it's not null.
+				if (oldHeadPrev.get_mark() == (int)link_state::free) // no mark - it must include a ptr since it's not null.
 				{ // Insertion
 					m_head.versioned_exchange(oldHeadPrev, oldVersion);
 					continue;
@@ -380,7 +380,7 @@ private:
 							oldHeadVolatile->m_prev.get(oldHeadPrev, oldHeadPrevVersion);
 							if (!oldHeadPrev)
 							{
-								done = oldHeadVolatile->m_prev.versioned_exchange((link*)allocated_link_state, oldHeadPrevVersion); // Try to put a mark in oldHead->get_prev_link()
+								done = oldHeadVolatile->m_prev.versioned_exchange((link*)link_state::allocated, oldHeadPrevVersion); // Try to put a mark in oldHead->get_prev_link()
 								if (done)
 									result = oldHead.get_ptr();
 							}
@@ -410,10 +410,10 @@ private:
 					for (;;)
 					{
 						prevMark = oldPrev.get_mark();
-						COGS_ASSERT(prevMark != free_link_state);
-						if (prevMark == allocated_link_state) // Must have just been claimed in a coalesc
+						COGS_ASSERT(prevMark != (int)link_state::free);
+						if (prevMark == (int)link_state::allocated) // Must have just been claimed in a coalesc
 							break;
-						if (!volatileLink->m_prev.versioned_exchange((link*)allocated_link_state, oldPrevVersion, oldPrev))
+						if (!volatileLink->m_prev.versioned_exchange((link*)link_state::allocated, oldPrevVersion, oldPrev))
 							continue;
 						done = true;
 						break;
@@ -421,12 +421,12 @@ private:
 					if (!done)
 						continue;
 
-					if (prevMark == promoting_link_state)
+					if (prevMark == (int)link_state::promoting)
 					{ // actually 2 blocks here, free the other one.
 						ptr<link> otherBuddy = l->get_buddy();
 						COGS_ASSERT(otherBuddy->get_buddy() == l.get_ptr());
 						ptr<volatile link> volatileOtherBuddy = otherBuddy;
-						volatileOtherBuddy->m_prev.set_to_mark(coalescing_link_state); // doesn't need to be volatile here because no other thread will change it.
+						volatileOtherBuddy->m_prev.set_to_mark((int)link_state::coalescing); // doesn't need to be volatile here because no other thread will change it.
 						m_guard.add(*otherBuddy);
 					}
 
@@ -454,7 +454,7 @@ private:
 			else
 			{
 				m_guard.begin_guard();
-				((volatile link*)&l)->m_prev.set_to_mark(coalescing_link_state);
+				((volatile link*)&l)->m_prev.set_to_mark((int)link_state::coalescing);
 				m_guard.add(l);
 				release_guard();
 			}
@@ -544,11 +544,11 @@ public:
 			i--;
 			link* leftBuddy = (link*)(block.get_ptr());
 			leftBuddy->set_selector(i, true);
-			leftBuddy->m_prev.set_to_mark(allocated_link_state); // mark as allocated
+			leftBuddy->m_prev.set_to_mark((int)link_state::allocated); // mark as allocated
 
 			link* rightBuddy = leftBuddy->get_right_buddy();
 			rightBuddy->set_selector(i, false);
-			rightBuddy->m_prev.set_to_mark(allocated_link_state);
+			rightBuddy->m_prev.set_to_mark((int)link_state::allocated);
 			COGS_ASSERT(rightBuddy->get_buddy() == leftBuddy);
 
 			m_freeLists[i].insert(*rightBuddy);
@@ -568,7 +568,7 @@ public:
 		size_t i = l->get_selector();
 
 		COGS_ASSERT(i <= index_count);
-		COGS_ASSERT(l->m_prev.get_mark() == allocated_link_state);
+		COGS_ASSERT(l->m_prev.get_mark() == (int)link_state::allocated);
 
 		if (i == index_count)
 			get_large_block_allocator().deallocate((void*)l);

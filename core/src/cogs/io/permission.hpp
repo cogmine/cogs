@@ -14,11 +14,11 @@ namespace cogs {
 namespace io {
 
 
-enum permission
+enum class permission
 {
-	read_only = 1,
-	write_only = 2,
-	read_write = 3 // read_only | write_only
+	read = 1,
+	write = 2,
+	read_write = 3 // read | write
 };
 
 

@@ -61,19 +61,19 @@ public:
 	class task_base : public object
 	{
 	private:
-		enum internal_task_state
+		enum class state
 		{
-			done_bit             = 0x0001, // Set when complete
-			canceled_bit         = 0x0010, // Set when cancel is requested
-			active_bit           = 0x0100, // Set when active - no longer in queue, unset when complete (may still be executing)
-			executing_bit        = 0x1000, // Set when executing, unset when no longer executing
+			done_bit       = 0x0001, // Set when complete
+			canceled_bit   = 0x0010, // Set when cancel is requested
+			active_bit     = 0x0100, // Set when active - no longer in queue, unset when complete (may still be executing)
+			executing_bit  = 0x1000, // Set when executing, unset when no longer executing
 
-			queued_state         = 0x0000,
-			executing_state      = 0x1100, // executing_bit | active_bit
-			cancel_pending_state = 0x1110, // executing_bit | active_bit | canceled_bit
-			abort_pending_state  = 0x0110, //                 active_bit | canceled_bit
-			async_state          = 0x0100, //                 active_bit
-			abort_complete_state = 0x0011, //                              canceled_bit | done_bit
+			queued         = 0x0000,
+			executing      = 0x1100, // executing_bit | active_bit
+			cancel_pending = 0x1110, // executing_bit | active_bit | canceled_bit
+			abort_pending  = 0x0110, //                 active_bit | canceled_bit
+			async          = 0x0100, //                 active_bit
+			abort_complete = 0x0011, //                              canceled_bit | done_bit
 		};
 
 		task_base(task_base&&) = delete;
@@ -84,24 +84,24 @@ public:
 		// 0 = has already completed or been canceled. 1 = cancelling. -1 = was started, aborting.
 		int abort_inner(bool closing)
 		{
-			internal_task_state oldState;
+			state oldState;
 			atomic::load(m_state, oldState);
 			for (;;)
 			{
-				if ((oldState & (done_bit | canceled_bit)) == 0)
+				if (((int)oldState & ((int)state::done_bit | (int)state::canceled_bit)) == 0)
 				{
-					internal_task_state newState = (internal_task_state)(oldState | canceled_bit | (oldState == queued_state ? done_bit : 0));
+					state newState = (state)((int)oldState | (int)state::canceled_bit | (oldState == state::queued ? (int)state::done_bit : 0));
 					if (!atomic::compare_exchange(m_state, newState, oldState, oldState))
 						continue;
 
-					if (oldState == queued_state)
+					if (oldState == state::queued)
 					{
 						if (closing)
 							get_was_closed() = true;
 						canceling();
 						return 1;
 					}
-					else if (oldState == async_state)
+					else if (oldState == state::async)
 					{
 						if (closing)
 							get_was_closed() = true;
@@ -118,16 +118,16 @@ public:
 
 		void executing_inner() 
 		{
-			internal_task_state oldState;
+			state oldState;
 			atomic::load(m_state, oldState);
-			COGS_ASSERT((oldState & executing_bit) != 0);
-			COGS_ASSERT((oldState & active_bit) != 0);
-			COGS_ASSERT((oldState & done_bit) == 0);
-			if ((oldState & canceled_bit) != 0)
+			COGS_ASSERT(((int)oldState & (int)state::executing_bit) != 0);
+			COGS_ASSERT(((int)oldState & (int)state::active_bit) != 0);
+			COGS_ASSERT(((int)oldState & (int)state::done_bit) == 0);
+			if (((int)oldState & (int)state::canceled_bit) != 0)
 			{
 				get_queue()->m_closeEvent->signal();
 				canceling();
-				m_state = abort_complete_state;
+				m_state = state::abort_complete;
 				get_queue()->execute_next();
 			}
 			else
@@ -137,12 +137,12 @@ public:
 				atomic::load(m_state, oldState);
 				for (;;)
 				{
-					COGS_ASSERT((oldState & executing_bit) != 0);
-					internal_task_state newState = (internal_task_state)(oldState & ~executing_bit); // remove executing_bit
+					COGS_ASSERT(((int)oldState & (int)state::executing_bit) != 0);
+					state newState = (state)((int)oldState & ~(int)state::executing_bit); // remove executing_bit
 					if (!atomic::compare_exchange(m_state, newState, oldState, oldState))
 						continue;
 
-					if (oldState == cancel_pending_state) // now abort_pending_state
+					if (oldState == state::cancel_pending) // now state::abort_pending
 					{
 						aborting();
 					}
@@ -155,18 +155,18 @@ public:
 		bool execute()
 		{
 			bool canceled = false;
-			internal_task_state oldState;
+			state oldState;
 			atomic::load(m_state, oldState);
 			for (;;)
 			{
-				COGS_ASSERT((oldState & executing_bit) == 0);
-				COGS_ASSERT((oldState & active_bit) == 0);
-				if ((oldState & canceled_bit) != 0)
+				COGS_ASSERT(((int)oldState & (int)state::executing_bit) == 0);
+				COGS_ASSERT(((int)oldState & (int)state::active_bit) == 0);
+				if (((int)oldState & (int)state::canceled_bit) != 0)
 				{
 					canceled = true;
 					break;
 				}
-				if (!atomic::compare_exchange(m_state, executing_state, oldState, oldState))
+				if (!atomic::compare_exchange(m_state, state::executing, oldState, oldState))
 					continue;
 				get_queue()->m_closeEvent->count_up();
 
@@ -182,7 +182,7 @@ public:
 		friend class queue;
 
 		rcptr<queue> m_ioQueue;
-		alignas (atomic::get_alignment_v<internal_task_state>) internal_task_state m_state;
+		alignas (atomic::get_alignment_v<state>) state m_state;
 		bool m_wasClosed;
 
 		// Use is thread safe, so don't need volatility
@@ -197,7 +197,7 @@ public:
 		/// @brief Constructor
 		explicit task_base(rc_obj_base& desc)
 			: object(desc),
-			m_state(queued_state),
+			m_state(state::queued),
 			m_wasClosed(false)
 		{
 		}
@@ -215,13 +215,13 @@ public:
 		{
 			get_queue()->m_closeEvent->signal(); // Releases a ref we used to hold it temporarily open
 			get_was_closed() = closeQueue;
-			internal_task_state oldState;
+			state oldState;
 			atomic::load(m_state, oldState);
 			for (;;)
 			{
-				COGS_ASSERT((oldState & done_bit) == 0);
-				COGS_ASSERT((oldState & active_bit) != 0);
-				internal_task_state newState = (internal_task_state)((oldState | done_bit) & ~active_bit); // add done_bit, remove active_bit
+				COGS_ASSERT(((int)oldState & (int)state::done_bit) == 0);
+				COGS_ASSERT(((int)oldState & (int)state::active_bit) != 0);
+				state newState = (state)(((int)oldState | (int)state::done_bit) & ~(int)state::active_bit); // add done_bit, remove active_bit
 				if (atomic::compare_exchange(m_state, newState, oldState, oldState))
 				{
 					if (closeQueue)
@@ -243,9 +243,9 @@ public:
 		/// @return True if this task has been completed, aborted or canceled
 		bool is_complete() const volatile
 		{
-			internal_task_state oldState;
+			state oldState;
 			atomic::load(m_state, oldState);
-			return (oldState & done_bit) != 0;
+			return ((int)oldState & (int)state::done_bit) != 0;
 		}
 
 		/// @brief Tests if the queue was closed before or as a result of this task.  May only be called on a complete task.

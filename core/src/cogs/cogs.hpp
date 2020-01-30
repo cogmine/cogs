@@ -119,7 +119,7 @@
 /// container using @ref this_rcptr or @ref this_rcref.
 ///
 /// A @ref cogs::rcref is similar to a @ref cogs::rcptr, but cannot refer to null.  @ref cogs::rcptr and @ref cogs::rcref are
-/// both "strong" references.  (@ref cogs::reference_strength_type)  A @ref cogs::weak_rcptr can be used to
+/// both strong references.  (@ref cogs::reference_strength)  A @ref cogs::weak_rcptr can be used to
 /// retain a conditional reference to an object, which automatically becomes null when there are no longer any strong references.
 ///
 ///

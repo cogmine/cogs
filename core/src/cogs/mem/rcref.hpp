@@ -53,7 +53,7 @@ public:
 	typedef rcref<type> non_nullable;
 
 private:
-	typedef rc_container<type, strong> container_t;
+	typedef rc_container<type, reference_strength::strong> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -978,7 +978,7 @@ public:
 	typedef rcref<type> non_nullable;
 
 private:
-	typedef rc_container<type, strong> container_t;
+	typedef rc_container<type, reference_strength::strong> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -1589,7 +1589,7 @@ public:
 	typedef rcref<type> non_nullable;
 
 private:
-	typedef rc_container<type, strong> container_t;
+	typedef rc_container<type, reference_strength::strong> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -2193,7 +2193,7 @@ public:
 	typedef rcref<type> non_nullable;
 
 private:
-	typedef rc_container<type, strong> container_t;
+	typedef rc_container<type, reference_strength::strong> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -2803,7 +2803,7 @@ public:
 	typedef rcref<type> non_nullable;
 
 private:
-	typedef rc_container<type, strong> container_t;
+	typedef rc_container<type, reference_strength::strong> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }

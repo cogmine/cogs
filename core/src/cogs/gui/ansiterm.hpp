@@ -37,7 +37,7 @@
 //	volatile transactable<scroll_bar_state> m_vScrollBarState;
 //	alignas (atomic::get_alignment_v<double>) volatile double m_vScrollBarPosition;
 //
-//	delayed_construction<delegated_dependency_property<scroll_bar_state, io::read_only> > m_vScrollBarStateProperty;
+//	delayed_construction<delegated_dependency_property<scroll_bar_state, io::permission::read> > m_vScrollBarStateProperty;
 //	delayed_construction<delegated_dependency_property<double> > m_vScrollBarPositionProperty;
 //
 //	// "Screen" refers to the (bottom) terminal emulation portion of the buffer
@@ -1743,7 +1743,7 @@
 //
 //
 //		// TODO TO DO, fix
-//		//set_background_color(whiteBackground ? color::white : color::black);
+//		//set_background_color(whiteBackground ? color::constant::white : color::constant::black);
 //
 //		m_forePallete[0] = color(0xB2, 0xB2, 0xB2);
 //		m_forePallete[1] = color(0xB5, 0x00, 0x00);
@@ -1813,8 +1813,8 @@
 //	static constexpr unsigned char HTS = 0x88;
 //
 //public:
-//	virtual rcref<dependency_property<scroll_bar_state, io::read_only> > get_state_property()
-//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state, io::read_only>>(); }
+//	virtual rcref<dependency_property<scroll_bar_state, io::permission::read> > get_state_property()
+//	{ return get_self_rcref(&m_vScrollBarStateProperty.get()).template static_cast_to<dependency_property<scroll_bar_state, io::permission::read>>(); }
 //
 //	virtual rcref<dependency_property<double> > get_position_property()
 //	{ return get_self_rcref(&m_vScrollBarPositionProperty.get()).template static_cast_to<dependency_property<double>>(); }
@@ -3978,7 +3978,7 @@
 //					r2->blink_timer_expired();
 //			})
 //		{
-//		set_background_color(whiteBackground ? color::white : color::black);
+//		set_background_color(whiteBackground ? color::constant::white : color::constant::black);
 //
 //		m_forePallete[0] = color(0xB2, 0xB2, 0xB2);
 //		m_forePallete[1] = color(0xB5, 0x00, 0x00);

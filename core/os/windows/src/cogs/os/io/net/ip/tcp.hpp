@@ -38,10 +38,10 @@ private:
 		size_t m_adjustedRequestedSize;
 		volatile fixed_integer<false, 2> m_abortStateBits; // bit 0=aborted, bit 1=started
 
-		enum task_type
+		enum class task_type
 		{
-			read_task = 0,
-			complete_task = 1
+			read = 0,
+			complete = 1
 		};
 
 		volatile container_queue<task_type> m_completionSerializer;
@@ -80,12 +80,12 @@ private:
 
 		void execute_in_completion_port_thread()
 		{
-			read_or_complete(read_task);
+			read_or_complete(task_type::read);
 		}
 
 		void read_done()
 		{
-			read_or_complete(complete_task);
+			read_or_complete(task_type::complete);
 		}
 
 		// Some socket implementations (particularly Winsock)
@@ -109,7 +109,7 @@ private:
 						m_currentBuffer.release();
 						closing = true;
 					}
-					else if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_some) || !m_progress) && (get_read_mode() != read_now))
+					else if ((m_progress != m_adjustedRequestedSize) && ((get_read_mode() != read_mode::some) || !m_progress) && (get_read_mode() != read_mode::now))
 					{
 						// Defer initiating the actual read to the completion port thread.
 						// This is because, on Windows, if the thread initiating asynchronous IO
@@ -145,7 +145,7 @@ private:
 						if (!!ds)
 						{
 							closing = false;
-							if (taskType == read_task)
+							if (taskType == task_type::read)
 							{
 								if (!m_abortStateBits.test_bit(0))
 								{
@@ -164,7 +164,7 @@ private:
 
 									WSABUF buf;
 									buf.buf = (char*)(m_currentBuffer.get_ptr()) + m_progress;
-									if (get_read_mode() == read_some)
+									if (get_read_mode() == read_mode::some)
 										buf.len = 1; // Only wait on 1 byte if partial read
 									else
 										buf.len = (ULONG)(m_adjustedRequestedSize - m_progress);
@@ -183,7 +183,7 @@ private:
 									}
 								}
 							}
-							else // if (taskType == complete_task)
+							else // if (taskType == task_type::complete)
 							{
 								size_t n = m_overlapped->m_transferCount;
 								m_progress += n;
@@ -198,7 +198,7 @@ private:
 									else if (m_adjustedRequestedSize > m_progress)
 									{
 										immediate_read(m_socket->get(), m_adjustedRequestedSize - m_progress);
-										if ((m_adjustedRequestedSize > m_progress) && (get_read_mode() == read_all))
+										if ((m_adjustedRequestedSize > m_progress) && (get_read_mode() == read_mode::all))
 										{
 											m_socket->get_pool().dispatch([r{ this_rcref }]()
 											{
@@ -371,7 +371,7 @@ private:
 	}
 
 public:
-	tcp(rc_obj_base& desc, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+	tcp(rc_obj_base& desc, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		: connection(desc),
 		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
@@ -564,7 +564,7 @@ public:
 			LPFN_GETACCEPTEXSOCKADDRS m_lpfnGetAcceptExSockaddrs;
 			char m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
-			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 				: object(desc),
 				m_network(n),
 				m_completionPort(cp),
@@ -724,7 +724,7 @@ public:
 		}
 
 	public:
-		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
+		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
 			: object(desc),
 			m_closeEvent(desc),
 			m_port(port)
@@ -739,12 +739,12 @@ public:
 		unsigned short get_port() const { return m_port; }
 	};
 
-	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = inetv4)
+	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
 	{
 		return rcnew(listener, acceptDelegate, port, addressFamily);
 	}
 
-	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = inetv4)
+	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = address_family::inetv4)
 	{
 		return listen([srvr](const rcref<tcp>& r)
 		{

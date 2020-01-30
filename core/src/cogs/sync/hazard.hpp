@@ -81,12 +81,12 @@ private:
 	class token
 	{
 	public:
-		enum state
+		enum class state
 		{
-			empty_state = 0,    // 00 - Either null, or a pointer that has been bound and not yet confirmed
-			disposed_state = 1, // 01 - A pointer that has been bound, and disposed before confirmed
-			acquired_state = 2, // 10 - A pointer that has been acquired, and is not owned by this hazard::pointer
-			owned_state = 3,    // 11 - A pointer that has been acquired, has been disposed, and is now owned by this hazard::pointer
+			empty = 0,    // 00 - Either null, or a pointer that has been bound and not yet confirmed
+			disposed = 1, // 01 - A pointer that has been bound, and disposed before confirmed
+			acquired = 2, // 10 - A pointer that has been acquired, and is not owned by this hazard::pointer
+			owned = 3,    // 11 - A pointer that has been acquired, has been disposed, and is now owned by this hazard::pointer
 		};
 
 		class content_t
@@ -101,20 +101,20 @@ private:
 		ptr<token> m_next;
 		ptr<token> m_nextFreeToken;
 
-		void bind(void* value) volatile { atomic::store(m_contents, { value, empty_state }); }
+		void bind(void* value) volatile { atomic::store(m_contents, { value, state::empty }); }
 
 		bool is_acquired() volatile
 		{
 			state oldState;
 			atomic::load(m_contents.m_state, oldState);
-			return oldState >= 2;
+			return (int)oldState >= 2;
 		}
 
 		bool is_owner() volatile
 		{
 			state oldState;
 			atomic::load(m_contents.m_state, oldState);
-			return oldState == owned_state;
+			return oldState == state::owned;
 		}
 
 		bool validate() volatile
@@ -122,9 +122,9 @@ private:
 			bool result = false;
 			state oldState;
 			atomic::load(m_contents.m_state, oldState);
-			while (oldState != disposed_state)
+			while (oldState != state::disposed)
 			{
-				if (!atomic::compare_exchange(m_contents.m_state, acquired_state, oldState, oldState))
+				if (!atomic::compare_exchange(m_contents.m_state, state::acquired, oldState, oldState))
 					continue;
 				result = true;
 				break;
@@ -143,12 +143,12 @@ private:
 				atomic::load(curToken->m_contents, oldContents);
 				if (oldContents.m_value == value)
 				{
-					COGS_ASSERT((oldContents.m_state == empty_state) || (oldContents.m_state == acquired_state));
-					newContents.m_value = (oldContents.m_state == empty_state) ? 0 : value;
-					newContents.m_state = (state)(oldContents.m_state + 1);
+					COGS_ASSERT((oldContents.m_state == state::empty) || (oldContents.m_state == state::acquired));
+					newContents.m_value = (oldContents.m_state == state::empty) ? 0 : value;
+					newContents.m_state = (state)((int)oldContents.m_state + 1);
 					if (!atomic::compare_exchange(curToken->m_contents, newContents, oldContents, oldContents))
 						continue;
-					if (newContents.m_state == owned_state)
+					if (newContents.m_state == state::owned)
 					{
 						owned = false;
 						break;
@@ -162,9 +162,9 @@ private:
 		bool release() volatile
 		{
 			content_t oldContents;
-			content_t newContents = { 0, empty_state };
+			content_t newContents = { 0, state::empty };
 			atomic::exchange(m_contents, newContents, oldContents);
-			bool owned = (oldContents.m_state == owned_state);
+			bool owned = (oldContents.m_state == state::owned);
 			if (owned)
 			{
 				ptr<token> nextToken = m_next;
@@ -179,7 +179,7 @@ private:
 			volatile token_freelist_t& tokenFreeList = s_tokenFreeList.get();
 			token* t = tokenFreeList.get();
 			t->m_contents.m_value = 0;
-			t->m_contents.m_state = empty_state;
+			t->m_contents.m_state = state::empty;
 			return t;
 		}
 

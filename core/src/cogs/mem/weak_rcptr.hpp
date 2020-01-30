@@ -26,7 +26,7 @@ namespace cogs {
 /// @ingroup ReferenceCountedReferenceContainerTypes
 /// @brief A weak nullable reference-counted reference container.
 ///
-/// A weak_rcptr will retain a reference to a reference-counted object only if there are also 'strong' (rcref/rcptr) references
+/// A weak_rcptr will retain a reference to a reference-counted object only if there are also strong (rcref/rcptr) references
 /// elsewhere.  Once all strong references are released, a weak_rcptr can no longer be used to get a pointer to the object.
 ///
 /// weak_rcptr is useful for preventing circular references, which would prevent reference-counted objects from being released.
@@ -47,7 +47,7 @@ public:
 	typedef rcptr<type> locked_t;
 
 private:
-	typedef rc_container<type, weak> container_t;
+	typedef rc_container<type, reference_strength::weak> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -259,7 +259,7 @@ public:
 	/// @brief Releases the contained object without decrementing the reference count
 	///
 	/// Although a weak reference does not extend the scope of the contained object, it
-	/// does extend the scope of a descriptor in which it retains a 'weak' count.  When
+	/// does extend the scope of a descriptor in which it retains a weak count.  When
 	/// all weak references are released, the descriptor is released.  disown() will release
 	/// the contained objects without decrementing the weak reference count.
 	rc_obj_base* disown() { return m_container.disown(); }
@@ -994,7 +994,7 @@ public:
 	typedef weak_rcptr<type> this_t;
 
 private:
-	typedef rc_container<type, weak> container_t;
+	typedef rc_container<type, reference_strength::weak> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -1577,7 +1577,7 @@ public:
 	typedef weak_rcptr<type> this_t;
 
 private:
-	typedef rc_container<type, weak> container_t;
+	typedef rc_container<type, reference_strength::weak> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -2159,7 +2159,7 @@ public:
 	typedef weak_rcptr<type> this_t;
 
 private:
-	typedef rc_container<type, weak> container_t;
+	typedef rc_container<type, reference_strength::weak> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }
@@ -2740,7 +2740,7 @@ public:
 	typedef weak_rcptr<type> this_t;
 
 private:
-	typedef rc_container<type, weak> container_t;
+	typedef rc_container<type, reference_strength::weak> container_t;
 	container_t m_container;
 
 	container_t&& get_container()&& { return std::move(m_container); }

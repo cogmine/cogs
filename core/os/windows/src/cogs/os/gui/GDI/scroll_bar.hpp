@@ -35,7 +35,7 @@ private:
 
 	delegated_dependency_property<scroll_bar_state> m_stateProperty;
 	delegated_dependency_property<double> m_positionProperty;
-	delegated_dependency_property<bool, io::read_only> m_canAutoFadeProperty;
+	delegated_dependency_property<bool, io::permission::read> m_canAutoFadeProperty;
 
 	dimension m_dimension;
 	bool m_isHiddenWhenInactive;
@@ -117,7 +117,7 @@ private:
 
 public:
 	scroll_bar(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, system_drawn_offscreen),
+		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, hwnd_draw_mode::system_offscreen),
 		m_stateProperty(desc, uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());

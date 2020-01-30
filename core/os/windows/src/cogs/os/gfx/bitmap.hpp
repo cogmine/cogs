@@ -197,7 +197,7 @@ private:
 			else //if (depth != m_depth && depth == 32)
 			{
 				// fill with opaque pixels, as AlphaBlend will not set alpha when copying from <32 to 32 bits
-				result.fill(bounds, color::black, false);
+				result.fill(bounds, color::constant::black, false);
 				alpha_blend(result.get_HDC(), { 0, 0 }, bounds);
 			}
 
@@ -243,8 +243,8 @@ private:
 
 		void blit(HDC dstDC, const BOUNDS& dstBounds, const POINT& srcPt, const COLORREF& fore, const COLORREF& back) const
 		{
-			SetTextColor(dstDC, make_COLORREF(color::black));
-			SetBkColor(dstDC, make_COLORREF(color::white));
+			SetTextColor(dstDC, make_COLORREF(color::constant::black));
+			SetBkColor(dstDC, make_COLORREF(color::constant::white));
 			BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, SRCCOPY);
 		}
 
@@ -546,14 +546,14 @@ public:
 		return device_context::get_default_font();
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::constant::black)
 	{
 		device_context::draw_text(s, b, f, c);
 	}
 
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, bool value = true)
 	{
-		color c = value ? color::white : color::black;
+		color c = value ? color::constant::white : color::constant::black;
 		device_context::draw_text(s, b, f, c);
 	}
 
@@ -569,7 +569,7 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		const bitmap* msk2 = static_cast<const bitmap*>(&msk);
 
@@ -732,7 +732,7 @@ public:
 			if (widthIncreased)
 			{
 				LONG widthDifference = newLogicalPixelSize.cx - m_logicalSize.cx;
-				m_gdiBitmap.fill({ { m_logicalSize.cx, 0 }, { widthDifference, newLogicalPixelSize.cy } }, m_isOpaque ? color::black : color::transparent, false);
+				m_gdiBitmap.fill({ { m_logicalSize.cx, 0 }, { widthDifference, newLogicalPixelSize.cy } }, m_isOpaque ? color::constant::black : color::constant::transparent, false);
 			}
 			if (newLogicalPixelSize.cy > m_logicalSize.cy)
 			{
@@ -742,7 +742,7 @@ public:
 					width = m_logicalSize.cx;
 				else
 					width = newLogicalPixelSize.cx;
-				m_gdiBitmap.fill({ { 0, m_logicalSize.cy }, { width, heightDifference } }, m_isOpaque ? color::black : color::transparent, false);
+				m_gdiBitmap.fill({ { 0, m_logicalSize.cy }, { width, heightDifference } }, m_isOpaque ? color::constant::black : color::constant::transparent, false);
 			}
 			m_logicalSize = newLogicalPixelSize;
 			m_logicalDipSize = newSize;
@@ -757,7 +757,7 @@ inline rcref<canvas::bitmap> device_context::create_bitmap(const canvas::size& s
 
 inline rcref<canvas::bitmask> device_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
 {
-	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::monochrome, value ? color::white : color::transparent);
+	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::monochrome, value ? color::constant::white : color::constant::transparent);
 }
 
 inline rcref<canvas::bitmap> device_context::load_bitmap(const composite_string& location)
@@ -800,7 +800,7 @@ inline void device_context::draw_bitmap_inner(gdi::bitmap* bmp, const gdi::bitma
 		else
 		{
 			if (!!bmp && !bmp->is_opaque())
-				bmp->m_gdiBitmap.fill(dstBounds, color::black, false);
+				bmp->m_gdiBitmap.fill(dstBounds, color::constant::black, false);
 			src.m_gdiBitmap.stretch_and_preserve_alpha(m_hDC, dstBounds, srcBounds);
 		}
 	}
@@ -960,12 +960,12 @@ inline void device_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, 
 		srcImage->m_gdiBitmap.blit(tmpBmp.get_HDC(), tmpBounds, srcBounds2.pt);
 	else if (srcImage->is_opaque())
 	{
-		tmpBmp.fill(tmpBounds, color::black, false);
+		tmpBmp.fill(tmpBounds, color::constant::black, false);
 		srcImage->m_gdiBitmap.stretch_and_preserve_alpha(tmpBmp.get_HDC(), tmpBounds, srcBounds2);
 	}
 	else
 	{
-		tmpBmp.fill(tmpBounds, color::transparent, false);
+		tmpBmp.fill(tmpBounds, color::constant::transparent, false);
 		srcImage->m_gdiBitmap.alpha_blend_stretch(tmpBmp.get_HDC(), tmpBounds, srcBounds2);
 	}
 

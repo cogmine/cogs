@@ -29,9 +29,9 @@ private:
 	auto_fd m_fd;
 
 public:
-	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: object(desc),
-		m_fd(::socket(addressFamily, type, protocol)),
+		m_fd(::socket((int)addressFamily, type, protocol)),
 		m_kqueuePool(kq),
 		m_addressFamily(addressFamily)
 	{
@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	socket(rc_obj_base& desc, int sckt, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
+	socket(rc_obj_base& desc, int sckt, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::kqueue_pool>& kq = os::io::kqueue_pool::get())
 		: object(desc),
 		m_fd(sckt),
 		m_kqueuePool(kq),
@@ -96,7 +96,7 @@ public:
 			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 			setsockopt(m_fd.get(), SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
 
-			if (m_addressFamily == inetv4) // ipv4
+			if (m_addressFamily == address_family::inetv4) // ipv4
 			{
 				sockaddr_in addr;
 				memset(&addr, 0, sizeof(sockaddr_in)); 
@@ -106,7 +106,7 @@ public:
 
 				i = bind(m_fd.get(), (sockaddr*)&addr, sizeof(sockaddr_in));
 			}
-			else if (m_addressFamily == inetv6)
+			else if (m_addressFamily == address_family::inetv6)
 			{
 				sockaddr_in6 addr;
 				memset(&addr, 0, sizeof(sockaddr_in6)); 

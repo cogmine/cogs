@@ -954,70 +954,70 @@ public:
 
 
 
-	vector<buffer> split_on(const char& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on(const char& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner(&splitOn, 1, opt);
 	}
 
-	vector<buffer> split_on(const char& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<buffer> split_on(const char& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		buffer tmp(*this);
 		return tmp.split_on_any_inner(&splitOn, 1, opt);
 	}
 
 
-	vector<buffer> split_on_any(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_any(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner(splitOn, n, opt);
 	}
 
-	vector<buffer> split_on_any(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<buffer> split_on_any(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		buffer tmp(*this);
 		return tmp.split_on_any_inner(splitOn, n, opt);
 	}
 
-	vector<buffer> split_on_any(const vector<char>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_any(const vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner(splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
-	vector<buffer> split_on_any(const vector<char>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<buffer> split_on_any(const vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		buffer tmp(*this);
 		return tmp.split_on_any_inner(splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
-	vector<buffer> split_on_any(const volatile vector<char>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_any(const volatile vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<char> tmp(splitOn);
 		return split_on_any_inner(tmp.get_const_ptr(), tmp.get_length(), opt);
 	}
 
 
-	vector<buffer> split_on_segment(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_segment(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_segment_inner(splitOn, n, opt);
 	}
 
-	vector<buffer> split_on_segment(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<buffer> split_on_segment(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		buffer tmp(*this);
 		return tmp.split_on_segment_inner(splitOn, n, opt);
 	}
 
-	vector<buffer> split_on_segment(const vector<char>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_segment(const vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_segment_inner(splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
-	vector<buffer> split_on_segment(const vector<char>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<buffer> split_on_segment(const vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		buffer tmp(*this);
 		return tmp.split_on_segment_inner(splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
-	vector<buffer> split_on_segment(const volatile vector<char>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_segment(const volatile vector<char>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<char> tmp(splitOn);
 		return split_on_segment_inner(tmp.get_const_ptr(), tmp.get_length(), opt);
@@ -1025,7 +1025,7 @@ public:
 
 
 protected:
-	vector<buffer> split_on_any_inner(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_any_inner(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<buffer> result;
 		size_t lastStart = 0;
@@ -1035,7 +1035,7 @@ protected:
 			i = index_of_any(i, splitOn, n);
 			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : get_length();
 			segmentLength -= lastStart;
-			if (!!segmentLength || (opt == split_includes_empty_segments))
+			if (!!segmentLength || (opt == include_empty_segments::yes))
 				result.append(1, subrange(lastStart, segmentLength));
 			if (i == const_max_int_v<size_t>)
 				break;
@@ -1044,7 +1044,7 @@ protected:
 		return result;
 	}
 
-	vector<buffer> split_on_segment_inner(const char* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<buffer> split_on_segment_inner(const char* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<buffer> result;
 		size_t lastStart = 0;
@@ -1054,7 +1054,7 @@ protected:
 			i = index_of_segment(i, splitOn, n);
 			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : get_length();
 			segmentLength -= lastStart;
-			if (!!segmentLength || (opt == split_includes_empty_segments))
+			if (!!segmentLength || (opt == include_empty_segments::yes))
 				result.append(1, subrange(lastStart, segmentLength));
 			if (i == const_max_int_v<size_t>)
 				break;

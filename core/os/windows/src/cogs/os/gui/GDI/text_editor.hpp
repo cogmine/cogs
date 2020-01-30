@@ -30,7 +30,7 @@ private:
 
 public:
 	text_editor(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem,system_drawn_direct)
+		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem, hwnd_draw_mode::system_direct)
 	{
 	}
 
@@ -55,7 +55,7 @@ public:
 		//m_defaultTextColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
 		ReleaseDC(get_HWND(), hDC);
 
-		set_text_color(color::black);
+		set_text_color(color::constant::black);
 
 		hwnd_pane::installing();
 	}

@@ -36,10 +36,10 @@ namespace io
 #pragma warning (disable: 4522) // multiple assignment operators specified
 
 
-enum split_options
+enum class include_empty_segments
 {
-	split_includes_empty_segments = 0,
-	split_omits_empty_segments = 1
+	no = 1,
+	yes = 1
 };
 
 
@@ -2747,13 +2747,13 @@ public:
 
 
 	template <typename type2>
-	vector<this_t> split_on(const type2& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on(const type2& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t>(*this, &splitOn, 1, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on(const type2& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on(const type2& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return tmp.template split_on_any_inner<this_t>(*this, &splitOn, 1, opt);
@@ -2761,33 +2761,33 @@ public:
 
 
 	template <typename type2>
-	vector<this_t> split_on_any(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t>(*this, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return tmp.template split_on_any_inner<this_t>(*this, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t>(*this, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return tmp.template split_on_any_inner<this_t>(*this, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const volatile vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const volatile vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<type2> tmp(splitOn);
 		return split_on_any_inner<this_t>(*this, tmp.get_const_ptr(), tmp.get_length(), opt);
@@ -2795,33 +2795,33 @@ public:
 
 
 	template <typename type2>
-	vector<this_t> split_on_segment(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_segment_inner<this_t>(*this, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_segment(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_segment(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return tmp.template split_on_segment_inner<this_t>(*this, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_segment(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_segment_inner<this_t>(*this, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_segment(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_segment(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t tmp(*this);
 		return tmp.template split_on_segment_inner<this_t>(*this, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_segment(const volatile vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_segment(const volatile vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<type2> tmp(splitOn);
 		return split_on_segment_inner<this_t>(*this, tmp.get_const_ptr(), tmp.get_length(), opt);
@@ -2833,7 +2833,7 @@ protected:
 	friend class string_t;
 
 	template <class array_t, typename type2>
-	static vector<array_t> split_on_any_inner(const array_t& src, const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments)
+	static vector<array_t> split_on_any_inner(const array_t& src, const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes)
 	{
 		vector<array_t> result;
 		size_t lastStart = 0;
@@ -2843,7 +2843,7 @@ protected:
 			i = src.index_of_any(i, splitOn, n);
 			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : src.get_length();
 			segmentLength -= lastStart;
-			if (!!segmentLength || (opt == split_includes_empty_segments))
+			if (!!segmentLength || (opt == include_empty_segments::yes))
 				result.append(1, src.subrange(lastStart, segmentLength));
 			if (i == const_max_int_v<size_t>)
 				break;
@@ -2853,7 +2853,7 @@ protected:
 	}
 
 	template <class array_t, typename type2>
-	static vector<array_t> split_on_segment_inner(const array_t& src, const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments)
+	static vector<array_t> split_on_segment_inner(const array_t& src, const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes)
 	{
 		vector<array_t> result;
 		size_t lastStart = 0;
@@ -2863,7 +2863,7 @@ protected:
 			i = src.index_of(i, splitOn, n);
 			size_t segmentLength = (i != const_max_int_v<size_t>) ? i : src.get_length();
 			segmentLength -= lastStart;
-			if (!!segmentLength || (opt == split_includes_empty_segments))
+			if (!!segmentLength || (opt == include_empty_segments::yes))
 				result.append(1, src.subrange(lastStart, segmentLength));
 			if (i == const_max_int_v<size_t>)
 				break;

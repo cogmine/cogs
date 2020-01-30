@@ -32,14 +32,14 @@ private:
 	endpoint m_remoteEndpoint;
 
 public:
-	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 		: object(desc),
 		m_network(n),
 		m_completionPort(cp),
 		m_addressFamily(addressFamily)
 	{
 		// Socket is both overlapped and non-blocking.
-		m_socket = WSASocket(addressFamily, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+		m_socket = WSASocket((int)addressFamily, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 		if (m_socket != INVALID_SOCKET)
 		{
 			m_completionPort->register_handle((HANDLE)m_socket);
@@ -94,7 +94,7 @@ public:
 			BOOL enable = TRUE;
 			setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(BOOL));
 
-			if (m_addressFamily == AF_INET) // IPV4
+			if (m_addressFamily == address_family::inetv4) // IPV4
 			{
 				sockaddr_in addr;
 				memset(&addr, 0, sizeof(sockaddr_in));
@@ -104,7 +104,7 @@ public:
 
 				i = bind(m_socket, (SOCKADDR*)&addr, sizeof(sockaddr_in));
 			}
-			else if (m_addressFamily == AF_INET6) // IPV6
+			else if (m_addressFamily == address_family::inetv6) // IPV6
 			{
 				sockaddr_in6 addr;
 				memset(&addr, 0, sizeof(sockaddr_in6));

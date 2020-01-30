@@ -504,7 +504,7 @@ public:
 		[m_nsView setNeedsDisplayInRect:r];
 	}
 
-	virtual void fill(const bounds& b, const color& c = color::black, bool blendAlpha = true)
+	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		gfx::os::graphics_context::fill(b, c, blendAlpha);
 	}
@@ -514,7 +514,7 @@ public:
 		gfx::os::graphics_context::invert(b);
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::black, bool blendAlpha = true)
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		gfx::os::graphics_context::draw_line(startPt, endPt, width, c, blendAlpha);
 	}
@@ -529,7 +529,7 @@ public:
 		return gfx::os::graphics_context::get_default_font();
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f, const color& c = color::black)
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f, const color& c = color::constant::black)
 	{
 		gfx::os::graphics_context::draw_text(s, b, f, c);
 	}
@@ -539,7 +539,7 @@ public:
 		gfx::os::graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 	}
 
-	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::black, const color& back = color::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		gfx::os::graphics_context::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 	}

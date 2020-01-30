@@ -30,7 +30,7 @@ public:
 	HBRUSH m_backgroundBrush = NULL;
 
 	button(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, system_drawn_offscreen)
+		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, hwnd_draw_mode::system_offscreen)
 	{ }
 
 	virtual void installing()

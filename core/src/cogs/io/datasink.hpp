@@ -397,16 +397,16 @@ class datasink::transaction : public datasink
 {
 public:
 	/// @brief Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	enum close_propagation_mode
+	enum class propagate_close
 	{
 		/// @brief No close propagation.  The target datasink will not be closed if the datasink::transaction closes or aborts
-		no_close_propagation = 0,
+		no = 0,
 
-		/// @brief The target datasink will aborted if the datasink::transaction is aborted, but will not be closed if the datasink::transaction closes.
-		propagate_abort_only = 1,
+		/// @brief The target datasink will be aborted if the datasink::transaction is aborted, but will not be closed if the datasink::transaction closes.
+		on_abort = 1,
 
 		/// @brief The target datasink will close if the datasink::transaction closes or aborts.
-		propagate_close_and_abort = 2,
+		on_close_or_abort = 2
 	};
 
 private:
@@ -446,7 +446,7 @@ private:
 		rcptr<io::queue> m_transactionIoQueue; // extends the scope of the transaction's io queue
 		volatile rcptr<plug> m_plug;
 		volatile boolean m_completeOrAbortGuard;
-		const close_propagation_mode m_closePropagationMode;
+		const propagate_close m_propagateClose;
 		volatile boolean m_transactionAborted;
 
 		virtual void executing()
@@ -458,10 +458,10 @@ private:
 				p->complete();
 		}
 
-		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, close_propagation_mode closePropagationMode)
+		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, propagate_close propagateClose)
 			: io::queue::io_task<transaction_task>(desc),
 			m_transactionIoQueue(ioQueue),
-			m_closePropagationMode(closePropagationMode)
+			m_propagateClose(propagateClose)
 		{ }
 
 		void queue_plug()
@@ -486,12 +486,12 @@ private:
 
 		void aborted()
 		{
-			switch (m_closePropagationMode)
+			switch (m_propagateClose)
 			{
-			case no_close_propagation:
+			case propagate_close::no:
 				io::queue::io_task<transaction_task>::complete();
 				break;
-			case propagate_abort_only:
+			case propagate_close::on_abort:
 				if (!m_transactionAborted)
 				{
 					io::queue::io_task<transaction_task>::complete();
@@ -499,7 +499,7 @@ private:
 				}
 				// fall through
 			default:
-			//case propagate_close_and_abort:
+			//case propagate_close::on_close_or_abort:
 				io::queue::io_task<transaction_task>::complete(true);
 				break;
 			}
@@ -582,7 +582,7 @@ private:
 		rcptr<datasink> ds = m_sink;
 		if (!ds)
 			abort_sink();
-		else if (m_transactionTask->m_closePropagationMode == propagate_close_and_abort)
+		else if (m_transactionTask->m_propagateClose == propagate_close::on_close_or_abort)
 			return ds->create_sink_closer(proxy);
 		return datasink::create_sink_closer(proxy);
 	}
@@ -598,12 +598,12 @@ public:
 	/// @param ds Target datasink
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.
-	/// @param closePropagationMode Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	transaction(rc_obj_base& desc, const rcref<datasink>& ds, bool startImmediately = true, close_propagation_mode closePropagationMode = propagate_close_and_abort)
+	/// @param propagateClose Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
+	transaction(rc_obj_base& desc, const rcref<datasink>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
 		: datasink(desc),
 		m_sink(ds),
 		m_started(startImmediately),
-		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), closePropagationMode))
+		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), propagateClose))
 	{
 		if (startImmediately)
 			ds->sink_enqueue(m_transactionTask);
@@ -622,7 +622,7 @@ public:
 	{
 		if (m_transactionTask->m_transactionAborted.compare_exchange(true, false))
 		{
-			if (m_transactionTask->m_closePropagationMode == no_close_propagation)
+			if (m_transactionTask->m_propagateClose == propagate_close::no)
 				m_ioQueue->close();
 			else
 			{

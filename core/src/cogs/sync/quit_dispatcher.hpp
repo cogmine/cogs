@@ -34,12 +34,12 @@ class thread_pool;
 class quit_dispatcher : public dispatcher, public object
 {
 private:
-	enum state
+	enum class state
 	{
-		running_state = 0,
+		running = 0,
 		quit_request_pending = 1,
 		quit_request_dispatched = 2,
-		quit_accepted_state = 3
+		quit_accepted = 3
 	};
 
 	class content_t
@@ -67,7 +67,7 @@ private:
 			m_contents.begin_write(wt);
 			COGS_ASSERT(wt->m_refCount > 0);
 
-			if ((wt->m_state != quit_request_pending) || (wt->m_refCount > 1))
+			if ((wt->m_state != state::quit_request_pending) || (wt->m_refCount > 1))
 			{
 				wt->m_refCount--;
 				if (!m_contents.end_write(wt))
@@ -75,8 +75,8 @@ private:
 				break;
 			}
 
-			// quit_request_pending with refCount == 1 falls through.
-			wt->m_state = quit_request_dispatched;
+			// state::quit_request_pending with refCount == 1 falls through.
+			wt->m_state = state::quit_request_dispatched;
 			if (!m_contents.end_write(wt))
 				continue;
 
@@ -92,9 +92,9 @@ private:
 				// if refcount was 1, we are done.  Otherwise, something might be added.
 				bool done = wt->m_refCount == 1;
 				if (done)
-					wt->m_state = quit_accepted_state;
+					wt->m_state = state::quit_accepted;
 				else
-					wt->m_state = quit_request_pending;
+					wt->m_state = state::quit_request_pending;
 				wt->m_refCount--;
 				if (!m_contents.end_write(wt))
 					continue;
@@ -116,7 +116,7 @@ private:
 		for (;;)
 		{
 			m_contents.begin_read(rt);
-			if (rt->m_state == quit_accepted_state)
+			if (rt->m_state == state::quit_accepted)
 			{
 				t->signal();
 				break;
@@ -144,7 +144,7 @@ public:
 		m_priorityDispatcher(rcnew(priority_dispatcher))
 	{
 		m_contents->m_refCount = 0;
-		m_contents->m_state = running_state;
+		m_contents->m_state = state::running;
 	}
 
 	static rcptr<quit_dispatcher> get()
@@ -161,13 +161,13 @@ public:
 		for (;;)
 		{
 			m_contents.begin_read(rt);
-			if (rt->m_state != running_state)
+			if (rt->m_state != state::running)
 				break;
 
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
 
-			wt->m_state = quit_request_pending;
+			wt->m_state = state::quit_request_pending;
 			wt->m_refCount++;
 			if (!m_contents.end_write(wt))
 				continue;
@@ -186,13 +186,13 @@ public:
 		for (;;)
 		{
 			m_contents.begin_read(rt);
-			if (rt->m_state == quit_accepted_state)
+			if (rt->m_state == state::quit_accepted)
 				break;
 
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
 
-			wt->m_state = quit_accepted_state;
+			wt->m_state = state::quit_accepted;
 			if (!m_contents.end_write(wt))
 				continue;
 
@@ -219,16 +219,16 @@ public:
 		for (;;)
 		{
 			m_contents.begin_read(rt);
-			if (rt->m_state == quit_accepted_state)
+			if (rt->m_state == state::quit_accepted)
 				break;
-			COGS_ASSERT(rt->m_state == quit_request_dispatched);
+			COGS_ASSERT(rt->m_state == state::quit_request_dispatched);
 
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
 
 			// Let the last thread out get the door
 			wt->m_refCount++;
-			wt->m_state = quit_request_pending;
+			wt->m_state = state::quit_request_pending;
 			if (!m_contents.end_write(wt))
 				continue;
 
@@ -245,9 +245,9 @@ public:
 		for (;;)
 		{
 			m_contents.begin_read(rt);
-			if (rt->m_state == quit_accepted_state)
+			if (rt->m_state == state::quit_accepted)
 				break;
-			COGS_ASSERT(rt->m_state == quit_request_dispatched);
+			COGS_ASSERT(rt->m_state == state::quit_request_dispatched);
 
 			for (;;)
 			{
@@ -264,7 +264,7 @@ public:
 			if (!m_contents.promote_read_token(rt, wt))
 				continue;
 
-			wt->m_state = running_state;
+			wt->m_state = state::running;
 			if (!m_contents.end_write(wt))
 				continue;
 			break;

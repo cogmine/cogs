@@ -104,37 +104,37 @@ public:
 	class response : public net::request_response_server::response
 	{
 	public:
-		enum reply_code
+		enum reply
 		{
-			reply_system_status_of_help = 211,
-			reply_help_message = 214,
+			system_status_of_help = 211,
+			help_message = 214,
 
-			reply_service_ready = 220,
-			reply_closing_channel = 221,
-			reply_action_completed = 250,
-			reply_non_local_user_forwarded = 251,
-			reply_unverified_user_accepted = 252,
+			service_ready = 220,
+			closing_channel = 221,
+			action_completed = 250,
+			non_local_user_forwarded = 251,
+			unverified_user_accepted = 252,
 
-			reply_start_mail_input = 354,
+			start_mail_input = 354,
 
-			reply_service_not_available = 421,
-			reply_mailbox_busy = 450,
-			reply_local_error = 451,
-			reply_insufficient_storage = 452,
-			reply_parameter_refused = 455,
+			service_not_available = 421,
+			mailbox_busy = 450,
+			local_error = 451,
+			insufficient_storage = 452,
+			parameter_refused = 455,
 
-			reply_syntax_error = 500,
-			reply_syntax_error_in_parameters = 501,
-			reply_command_not_implemented = 502,
-			reply_bad_command_sequence = 503,
-			reply_parameter_not_implemented = 504,
+			syntax_error = 500,
+			syntax_error_in_parameters = 501,
+			command_not_implemented = 502,
+			bad_command_sequence = 503,
+			parameter_not_implemented = 504,
 
-			reply_mailbox_unavailable = 550,
-			reply_user_not_local = 551,
-			reply_exceeded_storage_limit = 552,
-			reply_mailbox_name_not_allowed = 553,
-			reply_transaction_failed = 554,
-			reply_parameter_error = 555 // MAIL FROM/RCPT TO parameters not recognized or not implemented
+			mailbox_unavailable = 550,
+			user_not_local = 551,
+			exceeded_storage_limit = 552,
+			mailbox_name_not_allowed = 553,
+			transaction_failed = 554,
+			parameter_error = 555 // MAIL FROM/RCPT TO parameters not recognized or not implemented
 		};
 
 	protected:
@@ -142,10 +142,10 @@ public:
 		friend class request;
 		friend class connection;
 
-		reply_code m_replyCode;
+		reply m_replyCode;
 		const composite_cstring m_text;
 
-		response(rc_obj_base& desc, const rcref<request>& r, reply_code replyCode, const composite_cstring& text = cstring())
+		response(rc_obj_base& desc, const rcref<request>& r, reply replyCode, const composite_cstring& text = cstring())
 			: net::request_response_server::response(desc, r),
 			m_replyCode(replyCode),
 			m_text(text)
@@ -217,7 +217,7 @@ public:
 						m_currentCommand.append(c);
 						if (m_currentCommand.get_length() > max_request_length)
 						{
-							begin_response(response::reply_syntax_error, cstring::literal("Command too long"))->complete();
+							begin_response(response::reply::syntax_error, cstring::literal("Command too long"))->complete();
 							closing = true;
 							break;
 						}
@@ -252,7 +252,7 @@ public:
 						if (!!commandItor)
 							(*commandItor)(this_rcref);
 						else
-							begin_response(response::reply_command_not_implemented, cstring::literal("Command not recognized: \"") + m_currentCommand + cstring::literal("\""))->complete();
+							begin_response(response::reply::command_not_implemented, cstring::literal("Command not recognized: \"") + m_currentCommand + cstring::literal("\""))->complete();
 					}
 				}
 				m_currentCommand.clear();
@@ -262,7 +262,7 @@ public:
 		}
 
 	public:
-		rcref<response> begin_response(response::reply_code replyCode, const composite_cstring& text)
+		rcref<response> begin_response(response::reply replyCode, const composite_cstring& text)
 		{
 			m_coupler->cancel();
 			rcref<response> r = rcnew(response, this_rcref, replyCode, text);
@@ -312,7 +312,7 @@ public:
 	{
 		composite_cstring params = r->get_command_params();
 		if (!params)
-			r->begin_response(response::reply_syntax_error_in_parameters, cstring::literal("HELO/EHLO requires domain address"))->complete();
+			r->begin_response(response::reply::syntax_error_in_parameters, cstring::literal("HELO/EHLO requires domain address"))->complete();
 		else
 		{
 			rcptr<net::server::connection> c = r->get_connection();
@@ -327,14 +327,14 @@ public:
 				str += a.to_cstring();
 				str += cstring::literal("], pleased to meet you");
 
-				r->begin_response(response::reply_action_completed, str)->complete();
+				r->begin_response(response::reply::action_completed, str)->complete();
 			}
 		}
 	}
 
 	static void default_NOOP_handler(const rcref<request>& r)
 	{
-		r->begin_response(response::reply_action_completed, cstring::literal("OK"))->complete();
+		r->begin_response(response::reply::action_completed, cstring::literal("OK"))->complete();
 	}
 
 	static void default_QUIT_handler(const rcref<request>& r)
@@ -342,7 +342,7 @@ public:
 		rcptr<connection> c = r->get_connection().template static_cast_to<connection>();
 		if (!!c)
 			c->set_connection_reuse(false);
-		r->begin_response(response::reply_action_completed, cstring::literal("OK"))->complete();
+		r->begin_response(response::reply::action_completed, cstring::literal("OK"))->complete();
 	}
 
 	static void default_MAIL_handler(const rcref<request>& r)
@@ -351,19 +351,19 @@ public:
 		if (!!c) // otherwise, connection is shutting down
 		{
 			if (!!c->m_reversePath)
-				r->begin_response(response::reply_bad_command_sequence, cstring::literal("Sender already specified"))->complete();
+				r->begin_response(response::reply::bad_command_sequence, cstring::literal("Sender already specified"))->complete();
 			else
 			{
 				const vector<composite_cstring> params = r->get_command_params().split_on(' ');
 				if (!params[0] || !params[0].starts_with(cstring::literal("FROM:<")) || !params[0].ends_with(">", 1))
-					r->begin_response(response::reply_parameter_error, cstring::literal("MAIL FROM parameters not recognized or not implemented"))->complete();
+					r->begin_response(response::reply::parameter_error, cstring::literal("MAIL FROM parameters not recognized or not implemented"))->complete();
 				else
 				{
 					composite_cstring reversePath = params[1];
 					reversePath.advance(6);
 					reversePath.truncate(1);
 					c->m_reversePath = reversePath;
-					r->begin_response(response::reply_action_completed, cstring::literal("OK"))->complete();
+					r->begin_response(response::reply::action_completed, cstring::literal("OK"))->complete();
 				}
 			}
 		}
@@ -375,12 +375,12 @@ public:
 		if (!!c) // otherwise, connection is shutting down
 		{
 			if (!c->m_reversePath)
-				r->begin_response(response::reply_bad_command_sequence, cstring::literal("Need MAIL before RCPT"))->complete();
+				r->begin_response(response::reply::bad_command_sequence, cstring::literal("Need MAIL before RCPT"))->complete();
 			else
 			{
 				const vector<composite_cstring> params = r->get_command_params().split_on(' ');
 				if (!params[0] || !params[0].starts_with(cstring::literal("TO:<")) || !params[0].ends_with(">", 1))
-					r->begin_response(response::reply_parameter_error, cstring::literal("RCPT TO parameters not recognized or not implemented"))->complete();
+					r->begin_response(response::reply::parameter_error, cstring::literal("RCPT TO parameters not recognized or not implemented"))->complete();
 				else
 				{
 					composite_cstring recipient = params[1];
@@ -392,7 +392,7 @@ public:
 
 
 					c->m_recipientList.append(1, recipient);
-					r->begin_response(response::reply_action_completed, cstring::literal("OK"))->complete();
+					r->begin_response(response::reply::action_completed, cstring::literal("OK"))->complete();
 				}
 			}
 		}

@@ -55,7 +55,7 @@ public:
 		m_isEnabled(isEnabled),
 		m_isMultiLine(isMultiLine),
 		m_font(fnt),
-		m_textColor(color::black)
+		m_textColor(color::constant::black)
 	{
 	}
 

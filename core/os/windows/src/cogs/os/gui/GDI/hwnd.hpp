@@ -1045,11 +1045,11 @@ public:
 	}
 };
 
-enum hwnd_draw_mode
+enum class hwnd_draw_mode
 {
-	user_drawn = 0, // Drawn by pane::draw()
-	system_drawn_direct = 1, // Drawn by the system directly to the display DC
-	system_drawn_offscreen = 2, // Drawn by the system in response to WM_PAINT against the DC passed in WPARAM, in offscreen buffer
+	user = 0, // Drawn by pane::draw()
+	system_direct = 1, // Drawn by the system directly to the display DC
+	system_offscreen = 2, // Drawn by the system in response to WM_PAINT against the DC passed in WPARAM, in offscreen buffer
 };
 
 
@@ -1275,7 +1275,7 @@ protected:
 
 	void draw_if_needed()
 	{
-		if (m_drawMode == user_drawn)
+		if (m_drawMode == hwnd_draw_mode::user)
 		{
 			rcptr<gfx::os::gdi::bitmap> offScreenBuffer = peek_offscreen_buffer().template static_cast_to<gfx::os::gdi::bitmap>();
 			COGS_ASSERT(!!offScreenBuffer);
@@ -1310,7 +1310,7 @@ protected:
 			if (needNewBuffer)
 			{
 				size newSize = b.get_size() + size(25, 25); // add a little space to grow, to avoid creating buffers too often.
-				m_cachedBackgroundImage = m_deviceContext->create_bitmap(newSize, color::black, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
+				m_cachedBackgroundImage = m_deviceContext->create_bitmap(newSize, color::constant::black, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
 			}
 		}
 	}
@@ -1576,7 +1576,7 @@ public:
 		HDC hDC = GetDC(get_HWND());
 		get_device_context().set_HDC(hDC);
 
-		set_compositing_behavior(buffer_self_and_children);
+		set_compositing_behavior(compositing_behavior::buffer_self_and_children);
 		set_externally_drawn(*m_deviceContext.template static_cast_to<gfx::canvas>());
 
 		if (!!m_parentHwndPane)
@@ -1677,7 +1677,7 @@ public:
 		{
 			bridgeable_pane::invalidating(b2);
 			RECT r = get_device_context().make_invalid_RECT(b2);
-			if (m_drawMode == user_drawn)
+			if (m_drawMode == hwnd_draw_mode::user)
 			{
 				HRGN rectRgn = CreateRectRgn(r.left, r.top, r.right, r.bottom);
 				if (m_redrawRgn == NULL)
@@ -1892,7 +1892,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_double_click(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					button_double_click(*(p->get_bridge()), mouse_button::left, pt2, modifiers);
 					return 0;
 				}
 			case WM_LBUTTONDOWN:
@@ -1901,7 +1901,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_press(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					button_press(*(p->get_bridge()), mouse_button::left, pt2, modifiers);
 					return 0;
 				}
 			case WM_LBUTTONUP:
@@ -1910,7 +1910,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_release(*(p->get_bridge()), left_mouse_button, pt2, modifiers);
+					button_release(*(p->get_bridge()), mouse_button::left, pt2, modifiers);
 					return 0;
 				}
 			case WM_MBUTTONDBLCLK:
@@ -1919,7 +1919,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_double_click(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					button_double_click(*(p->get_bridge()), mouse_button::middle, pt2, modifiers);
 					return 0;
 				}
 			case WM_MBUTTONDOWN:
@@ -1928,7 +1928,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_press(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					button_press(*(p->get_bridge()), mouse_button::middle, pt2, modifiers);
 					return 0;
 				}
 			case WM_MBUTTONUP:
@@ -1937,7 +1937,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_release(*(p->get_bridge()), middle_mouse_button, pt2, modifiers);
+					button_release(*(p->get_bridge()), mouse_button::middle, pt2, modifiers);
 					return 0;
 				}
 			case WM_RBUTTONDBLCLK:
@@ -1946,7 +1946,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					if (button_double_click(*(p->get_bridge()), right_mouse_button, pt2, modifiers))
+					if (button_double_click(*(p->get_bridge()), mouse_button::right, pt2, modifiers))
 						return 0;
 				}
 				break;
@@ -1956,7 +1956,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_press(*(p->get_bridge()), right_mouse_button, pt2, modifiers);
+					button_press(*(p->get_bridge()), mouse_button::right, pt2, modifiers);
 					return 0;
 				}
 			case WM_RBUTTONUP:
@@ -1965,7 +1965,7 @@ public:
 					rcref<hwnd_pane> p = get_top_hwnd_pane(pt);
 					point pt2 = get_device_context().make_point(pt);
 					ui::modifier_keys_state modifiers = p->get_modifier_keys();
-					button_release(*(p->get_bridge()), right_mouse_button, pt2, modifiers);
+					button_release(*(p->get_bridge()), mouse_button::right, pt2, modifiers);
 					return 0;
 				}
 			case WM_COMMAND:
@@ -2030,13 +2030,13 @@ public:
 					LRESULT lResult = 0;
 					if (!owner->is_visible())
 						return lResult;
-					if (m_drawMode == system_drawn_direct)
+					if (m_drawMode == hwnd_draw_mode::system_direct)
 						break; // use default
 					PAINTSTRUCT ps;
 					HDC savedDC = get_HDC(); // in case owned.
 					size sz = owner->get_size();
 					allocate_temporary_background();
-					if (m_drawMode == system_drawn_offscreen) // Handle as a Win32 Control
+					if (m_drawMode == hwnd_draw_mode::system_offscreen) // Handle as a Win32 Control
 					{
 						COGS_ASSERT(!!m_cachedBackgroundImage);
 						HRGN updateRgn = CreateRectRgn(0, 0, 0, 0);
@@ -2179,7 +2179,7 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 	{
 	public:
 		native_pane(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& subSystem)
-			: hwnd_pane(desc, composite_string(), 0, 0, subSystem, user_drawn)
+			: hwnd_pane(desc, composite_string(), 0, 0, subSystem, hwnd_draw_mode::user)
 		{ }
 
 		virtual void installing()

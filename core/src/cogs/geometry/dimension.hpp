@@ -41,7 +41,7 @@ namespace spatial {
 
 /// @ingroup Planar
 /// @brief A planar dimensions
-enum dimension
+enum class dimension
 {
 	x = 0,
 	y = 1,

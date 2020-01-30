@@ -42,7 +42,7 @@ class endpoint;
 class socket;
 
 
-enum address_family
+enum class address_family
 {
 	inetv4 = AF_INET,
 	inetv6 = AF_INET6
@@ -252,17 +252,17 @@ public:
 
 	// Does NOT support host names and FQDN.  Supports only numeric ipv4, ipv6
 	// For host names and FQDN, use lookup() instead, as they may have multiple associated numeric addresses.
-	address(const composite_string& str, address_family addressFamily = inetv4) // AF_INET6 for ipv6
+	address(const composite_string& str, address_family addressFamily = address_family::inetv4) // AF_INET6 for ipv6
 	{
-		int err = inet_pton(addressFamily, string_to_cstring(str).cstr(), &m_sockAddr);
+		int err = inet_pton((int)addressFamily, string_to_cstring(str).cstr(), &m_sockAddr);
 		if (!err)
 			m_sockAddrSize = 0;
 		else
 			m_sockAddrSize = sizeof(m_sockAddr);
 	}
 
-	static address ipv4(const composite_string& str) { return address(str, inetv4); }
-	static address ipv6(const composite_string& str) { return address(str, inetv6); }
+	static address ipv4(const composite_string& str) { return address(str, address_family::inetv4); }
+	static address ipv6(const composite_string& str) { return address(str, address_family::inetv6); }
 
 	address& operator=(const address& addr)
 	{
@@ -275,17 +275,17 @@ public:
 	static rcref<lookup_result> lookup(const composite_string& addr) { return rcnew(lookup_result, addr); }
 	virtual rcref<net::address::reverse_lookup_result> reverse_lookup() const { return rcnew(reverse_lookup_result, *this); }
 
-	static address get_local_host(address_family addressFamily = inetv4)
+	static address get_local_host(address_family addressFamily = address_family::inetv4)
 	{
 		address result;
-		if (addressFamily == inetv4)
+		if (addressFamily == address_family::inetv4)
 		{
 			result.m_sockAddr.ss_family = AF_INET;
 			sockaddr_in* sockAddr = (sockaddr_in*)&result.m_sockAddr;
 			sockAddr->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 			sockAddr->sin_port = 0;
 		}
-		else if (addressFamily == inetv6)
+		else if (addressFamily == address_family::inetv6)
 		{
 			result.m_sockAddr.ss_family = AF_INET6;
 			sockaddr_in6* sockAddr = (sockaddr_in6*)&result.m_sockAddr;

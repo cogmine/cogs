@@ -53,7 +53,8 @@ class color
 {
 public:
 	// constants are 0xAARRGGBB
-	enum constant {
+	enum class constant : size_t
+	{
 		// -- Start of 16 standard VGA/HTML colors.
 		white                  = 0xFFFFFFFF,
 		red                    = 0xFFFF0000,
@@ -302,10 +303,10 @@ public:
 	void set(const rgb_t& c, uint8_t a) { set(c.m_red, c.m_green, c.m_blue, a); }
 	void set(const rgb_t& c, uint8_t a) volatile { set(c.m_red, c.m_green, c.m_blue, a); }
 
-	void set(constant c) { set((uint8_t)(c >> 16), (uint8_t)(c >> 8), (uint8_t)c, (uint8_t)(c >> 24)); }
+	void set(constant c) { set((uint8_t)((size_t)c >> 16), (uint8_t)((size_t)c >> 8), (uint8_t)c, (uint8_t)((size_t)c >> 24)); }
 	void set(constant c) volatile { set(color(c)); }
 
-	void set(constant c, uint8_t a) { set((uint8_t)(c >> 16), (uint8_t)(c >> 8), (uint8_t)c, a); }
+	void set(constant c, uint8_t a) { set((uint8_t)((size_t)c >> 16), (uint8_t)((size_t)c >> 8), (uint8_t)c, a); }
 	void set(constant c, uint8_t a) volatile { set(color(c, a)); }
 
 	void set_red(uint8_t r) { m_rgba->m_red = r; }

@@ -6251,46 +6251,46 @@ public:
 	}
 
 	template <typename type2>
-	vector<this_t> split_on(const type2& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on(const type2& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t, type2>(*this, &splitOn, 1, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on(const type2& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on(const type2& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t cpy(*this);
 		return split_on_any_inner<this_t, type2>(cpy, &splitOn, 1, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t, type2>(*this, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t cpy(*this);
 		return split_on_any_inner<this_t, type2>(cpy, splitOn, n, opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		return split_on_any_inner<this_t, type2>(*this, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const volatile
+	vector<this_t> split_on_any(const vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const volatile
 	{
 		this_t cpy(*this);
 		return split_on_any_inner<this_t, type2>(cpy, splitOn.get_const_ptr(), splitOn.get_length(), opt);
 	}
 
 	template <typename type2>
-	vector<this_t> split_on_any(const volatile vector<type2>& splitOn, split_options opt = split_includes_empty_segments) const
+	vector<this_t> split_on_any(const volatile vector<type2>& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
 		vector<type2> splitOnCpy(splitOn);
 		return split_on_any_inner<this_t, type2>(*this, splitOnCpy.get_const_ptr(), splitOnCpy.get_length(), opt);
@@ -6299,7 +6299,7 @@ public:
 
 protected:
 	template <class composite_vector_t, typename type2>
-	static vector<composite_vector_t> split_on_any_inner(const composite_vector_t& src, const type2* splitOn, size_t n, split_options opt = split_includes_empty_segments)
+	static vector<composite_vector_t> split_on_any_inner(const composite_vector_t& src, const type2* splitOn, size_t n, include_empty_segments opt = include_empty_segments::yes)
 	{
 		vector<composite_vector_t> result;
 		composite_vector_t currentCompositeVector;
@@ -6310,7 +6310,7 @@ protected:
 			COGS_ASSERT(curSrc.get_length() > 0); // I don't think we ever have empty segments.
 
 			// including empty segments gives us a clue as to where each split actually is.
-			vector<typename composite_vector_t::inner_t> v = curSrc.split_on_any(splitOn, n, split_includes_empty_segments);
+			vector<typename composite_vector_t::inner_t> v = curSrc.split_on_any(splitOn, n, include_empty_segments::yes);
 			size_t len = v.get_length();
 			for (size_t j = 0; j < len; j++)
 			{
@@ -6321,7 +6321,7 @@ protected:
 				{
 					if (!!currentCompositeVector)
 						result += currentCompositeVector;
-					if (opt == split_includes_empty_segments)
+					if (opt == include_empty_segments::yes)
 						result += composite_vector_t();
 					currentCompositeVector.clear();
 				}
