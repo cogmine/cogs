@@ -167,8 +167,8 @@ public:
 		void make_relative(const size& sz)
 		{
 			m_sizes[0].m_isValid &= m_sizes[0].m_size.get_width() <= sz.get_width() && m_sizes[0].m_size.get_height() <= sz.get_height();
-			m_sizes[1].m_isValid &= m_sizes[1].m_size.get_width() <= sz.get_width() && m_sizes[1].m_size.get_height() <= sz.get_height();
-			m_sizes[2].m_isValid &= m_sizes[2].m_size.get_width() >= sz.get_width() && m_sizes[2].m_size.get_height() >= sz.get_height();
+			m_sizes[1].m_isValid &= m_sizes[1].m_size.get_width() <= sz.get_width() && m_sizes[1].m_size.get_height() >= sz.get_height();
+			m_sizes[2].m_isValid &= m_sizes[2].m_size.get_width() >= sz.get_width() && m_sizes[2].m_size.get_height() <= sz.get_height();
 			m_sizes[3].m_isValid &= m_sizes[3].m_size.get_width() >= sz.get_width() && m_sizes[3].m_size.get_height() >= sz.get_height();
 		}
 

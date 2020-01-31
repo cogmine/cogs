@@ -267,6 +267,7 @@ public:
 		NSRect newContentRect = [m_nsWindow contentRectForFrameRect:r];
 
 		size newSize = graphics_context::make_size(newContentRect);
+
 		for (;;)
 		{
 			if (m_widthChanged)
@@ -282,7 +283,7 @@ public:
 				newSize = propose_size(newSize, dimension::vertical).find_first_valid_size(dimension::vertical);
 				break;
 			}
-			newSize = nsview_pane::propose_size(newSize);
+			newSize = propose_size(newSize).find_first_valid_size(get_primary_flow_dimension());
 			break;
 		}
 

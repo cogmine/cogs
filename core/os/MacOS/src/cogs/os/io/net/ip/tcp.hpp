@@ -623,7 +623,7 @@ public:
 		return listen([srvr](const rcref<tcp>& r)
 		{
 			srvr->connecting(r.template static_cast_to<net::connection>());
-		}, port*, addressFamily);
+		}, port, addressFamily);
 	}
 
 	virtual rcref<const net::endpoint> get_local_endpoint() const { return m_socket->get_local_endpoint_ref(); }
