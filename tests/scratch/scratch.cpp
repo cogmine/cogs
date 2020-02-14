@@ -302,188 +302,148 @@ COGS_MAIN
 
 
 		{
-			rcref<background> root = rcnew(background, color::constant::beige);
-
 			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 			rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
 
 			scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
-			rcref<background> cornerPane = rcnew(background, color::constant::purple);
-			scrollPane->nest_corner(cornerPane);
+			//rcref<background> cornerPane = rcnew(background, color::constant::purple);
+			//scrollPane->nest_corner(cornerPane);
 
 			rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-			root->nest(scrollPane, f);
-			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), scrollPane, f);
 		}
 
-
 		{
-			rcref<background> root = rcnew(background, color::constant::beige);
-
 			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 			rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::vertical);
 
 			scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
 			rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-			root->nest(scrollPane, f);
-			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), scrollPane, f);
 		}
 
 		{
-			rcref<background> root = rcnew(background, color::constant::beige);
-
 			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 			rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal);
 
 			scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
 			rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-			root->nest(scrollPane, f);
-			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), scrollPane, f);
 		}
 
 
 
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
 
 		//////	scrollPane->nest(img1, rcnew(unshrinkable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::vertical);
 
 		//////	scrollPane->nest(img1, rcnew(unshrinkable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal);
 
 		//////	scrollPane->nest(img1, rcnew(unshrinkable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), scrollPane, f);
 		//////}
 
 
 
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
 
 		//////	scrollPane->nest(img1, rcnew(unstretchable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::vertical);
 
 		//////	scrollPane->nest(img1, rcnew(unstretchable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal);
 
 		//////	scrollPane->nest(img1, rcnew(unstretchable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), scrollPane, f);
 		//////}
 
 
 		//////// same with scroll bar that do not auto-hide
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::both, false);
 
 		//////	scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::vertical, false);
 
 		//////	scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"), scrollPane, f);
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal, false);
 
 		//////	scrollPane->nest(img1, rcnew(fixed_default_size_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"), scrollPane, f);
 		//////}
 
 
 
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::both, false);
 
 		//////	scrollPane->nest(img1, rcnew(unshrinkable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"), scrollPane, f);
 		//////}
 
 		//////{
@@ -500,16 +460,13 @@ COGS_MAIN
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal, false);
 
 		//////	scrollPane->nest(img1, rcnew(unshrinkable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"), scrollPane, f);
 		//////}
 
 
@@ -542,16 +499,13 @@ COGS_MAIN
 		//////}
 
 		//////{
-		//////	rcref<background> root = rcnew(background, color::constant::beige);
-
 		//////	rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 		//////	rcref<scroll_pane> scrollPane = rcnew(scroll_pane, scroll_pane::dimensions::horizontal, false);
 
 		//////	scrollPane->nest(img1, rcnew(unstretchable_frame, img1));
 
 		//////	rcref<override_default_size_frame> f = rcnew(override_default_size_frame, scrollPane, gfx::canvas::size(200, 200));
-		//////	root->nest(scrollPane, f);
-		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), root);
+		//////	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"), scrollPane, f);
 		//////}
 
 

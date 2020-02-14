@@ -661,33 +661,98 @@ public:
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
 		propose_size_result result;
-		if (r.is_empty())
+		range r2 = r & m_calculatedRange;
+		if (r2.is_empty())
 			result.set_empty();
 		else
 		{
-			size defaultSize = frame::get_default_size();
-			size newSize;
-			if (resizeDimension.has_value())
+			for (;;)
 			{
-				dimension d = resizeDimension.value();
-				newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
-				newSize[d] = sz[d];
-			}
-			else
-			{
-				dimension d = get_primary_flow_dimension();
-				newSize[!d] = (sz[d] * defaultSize[!d]) / defaultSize[d];
-				if (newSize[!d] <= sz[!d])
-					newSize[d] = sz[d];
+				size newSize;
+				size sz2 = r.limit(sz);
+				size defaultSize = frame::get_default_size();
+				if (resizeDimension.has_value())
+				{
+					dimension d = resizeDimension.value();
+					newSize[!d] = (sz2[d] * defaultSize[!d]) / defaultSize[d];
+					if (r2.contains(!d, newSize[!d]))
+						newSize[d] = sz2[d];
+					else if (newSize[!d] < r2.get_min(!d))
+					{
+						newSize[d] = (r2.get_min(!d) * defaultSize[d]) / defaultSize[!d];
+						if (r2.contains(d, newSize[d]))
+							newSize[!d] = r2.get_min(!d);
+						else
+						{
+							result.set_empty();
+							break;
+						}
+					}
+					else if (r2.has_max(!d) && newSize[!d] > r2.get_max(!d))
+					{
+						newSize[d] = (r2.get_max(!d) * defaultSize[d]) / defaultSize[!d];
+						if (r2.contains(d, newSize[d]))
+							newSize[!d] = r2.get_max(!d);
+						else
+						{
+							result.set_empty();
+							break;
+						}
+					}
+				}
 				else
 				{
-					newSize[!d] = sz[!d];
-					newSize[d] = (sz[!d] * defaultSize[d]) / defaultSize[!d];
+					dimension d = get_primary_flow_dimension();
+					newSize[!d] = (sz2[d] * defaultSize[!d]) / defaultSize[d];
+					if (newSize[!d] <= sz2[!d])
+					{
+						if (newSize[!d] >= r2.get_min(!d))
+							newSize[d] = sz2[d];
+						else
+						{
+							newSize[d] = (r2.get_min(!d) * defaultSize[d]) / defaultSize[!d];
+							if (r2.contains(d, newSize[d]))
+								newSize[!d] = r2.get_min(!d);
+							else
+							{
+								result.set_empty();
+								break;
+							}
+						}
+					}
+					else
+					{
+						newSize[d] = (sz2[!d] * defaultSize[d]) / defaultSize[!d];
+						if (r2.contains(d, newSize[d]))
+							newSize[!d] = sz2[!d];
+						else if (newSize[d] < r2.get_min(d))
+						{
+							newSize[!d] = (r2.get_min(d) * defaultSize[!d]) / defaultSize[d];
+							if (r2.contains(!d, newSize[!d]))
+								newSize[d] = r2.get_min(d);
+							else
+							{
+								result.set_empty();
+								break;
+							}
+						}
+						else if (r2.has_max(d) && newSize[d] > r2.get_max(d))
+						{
+							newSize[!d] = (r2.get_max(d) * defaultSize[!d]) / defaultSize[d];
+							if (r2.contains(!d, newSize[!d]))
+								newSize[d] = r2.get_max(d);
+							else
+							{
+								result.set_empty();
+								break;
+							}
+						}
+					}
 				}
+				result = frame::propose_size(newSize, resizeDimension, r2, horizontalMode, verticalMode);
+				result.make_relative(sz);
+				break;
 			}
-
-			result = frame::propose_size(newSize, resizeDimension, r & m_calculatedRange, horizontalMode, verticalMode); // Need m_calculatedRange here?
-			result.make_relative(sz);
 		}
 		return result;
 	}

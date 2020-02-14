@@ -76,6 +76,7 @@ public:
 	bool m_inResize = false;
 	bool m_widthChanged;
 	bool m_heightChanged;
+	range m_calculatedRange;
 
 	window(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(desc, uiSubsystem)
@@ -236,16 +237,29 @@ public:
 	{
 		nsview_pane::calculate_range();
 
-		rcptr<pane> owner = get_bridge();
-		bool resizable = !owner->get_range().is_fixed();
+		NSRect minRect;
+		minRect.origin.x = minRect.origin.y = 0;
+		minRect.size = [m_nsWindow minSize];
+		minRect = [m_nsWindow contentRectForFrameRect: minRect];
+		range minRange1(size(minRect.size.width, minRect.size.height), size(0, 0), false, false);
+		minRect.origin.x = minRect.origin.y = minRect.size.height = 0;
+		minRect.size.width = [NSWindow minFrameWidthWithTitle: @" " styleMask: [m_nsWindow styleMask]];
+		minRect.size.width += 3; // Fudge factor due to minFrameWidthWithTitle not correct detecting min width (as passed to windowWillResize)
+		range minRange2(size(minRect.size.width, minRect.size.height), size(0, 0), false, false);
+		minRange1 &= minRange2;
+		m_calculatedRange = nsview_pane::get_range() & minRange1;
+		bool resizable = !m_calculatedRange.is_empty() && !m_calculatedRange.is_fixed();
 		if (resizable)
 			[m_nsWindow setShowsResizeIndicator : YES];
 		else
 			[m_nsWindow setShowsResizeIndicator : NO];
 	}
 
+	virtual range get_range() const { return m_calculatedRange; }
+
 	NSSize proposing_size(NSSize newNSSize)
 	{
+		rcptr<pane> owner = get_bridge();
 		NSRect frameRect = [m_nsWindow frame];
 
 		if (!m_widthChanged)
@@ -257,33 +271,31 @@ public:
 		if (!m_widthChanged && !m_heightChanged)
 			return newNSSize;
 
-		NSRect contentRect = [m_nsWindow contentRectForFrameRect : frameRect];
+		NSRect contentRect = [m_nsWindow contentRectForFrameRect: frameRect];
 		m_preSizingBounds.set(point(contentRect.origin.x, contentRect.origin.y), size(contentRect.size.width, contentRect.size.height));
 
 		NSRect r;
 		r.origin.x = 0;
 		r.origin.y = 0;
 		r.size = newNSSize;
-		NSRect newContentRect = [m_nsWindow contentRectForFrameRect:r];
-
+		NSRect newContentRect = [m_nsWindow contentRectForFrameRect: r];
 		size newSize = graphics_context::make_size(newContentRect);
-
 		for (;;)
 		{
 			if (m_widthChanged)
 			{
 				if (!m_heightChanged)
 				{
-					newSize = propose_size(newSize, dimension::horizontal).find_first_valid_size(dimension::horizontal);
+					newSize = owner->propose_size(newSize, dimension::horizontal, m_calculatedRange).find_first_valid_size(dimension::horizontal);
 					break;
 				}
 			}
 			else if (m_heightChanged)
 			{
-				newSize = propose_size(newSize, dimension::vertical).find_first_valid_size(dimension::vertical);
+				newSize = owner->propose_size(newSize, dimension::vertical, m_calculatedRange).find_first_valid_size(dimension::vertical);
 				break;
 			}
-			newSize = propose_size(newSize).find_first_valid_size(get_primary_flow_dimension());
+			newSize = owner->propose_size(newSize, std::nullopt, m_calculatedRange).find_first_valid_size(get_primary_flow_dimension());
 			break;
 		}
 
@@ -291,7 +303,7 @@ public:
 		newSize.assign_ceil();
 
 		r.size = graphics_context::make_NSSize(newSize);
-		r = [m_nsWindow frameRectForContentRect : r];
+		r = [m_nsWindow frameRectForContentRect: r];
 		return r.size;
 	}
 
@@ -348,13 +360,12 @@ public:
 
 		if (newNativeSize.width == m_nativeSize.width && newNativeSize.height == m_nativeSize.height)
 			bridgeable_pane::reshape(b.get_size(), point(0, 0));
-
 	}
 
 	void reshaping()
 	{
 		NSRect r = [m_nsWindow frame];
-		NSRect r2 = [NSWindow contentRectForFrameRect: r styleMask: [m_nsWindow styleMask] ];
+		NSRect r2 = [m_nsWindow contentRectForFrameRect: r];
 
 		bounds newBounds;
 		newBounds.get_position().get_x() = r2.origin.x;
@@ -385,7 +396,6 @@ public:
 
 		nsview_pane::reshape(newBounds, oldOrigin);
 	}
-
 
 	void update_tracking_areas()
 	{

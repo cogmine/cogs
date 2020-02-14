@@ -166,12 +166,36 @@ public:
 
 		void make_relative(const size& sz)
 		{
-			m_sizes[0].m_isValid &= m_sizes[0].m_size.get_width() <= sz.get_width() && m_sizes[0].m_size.get_height() <= sz.get_height();
-			m_sizes[1].m_isValid &= m_sizes[1].m_size.get_width() <= sz.get_width() && m_sizes[1].m_size.get_height() >= sz.get_height();
-			m_sizes[2].m_isValid &= m_sizes[2].m_size.get_width() >= sz.get_width() && m_sizes[2].m_size.get_height() <= sz.get_height();
-			m_sizes[3].m_isValid &= m_sizes[3].m_size.get_width() >= sz.get_width() && m_sizes[3].m_size.get_height() >= sz.get_height();
-		}
+			auto f1 = [&](int i1, int i2, dimension d)
+			{
+				if (m_sizes[i1].m_isValid && m_sizes[i1].m_size[d] >= sz[d])
+				{
+					m_sizes[i2] = m_sizes[i1];
+					if (m_sizes[i1].m_size[d] > sz[d])
+						m_sizes[i1].m_isValid = false;
+				}
+			};
 
+			f1(0, 2, dimension::horizontal);
+			f1(1, 3, dimension::horizontal);
+			f1(0, 1, dimension::vertical);
+			f1(2, 3, dimension::vertical);
+
+			auto f2 = [&](int i1, int i2, dimension d)
+			{
+				if (m_sizes[i1].m_isValid && m_sizes[i1].m_size[d] <= sz[d])
+				{
+					m_sizes[i2] = m_sizes[i1];
+					if (m_sizes[i1].m_size[d] < sz[d])
+						m_sizes[i1].m_isValid = false;
+				}
+			};
+
+			f2(2, 0, dimension::horizontal);
+			f2(3, 1, dimension::horizontal);
+			f2(1, 0, dimension::vertical);
+			f2(3, 2, dimension::vertical);
+		}
 	};
 
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const

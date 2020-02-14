@@ -978,6 +978,12 @@ public:
 		return is_height_fixed();
 	}
 
+	bool contains(dimension d, double x) const
+	{
+		return ((x >= get_min(d))
+			&& (!has_max(d) || (x <= get_max(d))));
+	}
+
 	bool contains(const size& sz) const
 	{
 		return ((sz.get_width() >= get_min_width())

@@ -413,6 +413,12 @@ protected:
 		return m_bridgedPane->get_default_size();
 	}
 
+	virtual range get_range() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_range();
+	}
+
 	virtual dimension get_primary_flow_dimension() const
 	{
 		COGS_ASSERT(!!m_bridgedPane);
