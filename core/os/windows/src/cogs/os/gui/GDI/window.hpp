@@ -35,6 +35,7 @@ private:
 	hwnd::subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
 	bool m_processingZoomRequest = false;
 	bool m_mouseTracking = false;
+	range m_calculatedRange;
 
 	bool is_zoomed() const
 	{
@@ -126,11 +127,6 @@ public:
 	virtual void set_title(const composite_string& title)
 	{
 		SetWindowText(get_HWND(), title.composite().cstr());
-	}
-
-	virtual bool is_opaque() const
-	{
-		return true;
 	}
 
 	// Incoming position are in screen coordinates.  On Windows, we use real pixels for screen coordinates.
@@ -235,7 +231,7 @@ public:
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
 		if (sz == oldBounds.sz)
-			bridgeable_pane::reshape(newBounds.get_size(), point(0, 0));
+			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
 	}
 
 	virtual void reshape_frame(const bounds& newBounds)
@@ -255,7 +251,7 @@ public:
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
 		if (sz == oldSIZE)
-			bridgeable_pane::reshape(newBounds.get_size(), point(0, 0));
+			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
 	}
 
 	RECT get_frame_RECT() const
@@ -286,7 +282,11 @@ public:
 
 	virtual void calculate_range()
 	{
-		bridgeable_pane::calculate_range();
+		hwnd_pane::calculate_range();
+
+		// Fudge for the actual minimum with on (passed to WM_SIZING)
+		range windowRange(size(156, 0), size(0, 0), false, false);
+		m_calculatedRange = hwnd_pane::get_range() & windowRange;
 		DWORD newStyle = m_style;
 		if (get_range().is_fixed())
 			newStyle &= ~(WS_MAXIMIZEBOX | WS_THICKFRAME); // Disable maximize button and resizable frame
@@ -298,6 +298,8 @@ public:
 			m_style = newStyle;
 		}
 	}
+
+	virtual range get_range() const { return m_calculatedRange; }
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
 	{

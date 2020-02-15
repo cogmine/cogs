@@ -1310,7 +1310,9 @@ protected:
 			if (needNewBuffer)
 			{
 				size newSize = b.get_size() + size(25, 25); // add a little space to grow, to avoid creating buffers too often.
-				m_cachedBackgroundImage = m_deviceContext->create_bitmap(newSize, color::constant::black, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
+				// If this is the topmost (window) HWND, fill the buffer with the default window background theme color.
+				color c = !m_parentHwndPane ? color::constant::black : color::constant::white;
+				m_cachedBackgroundImage = m_deviceContext->create_bitmap(newSize, c, get_device_context().get_dpi()).template static_cast_to<gfx::os::gdi::bitmap>();
 			}
 		}
 	}
@@ -2070,7 +2072,15 @@ public:
 						get_HDC() = BeginPaint(get_HWND(), &ps);
 						paint_temporary_background(); // Won't actually paint if background is opaque
 						if (!m_cachedBackgroundImage)
-							get_device_context().draw_bitmap(*offScreenBuffer, sz, sz, false);
+						{
+							if (!offScreenBuffer->is_opaque())
+							{
+								// Fill with the default window background color
+								color c = color::constant::white;
+								get_device_context().fill(sz, c);
+							}
+							get_device_context().draw_bitmap(*offScreenBuffer, sz, sz, true);
+						}
 						else
 						{
 							m_cachedBackgroundImage->draw_bitmap(*offScreenBuffer, sz, sz, true);

@@ -106,26 +106,29 @@ private:
 			m_depth(depth)
 		{
 			COGS_ASSERT(!!m_hDC);
-			if (depth == 1)
-				m_bitMap = CreateBitmap(sz.cx, sz.cy, 1, 1, NULL);
-			else
+			if (!!sz.cx && !!sz.cy)
 			{
-				BITMAPINFO bmi = { };
-				bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-				bmi.bmiHeader.biPlanes = 1;
-				bmi.bmiHeader.biWidth = sz.cx;
-				bmi.bmiHeader.biHeight = -sz.cy;
-				bmi.bmiHeader.biBitCount = depth;
-				bmi.bmiHeader.biCompression = BI_RGB;
+				if (depth == 1)
+					m_bitMap = CreateBitmap(sz.cx, sz.cy, 1, 1, NULL);
+				else
+				{
+					BITMAPINFO bmi = { };
+					bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+					bmi.bmiHeader.biPlanes = 1;
+					bmi.bmiHeader.biWidth = sz.cx;
+					bmi.bmiHeader.biHeight = -sz.cy;
+					bmi.bmiHeader.biBitCount = depth;
+					bmi.bmiHeader.biCompression = BI_RGB;
 
-				m_bitMap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&m_bits, NULL, 0);
+					m_bitMap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&m_bits, NULL, 0);
 
-				BITMAP bm;
-				GetObject((HANDLE)m_bitMap, sizeof(bm), &bm);
-				m_widthBytes = bm.bmWidthBytes;
+					BITMAP bm;
+					GetObject((HANDLE)m_bitMap, sizeof(bm), &bm);
+					m_widthBytes = bm.bmWidthBytes;
+				}
+				COGS_ASSERT(m_bitMap);
+				SelectObject(m_hDC, m_bitMap);
 			}
-			COGS_ASSERT(m_bitMap);
-			SelectObject(m_hDC, m_bitMap);
 		}
 
 		gdi_bitmap(gdi_bitmap&& src)

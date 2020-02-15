@@ -359,7 +359,7 @@ public:
 		NSSize newNativeSize = [objcView convertSizeToBacking: newSize];
 
 		if (newNativeSize.width == m_nativeSize.width && newNativeSize.height == m_nativeSize.height)
-			bridgeable_pane::reshape(b.get_size(), point(0, 0));
+			nsview_pane::reshape(b.get_size(), point(0, 0));
 	}
 
 	void reshaping()
