@@ -418,7 +418,7 @@ public:
 	explicit server(rc_obj_base& desc)
 		: net::request_response_server(desc),
 		m_commandHandlerMap(get_default_command_handlers())
-	{ } 
+	{ }
 
 	server(rc_obj_base& desc, const rcref<command_handler_map_t>& commandHandlers)
 		: net::request_response_server(desc),

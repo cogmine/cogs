@@ -923,7 +923,6 @@ protected:
 };
 
 
-
 template <typename result_t, typename arg_t>
 class forwarding_function_task : public function_task_base<result_t, arg_t>
 {
@@ -1126,8 +1125,6 @@ public:
 };
 
 
-
-
 template <typename result_t, typename arg_t>
 class forwarding_function_task<result_t, rcref<task<arg_t> > > : public function_task_base<result_t, arg_t>
 {
@@ -1226,7 +1223,6 @@ public:
 		get_primary_func().release();
 	}
 };
-
 
 
 template <typename result_t>
@@ -1394,7 +1390,6 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	((volatile task<result_t>*)this)->dispatch_inner(t.template static_cast_to<task_t>().template static_cast_to<task_base>(), priority);
 	return t;
 }
-
 
 
 template <typename result_t>
@@ -1805,9 +1800,6 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 }
 
 
-
-
-
 template <typename result_t>
 template <typename F>
 std::enable_if_t<
@@ -1838,7 +1830,6 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 	((volatile task<result_t>*)this)->dispatch_inner(t.template static_cast_to<task_t>().template static_cast_to<task_base>(), priority);
 	return t;
 }
-
 
 
 template <typename result_t>

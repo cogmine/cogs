@@ -342,7 +342,6 @@ public:
 	}
 
 
-
 	preallocated preallocate() const volatile
 	{
 		preallocated i = m_contents.preallocate();
@@ -896,11 +895,6 @@ public:
 
 
 #endif
-
-
-
-
-
 
 
 

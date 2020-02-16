@@ -40,10 +40,8 @@ inline std::enable_if_t<
 bit_scan_forward(const int_t& bits);
 
 
-
 }
 }
 
 
 #endif
-

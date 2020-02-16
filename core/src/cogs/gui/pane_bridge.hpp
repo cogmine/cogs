@@ -441,7 +441,7 @@ protected:
 
 	// pane_base interface - notifications
 
-	// derived pane must override installing(), and call install_bridged(const rcref<bridgeable_pane_t>&) 
+	// derived pane must override installing(), and call install_bridged(const rcref<bridgeable_pane_t>&)
 	// passing in the bridgeable_pane_t to use.
 	virtual void installing() = 0;
 	// the pane_bridge's pane::installing() gets called by the bridgable_pane
@@ -482,7 +482,6 @@ protected:
 			result = pane::key_releasing(c, modifiers);
 		return result;
 	}
-
 
 
 	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
@@ -598,10 +597,10 @@ protected:
 	}
 
 	using pane_container::nest;
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
+	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
+	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
 
 public:
 	using pane::get_size;
@@ -621,7 +620,6 @@ inline rcref<bridgeable_pane> subsystem::create_native_pane() volatile
 
 }
 }
-
 
 
 #endif

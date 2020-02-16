@@ -210,7 +210,7 @@ public:
 		// lesser is the one with the least difference between min and max.
 		// If neither have a max, the lesser is the one with the highest min.
 		// Invalid/empty ranges are considered equal and least.
-		bool result = false; 
+		bool result = false;
 		if (&cmp != this)
 		{
 			if (!m_hasMax)

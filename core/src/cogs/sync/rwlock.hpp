@@ -116,7 +116,7 @@ public:
 	//		wt->m_readersStalled++;
 	//		if (!m_contents.end_write(wt))
 	//			continue;
-	//		
+	//
 	//		m_readerGate.dispatch(d);
 	//		break;
 	//	}

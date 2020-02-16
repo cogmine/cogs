@@ -327,10 +327,10 @@ public:
 		[m_nsWindow setFrame:r display:FALSE];
 
 		if (!initialPosition) //&& centerPosition) // MacOS doesn't seem to have OS default for initial position
-			[m_nsWindow center]; 
+			[m_nsWindow center];
 	}
 
-	virtual void reshape_frame(const bounds& newBounds)
+	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
 		NSRect r = graphics_context::make_NSRect(newBounds);
 
@@ -348,8 +348,8 @@ public:
 		NSSize newSize = graphics_context::make_NSSize(b.get_size());
 		[m_nsWindow setContentSize : newSize];
 
-		// We don't want to call reshape() on children, as that will happen in 
-		// response to the windowDidResize message setContentSize will generate.  However, if the 
+		// We don't want to call reshape() on children, as that will happen in
+		// response to the windowDidResize message setContentSize will generate.  However, if the
 		// size is unchanged, windowDidResize will not occur, and we need to propagate
 
 		// On Mac, it's not sufficient to check m_nativeSize, as it does not equal real pixels.
@@ -457,7 +457,6 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 }
 
 @end
-
 
 
 @implementation objc_window

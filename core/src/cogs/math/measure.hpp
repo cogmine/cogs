@@ -45,8 +45,6 @@ template <typename T> static constexpr bool is_measure_type_v = is_measure_type<
 template <typename storage_type, class unit_type> struct is_measure_type<measure<storage_type, unit_type> > : public std::true_type {};
 
 
-
-
 // What if storage_type is an int?  Or a param?  Do we do what we need to, to ensure volatile reads are routed?
 template <typename storage_type, typename unit_type>
 class measure
@@ -1834,7 +1832,6 @@ public:
 	template <typename storage_type2, typename unit_type2> this_t post_assign_divide(const volatile measure<storage_type2, unit_type2>& src) volatile = delete;
 
 
-
 	// divide_whole
 	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto divide_whole(storage_type2&& src) const { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::forward<storage_type2>(src))); }
 	template <typename storage_type2 = storage_t, typename enable = std::enable_if_t<!is_measure_type_v<std::remove_reference_t<storage_type2> > > > auto divide_whole(storage_type2&& src) const volatile { return make_measure<unit_t>(cogs::divide_whole(m_contents, std::forward<storage_type2>(src))); }
@@ -2535,7 +2532,6 @@ public:
 
 
 }
-
 
 
 #endif

@@ -57,7 +57,6 @@ public:
 };
 
 
-
 template <bool has_sign_in, size_t bits_in, ulongest low_digit_in, ulongest... highDigits>
 class fixed_integer_extended_const<has_sign_in, bits_in, low_digit_in, highDigits...>
 {
@@ -787,7 +786,7 @@ private:
 	public:
 		static constexpr bool is_zero = !low_digit2 && bit_scan_reverse_extended<highDigits2...>::is_zero;
 
-		static constexpr size_t value = bit_scan_reverse_extended<highDigits2...>::is_zero 
+		static constexpr size_t value = bit_scan_reverse_extended<highDigits2...>::is_zero
 			? bit_scan_reverse_extended<low_digit2>::value
 			: (bit_scan_reverse_extended<highDigits2...>::value + (sizeof(ulongest) * 8));
 	};
@@ -1283,7 +1282,7 @@ public:
 	auto operator/(const fixed_integer_extended<has_sign2, bits2>& src) const volatile
 	{ return fraction<reduced_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 
-	template <bool has_sign2, size_t bits2> 
+	template <bool has_sign2, size_t bits2>
 	auto operator/(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile
 	{ return fraction<reduced_t, fixed_integer_extended<has_sign2, bits2> >(*this, src); }
 
@@ -1366,7 +1365,6 @@ public:
 
 	// fractional_part
 	auto fractional_part() const volatile { return zero_t(); }
-
 
 
 	// divide_whole
@@ -1717,7 +1715,6 @@ public:
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	auto lesser(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
-
 
 
 	// equals
@@ -2535,7 +2532,6 @@ private:
 	};
 
 
-
 	template <typename greater_t, typename lesser_t, typename modulo_t>
 	class get_gcd
 	{
@@ -2574,7 +2570,6 @@ private:
 
 		typedef typename get_gcd<greater_t, lesser_t, modulo_t>::type type;
 	};
-
 
 
 	template <bool unused, size_t n, ulongest... lowDigits>
@@ -2826,7 +2821,6 @@ public:
 	}
 
 
-
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto operator%(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
@@ -2854,8 +2848,6 @@ public:
 		typename get_modulo<typename fixed_integer_extended_const<has_sign2, bits2, values2...>::as_extended_t>::type::reduced_t tmp;
 		return tmp;
 	}
-
-
 
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -3090,7 +3082,6 @@ private:
 public:
 	static constexpr int value = !is_same_sign ? (is_negative1 ? -1 : 1) : tmp;
 };
-
 
 
 template <bool has_sign1, size_t bits1, ulongest... values1, bool has_sign2, size_t bits2, ulongest... values2>

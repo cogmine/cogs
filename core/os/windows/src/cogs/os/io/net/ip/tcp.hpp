@@ -430,7 +430,7 @@ public:
 									sizeof(m_lpfnConnectEx),
 									&dwBytes,
 									NULL,
-									NULL); 
+									NULL);
 				if (dwErr == SOCKET_ERROR)
 				{ // Another address might actually have a different socket type, so try again
 					m_addresses.erase(0, 1);
@@ -594,10 +594,10 @@ public:
 												sizeof(m_lpfnAcceptEx),
 												&dwBytes,
 												NULL,
-												NULL); 
+												NULL);
 							if (dwErr != SOCKET_ERROR)
 							{
-								// Query for ptr to GetAcceptExSockaddrs 
+								// Query for ptr to GetAcceptExSockaddrs
 								m_lpfnGetAcceptExSockaddrs = 0;
 								DWORD dwBytes;
 								GUID GuidGetAcceptExSockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
@@ -608,7 +608,7 @@ public:
 													sizeof(m_lpfnGetAcceptExSockaddrs),
 													&dwBytes,
 													NULL,
-													NULL); 
+													NULL);
 								if (dwErr != SOCKET_ERROR)
 								{
 									m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_rcref }]()

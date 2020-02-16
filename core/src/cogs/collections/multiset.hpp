@@ -804,7 +804,7 @@ public:
 	/// @{
 	/// @brief Inserts an element
 	/// @param t Value to insert
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert(const type& t)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();

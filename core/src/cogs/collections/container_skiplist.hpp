@@ -1216,7 +1216,7 @@ private:
 
 		atomic::compare_exchange(m_heightAndCount.m_currentHeight, newHeight, oldHeight);
 		// ignore failure to set height
-		// it doesn't matter if another thread increased it, and it's not really 
+		// it doesn't matter if another thread increased it, and it's not really
 		// detrimental if it to zero - implying the list is extremely simple right now.
 
 		return newHeight;
@@ -1225,7 +1225,7 @@ private:
 	void clear_inner()
 	{
 		link_t* sentinelPtr = m_sentinel.get_ptr();
-		// Could allow the links to free themselves, but that would cause a cascade of 
+		// Could allow the links to free themselves, but that would cause a cascade of
 		// link releases, that could potential overflow the stack if the list is long enough.
 		rcptr<link_t> l = sentinelPtr->m_links[0]->m_next;
 		while (l.get_ptr() != sentinelPtr)
@@ -2198,7 +2198,7 @@ public:
 		{
 			rcptr<payload_t> result;
 			if (!!m_link)
-				result = m_link.template static_cast_to<payload_link_t>()->get_obj(); 
+				result = m_link.template static_cast_to<payload_link_t>()->get_obj();
 			return result;
 		}
 
@@ -2804,7 +2804,7 @@ public:
 	iterator insert_replace_preallocated(const preallocated& i, bool& collision)
 	{
 		iterator result;
-		i.m_link->initialize(generate_height()); 
+		i.m_link->initialize(generate_height());
 		result.m_link = i.m_link;
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
@@ -3010,7 +3010,7 @@ public:
 	bool remove(const volatile_remove_token& rt) volatile
 	{
 		volatile_iterator i(rt);
-		bool wasEmpty; 
+		bool wasEmpty;
 		return remove(i, wasEmpty);
 	}
 
@@ -4040,7 +4040,7 @@ public:
 				continue;
 			}
 		}
-		return i; 
+		return i;
 	}
 
 	volatile_iterator find_last_equal_or_nearest_less_than(const key_t& criteria) const volatile

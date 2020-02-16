@@ -23,13 +23,11 @@ namespace cogs {
 /// @}
 
 
-
 class default_allocator;
 
 
-
 /// @brief A base class for an allocator (or example layout for a static allocator)
-/// 
+///
 /// @tparam ref_type The type of reference used to refer to an allocation.  Default: ptr
 template <template <typename> class ref_type = ptr>
 class allocator_t
@@ -68,7 +66,6 @@ public:
 	/// @param knownSize A fallback value to use if the allocator cannot determine the size of the block.
 	virtual size_t get_allocation_size(const ref_t& p, size_t align, size_t knownSize) const volatile { return knownSize; }
 };
-
 
 
 template <>
@@ -110,8 +107,6 @@ inline void operator delete(void* p, cogs::allocator& al)
 	if (!!p)
 		al.deallocate(p);
 }
-
-
 
 
 #pragma warning(pop)

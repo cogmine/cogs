@@ -151,7 +151,7 @@ public:
 		rc.bottom = MulDiv(rc.bottom, 1440, nLogPixelsY);
 
 		FORMATRANGE fr;
-		fr.hdc = dc; 
+		fr.hdc = dc;
 		fr.hdcTarget = dc;
 		fr.rc = rc;
 		fr.rcPage = rc;

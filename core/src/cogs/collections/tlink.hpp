@@ -16,7 +16,6 @@
 namespace cogs {
 
 
-
 #pragma warning(push)
 #pragma warning (disable: 4521) // multiple copy constructors specified
 

@@ -29,7 +29,6 @@ namespace crypto {
 //};
 
 
-
 template <size_t result_bits_in, size_t digest_bits_in, size_t digit_bits_in, endian_t digit_endian_in, size_t stride_bits_in, size_t result_contribution_bits_in = result_bits_in>
 class serial_hash : public hash
 {

@@ -64,7 +64,7 @@ enum class compositing_behavior
 
 	/// Uses a backing buffer for this pane's draw operation, but it is not shared with child panes.
 	/// Overlapping invalidates from child or sibling panes would not trigger calls to draw().
-	/// This is useful to allow parent/children/sibling panes to render completely independently. 
+	/// This is useful to allow parent/children/sibling panes to render completely independently.
 	/// Only the layer that is invalidated is redrawn, then composited with the existing backing
 	/// buffers of the other layers.
 	buffer_self = 1,
@@ -81,13 +81,12 @@ enum class compositing_behavior
 class pane_container
 {
 public:
-	void nest(const rcref<pane>& child, const rcptr<frame>& f = 0)
-	{ return nest_last(child, f); }
+	void nest(const rcref<pane>& child) { return nest_last(child); }
 
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) = 0;
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) = 0;
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) = 0;
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) = 0;
+	virtual void nest_last(const rcref<pane>& child) = 0;
+	virtual void nest_first(const rcref<pane>& child) = 0;
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) = 0;
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) = 0;
 };
 
 
@@ -99,7 +98,7 @@ class bridgeable_pane;
 
 /// @ingroup GUI
 /// @brief Base class for 2D visual UI elements
-class pane : public object, public dispatcher, public cell, protected virtual gfx::canvas, protected virtual pane_container
+class pane : public dispatcher, public frameable, protected virtual gfx::canvas, protected virtual pane_container
 {
 public:
 	friend class bridgeable_pane;
@@ -117,7 +116,6 @@ private:
 	volatile rcptr<volatile gui::subsystem> m_uiSubSystem;
 	volatile rcptr<volatile gui::subsystem> m_parentUISubSystem;
 
-	rcptr<frame> m_frame;
 	rcptr<pane> m_subFocus;
 	ptrdiff_t m_hideShowState = 0;
 
@@ -352,7 +350,7 @@ private:
 
 			if (removeScheduled)
 			{
-				bool canceled = m_expireDone.compare_exchange(true, false); 
+				bool canceled = m_expireDone.compare_exchange(true, false);
 				if (canceled) // This is only thread that will schedule/unschedule
 				{
 					m_expireTask->cancel();
@@ -473,7 +471,7 @@ private:
 
 protected:
 	explicit pane(rc_obj_base& desc, compositing_behavior cb = compositing_behavior::no_buffer)
-		: object(desc),
+		: frameable(desc),
 		m_compositingBehavior(cb),
 		m_setSubsystemDelegate([r{ this_weak_rcptr }](const rcptr<volatile gui::subsystem>& s)
 		{
@@ -493,14 +491,6 @@ protected:
 			if (!vt)
 				break;
 			(*vt)->get_task_base()->cancel();
-		}
-
-		// release frames from children (or they will leak, due to circular reference)
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-		while (!!itor)
-		{
-			(*itor)->m_frame.release();
-			++itor;
 		}
 	}
 
@@ -671,10 +661,9 @@ protected:
 		});
 	}
 
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	virtual void nest_last(const rcref<pane>& child)
 	{
 		child->m_parent = this_rcref;
-		child->m_frame = f;
 
 		child->m_siblingIterator = m_children.append(child);
 
@@ -683,10 +672,9 @@ protected:
 			child->install(get_subsystem());
 	}
 
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	virtual void nest_first(const rcref<pane>& child)
 	{
 		child->m_parent = this_rcref;
-		child->m_frame = f;
 
 		child->m_siblingIterator = m_children.prepend(child);
 
@@ -695,10 +683,9 @@ protected:
 			child->install(get_subsystem());
 	}
 
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0)
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
 	{
 		child->m_parent = this_rcref;
-		child->m_frame = f;
 
 		child->m_siblingIterator = m_children.insert_before(child, beforeThis->m_siblingIterator);
 
@@ -707,10 +694,9 @@ protected:
 			child->install(get_subsystem());
 	}
 
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0)
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis)
 	{
 		child->m_parent = this_rcref;
-		child->m_frame = f;
 
 		child->m_siblingIterator = m_children.insert_after(child, afterThis->m_siblingIterator);
 
@@ -909,7 +895,8 @@ protected:
 	}
 
 	// Call recompose if something changes which affects the min/max size of a pane,
-	// to trigger calls to calculate_range() and reshape().
+	// to trigger calls to calculate_frame_range() and reshape_frame().
+	// Safe to call outside of this pane's UI thread.
 	void recompose(bool recomposeDescendants = false)
 	{
 		if (m_recomposing.compare_exchange(true, false))
@@ -923,36 +910,36 @@ protected:
 
 	void recomposing(bool recomposeDescendants)
 	{
-		COGS_ASSERT(!m_installing);
-		COGS_ASSERT(!m_uninstalling);
 		m_recomposing = false; // only works to guard redundant calls to recompose() while in queue
-		cell& c = get_outermost_cell();
-		rcptr<pane> parent = m_parent;
-		for (;;)
+		if (m_installed && !m_uninstalling)
 		{
-			if (!parent)
+			rcptr<pane> parent = m_parent;
+			for (;;)
 			{
-				m_recomposeDescendants = recomposeDescendants;
-				cell::calculate_range(c);
-				m_recomposeDescendants = true;
-			}
-			else
-			{
-				range oldParentRange = c.get_range();
-				size oldDefaultSize = c.get_default_size();
-				m_recomposeDescendants = recomposeDescendants;
-				cell::calculate_range(c);
-				m_recomposeDescendants = true;
-				range newParentRange = c.get_range();
-				size newDefaultSize = c.get_default_size();
-				if (newParentRange != oldParentRange || newDefaultSize != oldDefaultSize) // if parent would be unaffected
+				if (!parent)
 				{
-					parent->recompose();
-					break;
+					m_recomposeDescendants = recomposeDescendants;
+					calculate_frame_range();
+					m_recomposeDescendants = true;
 				}
+				else
+				{
+					range oldParentRange = get_frame_range();
+					size oldDefaultSize = get_frame_default_size();
+					m_recomposeDescendants = recomposeDescendants;
+					calculate_frame_range();
+					m_recomposeDescendants = true;
+					range newParentRange = get_frame_range();
+					size newDefaultSize = get_frame_default_size();
+					if (newParentRange != oldParentRange || newDefaultSize != oldDefaultSize) // if parent would be unaffected
+					{
+						parent->recompose();
+						break;
+					}
+				}
+				reshape_frame(propose_frame_size(get_size()).find_first_valid_size(get_frame_primary_flow_dimension()));
+				break;
 			}
-			cell::reshape(c, c.propose_size(get_size()).find_first_valid_size(get_primary_flow_dimension()));
-			break;
 		}
 	}
 
@@ -970,7 +957,7 @@ protected:
 	}
 
 	rcptr<pane> get_next_focusable(bool direction = true)
-	{ 
+	{
 		rcref<pane> child = this_rcref;
 		for (;;)
 		{
@@ -1130,11 +1117,10 @@ protected:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			cell& c = (*itor)->get_outermost_cell();
 			if (m_recomposeDescendants)
-				cell::calculate_range(c);
-			m_currentDefaultSize |= c.get_default_size();
-			m_currentRange &= c.get_range();
+				(*itor)->calculate_frame_range();
+			m_currentDefaultSize |= (*itor)->get_frame_default_size();
+			m_currentRange &= (*itor)->get_frame_range();
 			++itor;
 		}
 
@@ -1718,7 +1704,7 @@ protected:
 		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			cell::reshape((*itor)->get_outermost_cell(), b.get_size(), oldOrigin);
+			(*itor)->reshape_frame(b.get_size(), oldOrigin);
 			++itor;
 		}
 	}
@@ -1731,10 +1717,9 @@ protected:
 		return parent->create_offscreen_buffer(forPane, sz, fillColor);
 	}
 
-	virtual void reshape_top()
+	virtual void set_initial_shape()
 	{
-		cell& c = get_outermost_cell();
-		cell::reshape(c, c.get_default_size());
+		reshape_frame(get_frame_default_size());
 	}
 
 private:
@@ -1765,7 +1750,7 @@ private:
 		{
 			bool hasInstallingParent = !!m_parentInstalling;
 			if (!hasInstallingParent)
-				cell::calculate_range(get_outermost_cell());
+				calculate_frame_range();
 			else
 			{
 				rcptr<pane> parentInstalling = m_parentInstalling;
@@ -1791,7 +1776,7 @@ private:
 			if (!!p)
 				p->recompose();
 			else
-				reshape_top();
+				set_initial_shape();
 
 			if (is_visible())
 				showing();
@@ -2114,6 +2099,51 @@ protected:
 	friend class frame;
 
 public:
+	virtual void insert_before_frame(const rcref<frame>& f, const rcref<frame>& beforeThis)
+	{
+		frameable::insert_before_frame(f, beforeThis);
+		if (m_installed && !m_uninstalling)
+			recompose();
+	}
+
+	virtual void insert_after_frame(const rcref<frame>& f, const rcref<frame>& afterThis)
+	{
+		frameable::insert_after_frame(f, afterThis);
+		if (m_installed && !m_uninstalling)
+			recompose();
+	}
+
+	virtual void append_frame(const rcref<frame>& f)
+	{
+		frameable::append_frame(f);
+		if (m_installed && !m_uninstalling)
+			recompose();
+	}
+
+	virtual void prepend_frame(const rcref<frame>& f)
+	{
+		frameable::prepend_frame(f);
+		if (m_installed && !m_uninstalling)
+			recompose();
+	}
+
+	virtual void remove_frame(frame& f)
+	{
+		frameable::remove_frame(f);
+		if (m_installed && !m_uninstalling)
+			recompose();
+	}
+
+	virtual void remove_frames()
+	{
+		if (has_frames())
+		{
+			frameable::remove_frames();
+			if (m_installed && !m_uninstalling)
+				recompose();
+		}
+	}
+
 	rcref<pane> get_top_pane()
 	{
 		rcptr<pane> p = this_rcptr;
@@ -2157,22 +2187,6 @@ public:
 				hiding();
 			uninstall();
 		}
-
-		m_frame.release();
-	}
-
-	const cell& get_const_cell() const
-	{
-		if (!!m_frame)
-			return *m_frame;
-		return *this;
-	}
-
-	rcref<const cell> get_const_cell_ref() const
-	{
-		if (!!m_frame)
-			return m_frame.dereference();
-		return get_self_rcref((const cell*)this);
 	}
 
 	// is_hidden() and is_visible() are NOT inverses of eachother, they are distinct.
@@ -2235,15 +2249,6 @@ public:
 	}
 
 	virtual size get_size() const { return cell::get_size(); }
-
-	point get_position() const
-	{
-		point pt(0, 0);
-		rcptr<frame> f = get_outermost_frame();
-		if (!!f)
-			pt = f->get_innermost_child_position();
-		return pt;
-	}
 
 	bounds get_bounds() const
 	{
@@ -2320,7 +2325,7 @@ public:
 				{
 					if (itor != itorToSkip)
 					{
-						childResult = (*itor)->get_outermost_cell().propose_size(currentProposed, resizeDimension, r2, horizontalMode, verticalMode);
+						childResult = (*itor)->propose_frame_size(currentProposed, resizeDimension, r2, horizontalMode, verticalMode);
 						int asProposedIndex;
 						int foundIndex = -1;
 						bool resetScan = false;
@@ -2422,22 +2427,6 @@ public:
 		return result;
 	}
 
-	const rcptr<frame>& get_outermost_frame() const { return m_frame; } // will return null if not nested in a parent frame
-
-	const cell& get_outermost_cell() const
-	{
-		if (!!m_frame)
-			return *m_frame;
-		return *this;
-	}
-
-	cell& get_outermost_cell()
-	{
-		if (!!m_frame)
-			return *m_frame;
-		return *this;
-	}
-
 	const weak_rcptr<pane>& get_parent() const { return m_parent; }
 	const container_dlist<rcref<pane> >& get_children() const { return m_children; }
 	const container_dlist<rcref<pane> >::remove_token& get_sibling_iterator() const { return m_siblingIterator; }
@@ -2480,10 +2469,10 @@ public:
 	}
 
 	using pane_container::nest;
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
+	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
+	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
 };
 
 
@@ -2553,10 +2542,10 @@ public:
 	virtual bool is_unclipped(const bounds& b) const { return pane::is_unclipped(b); }
 
 	using pane_container::nest;
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
+	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
+	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
 };
 
 

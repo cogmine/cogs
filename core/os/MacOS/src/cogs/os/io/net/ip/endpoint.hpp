@@ -91,7 +91,7 @@ public:
 		return *this;
 	}
 
-	unsigned short get_port() const { return m_address.get_port(); } 
+	unsigned short get_port() const { return m_address.get_port(); }
 
 	virtual composite_cstring to_cstring() const
 	{
@@ -118,7 +118,6 @@ public:
 	size_t get_sockaddr_size() const { return get_address().get_sockaddr_size(); }
 	void set_sockaddr_size(socklen_t sz) { get_address().set_sockaddr_size(sz); }
 };
-
 
 
 }

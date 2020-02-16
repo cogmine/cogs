@@ -37,7 +37,7 @@ namespace cogs {
 //		references are more likely to wake than requests for greater numbers of references.
 //	- Each release that does not yet wake a request for multiple, will incur an
 //		unnecessary wake and re-stall of a thread.  (kernel mode transitions, paging of
-//		thread resources such as the stack) 
+//		thread resources such as the stack)
 //	- Because the woken thread removes the os::semaphore, it may linger between when the
 //		waker triggers the wake, and the woken wakes up.  Other threads may wait on it
 //		unnecessarily, incurring kernel mode transitions (but no wait).

@@ -96,7 +96,6 @@ public:
 	rcptr(rcptr<type2>&& src) : m_ref(std::move(src.m_ref)) { }
 
 
-
 	/// @brief Initializes rcptr to specified value.
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
@@ -170,7 +169,6 @@ public:
 	this_t& operator=(rcptr<type2>&& src) { m_ref = std::move(src.m_ref); return *this; }
 
 
-
 	/// @brief Assignment
 	///
 	/// Implicit conversion is allowed between compatible pointer types.
@@ -241,7 +239,6 @@ public:
 
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	volatile this_t& operator=(rcptr<type2>&& src) volatile { m_ref = std::move(src.m_ref); return *this; }
-
 
 
 	/// @{
@@ -372,7 +369,6 @@ public:
 	/// @brief Thread-safe implementation of operator!()
 	bool operator!() const volatile { return is_empty(); }
 	/// @}
-
 
 
 	template <typename type2>
@@ -513,7 +509,6 @@ public:
 		weak_rcptr<type> result(*this);
 		return result;
 	}
-
 
 
 #ifdef DOXYGEN
@@ -795,7 +790,6 @@ public:
 	///// @}
 
 
-
 	template <typename T2, typename = std::enable_if_t<is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> > > >
 	this_t exchange(T2&& src)
 	{
@@ -848,8 +842,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -886,7 +878,6 @@ public:
 		else
 			return m_ref.m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	template <typename T2, typename T3, typename T4, typename = std::enable_if_t<(is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> >) && (is_reference_type_v<T3> || is_pointer_type_v<T3>) && (is_reference_type_v<T4> || is_pointer_type_v<T4>) && !std::is_const_v<T4> > >
@@ -1109,7 +1100,6 @@ public:
 	template <typename type2> this_t& operator=(rcptr<type2>&& src) { m_ref = std::move(src.m_ref); return *this; }
 
 
-
 	volatile this_t& operator=(type* src) volatile { m_ref = src; return *this; }
 
 	volatile this_t& operator=(this_t&& src) volatile { m_ref = std::move(src); return *this; }
@@ -1158,7 +1148,6 @@ public:
 
 	bool operator!() const { return !get_ptr(); }
 	bool operator!() const volatile { return !get_ptr(); }
-
 
 
 	template <typename type2>
@@ -1252,7 +1241,6 @@ public:
 		weak_rcptr<type> result(*this);
 		return result;
 	}
-
 
 
 	/// @{
@@ -1474,7 +1462,6 @@ public:
 	///// @}
 
 
-
 	template <typename T2, typename = std::enable_if_t<is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> > > >
 	this_t exchange(T2&& src)
 	{
@@ -1527,8 +1514,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1565,7 +1550,6 @@ public:
 		else
 			return m_ref.m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	template <typename T2, typename T3, typename T4, typename = std::enable_if_t<(is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> >) && (is_reference_type_v<T3> || is_pointer_type_v<T3>) && (is_reference_type_v<T4> || is_pointer_type_v<T4>) && !std::is_const_v<T4> > >
@@ -1757,7 +1741,6 @@ public:
 	bool operator!() const volatile { return !get_ptr(); }
 
 
-
 	template <typename type2>
 	const rcptr<type2>& static_cast_to(unowned_t<rcptr<type2> >& storage = unowned_t<rcptr<type2> >().get_unowned()) const&
 	{
@@ -1849,7 +1832,6 @@ public:
 		weak_rcptr<type> result(*this);
 		return result;
 	}
-
 
 
 	/// @{
@@ -2039,7 +2021,6 @@ public:
 	/// @}
 
 
-
 	///// @{
 	///// @brief Swap the pointer value
 	///// @param[in,out] wth Value to swap
@@ -2070,7 +2051,6 @@ public:
 			m_ref.m_container.swap(wth);
 	}
 	///// @}
-
 
 
 	template <typename T2, typename = std::enable_if_t<is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> > > >
@@ -2125,8 +2105,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2163,7 +2141,6 @@ public:
 		else
 			return m_ref.m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	template <typename T2, typename T3, typename T4, typename = std::enable_if_t<(is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> >) && (is_reference_type_v<T3> || is_pointer_type_v<T3>) && (is_reference_type_v<T4> || is_pointer_type_v<T4>) && !std::is_const_v<T4> > >
@@ -2447,7 +2424,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
@@ -2635,8 +2611,6 @@ public:
 	/// @}
 
 
-
-
 	///// @{
 	///// @brief Swap the pointer value
 	///// @param[in,out] wth Value to swap
@@ -2667,7 +2641,6 @@ public:
 			m_ref.m_container.swap(wth);
 	}
 	///// @}
-
 
 
 	template <typename T2, typename = std::enable_if_t<is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> > > >
@@ -2722,8 +2695,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2760,7 +2731,6 @@ public:
 		else
 			return m_ref.m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	template <typename T2, typename T3, typename T4, typename = std::enable_if_t<(is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> >) && (is_reference_type_v<T3> || is_pointer_type_v<T3>) && (is_reference_type_v<T4> || is_pointer_type_v<T4>) && !std::is_const_v<T4> > >
@@ -3044,8 +3014,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
@@ -3233,8 +3201,6 @@ public:
 	/// @}
 
 
-
-
 	///// @{
 	///// @brief Swap the pointer value
 	///// @param[in,out] wth Value to swap
@@ -3265,7 +3231,6 @@ public:
 			m_ref.m_container.swap(wth);
 	}
 	///// @}
-
 
 
 	template <typename T2, typename = std::enable_if_t<is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> > > >
@@ -3320,8 +3285,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -3358,7 +3321,6 @@ public:
 		else
 			return m_ref.m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	template <typename T2, typename T3, typename T4, typename = std::enable_if_t<(is_pointer_type_v<std::remove_reference_t<T2> > || is_reference_type_v<std::remove_reference_t<T2> >) && (is_reference_type_v<T3> || is_pointer_type_v<T3>) && (is_reference_type_v<T4> || is_pointer_type_v<T4>) && !std::is_const_v<T4> > >

@@ -40,7 +40,7 @@ class object;
 //		referred to.  The reference-counted pointer type is itself an RAII class, as it acquires
 //		and releases references in its contructors/destructors, and on assignment.  This approach
 //		allows the dependency relationships between objects to implicity facilitate the management of
-//		resources. 
+//		resources.
 
 // A reference-counted pointer class.
 // May refer to a non-reference-counted pointer, or NULL.
@@ -201,9 +201,6 @@ private:
 	static void set_return(type2* volatile& rtn, this_t&& src) { atomic::store(rtn, src.m_contents->m_obj); }
 
 
-
-
-
 	//template <typename type2, reference_strength referenceStrength2>
 	//rc_container<type2, referenceStrength2> get_as(rc_container<type2, referenceStrength2>&)
 	//{ rc_container<type2, referenceStrength2> rtn(*this); return rtn; }
@@ -223,7 +220,6 @@ private:
 
 	//template <typename type2>
 	//type2* get_as(type2* volatile&) { type2* rtn(src.m_contents->m_obj); return rtn; }
-
 
 
 	template <typename type2, reference_strength referenceStrength2>
@@ -251,7 +247,6 @@ private:
 
 	template <typename type2>
 	static content_t make_content(type2* const volatile& src) { content_t rtn{ atomic::load(src), nullptr }; return rtn; }
-
 
 
 	template <typename type2, reference_strength referenceStrength2>
@@ -286,7 +281,6 @@ private:
 	static bool compare_content(const content_t& c, type2* const volatile& src) { return c.m_obj == atomic::load(src); }
 
 
-
 public:
 	rc_obj_base* disown() // clear the desc ptr not the desc contents
 	{
@@ -294,7 +288,7 @@ public:
 		m_contents->m_desc = nullptr;
 		return desc;
 	}
-	
+
 	rc_obj_base* disown() volatile
 	{
 		rc_obj_base* desc;
@@ -726,7 +720,7 @@ public:
 			else if (!src.m_contents->m_desc->acquire(referenceStrength)) // if failure to acquire
 				clear();
 			else // acquired desc, copy contents
-			{ 
+			{
 				m_contents->m_obj = src.m_contents->m_obj; // <- A failure here means type conversion (user) error.
 				m_contents->m_desc = src.m_contents->m_desc;
 			}
@@ -1126,7 +1120,7 @@ public:
 	template <typename type2> bool operator!=(type2* const volatile& src) const volatile { return atomic::load(src) != get_obj(); }
 
 	// swap
-	
+
 	// It's caller error (and nonsensical) to pass *this as wth.  The behavior of doing so is undefined.
 
 	void swap(this_t& wth)
@@ -1239,7 +1233,6 @@ public:
 
 	//template <typename T2>
 	//void swap(volatile T2& wth) volatile = delete;
-
 
 
 	// exchange

@@ -99,7 +99,7 @@ public:
 			if (m_addressFamily == address_family::inetv4) // ipv4
 			{
 				sockaddr_in addr;
-				memset(&addr, 0, sizeof(sockaddr_in)); 
+				memset(&addr, 0, sizeof(sockaddr_in));
 				addr.sin_family = AF_INET;
 				addr.sin_addr.s_addr = htonl(INADDR_ANY);
 				addr.sin_port = htons(localPort);
@@ -109,7 +109,7 @@ public:
 			else if (m_addressFamily == address_family::inetv6)
 			{
 				sockaddr_in6 addr;
-				memset(&addr, 0, sizeof(sockaddr_in6)); 
+				memset(&addr, 0, sizeof(sockaddr_in6));
 				addr.sin6_family = AF_INET6;
 				addr.sin6_addr = in6addr_any;
 				addr.sin6_port = htons(localPort);

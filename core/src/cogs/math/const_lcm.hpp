@@ -18,7 +18,6 @@
 namespace cogs {
 
 
-
 /// @ingroup ConstMath
 /// @brief Meta template to compute the least common multiple of two constant integers
 /// @tparam x Constant value

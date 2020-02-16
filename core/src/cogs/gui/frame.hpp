@@ -9,8 +9,9 @@
 #define COGS_HEADER_GUI_FRAME
 
 
-#include "cogs/geometry/cell.hpp"
+#include "cogs/collections/container_dlist.hpp"
 #include "cogs/gfx/canvas.hpp"
+#include "cogs/mem/rc_container.hpp"
 
 
 namespace cogs {
@@ -40,109 +41,265 @@ typedef gfx::canvas::bitmask bitmask;
 
 // frame and cell facilitate sizing/resizing behavior of 2D rectangular elements.
 
+class frameable;
+
+
 // The base frame passes everything through to the equivalent methods in contained cell.
-class frame : public cell
+class frame : public cell, public object
 {
 private:
-	rcptr<cell> m_cell;
+	container_dlist<rcref<frame> >::remove_token m_siblingIterator;
+	weak_rcptr<cell> m_frameable;
 
 	// Preserved position from last reshape, in parent coordinates (in which 0,0 is parent's origin).
 	point m_childPosition;
 
+	friend class frameable;
+
+	frame() = delete;
+	frame(frame&) = delete;
+	frame(frame&&) = delete;
+
 public:
-	const rcptr<cell>& get_cell() const { return m_cell; }
-
-	const rcptr<cell>& get_innermost_cell() const
-	{
-		rcptr<const frame> f = this;
-		rcptr<cell> c = m_cell;
-		while (!!c && c->is_frame())
-		{
-			f = c.template static_cast_to<frame>();
-			c = f->get_cell();
-		}
-		return f->get_cell();
-	}
-
-	frame(const rcref<cell>& c)
-		: m_cell(c),
+	explicit frame(rc_obj_base& desc)
+		: object(desc),
 		m_childPosition(0, 0)
 	{ }
-
-	virtual bool is_frame() const { return true; }
 
 	virtual point get_child_position() const
 	{
 		return m_childPosition;
 	}
 
-	point get_innermost_child_position() const
-	{
-		rcptr<const frame> f = this;
-		rcptr<cell> c = m_cell;
-		while (!!c && c->is_frame())
-		{
-			f = c.template static_cast_to<frame>();
-			c = f->get_cell();
-		}
-		return f->get_child_position();
-	}
-
 	virtual size get_default_size() const
 	{
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			return c->get_default_size();
-		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+				return c->get_default_size();
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
 		return size(0, 0);
 	}
 
 	virtual range get_range() const
 	{
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			return c->get_range();
-		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+				return c->get_range();
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
 		return cell::get_range();
 	}
 
 	virtual dimension get_primary_flow_dimension() const
 	{
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			return c->get_primary_flow_dimension();
-		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+				return c->get_primary_flow_dimension();
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
 		return cell::get_primary_flow_dimension();
 	}
 
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			return c->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
-		COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+				return c->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
 		return cell::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 	}
 
 protected:
 	virtual void calculate_range()
 	{
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			cell::calculate_range(*c);
-		else
-			COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+			{
+				cell::calculate_range(*c);
+				return;
+			}
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		m_childPosition = b.get_position();
 		cell::reshape(b, oldOrigin);
-		rcptr<cell> c = m_cell;
-		if (!!c)
-			cell::reshape(*c, b, oldOrigin);
-		else
-			COGS_ASSERT(false && "cogs::frame is not yet associated with a cell");
+
+		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		if (!!itor)
+		{
+			++itor;
+			rcptr<cell> c;
+			if (!!itor)
+				c = *itor;
+			if (!c)
+				c = m_frameable;
+			if (!!c)
+			{
+				cell::reshape(*c, b, oldOrigin);
+				return;
+			}
+		}
+		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
+	}
+};
+
+
+class frameable : public cell, public object
+{
+private:
+	container_dlist<rcref<frame> > m_frames;
+
+public:
+	frameable() = delete;
+	frameable(frameable&) = delete;
+	frameable(frameable&&) = delete;
+
+	frameable(rc_obj_base& desc)
+		: object(desc)
+	{ }
+
+	virtual void insert_before_frame(const rcref<frame>& f, const rcref<frame>& beforeThis)
+	{
+		COGS_ASSERT(!f->m_siblingIterator);
+		COGS_ASSERT(!!beforeThis->m_siblingIterator);
+		f->m_siblingIterator = m_frames.insert_before(f, beforeThis->m_siblingIterator);
+		f->m_frameable = this_rcref;
+	}
+
+	virtual void insert_after_frame(const rcref<frame>& f, const rcref<frame>& afterThis)
+	{
+		COGS_ASSERT(!f->m_siblingIterator);
+		COGS_ASSERT(!!afterThis->m_siblingIterator);
+		f->m_siblingIterator = m_frames.insert_after(f, afterThis->m_siblingIterator);
+		f->m_frameable = this_rcref;
+	}
+
+	virtual void append_frame(const rcref<frame>& f)
+	{
+		COGS_ASSERT(!f->m_siblingIterator);
+		f->m_siblingIterator = m_frames.append(f);
+		f->m_frameable = this_rcref;
+	}
+
+	virtual void prepend_frame(const rcref<frame>& f)
+	{
+		COGS_ASSERT(!f->m_siblingIterator);
+		f->m_siblingIterator = m_frames.prepend(f);
+		f->m_frameable = this_rcref;
+	}
+
+	virtual void remove_frame(frame& f)
+	{
+		COGS_ASSERT(!!f.m_siblingIterator);
+		COGS_ASSERT(f.m_frameable == this);
+		m_frames.remove(f.m_siblingIterator);
+	}
+
+	virtual void remove_frames() { m_frames.clear(); }
+
+	bool has_frames() const { return !!m_frames; }
+
+	point get_position() const
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_last();
+		if (!!itor)
+			return (*itor)->get_child_position();
+		point pt(0, 0);
+		return pt;
+	}
+
+	virtual size get_frame_default_size() const
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return (*itor)->get_default_size();
+		return get_default_size();
+	}
+
+	virtual range get_frame_range() const
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return (*itor)->get_range();
+		return get_range();
+	}
+
+	virtual dimension get_frame_primary_flow_dimension() const
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return (*itor)->get_primary_flow_dimension();
+		return get_primary_flow_dimension();
+	}
+
+	virtual propose_size_result propose_frame_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return (*itor)->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		return propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+	}
+
+protected:
+	virtual void calculate_frame_range()
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return cell::calculate_range(**itor);
+		return calculate_range();
+	}
+
+	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	{
+		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		if (!!itor)
+			return cell::reshape(**itor, newBounds, oldOrigin);
+		return reshape(newBounds, oldOrigin);
 	}
 };
 
@@ -159,13 +316,13 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	override_default_size_frame(const rcref<cell>& c, const size& defaultSize)
-		: frame(c),
+	override_default_size_frame(rc_obj_base& desc, const size& defaultSize)
+		: frame(desc),
 		m_defaultSize(defaultSize)
 	{ }
 
-	override_default_size_frame(const rcref<cell>& c)
-		: frame(c),
+	override_default_size_frame(rc_obj_base& desc)
+		: frame(desc),
 		m_defaultSize(0, 0)
 	{ }
 
@@ -202,8 +359,8 @@ private:
 	}
 
 public:
-	aligned_frame_base(const rcref<cell>& c, const alignment& a = alignment::center())
-		: frame(c),
+	aligned_frame_base(rc_obj_base& desc, const alignment& a = alignment::center())
+		: frame(desc),
 		m_alignment(a)
 	{
 		validate_alignment();
@@ -234,8 +391,8 @@ protected:
 class fixed_default_size_frame : public aligned_frame_base
 {
 public:
-	fixed_default_size_frame(const rcref<cell>& c, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a)
+	fixed_default_size_frame(rc_obj_base& desc, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a)
 	{ }
 
 	virtual range get_range() const { return range::make_fixed(get_default_size()); }
@@ -274,13 +431,13 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	inset_frame(const rcref<cell>& c, const margin& m)
-		: frame(c),
+	inset_frame(rc_obj_base& desc, const margin& m)
+		: frame(desc),
 		m_margin(m)
 	{ }
 
-	inset_frame(const rcref<cell>& c)
-		: frame(c)
+	inset_frame(rc_obj_base& desc)
+		: frame(desc)
 	{ }
 
 	margin& get_margin() { return m_margin; }
@@ -372,13 +529,13 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	fixed_size_frame(const rcref<cell>& c, const size& sz, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a),
+	fixed_size_frame(rc_obj_base& desc, const size& sz, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a),
 		m_size(sz)
 	{ }
 
-	fixed_size_frame(const rcref<cell>& c, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a),
+	fixed_size_frame(rc_obj_base& desc, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a),
 		m_size(0, 0)
 	{ }
 
@@ -437,13 +594,13 @@ private:
 	bounds m_bounds;
 
 public:
-	override_bounds_frame(const rcref<cell>& c, const bounds& b, const alignment& a = alignment::top_left())
-		: aligned_frame_base(c, a),
+	override_bounds_frame(rc_obj_base& desc, const bounds& b, const alignment& a = alignment::top_left())
+		: aligned_frame_base(desc, a),
 		m_bounds(b)
 	{ }
 
-	override_bounds_frame(const rcref<cell>& c, const alignment& a = alignment::top_left())
-		: aligned_frame_base(c, a),
+	override_bounds_frame(rc_obj_base& desc, const alignment& a = alignment::top_left())
+		: aligned_frame_base(desc, a),
 		m_bounds(0, 0, 0, 0)
 	{ }
 
@@ -495,13 +652,13 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	limit_range_frame(const rcref<cell>& c, const range& rng)
-		: frame(c),
+	limit_range_frame(rc_obj_base& desc, const range& rng)
+		: frame(desc),
 		m_range(rng)
 	{ }
 
-	limit_range_frame(const rcref<cell>& c)
-		: frame(c)
+	limit_range_frame(rc_obj_base& desc)
+		: frame(desc)
 	{ }
 
 	const range& get_limit_range() const { return m_range; }
@@ -533,8 +690,8 @@ protected:
 class unstretchable_frame : public frame
 {
 public:
-	unstretchable_frame(const rcref<cell>& c)
-		: frame(c)
+	unstretchable_frame(rc_obj_base& desc)
+		: frame(desc)
 	{ }
 
 	virtual range get_range() const
@@ -554,8 +711,8 @@ public:
 class unshrinkable_frame : public frame
 {
 public:
-	unshrinkable_frame(const rcref<cell>& c)
-		: frame(c)
+	unshrinkable_frame(rc_obj_base& desc)
+		: frame(desc)
 	{ }
 
 	virtual range get_range() const
@@ -652,8 +809,8 @@ protected:
 	}
 
 public:
-	propose_aspect_ratio_frame(const rcref<cell>& c)
-		: frame(c)
+	propose_aspect_ratio_frame(rc_obj_base& desc)
+		: frame(desc)
 	{ }
 
 	virtual range get_range() const { return m_calculatedRange; }
@@ -781,8 +938,8 @@ private:
 	}
 
 public:
-	proportional_frame(const rcref<cell>& c, const proportion& p, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a),
+	proportional_frame(rc_obj_base& desc, const proportion& p, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a),
 		m_proportion(p)
 	{
 		validate_proportion();
@@ -830,8 +987,8 @@ protected:
 class unconstrained_frame : public aligned_frame_base
 {
 public:
-	unconstrained_frame(const rcref<cell>& c, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a)
+	unconstrained_frame(rc_obj_base& desc, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a)
 	{ }
 
 	virtual range get_range() const { return range::make_unbounded(); }
@@ -862,8 +1019,8 @@ protected:
 class unconstrained_min_frame : public aligned_frame_base
 {
 public:
-	unconstrained_min_frame(const rcref<cell>& c, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a)
+	unconstrained_min_frame(rc_obj_base& desc, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a)
 	{ }
 
 	virtual range get_range() const
@@ -953,11 +1110,12 @@ protected:
 
 };
 
+
 class unconstrained_max_frame : public aligned_frame_base
 {
 public:
-	unconstrained_max_frame(const rcref<cell>& c, const alignment& a = alignment::center())
-		: aligned_frame_base(c, a)
+	unconstrained_max_frame(rc_obj_base& desc, const alignment& a = alignment::center())
+		: aligned_frame_base(desc, a)
 	{ }
 
 	virtual range get_range() const

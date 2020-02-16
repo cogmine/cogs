@@ -27,7 +27,6 @@ namespace cogs {
 namespace ui {
 
 
-
 /// @ingroup GUI
 /// @brief UI subsystem
 class subsystem : public dispatcher
@@ -121,8 +120,7 @@ public:
 
 	virtual rcref<task<void> > open(
 		const composite_string& title,
-		const rcref<pane>& p,
-		const rcptr<frame>& f = 0) volatile = 0;
+		const rcref<pane>& p) volatile = 0;
 
 	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile { return rcptr<canvas3D_pane_interface>(); } // 3D unsupported by default
 
@@ -157,8 +155,7 @@ public:
 
 	virtual rcref<task<void> > open(
 		const composite_string& title,
-		const rcref<pane>& p,
-		const rcptr<frame>& f = 0) volatile;
+		const rcref<pane>& p) volatile;
 
 	// If provided, screenPosition is in screen coordinates (get_screens()).
 	// The platform will apply a window frame (title bar, etc.) to the window, so the screen position and
@@ -174,14 +171,12 @@ public:
 		const gfx::canvas::size* contentSize,
 		bool positionCentered,
 		const composite_string& title,
-		const rcref<pane>& p,
-		const rcptr<frame>& f = 0) volatile;
+		const rcref<pane>& p) volatile;
 
 	//virtual rcref<task<void> > open_full_screen(
 	//	const gfx::canvas::point& screenAtPosition, // Main display is 0,0
 	//	const composite_string& title,
-	//	const rcref<pane>& p,
-	//	const rcptr<frame>& f = 0) volatile = 0;
+	//	const rcref<pane>& p) volatile = 0;
 
 	static rcptr<subsystem> get_default();
 };

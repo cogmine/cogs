@@ -9,7 +9,6 @@
 #define COGS_HEADER_IO_BUFFER
 
 
-
 #include "cogs/collections/string.hpp"
 #include "cogs/collections/vector.hpp"
 #include "cogs/sync/hazard.hpp"
@@ -431,8 +430,6 @@ public:
 	int compare(const volatile buffer& cmp) const { buffer tmp(cmp); return compare(tmp); }
 
 
-
-
 	bool equals(size_t n, const char& cmp) const { return m_contents->template equals<char, default_comparator>(n, cmp); }
 
 	bool equals(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.equals(n, cmp); }
@@ -446,7 +443,6 @@ public:
 	bool equals(const buffer& cmp) const volatile { return equals(cmp.get_const_ptr(), cmp.get_length()); }
 
 	bool equals(const volatile buffer& cmp) const { buffer tmp(cmp); return equals(tmp); }
-
 
 
 	bool operator==(const buffer& cmp) const { return equals(cmp); }
@@ -477,7 +473,6 @@ public:
 	bool starts_with(const volatile buffer& cmp) const { buffer tmp(cmp); return starts_with(tmp); }
 
 
-
 	bool ends_with(size_t n, const char& cmp) const { return m_contents->template ends_with<char, default_comparator>(n, cmp); }
 
 	bool ends_with(size_t n, const char& cmp) const volatile { buffer tmp(*this); return tmp.ends_with(n, cmp); }
@@ -493,7 +488,6 @@ public:
 	bool ends_with(const volatile buffer& cmp) const { buffer tmp(cmp); return ends_with(tmp); }
 
 
-
 	bool is_less_than(const char* cmp, size_t n) const { return m_contents->template is_less_than<char, default_comparator>(cmp, n); }
 
 	bool is_less_than(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.is_less_than(cmp, n); }
@@ -505,7 +499,6 @@ public:
 	bool is_less_than(const volatile buffer& cmp) const { buffer tmp(cmp); return is_less_than(tmp); }
 
 
-
 	bool is_greater_than(const char* cmp, size_t n) const { return m_contents->template is_greater_than<char, default_comparator>(cmp, n); }
 
 	bool is_greater_than(const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.is_greater_than(cmp, n); }
@@ -515,7 +508,6 @@ public:
 	bool is_greater_than(const buffer& cmp) const volatile { return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); }
 
 	bool is_greater_than(const volatile buffer& cmp) const { buffer tmp(cmp); return is_greater_than(tmp); }
-
 
 
 	bool operator<(const buffer& cmp) const { return is_less_than(cmp); }
@@ -541,7 +533,6 @@ public:
 	bool operator<=(const buffer& cmp) const volatile { return !is_greater_than(cmp); }
 
 	bool operator<=(const volatile buffer& cmp) const { return !is_greater_than(cmp); }
-
 
 
 	size_t index_of(const char& cmp) const { return m_contents->template index_of<char, default_comparator>(0, cmp); }
@@ -582,7 +573,6 @@ public:
 	size_t index_of_segment(size_t i, const buffer& cmp) const volatile { return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
 
 	size_t index_of_segment(size_t i, const volatile buffer& cmp) const { buffer tmp(cmp); return index_of_segment(i, tmp); }
-
 
 
 	bool contains(const char& cmp) const { return index_of(cmp) != const_max_int_v<size_t>; }
@@ -951,7 +941,6 @@ public:
 		}
 		return result;
 	}
-
 
 
 	vector<buffer> split_on(const char& splitOn, include_empty_segments opt = include_empty_segments::yes) const

@@ -26,7 +26,6 @@ namespace cogs {
 #pragma warning (disable: 4522) // multiple assignment operators specified
 
 
-
 /// @defgroup UnitBases Unit Bases
 /// @{
 /// @ingroup Math

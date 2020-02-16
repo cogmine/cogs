@@ -57,7 +57,7 @@ private:
 	// |                       |                     |          |                        |
 	// +-----------------------+---------------------+----------+------------------------+
 	// |                 full leading                |          |                        |
-	// +-----------------------+---------------------+ contents + constructed trailing   | 
+	// +-----------------------+---------------------+ contents + constructed trailing   |
 	// | unconstructed leading | constructed leading |          |                        | Possible reallocate?
 	// +-----------------------+---------------------+----------+------------------------+-----------------------*
 
@@ -483,7 +483,7 @@ public:
 	}
 
 	// Low-level allocate.
-	// Does not account for or release existing contents. 
+	// Does not account for or release existing contents.
 	// Does not construct.
 	void allocate_inner(size_t n)
 	{
@@ -1359,11 +1359,10 @@ public:
 	//
 	//	template <typename type2>
 	//	bool is_superset(const type2* cmp, size_t n) const
-	//		
+	//
 	//	template <typename type2>
 	//	bool is_same_or_superset(const type2* cmp, size_t n) const
 };
-
 
 
 /// @ingroup LockFreeCollections
@@ -1883,8 +1882,6 @@ public:
 	bool starts_with(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return starts_with<type2, comparator_t>(tmp); }
 
 
-
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool ends_with(size_t n, const type2& cmp) const { return m_contents->template ends_with<type2, comparator_t>(n, cmp); }
 
@@ -1907,8 +1904,6 @@ public:
 	bool ends_with(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return ends_with<type2, comparator_t>(tmp); }
 
 
-
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool is_less_than(const type2* cmp, size_t n) const { return m_contents->template is_less_than<type2, comparator_t>(cmp, n); }
 
@@ -1925,10 +1920,6 @@ public:
 	bool is_less_than(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return is_less_than<type2, comparator_t>(tmp); }
 
 
-
-
-
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool is_greater_than(const type2* cmp, size_t n) const { return m_contents->template is_greater_than<type2, comparator_t>(cmp, n); }
 
@@ -1943,7 +1934,6 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool is_greater_than(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return is_greater_than<type2, comparator_t>(tmp); }
-
 
 
 	template <typename type2>
@@ -1996,7 +1986,6 @@ public:
 	size_t index_of(size_t i, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template index_of<type2, comparator_t>(i, cmp); }
 
 
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	size_t index_of_any(const type2* cmp, size_t cmpLength) const { return m_contents->template index_of_any<type2, comparator_t>(0, cmp, cmpLength); }
 
@@ -2008,8 +1997,6 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const volatile { this_t tmp(*this); return tmp.template index_of_any<type2, comparator_t>(i, cmp, cmpLength); }
-
-
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -2044,8 +2031,6 @@ public:
 	size_t index_of_segment(size_t i, const volatile vector<type2>& cmp) const { vector<type2> tmp; return index_of_segment<type2, comparator_t>(i, tmp); }
 
 
-
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains(const type2& cmp) const { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
@@ -2053,14 +2038,11 @@ public:
 	bool contains(const type2& cmp) const volatile { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 
-
-
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_any(const type2* cmp, size_t cmpLength) const { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_any(const type2* cmp, size_t cmpLength) const volatile { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
-
 
 
 	template <typename type2 = type, class comparator_t = default_comparator >
@@ -2077,7 +2059,6 @@ public:
 
 	template <typename type2 = type, class comparator_t = default_comparator >
 	bool contains_segment(const volatile vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
-
 
 
 	type* get_ptr() { return m_contents->get_ptr(); }
@@ -2453,7 +2434,6 @@ public:
 	}
 
 
-
 	template <typename type2>
 	void replace(size_t i, size_t replaceLength, const type2& src)
 	{
@@ -2492,7 +2472,6 @@ public:
 	}
 
 
-
 	template <typename type2>
 	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type2& src)
 	{
@@ -2529,7 +2508,6 @@ public:
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
-
 
 
 	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
@@ -2745,7 +2723,6 @@ public:
 	}
 
 
-
 	template <typename type2>
 	vector<this_t> split_on(const type2& splitOn, include_empty_segments opt = include_empty_segments::yes) const
 	{
@@ -2873,10 +2850,6 @@ protected:
 		return result;
 	}
 };
-
-
-
-
 
 
 #pragma warning(pop)

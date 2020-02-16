@@ -161,7 +161,7 @@ private:
 
 	template <typename... args_t>
 	thread_safe_transactable(const construct_embedded_t&, args_t&&... src)
-		: m_desc(0), m_embeddedRefCount(0) 
+		: m_desc(0), m_embeddedRefCount(0)
 	{
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
@@ -1691,7 +1691,7 @@ public:
 		{
 			memcpy(&m_old, &t, sizeof(type));
 			memcpy(&m_new, &t, sizeof(type));
-		} 
+		}
 
 		void set(const type& t, const type& newT)
 		{
@@ -1933,7 +1933,6 @@ public:
 	bool compare_exchange_contents(type2&& src, const type3& cmp, type4& rtn) volatile { return atomic::compare_exchange(m_contents, src, cmp, rtn); }
 
 
-
 	read_token begin_read() const volatile { read_token rt; begin_read(rt); return rt; }
 
 	void begin_read(read_token& rt) const volatile { type tmp; atomic::load(m_contents, tmp); rt.set(tmp); }
@@ -2009,9 +2008,9 @@ public:
 
 /// @ingroup Synchronization
 /// @brief Provides atomic transactions for a type
-/// 
+///
 /// Encapsulates a type and provides access to it using simple atomic read/write transactions.
-/// Acquiring a transactable::read_token provides a read-only copy.  
+/// Acquiring a transactable::read_token provides a read-only copy.
 /// Acquiring a transactable::write_token creates a read/write copy, and
 /// allows changes to be committed conditionally if no other changes have been committed since read.
 ///
@@ -2342,7 +2341,6 @@ public:
 	/// @}
 
 
-
 	/// @{
 	/// @brief Gets an object that provides read-only access to the encapsulated value
 	/// @return An object that provides read-only access to the encapsulated value
@@ -2354,7 +2352,7 @@ public:
 
 	/// @{
 	/// @brief Releases a read_token and checks if the value has remained the same since the read token was acquired.
-	/// 
+	///
 	/// It is not necessary to use end_read() to release a read_token, but it provides a way of checking if the read
 	/// state has remained current at the end of a read operation.
 	/// @param[in,out] rt An object that provides read-only access to the encapsulated value

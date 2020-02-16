@@ -23,9 +23,6 @@ namespace cogs {
 namespace atomic {
 
 
-
-
-
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -160,7 +157,6 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 	COGS_ASSERT((size_t)&t % atomic::get_alignment_v<T> == 0);
 	return _InterlockedCompareExchange64((__int64*)(unsigned char*)&t, (__int64)src, (__int64)cmp) == (__int64)cmp;
 }
-
 
 
 #ifdef _M_X64

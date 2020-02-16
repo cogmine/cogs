@@ -175,7 +175,6 @@ public:
 	size post_assign_round_width() { size result(*this); assign_round_width(); return result; }
 
 
-
 	double ceil_height() const { return cogs::ceil(m_contents[1]); }
 	void assign_ceil_height() { cogs::assign_ceil(m_contents[1]); }
 	const size& pre_assign_ceil_height() { assign_ceil_height(); return *this; }

@@ -10,7 +10,7 @@
 #define COGS_HEADER_ARCH_SYNC_ATOMIC_OPERATORS
 
 
-#include <type_traits> 
+#include <type_traits>
 
 #include "cogs/arch/sync/atomic.hpp"
 #include "cogs/sync/default_atomic_operators.hpp"
@@ -58,12 +58,9 @@ COGS_DEFINE_ARCH_DEFAULT_VOLATILE_ASSIGN_OPERATORS(gcd)
 COGS_DEFINE_ARCH_DEFAULT_VOLATILE_ASSIGN_OPERATORS(lcm)
 
 
-
 }
 }
 }
-
-
 
 
 #endif

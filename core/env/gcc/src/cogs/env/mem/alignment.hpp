@@ -36,7 +36,6 @@ namespace cogs {
 #endif
 
 
-
 }
 
 

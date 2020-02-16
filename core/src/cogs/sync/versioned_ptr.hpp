@@ -104,7 +104,7 @@ public:
 	template <typename type2> ptr<type> operator=(const ptr<type2>& p) volatile { set(p.get_ptr()); return p; }
 	template <typename type2> ptr<type> operator=(const ref<type2>& p) volatile { set(p.get_ptr()); return p; }
 
-	type* get_ptr() const { return m_ref.get_ptr(); } 
+	type* get_ptr() const { return m_ref.get_ptr(); }
 	type* get_ptr() const volatile { return m_ref.get_ptr(); }
 
 	versioned_ref<type>& dereference() { COGS_ASSERT(get_ptr() != 0); return m_ref; }
@@ -364,8 +364,6 @@ public:
 	template <typename type2> ptr<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
-
 	template <typename type2>
 	version_t exchange(type2*& wth) volatile { return exchange(wth, wth); }
 
@@ -431,11 +429,6 @@ public:
 
 	template <typename type2>
 	bool unversioned_compare_exchange(const ptr<type>& src, const ptr<type>& cmp, type2*& rtn) { type* tmp; bool result = m_ref.get_versioned().unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
-
-
-
-
-
 
 
 	static size_t mark_bits() { return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
@@ -700,7 +693,6 @@ public:
 	template <typename type2> ptr<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
 	template <typename type2>
 	version_t exchange(type2*& wth) volatile { return exchange(wth, wth); }
 
@@ -766,10 +758,6 @@ public:
 
 	template <typename type2>
 	bool unversioned_compare_exchange(const ptr<type>& src, const ptr<type>& cmp, type2*& rtn) { type* tmp; bool result = m_ref.get_versioned().unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
-
-
-
-
 
 
 	template <typename char_t>
@@ -997,9 +985,6 @@ public:
 	template <typename type2> ptr<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
-
-
 	template <typename type2>
 	version_t exchange(type2*& wth) volatile { return exchange(wth, wth); }
 
@@ -1065,11 +1050,6 @@ public:
 
 	template <typename type2>
 	bool unversioned_compare_exchange(const ptr<type>& src, const ptr<type>& cmp, type2*& rtn) { type* tmp; bool result = m_ref.get_versioned().unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
-
-
-
-
-
 
 
 	template <typename char_t>
@@ -1297,9 +1277,6 @@ public:
 	template <typename type2> ptr<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
-
-
 	template <typename type2>
 	version_t exchange(type2*& wth) volatile { return exchange(wth, wth); }
 
@@ -1365,11 +1342,6 @@ public:
 
 	template <typename type2>
 	bool unversioned_compare_exchange(const ptr<type>& src, const ptr<type>& cmp, type2*& rtn) { type* tmp; bool result = m_ref.get_versioned().unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
-
-
-
-
-
 
 
 	template <typename char_t>
@@ -1597,9 +1569,6 @@ public:
 	template <typename type2> ptr<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
-
-
 	template <typename type2>
 	version_t exchange(type2*& wth) volatile { return exchange(wth, wth); }
 
@@ -1667,11 +1636,6 @@ public:
 	bool unversioned_compare_exchange(const ptr<type>& src, const ptr<type>& cmp, type2*& rtn) { type* tmp; bool result = m_ref.get_versioned().unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
 
 
-
-
-
-
-
 	template <typename char_t>
 	composite_string_t<char_t> to_string_t() const;
 
@@ -1698,7 +1662,6 @@ inline void* operator new(size_t sz, const cogs::versioned_ptr<type>& p) { retur
 
 template <typename type>
 inline void* operator new(size_t sz, const cogs::versioned_ptr<type>& p, const std::nothrow_t& nt) throw () { return ::operator new(sz, p.get_ptr(), nt); }
-
 
 
 template <typename type>

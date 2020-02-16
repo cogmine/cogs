@@ -44,7 +44,6 @@ load(const volatile T& src, T& rtn)
 }
 
 
-
 #ifdef _M_X64
 
 

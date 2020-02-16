@@ -34,7 +34,7 @@ namespace cogs {
 /// the next queued element.
 ///
 /// A serial_defer_guard_t is vulnerable to livelock if the guard is constantly under contention,
-/// and should not be used in situations in which this has the potential to occur. 
+/// and should not be used in situations in which this has the potential to occur.
 ///
 /// Like stack or no_aba_stack, a serial_defer_guard_t is intrusive and does not protect
 /// against hazardous (posthumous) access to an element, so elements must remain in

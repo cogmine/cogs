@@ -576,7 +576,7 @@ private:
 
 	void clear_inner()
 	{
-		// Could allow the links to free themselves, but that would cause a cascade of 
+		// Could allow the links to free themselves, but that would cause a cascade of
 		// link releases, that could potential overflow the stack if the list is long enough.
 
 		rcptr<link_t> l = m_sentinel->m_links->m_next;
@@ -1623,7 +1623,6 @@ public:
 		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
 
 
-
 	};
 
 	/// @brief A container_dlist element remove token
@@ -1652,7 +1651,6 @@ public:
 
 		remove_token(const rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
 		remove_token(const volatile rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
-
 
 
 		void assign(const weak_rcptr<link_t>& l) { m_link = l; }
@@ -2135,7 +2133,7 @@ public:
 	// insert_after/insert_before return an empty iterator if insertAfter/insertBefore node was already removed
 
 	iterator insert_preallocated_before(const preallocated& i, const iterator& insertBefore)
-	{ 
+	{
 		iterator result;
 		if (!!insertBefore && i.m_link->insert_before(insertBefore.m_link))
 			result.m_link = i.m_link;
@@ -2191,7 +2189,7 @@ public:
 	}
 
 	iterator insert_before(const type& t, const iterator& insertBefore)
-	{ 
+	{
 		iterator i;
 		if (!!insertBefore)
 		{
@@ -2203,7 +2201,7 @@ public:
 	}
 
 	iterator insert_after(const type& t, const iterator& insertAfter)
-	{ 
+	{
 		iterator i;
 		if (!!insertAfter)
 		{
@@ -2215,7 +2213,7 @@ public:
 	}
 
 	volatile_iterator insert_before(const volatile_iterator& insertBefore) volatile
-	{ 
+	{
 		volatile_iterator i;
 		if (!!insertBefore)
 		{
@@ -2227,7 +2225,7 @@ public:
 	}
 
 	volatile_iterator insert_after(const volatile_iterator& insertAfter) volatile
-	{ 
+	{
 		volatile_iterator i;
 		if (!!insertAfter)
 		{
@@ -2239,7 +2237,7 @@ public:
 	}
 
 	volatile_iterator insert_before(const type& t, const volatile_iterator& insertBefore) volatile
-	{ 
+	{
 		volatile_iterator i;
 		if (!!insertBefore)
 		{
@@ -2251,7 +2249,7 @@ public:
 	}
 
 	volatile_iterator insert_after(const type& t, const volatile_iterator& insertAfter) volatile
-	{ 
+	{
 		volatile_iterator i;
 		if (!!insertAfter)
 		{
@@ -2469,7 +2467,6 @@ static constexpr size_t container_dlist_preallocated_alignment = std::alignment_
 
 
 #pragma warning(pop)
-
 
 
 class rc_obj_base::released_handlers

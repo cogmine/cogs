@@ -59,8 +59,6 @@ COGS_DEFINE_OS_DEFAULT_VOLATILE_ASSIGN_OPERATORS(lesser)
 }
 
 
-
-
 #endif
 #endif
 

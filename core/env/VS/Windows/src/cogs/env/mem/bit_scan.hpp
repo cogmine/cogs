@@ -109,12 +109,6 @@ bit_scan_reverse(const T& t)
 #endif
 
 
-
-
-
-
-
-
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
@@ -174,7 +168,6 @@ bit_scan_forward(const T& t)
 }
 
 
-
 #else
 
 
@@ -204,7 +197,6 @@ bit_scan_forward(const T& t)
 
 
 #endif
-
 
 
 }

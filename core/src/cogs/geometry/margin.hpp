@@ -370,14 +370,12 @@ public:
 };
 
 
-
 inline size size::operator+(const margin& m) const { size result(m_contents[0] + m.get_width(), m_contents[1] + m.get_height()); return result; }
 inline size& size::operator+=(const margin& m) { m_contents[0] += m.get_width(); m_contents[1] += m.get_height(); return *this; }
 
 
 inline size size::operator-(const margin& m) const { size result(m_contents[0] - m.get_width(), m_contents[1] - m.get_height()); return result; }
 inline size& size::operator-=(const margin& m) { m_contents[0] -= m.get_width(); m_contents[1] -= m.get_height(); return *this; }
-
 
 
 }

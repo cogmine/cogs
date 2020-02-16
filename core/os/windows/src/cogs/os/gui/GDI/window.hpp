@@ -226,15 +226,15 @@ public:
 		MoveWindow(get_HWND(), oldBounds.pt.x, oldBounds.pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
 
-		// We don't want to call reshape() on children, as that will happen in 
-		// response to the WM_SIZE message MoveWindow will generate.  However, if the 
+		// We don't want to call reshape() on children, as that will happen in
+		// response to the WM_SIZE message MoveWindow will generate.  However, if the
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
 		if (sz == oldBounds.sz)
 			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
 	}
 
-	virtual void reshape_frame(const bounds& newBounds)
+	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
 		POINT pt = { (LONG)newBounds.get_x(), (LONG)newBounds.get_y() };
 		SIZE sz = { (LONG)std::lround(newBounds.get_width()), (LONG)std::lround(newBounds.get_height()) };
@@ -246,8 +246,8 @@ public:
 		MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
 
-		// We don't want to call reshape() on children, as that will happen in 
-		// response to the WM_SIZE message this will generate.  However, if the 
+		// We don't want to call reshape() on children, as that will happen in
+		// response to the WM_SIZE message this will generate.  However, if the
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
 		if (sz == oldSIZE)
@@ -713,11 +713,10 @@ inline rcref<gui::window> hwnd::subsystem::open_window(
 	const gfx::canvas::size* frameSize,
 	bool positionCentered,
 	const composite_string& title,
-	const rcref<pane>& p,
-	const rcptr<frame>& f) volatile
+	const rcref<pane>& p) volatile
 {
 	rcref<gui::window> w = rcnew(gui::window, screenPosition, frameSize, positionCentered, title);
-	w->nest(p, f);
+	w->nest(p);
 	install(*w, rcnew(hwnd::subsystem)); // Give each window it's own subsystem instance, so it's own UI thread.
 	return w;
 }

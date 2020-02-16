@@ -1801,7 +1801,6 @@ public:
 	}
 
 
-
 	bool equals(size_t i, const buffer& cmp) const
 	{
 		return m_contents->equals(i, const_max_int_v<size_t>, cmp);
@@ -1819,7 +1818,6 @@ public:
 	}
 
 
-
 	bool equals(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->equals(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -1834,7 +1832,6 @@ public:
 	{
 		return m_contents->equals(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool equals(size_t i, size_t n, const buffer& cmp) const
@@ -1854,7 +1851,6 @@ public:
 	}
 
 
-
 	bool equals(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->equals(i, n, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -1869,7 +1865,6 @@ public:
 	{
 		return m_contents->equals(i, n, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool equals(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -1920,7 +1915,6 @@ public:
 	}
 
 
-
 	bool equals(const position_t& pos, const buffer& cmp) const
 	{
 		return m_contents->equals(pos.m_pos, const_max_int_v<size_t>, cmp);
@@ -1936,8 +1930,6 @@ public:
 		buffer tmp = cmp;
 		return equals(pos, tmp);
 	}
-
-
 
 
 	bool equals(const position_t& pos, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -1987,8 +1979,6 @@ public:
 	}
 
 
-
-
 	bool equals(const position_t& pos, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->equals(pos.m_pos, n, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2021,7 +2011,6 @@ public:
 	}
 
 
-
 	bool operator==(const buffer& cmp) const { return equals(cmp); }
 
 	bool operator==(const composite_buffer& cmp) const { return equals(cmp); }
@@ -2035,7 +2024,6 @@ public:
 	bool operator==(const volatile composite_buffer& cmp) const { return equals(cmp); }
 
 
-
 	bool operator!=(const buffer& cmp) const { return !operator==(cmp); }
 
 	bool operator!=(const composite_buffer& cmp) const { return !operator==(cmp); }
@@ -2047,7 +2035,6 @@ public:
 	bool operator!=(const volatile buffer& cmp) const { return !operator==(cmp); }
 
 	bool operator!=(const volatile composite_buffer& cmp) const { return !operator==(cmp); }
-
 
 
 	int compare(const char* cmp, size_t cmpLength) const { return m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
@@ -2102,7 +2089,6 @@ public:
 	}
 
 
-
 	int compare(size_t i, const buffer& cmp) const
 	{
 		return m_contents->compare(i, const_max_int_v<size_t>, cmp);
@@ -2118,7 +2104,6 @@ public:
 		buffer tmp = cmp;
 		return compare(i, tmp);
 	}
-
 
 
 	int compare(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2137,7 +2122,6 @@ public:
 	}
 
 
-
 	int compare(size_t i, size_t n, const buffer& cmp) const
 	{
 		return m_contents->compare(i, n, cmp);
@@ -2153,7 +2137,6 @@ public:
 		buffer tmp = cmp;
 		return compare(i, n, tmp);
 	}
-
 
 
 	int compare(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2220,7 +2203,6 @@ public:
 	}
 
 
-
 	int compare(const position_t& pos, const buffer& cmp) const
 	{
 		return m_contents->compare(pos.m_pos, const_max_int_v<size_t>, cmp);
@@ -2236,8 +2218,6 @@ public:
 		buffer tmp = cmp;
 		return compare(pos, tmp);
 	}
-
-
 
 
 	int compare(const position_t& pos, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2256,7 +2236,6 @@ public:
 	}
 
 
-
 	int compare(const position_t& pos, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength);
@@ -2271,7 +2250,6 @@ public:
 	{
 		return m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
 
 
 	int compare(const position_t& pos, size_t n, const buffer& cmp) const
@@ -2289,8 +2267,6 @@ public:
 		buffer tmp = cmp;
 		return compare(pos, n, tmp);
 	}
-
-
 
 
 	int compare(const position_t& pos, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2323,10 +2299,6 @@ public:
 	{
 		return m_contents->compare(pos.m_pos, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
-
-
-
 
 
 	bool is_less_than(const char* cmp, size_t cmpLength) const { return 0 > m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
@@ -2381,7 +2353,6 @@ public:
 	}
 
 
-
 	bool is_less_than(size_t i, const buffer& cmp) const
 	{
 		return 0 > m_contents->compare(i, const_max_int_v<size_t>, cmp);
@@ -2399,7 +2370,6 @@ public:
 	}
 
 
-
 	bool is_less_than(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 > m_contents->compare(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2414,7 +2384,6 @@ public:
 	{
 		return 0 > m_contents->compare(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool is_less_than(size_t i, size_t n, const buffer& cmp) const
@@ -2434,7 +2403,6 @@ public:
 	}
 
 
-
 	bool is_less_than(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 > m_contents->compare(i, n, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2449,7 +2417,6 @@ public:
 	{
 		return 0 > m_contents->compare(i, n, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool is_less_than(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2468,7 +2435,6 @@ public:
 	}
 
 
-
 	bool is_less_than(size_t i, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 > m_contents->compare(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength);
@@ -2485,7 +2451,6 @@ public:
 	}
 
 
-
 	bool is_less_than(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 > m_contents->compare(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength);
@@ -2500,7 +2465,6 @@ public:
 	{
 		return 0 > m_contents->compare(i, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
 
 
 	bool is_less_than(const position_t& pos, const buffer& cmp) const
@@ -2520,8 +2484,6 @@ public:
 	}
 
 
-
-
 	bool is_less_than(const position_t& pos, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 > m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2536,7 +2498,6 @@ public:
 	{
 		return 0 > m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool is_less_than(const position_t& pos, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2555,7 +2516,6 @@ public:
 	}
 
 
-
 	bool is_less_than(const position_t& pos, size_t n, const buffer& cmp) const
 	{
 		return 0 > m_contents->compare(pos.m_pos, n, cmp);
@@ -2571,8 +2531,6 @@ public:
 		buffer tmp = cmp;
 		return 0 > compare(pos, n, tmp);
 	}
-
-
 
 
 	bool is_less_than(const position_t& pos, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2605,7 +2563,6 @@ public:
 	{
 		return 0 > m_contents->compare(pos.m_pos, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
 
 
 	bool is_greater_than(const char* cmp, size_t cmpLength) const { return 0 < m_contents->compare(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
@@ -2660,7 +2617,6 @@ public:
 	}
 
 
-
 	bool is_greater_than(size_t i, const buffer& cmp) const
 	{
 		return 0 < m_contents->compare(i, const_max_int_v<size_t>, cmp);
@@ -2678,7 +2634,6 @@ public:
 	}
 
 
-
 	bool is_greater_than(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 < m_contents->compare(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2693,7 +2648,6 @@ public:
 	{
 		return 0 < m_contents->compare(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool is_greater_than(size_t i, size_t n, const buffer& cmp) const
@@ -2713,7 +2667,6 @@ public:
 	}
 
 
-
 	bool is_greater_than(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 < m_contents->compare(i, n, *(cmp.m_contents), cmpIndex, cmpLength);
@@ -2728,7 +2681,6 @@ public:
 	{
 		return 0 < m_contents->compare(i, n, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool is_greater_than(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2779,7 +2731,6 @@ public:
 	}
 
 
-
 	bool is_greater_than(const position_t& pos, const buffer& cmp) const
 	{
 		return 0 < m_contents->compare(pos.m_pos, const_max_int_v<size_t>, cmp);
@@ -2795,8 +2746,6 @@ public:
 		buffer tmp = cmp;
 		return 0 < compare(pos, tmp);
 	}
-
-
 
 
 	bool is_greater_than(const position_t& pos, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2815,7 +2764,6 @@ public:
 	}
 
 
-
 	bool is_greater_than(const position_t& pos, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return 0 < m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength);
@@ -2830,7 +2778,6 @@ public:
 	{
 		return 0 < m_contents->compare(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
 
 
 	bool is_greater_than(const position_t& pos, size_t n, const buffer& cmp) const
@@ -2848,8 +2795,6 @@ public:
 		buffer tmp = cmp;
 		return 0 < compare(pos, n, tmp);
 	}
-
-
 
 
 	bool is_greater_than(const position_t& pos, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -2884,8 +2829,6 @@ public:
 	}
 
 
-
-
 	bool operator<(const buffer& cmp) const { return is_less_than(cmp); }
 
 	bool operator<(const buffer& cmp) const volatile { return is_less_than(cmp); }
@@ -2897,7 +2840,6 @@ public:
 	bool operator<(const composite_buffer& cmp) const volatile { return is_less_than(cmp); }
 
 	bool operator<(const volatile composite_buffer& cmp) const { return is_less_than(cmp); }
-
 
 
 	bool operator>(const buffer& cmp) const { return is_greater_than(cmp); }
@@ -2913,7 +2855,6 @@ public:
 	bool operator>(const volatile composite_buffer& cmp) const { return is_greater_than(cmp); }
 
 
-
 	bool operator<=(const buffer& cmp) const { return !operator>(cmp); }
 
 	bool operator<=(const buffer& cmp) const volatile { return !operator>(cmp); }
@@ -2927,7 +2868,6 @@ public:
 	bool operator<=(const volatile composite_buffer& cmp) const { return !operator>(cmp); }
 
 
-
 	bool operator>=(const buffer& cmp) const { return !operator<(cmp); }
 
 	bool operator>=(const buffer& cmp) const volatile { return !operator<(cmp); }
@@ -2939,7 +2879,6 @@ public:
 	bool operator>=(const composite_buffer& cmp) const volatile { return !operator<(cmp); }
 
 	bool operator>=(const volatile composite_buffer& cmp) const { return !operator<(cmp); }
-
 
 
 	bool starts_with(const char* cmp, size_t cmpLength) const { return equals(0, cmpLength, cmp, cmpLength); }
@@ -2983,15 +2922,12 @@ public:
 	}
 
 
-
-
 	bool ends_with(const char* cmp, size_t cmpLength) const { return m_contents->ends_with(buffer::contain(cmp, cmpLength)); }
 	bool ends_with(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->ends_with(buffer::contain(cmp, cmpLength)); }
 
 	bool ends_with(const buffer& cmp) const { return m_contents->ends_with(cmp); }
 	bool ends_with(const buffer& cmp) const volatile { return m_contents.begin_read()->ends_with(cmp); }
 	bool ends_with(const volatile buffer& cmp) const { buffer tmp = cmp; return ends_with(tmp); }
-
 
 
 	bool ends_with(const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
@@ -3008,7 +2944,6 @@ public:
 	{
 		return m_contents->ends_with(*(cmp.m_contents.begin_read()), cmpIndex, cmpLength);
 	}
-
 
 
 	bool ends_with(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
@@ -3049,8 +2984,6 @@ public:
 	position_t position_of(const position_t& pos, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
 
 
-
-
 	size_t index_of_any(const char* cmp, size_t cmpLength) const { return m_contents->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
 
 	size_t index_of_any(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_any(0, const_max_int_v<size_t>, cmp, cmpLength); }
@@ -3073,11 +3006,6 @@ public:
 	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->position_of_any(pos.m_pos, n, cmp, cmpLength); }
 
 	position_t position_of_any(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->position_of_any(pos.m_pos, n, cmp, cmpLength); }
-
-
-
-
-
 
 
 	size_t index_of_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
@@ -3219,7 +3147,6 @@ public:
 	}
 
 
-
 	size_t index_of_segment(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength);
@@ -3356,8 +3283,6 @@ public:
 	bool contains(const position_t& pos, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 
-
-
 	bool contains(size_t i, size_t n, const char& cmp) const { return m_contents->index_of(i, n, cmp) != -1; }
 
 	bool contains(size_t i, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, n, cmp) != -1; }
@@ -3365,9 +3290,6 @@ public:
 	bool contains(const position_t& pos, size_t n, const char& cmp) const { return get_end_position() != m_contents->position_of(pos.m_pos, n, cmp); }
 
 	bool contains(const position_t& pos, size_t n, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
-
-
-
 
 
 	bool contains_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
@@ -3519,7 +3441,6 @@ public:
 	}
 
 
-
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
 		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
@@ -3583,7 +3504,6 @@ public:
 	{
 		return get_end_position() != m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength);
 	}
-
 
 
 	bool contains_segment(const position_t& pos, size_t n, const buffer& cmp) const
@@ -3820,7 +3740,6 @@ public:
 	}
 
 
-
 	void prepend(const composite_buffer& src) { m_contents->prepend(*(src.m_contents)); }
 
 	void prepend(const volatile composite_buffer& src) { m_contents->prepend(*(src.m_contents.begin_read())); }
@@ -3829,7 +3748,6 @@ public:
 	void prepend(const buffer& src) { m_contents->prepend(src); }
 
 	void prepend(const volatile buffer& src) { m_contents->prepend(src); }
-
 
 
 	void swap(composite_buffer& wth) { m_contents.swap(wth.m_contents); }
@@ -3959,7 +3877,6 @@ public:
 		}
 		return result;
 	}
-
 
 
 	composite_buffer split_off_before(size_t i)
@@ -4257,9 +4174,6 @@ public:
 	composite_string to_string() const { return to_string_t<wchar_t>(); }
 	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
-
-
-
 
 
 }

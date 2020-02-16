@@ -39,8 +39,6 @@ template <bool has_sign, size_t bits>
 class fixed_integer_extended;
 
 
-
-
 template <bool has_sign, size_t bits> struct is_arithmetic_type<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
 
 template <bool has_sign, size_t bits> struct is_integer_type<fixed_integer_extended<has_sign, bits> > : public std::true_type { };
@@ -54,7 +52,6 @@ class int_to_fixed_integer<fixed_integer_extended<has_sign, bits> >
 public:
 	typedef fixed_integer_extended<has_sign, bits> type;
 };
-
 
 
 template <bool has_sign_in, size_t n_bits_in>
@@ -733,7 +730,6 @@ public:
 		if (thisIsLonger && src.is_negative())
 			set_sign_extension(true, i);
 	}
-
 
 
 	template <bool has_sign2, size_t bits2>
@@ -1471,7 +1467,7 @@ public:
 		{
 			size_t i = 1;
 			do {
-				if (0 != ++(m_digits[i])) // - ~(ulongest)0 = + 1 
+				if (0 != ++(m_digits[i])) // - ~(ulongest)0 = + 1
 					break; // The only way it did NOT overflow is if original digit was already ~(ulongest)0
 			} while (++i < n_digits);
 		}
@@ -1879,7 +1875,6 @@ public:
 
 		divide_whole_and_assign_modulo(highIndex + 1, denomDigits, denomLength, resultDigits, resultLength);
 	}
-
 
 
 	// Only called with positive values, and only if this > denom
@@ -2958,7 +2953,6 @@ public:
 	}
 
 };
-
 
 
 // Extended representation breaks the value into two parts, a high int and a low array of ulongest
@@ -5289,7 +5283,7 @@ public:
 
 	template <bool has_sign2, size_t bits2>
 	this_t pre_assign_inverse_modulo(const fixed_integer_extended<has_sign2, bits2>& src) volatile
-	{ 
+	{
 		fixed_integer_extended<has_sign2, bits2> remainder(src);
 		return write_retry_loop_pre([&](content_t& c) {
 			remainder.m_contents->divide_whole_and_assign_modulo(c);
@@ -5886,7 +5880,7 @@ public:
 
 	// divide_whole
 	template <bool has_sign2, size_t bits2>
-	auto divide_whole(const fixed_integer_native<has_sign2, bits2>& src) const 
+	auto divide_whole(const fixed_integer_native<has_sign2, bits2>& src) const
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
 		this_t remainder(*this);
@@ -5906,7 +5900,7 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) const { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2> auto divide_whole(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole(tmp); }
 
-	template <bool has_sign2, size_t bits2> 
+	template <bool has_sign2, size_t bits2>
 	auto divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) const
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
@@ -5915,7 +5909,7 @@ public:
 		return result;
 	}
 
-	template <bool has_sign2, size_t bits2> 
+	template <bool has_sign2, size_t bits2>
 	auto divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) const volatile
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
@@ -6245,7 +6239,7 @@ public:
 	void assign_inverse_divide_whole(const fixed_integer_extended<has_sign2, bits2>& src) volatile
 	{
 		fixed_integer_extended<has_sign2, bits2> remainder(src);
-		write_retry_loop([&](content_t& c) 
+		write_retry_loop([&](content_t& c)
 		{
 			content_t tmp(c);
 			remainder.m_contents->divide_whole_and_assign_modulo(tmp, &c);
@@ -6255,7 +6249,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2>
-	void assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile 
+	void assign_inverse_divide_whole(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile
 	{
 		fixed_integer_extended<has_sign2, bits2> remainder(src);
 		write_retry_loop([&](content_t& c)
@@ -6546,7 +6540,7 @@ public:
 
 	// divide_whole_and_modulo
 	template <bool has_sign2, size_t bits2>
-	auto divide_whole_and_modulo(const fixed_integer_native<has_sign2, bits2>& src) const 
+	auto divide_whole_and_modulo(const fixed_integer_native<has_sign2, bits2>& src) const
 	{
 		fixed_integer<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> divided;
 		this_t remainder(*this);
@@ -6556,7 +6550,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2>
-	auto divide_whole_and_modulo(const fixed_integer_native<has_sign2, bits2>& src) const volatile 
+	auto divide_whole_and_modulo(const fixed_integer_native<has_sign2, bits2>& src) const volatile
 	{
 		fixed_integer<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> divided;
 		this_t remainder(*this);
@@ -6568,7 +6562,7 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const volatile fixed_integer_native<has_sign2, bits2>& src) const { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole_and_modulo(tmp); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_modulo(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole_and_modulo(tmp); }
 
-	template <bool has_sign2, size_t bits2> 
+	template <bool has_sign2, size_t bits2>
 	auto divide_whole_and_modulo(const fixed_integer_extended<has_sign2, bits2>& src) const
 	{
 		fixed_integer<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> divided;
@@ -6685,7 +6679,7 @@ public:
 
 	// divide_whole_and_assign_modulo
 	template <bool has_sign2, size_t bits2>
-	auto divide_whole_and_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src) 
+	auto divide_whole_and_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src)
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
 		m_contents->divide_whole_and_assign_modulo(src, &*(result.m_contents));
@@ -6706,7 +6700,7 @@ public:
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_assign_modulo(const volatile fixed_integer_native<has_sign2, bits2>& src) { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole_and_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2> auto divide_whole_and_assign_modulo(const volatile fixed_integer_native<has_sign2, bits2>& src) volatile { fixed_integer_native<has_sign2, bits2> tmp(src); return divide_whole_and_assign_modulo(tmp); }
 
-	template <bool has_sign2, size_t bits2> 
+	template <bool has_sign2, size_t bits2>
 	auto divide_whole_and_assign_modulo(const fixed_integer_extended<has_sign2, bits2>& src)
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
@@ -6734,7 +6728,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2>
-	auto divide_whole_and_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile 
+	auto divide_whole_and_assign_modulo(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile
 	{
 		fixed_integer_extended<(has_sign || has_sign2), bits + (has_sign2 ? 1 : 0)> result;
 		write_retry_loop([&](content_t& c)
@@ -6803,7 +6797,6 @@ public:
 		}
 		return result;
 	}
-
 
 
 	template <bool has_sign2, size_t bits2> void divide_whole_and_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) = delete;
@@ -8030,8 +8023,6 @@ public:
 	}
 
 
-
-
 	template <typename S, typename R>
 	void exchange(S&& src, R& rtn)
 	{
@@ -8383,7 +8374,6 @@ struct compatible<int_t2, fixed_integer_extended<has_sign2, bits2>, std::enable_
 };
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
@@ -8437,7 +8427,6 @@ multiply(const T& t, const A1& a)
 	result.multiply(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
 	return result;
 }
-
 
 
 template <typename T, typename A1>

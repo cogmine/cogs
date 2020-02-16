@@ -1206,7 +1206,6 @@ public:
 	auto lesser(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
 
 
-
 	// equals
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	constexpr bool operator==(const fixed_integer_native_const<has_sign2, bits2, value2>& i) const volatile
@@ -1507,7 +1506,6 @@ public:
 };
 
 
-
 template <bool has_sign1, size_t bits1, bits_to_int_t<bits1, has_sign1> value1, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
@@ -1553,8 +1551,6 @@ struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, dynamic_
 	: public compatible<dynamic_integer, fixed_integer_native_const<has_sign1, bits1, value1> >
 {
 };
-
-
 
 
 // fixed_integer_native and zero_t
@@ -1922,14 +1918,9 @@ template <ulongest n>
 using unsigned_fixed_integer_const = fixed_integer_native_const<false, unsigned_value_to_bits_v<n>, n>;
 
 
-
-
-
-
 #pragma warning(pop)
 
 }
-
 
 
 #endif

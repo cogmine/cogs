@@ -167,7 +167,6 @@ template<class T, size_t I> struct remove_all_extents<T[I]> { typedef remove_all
 	COGS_DEFINE_BINARY_ASSIGN_OPERATORS_FROM_FUNCTION(name)\
 
 
-
 template <class T, class M>
 inline std::enable_if_t<!std::is_reference_v<T>, std::remove_reference_t<M>&&>
 forward_member(M&& m) { return std::move(m); }
@@ -175,7 +174,6 @@ forward_member(M&& m) { return std::move(m); }
 template<class T, class M>
 inline std::enable_if_t<std::is_reference_v<T>, std::remove_reference_t<M>&>
 forward_member(M&& m) { return m; }
-
 
 
 // array_to_args
@@ -211,8 +209,6 @@ inline decltype(auto) array_to_args(F&& f, T&& t)
 { return array_to_args_helper<extent_v<T>, T>::expand(std::forward<F>(f), std::forward<T>(t)); }
 
 
-
-
 // unary_array_operation_to_args
 template <size_t i, typename T, typename enable = void>
 struct unary_array_operation_to_args_helper;
@@ -244,8 +240,6 @@ struct unary_array_operation_to_args_helper<0, T, void>
 template <typename F, typename U, typename T>
 inline decltype(auto) unary_array_operation_to_args(F&& f, U&& u, T&& t)
 { return unary_array_operation_to_args_helper<extent_v<T>, T>::expand(std::forward<F>(f), std::forward<U>(u), std::forward<T>(t)); }
-
-
 
 
 // binary_array_operation_to_args
@@ -298,9 +292,6 @@ inline decltype(auto) binary_array_operation_to_args(F&& f, B&& b, T&& t, T2&& t
 { return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t)); }
 
 
-
-
-
 template <size_t i, typename... args_t>
 struct do_for_each_arg_helper
 {
@@ -329,8 +320,6 @@ void do_for_each_arg(F&& f2, args_t&&... a)
 {
 	do_for_each_arg_helper<0, args_t...>::f(std::forward<F>(f2), std::forward<args_t>(a)...);
 }
-
-
 
 
 // not
@@ -707,7 +696,6 @@ template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_cl
 multiply(const T& t, const A1& a) { return a * t; }
 
 
-
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	std::is_integral_v<T> && std::is_integral_v<A1>
@@ -881,7 +869,6 @@ COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide)
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(reciprocal)
 
 
-
 template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
 floor(const T& t) { return load(t); }
 
@@ -1008,7 +995,6 @@ divide_whole(const T& t, const A1& a);
 //}
 
 
-
 // Result of (signed / unsigned) or (unsigned / unsigned) will not exceed first type
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
@@ -1054,9 +1040,7 @@ divide_whole(const T& t, const A1& a);
 //}
 
 
-
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(divide_whole)
-
 
 
 template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().divide_whole(std::declval<T&>()))>
@@ -1201,7 +1185,7 @@ divide_whole_and_assign_modulo(T& t, const A1& a)
 	// TODO: If any env were to provide this operation, move there
 	decltype(divide_whole(std::declval<T&>(), std::declval<A1&>())) wholePart;
 	atomic::compare_exchange_retry_loop(t, [&wholePart](const std::remove_volatile_t<T>& t2, const A1& a) {
-			const std::remove_volatile_t<T> tmp(t2); 
+			const std::remove_volatile_t<T> tmp(t2);
 			decltype(auto) tmp2(divide_whole_and_modulo(tmp, a));
 			wholePart = tmp2.first;
 			return tmp.second;
@@ -1230,7 +1214,7 @@ modulo_and_assign_divide_whole(T& t, const A1& a)
 	// TODO: If any env were to provide this operation, move there
 	decltype(modulo(std::declval<T&>(), std::declval<A1&>())) fractionalPart;
 	atomic::compare_exchange_retry_loop(t, [&fractionalPart](const std::remove_volatile_t<T>& t2, const A1& a) {
-			const std::remove_volatile_t<T> tmp(t2); 
+			const std::remove_volatile_t<T> tmp(t2);
 			decltype(auto) tmp2(divide_whole_and_modulo(tmp, a));
 			fractionalPart = tmp2.second;
 			return tmp.first;
@@ -1538,7 +1522,6 @@ public:
 		return !comparator_t::compare(std::forward<T1>(t1), std::forward<T2>(t2));
 	}
 };
-
 
 
 template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, decltype(std::declval<A1&>().greater(std::declval<T&>()))>
@@ -1860,7 +1843,6 @@ to_cstring(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_cstring>
 to_cstring(const T& t);
-
 
 
 template <typename char_t, typename T>

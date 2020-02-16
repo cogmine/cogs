@@ -16,7 +16,6 @@
 namespace cogs {
 
 
-
 template <typename result_t>
 class immediate_task : public task<result_t>
 {

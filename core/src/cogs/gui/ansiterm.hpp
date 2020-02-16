@@ -26,7 +26,7 @@
 //
 //namespace cogs {
 //namespace gui {
-//	
+//
 //
 //class ansiterm :
 //	public pane,
@@ -108,7 +108,7 @@
 //	unsigned int m_screenHeightInChars;
 //	unsigned int m_bufferHeightInChars;
 //	unsigned int m_bufferWidthInChars;
-//	unsigned int m_scrollPos; // line number of top left pixel in view 
+//	unsigned int m_scrollPos; // line number of top left pixel in view
 //	unsigned int m_screenTop;
 //	brush* m_brushBuffer;
 //	brush m_curBrush;
@@ -648,8 +648,8 @@
 //			break;
 //			//case 'q': // DECLL - Load LEDs
 //			//case '9': // DECFI - Forward Index
-//			//case 'F': // Enter graphics mode - VT52 
-//			//case 'G': // Exit graphics mode - VT52 
+//			//case 'F': // Enter graphics mode - VT52
+//			//case 'G': // Exit graphics mode - VT52
 //			//case ']': // Print screen - vt52
 //			//case 'V': // Print current line - vt52
 //			//case 'W': // Enter printer controller mode - vt52
@@ -661,7 +661,7 @@
 //			//case 'Z': // identify (host to terminal)
 //			//case '/Z': // identify (terminal to host)
 //			//	break
-//			// ESC Y# ?? - Move cursor to column # - VT52 
+//			// ESC Y# ?? - Move cursor to column # - VT52
 //			// ESC Q # <string> ?? - SCODFK - Define Function Key
 //			// ESC #3 - DECDHL - Double-Width, Double-Height Line - top half
 //			// ESC #4 - DECDHL - Double-Width, Double-Height Line - bottom half
@@ -1054,7 +1054,7 @@
 //						selector = m_seqVars[0];
 //					switch (selector)
 //					{
-//					case 0: // Clear to end of current line 
+//					case 0: // Clear to end of current line
 //						clean_line(m_cursorY, m_cursorX, m_bufferWidthInChars);
 //						invalidate_line(m_cursorY, m_cursorX, m_bufferWidthInChars);
 //						break;
@@ -1062,7 +1062,7 @@
 //						clean_line(m_cursorY, 0, m_cursorX);
 //						invalidate_line(m_cursorY, 0, m_cursorX);
 //						break;
-//					case 2: // Clear entire line 
+//					case 2: // Clear entire line
 //						clean_line(m_cursorY, 0, m_bufferWidthInChars);
 //						invalidate_line(m_cursorY, 0, m_bufferWidthInChars);
 //						break;
@@ -1300,7 +1300,7 @@
 //						//case 20: // NL mode
 //						//case 34: // DECRLM - Cursor Right to Left Mode - set
 //						//case 42: // DECNRCM - National Replacement Character Set Mode - set/7-bit characters
-//						//case 47: //?47 ignored (XTERM) switch to alternate screen 
+//						//case 47: //?47 ignored (XTERM) switch to alternate screen
 //						//case 58: // DECIPEM - Enter/Return from IBM ProPrinter Emulation Mode - set/enter
 //						//case 60: // DECHCCM - Horizontal Cursor-Coupling Mode - set/couples cursor to display
 //						//case 61: // DECVCCM - Vertical Cursor-Coupling Mode - set/couples cursor to display
@@ -1520,23 +1520,23 @@
 //					// Class code:
 //					//	64 = VT510 class code
 //					// Extensions:
-//					//	1 132 columns 
-//					//	2 Printer port 
-//					//	4 Sixel 
-//					//	6 Selective erase 
-//					//	7 Soft character set (DRCS) 
-//					//	8 User-defined keys (UDKs) 
-//					//	9 National replacement character sets (NRCS) (International terminal only) 
-//					//	12 Yugoslavian (SCS) 
-//					//	15 Technical character set 
-//					//	18 Windowing capability 
-//					//	21 Horizontal scrolling 
-//					//	23 Greek 
-//					//	24 Turkish 
-//					//	42 ISO Latin-2 character set 
-//					//	44 PCTerm 
-//					//	45 Soft key map 
-//					//	46 ASCII emulation 
+//					//	1 132 columns
+//					//	2 Printer port
+//					//	4 Sixel
+//					//	6 Selective erase
+//					//	7 Soft character set (DRCS)
+//					//	8 User-defined keys (UDKs)
+//					//	9 National replacement character sets (NRCS) (International terminal only)
+//					//	12 Yugoslavian (SCS)
+//					//	15 Technical character set
+//					//	18 Windowing capability
+//					//	21 Horizontal scrolling
+//					//	23 Greek
+//					//	24 Turkish
+//					//	42 ISO Latin-2 character set
+//					//	44 PCTerm
+//					//	45 Soft key map
+//					//	46 ASCII emulation
 //					default:
 //						break;
 //					}
@@ -1567,11 +1567,11 @@
 //				//case '}': // insert column
 //				//case 'X': // erase character
 //				//case 'g': //	TBC - Tab Clear
-//				//ESC [g  clear tab at current column 
-//				//ESC [3g  clear all tabs 
+//				//ESC [g  clear tab at current column
+//				//ESC [3g  clear all tabs
 //				//case 'i': //	?? printer?
-//				//ESC [4i  ignored Stop relay to printer 
-//				//ESC [5i  ignored Start relay to printer 
+//				//ESC [4i  ignored Stop relay to printer
+//				//ESC [5i  ignored Start relay to printer
 //				//case 'x': // ignored Send terminal parameter report - also req?
 //				//case 'q': // keyboard LEDs?
 //				//case ' q': // DECSCUSR — Set Cursor Style
@@ -2293,20 +2293,20 @@
 //	volatile uint16_type m_screenHeightInChars; // volatile, because resize and insert could occur parallel with draw
 //
 //	uint32_t m_bufferHeightInChars; // m_bufferNumLines?
-//	uint32_t m_bufferWidthInChars; // 
+//	uint32_t m_bufferWidthInChars; //
 //	size_t m_bufSize;
 //
-//	uint32_t m_scrollPos; // line number on top left pixel in view 
+//	uint32_t m_scrollPos; // line number on top left pixel in view
 //	uint32_t m_screenTop;
 //
 //	typedef union {
 //		struct {
 //			uint16_t padding : 3;
-//			uint16_t blinking : 2; // 1= blinking, 3=rapid blinking 
+//			uint16_t blinking : 2; // 1= blinking, 3=rapid blinking
 //			uint16_t foreFlag : 3; //3 bits - 8 foreground colors
 //
 //			uint16_t bold : 1; // aka 'intense'
-//			uint16_t underlined : 1; 
+//			uint16_t underlined : 1;
 //			uint16_t selected : 1; // If currently hilited/selected
 //			uint16_t inverse : 1; // Not sure why not just inverse colors instead
 //			uint16_t invisible : 1; // ??
@@ -2375,7 +2375,7 @@
 //
 //	bool m_localEcho;
 //	bool m_cursorMode; // true = block, false = underline
-//	
+//
 //	uint16_t m_topScrollLine;
 //	uint16_t m_bottomScrollLine;
 //
@@ -2388,7 +2388,7 @@
 //
 //
 //#error defer update of blinking state to the main UI thread
-//	
+//
 //	void blink_timer_expired()
 //	{
 //		inc_blink_state();
@@ -2589,14 +2589,14 @@
 //			beforePage = m_scrollPos - topOfAllLine;
 //			if (beforePage >= m_bufferHeightInChars)
 //				beforePage += m_bufferHeightInChars;
-//			
+//
 //			if (m_screenTop >= m_scrollPos)
 //				afterPage = m_screenTop - m_scrollPos;
 //			else
 //				afterPage = (m_screenTop + m_bufferHeightInChars) - m_scrollPos;
 //		}
 //
-//		update_scroller(1, beforePage, screenHeightInChars, beforePage + screenHeightInChars + afterPage); 
+//		update_scroller(1, beforePage, screenHeightInChars, beforePage + screenHeightInChars + afterPage);
 //	}
 //
 //	void advance_screen(uint32_t n) // Advances the screen (bottom portion of buffer) n lines, possibly reclaiming from the top
@@ -2643,7 +2643,7 @@
 //		m_bufPos = (((m_screenTop + m_cursorY) * m_bufferWidthInChars) + m_cursorX) % m_bufSize;
 //		invalidate_cursor(); // if we needed to recompute the cursor, then it needs to be draw
 //	}
-//	
+//
 //	void inc_buf_pos()
 //	{
 //		if (++m_bufPos == m_bufSize)
@@ -2734,7 +2734,7 @@
 //		case ST: // String Terminator
 //			// ignored
 //			break;
-//		case ESC: 
+//		case ESC:
 //			if (m_parseANSISeq)
 //				m_hadESC = true;
 //			else
@@ -2761,7 +2761,7 @@
 //					m_cursorX += tabSpaces;
 //				calc_buf_pos();
 //			}
-//			break; 
+//			break;
 //		case BELL:
 //			os::beep();
 //			break;
@@ -2783,7 +2783,7 @@
 //		case NEL: // NExt Line - Same as ESC E
 //			{
 //				invalidate_cursor();
-//				
+//
 //				// TBD - arbitrary scroll regions!
 //
 //				uint16_t screenHeightInChars = m_screenHeightInChars;
@@ -2842,7 +2842,7 @@
 //			m_hadESC = false;
 //			parse(RI);
 //			break;
-//		case 'H': 
+//		case 'H':
 //			{
 //				m_hadESC = false;
 //				if (!m_vt52Compat)
@@ -2855,7 +2855,7 @@
 //				parse_mid_sequence(c);
 //			}
 //			break;
-//		case 'D': 
+//		case 'D':
 //			if (!m_vt52Compat)
 //			{
 //				// IND - Index - Move down (scroll if necessary)
@@ -2923,8 +2923,8 @@
 //			break;
 //		//case 'q': // DECLL - Load LEDs
 //		//case '9': // DECFI - Forward Index
-//		//case 'F': // Enter graphics mode - VT52 
-//		//case 'G': // Exit graphics mode - VT52 
+//		//case 'F': // Enter graphics mode - VT52
+//		//case 'G': // Exit graphics mode - VT52
 //		//case ']': // Print screen - vt52
 //		//case 'V': // Print current line - vt52
 //		//case 'W': // Enter printer controller mode - vt52
@@ -2936,7 +2936,7 @@
 //		//case 'Z': // identify (host to terminal)
 //		//case '/Z': // identify (terminal to host)
 //		//	break
-//		// ESC Y# ?? - Move cursor to column # - VT52 
+//		// ESC Y# ?? - Move cursor to column # - VT52
 //		// ESC Q # <string> ?? - SCODFK - Define Function Key
 //		// ESC #3 - DECDHL - Double-Width, Double-Height Line - top half
 //		// ESC #4 - DECDHL - Double-Width, Double-Height Line - bottom half
@@ -3321,7 +3321,7 @@
 //							selector = m_seqVars[0];
 //						switch (selector)
 //						{
-//						case 0: // Clear to end of current line 
+//						case 0: // Clear to end of current line
 //							clean_line(m_cursorY, m_cursorX, m_bufferWidthInChars);
 //							invalidate_line(m_cursorY, m_cursorX, m_bufferWidthInChars);
 //							break;
@@ -3329,7 +3329,7 @@
 //							clean_line(m_cursorY, 0, m_cursorX);
 //							invalidate_line(m_cursorY, 0, m_cursorX);
 //							break;
-//						case 2: // Clear entire line 
+//						case 2: // Clear entire line
 //							clean_line(m_cursorY, 0, m_bufferWidthInChars);
 //							invalidate_line(m_cursorY, 0, m_bufferWidthInChars);
 //							break;
@@ -3567,7 +3567,7 @@
 //						//case 20: // NL mode
 //						//case 34: // DECRLM - Cursor Right to Left Mode - set
 //						//case 42: // DECNRCM - National Replacement Character Set Mode - set/7-bit characters
-//						//case 47: //?47 ignored (XTERM) switch to alternate screen 
+//						//case 47: //?47 ignored (XTERM) switch to alternate screen
 //						//case 58: // DECIPEM - Enter/Return from IBM ProPrinter Emulation Mode - set/enter
 //						//case 60: // DECHCCM - Horizontal Cursor-Coupling Mode - set/couples cursor to display
 //						//case 61: // DECVCCM - Vertical Cursor-Coupling Mode - set/couples cursor to display
@@ -3787,23 +3787,23 @@
 //							// Class code:
 //							//	64 = VT510 class code
 //							// Extensions:
-//							//	1 132 columns 
-//							//	2 Printer port 
-//							//	4 Sixel 
-//							//	6 Selective erase 
-//							//	7 Soft character set (DRCS) 
-//							//	8 User-defined keys (UDKs) 
-//							//	9 National replacement character sets (NRCS) (International terminal only) 
-//							//	12 Yugoslavian (SCS) 
-//							//	15 Technical character set 
-//							//	18 Windowing capability 
-//							//	21 Horizontal scrolling 
-//							//	23 Greek 
-//							//	24 Turkish 
-//							//	42 ISO Latin-2 character set 
-//							//	44 PCTerm 
-//							//	45 Soft key map 
-//							//	46 ASCII emulation 
+//							//	1 132 columns
+//							//	2 Printer port
+//							//	4 Sixel
+//							//	6 Selective erase
+//							//	7 Soft character set (DRCS)
+//							//	8 User-defined keys (UDKs)
+//							//	9 National replacement character sets (NRCS) (International terminal only)
+//							//	12 Yugoslavian (SCS)
+//							//	15 Technical character set
+//							//	18 Windowing capability
+//							//	21 Horizontal scrolling
+//							//	23 Greek
+//							//	24 Turkish
+//							//	42 ISO Latin-2 character set
+//							//	44 PCTerm
+//							//	45 Soft key map
+//							//	46 ASCII emulation
 //						default:
 //							break;
 //						}
@@ -3834,11 +3834,11 @@
 //			//case '}': // insert column
 //			//case 'X': // erase character
 //			//case 'g': //	TBC - Tab Clear
-//				//ESC [g  clear tab at current column 
-//				//ESC [3g  clear all tabs 
+//				//ESC [g  clear tab at current column
+//				//ESC [3g  clear all tabs
 //			//case 'i': //	?? printer?
-//				//ESC [4i  ignored Stop relay to printer 
-//				//ESC [5i  ignored Start relay to printer 
+//				//ESC [4i  ignored Stop relay to printer
+//				//ESC [5i  ignored Start relay to printer
 //			//case 'x': // ignored Send terminal parameter report - also req?
 //			//case 'q': // keyboard LEDs?
 //			//case ' q': // DECSCUSR — Set Cursor Style
@@ -4128,7 +4128,6 @@
 //								doUnderline = false;
 //							}
 //						}
-//						
 //					}
 //
 //					int fontRow = c / 16;
@@ -4153,7 +4152,7 @@
 //						foreColor = m_forePalleteBold[foreColorIndex];
 //					else
 //						foreColor = m_forePallete[foreColorIndex];
-//					draw_image_mask(m_fontBitMap, 
+//					draw_image_mask(m_fontBitMap,
 //						bounds((fontColumn * m_charWidthInPixels) + 3, (fontRow * m_charHeightInPixels) + 3,
 //							m_charWidthInPixels, m_charHeightInPixels),
 //						dstPt,
@@ -4339,7 +4338,7 @@
 //						m_cursorY += dif;
 //						COGS_ASSERT(m_cursorY < 999);
 //						uint32_t oldScreenTop = m_screenTop;
-//						
+//
 //						// If there is enough content above, just update screenPos
 //						if (m_hasBufferLooped)
 //						{
@@ -4478,7 +4477,7 @@
 //				if (!!tmp)
 //					tmp->close();
 //			}
-//			
+//
 //			// Sours the current read and prevents reuse if old datastream is set again.
 //			int curDatastreamVersion = ++m_datastreamVersion;
 //

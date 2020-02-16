@@ -34,7 +34,7 @@ namespace cogs {
 /// @tparam allocator_type Type of allocator to use to allocate from if the freelist is empty.  Default: default_allocator
 /// @tparam preallocated_count Number of objects to prepopulate the free-list with.  Default: 0
 template <size_t block_size, size_t alignment, class allocator_type = default_allocator, size_t preallocated_count = 0>
-class freelist_allocator 
+class freelist_allocator
 {
 private:
 	allocator_container<allocator_type> m_allocator;
@@ -139,7 +139,7 @@ public:
 
 
 template <size_t block_size, size_t alignment, class allocator_type>
-class freelist_allocator<block_size, alignment, allocator_type, 0> 
+class freelist_allocator<block_size, alignment, allocator_type, 0>
 {
 private:
 	allocator_container<allocator_type> m_allocator;

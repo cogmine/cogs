@@ -162,7 +162,6 @@ public:
 	{ return base1::get_self_weak_rcptr(obj); }
 
 
-
 #define COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE3(derived_type, base1, base2, base3) \
 	rc_obj_base* get_desc() const { return base1::get_desc(); } \
 	rc_obj_base* get_desc() const volatile { return base1::get_desc(); } \

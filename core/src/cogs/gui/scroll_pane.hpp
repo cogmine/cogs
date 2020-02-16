@@ -39,7 +39,7 @@ private:
 
 		scroll_bar_info(rc_obj_base& desc, scroll_pane& scrollPane, dimension d)
 			: m_scrollBar(rcnew(scroll_bar, d, false)),
-			m_frame(rcnew(override_bounds_frame, m_scrollBar)),
+			m_frame(rcnew(override_bounds_frame)),
 			m_stateProperty(desc, scrollPane, [this]()
 			{
 				return *(m_state.begin_read());
@@ -66,7 +66,8 @@ private:
 				m_canAutoFadeProperty.set_complete();
 			})
 		{
-			scrollPane.pane::nest_last(m_scrollBar, m_frame);
+			m_scrollBar->prepend_frame(m_frame);
+			scrollPane.pane::nest_last(m_scrollBar);
 			m_stateProperty.bind_to(m_scrollBar->get_state_property());
 			m_positionProperty.bind(m_scrollBar->get_position_property(), true);
 			m_canAutoFadeProperty.bind_from(m_scrollBar->get_can_auto_fade_property());
@@ -77,13 +78,13 @@ private:
 	bool m_hasScrollBar[2];
 	placement<scroll_bar_info> m_scrollBarInfo[2];
 
-	rcptr<container_pane> m_contentPane;
-	rcptr<native_container_pane> m_clippingPane; // using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
-	rcptr<container_pane> m_cornerPane;
+	rcref<container_pane> m_contentPane;
+	rcref<native_container_pane> m_clippingPane; // using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
+	rcref<container_pane> m_cornerPane;
 
-	rcptr<override_bounds_frame> m_contentFrame;
-	rcptr<override_bounds_frame> m_clippingFrame;
-	rcptr<override_bounds_frame> m_cornerFrame;
+	rcref<override_bounds_frame> m_contentFrame;
+	rcref<override_bounds_frame> m_clippingFrame;
+	rcref<override_bounds_frame> m_cornerFrame;
 
 	range m_calculatedRange;
 	size m_calculatedDefaultSize;
@@ -153,6 +154,12 @@ public:
 		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
 		bool dragAndFlickScrolling = true) // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		: pane(desc),
+		m_clippingPane(rcnew(native_container_pane)),
+		m_cornerPane(rcnew(container_pane)),
+		m_contentFrame(rcnew(override_bounds_frame)),
+		m_clippingFrame(rcnew(override_bounds_frame)),
+		m_cornerFrame(rcnew(override_bounds_frame)),
+		m_contentPane(rcnew(container_pane)),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
 		m_shouldAutoFadeScrollBarProperty(desc, *this, [this]()
@@ -166,22 +173,18 @@ public:
 			m_shouldAutoFadeScrollBarProperty.set_complete();
 		})
 	{
-		m_contentPane = rcnew(container_pane);
-
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
-		m_clippingPane = rcnew(native_container_pane);
-		m_cornerPane = rcnew(container_pane);
 
-		m_contentFrame = rcnew(override_bounds_frame, m_contentPane.dereference());
-		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, m_contentFrame.dereference(), alignment(0, 0));
+		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, alignment(0, 0));
 
-		m_clippingFrame = rcnew(override_bounds_frame, m_clippingPane.dereference());
-		m_cornerFrame = rcnew(override_bounds_frame, m_cornerPane.dereference());
-
-		m_clippingPane->nest(m_contentPane.dereference(), unconstrainedFrame);
-		pane::nest_last(m_clippingPane.dereference(), m_clippingFrame);
-		pane::nest_last(m_cornerPane.dereference(), m_cornerFrame);
+		m_contentPane->prepend_frame(m_contentFrame);
+		m_contentPane->prepend_frame(unconstrainedFrame);
+		m_clippingPane->nest(m_contentPane);
+		m_clippingPane->prepend_frame(m_clippingFrame);
+		pane::nest_last(m_clippingPane);
+		m_cornerPane->prepend_frame(m_cornerFrame);
+		pane::nest_last(m_cornerPane);
 
 		m_hasScrollBar[(int)dimension::horizontal] = ((int)scrollDimensions & (int)dimensions::horizontal) != 0;
 		if (m_hasScrollBar[(int)dimension::horizontal])
@@ -206,51 +209,51 @@ public:
 
 	using pane_container::nest;
 
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	virtual void nest_last(const rcref<pane>& child)
 	{
-		m_contentPane->nest_last(child, f);
+		m_contentPane->nest_last(child);
 	}
 
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	virtual void nest_first(const rcref<pane>& child)
 	{
-		m_contentPane->nest_first(child, f);
+		m_contentPane->nest_first(child);
 	}
 
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0)
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
 	{
-		m_contentPane->nest_before(child, beforeThis, f);
+		m_contentPane->nest_before(child, beforeThis);
 	}
 
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0)
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis)
 	{
-		m_contentPane->nest_after(child, afterThis, f);
+		m_contentPane->nest_after(child, afterThis);
 	}
 
 	// Nests a pane to be rendered at the intersection of 2 visible scroll bars.
 	// If no corner pane is specified, the scroll_pane's background color is used.
-	void nest_corner(const rcref<pane>&child, const rcptr<frame>& f = 0)
+	void nest_corner(const rcref<pane>&child)
 	{
-		nest_corner_last(child, f);
+		nest_corner_last(child);
 	}
 
-	void nest_corner_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	void nest_corner_last(const rcref<pane>& child)
 	{
-		m_cornerPane->nest_last(child, f);
+		m_cornerPane->nest_last(child);
 	}
 
-	void nest_corner_first(const rcref<pane>& child, const rcptr<frame>& f = 0)
+	void nest_corner_first(const rcref<pane>& child)
 	{
-		m_cornerPane->nest_first(child, f);
+		m_cornerPane->nest_first(child);
 	}
 
-	void nest_corner_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0)
+	void nest_corner_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
 	{
-		m_cornerPane->nest_before(child, beforeThis, f);
+		m_cornerPane->nest_before(child, beforeThis);
 	}
 
-	void nest_corner_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0)
+	void nest_corner_after(const rcref<pane>& child, const rcref<pane>& afterThis)
 	{
-		m_cornerPane->nest_after(child, afterThis, f);
+		m_cornerPane->nest_after(child, afterThis);
 	}
 
 	virtual void calculate_range()
@@ -264,7 +267,7 @@ public:
 			if (has_scroll_bar(d))
             {
                 auto& sbinfo = get_scroll_bar_info(d);
-				sbinfo.m_frame->get_fixed_size(!d) = sbinfo.m_scrollBar->get_const_cell().get_default_size()[!d];
+				sbinfo.m_frame->get_fixed_size(!d) = sbinfo.m_scrollBar->get_frame_default_size()[!d];
             }
         }
 
@@ -295,14 +298,14 @@ public:
 			{
 				m_calculatedRange.set_max(!d, contentRange.get_max(!d));
 				if (has_scroll_bar(!!d) && !autoFade)
-					m_calculatedRange.get_max(!d) += get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
+					m_calculatedRange.get_max(!d) += get_scroll_bar_info(d).m_scrollBar->get_frame_default_size()[!d];
 			}
 
 			if (!has_scroll_bar(!d))
 			{
 				m_calculatedRange.set_min(!d, contentRange.get_min(!d));
 				if (!m_hideInactiveScrollBar && has_scroll_bar(!!d) && !autoFade)
-					m_calculatedRange.get_min(!d) += get_scroll_bar_info(d).m_scrollBar->get_const_cell().get_default_size()[!d];
+					m_calculatedRange.get_min(!d) += get_scroll_bar_info(d).m_scrollBar->get_frame_default_size()[!d];
 			}
 		}
 	}

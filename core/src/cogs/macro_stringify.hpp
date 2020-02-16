@@ -16,5 +16,4 @@
 #define COGS_STRINGIFY_WCHAR(x) COGS_STRINGIFY_WCHAR_INNER(x)
 
 
-
 #endif

@@ -102,9 +102,9 @@
 //		weak_rcptr<file<io::read_access> > m_rawReadFile;
 //		weak_rcptr<file<io::write_access> > m_rawWriteFile;
 //		file_id_map_t::iterator m_itor;
-//		
+//
 //		rcptr<io::synchronized_file_impl<file_size_t> > m_syncImpl;
-//		
+//
 //		~file_info()
 //		{
 //			if (!!m_syncImpl)
@@ -172,7 +172,7 @@
 //		// On Win32, the best way to tell if two paths refer to the same file is to open both files with CreateFile,
 //		// call GetFileInformationByHandle for both, and compare dwVolumeSerialNumber, nFileIndexLow, nFileIndexHigh.
 //		// If all three are equal they both point to the same file.
-//		
+//
 //		DWORD dwDesiredAccess = GENERIC_READ;
 //		if (accessMode == io::write_access) // If opening for read_write_access, open read separately, first.
 //			dwDesiredAccess = GENERIC_WRITE;
@@ -356,7 +356,7 @@
 //	{
 //		return rcnew(reader, sm, this_rcref);
 //	}
-//	
+//
 //	class size_reader : public io::file<io::read_access, file_size_t>::size_reader
 //	{
 //	public:
@@ -376,7 +376,7 @@
 //		result->complete();
 //		return result;
 //	}
-//	
+//
 //protected:
 //	friend class file_globals;
 //
@@ -403,7 +403,7 @@
 //
 //	public:
 //		const rcptr<io::synchronized_file<io::read_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_read_file(); }
-//	
+//
 //		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
 //		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //	};
@@ -496,7 +496,7 @@
 //
 //	public:
 //		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_write_file(); }
-//	
+//
 //		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
 //		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //	};
@@ -541,7 +541,7 @@
 //
 //	public:
 //		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_file() const { return m_openerInternals->get_read_write_file(); }
-//	
+//
 //		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_openerInternals->timed_wait(timeout, spinCount); }
 //		virtual void dispatch(const delegate& d) const volatile { m_openerInternals->dispatch(d); }
 //
@@ -695,7 +695,7 @@
 //	public:
 //		~synchronized_file_impl()
 //		{
-//#error 
+//#error
 //			rcptr<globals> g = get_globals();
 //			typedef delegate_t<void, const file_id_map_t::iterator&> itor_delegate_t;
 //			g->m_serialQueue->submit(delegate(itor_delegate_t(&file::release_write_reference), m_itor));
@@ -739,10 +739,10 @@
 //
 //	public:
 //		const rcptr<io::synchronized_file<mode, io::default_file_size_t> >& get_file() const { return m_file; }
-//	
+//
 //		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
 //		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d); }
-//	
+//
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //		void dispatch(const dispatch_t& d) const { dispatch(delegate(d, this_rcref)); }
 //	};
@@ -844,7 +844,7 @@
 //		if (collision) // Update existing file_id in the map to include write access, in case we just added that.
 //		{
 //			synchronizedFileImpl = itor->m_synchronizedFileImpl;
-//			if (!!synchronizedFileImpl)	
+//			if (!!synchronizedFileImpl)
 //			{
 //				readAlreadyOpen = true;
 //				rawFile = itor->m_rawFile;

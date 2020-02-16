@@ -29,7 +29,6 @@ private:
 };
 
 
-
 template <size_t digest_bits, size_t stride_bits>
 class snefru_base : public serial_hash<digest_bits, digest_bits, 32, endian_t::big, stride_bits>
 {

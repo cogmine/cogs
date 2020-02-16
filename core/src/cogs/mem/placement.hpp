@@ -27,7 +27,7 @@ namespace cogs {
 // If is_not_pod, objects will be constructed, destructed, copy-constructed, etc.
 //
 // placement<> may be used as a type for a block of memory of the proper size and alignment to
-// construct the specified type.  
+// construct the specified type.
 
 
 /// @ingroup Mem
@@ -45,7 +45,6 @@ public:
 	template <typename T> volatile T& get() volatile { return *reinterpret_cast<volatile T*>(this); }
 	template <typename T> const volatile T& get() const volatile { return *reinterpret_cast<const volatile T*>(this); }
 };
-
 
 
 template <typename T, size_t alignment = std::alignment_of_v<T> >
@@ -120,7 +119,6 @@ placement_move_construct_array(T* t, T2* src, size_t n)
 	for (size_t i = 0; i < n; i++)
 		new (t + i) T(std::move(src[i]));
 }
-
 
 
 // buffers must not overlap.  If overlaping objects, use placement_move()
@@ -208,7 +206,6 @@ placement_reconstruct_multiple(T* t, size_t n, args_t&&... args)
 }
 
 
-
 // buffers must not overlap.  If overlaping objects, use placement_move()
 template <typename T, typename T2>
 inline std::enable_if_t<
@@ -222,7 +219,6 @@ placement_copy_reconstruct_array(T* t, T2* src, size_t n)
 	placement_destruct_multiple(t, n);
 	placement_copy_construct_array(t, src, n);
 }
-
 
 
 // placement_move() will move n elements from src to dst, and destructing vacated elements and constructing new elements.
@@ -297,7 +293,6 @@ placement_move(T* dst, T* src, size_t n)
 {
 	std::memmove(dst, src, n * sizeof(T));
 }
-
 
 
 }

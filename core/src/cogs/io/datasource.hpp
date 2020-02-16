@@ -30,7 +30,7 @@
 /// When reading an unknown number of bytes, blocks of size COGS_DEFAULT_BLOCK_SIZE
 /// are used.  This is done instead of polling for an available number of bytes
 /// (which is documented to be inefficient in some scenarios, and may be impossible
-/// with some datasources).  
+/// with some datasources).
 /// http://support.microsoft.com/kb/192599
 /// This approach involves allocating buffers that may be unnecessarily large for the
 /// contained data.  Generally, buffers should be very short-lived.
@@ -88,7 +88,7 @@ public:
 		/// Fewer bytes may be returned if the read is aborted or the datasource is no longer readable (closed, or EOF)
 		/// If not aborted, an empty read would indicate the datasource is no longer readable (closed, or EOF).
 		all = 3, // 11
-	}; 
+	};
 
 private:
 	datasource(datasource&&) = delete;
@@ -132,13 +132,13 @@ public:
 		/// @brief Derived class implements executing() to executing the task
 		virtual void executing() = 0;
 
-		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed.
 		virtual void canceling() { io::queue::io_task<result_t>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
 		/// aborting() is only called if execute() was called and returned without having completed synchronously.
-		/// If the derived task executes synchronously, it does not need to override aborting(). 
+		/// If the derived task executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
@@ -176,13 +176,13 @@ public:
 		/// simply a NOP that asynchronously notifies when all prior queued writes have completed.
 		virtual void flushing() { complete(); }
 
-		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed.
 		virtual void canceling() { datasource_task<flusher>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
 		/// aborting() is only called if flushing() was called and returned without having completed synchronously.
-		/// If the derived flusher executes synchronously, it does not need to override aborting(). 
+		/// If the derived flusher executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
@@ -215,13 +215,13 @@ public:
 		/// The default implementation completes the closer and closes the datasource's io::queue.
 		virtual void closing() { datasource_task<closer>::complete(true); }
 
-		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed.
 		virtual void canceling() { datasource_task<closer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
 		/// aborting() is only called if closing() was called and returned without having completed synchronously.
-		/// If the derived closer executes synchronously, it does not need to override aborting(). 
+		/// If the derived closer executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
@@ -280,17 +280,17 @@ public:
 		{ }
 
 		/// @brief Derived readers should implement reading() to perform the read operation
-		/// 
+		///
 		/// When the read is complete, the derived class should call complete().
 		virtual void reading() { complete(); }
 
-		/// @brief Derived class implements canceling() to cancel a reader that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a reader that has not yet been executed.
 		virtual void canceling() { datasource_task<reader>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a reader that has started executing.
 		///
 		/// aborting() is only called if reading() was called and returned without having completed synchronously.
-		/// If the derived reader executes synchronously, it does not need to override aborting(). 
+		/// If the derived reader executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the reader, and starts the next task, if any.  Called by a derived reader.
@@ -300,14 +300,14 @@ public:
 		/// @brief Restores data to the datasource.  It will be read by the next reader.
 		///
 		/// Only valid to call while a reader is executing.
-		/// @param b The buffer to prepend 
+		/// @param b The buffer to prepend
 		void prepend_overflow(const buffer& b) { m_overflow->prepend(b); }
 		void prepend_overflow(const composite_buffer& b) { m_overflow->prepend(b); }
 
 		/// @brief Allocate a buffer to read data into.
 		///
 		/// allocate_buffer() will internally allocate one large buffer, and suballocate
-		/// smaller buffers from it.  This allows larger blocks to be coalesced, if 
+		/// smaller buffers from it.  This allows larger blocks to be coalesced, if
 		/// recombined in a composite_buffer in the course of processing I/O.
 		///
 		/// If the read_mode is not read_mode::all, it's possible a smaller block than requested will be returned.
@@ -482,7 +482,7 @@ protected:
 	/// will be closed if the datasource closes.  Default: false
 	/// @param closeSourceOnSinkClose If false, the coupler will be decoupled if the datasink closes.  If true, the datasource
 	/// will be closed if the datasink closes.  This option is useful to chain cleanup if a datasink may close unexpectedly and any
-	/// data in transit may be abandoned, or to close gracefully without losing data if the datasink is known only to close after 
+	/// data in transit may be abandoned, or to close gracefully without losing data if the datasink is known only to close after
 	/// all available data has been read from the datasource.  Otherwise, it's possible that this option may result in data loss.
 	/// i.e. If the datasource is a filter and the datasink has closed before all filtered data was processed.  The filtered data
 	/// cannot be restored to the original (unfiltered) datasource, so is lost.  Default: false

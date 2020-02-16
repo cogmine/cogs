@@ -14,7 +14,6 @@
 namespace cogs {
 
 
-
 /// @ingroup Timers
 /// @brief A manually reset timer
 ///

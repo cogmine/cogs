@@ -28,7 +28,6 @@ namespace cogs {
 namespace geometry {
 
 
-
 // sizing_group is a utility class for rects with subrects arranged in rows or columns, which need to grow
 // or shrink according to some set of rules.
 

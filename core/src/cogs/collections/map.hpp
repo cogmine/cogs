@@ -209,7 +209,7 @@ public:
 
 		iterator next() const { return iterator(m_contents.next()); }
 		iterator next() const volatile { return iterator(m_contents.next()); }
-		
+
 		void assign_next() { m_contents.assign_next(); }
 		void assign_next() volatile { m_contents.assign_next(); }
 
@@ -867,7 +867,7 @@ public:
 	/// @brief Inserts an element, replacing any existing element with an equal key value
 	/// @param k Key value to insert
 	/// @param v Value to insert
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert_replace(const key_t& k, const value_t& v)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();
@@ -879,7 +879,7 @@ public:
 	/// @param k Key value to insert
 	/// @param v Value to insert
 	/// @param[out] collision Receives a value indicating whether the insert encountered a collision and removed another element
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert_replace(const key_t& k, const value_t& v, bool& collision)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();

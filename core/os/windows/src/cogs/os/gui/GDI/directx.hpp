@@ -263,7 +263,7 @@ public:
 	{
 	}
 
-	// planar 
+	// planar
 	virtual rcref<view> create_button(const rcref<gui::button>& btn) volatile
 	{
 		rcptr<view> a;

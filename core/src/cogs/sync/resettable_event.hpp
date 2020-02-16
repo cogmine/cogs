@@ -215,7 +215,7 @@ public:
 		return !wasUnset;
 	}
 
-	bool pulse_all() volatile // returns true if any waiters woken/dispatched 
+	bool pulse_all() volatile // returns true if any waiters woken/dispatched
 	{
 		bool wokeAny = false;
 		for (;;)

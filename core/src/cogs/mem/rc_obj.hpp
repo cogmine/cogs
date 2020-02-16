@@ -29,10 +29,10 @@ class rc_object_base
 
 #ifdef DOXYGEN
 /// @brief A reference-counted object container.
-/// 
+///
 /// rc_obj instances contain reference counts.  rc_obj is used internally by rcref, rcptr, weak_rcptr.
 /// @tparam T Type to contain
-/// @tparam allocator_type Allocator type to use to allocate reference-counted object (and reference counts).  
+/// @tparam allocator_type Allocator type to use to allocate reference-counted object (and reference counts).
 /// Default: default_allocator
 template <typename T, class allocator_type = default_allocator>
 class rc_obj : public rc_obj_base // default is: rc_obj<type, allocator_type, false, true, false>

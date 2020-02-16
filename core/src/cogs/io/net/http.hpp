@@ -29,7 +29,6 @@ namespace io {
 namespace net {
 
 
-
 // A URI is immutable.  It's basically used to convert a URI string into its components.
 class url
 {
@@ -312,7 +311,7 @@ composite_cstring url_decode(const composite_cstring& s);
 //	public:
 //		// headers
 //		//........
-//		// Accept: 
+//		// Accept:
 //		// Connection: (Close/Keep-Alive)
 //		// Content-Length: <numeric>
 //		// Content-Type:
@@ -813,7 +812,7 @@ private:
 						{
 							buffer buf = m_bufferedWrite.get_inner(0);
 							const char c = ((const char*)(buf.get_const_ptr()))[0];
-							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
+							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence.
 								continue;
 							if (c != special_characters<char>::LF)
 							{
@@ -862,7 +861,7 @@ private:
 						{
 							buffer buf = m_bufferedWrite.get_inner(0);
 							const char c = ((const char*)(buf.get_const_ptr()))[0];
-							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence. 
+							if (c == special_characters<char>::CR) // Ignore CR's.  No CR or LF is allowed except in the final CRLF sequence.
 								continue;
 							if (lastCharWasLF)
 							{
@@ -1032,7 +1031,7 @@ private:
 				return r2->process_write(b);
 			}))
 		{
-			// setup default response headers 
+			// setup default response headers
 			m_responseHeaders->insert_replace(cstring::literal("Server"), server::get_version_cstring());
 			m_responseHeaders->insert_replace(cstring::literal("Content-Type"), cstring::literal("text/html; charset=iso-8859-1"));
 			m_source = net::request_response_server::request::get_datasource();

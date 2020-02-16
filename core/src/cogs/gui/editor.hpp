@@ -3,7 +3,6 @@
 //
 
 
-
 // Status: Placeholder
 
 #ifndef COGS_HEADER_GUI_UIEDITOR

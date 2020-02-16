@@ -17,7 +17,6 @@ namespace arch {
 namespace atomic {
 
 
-
 // The purpose of the arch-level atomic.hpp is to define the largest supported type
 // available for atomic operations, and the required alignment of atomic types
 
@@ -27,7 +26,6 @@ namespace atomic {
 
 // On x86, loads and stores to 1, 2, 4, and 8 byte aligned
 // memory addresses are guaranteed to be atomic (no partial values).
-
 
 
 static constexpr size_t largest = 8;
@@ -45,11 +43,9 @@ public:
 };
 
 
-
 }
 }
 }
 
 
 #endif
-

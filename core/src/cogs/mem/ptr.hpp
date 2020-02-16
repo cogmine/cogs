@@ -112,7 +112,6 @@ public:
 	ptr(ref<type2>&& src) : m_ref(std::move(src)) { }
 
 
-
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(ptr<type2>&& src)
 	{
@@ -126,7 +125,6 @@ public:
 		m_ref = std::move(src);
 		return *this;
 	}
-
 
 
 	/// @{
@@ -260,7 +258,6 @@ public:
 	/// @}
 
 
-
 	template <typename T2>
 	auto operator+(T2&& src) const { return cogs::add(get_ptr(), std::forward<T2>(src)); }
 	template <typename T2>
@@ -280,7 +277,6 @@ public:
 	this_t post_assign_add(T2&& src) { return cogs::post_assign_add(get_ptr_ref(), std::forward<T2>(src)); }
 	template <typename T2>
 	this_t post_assign_add(T2&& src) volatile { return cogs::post_assign_add(get_ptr_ref(), std::forward<T2>(src)); }
-
 
 
 	template <typename T2>
@@ -514,7 +510,6 @@ public:
 	/// @}
 
 
-
 	template <typename type2>
 	void swap(ptr<type2>& wth) { cogs::swap(get_ptr_ref(), wth.get_ptr_ref()); }
 
@@ -532,7 +527,6 @@ public:
 
 	template <typename type2>
 	void swap(type2*& wth) volatile { cogs::swap(get_ptr_ref(), wth); }
-
 
 
 	this_t exchange(const this_t& src) { return cogs::exchange(get_ptr_ref(), src.get_ptr()); }
@@ -599,10 +593,6 @@ public:
 	void exchange(const volatile this_t& src, type2* volatile& rtn) volatile { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn); }
 
 
-
-
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -612,7 +602,6 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-
 
 
 	template <typename type2>
@@ -669,7 +658,6 @@ public:
 
 	template <typename type2>
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, type2*& rtn) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr(), rtn); }
-
 
 
 	template <typename type2>
@@ -1113,8 +1101,6 @@ public:
 	void exchange(const volatile this_t& src, type2* volatile& rtn) volatile { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn); }
 
 
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -1124,7 +1110,6 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-
 
 
 	template <typename type2>
@@ -1181,7 +1166,6 @@ public:
 
 	template <typename type2>
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, type2*& rtn) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr(), rtn); }
-
 
 
 	template <typename type2>
@@ -1523,8 +1507,6 @@ public:
 	void exchange(const volatile this_t& src, type2* volatile& rtn) volatile { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn); }
 
 
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -1534,7 +1516,6 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-
 
 
 	template <typename type2>
@@ -1591,7 +1572,6 @@ public:
 
 	template <typename type2>
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, type2*& rtn) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr(), rtn); }
-
 
 
 	template <typename type2>
@@ -1932,8 +1912,6 @@ public:
 	void exchange(const volatile this_t& src, type2* volatile& rtn) volatile { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn); }
 
 
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -1943,7 +1921,6 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-
 
 
 	template <typename type2>
@@ -2000,7 +1977,6 @@ public:
 
 	template <typename type2>
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, type2*& rtn) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr(), rtn); }
-
 
 
 	template <typename type2>
@@ -2286,7 +2262,6 @@ public:
 	void swap(type2*& wth) volatile { cogs::swap(get_ptr_ref(), wth); }
 
 
-
 	template <typename type2>
 	void exchange(const this_t& src, ptr<type2>& rtn) { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn.get_ptr_ref()); }
 
@@ -2342,8 +2317,6 @@ public:
 	void exchange(const volatile this_t& src, type2* volatile& rtn) volatile { cogs::exchange(get_ptr_ref(), src.get_ptr(), rtn); }
 
 
-
-
 	bool compare_exchange(const this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
@@ -2353,7 +2326,6 @@ public:
 	bool compare_exchange(const volatile this_t& src, const this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr()); }
-
 
 
 	template <typename type2>
@@ -2410,7 +2382,6 @@ public:
 
 	template <typename type2>
 	bool compare_exchange(const volatile this_t& src, const volatile this_t& cmp, type2*& rtn) volatile { return cogs::compare_exchange(get_ptr_ref(), src.get_ptr(), cmp.get_ptr(), rtn); }
-
 
 
 	template <typename type2>
@@ -2502,7 +2473,6 @@ inline void operator delete(void*, const cogs::ptr<type>& p) throw () { }
 
 template <typename type>
 inline void operator delete(void*, const cogs::ptr<type>& p, const std::nothrow_t&) throw () { }
-
 
 
 #endif

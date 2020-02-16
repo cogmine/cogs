@@ -20,7 +20,7 @@ namespace io {
 /// @ingroup IO
 /// @brief A derived I/O filter that limits reading to a specifed number of bytes.
 ///
-/// When the data limit is exceeded, the limiter becomes unreadable, 
+/// When the data limit is exceeded, the limiter becomes unreadable,
 /// effectively closing the connection from the perspective of a reader/datasink
 /// coupled to it.  A coupled datasource/writer will have any in-transit data
 /// returned to its overflow buffer.

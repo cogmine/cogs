@@ -55,7 +55,7 @@ private:
 		atomic::load(m_contents.m_head, oldHead);
 		do {
 			link_accessor::set_next(*vol, oldHead.get_ptr());
-		} while (!atomic::compare_exchange(m_contents.m_head, ePtr, oldHead, oldHead)); 
+		} while (!atomic::compare_exchange(m_contents.m_head, ePtr, oldHead, oldHead));
 	}
 
 public:

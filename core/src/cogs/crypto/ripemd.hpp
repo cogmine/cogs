@@ -29,7 +29,6 @@ private:
 };
 
 
-
 class ripemd_base
 {
 protected:

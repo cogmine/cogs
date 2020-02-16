@@ -66,7 +66,7 @@ private:
 public:
 	stack()
 		: m_head(0)
-	{ } 
+	{ }
 
 	stack(this_t&& src)
 		: m_head(std::move(src.m_head))
@@ -242,7 +242,7 @@ public:
 	/// @{
 	/// @brief Swaps this contents of this stack with the specified stack.
 	/// @param[in,out] s Stack to swap the contents of this stack with.
-	/// 
+	///
 	/// Note that the operation can only be considered atomic for one of the stacks involved.
 	void swap(this_t& s)
 	{

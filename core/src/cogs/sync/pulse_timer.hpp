@@ -15,7 +15,6 @@
 namespace cogs {
 
 
-
 /// @ingroup Timers
 /// @brief A pulse timer
 ///

@@ -31,26 +31,26 @@ class function;
 /// @ingroup Synchronization
 /// @brief Prevents a resource from being disposed while it may still be in use.
 ///
-/// <a href='https://en.wikipedia.org/wiki/Hazard_pointer'>Hazard pointers</a> ensure 
+/// <a href='https://en.wikipedia.org/wiki/Hazard_pointer'>Hazard pointers</a> ensure
 /// data structures are not disposed out from under lock-free algorithms.
 ///
 /// cogs::hazard is inspired by work published by Maged M Michael, but diverges significantly.
 /// This implementation is independent of the deallocation mechanism, releases resources immediately when
 /// no longer referenced, and is contextual (opt-in).
-/// 
+///
 /// One example of hazard pointer use would be a lock-free stack.  In order to remove an element,
 /// it's necessary to dereference the node at the head of the list, to read it's 'next' pointer.
 /// On a platform with paged virtual memory, reading from released memory could cause a fault.
 /// A hazard pointer can be used to prevent a node from being released
 /// while it's being dereferenced, by temporarily placing it on a "do not delete" list.
-/// 
+///
 /// 'Acquiring' a hazard pointer requires some atomic double-checking.  After a pointer is
 /// added to the "do not delete" list, it's necessary to double-check that the pointer has not
 /// already been released.
 ///
 /// In the simple use case in which the pointer to acquire is a volatile
 /// pointer variable, hazard::pointer::acquire() can be used and does the lock-free double-checking internally.
-/// 
+///
 /// In more complex scenarios, the pointer may be a member of a data structure, computed, or otherwise not
 /// accessible directly using a volatile pointer variable.
 /// If the process of double-checking the pointer value can be accomplished with a delegate,
@@ -61,11 +61,11 @@ class function;
 /// - If the value has changed, call hazard::bind() with the new value, and re-read again.
 ///   Repeat until the original value is unchanged.
 /// - Call hazard::pointer::validate().  If false is returned, start over.
-/// 
+///
 /// The call to validate() promotes the hazard to the 'acquired' state.  This is because the
 /// hazard does not assume ownership of the pointer until after it is confirmed to still
 /// point to the data type we expect.  validate() may fail if release of the pointer has already
-/// been detected. 
+/// been detected.
 ///
 /// To release a resource that may be referred to by the hazard, call hazard::release().
 /// If there are no associated hazard pointers, hazard::release() will return true,
@@ -375,7 +375,7 @@ public:
 	{ }
 
 	/// @brief Prevents a resource from being disposed while it may still be in use.
-	/// 
+	///
 	/// See cogs::hazard
 	class pointer
 	{
@@ -461,7 +461,7 @@ public:
 
 		/// @{
 		/// @brief Bind a pointer value and hazard pool
-		/// 
+		///
 		/// A hazard::pointer can be bound to a new pointer value when in the empty, unconfirmed, or released states.
 		/// It is caller error to call bind() on an acquired hazard::pointer.
 		/// @param h hazard pool to bind value within
@@ -602,14 +602,13 @@ public:
 	/// If there are no associated hazard pointers, hazard::release() will return true,
 	/// and the resource can actually be released.  If there are associated hazard pointers,
 	/// hazard::release() will return false, and actual release is deferred until there are no longer associated
-	/// hazard pointers.  
+	/// hazard pointers.
 	/// @param value Pointer value of object to release
 	/// @return If true, the caller has ownership and should actually release the object.  If false, actual release is defered.
 	template <typename type>
 	bool release(type* value) volatile { return release_inner((void*)value); }
 	/// @}
 };
-
 
 
 }

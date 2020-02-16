@@ -9,7 +9,6 @@
 #define COGS_HEADER_OS_GUI_TEXT_EDITOR
 
 
-
 #include "cogs/os/gui/nsview.hpp"
 #include "cogs/gui/text_editor.hpp"
 
@@ -27,7 +26,6 @@ class text_editor;
 };
 
 
-
 @interface objc_text_editor : NSTextField <NSTextFieldDelegate>
 {
 @public
@@ -41,11 +39,9 @@ class text_editor;
 @end
 
 
-
 namespace cogs {
 namespace gui {
 namespace os {
-
 
 
 class text_editor : public nsview_pane, public text_editor_interface

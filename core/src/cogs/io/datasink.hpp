@@ -82,13 +82,13 @@ public:
 		/// @brief Derived class implements executing() to execute the task
 		virtual void executing() = 0;
 
-		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed.
 		virtual void canceling() { io::queue::io_task<result_t>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
 		/// aborting() is only called if execute() was called and returned without having completed synchronously.
-		/// If the derived task executes synchronously, it does not need to override aborting(). 
+		/// If the derived task executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.
@@ -126,13 +126,13 @@ public:
 		/// simply a NOP that asynchronously notifies when all prior queued writes have completed.
 		virtual void flushing() { complete(); }
 
-		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a flusher that has not yet been executed.
 		virtual void canceling() { io::queue::io_task<flusher>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a flusher that has started executing.
 		///
 		/// aborting() is only called if flushing() was called and returned without having completed synchronously.
-		/// If the derived flusher executes synchronously, it does not need to override aborting(). 
+		/// If the derived flusher executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the flusher, and starts the next task, if any.  Called by a derived flusher.
@@ -165,13 +165,13 @@ public:
 		/// The default implementation completes the closer and closes the datasink's io::queue.
 		virtual void closing() { datasink_task<closer>::complete(true); }
 
-		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a closer that has not yet been executed.
 		virtual void canceling() { io::queue::io_task<closer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a closer that has started executing.
 		///
 		/// aborting() is only called if closing() was called and returned without having completed synchronously.
-		/// If the derived closer executes synchronously, it does not need to override aborting(). 
+		/// If the derived closer executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the closer, and starts the next task, if any (if the closer was aborted).  Called by a derived closer.
@@ -210,17 +210,17 @@ public:
 		writer(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds) { }
 
 		/// @brief Derived writers should implement writing() to perform the write operation
-		/// 
+		///
 		/// When the write is complete, the derived class should call complete().
 		virtual void writing() { complete(); }
 
-		/// @brief Derived class implements canceling() to cancel a writer that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a writer that has not yet been executed.
 		virtual void canceling() { io::queue::io_task<writer>::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a writer that has started executing.
 		///
 		/// aborting() is only called if writing() was called and returned without having completed synchronously.
-		/// If the derived writer executes synchronously, it does not need to override aborting(). 
+		/// If the derived writer executes synchronously, it does not need to override aborting().
 		virtual void aborting() { COGS_ASSERT(false); }
 
 		/// @brief Completes the writer, and starts the next task, if any.  Called by a derived writer.
@@ -644,8 +644,6 @@ public:
 		m_ioQueue.release(); // Prevents datasink destructor from closing it yet.
 	}
 };
-
-
 
 
 }

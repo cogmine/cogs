@@ -582,7 +582,7 @@ public:
 	template <typename type2, class allocator_type2>
 	bool equals(const simple_vector<type2, allocator_type2>& cmp) const
 	{
-		return equals(cmp.get_const_ptr(), cmp.get_length()); 
+		return equals(cmp.get_const_ptr(), cmp.get_length());
 	}
 
 	template <typename type2, class allocator_type2>
@@ -654,7 +654,7 @@ public:
 	template <typename type2, class allocator_type2>
 	bool starts_with(const simple_vector<type2, allocator_type2>& cmp) const
 	{
-		return starts_with(cmp.get_const_ptr(), cmp.get_length()); 
+		return starts_with(cmp.get_const_ptr(), cmp.get_length());
 	}
 
 	template <typename type2, class allocator_type2>
@@ -727,7 +727,7 @@ public:
 	template <typename type2, class allocator_type2>
 	bool ends_with(const simple_vector<type2, allocator_type2>& cmp) const
 	{
-		return ends_with(cmp.get_const_ptr(), cmp.get_length()); 
+		return ends_with(cmp.get_const_ptr(), cmp.get_length());
 	}
 
 	template <typename type2, class allocator_type2>
@@ -812,7 +812,7 @@ public:
 	template <typename type2, class allocator_type2>
 	bool is_less_than(const simple_vector<type2, allocator_type2>& cmp) const
 	{
-		return is_less_than(cmp.get_const_ptr(), cmp.get_length()); 
+		return is_less_than(cmp.get_const_ptr(), cmp.get_length());
 	}
 
 	template <typename type2, class allocator_type2>
@@ -878,7 +878,7 @@ public:
 	template <typename type2, class allocator_type2>
 	bool is_greater_than(const simple_vector<type2, allocator_type2>& cmp) const
 	{
-		return is_greater_than(cmp.get_const_ptr(), cmp.get_length()); 
+		return is_greater_than(cmp.get_const_ptr(), cmp.get_length());
 	}
 
 	template <typename type2, class allocator_type2>

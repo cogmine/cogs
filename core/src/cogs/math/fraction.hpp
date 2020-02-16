@@ -457,9 +457,9 @@ public:
 	this_t& operator+=(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		auto tmp(cogs::multiply(m_numerator, src.m_denominator));
-		cogs::assign(m_numerator, 
+		cogs::assign(m_numerator,
 			cogs::add(
-				std::move(tmp), 
+				std::move(tmp),
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
 		cogs::assign_multiply(m_denominator, std::move(src.m_denominator));
 		return *this;
@@ -478,8 +478,8 @@ public:
 	{
 		return cogs::divide(
 			cogs::subtract(
-				cogs::multiply(m_numerator, src.m_denominator), 
-				cogs::multiply(m_denominator, src.m_numerator)), 
+				cogs::multiply(m_numerator, src.m_denominator),
+				cogs::multiply(m_denominator, src.m_numerator)),
 			cogs::multiply(m_denominator, src.m_denominator));
 	}
 
@@ -505,9 +505,9 @@ public:
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	this_t& operator-=(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
-		cogs::assign(m_numerator, 
+		cogs::assign(m_numerator,
 			cogs::subtract(
-				cogs::multiply(m_numerator, src.m_denominator), 
+				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)));
 		cogs::assign_multiply(m_denominator, src.m_denominator);
 		return *this;
@@ -517,9 +517,9 @@ public:
 	this_t& operator-=(fraction_content<numerator_t2, denominator_t2>&& src) const
 	{
 		auto tmp(cogs::multiply(m_numerator, src.m_denominator));
-		cogs::assign(m_numerator, 
+		cogs::assign(m_numerator,
 			cogs::subtract(
-				std::move(tmp), 
+				std::move(tmp),
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
 		cogs::assign_multiply(m_denominator, std::move(src.m_denominator));
 		return *this;
@@ -581,7 +581,6 @@ public:
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
 		cogs::assign_multiply(m_denominator, std::move(src.m_denominator));
 	}
-
 
 
 	// multiply
@@ -763,7 +762,7 @@ public:
 	void assign_divide_whole(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
 		cogs::assign(m_numerator,
-			cogs::divide_whole( 
+			cogs::divide_whole(
 				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)));
 		cogs::assign(m_denominator, one_t());
@@ -778,7 +777,6 @@ public:
 				cogs::multiply(m_denominator, std::move(src.m_numerator))));
 		cogs::assign(m_denominator, one_t());
 	}
-
 
 
 	// inverse_divide_whole
@@ -852,8 +850,8 @@ public:
 		auto denom(cogs::multiply(m_denominator, src.m_denominator));
 		return cogs::divide(
 			cogs::modulo(
-				cogs::multiply(m_numerator, std::move(src.m_denominator)), 
-				cogs::multiply(m_denominator, std::move(src.m_numerator))), 
+				cogs::multiply(m_numerator, std::move(src.m_denominator)),
+				cogs::multiply(m_denominator, std::move(src.m_numerator))),
 			std::move(denom));
 	}
 
@@ -868,7 +866,7 @@ public:
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	this_t& operator%=(const fraction_content<numerator_t2, denominator_t2>& src) const
 	{
-		cogs::assign(m_numerator, 
+		cogs::assign(m_numerator,
 			cogs::modulo(
 				cogs::multiply(m_numerator, src.m_denominator),
 				cogs::multiply(m_denominator, src.m_numerator)));
@@ -887,7 +885,6 @@ public:
 		cogs::assign_multiply(m_denominator, std::move(src.m_denominator));
 		return *this;
 	}
-
 
 
 	// inverse_modulo
@@ -1042,7 +1039,7 @@ public:
 		return cogs::divide(
 			cogs::gcd(
 				cogs::multiply(src.m_numerator, m_denominator),
-				cogs::multiply(m_numerator, src.m_denominator)), 
+				cogs::multiply(m_numerator, src.m_denominator)),
 			cogs::abs(
 				cogs::multiply(m_denominator, src.m_denominator)));
 	}
@@ -1338,7 +1335,7 @@ private:
 
 	template <typename numerator_t2, bool has_sign, size_t bits>
 	class simplification_helper<
-		numerator_t2, 
+		numerator_t2,
 		fixed_integer_native_const<has_sign, bits, 1> >
 	{
 	public:
@@ -1349,7 +1346,7 @@ private:
 
 	template <bool has_sign, size_t bits, typename denominator_t2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, 0>, 
+		fixed_integer_native_const<has_sign, bits, 0>,
 		denominator_t2>
 	{
 	public:
@@ -1419,7 +1416,7 @@ private:
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_extended_const<has_sign, bits, values...>, 
+		fixed_integer_extended_const<has_sign, bits, values...>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1440,7 +1437,7 @@ private:
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			std::is_same_v<
@@ -1482,7 +1479,7 @@ private:
 	// If the fraction is with consts, and there is a remainder, but a gcd other than 1
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1494,13 +1491,13 @@ private:
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
-					std::declval<fixed_integer_native_const<has_sign, bits, value> >(), 
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				one_t
 			>
 			&& !std::is_same_v<
 				decltype(cogs::gcd(
-					std::declval<fixed_integer_native_const<has_sign, bits, value> >(), 
+					std::declval<fixed_integer_native_const<has_sign, bits, value> >(),
 					std::declval<fixed_integer_native_const<has_sign2, bits2, value2> >())),
 				negative_one_t
 			>
@@ -1521,7 +1518,7 @@ private:
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_extended_const<has_sign, bits, values...>, 
+		fixed_integer_extended_const<has_sign, bits, values...>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1557,7 +1554,7 @@ private:
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
@@ -1628,7 +1625,7 @@ private:
 	// If the fraction is with consts, and it cannot be otherwise simplified, but both values are negative.  Make both positive.
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1658,7 +1655,7 @@ private:
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_extended_const<has_sign, bits, values...>, 
+		fixed_integer_extended_const<has_sign, bits, values...>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1688,7 +1685,7 @@ private:
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
@@ -1754,7 +1751,7 @@ private:
 	// If the fraction is with consts, and it cannot be otherwise simplified, but both values are negative.  Make both positive.
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1784,7 +1781,7 @@ private:
 
 	template <bool has_sign, size_t bits, ulongest... values, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	class simplification_helper<
-		fixed_integer_extended_const<has_sign, bits, values...>, 
+		fixed_integer_extended_const<has_sign, bits, values...>,
 		fixed_integer_native_const<has_sign2, bits2, value2>,
 		std::enable_if_t<
 			value2 != 1
@@ -1814,7 +1811,7 @@ private:
 
 	template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value, bool has_sign2, size_t bits2, ulongest... values2>
 	class simplification_helper<
-		fixed_integer_native_const<has_sign, bits, value>, 
+		fixed_integer_native_const<has_sign, bits, value>,
 		fixed_integer_extended_const<has_sign2, bits2, values2...>,
 		std::enable_if_t<
 			!std::is_same_v<
@@ -2225,7 +2222,6 @@ private:
 	simplify_content_type(const volatile fraction<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
 
 
-
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<numerator_t2, denominator_t2>::is_simplifiable,
@@ -2267,7 +2263,6 @@ private:
 		&& !is_const_type_v<numerator_t2> && is_const_type_v<denominator_t2>,
 		const numerator_t2&>
 	simplify_content_type(const fraction_content<numerator_t2, denominator_t2>& f) { return f.m_numerator; }
-
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2326,7 +2321,6 @@ private:
 	simplify_content_type(const fraction_content<numerator_t2, denominator_t2>& f) { return fraction<numerator_t2, denominator_t2>::simplified_t(); }
 
 
-
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable,
@@ -2351,7 +2345,6 @@ private:
 	simplify_numerator_type(numerator_t2&& n, const denominator_t2& d) { return typename fraction<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::simplified_t::numerator_type(); }
 
 
-
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
 		!simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable,
@@ -2374,7 +2367,6 @@ private:
 		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
 		typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type>
 	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type(); }
-
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2728,7 +2720,6 @@ public:
 	}
 
 
-
 	// multiply
 	template <typename T>
 	auto operator*(T&& t) const
@@ -2839,7 +2830,6 @@ public:
 	}
 
 
-
 	// inverse_modulo
 	template <typename T>
 	auto inverse_modulo(T&& t) const
@@ -2891,7 +2881,6 @@ public:
 	{
 		return write_retry_loop_post([&](content_t& c) { c.assign_inverse_modulo(simplify_content_type(t)); });
 	}
-
 
 
 	// divide
@@ -3102,7 +3091,6 @@ public:
 	}
 
 
-
 	// inverse_divide_whole
 	template <typename T>
 	auto inverse_divide_whole(T&& t) const
@@ -3158,7 +3146,6 @@ public:
 	}
 
 
-
 	// divide_whole_and_modulo
 	template <typename T>
 	auto divide_whole_and_modulo(T&& t) const
@@ -3199,7 +3186,6 @@ public:
 	{
 		return simplify_type(cogs::modulo_and_assign_divide_whole(simplify_content_type(*this), simplify_content_type(std::forward<T>(t))));
 	}
-
 
 
 	// gcd
@@ -3257,7 +3243,6 @@ public:
 	}
 
 
-
 	// lcm
 	template <typename T>
 	auto lcm(T&& t) const
@@ -3311,7 +3296,6 @@ public:
 	{
 		return write_retry_loop_post([&](content_t& c) { c.assign_lcm(simplify_content_type(t)); });
 	}
-
 
 
 	// greater
@@ -3422,7 +3406,6 @@ public:
 	{
 		return write_retry_loop_post([&](content_t& c) { c.assign_lesser(simplify_content_type(t)); });
 	}
-
 
 
 	// equals
@@ -3696,10 +3679,6 @@ public:
 };
 
 
-
-
-
-
 template <typename numerator_type1, typename denominator_type1, typename type2>
 struct compatible<fraction<numerator_type1, denominator_type1>, type2>
 {
@@ -3719,16 +3698,11 @@ struct compatible<fraction<numerator_type1, denominator_type1>, fraction<numerat
 };
 
 
-
-
-
-
 template <typename numerator_type, typename denominator_type>
 struct is_const_type<fraction<numerator_type, denominator_type> >
 {
 	static constexpr bool value = is_const_type_v<numerator_type> && is_const_type_v<denominator_type>;
 };
-
 
 
 template <typename numerator_t, typename enable = std::enable_if_t<!is_fraction_content_type_v<std::remove_reference_t<numerator_t> > > >
@@ -3760,7 +3734,6 @@ auto fraction<numerator_type, denominator_type>::reciprocal() const volatile
 
 
 }
-
 
 
 #endif

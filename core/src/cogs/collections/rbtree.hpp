@@ -358,7 +358,7 @@ public:
 
 		typename ref_t::locked_t lockedRef = n;
 
-		//bool was_right_child = 
+		//bool was_right_child =
 		base_t::balance_remove(n, swappedWith, x, true);
 		xParent = lockedRef->get_parent_link();
 
@@ -442,7 +442,7 @@ public:
 								lockedYChildren[!was_right_child] = y;
 								y = y_children[was_right_child];
 								lockedY = lockedYChildren[was_right_child]; //lockedY = y;
-								//y = elem_t::rotate(!was_right_child, y); // moves up one of y's children to take its place 
+								//y = elem_t::rotate(!was_right_child, y); // moves up one of y's children to take its place
 								// y will be become y_children[was_right_child] always
 								lockedXParent->set_child_link(!was_right_child, y);
 								// y will not be null

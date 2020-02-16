@@ -194,7 +194,6 @@ public:
 	point& operator*=(const std::array<double, 2>& d) { m_contents[0] *= d[0]; m_contents[1] *= d[1]; return *this; }
 
 
-
 	// point / double = point
 	point operator/(double d) const { point result(m_contents[0] / d, m_contents[1] / d); return result; }
 	point& operator/=(double d) { m_contents[0] /= d; m_contents[1] /= d; return *this; }
@@ -262,7 +261,6 @@ inline size size::operator-(const point& pt) const { size result(m_contents[0] -
 inline size& size::operator-=(const point& pt) { m_contents[0] -= pt[dimension::horizontal]; m_contents[1] -= pt[dimension::vertical]; return *this; }
 
 
-
 inline margin::margin(const point& tl)
 	: m_topLeftMargin(tl.get_x(), tl.get_y()),
 	m_bottomRightMargin(0, 0)
@@ -273,7 +271,6 @@ inline margin::margin(const point& tl, const size& br)
 	: m_topLeftMargin(tl.get_x(), tl.get_y()),
 	m_bottomRightMargin(br)
 { }
-
 
 
 inline margin& margin::operator=(const point& src)

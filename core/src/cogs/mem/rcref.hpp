@@ -295,7 +295,6 @@ public:
 	/// @}
 
 
-
 	template <typename type2>
 	const rcref<type2>& static_cast_to(unowned_t<rcptr<type2> >& storage = unowned_t<rcptr<type2> >().get_unowned()) const&
 	{
@@ -436,7 +435,6 @@ public:
 	}
 
 
-
 #ifdef DOXYGEN
 	/// @{
 	/// @brief static_cast the encapsulated pointer
@@ -494,7 +492,6 @@ public:
 	/// @
 
 #endif
-
 
 
 	/// @{
@@ -777,7 +774,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -815,7 +811,6 @@ public:
 		else
 			return m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -1187,8 +1182,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
@@ -1458,7 +1451,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -1496,7 +1488,6 @@ public:
 		else
 			return m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -1792,7 +1783,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
@@ -2062,7 +2052,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2100,7 +2089,6 @@ public:
 		else
 			return m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -2303,7 +2291,6 @@ public:
 	bool operator!() const volatile { return false; }
 
 
-
 	template <typename type2>
 	const rcref<type2>& static_cast_to(unowned_t<rcptr<type2> >& storage = unowned_t<rcptr<type2> >().get_unowned()) const&
 	{
@@ -2395,9 +2382,6 @@ public:
 		weak_rcptr<type> result(*this);
 		return result;
 	}
-
-
-
 
 
 	/// @{
@@ -2587,8 +2571,6 @@ public:
 	/// @}
 
 
-
-
 	///// @{
 	///// @brief Swap the pointer value
 	///// @param[in,out] wth Value to swap
@@ -2671,7 +2653,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -2709,7 +2690,6 @@ public:
 		else
 			return m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
@@ -3006,8 +2986,6 @@ public:
 	}
 
 
-
-
 	/// @{
 	/// @brief Equality operator
 	/// @param cmp Pointer to test against
@@ -3195,7 +3173,6 @@ public:
 	/// @}
 
 
-
 	///// @{
 	///// @brief Swap the pointer value
 	///// @param[in,out] wth Value to swap
@@ -3278,7 +3255,6 @@ public:
 	}
 
 
-
 	/// @{
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object
 	/// @param[in] src Value to set if comparison is equal
@@ -3316,7 +3292,6 @@ public:
 		else
 			return m_container.compare_exchange(std::forward<T2>(src), cmp);
 	}
-
 
 
 	/// @brief Based on a comparison, conditionally exchange the encapsulated object

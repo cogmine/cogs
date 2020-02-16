@@ -278,7 +278,6 @@ public:
 	template <typename type2> ref<type2> const_cast_to() const volatile { return const_cast<type2*>(get_ptr()); }
 
 
-
 	template <typename type2>
 	version_t exchange(ref<type2>& wth) volatile { return exchange(wth, wth); }
 
@@ -1638,7 +1637,6 @@ inline void* operator new(size_t sz, const cogs::versioned_ref<type>& p) { retur
 
 template <typename type>
 inline void* operator new(size_t sz, const cogs::versioned_ref<type>& p, const std::nothrow_t& nt) throw () { return ::operator new(sz, p.get_ptr(), nt); }
-
 
 
 template <typename type>

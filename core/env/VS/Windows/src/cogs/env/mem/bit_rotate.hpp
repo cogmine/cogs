@@ -71,10 +71,6 @@ bit_rotate_right(const T& t, const A1& n)
 }
 
 
-
-
-
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_integral_v<T>

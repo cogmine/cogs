@@ -799,7 +799,7 @@ public:
 	/// @{
 	/// @brief Inserts an element, replacing any existing element with an equal value
 	/// @param t Value to insert
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert_replace(const type& t)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();
@@ -810,7 +810,7 @@ public:
 	/// @brief Inserts an element, replacing any existing element with an equal value
 	/// @param t Value to insert
 	/// @param[out] collision Receives a value indicating whether the insert encountered a collision and removed another element
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert_replace(const type& t, bool& collision)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();

@@ -28,7 +28,7 @@ struct rgb_t
 	uint8_t m_blue;
 };
 
-struct rgba_t 
+struct rgba_t
 {
 	union {
 		struct {

@@ -13,11 +13,8 @@ namespace cogs {
 namespace arch {
 
 
-
-
 }
 }
 
 
 #endif
-

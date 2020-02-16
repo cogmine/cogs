@@ -88,7 +88,7 @@ private:
 
 	static constexpr unsigned char TELOPT_BINARY = 0;
 	static constexpr unsigned char TELOPT_ECHO = 1;
-	static constexpr unsigned char TELOPT_SGA = 3; // Suppress Go Ahead. 
+	static constexpr unsigned char TELOPT_SGA = 3; // Suppress Go Ahead.
 	static constexpr unsigned char TELOPT_STATUS = 5;
 	static constexpr unsigned char TELOPT_TIMING = 6;
 	static constexpr unsigned char TELOPT_RCTE = 7;
@@ -100,7 +100,7 @@ private:
 	static constexpr unsigned char TELOPT_NAOVTD = 15;
 	static constexpr unsigned char TELOPT_NAOLFD = 16;
 	static constexpr unsigned char TELOPT_EXTEND_ASCII = 17; // WILL, DO
-	static constexpr unsigned char TELOPT_LOGOUT = 18; // 
+	static constexpr unsigned char TELOPT_LOGOUT = 18; //
 	static constexpr unsigned char TELOPT_BM = 19; // Byte Macro
 	static constexpr unsigned char TELOPT_DET = 20; // Data Entry Terminal
 	static constexpr unsigned char TELOPT_SUPDUP = 21; // SUPDUP terminal? RFC734

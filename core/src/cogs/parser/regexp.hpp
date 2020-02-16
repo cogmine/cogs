@@ -17,7 +17,7 @@
 namespace cogs {
 
 
-// expression_builder uses a size_t token, and a given max_token.  Token values 
+// expression_builder uses a size_t token, and a given max_token.  Token values
 // larger than max_token should not be used.  A table of max_token elements is
 // used.  This is reasonable for 'char' parsers, but using larger values may result in very
 // inefficient use of memory.  Instead, reduce the range of tokens (with another layer/class).

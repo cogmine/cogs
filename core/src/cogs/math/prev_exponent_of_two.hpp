@@ -9,7 +9,6 @@
 #define COGS_HEADER_MATH_PREV_EXPONENT_OF_TWO
 
 
-
 namespace cogs {
 
 
@@ -49,7 +48,6 @@ template <size_t n>
 constexpr size_t prev_or_current_exponent_of_two_v = prev_or_current_exponent_of_two<n>::value;
 
 
-
 /// @ingroup ConstMath
 /// @brief Meta template to compute the previous multiple of two
 /// @tparam n Constant value to get the previous exponent of 2 from.
@@ -79,8 +77,6 @@ public:
 
 template <size_t n>
 constexpr size_t prev_exponent_of_two_v = prev_exponent_of_two<n>::value;
-
-
 
 
 }

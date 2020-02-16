@@ -43,7 +43,7 @@
 //	virtual rcref<button> insert_button_before(const rcref<button>& before, const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false) = 0;
 //	virtual rcref<button> insert_button_after(const rcref<button>& after, const function<void()>& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false) = 0;
 //	virtual void set_default_button(const rcptr<button>& btn) = 0;
-//		
+//
 //	virtual void remove(const rcref<button>& btn) = 0;
 //	virtual void clear_buttons() = 0;
 //};
@@ -51,7 +51,7 @@
 //
 //// A button_box is a simple UI dialog that presents a primary frame, and in a secondary
 //// frame displays a list of buttons.  Those buttons may be enabled/disable, and one may
-//// be a default button if applicable.  
+//// be a default button if applicable.
 //// i.e. OK message box, if 1 button.  Yes/No, Action/Cancel dialog, if 2 buttons.  etc.
 //class button_box : public pane_bridge<button_box_interface>
 //{
@@ -72,13 +72,13 @@
 //		: m_childPanel(rcnew(pane)),
 //		m_buttonCount(0)
 //	{ }
-//	
+//
 //	~button_box()
 //	{ }
 //
-//	void nest(const rcref<pane>& child, const rcptr<frame>& f = 0)
+//	void nest(const rcref<pane>& child)
 //	{
-//		m_childPanel->nest(child, f);
+//		m_childPanel->nest(child);
 //	}
 //
 //	class button : public object
@@ -88,7 +88,7 @@
 //		composite_string m_text;
 //		bool m_isEnabled;
 //		gfx::font m_font;
-//		
+//
 //		weak_rcptr<button_box> m_buttonBox;
 //		container_dlist<rcref<button> >::remove_token m_removeToken;
 //		rcptr<button_box_interface::button> m_bridgedButton;
@@ -311,7 +311,7 @@
 //	virtual void installing()
 //	{
 //		rcref<button_box_interface> buttonBox = get_subsystem()->create_button_box().template static_cast_to<button_box_interface>();
-//		
+//
 //		base_t::install_bridged(buttonBox);
 //
 //		container_dlist<rcref<button> >::iterator itor = m_buttonList.get_first();
@@ -350,7 +350,7 @@
 //	{
 //		nest(m_messageText);
 //	}
-//	
+//
 //	explicit message_box(const composite_string& msg, const composite_string& text = composite_string::literal(L"OK"), const gfx::font& fnt = gfx::font(), bool isEnabled = true)
 //		: m_messageText(rcnew(label, msg)),
 //		m_okButton(append_button([r{ this_weak_rcptr }](const rcref<button>& b)
@@ -423,7 +423,7 @@
 //	{
 //		m_grid->nest(m_wrapList, 0, 1);
 //	}
-//	
+//
 //	virtual void nest(const rcref<pane>& contentPane)
 //	{
 //		m_grid->nest(contentPane, 0, 0);
@@ -483,7 +483,7 @@
 //				b->m_uiButton->set_default(true);
 //		}
 //	}
-//	
+//
 //	virtual void remove(const rcref<button_box_interface::button>& btn)
 //	{
 //		rcref<default_button_box_button> b = btn.template static_cast_to<default_button_box_button>();

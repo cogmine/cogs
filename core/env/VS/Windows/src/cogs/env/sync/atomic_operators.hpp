@@ -267,9 +267,6 @@ assign_prev(T& t)
 }
 
 
-
-
-
 // bit_and
 
 
@@ -374,8 +371,6 @@ assign_bit_and(T& t, const A1& a)
 }
 
 
-
-
 // bit_or
 
 
@@ -450,7 +445,6 @@ post_assign_bit_or(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -463,7 +457,6 @@ assign_bit_or(T& t, const A1& a)
 {
 	post_assign_bit_or(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -480,8 +473,6 @@ pre_assign_bit_or(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (post_assign_bit_or(t, tmp) | tmp);
 }
-
-
 
 
 // bit_xor
@@ -558,7 +549,6 @@ post_assign_bit_xor(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -571,7 +561,6 @@ assign_bit_xor(T& t, const A1& a)
 {
 	post_assign_bit_xor(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -588,8 +577,6 @@ pre_assign_bit_xor(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (post_assign_bit_xor(t, tmp) ^ tmp);
 }
-
-
 
 
 // add
@@ -666,7 +653,6 @@ post_assign_add(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -686,8 +672,6 @@ post_assign_add(T& t, const A1& a)
 	return (std::remove_volatile_t<T>)_InterlockedExchangeAdd((__int64*)(unsigned char*)&t, tmp * sizeof(std::remove_pointer_t<T>));
 #endif
 }
-
-
 
 
 template <typename T, typename A1>
@@ -728,8 +712,6 @@ post_assign_add(T& t, const A1& a)
 {
 	return os::atomic::post_assign_add(t, a);
 }
-
-
 
 
 template <typename T, typename A1>
@@ -869,7 +851,6 @@ post_assign_subtract(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -956,9 +937,7 @@ pre_assign_subtract(T& t, const A1& a)
 }
 
 
-
 }
-
 
 
 #endif

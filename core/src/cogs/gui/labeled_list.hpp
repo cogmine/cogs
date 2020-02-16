@@ -133,7 +133,7 @@
 //				}
 //			}
 //		}
-//			
+//
 //		virtual double propose_dimension(planar::dimension d, double proposed, range::linear_t& rtnOtherRange) const
 //		{
 //			rtnOtherRange.clear();
@@ -189,7 +189,7 @@
 //						double newContentWidth = rtn;
 //						newContentWidth -= labelWidthUsed;
 //						double contentWidthUsed = m_content->propose_dimension(dimension::horizontal, newContentWidth, otherContentRange);
-//						
+//
 //						if (!otherLabelRange.has_max() || !otherContentRange.has_max())
 //							rtnOtherRange.clear_max();
 //						else
@@ -240,7 +240,7 @@
 //
 //				m_label->m_bounds.get_size().get_width() = newLabelWidth;
 //				m_content->m_bounds.get_size().get_width() = newContentWidth;
-//				
+//
 //				if (!scriptFlowsToTheRight) // Align to right on left-right script languages.
 //				{
 //					m_label->m_bounds.get_position().get_x() = b.get_size().get_width();
@@ -254,13 +254,13 @@
 //					newLabelHeight = labelHeightRange.get_min();
 //				else if (labelHeightRange.has_max() && (newLabelHeight > labelHeightRange.get_max()))
 //					newLabelHeight = labelHeightRange.get_max();
-//				
+//
 //				double newContentHeight = m_content->get_current_parent_default_size()[!d];
 //				if (newContentHeight < labelContentRange.get_min())
 //					newContentHeight = labelContentRange.get_min();
 //				else if (labelContentRange.has_max() && (newContentHeight > labelContentRange.get_max()))
 //					newContentHeight = labelContentRange.get_max();
-//				
+//
 //				// If not enough space, tweak it by taking some from the label, then the content.
 //				double usedHeight = newLabelHeight;
 //				usedHeight += newContentHeight;
@@ -308,7 +308,7 @@
 //					if ((!m_useManualOffset) || (maxLabelWidth < m_manualOffset))
 //						columnWidth = maxLabelWidth;
 //					else
-//						columnWidth = m_manualOffset;	
+//						columnWidth = m_manualOffset;
 //					double boundsMinusColumnWidth = b.get_width();
 //					boundsMinusColumnWidth -= columnWidth;
 //
@@ -348,7 +348,7 @@
 //						columnStart -= newContentWidth;
 //						m_column->get_position().get_x() = columnStart;
 //					}
-//					
+//
 //					if (newLabelHeight < b.get_height())
 //					{
 //						double dif = b.get_height();
@@ -376,10 +376,10 @@
 //		pane::nest(m_grid);
 //	}
 //
-//	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0);
-//	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0);
-//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0);
-//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0);
+//	virtual void nest_last(const rcref<pane>& child);
+//	virtual void nest_first(const rcref<pane>& child);
+//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis);
+//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis);
 //
 //	/*
 //	collection<rcref<cell_t> > m_cells;
@@ -400,7 +400,7 @@
 //		m_currentDefaultSize.clear();
 //		m_currentRange.set_fixed_width(0);
 //		m_currentRange.set_fixed_height(0);
-//		
+//
 //		int d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 //
 //		typename collection<rcref<cell_t> >::iterator cellItor = m_cells.get_first();
@@ -432,7 +432,7 @@
 //				else
 //					m_currentRange.get_max_width() += cellRange.get_max_width();
 //			}
-//						
+//
 //			if (m_currentRange.has_max_height())
 //			{
 //				if (!cellRange.has_max_height())
@@ -453,7 +453,7 @@
 //			COGS_ASSERT(!!rtnOtherRange.has_max());
 //			m_currentRange.set_max(!d, rtnOtherRange.get_max());
 //		}
-//		
+//
 //		range::linear_t rtnOtherRange;
 //		propose_dimension(d, m_currentDefaultSize[d], rtnOtherRange); // sets m_cachedLength
 //		if (rtnOtherRange.has_max() && (m_currentDefaultSize[!d] > rtnOtherRange.get_max()))
@@ -478,14 +478,14 @@
 //			if (!!cellItor)
 //			{
 //				rcref<row_t> row = rcnew(row_t); // start a new row
-//				
+//
 //				double remaining = rtn;
 //				double largestRowLength;
 //				largestRowLength.clear();
 //
 //				rcref<cell_t> cell = *cellItor;
 //				size cellSize = cell->get_current_parent_default_size();
-//	
+//
 //				for (;;)
 //				{
 //					bool insufficientSpace = (cellSize[d] > remaining);
@@ -547,7 +547,7 @@
 //
 //				double ignoredRtn;
 //				range::linear_t otherRange;
-//					
+//
 //				cellItor = m_cells.get_first();
 //				while (!!cellItor)
 //				{
@@ -638,7 +638,7 @@
 //					: 0;
 //			row.m_bounds.get_position(!d) = rowOffset;
 //			row.m_bounds.get_size(!d) = row.m_primarySizingGroup.get_length();
-//			
+//
 //			if (reverseDirection[d])
 //			{
 //				double oldCellOffset = cellOffset;
@@ -653,7 +653,7 @@
 //
 //				if (reverseDirection[d])
 //					cellOffset -= cell.get_length();
-//				
+//
 //				cell.m_bounds.get_position(d) = cellOffset;
 //				cell.m_bounds.get_position(!d) = rowOffset;
 //
@@ -693,14 +693,14 @@
 //		m_alignment[d] = primaryAlignment;
 //		m_alignment[!d] = linear::alignment::minimum();
 //	}
-//	
+//
 //	wrap_list(linear::alignment primaryAlignment, linear::alignment secondaryAlignment)
 //	{
 //		int d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 //		m_alignment[d] = primaryAlignment;
 //		m_alignment[!d] = secondaryAlignment;
 //	}
-//	
+//
 //	nest_token nest_before(const rcref<pane>& child, const nest_token& beforeThis, const rcptr<frame>& userReshaper = 0)
 //	{
 //		nest_token nt;

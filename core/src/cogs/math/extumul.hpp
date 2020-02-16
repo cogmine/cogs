@@ -28,7 +28,7 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	// ---------
 	//     E 1
 	//   E 1
-	//   E 1   
+	//   E 1
 	// E 1
 	//----------
 	// F E 0 1
@@ -46,7 +46,7 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	//     F F
 	//     F F
 	// ---------
-	//   E F 1 
+	//   E F 1
 	//   E 1
 	// E 1
 	//----------
@@ -58,7 +58,7 @@ inline uint_t extumul(const uint_t& src1, const uint_t& src2, uint_t& highPartRt
 	//     F F
 	//     F F
 	// ---------
-	//   D 0 1 
+	//   D 0 1
 	// F 1
 	//----------
 	// F E 0 1

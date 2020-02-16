@@ -150,7 +150,6 @@ assign_next(T& t)
 }
 
 
-
 // prev
 
 
@@ -195,7 +194,6 @@ pre_assign_prev(T& t)
 	typedef bytes_to_uint_t<sizeof(T)> uint_t;
 	return (std::remove_volatile_t<T>)__atomic_sub_fetch((uint_t*)(unsigned char*)&t, sizeof(std::remove_pointer_t<T>), __ATOMIC_SEQ_CST);
 }
-
 
 
 template <typename T>
@@ -252,8 +250,6 @@ assign_prev(T& t)
 {
 	pre_assign_prev(t);
 }
-
-
 
 
 // bit_and
@@ -323,9 +319,6 @@ assign_bit_and(T& t, const A1& a)
 }
 
 
-
-
-
 // bit_or
 
 
@@ -391,10 +384,6 @@ assign_bit_or(T& t, const A1& a)
 {
 	pre_assign_bit_or(t, a);
 }
-
-
-
-
 
 
 // bit_xor
@@ -464,9 +453,6 @@ assign_bit_xor(T& t, const A1& a)
 }
 
 
-
-
-
 // add
 
 
@@ -519,8 +505,6 @@ pre_assign_add(T& t, const A1& a)
 }
 
 
-
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	(std::is_floating_point_v<T> || (sizeof(T) > 8))
@@ -570,7 +554,6 @@ post_assign_add(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -583,7 +566,6 @@ assign_add(T& t, const A1& a)
 {
 	pre_assign_add(t, a);
 }
-
 
 
 // subtract
@@ -638,8 +620,6 @@ pre_assign_subtract(T& t, const A1& a)
 }
 
 
-
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	(std::is_floating_point_v<T> || (sizeof(T) > 8))
@@ -689,7 +669,6 @@ post_assign_subtract(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -704,9 +683,7 @@ assign_subtract(T& t, const A1& a)
 }
 
 
-
 }
-
 
 
 #endif

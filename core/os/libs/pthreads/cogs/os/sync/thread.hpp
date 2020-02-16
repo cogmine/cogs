@@ -40,7 +40,7 @@ private:
 	pthread_t m_thread;
 	function<void()> m_func;
 	volatile size_t m_joinState; // 0 = unjoined.  >0 number of threads waiting on semaphore, -1 = exited, -2 = exited, and a joiner needs to release it
-	volatile size_t m_releaseCount; 
+	volatile size_t m_releaseCount;
 	semaphore m_exitSemaphore;
 
 	static void* thread_main(void* threadArg)

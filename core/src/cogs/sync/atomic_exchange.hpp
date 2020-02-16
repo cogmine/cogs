@@ -69,7 +69,6 @@ exchange(volatile T& t, const T& src)
 }
 
 
-
 }
 }
 

@@ -175,7 +175,6 @@ public:
 	boolean post_bit_or(bool b) volatile { return cogs::post_assign_bit_or(m_bool, b); }
 
 
-
 	boolean& operator^=(const boolean& b) { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
 	boolean& operator^=(const volatile boolean& b) { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
 	volatile boolean& operator^=(const boolean& b) volatile { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
@@ -218,7 +217,6 @@ public:
 	void exchange(const boolean& src, volatile boolean& rtn) volatile { cogs::exchange(m_bool, src.m_bool, rtn.m_bool); }
 	void exchange(const volatile boolean& src, volatile boolean& rtn) { cogs::exchange(m_bool, src.m_bool, rtn.m_bool); }
 	void exchange(const volatile boolean& src, volatile boolean& rtn) volatile { cogs::exchange(m_bool, src.m_bool, rtn.m_bool); }
-
 
 
 	template <typename T2>

@@ -18,7 +18,6 @@ namespace io {
 namespace net {
 
 
-
 /// @ingroup Net
 /// @brief An interface for network endpoint objects.
 ///

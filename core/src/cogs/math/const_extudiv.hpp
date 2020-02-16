@@ -80,7 +80,7 @@ private:
 		static constexpr ulongest added2_high_part = const_extuadd2<added_high_part, added_low_part, 0, add_if_both_odd>::high_part;
 		static constexpr ulongest added2_low_part = const_extuadd2<added_high_part, added_low_part, 0, add_if_both_odd>::low_part;
 
-		static constexpr bool is_new_equal = !is_new_lesser && !is_new_greater; 
+		static constexpr bool is_new_equal = !is_new_lesser && !is_new_greater;
 		static constexpr ulongest next_new_high_part = is_new_equal ? new_high_part : added2_high_part;
 		static constexpr ulongest next_new_low_part = is_new_equal ? new_low_part : added2_high_part;
 
@@ -165,7 +165,6 @@ public:
 	static constexpr ulongest high_part = 0;
 	static constexpr ulongest low_part = (numerator_low_part / 2);
 };
-
 
 
 }

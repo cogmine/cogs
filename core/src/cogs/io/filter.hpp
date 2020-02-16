@@ -341,7 +341,7 @@ private:
 		// Called when coupler executes, or from a completing coupled write, or from a writer or closer on the datasink queue while there is a coupler
 		void coupler_process()
 	{
-			if (!m_filteredBuffer && !!m_writer) // No closer or write, do nothing 
+			if (!m_filteredBuffer && !!m_writer) // No closer or write, do nothing
 			{
 				for (;;) // this loop never executes twice
 				{
@@ -431,7 +431,7 @@ private:
 		}
 
 		virtual void aborting()
-		{ 
+		{
 			m_state->m_abortReader = this_rcref;
 			m_state->process(&filter::state::read_abort);
 		}
@@ -625,7 +625,7 @@ private:
 			const dynamic_integer& maxLength = dynamic_integer(),
 			size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
 				: io::queue::io_task<void>(desc),
-				m_sink(rcnew(datasink::transaction, snk)), 
+				m_sink(rcnew(datasink::transaction, snk)),
 				m_state(s),
 				m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 				m_closeSourceOnSinkClose(closeSourceOnSinkClose),
@@ -733,7 +733,7 @@ private:
 	}
 
 	virtual rcref<task<void> > create_coupler(
-		const rcref<datasink>& snk, 
+		const rcref<datasink>& snk,
 		bool closeSinkOnSourceClose = false,
 		bool closeSourceOnSinkClose = false,
 		const dynamic_integer& maxLength = dynamic_integer(),
@@ -817,12 +817,12 @@ public:
 	{ }
 
 	/// @brief Derived class must override filtering() to filter input data
-	/// 
+	///
 	/// If filtering() returns without reading the entire buffer,
 	/// it will not be called again until the previously returned data has been entirely process.
 	///
 	/// If filtering() returns an empty block, the filter is closed.
-	/// 
+	///
 	/// @param src Input data to filter.  Data should be removed from this buffer to indicate progress.
 	/// @return A buffer containing filtered data
 	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
@@ -833,7 +833,7 @@ public:
 	}
 
 	/// @brief Derived class may override finalize() to return a final buffer to terminate the filtered stream with.
-	/// 
+	///
 	/// The default implemention returns an empty buffer.
 	/// @return A final buffer to terminate the filtered stream with.
 	virtual rcref<task<composite_buffer> > finalize()
@@ -877,7 +877,7 @@ public:
 //			m_facade(f)
 //		{
 //		}
-//		
+//
 //		virtual void reading()
 //		{
 //			rcptr<datasource_facade> f = m_facade;

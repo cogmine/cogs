@@ -50,8 +50,6 @@ public:
 
 	virtual dimension get_primary_flow_dimension() const { return dimension::horizontal; }
 
-	virtual bool is_frame() const { return false; } // used to support nesting frames
-
 	// Using a size_mode other than size_mode::both in calls to propose_size() allows
 	// implementions to avoid unnecessary work to determine values that will not be used by the caller.
 	// Because determining the size of a cell may require requesting all possible sizes to find a valid one,
@@ -67,7 +65,7 @@ public:
 		// Only the greater value is needed.  A valid lesser value may not be returned, even if possible.
 		greater = 1
 	};
-	
+
 	// When proposing a size, 4 values are returned.
 	//
 	// If a length cannot be satisfied as proposed, lesser and greater values are returned.
@@ -237,7 +235,7 @@ protected:
 	//		the child pane in the same location in a grandparent pane, as the child pane position refers only the the coordinate
 	//		system of the immediate parent.  This is still processed as a reshape, in case parent coordinate system changes are relevant.
 	//		This is essentially a notification that the coordinate system changed out from under it.  Contents may need to be moved,
-	//		but it might not be necessary to redraw them.  
+	//		but it might not be necessary to redraw them.
 
 	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{

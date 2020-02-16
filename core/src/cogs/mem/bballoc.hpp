@@ -8,7 +8,7 @@
 #ifndef COGS_HEADER_MEM_BBALLOC
 #define COGS_HEADER_MEM_BBALLOC
 
-#include <cstdlib> 
+#include <cstdlib>
 
 #include "cogs/env.hpp"
 #include "cogs/env/mem/allocator.hpp"
@@ -326,7 +326,7 @@ private:
 				// Before we can put m_head->m_next at the head of the list, we need to clear it's prev ptr.
 				ptr<volatile link> oldHeadNextVolatile = oldHeadNext;
 				ptr<link> oldHeadNextPrev;
-				version_t oldHeadNextPrevVersion; 
+				version_t oldHeadNextPrevVersion;
 				oldHeadNextVolatile->m_prev.get(oldHeadNextPrev, oldHeadNextPrevVersion);
 				if (m_head.get_version() != oldVersion)
 					continue;

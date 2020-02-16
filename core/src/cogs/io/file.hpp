@@ -56,7 +56,7 @@
 //		: m_segment(src.m_segment)
 //	{ }
 //
-//	
+//
 //	file_segment(const num_t& start, const num_t& length)
 //		: m_start(start),
 //		m_length(length)
@@ -224,7 +224,7 @@
 //// A file_mask<> contains a segment_map<> and a bool indicating if the EOF (or past the EOF) should also
 //// be considered.  It is useful as a mask for range locking IO transactions.  Reading the current EOF
 //// position is a read operation.  If the EOF is unknown and must be read before written to, a write
-//// mask should include (past) the EOF. 
+//// mask should include (past) the EOF.
 //// synchronized_file<read_write_access>::locking_transaction uses a file_mask<> to indication ranges to write-lock.
 //template <typename file_size_t>
 //class file_mask;
@@ -247,7 +247,7 @@
 //class file;
 //
 //// Unlike steam objects, a file<> does not have a 'current position'.
-//// However, any number of cursor<>'s may be created for a file<>. 
+//// However, any number of cursor<>'s may be created for a file<>.
 //// cursor<>'s are stream objects (derived from datasource/datasink).
 ////
 ////template <access_mode mode>
@@ -258,7 +258,7 @@
 //// Traditional file IO APIs generally provide ways to read and write single contiguous segments per API call.
 //// The terms Vectored IO or Scatter/Gather IO refer to file IO APIs that allow non-contiguous (multiple)
 //// segments of a file, and/or multiple buffers, to be read or written per call.
-//// 
+////
 //// file<> supports a variation of these concepts in which:
 ////
 ////		- In a single write operation, data (gathered) from multiple buffers can be written (scattered)
@@ -280,15 +280,15 @@
 ////			top level read.  (See: cogs IO Model in buffer.h)
 //
 //// synchronized_file<> is a concrete class implementing the file<> interface, which adds parallel IO management,
-//// transactions, caching, etc.. 
+//// transactions, caching, etc..
 //// synchronized_file<> wraps another file<>, so essential adapts an existing file<> to add synchronization APIs.
 //template <access_mode mode, typename file_size_t = default_file_size_t>
 //class synchronized_file;
 //
 //// synchronized_file_impl<> is internal.  It implements the core functionality of synchronized_file<>.
-//// synchronized_file<read_write_access> is derived from both synchronized_file<read_access> and 
+//// synchronized_file<read_write_access> is derived from both synchronized_file<read_access> and
 //// synchronized_file<write_access>.  To avoid multiply-deriving from a common base class, core functionality
-//// resides in a protected synchronized_file_impl<> member instance.  
+//// resides in a protected synchronized_file_impl<> member instance.
 //template <typename file_size_t = default_file_size_t>
 //class synchronized_file_impl;
 //
@@ -299,10 +299,10 @@
 //// multiple attempts to open the same file result in the return of the same synchronized_file<>
 //// object.  (Note: this may mean the underlying implementation must instantiate a synchronized_file<read_write_access>
 //// even if only read_access is requested, in case write access to the same file is requested later.)
-//// 
+////
 //// It's also not supported to concurrently write to a file also from another process, as this
 //// would circumvent the parallel file IO management.
-//// 
+////
 //// A write operation is immediately available to subsequent read operations that overlap it.
 ////
 //// A synchronized_file<> may linger until all underlying IO operations are complete.
@@ -329,7 +329,7 @@
 ////		internally using simple composed_transaction's containing single read/write operations.
 ////
 ////		A single composed_transaction may result in multiple parallel calls to the underlying
-////		file system.	
+////		file system.
 ////
 ////class synchronized_file<read_access>::composed_transaction;
 ////class synchronized_file<write_access>::composed_transaction;
@@ -343,13 +343,13 @@
 ////		already read by a pending locking_transaction, it is allowed as it does not compromise
 ////		a consistent view of the file.
 ////
-////			synchronized_file<read_access>::locking_transaction	
+////			synchronized_file<read_access>::locking_transaction
 ////
 ////				A read-only locking_transaction provides a consistent, read-only view of a file, by effectively
 ////				locking out writes.  This is useful when it's necessary to read some contents in order
-////				to determine where else to read from.  
+////				to determine where else to read from.
 ////
-////			synchronized_file<read_write_access>::locking_transaction	
+////			synchronized_file<read_write_access>::locking_transaction
 ////
 ////				A read/write locking_transaction provides a consistent, read/write view of a file.
 ////				This is useful when contents need to be read, in order to determine what else needs
@@ -360,7 +360,7 @@
 ////				been written within the same transaction, the (pre) written data is read.
 ////
 ////		To ensure consistency is maintained for the duration of a locking_transaction:
-////	
+////
 ////			On creation, a read/write locking_transaction must specify the areas it may write to.
 ////			Writes outside of these areas could cause inconsistencies.  Specifying the entire
 ////			file is valid (and the default), but will cause all reads issued by subsequent concurrent
@@ -371,8 +371,8 @@
 ////
 ////			If a new read overlaps a write by a subsequently started (higher transaction_id) read/write locking_transaction,
 ////			that read/write locking_transaction is blocked from submitting its writes (until no longer blocked by reads).
-////			
-////			Conversely, if a new (potential) write overlaps reads of an existing (lower transaction_id) 
+////
+////			Conversely, if a new (potential) write overlaps reads of an existing (lower transaction_id)
 ////			transaction, the read/write locking_transaction is blocked from submitting its writes
 ////			(until no longer blocked by reads).
 ////
@@ -386,7 +386,7 @@
 ////		its view of a file will cause the failable_transaction to abort.  When
 ////		aborted, all subsequent read operations will fail, and any writes will fail once
 ////		the aborted transaction is submitted.
-////		
+////
 ////		This is useful when a transaction become irrelevant if the data it uses is altered.
 ////		It could be used in a retry loop to accomplish the equivalent of a locking_transaction
 ////		that does not block any other transactions.  However, that approach would be vulnerable to a
@@ -416,7 +416,7 @@
 ////	When an EOF is extended by a write operation, that operation is issued normally.
 ////	Any write that completes successfully results in the cached EOF being updated.
 ////	If a read is issued that extends beyond the current caches EOF, it is clipped.
-////	If the EOF is truncated such that any already issued reads extend beyond the new 
+////	If the EOF is truncated such that any already issued reads extend beyond the new
 ////	EOF, the EOF is not successfully truncated until those reads are complete.  If
 ////	there is an attempt to truncate an EOF while there are issued or pending writes
 ////	beyond the new EOF, the EOF-setting operation is completed when any write equal
@@ -447,7 +447,7 @@
 //		: m_start(start),
 //		m_length(length)
 //	{ }
-//	
+//
 //	const file_size_t& get_length() const { return m_length; }
 //	const file_size_t& get_start() const { return m_start; }
 //	const file_size_t get_end() const { return m_start + m_length; }
@@ -476,7 +476,7 @@
 //		m_start += n;
 //		return result;
 //	}
-//	
+//
 //	this_t get_trailing(file_size_t n) const
 //	{
 //		file_size_t resultLength = 0;
@@ -492,7 +492,7 @@
 //			n2 = m_length;
 //		this_t result(m_start, n2);
 //		return result;
-//	}		
+//	}
 //
 //	void advance(file_size_t n)
 //	{
@@ -508,13 +508,13 @@
 //		if (n < m_length)
 //			m_length = n;
 //	}
-//		
+//
 //	void truncate(file_size_t n)
 //	{
 //		if (n <= m_length)
 //			m_length -= n;
 //	}
-//		
+//
 //	// merge() stores the union of both segments.  It's likely an error to use merge() with
 //	// segments that are not overlaping or adjacent.
 //	void merge(const this_t& s)
@@ -575,7 +575,7 @@
 //		: m_start(start),
 //		m_buffer(b)
 //	{ }
-//		
+//
 //	const size_t get_length() const { return m_buffer.size(); }
 //	const file_size_t& get_start() const { return m_start; }
 //	const file_size_t get_end() const { return m_start + m_buffer.size(); }
@@ -593,7 +593,7 @@
 //		m_start += n;
 //		return result;
 //	}
-//		
+//
 //	this_t get_trailing(size_t n)
 //	{
 //		return this_t(m_start + n, m_buffer.get_trailing(n));
@@ -602,7 +602,7 @@
 //	this_t get_leading(size_t n)
 //	{
 //		return this_t(m_start, m_buffer.get_leading(n));
-//	}		
+//	}
 //
 //	void advance(size_t n)
 //	{
@@ -614,7 +614,7 @@
 //	{
 //		m_buffer.truncate_to(n);
 //	}
-//		
+//
 //	void truncate(size_t n)
 //	{
 //		m_buffer.truncate(n);
@@ -652,7 +652,7 @@
 //		: m_start(start),
 //		m_buffer(b)
 //	{ }
-//		
+//
 //	const size_t get_length() const { return m_buffer.get_length(); }
 //	const file_size_t& get_start() const { return m_start; }
 //	const file_size_t get_end() const { return m_start + m_buffer.size(); }
@@ -670,7 +670,7 @@
 //		m_start += n;
 //		return result;
 //	}
-//		
+//
 //	this_t get_trailing(size_t n)
 //	{
 //		return this_t(m_start + n, m_buffer.get_trailing(n));
@@ -679,7 +679,7 @@
 //	this_t get_leading(size_t n)
 //	{
 //		return this_t(m_start, m_buffer.get_leading(n));
-//	}		
+//	}
 //
 //	void advance(size_t n)
 //	{
@@ -691,7 +691,7 @@
 //	{
 //		m_buffer.truncate_to(n);
 //	}
-//		
+//
 //	void truncate(size_t n)
 //	{
 //		m_buffer.truncate(n);
@@ -742,7 +742,7 @@
 //// of non-overlapping segments.  In addition to the obvious differences in data each
 //// node associates with segments, their behavior with regards to coalescing and
 //// dividing their component nodes, differs subtly.
-//// 
+////
 //// A segment_map has no data associated with the segment, other than the segment itself.
 //// When adjacent or overlapping segments are added to the segment_map, they are all
 //// coalesced into a single segment, such that there are never any adjacent segments.
@@ -772,7 +772,7 @@
 //
 //	segment_map(const this_t&);
 //	segment_map& operator=(const this_t&);
-//		
+//
 //	class node : public sorted_list_node<true, node>
 //	{
 //	public:
@@ -836,7 +836,7 @@
 //		segment<file_size_t>* get() const { return (!m_node) ? (segment_t<file_size_t>*)0 : &(m_node->m_segment); }
 //		segment<file_size_t>& operator*() const { return m_node->m_segment; }
 //		segment<file_size_t>* operator->() const { return &(m_node->m_segment); }
-//			
+//
 //		void release() { m_node = 0; }
 //
 //		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
@@ -860,7 +860,7 @@
 //	bool is_empty() const { return !m_count; }
 //	bool operator!() const { return !m_count; }
 //	size_t size() const { return m_count; }
-//		
+//
 //	bool does_overlap(const segment<file_size_t>& s) const
 //	{
 //		ptr<node> n = m_list.find_nearest_less_than(s.get_end());
@@ -887,7 +887,7 @@
 //	}
 //
 //	bool does_overlap(const segment_buffer_map<file_size_t>& sbm) const;
-//	
+//
 //	iterator add(const file_size_t& s, const file_size_t& len)
 //	{
 //		return add(segment<file_size_t>(s, len));
@@ -1050,12 +1050,12 @@
 //
 //	segment_buffer_map(const this_t&);
 //	this_t& operator=(const this_t&);
-//	
+//
 //	class node : public sorted_list_node<true, node>
 //	{
 //	public:
 //		segment_buffer<file_size_t> m_segmentBuffer;
-//	
+//
 //		node(const segment_buffer<file_size_t>& sb)
 //			: m_segmentBuffer(sb)
 //		{ }
@@ -1118,7 +1118,7 @@
 //		segment_buffer<file_size_t>* get() const { return (!m_node) ? (segment_t*)0 : &(m_node->m_segmentBuffer); }
 //		segment_buffer<file_size_t>& operator*() const { return m_node->m_segmentBuffer; }
 //		segment_buffer<file_size_t>* operator->() const { return &(m_node->m_segmentBuffer); }
-//			
+//
 //		void release() { m_node = 0; }
 //
 //		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
@@ -1126,7 +1126,7 @@
 //		iterator next() const { return iterator((!m_node) ? ptr<node>(0) : node::get_next(m_node)); }
 //		iterator prev() const { return iterator((!m_node) ? ptr<node>(0) : node::get_prev(m_node)); }
 //	};
-//		
+//
 //	segment_buffer_map()
 //		: m_count(0)
 //	{ }
@@ -1175,7 +1175,7 @@
 //				}
 //				trailingNode = 0;
 //			}
-//			else 
+//			else
 //			{
 //				if (sb.get_start() < trailingNode->get_start())
 //				{
@@ -1216,7 +1216,7 @@
 //		}
 //		return iterator(trailingNode);
 //	}
-//	
+//
 //	iterator add(const file_size_t& start, const const_buffer& b)
 //	{
 //		return add(segment_buffer<file_size_t>(start, b));
@@ -1304,7 +1304,7 @@
 //			m_list.insert(n);
 //		}
 //	}
-//	
+//
 //	bool does_overlap(const segment<file_size_t>& s) const
 //	{
 //		ptr<node> n = m_list.find_nearest_less_than(s.get_end());
@@ -1355,7 +1355,7 @@
 //		bool isSegmentSplit = false;
 //		segment_buffer<file_size_t> curSegmentBuffer = *segmentBufferMapItor; // copied, modified.
 //		segment<file_size_t> curSegment = *segmentMapItor; // copied, modified.
-//		
+//
 //		for (;;)
 //		{
 //			if (curSegmentBuffer.get_start() < curSegment.get_start()) // Ignore any segmentBuffer before segment.
@@ -1391,7 +1391,7 @@
 //				segmentMapItor = nextSegmentMapItor; // Move on to next segment.
 //				if (!segmentMapItor)
 //					break; // No more segments, we're done.
-//				
+//
 //				curSegment = *segmentMapItor;
 //				if (curSegment.get_start() >= curSegmentBuffer.get_end()) // If starts past buffer, we're done with this buffer
 //				{
@@ -1436,7 +1436,7 @@
 //			}
 //		}
 //	}
-//	
+//
 //public:
 //	// read_overlap modifies srcDst.  All segment buffers successfully read from sbm will be removed
 //	// from srcDst.  Any segments that were not found, remain in srcDst.  sbm will not be modified.
@@ -1444,7 +1444,7 @@
 //	{
 //		if (srcDst.is_empty() || sbm.is_empty())
 //			return;
-//		
+//
 //		iterator segmentBufferMapItor;
 //		typename segment_map<file_size_t>::iterator segmentMapItor;
 //
@@ -1559,7 +1559,7 @@
 //
 //	file_mask(const this_t&);
 //	this_t& operator=(const this_t&);
-//	
+//
 //	segment_map<file_size_t> m_segments;
 //	bool m_pastEof; // true if mask incldes everything past the (unknown) EOF position
 //
@@ -1574,7 +1574,7 @@
 //
 //	static this_t all(bool spanPastEof = true) { this_t result(true);  result.m_segments.add(0, -1); return result; }
 //	static this_t eof() { return this_t(true); }
-//	
+//
 //	void clear()
 //	{
 //		m_pastEof = false;
@@ -1596,7 +1596,7 @@
 //
 //	void include(const segment<file_size_t>& s) { m_segments.add(s); }
 //	void exclude(const segment<file_size_t>& s) { m_segments.add(s); }
-//		
+//
 //	void include(const segment_map<file_size_t>& sm)
 //	{
 //		segment_map<file_size_t>::iterator itor = sm.get_first();
@@ -1676,7 +1676,7 @@
 //
 //	segment_state_map(const segment_state_map&);
 //	segment_state_map& operator=(const segment_state_map&);
-//		
+//
 //	typedef sorted_list<file_size_t, true, node> list_t;
 //
 //	list_t m_list;
@@ -1727,7 +1727,7 @@
 //		node* get() const { return m_node.get(); }
 //		node& operator*() const { return *m_node; }
 //		node* operator->() const { return m_node.get(); }
-//			
+//
 //		void clear() { m_node = 0; }
 //
 //		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
@@ -1862,7 +1862,7 @@
 //		{
 //			self_acquire();
 //		}
-//		
+//
 //		void complete() { m_event.set(); self_release(); }
 //
 //		void set_size(const file_size_t& sz) { m_size = sz; }
@@ -1914,12 +1914,12 @@
 //		virtual void dispatch(const delegate& d, size_t n = 1 const volatile { m_event.dispatch(d, n); }
 //		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
-//	
+//
 //	rcref<writer> write(file_size_t offset, void* b, size_t n) { return begin_write(rcnew(segment_buffer_map, offset, const_buffer::contain(b, n))); }
 //	rcref<writer> write(file_size_t offset, const const_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
 //	rcref<writer> write(file_size_t offset, const composite_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
 //	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return begin_write(sbm); }
-//	
+//
 //	class size_writer : public waitable
 //	{
 //	private:
@@ -1947,10 +1947,10 @@
 //		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
 //		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
-//	
+//
 //	// May fail if the underlying file implementation does not support resizing.
 //	virtual rcref<size_writer> set_size(const file_size_t& sz) = 0;
-//	
+//
 //protected:
 //	virtual rcref<writer> begin_write(const rcref<segment_buffer_map<file_size_t> >& sbm) = 0;
 //};
@@ -1980,7 +1980,7 @@
 //private:
 //	synchronized_file_impl(const this_t&) = delete;
 //	this_t& operator=(const this_t&) = delete;
-//	
+//
 //	typedef size_t transaction_id;
 //
 //	// Some terms for clarity:
@@ -2066,8 +2066,8 @@
 //	//	8. concurrency management
 //	//		8a. sub IO operations issued to File IO subsystem, completed
 //	//	9. IO operations completed / transaction completed
-//	//	
-//	//	
+//	//
+//	//
 //
 //	//	IO operations queued
 //	//	transaction submitted / IO operations submitted
@@ -2088,7 +2088,7 @@
 //	//					reads and writes that overlap.  This is necessary to ensure the same data is not being
 //	//					concurrently written to, or read from while written to, as both can have unpredictable
 //	//					results.
-//	//						
+//	//
 //	//						If a read operation is submitted against a range that has a (deferred or in-progress) read
 //	//							operation immediately ahead of it, the read operations are coalesced such that only 1
 //	//							low-level read operation is needed.
@@ -2161,7 +2161,7 @@
 //		transaction_map m_mayWriteLocks;
 //		waiting_read_map m_waitingReads;
 //		waiting_write_map m_waitingWrites;
-//		
+//
 //		bool m_initialized;
 //
 //		contention_state()
@@ -2266,7 +2266,7 @@
 //		//		If there are collisions, apply waiting-writes and waiting-reads to contention-state????
 //
 //		// If this is a locking-transaction, was-read segments will be present in contention_state.  waiting-reads may also be present.
-//		//		If waiting-reads are present, 
+//		//		If waiting-reads are present,
 //
 //	}
 //
@@ -2360,7 +2360,7 @@
 //			m_refCount(0)
 //		{ }
 //	};
-//	
+//
 //	class concurrency_state : public segment_state_map_node<file_size_t>
 //	{
 //	public:
@@ -2429,7 +2429,7 @@
 //	public:
 //		// A locking_transaction does not initialize until it's first read operation is attempted.
 //		// (A locking_transaction that does not issue any reads is treated the same as a composed_transaction).
-//		
+//
 //		// As a locking transaction is initialized, it is assigned a transaction_id.  Increasing values are
 //		// assigned for transaction_ids, so can be used to determine transaction order.
 //		// (transaction_id's may loop back to 0, so the next unassigned transaction_id must be considered for
@@ -2456,7 +2456,7 @@
 //		transaction_map m_readingTransactions;
 //		transaction_map m_activeTransactions;
 //
-//		// 
+//		//
 //
 //		// When a locking_transaction issues a read, it blocks subsequent locking_transaction's which might write to that
 //		// area, from starting.  Note that write blocks cascade, such that locking_transactions are unblocked in the order
@@ -2533,7 +2533,7 @@
 //			typedef delegate_t<void, const rcref<const typename file<write_access, file_size_t>::writer>&> file_writer_arg_delegate_t;
 //			m_transaction->m_synchronizedFileImpl->m_serialQueue->submit(delegate(file_writer_arg_delegate_t(&writer::done_inner_write2, this_rcref), w));
 //		}
-//		
+//
 //		void done_inner_write2(const rcref<const typename file<write_access, file_size_t>::writer>& w) // serialized w/ synchronized_file
 //		{
 //			rcptr<segment_buffer_map<file_size_t> > accumulatedWriteBuffers;
@@ -2555,7 +2555,7 @@
 //
 //			// The unwrittenBuffers represent failed writes
 //			rcref<segment_buffer_map<file_size_t> > unwrittenBuffers = w->get_unwritten_buffers();
-//			
+//
 //			COGS_ASSERT(!unwrittenBuffers); // TBD: What happens when file writes fail????!
 //
 //			segment_buffer_map<file_size_t>::iterator itor = unwrittenBuffers->get_first();
@@ -2571,7 +2571,7 @@
 //			// TBD
 //		}
 //	};
-//	
+//
 ////	void done_secondary_write(const rcref<const typename file<write_access, file_size_t>::writer>& w) // serialized w/ synchronized_file
 ////	{
 ////		typedef delegate_t<void, const rcref<const typename file<read_access, file_size_t>::reader>&> file_reader_arg_delegate_t;
@@ -2587,11 +2587,11 @@
 //	{
 //	public:
 //		// Segment state and read operations.  (See also: class segment_map::node)
-//		
+//
 //		// (Phase 1) If pieces of a requested read operation are already in memory, such as if cached or
 //		// if there is an overlapping write operation, those segments are removed from the
 //		// 'unread segments', and content is added directly to the 'read segment buffers'.
-//		// 
+//		//
 //		// (Phase 2) Some segments may overlap reads already in progress.  Those segments are
 //		// removed from the 'unread segments' map and move to a 'waiting segments' list.
 //
@@ -2604,7 +2604,7 @@
 //		// actually be read.  If not empty, the derived reader is invoked.  Upon completion, the
 //		// read operation is not fully completed until all 'waiting segments' are also complete.
 //
-//		// (Phase 4) When the inner read is complete, all concurrency_state's associated with the 
+//		// (Phase 4) When the inner read is complete, all concurrency_state's associated with the
 //		// ranges requested are traversed (using a linked-list that threads them together).
 //		ptr<concurrency_state> m_firstInReadThread; // Nodes are split from the end, so this always remains valid.
 //		size_t m_numWaitingReads;
@@ -2614,7 +2614,7 @@
 //		// lookups.  Any successfully read buffers are provided to all waiting readers on that concurrency_state.
 //		// In case some of the other readers we were waiting on did not complete successfully, we
 //		// copy the left-over contents from the 'waiting segments' back into the 'unread segments'.
-//		
+//
 //		rcptr<transaction_internals> m_transaction;
 //
 //		rcptr<reader> m_nextReader;
@@ -2759,7 +2759,7 @@
 //				if (readBlockEndsBeforeNodeEnd)
 //					endPos = itorEnd;
 //				accumulatedReadSegmentBuffers.add(itor->get_trailing((size_t)(nodeStart - itorStart)).get_leading((size_t)(endPos - nodeStart)));
-//				
+//
 //				if (readBlockEndsBeforeNodeEnd)
 //				{
 //					// ... and extends to itorEnd
@@ -2802,7 +2802,7 @@
 //		void set_size(const file_size_t& sz) { file<read_access, file_size_t>::size_reader::set_size(sz); }
 //		void complete() { file<read_access, file_size_t>::size_reader::complete(); }
 //	};
-//	
+//
 //	class size_writer : public file<write_access, file_size_t>::size_writer
 //	{
 //	public:
@@ -3091,7 +3091,7 @@
 //				r->complete();
 //				r = r->m_nextReader.get();
 //			}
-//			
+//
 //			rcptr<writer> w = m_firstWriter;
 //			m_firstWriter = 0;
 //			while (!!w)
@@ -3261,7 +3261,7 @@
 //					waiting_read_segment* waitingSegment = new (default_allocator::get()) waiting_read_segment(*r);
 //
 //					++(r->m_numWaitingReads);
-//					
+//
 //					// Keep track of all of the segment waiting on this concurrency_state.
 //					waitingSegment->m_nextWaitingReadSegment = curNode->m_firstWaitingReadSegment;
 //					curNode->m_firstWaitingReadSegment = waitingSegment;
@@ -3300,7 +3300,7 @@
 //			}
 //			itor = nextItor;
 //		}
-//		
+//
 //		if (!!firstNodeInInnerRead) // If something is left, issue an inner read
 //		{
 //			++(r->m_numWaitingReads);
@@ -3337,7 +3337,7 @@
 //					waiting_write_segment* waitingSegment = new (default_allocator::get()) waiting_write_segment(*w);
 //
 //					++(w->m_numWaitingWrites);
-//					
+//
 //					// Keep track of all of the waiting segment waiting on this concurrency_state.
 //					waitingSegment->m_nextWaitingWriteSegment = curNode->m_firstWaitingWriteSegment;
 //					curNode->m_firstWaitingWriteSegment = waitingSegment;
@@ -3415,7 +3415,7 @@
 //		issue_reads(t);
 //		issue_writes(t);
 //	}
-//	
+//
 //	void commit_failable_read(const rcref<reader>& r)
 //	{
 //		// Check for aborted or not?  We know it won't have been submitted yet.
@@ -3523,7 +3523,7 @@
 //			for (;;)
 //			{
 //				run_write_notifications(t); // Next check for overlaps with pending failable_transactions and abort if necessary.
-//			
+//
 //				issue_writes(t);
 //
 //				m_firstDeferredLockingTransaction = 0; // Temporarily unset locking transactions, and let all pending failable and composed transactions through.
@@ -3579,7 +3579,7 @@
 //		if (type == failable_transaction)
 //			return submit_delegate_t(&synchronized_file_impl<file_size_t>::commit_failable, this_rcref);
 //	}
-//	
+//
 //	template <file_transaction_type type>
 //	class transaction : public object
 //	{
@@ -4164,7 +4164,7 @@
 //				}
 //			}
 //		};
-//		
+//
 //		class eof_teller : public teller
 //		{
 //		public:
@@ -4241,16 +4241,16 @@
 //
 //	file_mask(const this_t&);
 //	this_t& operator=(const this_t&);
-//	
+//
 //	// A file mask can be either inclusize or exclusive.  In other words, a file mask
 //	// can either identify a portion of a file, or everything but a portion of the file.
-//	// 
+//	//
 //	// When in inclusion mode, an exclusion will remove a range from the inclusion list,
 //	// and a inclusion will add a range to the inclusion list.
 //	//
 //	// When in exclusion mode, an exclusion will add a range to the exclusion list,
 //	// and a inclusion will remove the range from the exclusion list.
-//	// 
+//	//
 //	// The only way to switch modes between inclusion and exclusion mode, is to call either
 //	// set_to_all(), or clear().
 //
@@ -4304,7 +4304,7 @@
 //	static this_t all(bool spanPastEof = true) { return this_t(true, !spanPastEof); }
 //	static this_t contents() { return this_t(true, true); }
 //	static this_t eof() { return this_t(false, true); }
-//		
+//
 //	void clear()
 //	{
 //		m_excludeMode = true;
@@ -4335,7 +4335,7 @@
 //
 //	void include(const segment<file_size_t>& s) { add_remove<false>(s); }
 //	void exclude(const segment<file_size_t>& s) { add_remove<true>(s); }
-//		
+//
 //	void include(const segment_map<file_size_t>& sm) { add_remove<false>(sm); }
 //	void exclude(const segment_map<file_size_t>& sm) { add_remove<true>(sm); }
 //
@@ -4347,10 +4347,10 @@
 //	{
 //		if (m_excludeMode && !fm.m_excludeMode)
 //			return fm.does_overlap(*this, currentEof); // Flip to ensures rest of algoritm doesn't need to worry about (m_excludeMode && !fm.m_excludeMode)
-//		
+//
 //		if (!m_excludeMode)
 //		{
-//			if (!fm.m_excludeMode) // && (!m_excludeMode) 
+//			if (!fm.m_excludeMode) // && (!m_excludeMode)
 //			{ // both in include mode.
 //				if (!!m_pastEof)
 //				{
@@ -4392,7 +4392,7 @@
 //					segment<file_size_t> curSegment = *itor;
 //					if (curSegment.get_start() >= currentEof)
 //						return false;
-//					
+//
 //					file_size_t curSegmentEnd = curSegment.get_end(); // Clip end if necessary
 //					if (curSegmentEnd > currentEof)
 //						curSegment.m_length -= (curSegmentEnd - currentEof);
@@ -4414,7 +4414,7 @@
 //			file_size_t curPos = 0;
 //			segment_map<file_size_t>::iterator itor = m_segments.get_first(); // Overlaps are fine.  Adjacent are fine.
 //			segment_map<file_size_t>::iterator itor2 = fm.m_segments.get_first(); // But any gaps imply an overlap.
-//			if (!itor) // Empty itor means nothing is excluded, so any gaps in itor2 before EOF implies an overlap.		
+//			if (!itor) // Empty itor means nothing is excluded, so any gaps in itor2 before EOF implies an overlap.
 //				return ((!itor2) // If no itor2 either, nothing is excluded from either.  So they overlap.
 //					|| (itor2->get_start() > curPos) // gap found before.
 //					|| (itor2->get_end() < currentEof)); // gap found after
@@ -4555,7 +4555,7 @@
 //
 //	// Implemented at cogs::os level, to use os::file derived class.
 //	static rcptr<file<read_write_access> > open(const string& location, create_mode mode = open_if_exists);
-//	
+//
 //protected:
 //	virtual rcref<writer> create_writer() = 0;
 //};
@@ -4564,7 +4564,7 @@
 //
 //template <typename file_size_t>
 //class file<read_write_access>
-//	
+//
 //
 ////------------------------
 //
@@ -4643,12 +4643,12 @@
 //			segment_buffer* get() const { return (!m_node) ? (segment_t*)0 : &(m_node->m_contents); }
 //			segment_buffer& operator*() const { return m_node->m_contents; }
 //			segment_buffer* operator->() const { return &(m_node->m_contents); }
-//			
+//
 //			void clear() { m_node = 0; }
 //
 //			iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
 //		};
-//		
+//
 //		void add_segment(const segment& s) const // Only called from segment_map.  Ignores buffers
 //		{
 //			file_size_t trailingEnd;
@@ -4697,7 +4697,7 @@
 //			}
 //		}
 //
-//		// add_buffer() 
+//		// add_buffer()
 //		iterator add_buffer(const segment_buffer& sb) const // Only called from segment_buffer_map
 //		{
 //			;
@@ -4768,7 +4768,7 @@
 //			iterator operator--(int) { return m_itor--; }
 //
 //			bool operator!() const { return !m_itor; }
-//		
+//
 //			bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
 //			bool operator!=(const iterator& i) const { return !operator==(i); }
 //
@@ -4814,7 +4814,7 @@
 //			iterator operator--(int) { return m_itor--; }
 //
 //			bool operator!() const { return !m_itor; }
-//		
+//
 //			bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
 //			bool operator!=(const iterator& i) const { return !operator==(i); }
 //
@@ -4863,7 +4863,7 @@
 //		{
 //		private:
 //			file_size_t m_length;
-//			
+//
 //		private:
 //			length_aux_t(const file_size_t& length)
 //				: m_length(length)
@@ -4909,7 +4909,7 @@
 //			: m_start(start),
 //			m_aux(aux)
 //		{ }
-//		
+//
 //		const file_size_t get_start() const { return m_start; }
 //		const file_size_t get_length() const { return m_aux.get_length(); }
 //		const file_size_t get_end() const { return m_start + get_length(); }
@@ -4938,7 +4938,7 @@
 //			m_length -= n;
 //			return result;
 //		}
-//		
+//
 //		// merge() stores the union of both segments.  It's likely an error to use merge() with
 //		// segments that are not overlaping or adjacent
 //		void merge(const this_t& s)
@@ -4969,7 +4969,7 @@
 //			return m_start < s2.m_start;
 //		}
 //	};
-//	
+//
 //	template <typename aux_t> // aux_t can be buffer, composite_buffer, or void
 //	class segment_base
 //	{
@@ -5160,7 +5160,7 @@
 //			}
 //			return false;
 //		}
-//		
+//
 //		void add(const segment_t& s)
 //		{
 //			file_size_t trailingEnd;
@@ -5363,7 +5363,7 @@
 //	typedef segment_list_base<true> vector_buffer;
 //
 //private:
-//	
+//
 //	class transaction_internals
 //	{
 //	public:
@@ -5573,7 +5573,7 @@
 //				}
 //			}
 //		};
-//		
+//
 //		class eof_teller : public teller
 //		{
 //		public:
@@ -5923,7 +5923,7 @@
 //		typename collection<rcref<failable_transaction_internals> >::remove_token m_removeToken;
 //		segment_list m_readRanges;
 //		bool m_aborted;
-//		
+//
 //		void abort()
 //		{
 //			COGS_ASSERT(!m_aborted);
@@ -6092,7 +6092,7 @@
 //
 //	void commit_failable(const rcref<failable_transaction_internals>& t)
 //	{
-//		if (t->m_aborted) //check if transaction was interrupted. 
+//		if (t->m_aborted) //check if transaction was interrupted.
 //		{                 // If so, complete the writes without issuing them and return.
 //			// TODO: Abort all writers
 //		}
@@ -6110,7 +6110,7 @@
 //	{
 //		// Checks writes against write_notification_map, but NOT the lock_map
 //		run_write_notifications(t->m_writeMask);
-//		
+//
 //		issue_writes(t); // Issue the writes.
 //		m_lockMask.clear();
 //
@@ -6171,7 +6171,7 @@
 //				}
 //			}
 //		}
-//			
+//
 //		rcref<reader> read(const segment_list& sl)
 //		{
 //			rcptr<file<read_access> > f = m_file;
@@ -6189,7 +6189,7 @@
 //
 //
 //	};
-//	
+//
 //	class failable_transaction
 //	{
 //	private:
@@ -6242,7 +6242,7 @@
 //			return r;
 //		}
 //	};
-//	
+//
 //public:
 //	class composed_transaction
 //	{
@@ -6279,7 +6279,7 @@
 //					(*itor)->complete();
 //					++itor;
 //				}
-//				
+//
 //				writer_map_t::iterator itor2 = m_transaction->m_writerList.get_first();
 //				while (!!itor2)
 //				{
@@ -6419,7 +6419,7 @@
 //
 //	// Implemented at cogs::os level, to use os::file derived class.
 //	static rcptr<file<read_write_access> > open(const string& location, create_mode mode = open_if_exists);
-//	
+//
 //protected:
 //	virtual rcref<writer> create_writer() = 0;
 //};
@@ -6446,7 +6446,7 @@
 //		: m_start(src.m_start),
 //		m_end(src.m_end)
 //	{ }
-//	
+//
 //	byte_segment_t(uint64_t start, size_t n)
 //		: m_start(start),
 //		m_end(start + n)
@@ -6518,9 +6518,9 @@
 //		// sorted_list_node interface
 //		uint64_t get_key() const { return start(); }
 //	};
-//		
+//
 //private:
-//	typedef sorted_list<uint64_t, true, block_t> block_list_t; 
+//	typedef sorted_list<uint64_t, true, block_t> block_list_t;
 //	block_list_t m_blockList;
 //
 //public:
@@ -6552,12 +6552,12 @@
 //
 //		bool operator!() const { return !m_itor; }
 //		bool operator!() const volatile { return !m_itor; }
-//		
+//
 //		bool operator==(const iterator& i) const { return m_itor == i.m_itor; }
 //		bool operator==(const volatile iterator& i) const { return m_itor == i.m_itor; }
 //		bool operator==(const iterator& i) const volatile { return m_itor == i.m_itor; }
 //		bool operator==(const volatile iterator& i) const volatile { return m_itor == i.m_itor; }
-//		
+//
 //		bool operator!=(const iterator& i) const { return !operator==(i); }
 //		bool operator!=(const volatile iterator& i) const { return !operator==(i); }
 //		bool operator!=(const iterator& i) const volatile { return !operator==(i); }
@@ -6687,7 +6687,7 @@
 //		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d, n); }
 //		void dispatch(const dispatch_t& d) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
-//	
+//
 //public:
 //	class file_reader : public waitable
 //	{
@@ -6801,7 +6801,7 @@
 //		// These are operations not yet issued.
 //		vector<rcptr<transaction_operation> > m_waitingWriters;
 //		vector<rcptr<transaction_operation> > m_waitingReaders; // empty if a read transaction
-//			
+//
 //		collection<file_reader*> m_myReaders;
 //		collection<file_writer*> m_myWriters;
 //
@@ -6847,7 +6847,7 @@
 //			{
 //				rcptr<file<read_access> > f = m_file;
 //				if (!!f)
-//					f->complete_transaction(is_write_transaction(), this_rcref); 
+//					f->complete_transaction(is_write_transaction(), this_rcref);
 //			}
 //		}
 //
@@ -6909,7 +6909,7 @@
 //	{
 //	public:
 //		size_t m_readCount; // number of reads concurrently executing
-//		size_t m_pendingReadCount; // 
+//		size_t m_pendingReadCount; //
 //		rcptr<transaction_operation> m_lastWaitingWriter; // Tail of the queue of pending writers.
 //		vector<rcref<transaction_operation> > m_waitingReaders; // waiting readers not yet issued.
 //
@@ -6937,7 +6937,7 @@
 //			for (size_t i = 0; i < m_waitingReaders.size(); i++)
 //				++(m_waitingReaders[i]->m_countDown);
 //		}
-//				
+//
 //		bool operator<(const subrange_t& cmp) const { return start() < cmp.start(); }
 //
 //		void register_waiter(bool writeMode, const rcref<transaction_operation>& t)
@@ -6966,7 +6966,7 @@
 //		uint64_t get_key() const { return start(); }
 //	};
 //
-//	typedef sorted_list<uint64_t, true, subrange_t> subrange_list_t; 
+//	typedef sorted_list<uint64_t, true, subrange_t> subrange_list_t;
 //	subrange_list_t m_subrangeList;
 //
 //	subrange_t* insert_new_subrange(uint64_t startPos, uint64_t endPos, bool writeMode, const rcref<transaction_operation>& t)
@@ -7329,7 +7329,7 @@
 //				}
 //			}
 //		};
-//		
+//
 //		class eof_teller : public teller
 //		{
 //		public:
@@ -7438,7 +7438,7 @@
 //				: m_cursor(c),
 //				datasink::writer(c)
 //			{ }
-//				
+//
 //			virtual void writing()
 //			{
 //				rcptr<read_write_cursor> c = m_cursor;
@@ -7528,7 +7528,7 @@
 //
 //	// Implemented at cogs::os level, to use os::file derived class.
 //	static rcptr<file<read_write_access> > open(const string& location, create_mode mode = open_if_exists);
-//	
+//
 //	rcref<file_writer> write(uint64_t offset, const composite_buffer& compBuf)
 //	{
 //		return create_read_write_transaction()->write(offset, compBuf);

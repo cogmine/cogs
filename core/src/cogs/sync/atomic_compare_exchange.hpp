@@ -104,7 +104,7 @@ template <typename T, class functor_t>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& !std::is_const_v<T>,
-	std::remove_cv_t<T> 
+	std::remove_cv_t<T>
 >
 compare_exchange_retry_loop_post(volatile T& t, functor_t&& fctr)
 {

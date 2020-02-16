@@ -25,7 +25,7 @@
 //	class row_t;
 //
 //	typedef nonvolatile_multimap<key_t, rcref<row_t>, true> map_t;
-//	
+//
 //	class cell_t : public frame
 //	{
 //	public:
@@ -101,7 +101,7 @@
 //	//----Configuration data
 //	map_t m_cells;
 //	sizing_group_t m_sizingGroup;
-//	
+//
 //	//----State data
 //	bool m_wasRecalculated;
 //	double m_cachedLength;
@@ -109,10 +109,10 @@
 //
 //	range m_currentRange;
 //	size m_currentDefaultSize;
-//	
+//
 //	virtual range get_current_range() const { return m_currentRange; }
 //	virtual size get_current_default_size() const { return m_currentDefaultSize; }
-//	
+//
 //	virtual void calculate_range()
 //	{
 //		range rng;
@@ -156,7 +156,7 @@
 //		m_currentRange = rng;
 //		m_wasRecalculated = true;
 //	}
-//	
+//
 //	virtual double propose_dimension(planar::dimension d, double proposed, range::linear_t& rtnOtherRange) const
 //	{
 //		double rtn = proposed;
@@ -174,7 +174,7 @@
 //				double ignoredRtn = cell.propose_dimension(d, r2.get_length(), otherRange);
 //#error
 //				b.m_range &= otherRange;
-//				
+//
 //				++itor;
 //			}
 //
@@ -186,7 +186,7 @@
 //		}
 //		return rtn;
 //	}
-//	
+//
 //	virtual size propose_lengths(dimension d, const size& proposedSize) const
 //	{
 //#error
@@ -199,7 +199,7 @@
 //			newSize[!list_dimension] = otherRange.get_max();
 //		return newSize;
 //	}
-//	
+//
 //	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 //	{
 //		double oldCachedLength = m_cachedLength;
@@ -210,7 +210,7 @@
 //			m_wasRecalculated = false;
 //			newSize = propose_size(b.get_size());
 //		}
-//		
+//
 //		m_secondarySizingGroup.calculate_sizes(newSize[!list_dimension]);
 //
 //		typename primary_map_t::iterator itor = m_primaryRows.get_first(); //m_rowsAndColumns[dimension::horizontal].get_first();
@@ -223,7 +223,7 @@
 //			curOffset += r.m_cachedLength;
 //			++itor;
 //		}
-//			
+//
 //		typename secondary_map_t::iterator itor2 = m_secondaryRows.get_first(); //m_rowsAndColumns[dimension::vertical].get_first();
 //		curOffset = 0;
 //		while (!!itor2)
@@ -237,7 +237,7 @@
 //
 //		pane::reshape(r, oldOrigin);
 //	}
-//	
+//
 //public:
 //	grid()
 //		: m_wasRecalculated(false)
@@ -245,7 +245,7 @@
 //
 //	~grid()
 //	{ }
-//	
+//
 //	void nest(const rcref<pane>& child, const primary_key_t& primaryKey, const secondary_key_t& secondaryKey, const rcptr<frame>& userReshaper = 0)
 //	{
 //		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
@@ -277,7 +277,6 @@
 //
 //		pane::nest(child, cell);
 //	}
-//	
 //
 //	virtual void detaching_child(const rcref<pane>& p)
 //	{
@@ -293,7 +292,7 @@
 //		secondaryRow->m_cells.remove(c->m_removeTokens[!list_dimension]);
 //		if (!secondaryRow->m_cells) // remove row
 //			m_secondaryRows.remove(secondaryRow->m_removeToken);
-//		
+//
 //		pane::detaching_child(p);
 //	}
 //

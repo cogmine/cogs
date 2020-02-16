@@ -9,7 +9,7 @@
 #define COGS_HEADER_MEM_INT_PARTS
 
 
-#include <type_traits> 
+#include <type_traits>
 
 
 namespace cogs {

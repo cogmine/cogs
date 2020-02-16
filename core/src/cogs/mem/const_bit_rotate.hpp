@@ -7,7 +7,6 @@
 #define COGS_HEADER_MEM_CONST_BIT_ROTATE
 
 
-
 namespace cogs {
 
 
@@ -32,7 +31,6 @@ class const_bit_rotate_left
 public:
 	static constexpr ulongest value = ((x << n) | (x >> (sizeof(ulongest) - n)));
 };
-
 
 
 }

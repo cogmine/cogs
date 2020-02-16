@@ -45,7 +45,7 @@
 /// Most C++ programmers should be aware of the concept of <a href="https://isocpp.org/wiki/faq/const-correctness#overview-const">const correctness</a>.
 /// In C++, the 'const' qualifier can be added to a type, preventing non-const access to that data at compile time.
 /// Using this language feature tends to have a cascading effect, and "correctness" refers to using const for
-/// read-only references consistently throughout the code-base.  
+/// read-only references consistently throughout the code-base.
 ///
 /// The const qualifier can also be added to member functions, causing a member function to treat it's
 /// 'this' pointer as a pointer to a const type.  Methods of the same name can be overloaded with and without the const
@@ -95,9 +95,9 @@
 /// Included is a library of atomic operations that leverage compiler intrisics.  See: @ref cogs::atomic
 ///
 ///
-/// @subsection MainPageMemoryAllocation Memory Allocation 
+/// @subsection MainPageMemoryAllocation Memory Allocation
 ///
-/// Cogs supports an allocator type. A @ref cogs::allocator may be static or 
+/// Cogs supports an allocator type. A @ref cogs::allocator may be static or
 /// instance-based.  The default allocator (@ref cogs::buddy_block_allocator , aka bballoc) is lock-free.
 /// bballoc is a general purpose allocator that uses a cascading set of free-lists.
 ///
@@ -108,7 +108,7 @@
 ///
 /// @code{.cpp}
 ///		volatile rcptr<A> a1 = rcnew(A, constructorArgs);
-///		
+///
 ///		// in another thread:
 ///		rcptr<A> a2 = a1;
 ///
@@ -134,7 +134,7 @@
 /// @ref cogs::container_dlist - A container (non-intrusive) double-link list.  Supports lock-free traversal.
 ///
 /// @ref cogs::container_skiplist "container_skiplist" - A sorted container (non-intrusive) with O(log n) insert and search.  Efficient insert at start/end.  Based loosely on a <a href="http://www.non-blocking.com/download/SunT03_PQueue_TR.pdf">paper</a> by Sundell and Tsigas.
-/// This is used to provide lock-free implementations of standard associative containers such as 
+/// This is used to provide lock-free implementations of standard associative containers such as
 /// @ref cogs::set,
 /// @ref cogs::multiset,
 /// @ref cogs::map, and
@@ -148,7 +148,7 @@
 ///
 /// @ref cogs::buddy_block_allocator - An allocator that uses a set of cascading free-lists.  If a block of a required
 /// size is not available, a block twice the size is allocated, split in half, and the other half is added to the smaller block's free-list.
-/// When a block is freed, and it's associated (buddy) block is also freed, they are coalesced and released to the free-list for the coalesced block. 
+/// When a block is freed, and it's associated (buddy) block is also freed, they are coalesced and released to the free-list for the coalesced block.
 ///
 ///
 /// @subsection MainPageSynchronizationObjects Synchronization Objects
@@ -163,7 +163,7 @@
 ///
 /// @ref Events - Similar to Win32 Events and pthreads condition objects - cogs::event, @ref cogs::auto_reset_event, @ref cogs::count_down_event, @ref cogs::resettable_event, @ref cogs::single_fire_event
 ///
-/// @ref Timers - cogs::timer, @ref cogs::resettable_timer, @ref cogs::pulse_timer, @ref cogs::refireable_timer, @ref cogs::single_fire_timer 
+/// @ref Timers - cogs::timer, @ref cogs::resettable_timer, @ref cogs::pulse_timer, @ref cogs::refireable_timer, @ref cogs::single_fire_timer
 ///
 /// @ref cogs::mutex, @ref cogs::semaphore, @ref cogs::rwlock, @ref cogs::priority_queue
 ///
@@ -193,7 +193,7 @@
 /// Cogs I/O makes use of composite buffers (@ref cogs::io::composite_buffer_t).  A composite buffer is a single logical buffer potentially
 /// comprised of multiple incontiguous buffers.  This is intended to minimize large buffer copies.
 ///
-/// Cogs includes scalable cross-platform Network I/O.  
+/// Cogs includes scalable cross-platform Network I/O.
 /// - On Windows, <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365198(v=vs.85).aspx">IOCompletionPorts</a> are used.
 /// - On Linux, <a href="https://en.wikipedia.org/wiki/Epoll">epoll</a> is used.
 /// - On MacOS, <a href="https://en.wikipedia.org/wiki/Kqueue">kqueue</a> is used.

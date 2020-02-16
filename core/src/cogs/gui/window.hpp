@@ -23,7 +23,7 @@ class window_interface
 {
 public:
 	virtual void set_initial_shape(const point* initialPosition, const size* initialFrameSize, bool centerPosition) = 0;
-	virtual void reshape_frame(const bounds& newBounds) = 0;
+	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0)) = 0;
 	virtual bounds get_frame_bounds() const = 0;
 	virtual void set_title(const composite_string& title) = 0;
 };
@@ -87,10 +87,10 @@ protected:
 		m_nativeWindow.release();
 	}
 
-	virtual void reshape_top()
+	virtual void set_initial_shape()
 	{
 		m_nativeWindow->set_initial_shape(
-			m_hasInitialScreenPosition ? &m_initialScreenPosition : nullptr, 
+			m_hasInitialScreenPosition ? &m_initialScreenPosition : nullptr,
 			m_hasInitialFrameSize ? &m_initialFrameSize : nullptr,
 			m_initialPositionCentered);
 	}
@@ -164,14 +164,14 @@ public:
 	}
 
 	using pane_container::nest;
-	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_last(child, f); }
-	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0) { pane::nest_first(child, f); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0) { pane::nest_before(child, beforeThis, f); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0) { pane::nest_after(child, afterThis, f); }
+	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
+	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
+	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
+	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
 
 	using pane_bridge::reshape;
 
-	virtual void reshape_frame(const bounds& newBounds)
+	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
 		if (!!m_nativeWindow)
 			m_nativeWindow->reshape_frame(newBounds);
@@ -189,10 +189,9 @@ public:
 
 inline rcref<task<void> > windowing::subsystem::open(
 	const composite_string& title,
-	const rcref<pane>& p,
-	const rcptr<frame>& f) volatile
+	const rcref<pane>& p) volatile
 {
-	return open_window(nullptr, nullptr, false, title, p, f)->get_window_task();
+	return open_window(nullptr, nullptr, false, title, p)->get_window_task();
 }
 
 inline rcref<gui::window> windowing::subsystem::open_window(
@@ -200,11 +199,10 @@ inline rcref<gui::window> windowing::subsystem::open_window(
 	const gfx::canvas::size* frameSize,
 	bool positionCentered,
 	const composite_string& title,
-	const rcref<pane>& p,
-	const rcptr<frame>& f) volatile
+	const rcref<pane>& p) volatile
 {
 	rcref<gui::window> w = rcnew(window, screenPosition, frameSize, positionCentered, title);
-	w->nest(p, f);
+	w->nest(p);
 	install(*w, this_rcref);
 	return w;
 }

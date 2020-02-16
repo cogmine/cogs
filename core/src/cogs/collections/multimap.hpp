@@ -19,7 +19,6 @@
 namespace cogs {
 
 
-
 #pragma warning(push)
 #pragma warning (disable: 4521) // multiple copy constructors specified
 #pragma warning (disable: 4522) // multiple assignment operators specified
@@ -866,7 +865,7 @@ public:
 	/// @brief Inserts an element
 	/// @param k Key value to insert
 	/// @param v Value to insert
-	/// @return An iterator to the newly inserted element 
+	/// @return An iterator to the newly inserted element
 	iterator insert(const key_t& k, const value_t& v)
 	{
 		typename container_skiplist_t::preallocated i = m_contents.preallocate();

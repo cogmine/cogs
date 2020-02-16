@@ -668,8 +668,6 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 //}
 
 
-
-
 @end
 
 

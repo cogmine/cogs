@@ -39,7 +39,7 @@ inline std::enable_if_t<
 	&& !std::is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& !std::is_volatile_v<T2>
-	&& std::is_constructible_v<T, const T2&> 
+	&& std::is_constructible_v<T, const T2&>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	void
 >

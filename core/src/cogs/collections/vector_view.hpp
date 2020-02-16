@@ -324,7 +324,7 @@
 //
 //	void clear() { m_contents.m_base = 0; }
 //	void clear() volatile { atomic::store(m_contents.m_base, 0); }
-//	
+//
 //	// not
 //	bool operator!() const { return m_contents.m_base == 0; }
 //	bool operator!() const volatile { return atomic::load(m_contents.m_base) == 0; }
@@ -384,7 +384,7 @@
 //		return (m_contents.m_base == (unsigned char*)static_cast<T*>(&(t[0])))
 //			&& (extent_v<T2> == m_contents.m_length);
 //	}
-//	
+//
 //	template <typename T2, std::enable_if_t<is_array_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>
 //	bool operator==(T2& t2) const volatile
 //	{

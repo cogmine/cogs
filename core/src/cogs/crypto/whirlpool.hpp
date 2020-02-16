@@ -210,7 +210,7 @@ private:
 			tmpState[5] = tmp[5];
 			tmpState[6] = tmp[6];
 			tmpState[7] = tmp[7];
-		} 
+		}
 
 		m_result[0] ^= tmpState[0] ^ m_state[0];
 		m_result[1] ^= tmpState[1] ^ m_state[1];

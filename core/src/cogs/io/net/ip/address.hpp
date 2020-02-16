@@ -12,7 +12,6 @@
 #include "cogs/os/io/net/ip/address.hpp"
 
 
-
 namespace cogs {
 namespace io {
 namespace net {

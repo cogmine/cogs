@@ -872,7 +872,7 @@ protected:
 	/// node with 2 children has a next (and previous) in-order node that has 0 or 1 children (i.e. in-order next
 	/// may only have a right link, and in-order prev may only have a left link).  The removing and in-order
 	/// adjacent nodes can simply be swapped.  The node to be removed then has 0 or 1 child, and can be easily removed.
-	/// 
+	///
 	/// In order to update balancing information (red/black or avl), we need to return the node swapped with, and
 	/// the single child node swapped into place after removal.  The caller needs to handle the following scenarios:
 	///

@@ -24,7 +24,6 @@ namespace cogs {
 namespace atomic {
 
 
-
 template <typename T, typename T2 = T>
 inline std::enable_if_t<
 	can_atomic_v<T>

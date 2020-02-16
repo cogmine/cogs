@@ -363,7 +363,7 @@ public:
 	}
 
 	virtual uint_t get_hash_int() const
-	{ 
+	{
 		sum_t sum1;
 		sum_t sum2;
 		finalize(sum1, sum2);
@@ -411,7 +411,7 @@ public:
 			m_carry = src.m_carry;
 			m_carryBits = src.m_carryBits;
 		}
-		if (width == 8) 
+		if (width == 8)
 		{
 			m_carry = 0;
 			m_carryBits = 0;

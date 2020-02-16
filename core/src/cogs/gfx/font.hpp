@@ -74,7 +74,7 @@ private:
 		}
 
 		bool operator==(const description& cmp) const
-		{ 
+		{
 			return m_pointSize == cmp.m_pointSize &&
 				m_isItalic == cmp.m_isItalic &&
 				m_isBold == cmp.m_isBold &&
@@ -197,7 +197,7 @@ public:
 		do
 		{
 			m_contents.begin_write(wt);
-			wt->m_isUnderlined = b; 
+			wt->m_isUnderlined = b;
 		} while (!m_contents.end_write(wt));
 	}
 

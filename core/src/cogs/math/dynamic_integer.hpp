@@ -1285,7 +1285,6 @@ public:
 	}
 
 
-
 	template <bool has_sign, size_t bits>
 	void subtract2(const fixed_integer_native<has_sign, bits>& src)
 	{
@@ -1481,7 +1480,7 @@ public:
 				multiply(src1.m_digits.get_const_ptr(), src1Length, src2.m_digits.get_const_ptr(), src2Length);
 				return;
 			}
-			// fall through, 
+			// fall through,
 		}
 		// else if ((!src2Length) || (!src1Length))
 		clear();
@@ -2482,7 +2481,6 @@ public:
 	}
 
 };
-
 
 
 /// @ingroup Math
@@ -4296,7 +4294,7 @@ public:
 
 	void assign_inverse_modulo(const dynamic_integer& src) { *this = src % *this; }
 
-	void assign_inverse_modulo(const dynamic_integer& src) volatile 
+	void assign_inverse_modulo(const dynamic_integer& src) volatile
 	{
 		content_t tmp = *(src.m_contents);
 		tmp.acquire();
@@ -4877,7 +4875,7 @@ public:
 			return tmp2;
 		}
 
-		dynamic_integer tmp(src); 
+		dynamic_integer tmp(src);
 		return divide_whole(tmp);
 	}
 
@@ -6708,7 +6706,6 @@ public:
 	}
 
 
-
 	template <typename S, typename R>
 	void exchange(S&& src, R& rtn)
 	{
@@ -7207,7 +7204,7 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole(const dynamic_i
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
@@ -7215,7 +7212,7 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole(const dynamic_i
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
@@ -7262,7 +7259,7 @@ inline void fixed_integer_native<has_sign, n_bits>::assign_divide_whole(const dy
 			longest srcInt = (longest)src.get_int();
 			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 				{
 					cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 					return;
@@ -7270,7 +7267,7 @@ inline void fixed_integer_native<has_sign, n_bits>::assign_divide_whole(const dy
 			}
 			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0) // 00 = -256 
+				if (srcInt != 0) // 00 = -256
 				{
 					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 					{
@@ -7319,12 +7316,12 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			longest srcInt = (longest)src.get_int();
 			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					return cogs::pre_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 			}
 			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0) // 00 = -256 
+				if (srcInt != 0) // 00 = -256
 				{
 					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						return cogs::pre_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -7367,12 +7364,12 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			longest srcInt = (longest)src.get_int();
 			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					return cogs::post_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 			}
 			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0) // 00 = -256 
+				if (srcInt != 0) // 00 = -256
 				{
 					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						return cogs::post_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -7409,7 +7406,7 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::modulo(m_int, srcInt);
 						break;
@@ -7417,7 +7414,7 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
@@ -7460,7 +7457,7 @@ inline fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has_sign, n_
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						cogs::assign_modulo(m_int, srcInt);
 						break;
@@ -7468,7 +7465,7 @@ inline fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has_sign, n_
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
@@ -7510,7 +7507,7 @@ inline volatile fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						cogs::assign_modulo(m_int, srcInt);
 						break;
@@ -7518,7 +7515,7 @@ inline volatile fixed_integer_native<has_sign, n_bits>& fixed_integer_native<has
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
@@ -7565,12 +7562,12 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			longest srcInt = (longest)src.get_int();
 			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					return cogs::pre_assign_modulo(m_int, srcInt);
 			}
 			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0) // 00 = -256 
+				if (srcInt != 0) // 00 = -256
 				{
 					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						return cogs::pre_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -7608,12 +7605,12 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 			longest srcInt = (longest)src.get_int();
 			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 			{
-				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					return cogs::post_assign_modulo(m_int, srcInt);
 			}
 			else // this range will be 0..255 == 00..FF
 			{
-				if (srcInt != 0) // 00 = -256 
+				if (srcInt != 0) // 00 = -256
 				{
 					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						return cogs::post_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -7647,7 +7644,7 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_modulo(cons
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result.first = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						result.second = cogs::modulo(m_int, srcInt);
@@ -7701,7 +7698,7 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_assign_modu
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						cogs::assign_modulo(m_int, srcInt);
@@ -7754,7 +7751,7 @@ inline auto fixed_integer_native<has_sign, n_bits>::divide_whole_and_assign_modu
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						break;
@@ -7805,7 +7802,7 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::modulo(m_int, srcInt);
 						cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -7859,7 +7856,7 @@ inline fixed_integer_native<has_sign, n_bits> fixed_integer_native<has_sign, n_b
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
 						// signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -8681,7 +8678,6 @@ inline int fixed_integer_native<has_sign, n_bits>::compare(const volatile dynami
 
 
 // fixed_integer_extended
-
 
 
 template <bool has_sign, size_t n_bits>
@@ -9655,7 +9651,6 @@ inline int fixed_integer_extended<has_sign, bits>::compare(const volatile dynami
 // fixed_integer_native_const
 
 
-
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline auto fixed_integer_native_const<has_sign, bits, value>::operator+(const dynamic_integer& src) const volatile { return src.operator+(*this); }
 
@@ -9821,9 +9816,7 @@ template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 inline int fixed_integer_native_const<has_sign, bits, value>::compare(const volatile dynamic_integer& cmp) const volatile { return -cmp.compare(*this); }
 
 
-
 // fixed_integer_extended_const
-
 
 
 template <bool has_sign, size_t bits, ulongest low_digit, ulongest... highDigits>

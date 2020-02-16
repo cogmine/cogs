@@ -17,9 +17,8 @@
 namespace cogs {
 
 
-
 /// @ingroup Mem
-/// @brief Placement storage for a union of two types.  
+/// @brief Placement storage for a union of two types.
 ///
 /// The value is not intended to be shared between the two types,
 /// they would be used at different times.

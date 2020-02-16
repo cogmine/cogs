@@ -253,7 +253,7 @@ private:
 							rcptr<tcp_writer> r2 = r;
 							if (!!r2)
 								r2->write_more();
-						}); 
+						});
 					}
 					break;
 				}
@@ -506,7 +506,7 @@ public:
 								rcptr<accept_helper> r2 = r;
 								if (!!r2)
 									r2->accept_connection();
-							}); 
+							});
 							break;
 						}
 					}
@@ -549,7 +549,7 @@ public:
 											rcptr<accept_helper> r2 = r;
 											if (!!r2)
 												r2->accept_connection();
-										}); 
+										});
 									}
 									// closed
 									break;

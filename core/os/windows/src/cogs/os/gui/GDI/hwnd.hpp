@@ -112,7 +112,7 @@ inline string get_window_message_string(UINT msg)
 	case WM_FONTCHANGE:
 		return string::literal(L"WM_FONTCHANGE");
 	case WM_TIMECHANGE:
-		return string::literal(L"WM_TIMECHANGE"); 
+		return string::literal(L"WM_TIMECHANGE");
 	case WM_CANCELMODE:
 		return string::literal(L"WM_CANCELMODE");
 	case WM_SETCURSOR:
@@ -666,7 +666,7 @@ public:
 					break;
 
 				int priority = 0x00010000; // UI subsystem runs at 0x00010000 priority.
-				strongRef->m_reentrancyGuard = true; 
+				strongRef->m_reentrancyGuard = true;
 				for (;;) // since we have a reference to self, we won't be deleted in this block
 				{
 					if (!!controlQueue.try_invoke(priority))
@@ -699,10 +699,10 @@ public:
 					HWND activeHWND = strongRef->get_last_activate_window();
 					if ((activeHWND == NULL) || !IsDialogMessage(activeHWND, &(strongRef->m_lastMsg)))
 					{
-			// TBD if (!TranslateAccelerator(strongRef->m_lastMsg.hwnd, strongRef->accelerators, &(strongRef->m_lastMsg))) 
-						{ 
-							TranslateMessage(&(strongRef->m_lastMsg));  
-							DispatchMessage(&(strongRef->m_lastMsg));  
+			// TBD if (!TranslateAccelerator(strongRef->m_lastMsg.hwnd, strongRef->accelerators, &(strongRef->m_lastMsg)))
+						{
+							TranslateMessage(&(strongRef->m_lastMsg));
+							DispatchMessage(&(strongRef->m_lastMsg));
 						}
 					}
 				}
@@ -912,8 +912,7 @@ public:
 			const gfx::canvas::size* frameSize,
 			bool positionCentered,
 			const composite_string& title,
-			const rcref<pane>& p,
-			const rcptr<frame>& f = 0) volatile;
+			const rcref<pane>& p) volatile;
 	};
 
 private:

@@ -31,7 +31,7 @@ class default_allocator;
 ///
 /// A freelist grows but does not shrink.  Elements are retained until the free-list is destructed.
 ///
-/// @tparam T Type allocated by the freelist 
+/// @tparam T Type allocated by the freelist
 /// @tparam allocator_type Type of allocator to use to allocate from if the freelist is empty.  Default: default_allocator
 /// @tparam preallocated_count Number of objects to prepopulate the freelist with.  Default: 0
 template <typename T, class allocator_type = default_allocator, size_t preallocated_count = 0>

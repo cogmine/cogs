@@ -185,7 +185,7 @@ private:
 		m_mainLoop->m_semaphore.release();
 	}
 
-	typedef singleton<thread_pool, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown> 
+	typedef singleton<thread_pool, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::must_call_shutdown>
 		default_thread_pool_singleton_t;
 
 public:
@@ -328,7 +328,7 @@ public:
 					{
 						preallocatedTask = preallocatedLevel->m_parallelTasks.preallocate();
 						preallocatedTask->m_delegate = d;
-						preallocatedTask->m_doneDelegate = doneDelegate; 
+						preallocatedTask->m_doneDelegate = doneDelegate;
 						preallocatedTask->m_parallelCount = n;
 					}
 					preallocatedLevel->m_parallelTasks.prepend_preallocated(preallocatedTask);

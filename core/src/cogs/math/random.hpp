@@ -175,8 +175,6 @@ inline uint_t random_coin_flips(uint_t maxCount = const_max_int_v<uint_t>)
 }
 
 
-
-
 }
 
 

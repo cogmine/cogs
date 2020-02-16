@@ -171,8 +171,6 @@ class CTR : public cipher_mode<CTR<block_cipher_t, counter_t>, block_cipher_t>
 // XEX/XTR
 
 
-
-
 class DES : public block_cipher<DES, 64>
 {
 private:

@@ -110,7 +110,6 @@ class mass : public quantity_type_base { public: typedef grams preferred_unit_t;
 class weight : public quantity_type_base { };
 
 
-
 template <class T1, class T2, typename enable = void>
 class unit_conversion
 {
@@ -127,7 +126,7 @@ public:
 template <class T1, class T2>
 class unit_conversion<
 	T1,
-	T2, 
+	T2,
 	std::enable_if_t<
 		!std::is_same_v<T1, T2>
 		&& !std::is_same_v<T2, typename T1::quantity_t::preferred_unit_t>

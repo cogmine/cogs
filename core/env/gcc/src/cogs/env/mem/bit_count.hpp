@@ -78,7 +78,6 @@ bit_count(const int_t& bits)
 }
 
 
-
 }
 
 

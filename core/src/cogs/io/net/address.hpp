@@ -30,7 +30,6 @@ namespace io {
 namespace net {
 
 
-
 /// @ingroup Net
 /// @brief An interface for network address objects.
 ///
@@ -86,7 +85,6 @@ public:
 
 cstring get_host_name_cstring();
 composite_string get_host_name_string();
-
 
 
 }

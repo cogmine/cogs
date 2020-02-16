@@ -9,7 +9,6 @@
 #define COGS_HEADER_OS_GUI_CHECK_BOX
 
 
-
 #include "cogs/os/gui/nsview.hpp"
 #include "cogs/gui/check_box.hpp"
 

@@ -194,7 +194,6 @@ fname(T& t, args_t&&... a)\
 { return cogs::atomic::defaults::fname(t, std::forward<args_t>(a)...); }
 
 
-
 #define COGS_DEFINE_ENV_DEFAULT_VOLATILE_ASSIGN_OPERATORS(fname)\
 COGS_DEFINE_ENV_DEFAULT_VOLATILE_ASSIGN_OPERATOR(assign_ ## fname)\
 COGS_DEFINE_ENV_DEFAULT_VOLATILE_ASSIGN_OPERATOR(pre_assign_ ## fname)\

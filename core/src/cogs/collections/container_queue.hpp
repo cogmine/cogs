@@ -15,7 +15,6 @@
 namespace cogs {
 
 
-
 /// @ingroup LockFreeCollections
 /// @brief A queue container collection
 /// @tparam T type to contain
@@ -75,7 +74,7 @@ public:
 
 	bool peek(type& t) const { return m_deque.peek_first(t); }
 
-	// It is only valid to peek at a volatile element if you know it wont 
+	// It is only valid to peek at a volatile element if you know it wont
 	// be removed by another thread.  Doing so is caller error.  Only
 	// call from a thread or context that is the only remover of elements.
 	bool peek(type& t) const volatile { return m_deque.peek_first(t); }
@@ -192,7 +191,7 @@ public:
 
 	bool peek(type& t) const { return m_deque.peek_first(t); }
 
-	// It is only valid to peek at a volatile element if you know it wont 
+	// It is only valid to peek at a volatile element if you know it wont
 	// be removed by another thread.  Doing so is caller error.  Only
 	// call from a thread or context that is the only remover of elements.
 	bool peek(type& t) const volatile { return m_deque.peek_first(t); }

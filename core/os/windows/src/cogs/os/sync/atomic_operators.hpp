@@ -130,7 +130,6 @@ exchange(T& t, const T& src)
 }
 
 
-
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -267,7 +266,6 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 }
 
 
-
 #ifdef _M_X64
 
 
@@ -383,7 +381,6 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 	bypass_strict_aliasing(cmp, tmpCmp);
 	return InterlockedCompareExchange128((__int64*)(unsigned char*)&t, tmpSrc[1], tmpSrc[0], tmpCmp) != 0;
 }
-
 
 
 #endif
@@ -607,9 +604,6 @@ post_assign_prev(T& t)
 }
 
 
-
-
-
 // bit_and
 
 
@@ -684,7 +678,6 @@ post_assign_bit_and(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -697,7 +690,6 @@ assign_bit_and(T& t, const A1& a)
 {
 	post_assign_bit_and(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -790,7 +782,6 @@ post_assign_bit_or(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -803,7 +794,6 @@ assign_bit_or(T& t, const A1& a)
 {
 	post_assign_bit_or(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -820,8 +810,6 @@ pre_assign_bit_or(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (post_assign_bit_or(t, tmp) | tmp);
 }
-
-
 
 
 // bit_xor
@@ -898,7 +886,6 @@ post_assign_bit_xor(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -911,7 +898,6 @@ assign_bit_xor(T& t, const A1& a)
 {
 	post_assign_bit_xor(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -928,7 +914,6 @@ pre_assign_bit_xor(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (post_assign_bit_xor(t, tmp) ^ tmp);
 }
-
 
 
 // add
@@ -1003,7 +988,6 @@ post_assign_add(T& t, const A1& a)
 	cogs::assign(tmp, a);
 	return (std::remove_volatile_t<T>)InterlockedExchangeAdd64((__int64*)(unsigned char*)&t, (__int64)tmp);
 }
-
 
 
 template <typename T, typename A1>
@@ -1204,7 +1188,6 @@ post_assign_subtract(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -1245,7 +1228,6 @@ post_assign_subtract(T& t, const A1& a)
 }
 
 
-
 template <typename T, typename A1>
 inline std::enable_if_t<
 	can_atomic_v<T>
@@ -1258,7 +1240,6 @@ assign_subtract(T& t, const A1& a)
 {
 	post_assign_subtract(t, a);
 }
-
 
 
 template <typename T, typename A1>
@@ -1327,7 +1308,6 @@ COGS_DEFINE_OS_DEFAULT_VOLATILE_ASSIGN_OPERATORS(lesser)
 }
 }
 }
-
 
 
 #endif

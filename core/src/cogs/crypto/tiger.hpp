@@ -18,7 +18,6 @@ namespace cogs {
 namespace crypto {
 
 
-
 static constexpr uint64_t tiger_table1[256] = {
 	0x02AAB17CF7E90C5EULL /*    0 */, 0xAC424B03E243A8ECULL /*    1 */, 0x72CD5BE30DD5FCD3ULL /*    2 */, 0x6D019B93F6F97F3AULL /*    3 */,
 	0xCD9978FFD21F9193ULL /*    4 */, 0x7573A1C9708029E2ULL /*    5 */, 0xB164326B922A83C3ULL /*    6 */, 0x46883EEE04915870ULL /*    7 */,
@@ -286,7 +285,6 @@ static constexpr uint64_t tiger_table4[256] = {
 	0xBF6C70E5F776CBB1ULL /* 1016 */, 0x411218F2EF552BEDULL /* 1017 */, 0xCB0C0708705A36A3ULL /* 1018 */, 0xE74D14754F986044ULL /* 1019 */,
 	0xCD56D9430EA8280EULL /* 1020 */, 0xC12591D7535F5065ULL /* 1021 */, 0xC83223F1720AEF96ULL /* 1022 */, 0xC3A0396F7363A51FULL /* 1023 */,
 };
-
 
 
 template <size_t bits, size_t passes, unsigned char terminator_byte>

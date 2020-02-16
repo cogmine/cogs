@@ -450,7 +450,6 @@ public:
 	}
 
 
-
 	bool starts_with(const type& cmp, case_sensitive caseSensitive = case_sensitive::yes) const
 	{
 		return (get_length() >= 1) && case_insensitive_comparator<type>::equals(get_const_ptr()[0], cmp);
@@ -492,7 +491,6 @@ public:
 			return m_contents.starts_with(cmp.m_contents);
 		return m_contents.template starts_with<type, case_insensitive_comparator<type> >(cmp.m_contents);
 	}
-
 
 
 	bool ends_with(const type& cmp, case_sensitive caseSensitive = case_sensitive::yes) const
@@ -539,9 +537,6 @@ public:
 	}
 
 
-
-
-
 	bool is_less_than(const type* cmp, size_t n, case_sensitive caseSensitive = case_sensitive::yes) const
 	{
 		if (caseSensitive == case_sensitive::yes)
@@ -572,7 +567,6 @@ public:
 			return m_contents.is_less_than(cmp.m_contents);
 		return m_contents.template is_less_than<type, case_insensitive_comparator<type> >(cmp.m_contents);
 	}
-
 
 
 	bool is_greater_than(const type* cmp, size_t n, case_sensitive caseSensitive = case_sensitive::yes) const
@@ -607,7 +601,6 @@ public:
 	}
 
 
-
 	bool operator>(const this_t& src) const { return is_greater_than(src); }
 
 	bool operator>(const volatile this_t& src) const { return is_greater_than(src); }
@@ -636,7 +629,6 @@ public:
 	bool operator<=(const this_t& src) const volatile { return !is_greater_than(src); }
 
 
-
 	size_t index_of(const type& cmp, case_sensitive caseSensitive = case_sensitive::yes) const
 	{
 		if (caseSensitive == case_sensitive::yes)
@@ -645,7 +637,7 @@ public:
 	}
 
 	size_t index_of(const type& cmp, case_sensitive caseSensitive = case_sensitive::yes) const volatile
-	{ 
+	{
 		if (caseSensitive == case_sensitive::yes)
 			return m_contents.index_of(cmp);
 		return m_contents.template index_of<type, case_insensitive_comparator<type> >(cmp);
@@ -696,7 +688,6 @@ public:
 	}
 
 
-
 	size_t index_of(const type* cmp, size_t n, case_sensitive caseSensitive = case_sensitive::yes) const
 	{
 		if (caseSensitive == case_sensitive::yes)
@@ -732,7 +723,6 @@ public:
 			return m_contents.index_of(cmp.m_contents);
 		return m_contents.template index_of<type, case_insensitive_comparator<type> >(cmp.m_contents);
 	}
-
 
 
 	size_t index_of(size_t i, const type* cmp, size_t n, case_sensitive caseSensitive = case_sensitive::yes) const
@@ -936,7 +926,6 @@ public:
 	}
 
 
-
 	void replace(size_t i, size_t replaceLength, const type& src) { m_contents.replace(i, replaceLength, src); }
 
 	void replace(size_t i, const type* src, size_t replaceLength) { m_contents.replace(i, src, replaceLength); }
@@ -981,7 +970,6 @@ public:
 	{
 		insert_replace(i, replaceLength, src.subrange(srcIndex, n));
 	}
-
 
 
 	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
@@ -1323,7 +1311,7 @@ public:
 	}
 
 	template <typename int_t>
-	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex 
+	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex
 	{
 		int_t result = 0;
 
@@ -1424,7 +1412,6 @@ public:
 };
 
 
-
 template <typename type, typename type2>
 class case_insensitive_comparator<string_t<type>, string_t<type2> >
 {
@@ -1451,7 +1438,6 @@ public:
 };
 
 
-
 // U+0009–U+000D (control characters, containing Tab, CR and LF)
 // U+0020 SPACE
 // U+0085 NEL (control character next line)
@@ -1464,7 +1450,6 @@ public:
 // U+202F NNBSP (NARROW NO-BREAK SPACE)
 // U+205F MMSP (MEDIUM MATHEMATICAL SPACE)
 // U+3000 IDEOGRAPHIC SPACE
-
 
 
 template <>
@@ -1488,7 +1473,6 @@ template <> inline char string_t<char>::get_uppercase(const char& c) { return to
 template <> inline char string_t<char>::get_lowercase(const char& c) { return tolower(c); }
 template <> inline wchar_t string_t<wchar_t>::get_uppercase(const wchar_t& c) { return towupper(c); }
 template <> inline wchar_t string_t<wchar_t>::get_lowercase(const wchar_t& c) { return towlower(c); }
-
 
 
 typedef string_t<char> cstring;
@@ -1549,10 +1533,6 @@ inline string_t<char_t> boolean::to_string_t() const volatile { boolean cpy(*thi
 
 inline string_t<wchar_t> boolean::to_string() const volatile { boolean cpy(*this); return cpy.to_string(); }
 inline string_t<char> boolean::to_cstring() const volatile { boolean cpy(*this); return cpy.to_cstring(); }
-
-
-
-
 
 
 template <bool has_sign, size_t n_bits>
@@ -1742,7 +1722,6 @@ inline string vector<type>::to_string() const volatile { vector<type> cpy(*this)
 
 template <typename type>
 inline cstring vector<type>::to_cstring() const volatile { vector<type> cpy(*this); return cpy.to_cstring(); }
-
 
 
 #pragma warning(pop)

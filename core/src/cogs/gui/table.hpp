@@ -98,7 +98,7 @@
 //
 //			}
 //		}
-//		
+//
 //		for (i = 0; i < columnCount; i++)
 //		{
 //			size_t curWidth = 0;

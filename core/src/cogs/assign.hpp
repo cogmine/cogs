@@ -19,7 +19,6 @@
 namespace cogs {
 
 
-
 // assign
 
 template <typename T, typename S>
@@ -62,7 +61,6 @@ assign(T& t, args_t&&... args)
 {
 	return t.assign(std::forward<args_t>(args)...);
 }
-
 
 
 template <typename T, typename S>

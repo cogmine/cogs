@@ -16,7 +16,6 @@ namespace geometry {
 namespace planar {
 
 
-
 /// @ingroup Planar
 /// @brief A planar dimensions
 enum class dimension

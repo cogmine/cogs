@@ -357,7 +357,6 @@ inline composite_string get_host_name_string()
 }
 
 
-
 }
 }
 }

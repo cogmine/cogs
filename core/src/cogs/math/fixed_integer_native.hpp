@@ -138,7 +138,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 							break;
@@ -146,7 +146,7 @@ private:
 					}
 					else // this range will be 0..255 == 00..FF
 					{
-						if (srcInt != 0) // 00 = -256 
+						if (srcInt != 0) // 00 = -256
 						{
 							if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							{
@@ -189,7 +189,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//						break;
@@ -197,7 +197,7 @@ private:
 	//				}
 	//				else // this range will be 0..255 == 00..FF
 	//				{
-	//					if (srcInt != 0) // 00 = -256 
+	//					if (srcInt != 0) // 00 = -256
 	//					{
 	//						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						{
@@ -244,7 +244,7 @@ private:
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 					{
 						cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 						return;
@@ -252,7 +252,7 @@ private:
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 						{
@@ -265,7 +265,7 @@ private:
 						atomic::compare_exchange_retry_loop(m_int, [&](const int_t& t)
 						{
 							return cogs::negative(divide_whole(t, srcInt2));
-						}); 
+						});
 						return;
 					}
 				}
@@ -297,7 +297,7 @@ private:
 	//			longest srcInt = (longest)src.get_int();
 	//			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//			{
-	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//				{
 	//					cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//					return;
@@ -305,7 +305,7 @@ private:
 	//			}
 	//			else // this range will be 0..255 == 00..FF
 	//			{
-	//				if (srcInt != 0) // 00 = -256 
+	//				if (srcInt != 0) // 00 = -256
 	//				{
 	//					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//					{
@@ -353,12 +353,12 @@ private:
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						return cogs::pre_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							return cogs::pre_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -398,12 +398,12 @@ private:
 	//			longest srcInt = (longest)src.get_int();
 	//			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//			{
-	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					return cogs::pre_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//			}
 	//			else // this range will be 0..255 == 00..FF
 	//			{
-	//				if (srcInt != 0) // 00 = -256 
+	//				if (srcInt != 0) // 00 = -256
 	//				{
 	//					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						return cogs::pre_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -446,12 +446,12 @@ private:
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						return cogs::post_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							return cogs::post_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -491,12 +491,12 @@ private:
 	//			longest srcInt = (longest)src.get_int();
 	//			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//			{
-	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					return cogs::post_assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//			}
 	//			else // this range will be 0..255 == 00..FF
 	//			{
-	//				if (srcInt != 0) // 00 = -256 
+	//				if (srcInt != 0) // 00 = -256
 	//				{
 	//					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						return cogs::post_assign_divide_whole(m_int, srcInt); // unsigned/signed divide, so may grow, i.e.: 255/-1=-255
@@ -533,7 +533,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::modulo(m_int, srcInt);
 							break;
@@ -541,7 +541,7 @@ private:
 					}
 					else // this range will be 0..255 == 00..FF
 					{
-						if (srcInt != 0) // 00 = -256 
+						if (srcInt != 0) // 00 = -256
 						{
 							if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							{
@@ -584,7 +584,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::modulo(m_int, srcInt);
 	//						break;
@@ -592,7 +592,7 @@ private:
 	//				}
 	//				else // this range will be 0..255 == 00..FF
 	//				{
-	//					if (srcInt != 0) // 00 = -256 
+	//					if (srcInt != 0) // 00 = -256
 	//					{
 	//						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						{
@@ -635,7 +635,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							cogs::assign_modulo(m_int, srcInt);
 							break;
@@ -643,7 +643,7 @@ private:
 					}
 					else // this range will be 0..255 == 00..FF
 					{
-						if (srcInt != 0) // 00 = -256 
+						if (srcInt != 0) // 00 = -256
 						{
 							if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							{
@@ -685,7 +685,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							cogs::assign_modulo(m_int, srcInt);
 							break;
@@ -693,7 +693,7 @@ private:
 					}
 					else // this range will be 0..255 == 00..FF
 					{
-						if (srcInt != 0) // 00 = -256 
+						if (srcInt != 0) // 00 = -256
 						{
 							if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							{
@@ -734,7 +734,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						cogs::assign_modulo(m_int, srcInt);
 	//						break;
@@ -742,7 +742,7 @@ private:
 	//				}
 	//				else // this range will be 0..255 == 00..FF
 	//				{
-	//					if (srcInt != 0) // 00 = -256 
+	//					if (srcInt != 0) // 00 = -256
 	//					{
 	//						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						{
@@ -783,7 +783,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						cogs::assign_modulo(m_int, srcInt);
 	//						break;
@@ -791,7 +791,7 @@ private:
 	//				}
 	//				else // this range will be 0..255 == 00..FF
 	//				{
-	//					if (srcInt != 0) // 00 = -256 
+	//					if (srcInt != 0) // 00 = -256
 	//					{
 	//						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						{
@@ -838,12 +838,12 @@ private:
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						return cogs::pre_assign_modulo(m_int, srcInt);
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							return cogs::pre_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -878,12 +878,12 @@ private:
 	//			longest srcInt = (longest)src.get_int();
 	//			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//			{
-	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					return cogs::pre_assign_modulo(m_int, srcInt);
 	//			}
 	//			else // this range will be 0..255 == 00..FF
 	//			{
-	//				if (srcInt != 0) // 00 = -256 
+	//				if (srcInt != 0) // 00 = -256
 	//				{
 	//					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						return cogs::pre_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -921,12 +921,12 @@ private:
 				longest srcInt = (longest)src.get_int();
 				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 				{
-					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						return cogs::post_assign_modulo(m_int, srcInt);
 				}
 				else // this range will be 0..255 == 00..FF
 				{
-					if (srcInt != 0) // 00 = -256 
+					if (srcInt != 0) // 00 = -256
 					{
 						if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							return cogs::post_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -962,12 +962,12 @@ private:
 	//			longest srcInt = (longest)src.get_int();
 	//			if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//			{
-	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//				if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					return cogs::post_assign_modulo(m_int, srcInt);
 	//			}
 	//			else // this range will be 0..255 == 00..FF
 	//			{
-	//				if (srcInt != 0) // 00 = -256 
+	//				if (srcInt != 0) // 00 = -256
 	//				{
 	//					if (srcInt < 0) // High bit is set, so srcInt value is accurate
 	//						return cogs::post_assign_modulo(m_int, srcInt); // unsigned/signed modulo, so may grow, i.e.: 255/-1=-255
@@ -1001,7 +1001,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result.first = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 							result.second = cogs::modulo(m_int, srcInt);
@@ -1010,7 +1010,7 @@ private:
 					}
 					else // this range will be 0..255 == 00..FF
 					{
-						if (srcInt != 0) // 00 = -256 
+						if (srcInt != 0) // 00 = -256
 						{
 							if (srcInt < 0) // High bit is set, so srcInt value is accurate
 							{
@@ -1059,7 +1059,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result.first = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//						result.second = cogs::modulo(m_int, srcInt);
@@ -1113,7 +1113,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 							cogs::assign_modulo(m_int, srcInt);
@@ -1166,7 +1166,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 							break;
@@ -1216,7 +1216,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//						cogs::assign_modulo(m_int, srcInt);
@@ -1268,7 +1268,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::divide_whole(cogs::post_assign_modulo(m_int, srcInt), srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
 	//						break;
@@ -1319,7 +1319,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::modulo(m_int, srcInt);
 							cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -1373,7 +1373,7 @@ private:
 					longest srcInt = (longest)src.get_int();
 					if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 					{
-						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+						if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 						{
 							result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
 							// signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -1427,7 +1427,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::modulo(m_int, srcInt);
 	//						cogs::assign_divide_whole(m_int, srcInt); // signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -1480,7 +1480,7 @@ private:
 	//				longest srcInt = (longest)src.get_int();
 	//				if (has_sign) // this range will be -128..-1..0..127 == 80..FF == FF80..FFFF
 	//				{
-	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this. 
+	//					if (srcInt < 0) // Therefor, if src is negative (80..FF), it's within range of this.
 	//					{
 	//						result = cogs::modulo(cogs::post_assign_divide_whole(m_int, srcInt), srcInt);
 	//						// signed/signed divide, so may grow, i.e.: -128/-1=128
@@ -1607,8 +1607,6 @@ public:
 	template <typename numerator_t, typename denominator_t>
 	fixed_integer_native(const volatile fraction<numerator_t, denominator_t>& src)
 	{ operator=(src); }
-
-
 
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
@@ -4882,8 +4880,6 @@ public:
 	this_t post_assign_lcm(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lcm(tmp); }
 
 
-
-
 	// greater
 	template <bool has_sign2, size_t bits2> fixed_integer<has_sign && has_sign2, ((bits > bits2) ? bits : bits2)> greater(const fixed_integer_native<has_sign2, bits2>& src) const { return cogs::greater(m_int, src.m_int); }
 	template <bool has_sign2, size_t bits2> fixed_integer<has_sign && has_sign2, ((bits > bits2) ? bits : bits2)> greater(const fixed_integer_native<has_sign2, bits2>& src) const volatile { return cogs::greater(m_int, src.m_int); }
@@ -5134,7 +5130,6 @@ public:
 	this_t post_assign_lesser(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	this_t post_assign_lesser(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
-
 
 
 	// equals
@@ -5432,7 +5427,6 @@ public:
 	}
 
 
-
 	// compare_exchange
 	template <typename S, typename C>
 	bool compare_exchange(S&& src, C&& cmp)
@@ -5525,7 +5519,6 @@ public:
 	}
 
 
-
 	template <typename char_t>
 	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const;
 
@@ -5542,7 +5535,6 @@ public:
 	void randomize() { m_int = get_random_int<int_t>(); }
 	void randomize() volatile { assign(get_random_int<int_t>()); }
 };
-
 
 
 template <bool has_sign1, size_t bits1, bool has_sign2, size_t bits2, ulongest... values2>
@@ -5592,7 +5584,6 @@ struct compatible<fixed_integer_native<has_sign, bits>, dynamic_integer>
 };
 
 
-
 template <typename int_t2, typename int_t3>
 struct compatible<int_t2, int_t3, std::enable_if_t<std::is_integral_v<int_t2> && std::is_integral_v<int_t3> > >
 {
@@ -5605,8 +5596,6 @@ struct compatible<int_t2, int_t3, std::enable_if_t<std::is_integral_v<int_t2> &&
 		>().simplify_type()
 	) type;
 };
-
-
 
 
 typedef fixed_integer_native<false, 1> bit_t;
@@ -5654,13 +5643,10 @@ typedef int_to_fixed_integer_t<longest> longest_type;
 typedef int_to_fixed_integer_t<ulongest> ulongest_type;
 
 
-
-
 #pragma warning(pop)
 
 
 }
-
 
 
 #endif

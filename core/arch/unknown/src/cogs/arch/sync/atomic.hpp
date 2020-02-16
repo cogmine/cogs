@@ -3,7 +3,6 @@
 //
 
 
-
 // Status: Good
 
 #ifndef COGS_HEADER_ARCH_ATOMIC
@@ -31,7 +30,6 @@ namespace atomic {
 // No atomic support if architecture is 'unknown'
 
 
-
 static constexpr size_t largest = 0;
 
 
@@ -43,11 +41,9 @@ public:
 };
 
 
-
 }
 }
 }
 
 
 #endif
-

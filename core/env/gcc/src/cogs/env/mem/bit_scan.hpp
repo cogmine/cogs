@@ -23,7 +23,6 @@ namespace cogs {
 // On gcc, use __builtin_clzl/__builtin_ctzl, __builtin_clzll/__builtin_ctzll, for bit scanning
 
 
-
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
@@ -148,7 +147,6 @@ bit_scan_forward(const int_t& bits)
 	}
 	return result + bit_scan_forward(ll);
 }
-
 
 
 }

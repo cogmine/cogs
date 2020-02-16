@@ -495,7 +495,7 @@ public:
 	{
 		sha2_512_base<224>::operator=(src);
 		return *this;
-	} 
+	}
 };
 
 

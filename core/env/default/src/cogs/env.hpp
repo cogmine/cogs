@@ -44,7 +44,6 @@ typedef bytes_to_uint_t<COGS_LONGEST_INT> ulongest;
 static constexpr size_t longest_bits = sizeof(longest) * 8;
 
 
-
 }
 
 

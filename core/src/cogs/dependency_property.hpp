@@ -25,7 +25,7 @@
 namespace cogs {
 
 
-// dependency_property combines the concept of a property (supporting get() and set() functions that can be 
+// dependency_property combines the concept of a property (supporting get() and set() functions that can be
 // customized) with the concept of databinding (automatically notifying dependent properties when a property
 // changes).
 //

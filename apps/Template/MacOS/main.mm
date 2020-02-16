@@ -62,7 +62,7 @@ int main(int argc, const char * argv[]) {
     __strong NSMenu* menuBar = [NSMenu new];
     [menuBar addItem:appMenuItem];
     [NSApp setMainMenu:menuBar];
-    
+
     __strong AppDelegate* appDelegate = [[AppDelegate alloc] init];
     [NSApp setDelegate:appDelegate];
     [NSApp activateIgnoringOtherApps:YES];

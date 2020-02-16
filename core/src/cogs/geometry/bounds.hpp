@@ -263,7 +263,7 @@ public:
 				segments[numSegments++].set(start2, start1 - start2);
 
 			if (end1 < end2)
-				segments[numSegments++].set(end1, end2 - end1); 
+				segments[numSegments++].set(end1, end2 - end1);
 			else if (end2 < end1)
 				segments[numSegments++].set(end2, end1 - end2);
 		}
@@ -326,12 +326,12 @@ public:
 		{
 			if (b1.get_position() > b2.get_position())
 				result.get_position() = b1.get_position();
-			else 
+			else
 				result.get_position() = b2.get_position();
 
 			if (end1 > end2)
 				result.get_size() = end2;
-			else 
+			else
 				result.get_size() = end1;
 			result.get_size() -= result.get_position();
 
@@ -861,7 +861,7 @@ public:
 		point br2 = b2.calc_bottom_right();
 
 		if ((br1.get_y() < b2.get_position().get_y())
-			|| (b1.get_position().get_y() > br2.get_y()) 
+			|| (b1.get_position().get_y() > br2.get_y())
 			|| (br1.get_x() < b2.get_position().get_x())
 			|| (b1.get_position().get_x() > br2.get_x()))
 			result.clear();
@@ -869,23 +869,23 @@ public:
 		{
 			if (b1.get_position().get_y() > b2.get_position().get_y())
 				result.get_position().get_y() = b1.get_position().get_y();
-			else 
+			else
 				result.get_position().get_y() = b2.get_position().get_y();
 
 			if (b1.get_position().get_x() > b2.get_position().get_x())
 				result.get_position().get_x() = b1.get_position().get_x();
-			else 
+			else
 				result.get_position().get_x() = b2.get_position().get_x();
 
 			if (br1.get_y() > br2.get_y())
 				result.get_height() = br2.get_y();
-			else 
+			else
 				result.get_height() = br1.get_y();
 			result.get_height() -= result.get_position().get_y();
 
 			if (br1.get_x() > br2.get_x())
 				result.get_width() = br2.get_x();
-			else 
+			else
 				result.get_width() = br1.get_x();
 			result.get_width() -= result.get_position().get_x();
 		}
@@ -900,7 +900,7 @@ public:
 		point br2 = b2.calc_bottom_right();
 
 		if ((br1.get_y() < b2.get_position().get_y())
-			|| (get_position().get_y() > br2.get_y()) 
+			|| (get_position().get_y() > br2.get_y())
 			|| (br1.get_x() < b2.get_position().get_x())
 			|| (get_position().get_x() > br2.get_x()))
 			clear();
@@ -920,7 +920,7 @@ public:
 
 			if (br1.get_x() > br2.get_x())
 				get_width() = br2.get_x();
-			else 
+			else
 				get_width() = br1.get_x();
 			get_width() -= get_position().get_x();
 		}

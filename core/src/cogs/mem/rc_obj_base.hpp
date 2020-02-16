@@ -71,7 +71,7 @@ void assert_no_overflow(const ptr<void>& p);
 #define ASSERT_NO_OVERFLOW(p)
 #endif
 
-#if COGS_DEBUG_RC_LOGGING 
+#if COGS_DEBUG_RC_LOGGING
 inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g_rcLogCount;
 #endif
 
@@ -81,11 +81,11 @@ inline alignas (atomic::get_alignment_v<unsigned long>) volatile unsigned long g
 
 
 /// @brief A base class for reference-counted objects
-/// 
+///
 /// rc_obj_base is a base class for reference counted objects, not a container such as rc_obj or a
 /// reference container such as rcptr.  The reference count itself is contain within rc_obj_base.
 /// Counting is not automatic.  The caller must invoke acquire()/release() to add/remove references.
-/// 
+///
 /// Instead of just 1 count, rc_obj_base manages 2 separate reference counts, strong and weak.
 /// Weak references allow circular dependencies to be broken.  released() is called
 /// when the strong reference count reaches 0, and disposed when the reference count reaches 0.
@@ -819,7 +819,6 @@ inline void assert_no_overflow(const ptr<void>& p)
 #endif
 
 
-
 inline allocator* default_allocator::create_default_allocator()
 {
 #if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
@@ -872,7 +871,6 @@ inline void default_allocator::shutdown()
 		env::allocator::deallocate(al);
 	}
 }
-
 
 
 }

@@ -73,7 +73,6 @@ struct compatible_type<vec<n, type1>, vec<n, type2> >
 };
 
 
-
 template <size_t n, typename type>
 class vec
 {
@@ -289,7 +288,6 @@ public:
 	int compare(const volatile vec<n, type2>& cmp) const { vec<n, type2> tmp(cmp); return compare<type2, comparator_t>(tmp); }
 
 
-
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
 	bool equals(size_t n2, const array_t2& cmp) const { return m_contents.equals<array_t2, comparator_t>(n2, cmp); }
 
@@ -407,7 +405,6 @@ public:
 	bool is_greater_than(const volatile vec<n, type2>& cmp) const { vec<n, type2> tmp(cmp); return is_greater_than<type2, comparator_t>(tmp); }
 
 
-
 	template <typename type2>
 	bool operator<(const vec<n, type2>& cmp) const { return is_less_than(cmp); }
 
@@ -508,7 +505,6 @@ public:
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
 	bool contains(const array_t2& cmp) const volatile { return index_of<array_t2, comparator_t>(cmp) != const_max_int_v<size_t>; }
-
 
 
 	template <typename array_t2 = array_t, class comparator_t = default_comparator>
@@ -881,7 +877,6 @@ public:
 };
 
 
-
 #pragma warning(pop)
 
 
@@ -906,11 +901,8 @@ typedef vec<3, double> dvec3;
 typedef vec<4, double> dvec4;
 
 
-
-
 }
 */
-
 
 
 #endif

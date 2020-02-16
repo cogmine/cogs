@@ -23,7 +23,7 @@ namespace cogs {
 
 
 /// @brief A freelist that returns rcref's.
-/// 
+///
 /// As an rcref<> goes out of scope, the object is returned to the freelist.
 /// A free-list grows but does not shrink.  Elements are retained until the free-list is destructed.
 /// @tparam T Type to contain

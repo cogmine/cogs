@@ -47,7 +47,7 @@ namespace io {
 /// tasks are reference-counted objects.  If execute()'ed, the task will not be released until complete()'ed.
 /// complete() must be called for each task executed, or a reference will be leaked.
 /// complete() must be called for each task executed, or a reference will be leaked.
-/// 
+///
 class queue : public object
 {
 private:
@@ -116,7 +116,7 @@ public:
 			return 0;
 		}
 
-		void executing_inner() 
+		void executing_inner()
 		{
 			state oldState;
 			atomic::load(m_state, oldState);
@@ -286,13 +286,13 @@ public:
 		/// @brief Derived class implements executing() to executing the task
 		virtual void executing() = 0;
 
-		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed. 
+		/// @brief Derived class implements canceling() to cancel a task that has not yet been executed.
 		virtual void canceling() { task_base::canceling(); }
 
 		/// @brief Derived class implements aborting() to cancel a task that has started executing.
 		///
 		/// aborting() is only called if execute() was called and returned without having completed synchronously.
-		/// If the derived task executes synchronously, it does not need to override aborting(). 
+		/// If the derived task executes synchronously, it does not need to override aborting().
 		virtual void aborting() { }
 
 		/// @brief Completes the task, and starts the next task, if any.  Called by a derived task.

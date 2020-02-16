@@ -8,8 +8,8 @@
 //#ifndef COGS_HEADER_OS_GUI_GDI_OPENGL
 //#define COGS_HEADER_OS_GUI_GDI_OPENGL
 //
-//#pragma comment(lib, "opengl32.lib") 
-//#pragma comment(lib, "glu32.lib") 
+//#pragma comment(lib, "opengl32.lib")
+//#pragma comment(lib, "glu32.lib")
 //
 //#include "cogs/os.hpp"
 //#include <gl/gl.h>
@@ -52,38 +52,38 @@
 //
 //	virtual void installing()
 //	{
-//		PIXELFORMATDESCRIPTOR pfd; 
-//		memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR)); 
-//		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR); 
-//		pfd.nVersion = 1; 
-//		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW; 
-//		pfd.iPixelType = PFD_TYPE_RGBA; 
+//		PIXELFORMATDESCRIPTOR pfd;
+//		memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
+//		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+//		pfd.nVersion = 1;
+//		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
+//		pfd.iPixelType = PFD_TYPE_RGBA;
 //		pfd.cColorBits = 32;
 //		//pfd.cDepthBits = 32;
-//		pfd.iLayerType = PFD_MAIN_PLANE; 
+//		pfd.iLayerType = PFD_MAIN_PLANE;
 //		int nPixelFormat = ChoosePixelFormat(get_HDC(), &pfd);
 //		COGS_ASSERT(nPixelFormat != 0);
-//		BOOL bResult = SetPixelFormat (get_HDC(), nPixelFormat, &pfd); 
+//		BOOL bResult = SetPixelFormat (get_HDC(), nPixelFormat, &pfd);
 //		COGS_ASSERT(bResult);
 //		m_hDC = get_HDC();
 //		m_hGLRC = wglCreateContext(get_HDC());
 //		COGS_ASSERT(m_hGLRC);
-//	//	wglMakeCurrent(get_HDC(), m_hGLRC); 
+//	//	wglMakeCurrent(get_HDC(), m_hGLRC);
 //
-////		int attribs[] = 
+////		int attribs[] =
 ////		{
-////			WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion, 
-////			WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion, 
-////			WGL_CONTEXT_FLAGS_ARB, 
-////			WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, 
-////			0 
+////			WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion,
+////			WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion,
+////			WGL_CONTEXT_FLAGS_ARB,
+////			WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+////			0
 ////		};
-////		m_hrc = wglCreateContextAttribsARB(get_HDC(),0, attribs); 
-//	//	wglMakeCurrent(NULL,NULL); 
-////		wglDeleteContext(tempContext); 
+////		m_hrc = wglCreateContextAttribsARB(get_HDC(),0, attribs);
+//	//	wglMakeCurrent(NULL,NULL);
+////		wglDeleteContext(tempContext);
 //
 //		// Set up 2D projection
-//		
+//
 //		HDC hOldDC = wglGetCurrentDC();
 //		HGLRC hOldRC = wglGetCurrentContext();
 //		wglMakeCurrent(get_HDC(), m_hGLRC);
@@ -219,11 +219,11 @@
 //	{
 //	}
 //
-//	virtual void open(const composite_string& title, const rcref<pane>& f, const rcptr<frame>& f = 0)
+//	virtual void open(const composite_string& title, const rcref<pane>& f)
 //	{
 //	}
 //
-//	// planar 
+//	// planar
 //	virtual rcref<button_interface> create_button() volatile
 //	{
 //		rcptr<view> a;
