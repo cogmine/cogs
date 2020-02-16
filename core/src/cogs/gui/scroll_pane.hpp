@@ -154,12 +154,12 @@ public:
 		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
 		bool dragAndFlickScrolling = true) // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		: pane(desc),
+		m_contentPane(rcnew(container_pane)),
 		m_clippingPane(rcnew(native_container_pane)),
 		m_cornerPane(rcnew(container_pane)),
 		m_contentFrame(rcnew(override_bounds_frame)),
 		m_clippingFrame(rcnew(override_bounds_frame)),
 		m_cornerFrame(rcnew(override_bounds_frame)),
-		m_contentPane(rcnew(container_pane)),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
 		m_shouldAutoFadeScrollBarProperty(desc, *this, [this]()
