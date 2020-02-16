@@ -23,10 +23,6 @@ namespace cogs {
 /// @}
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 /// @ingroup BinaryTrees
 /// @brief Base classes for (intrusive) nodes of avltree.
 /// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type without requiring a cast.
@@ -472,9 +468,6 @@ public:
 	}
 	/// @}
 };
-
-
-#pragma warning(pop)
 
 
 }

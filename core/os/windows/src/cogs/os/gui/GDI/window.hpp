@@ -210,7 +210,7 @@ public:
 	// window::reshape() reshapes the content area, not the window.
 	// Coordinates are in DIPs.  The position in newBounds will be 0,0.
 	// To reposition a window and/or resize it in screen coordinates, use reshape_frame.
-	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& newBounds, const point& = point(0, 0))
 	{
 		// Get current bounds
 		gfx::os::gdi::BOUNDS oldBounds = get_frame_BOUNDS();
@@ -234,7 +234,7 @@ public:
 			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
 	}
 
-	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	virtual void reshape_frame(const bounds& newBounds, const point& = point(0, 0))
 	{
 		POINT pt = { (LONG)newBounds.get_x(), (LONG)newBounds.get_y() };
 		SIZE sz = { (LONG)std::lround(newBounds.get_width()), (LONG)std::lround(newBounds.get_height()) };

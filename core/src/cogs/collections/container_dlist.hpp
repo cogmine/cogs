@@ -23,10 +23,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 /// @ingroup LockFreeCollections
 /// @brief A double-link list container collection
 /// @tparam T Type to contain.
@@ -1158,14 +1154,15 @@ public:
 		{
 			volatile_iterator result;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_next;
@@ -1182,7 +1179,9 @@ public:
 					done = true;
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -1211,14 +1210,15 @@ public:
 		void assign_next() volatile
 		{
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_next;
@@ -1233,7 +1233,9 @@ public:
 					done = m_link.compare_exchange(newLink, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 		}
 
 		volatile_iterator prev() const
@@ -1261,14 +1263,15 @@ public:
 		{
 			volatile_iterator result;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_prev;
@@ -1285,7 +1288,9 @@ public:
 					done = true;
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -1314,14 +1319,15 @@ public:
 		void assign_prev() volatile
 		{
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_prev;
@@ -1336,7 +1342,9 @@ public:
 					done = m_link.compare_exchange(newLink, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 		}
 
 		volatile_iterator& operator++()
@@ -1350,14 +1358,15 @@ public:
 			volatile_iterator result;
 			rcptr<volatile link_t> newLink;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					result.m_link = rt->m_next;
@@ -1372,7 +1381,9 @@ public:
 					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -1400,14 +1411,15 @@ public:
 			volatile_iterator result;
 			rcptr<volatile link_t> newLink;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					result.m_link = rt->m_prev;
@@ -1422,7 +1434,9 @@ public:
 					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -2464,9 +2478,6 @@ static constexpr size_t container_dlist_volatile_iterator_alignment = std::align
 static constexpr size_t container_dlist_remove_token_alignment = std::alignment_of_v<typename container_dlist<int>::remove_token>;
 static constexpr size_t container_dlist_volatile_remove_token_alignment = std::alignment_of_v<typename container_dlist<int>::volatile_remove_token>;
 static constexpr size_t container_dlist_preallocated_alignment = std::alignment_of_v<typename container_dlist<int>::preallocated>;
-
-
-#pragma warning(pop)
 
 
 class rc_obj_base::released_handlers

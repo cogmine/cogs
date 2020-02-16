@@ -349,7 +349,7 @@ public:
 
 	virtual void set(const type& t) { base_t::set(t); }
 
-	virtual void setting(const type& t) { base_t::set_complete(); }
+	virtual void setting(const type&) { base_t::set_complete(); }
 
 	void set_complete() { base_t::set_complete(); }
 	void set_complete(bool hasChanged) { base_t::set_complete(hasChanged); }
@@ -364,7 +364,7 @@ private:
 
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
 
-	virtual void setting(const type& t) { }
+	virtual void setting(const type&) { }
 
 public:
 	explicit virtual_dependency_property(rc_obj_base& desc)
@@ -418,7 +418,7 @@ public:
 
 	virtual void set(const type& t) { base_t::set(t); }
 
-	virtual void setting(const type& t) { base_t::changed(); }
+	virtual void setting(const type&) { base_t::changed(); }
 
 	void set_complete() { base_t::set_complete(); }
 	void set_complete(bool hasChanged) { base_t::set_complete(hasChanged); }

@@ -101,4 +101,3 @@ bit_count(const T& t)
 }
 
 #endif
-

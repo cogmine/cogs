@@ -14,11 +14,6 @@
 #include "cogs/math/const_max_int.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 namespace cogs {
 namespace io {
 
@@ -1143,7 +1138,7 @@ public:
 	{
 		size_t lengthAdjusted = validate_length_from(i, n);
 		if (!lengthAdjusted || (i >= lengthAdjusted))
-			return -1;
+			return (size_t)-1;
 
 		position_t pos = calculate_position(i);
 		return find_inner(i, pos, lengthAdjusted, cmp);
@@ -1175,13 +1170,13 @@ public:
 			{
 				size_t foundIndex = curSize + pos.m_innerIndex;
 				if (foundIndex >= n)
-					return -1;
+					return (size_t)-1;
 				return foundIndex;
 			}
 			curSize += curSubVector.get_length();
 			pos.m_innerIndex = 0;
 			if (++pos.m_outerIndex == subVectorCount)
-				return -1;
+				return (size_t)-1;
 		}
 	}
 
@@ -1219,13 +1214,13 @@ public:
 			{
 				size_t foundIndex = curSize + pos.m_innerIndex;
 				if (foundIndex >= n)
-					return -1;
+					return (size_t)-1;
 				return foundIndex;
 			}
 			curSize += curSubVector.get_length();
 			pos.m_innerIndex = 0;
 			if (++pos.m_outerIndex == subVectorCount)
-				return -1;
+				return (size_t)-1;
 		}
 	}
 
@@ -1258,6 +1253,8 @@ public:
 			return get_end_position(); // validate cmpLength and cmdLengthAdjusted
 
 		size_t lengthAdjusted = m_length - i;
+		if (lengthAdjusted > n)
+			lengthAdjusted = n;
 		if (cmpLength > lengthAdjusted) // Ensure m_length is larger enough for cmp, and >0
 			return get_end_position();
 
@@ -1347,7 +1344,7 @@ public:
 	size_t find_segment_inner(size_t i, position_t& pos, size_t lengthAdjusted, const buffer& cmp, position_t& endPos) const
 	{
 		size_t cmpLength = cmp.get_length();
-		size_t endIndex = m_length - cmpLength;
+		size_t endIndex = lengthAdjusted - cmpLength;
 		for (;;)
 		{
 			const vector<char>* subArray = &m_vectorVector.get_const_ptr()[pos.m_outerIndex];
@@ -4179,7 +4176,5 @@ public:
 }
 }
 
-
-#pragma warning(pop)
 
 #endif

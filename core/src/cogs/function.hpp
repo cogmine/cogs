@@ -15,10 +15,6 @@
 
 namespace cogs {
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple copy constructors specified
-
 // Only really need my own function class because std::function doesn't allow use of an allocator,
 // and I want to use my lock-free allocator.  Also, being able to encapsulate a callable that accepts fewer
 // args than specified, is useful.
@@ -163,7 +159,7 @@ private:
 			using reverse1<A2...>::invoke;
 
 			template <typename F, typename enable = std::enable_if_t<std::is_invocable_r_v<return_t, F, A2...> >, typename... A3>
-			static return_t invoke(F&& f, A2... a2, A3&&... a3)
+			static return_t invoke(F&& f, A2... a2, A3&&...)
 			{
 				return f(std::forward<A2>(a2)...);
 			}
@@ -503,7 +499,7 @@ private:
 			using reverse1<A2...>::invoke;
 
 			template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, A2...> >, typename... A3>
-			static void invoke(F&& f, A2... a2, A3&&... a3)
+			static void invoke(F&& f, A2... a2, A3&&...)
 			{
 				f(std::forward<A2>(a2)...);
 			}
@@ -616,7 +612,7 @@ private:
 		typedef std::remove_reference_t<F> F_t;
 		const size_t blockSize = sizeof(block<F_t>);
 		m_size = blockSize;
-		if (blockSize <= n)
+		if constexpr (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
 			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));
@@ -744,10 +740,8 @@ public:
 
 typedef function<void()> void_function;
 
-#pragma warning(pop)
 
 }
 
 
 #endif
-

@@ -76,7 +76,8 @@ private:
 
 	timeout_t(const period_t& startTime, const period_t& period, const period_t& expireTime)
 		: m_startTime(startTime),
-		m_period(period)
+		m_period(period),
+		m_expireTime(expireTime)
 	{ }
 
 public:

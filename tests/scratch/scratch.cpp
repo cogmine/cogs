@@ -93,7 +93,7 @@ public:
 
 COGS_MAIN
 {
-	return cogs::main([](const auto& uiSubsystem)
+	return cogs::main([](const auto&)
 	{
 		{
 			rcref<http::server> httpServer = rcnew(http::server);
@@ -299,8 +299,8 @@ COGS_MAIN
 			rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
 			img1->prepend_frame(rcnew(fixed_default_size_frame));
 			scrollPane->nest(img1);
-			//rcref<background> cornerPane = rcnew(background, color::constant::purple);
-			//scrollPane->nest_corner(cornerPane);
+			////rcref<background> cornerPane = rcnew(background, color::constant::purple);
+			////scrollPane->nest_corner(cornerPane);
 			scrollPane->prepend_frame(rcnew(override_default_size_frame, gfx::canvas::size(200, 200)));
 			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"), scrollPane);
 		}
@@ -1021,5 +1021,3 @@ COGS_MAIN
 		return EXIT_SUCCESS;
 	});
 }
-
-

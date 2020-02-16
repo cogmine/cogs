@@ -95,4 +95,3 @@ pre_assign(T& t, S&& src)
 }
 
 #endif
-

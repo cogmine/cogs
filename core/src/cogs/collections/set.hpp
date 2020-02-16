@@ -22,11 +22,6 @@ namespace cogs {
 #include <type_traits>
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @ingroup LockFreeCollections
 /// @brief A sorted O(log n) collection.  Unique values are enforced.
 /// @tparam T The type to contain
@@ -1207,9 +1202,6 @@ public:
 	iterator find_equal_or_nearest_greater_than(const type& criteria) const { return iterator(m_tree.find_any_equal_or_nearest_greater_than(criteria), m_tree); }
 
 };
-
-
-#pragma warning(pop)
 
 
 }

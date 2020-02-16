@@ -171,7 +171,7 @@ public:
 
 	using pane_bridge::reshape;
 
-	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	virtual void reshape_frame(const bounds& newBounds, const point& = point(0, 0))
 	{
 		if (!!m_nativeWindow)
 			m_nativeWindow->reshape_frame(newBounds);

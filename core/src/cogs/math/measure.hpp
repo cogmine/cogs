@@ -20,10 +20,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 template <typename storage_type, class unit_type>
 class measure;
 

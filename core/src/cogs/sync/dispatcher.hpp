@@ -151,8 +151,8 @@ protected:
 
 	// change_priority_inner() and cancel_inner() are called by tasks, on the dispatcher that created them.
 	// They do not need to be implemented by a derived dispatcher if it is a proxy of another dispatcher.
-	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile { }
-	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile { return signaled(false); }
+	virtual void change_priority_inner(volatile dispatched&, int) volatile { }
+	virtual rcref<task<bool> > cancel_inner(volatile dispatched&) volatile { return signaled(false); }
 
 	template <typename F>
 	class linked_task;
@@ -399,7 +399,7 @@ public:
 
 	virtual rcref<task<bool> > cancel() volatile = 0;
 
-	virtual void change_priority(int newPriority) volatile { } // default is no-op
+	virtual void change_priority(int) volatile { } // default is no-op
 	virtual int get_priority() const volatile { return 0; }
 };
 
@@ -1111,7 +1111,7 @@ public:
 		get_cancel_func().release();
 	}
 
-	virtual void invoke_completion(const rcref<task<void> >& parentTask) volatile
+	virtual void invoke_completion(const rcref<task<void> >&) volatile
 	{
 		invoke_completion();
 	}

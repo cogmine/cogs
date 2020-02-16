@@ -447,7 +447,7 @@ public:
 
 			if (!acquired)
 			{
-				derived_t* cmpDesc = atomic::load(srcDesc);
+				cmpDesc = atomic::load(srcDesc);
 				if (cmpDesc != oldDesc)
 				{
 					oldDesc = cmpDesc;
@@ -876,4 +876,3 @@ inline void default_allocator::shutdown()
 }
 
 #endif
-

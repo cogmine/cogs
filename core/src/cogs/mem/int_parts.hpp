@@ -22,7 +22,7 @@ template <typename int_t>
 class get_part_mask
 {
 public:
-	static constexpr int_t high_part_mask = (int_t)((int_t)~(int_t)0 << sizeof(int_t)*4);
+	static constexpr int_t high_part_mask = (int_t)(~(int_t)0 << sizeof(int_t)*4);
 	static constexpr int_t low_part_mask  = (int_t)~high_part_mask;
 };
 
@@ -139,4 +139,3 @@ inline int_t make_int_from_parts(const int_t& highPart, const int_t& lowPart)
 
 
 #endif
-

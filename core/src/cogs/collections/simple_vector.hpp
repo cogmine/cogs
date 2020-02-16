@@ -17,11 +17,6 @@
 #include "cogs/mem/ptr.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 namespace cogs {
 
 
@@ -1578,8 +1573,6 @@ public:
 
 
 }
-
-#pragma warning(pop)
 
 
 #endif

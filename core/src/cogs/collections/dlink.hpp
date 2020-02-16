@@ -17,10 +17,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 /// @ingroup CollectionAccessorMixIns
 /// @brief Provides a default dlink accessor mix-in type which leverages accessors in the intrusive element.
 /// @tparam link_t The link type to wrap access to.
@@ -432,9 +428,6 @@ class default_dlink_accessor<void, ref_type> : public default_dlink_accessor<dli
 
 
 typedef dlink_t<void> dlink;
-
-
-#pragma warning(pop)
 
 
 }

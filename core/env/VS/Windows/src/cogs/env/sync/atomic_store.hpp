@@ -66,7 +66,7 @@ store(volatile T& t, const T& src)
 	__int64 tmpSrc[2];
 	bypass_strict_aliasing(src, tmpSrc);
 	__int64 tmpCmp[2] = {};
-	do {} while (0 == _InterlockedCompareExchange128((__int64*)(unsigned char*)&t, tmpSrc[1], tmpSrc[0], tmpCmp));
+	do { } while (0 == _InterlockedCompareExchange128((__int64*)(unsigned char*)&t, tmpSrc[1], tmpSrc[0], tmpCmp));
 }
 
 #endif

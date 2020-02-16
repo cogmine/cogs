@@ -28,11 +28,6 @@
 #include "cogs/sync/hazard.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 namespace cogs {
 
 class dynamic_integer;
@@ -1790,8 +1785,8 @@ public:
 								if (overflow != 0)
 								{
 									++dstIndex;
-									ulongest oldDigit = m_digits[dstIndex];
-									ulongest newDigit = oldDigit - overflow;
+									oldDigit = m_digits[dstIndex];
+									newDigit = oldDigit - overflow;
 									m_digits[dstIndex] = newDigit;
 									if (newDigit > oldDigit)
 									{
@@ -2388,7 +2383,7 @@ public:
 
 	// to_string
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		if ((radix < 2) || !*this)
 		{
@@ -2430,13 +2425,13 @@ public:
 		ulongest radixDigit = radix;
 		while (!!src)
 		{
-			int i = src.compare(radix);
-			if (i == -1)
+			int cmp = src.compare(radix);
+			if (cmp == -1)
 			{
 				tempBuffer[i++] = textDigits[src.get_int()];
 				break;
 			}
-			if (!i)
+			if (!cmp)
 			{
 				tempBuffer[i++] = textDigits[0];
 				tempBuffer[i++] = textDigits[1];
@@ -5799,7 +5794,7 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_gcd(tmp, *(src.m_contents)); }); }
 	template <bool has_sign2, size_t bits2> void assign_gcd(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_gcd(tmp, *(src.begin_read())); }); }
 	void assign_gcd(const dynamic_integer& src) { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); m_contents->set_to_gcd(*(tmp.m_contents), *(src.m_contents)); }
-	void assign_gcd(const volatile dynamic_integer& src) { dynamic_integer tmp(*this); assign_gcd(tmp); }
+	void assign_gcd(const volatile dynamic_integer& src) { dynamic_integer tmp(src); assign_gcd(tmp); }
 	void assign_gcd(const dynamic_integer& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_gcd(tmp, *(src.m_contents)); }); }
 	void assign_gcd(const volatile dynamic_integer& src) volatile { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); assign_gcd(tmp); }
 
@@ -5972,7 +5967,7 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_lcm(const fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lcm(tmp, *(src.m_contents)); }); }
 	template <bool has_sign2, size_t bits2> void assign_lcm(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lcm(tmp, *(src.begin_read())); }); }
 	void assign_lcm(const dynamic_integer& src) { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); m_contents->set_to_lcm(*(tmp.m_contents), *(src.m_contents)); }
-	void assign_lcm(const volatile dynamic_integer& src) { dynamic_integer tmp(*this); assign_lcm(tmp); }
+	void assign_lcm(const volatile dynamic_integer& src) { dynamic_integer tmp(src); assign_lcm(tmp); }
 	void assign_lcm(const dynamic_integer& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lcm(tmp, *(src.m_contents)); }); }
 	void assign_lcm(const volatile dynamic_integer& src) volatile { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); assign_lcm(tmp); }
 
@@ -6133,7 +6128,7 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_greater(const fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_greater(tmp, *(src.m_contents)); }); }
 	template <bool has_sign2, size_t bits2> void assign_greater(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_greater(tmp, *(src.begin_read())); }); }
 	void assign_greater(const dynamic_integer& src) { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); m_contents->set_to_greater(*(tmp.m_contents), *(src.m_contents)); }
-	void assign_greater(const volatile dynamic_integer& src) { dynamic_integer tmp(*this); assign_greater(tmp); }
+	void assign_greater(const volatile dynamic_integer& src) { dynamic_integer tmp(src); assign_greater(tmp); }
 	void assign_greater(const dynamic_integer& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_greater(tmp, *(src.m_contents)); }); }
 	void assign_greater(const volatile dynamic_integer& src) volatile { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); assign_greater(tmp); }
 
@@ -6259,7 +6254,7 @@ public:
 	template <bool has_sign2, size_t bits2> void assign_lesser(const fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lesser(tmp, *(src.m_contents)); }); }
 	template <bool has_sign2, size_t bits2> void assign_lesser(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lesser(tmp, *(src.begin_read())); }); }
 	void assign_lesser(const dynamic_integer& src) { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); m_contents->set_to_lesser(*(tmp.m_contents), *(src.m_contents)); }
-	void assign_lesser(const volatile dynamic_integer& src) { dynamic_integer tmp(*this); assign_lesser(tmp); }
+	void assign_lesser(const volatile dynamic_integer& src) { dynamic_integer tmp(src); assign_lesser(tmp); }
 	void assign_lesser(const dynamic_integer& src) volatile { guarded_write_retry_loop([&](content_t& c) { content_t tmp(c); c.m_digits.clear_inner(); c.set_to_lesser(tmp, *(src.m_contents)); }); }
 	void assign_lesser(const volatile dynamic_integer& src) volatile { if (this == &src) { assign_abs(); return; } dynamic_integer tmp(*this); assign_lesser(tmp); }
 
@@ -7116,35 +7111,35 @@ public:
 
 	// to_string
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		return m_contents->to_string_t<char_t>(radix, minDigits);
 	}
 
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const volatile
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		read_token rt = guarded_begin_read(); // acquires
 		dynamic_integer tmp(rt->m_digits, rt->m_isNegative);
 		return tmp.to_string_t<char_t>(radix, minDigits);
 	}
 
-	string to_string(unsigned int radix = 10, size_t minDigits = 1) const
+	string to_string(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		return to_string_t<wchar_t>(radix, minDigits);
 	}
 
-	string to_string(unsigned int radix = 10, size_t minDigits = 1) const volatile
+	string to_string(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		return to_string_t<wchar_t>(radix, minDigits);
 	}
 
-	cstring to_cstring(unsigned int radix = 10, size_t minDigits = 1) const
+	cstring to_cstring(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		return to_string_t<char>(radix, minDigits);
 	}
 
-	cstring to_cstring(unsigned int radix = 10, size_t minDigits = 1) const volatile
+	cstring to_cstring(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		return to_string_t<char>(radix, minDigits);
 	}
@@ -9960,9 +9955,6 @@ struct compatible<fixed_integer_extended<has_sign, bits>, dynamic_integer>
 
 
 }
-
-
-#pragma warning(pop)
 
 
 #endif

@@ -49,4 +49,3 @@ template <typename int_t> inline constexpr int_t const_max_int_v = const_max_int
 
 
 #endif
-

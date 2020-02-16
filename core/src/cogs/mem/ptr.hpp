@@ -18,11 +18,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @ingroup ReferenceContainerTypes
 /// @brief Wraps a pointer and adds some additional capabilities.
 /// @tparam T Data type pointed to
@@ -2454,9 +2449,6 @@ public:
 };
 
 
-#pragma warning(pop)
-
-
 }
 
 
@@ -2469,10 +2461,10 @@ inline void* operator new(size_t sz, const cogs::ptr<type>& p, const std::nothro
 
 
 template <typename type>
-inline void operator delete(void*, const cogs::ptr<type>& p) throw () { }
+inline void operator delete(void*, const cogs::ptr<type>&) throw () { }
 
 template <typename type>
-inline void operator delete(void*, const cogs::ptr<type>& p, const std::nothrow_t&) throw () { }
+inline void operator delete(void*, const cogs::ptr<type>&, const std::nothrow_t&) throw () { }
 
 
 #endif

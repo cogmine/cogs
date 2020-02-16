@@ -32,11 +32,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-#pragma warning (disable: 4307) // multiple copy constructors specified
-
 template <bool has_sign, size_t bits, ulongest... values>
 class fixed_integer_extended_const;
 
@@ -2021,18 +2016,18 @@ public:
 
 
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const volatile
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		non_const_t tmp(*this);
 		return tmp.to_string_t(radix, minDigits);
 	}
 
-	string to_string(int radix = 10, size_t minDigits = 1) const volatile
+	string to_string(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		return to_string_t<wchar_t>(radix, minDigits);
 	}
 
-	cstring to_cstring(int radix = 10, size_t minDigits = 1) const volatile
+	cstring to_cstring(uint8_t radix = 10, size_t minDigits = 1) const volatile
 	{
 		return to_string_t<char>(radix, minDigits);
 	}
@@ -2207,7 +2202,10 @@ private:
 	typedef bits_to_int_t<reduced_bits, is_const_negative> reduced_int_t;
 
 public:
+#pragma warning(push)
+#pragma warning(disable: 4310) // cast truncates constant value
 	typedef fixed_integer_native_const<is_const_negative, reduced_bits, (reduced_int_t)value> reduced_t;
+#pragma warning(pop)
 
 	typedef typename calculate_negated<is_const_zero, true>::type::reduced_t negative_t;
 	typedef std::conditional_t<is_const_negative, negative_t, reduced_t> abs_t;
@@ -3132,9 +3130,6 @@ class compatible<fixed_integer_extended_const<has_sign, bits, values...>, dynami
 public:
 	typedef dynamic_integer type;
 };
-
-
-#pragma warning(pop)
 
 
 }

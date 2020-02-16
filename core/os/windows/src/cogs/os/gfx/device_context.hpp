@@ -126,7 +126,7 @@ public:
 		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
 		{
 		private:
-			static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD FontType, LPARAM lParam)
+			static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC*, DWORD, LPARAM lParam)
 			{
 				auto fontList = (fontlist*)lParam;
 				fontList->try_insert(lpelfe->lfFaceName);

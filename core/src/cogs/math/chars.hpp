@@ -21,29 +21,29 @@ class special_characters<char>
 {
 public:
 	// Control codes
-	static constexpr char BELL   = (char)0x07;
-	static constexpr char BS     = (char)0x08;
-	static constexpr char TAB    = (char)0x09;
-	static constexpr char LF     = (char)0x0A;
-	static constexpr char VT     = (char)0x0B;
-	static constexpr char FF     = (char)0x0C;
-	static constexpr char HOME   = (char)0x0C;
-	static constexpr char CR     = (char)0x0D;
-	static constexpr char ESC    = (char)0x1B;
-	static constexpr char ESCAPE = (char)0x1B;
-	static constexpr char SPACE  = (char)0x20;
-	static constexpr char DEL    = (char)0x7F;
-	static constexpr char IND    = (char)0x84;
-	static constexpr char NEL    = (char)0x85;
-	static constexpr char RI     = (char)0x8D;
-	static constexpr char SS3    = (char)0x8F;
-	static constexpr char HTS    = (char)0x88;
-	static constexpr char CSI    = (char)0x9B;
-	static constexpr char DCS    = (char)0x90;
-	static constexpr char ST     = (char)0x9C;
+	static constexpr char BELL   = '\x07';
+	static constexpr char BS     = '\x08';
+	static constexpr char TAB    = '\x09';
+	static constexpr char LF     = '\x0A';
+	static constexpr char VT     = '\x0B';
+	static constexpr char FF     = '\x0C';
+	static constexpr char HOME   = '\x0C';
+	static constexpr char CR     = '\x0D';
+	static constexpr char ESC    = '\x1B';
+	static constexpr char ESCAPE = '\x1B';
+	static constexpr char SPACE  = '\x20';
+	static constexpr char DEL    = '\x7F';
+	static constexpr char IND    = '\x84';
+	static constexpr char NEL    = '\x85';
+	static constexpr char RI     = '\x8D';
+	static constexpr char SS3    = '\x8F';
+	static constexpr char HTS    = '\x88';
+	static constexpr char CSI    = '\x9B';
+	static constexpr char DCS    = '\x90';
+	static constexpr char ST     = '\x9C';
 
 	// Symbols
-	static constexpr char MU     = (char)0xB5;
+	static constexpr char MU     = '\xB5';
 };
 
 

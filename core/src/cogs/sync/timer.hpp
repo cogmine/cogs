@@ -410,9 +410,9 @@ protected:
 public:
 	~timer()
 	{
-		rcptr<inner_timer> innerTimer;
-		if (!!innerTimer)
-			innerTimer->abort();
+		rcptr<inner_timer> t = m_innerTimer;
+		if (!!t)
+			t->abort();
 	}
 
 	timeout_t get_timeout() { rcptr<inner_timer> t = m_innerTimer; return (!t) ? timeout_t::infinite() : t->get_timeout(); }
@@ -425,14 +425,8 @@ public:
 
 	bool abort() // returns false if it has already gone off
 	{
-		bool result = true;
-		for (;;)
-		{
-			rcptr<inner_timer> tmr = m_innerTimer;
-			if (!!tmr)
-				result = tmr->abort();
-		}
-		return result;
+		rcptr<inner_timer> t = m_innerTimer;
+		return (!!t) ? (t->abort()) : true;
 	}
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }

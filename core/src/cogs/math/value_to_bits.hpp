@@ -44,4 +44,3 @@ inline constexpr size_t unsigned_value_to_bits_v = unsigned_value_to_bits<v>::va
 
 
 #endif
-

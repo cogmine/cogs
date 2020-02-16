@@ -24,5 +24,3 @@ typedef auto_handle<int, -1, auto_handle_impl_close> auto_fd;
 
 
 #endif
-
-

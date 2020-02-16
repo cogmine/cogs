@@ -32,6 +32,14 @@ namespace gdi {
 
 class bitmap : public device_context, public canvas::bitmap, public canvas::bitmask
 {
+public:
+	enum class image_type : short
+	{
+		monochrome = 1,
+		rgb = 24,
+		rgba = 32
+	};
+
 private:
 	class gdi_bitmap
 	{
@@ -39,7 +47,7 @@ private:
 		HBITMAP m_bitMap;
 		HDC m_hDC;
 		SIZE m_size;
-		int m_depth;
+		image_type m_imageType;
 		void* m_bits;
 		LONG m_widthBytes;
 
@@ -76,7 +84,7 @@ private:
 
 			result.m_size.cx = bm.bmWidth;
 			result.m_size.cy = bm.bmHeight;
-			result.m_depth = bm.bmBitsPixel;
+			result.m_imageType = (image_type)bm.bmBitsPixel;
 			result.m_bits = (BYTE*)bm.bmBits;
 			result.m_widthBytes = bm.bmWidthBytes;
 
@@ -86,29 +94,29 @@ private:
 		static gdi_bitmap load_monochrome(const composite_string& location)
 		{
 			gdi_bitmap result = load(location);
-			if (result.m_depth != 1)
-				result.resample(1);
+			if (result.m_imageType != image_type::monochrome)
+				result.resample(image_type::monochrome);
 			return result;
 		}
 
 		static gdi_bitmap load_rgba(const composite_string& location, bool& isOpaque)
 		{
 			gdi_bitmap result = load(location);
-			isOpaque = result.m_depth != 32;
+			isOpaque = result.m_imageType != image_type::rgba;
 			if (isOpaque)
-				result.resample(32);
+				result.resample(image_type::rgba);
 			return result;
 		}
 
-		gdi_bitmap(SIZE sz, int depth)
+		gdi_bitmap(SIZE sz, image_type imageType)
 			: m_hDC(CreateCompatibleDC(NULL)),
 			m_size(sz),
-			m_depth(depth)
+			m_imageType(imageType)
 		{
 			COGS_ASSERT(!!m_hDC);
 			if (!!sz.cx && !!sz.cy)
 			{
-				if (depth == 1)
+				if (imageType == image_type::monochrome)
 					m_bitMap = CreateBitmap(sz.cx, sz.cy, 1, 1, NULL);
 				else
 				{
@@ -117,7 +125,7 @@ private:
 					bmi.bmiHeader.biPlanes = 1;
 					bmi.bmiHeader.biWidth = sz.cx;
 					bmi.bmiHeader.biHeight = -sz.cy;
-					bmi.bmiHeader.biBitCount = depth;
+					bmi.bmiHeader.biBitCount = (int)imageType;
 					bmi.bmiHeader.biCompression = BI_RGB;
 
 					m_bitMap = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&m_bits, NULL, 0);
@@ -135,7 +143,7 @@ private:
 			: m_bitMap(src.m_bitMap),
 			m_hDC(src.m_hDC),
 			m_size(src.m_size),
-			m_depth(src.m_depth),
+			m_imageType(src.m_imageType),
 			m_bits(src.m_bits),
 			m_widthBytes(src.m_widthBytes)
 		{
@@ -149,7 +157,7 @@ private:
 			m_bitMap = src.m_bitMap;
 			m_hDC = src.m_hDC;
 			m_size = src.m_size;
-			m_depth = src.m_depth;
+			m_imageType = src.m_imageType;
 			m_bits = src.m_bits;
 			m_widthBytes = src.m_widthBytes;
 			src.m_bitMap = NULL;
@@ -167,7 +175,7 @@ private:
 			src.m_bitMap = NULL;
 			SelectObject(m_hDC, m_bitMap);
 			m_size = src.m_size;
-			m_depth = src.m_depth;
+			m_imageType = src.m_imageType;
 			m_bits = src.m_bits;
 			m_widthBytes = src.m_widthBytes;
 		}
@@ -177,27 +185,27 @@ private:
 		HBITMAP get_HBITMAP() const { return m_bitMap; }
 		HDC get_HDC() const { return m_hDC; }
 		SIZE get_size() const { return m_size; }
-		int get_depth() const { return m_depth; }
+		image_type get_image_type() const { return m_imageType; }
 		DWORD get_width_bytes() const { return m_widthBytes; }
 
 		gdi_bitmap clone()
 		{
-			return get_resampled(m_depth);
+			return get_resampled(m_imageType);
 		}
 
-		void resample(int depth)
+		void resample(image_type imageType)
 		{
-			if (depth != m_depth)
-				replace_with(get_resampled(depth));
+			if (imageType != m_imageType)
+				replace_with(get_resampled(imageType));
 		}
 
-		gdi_bitmap get_resampled(int depth)
+		gdi_bitmap get_resampled(image_type imageType)
 		{
-			gdi_bitmap result(m_size, depth);
+			gdi_bitmap result(m_size, imageType);
 			const BOUNDS bounds = { { 0, 0 }, m_size };
-			if (depth == m_depth || depth < 32)
+			if (imageType == m_imageType || imageType < image_type::rgba)
 				blit(result.get_HDC(), bounds, { 0, 0 });
-			else //if (depth != m_depth && depth == 32)
+			else //if (imageType != m_imageType && imageType == 32)
 			{
 				// fill with opaque pixels, as AlphaBlend will not set alpha when copying from <32 to 32 bits
 				result.fill(bounds, color::constant::black, false);
@@ -246,26 +254,26 @@ private:
 
 		void blit(HDC dstDC, const BOUNDS& dstBounds, const POINT& srcPt, const COLORREF& fore, const COLORREF& back) const
 		{
-			SetTextColor(dstDC, make_COLORREF(color::constant::black));
-			SetBkColor(dstDC, make_COLORREF(color::constant::white));
+			SetTextColor(dstDC, fore);
+			SetBkColor(dstDC, back);
 			BitBlt(dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy, m_hDC, srcPt.x, srcPt.y, SRCCOPY);
 		}
 
-		void alpha_blend(HDC dstDC, const POINT& dstPt, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
+		void alpha_blend(HDC dstDC, const POINT& dstPt, const BOUNDS& srcBounds, BYTE sourceConstantAlpha = 0xFF) const
 		{
 			BLENDFUNCTION blendFunc = { };
 			blendFunc.BlendOp = AC_SRC_OVER;
 			blendFunc.BlendFlags = 1; // AC_USE_HIGHQUALITYFILTER.
 			// Without it, blending with bitmaps without alpha channels (<32-bit) will result in an empty alpha channel.
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
-			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
+			blendFunc.AlphaFormat = (m_imageType == image_type::rgba) ? AC_SRC_ALPHA : 0;
 			AlphaBlend(
 				dstDC, dstPt.x, dstPt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				blendFunc);
 		}
 
-		void stretch_and_preserve_alpha(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
+		void stretch_and_preserve_alpha(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, BYTE sourceConstantAlpha = 0xFF) const
 		{
 			COGS_ASSERT(dstBounds.sz != srcBounds.sz); // Will set alpha properly (not preserve it) if not resizing.
 			SetStretchBltMode(dstDC, HALFTONE);
@@ -274,14 +282,14 @@ private:
 			blendFunc.BlendOp = AC_SRC_OVER;
 			blendFunc.BlendFlags = 1; // AC_USE_HIGHQUALITYFILTER.  Filters, but leaves alpha channel untouched.
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
-			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
+			blendFunc.AlphaFormat = (m_imageType == image_type::rgba) ? AC_SRC_ALPHA : 0;
 			AlphaBlend(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
 				blendFunc);
 		}
 
-		void alpha_blend_stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, UINT sourceConstantAlpha = 0xFF) const
+		void alpha_blend_stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, BYTE sourceConstantAlpha = 0xFF) const
 		{
 			SetStretchBltMode(dstDC, HALFTONE);
 			SetBrushOrgEx(dstDC, 0, 0, NULL);
@@ -289,7 +297,7 @@ private:
 			blendFunc.BlendOp = AC_SRC_OVER;
 			blendFunc.BlendFlags = 0;
 			blendFunc.SourceConstantAlpha = sourceConstantAlpha;
-			blendFunc.AlphaFormat = (m_depth == 32) ? AC_SRC_ALPHA : 0;
+			blendFunc.AlphaFormat = (m_imageType == image_type::rgba) ? AC_SRC_ALPHA : 0;
 			AlphaBlend(
 				dstDC, dstBounds.pt.x, dstBounds.pt.y, dstBounds.sz.cx, dstBounds.sz.cy,
 				m_hDC, srcBounds.pt.x, srcBounds.pt.y, srcBounds.sz.cx, srcBounds.sz.cy,
@@ -300,7 +308,7 @@ private:
 		// alpha alone where it did not copy due to transparent color.
 		void mask_out(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, bool inversed) const
 		{
-			COGS_ASSERT(m_depth == 1);
+			COGS_ASSERT(m_imageType == image_type::monochrome);
 			SetStretchBltMode(dstDC, COLORONCOLOR);
 			SetBkColor(dstDC, RGB(0, 0, 0));
 			SetTextColor(dstDC, RGB(0, 0, 0));
@@ -312,8 +320,8 @@ private:
 
 		void stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds) const
 		{
-			COGS_ASSERT(m_depth < 32); // Sets alpha to 0, so shouldn't be used for 32-bit bitmaps
-			int mode = ((m_depth == 1) || (dstBounds.sz == srcBounds.sz)) ? COLORONCOLOR : HALFTONE;
+			COGS_ASSERT(m_imageType == image_type::rgba); // Sets alpha to 0, so shouldn't be used for 32-bit bitmaps
+			int mode = ((m_imageType == image_type::monochrome) || (dstBounds.sz == srcBounds.sz)) ? COLORONCOLOR : HALFTONE;
 			SetStretchBltMode(dstDC, mode);
 			SetBrushOrgEx(dstDC, 0, 0, NULL);
 			StretchBlt(
@@ -324,7 +332,7 @@ private:
 
 		void stretch(HDC dstDC, const BOUNDS& dstBounds, const BOUNDS& srcBounds, const COLORREF& fore, const COLORREF& back) const
 		{
-			COGS_ASSERT(m_depth == 1);
+			COGS_ASSERT(m_imageType == image_type::monochrome);
 			SetBkColor(dstDC, fore);
 			SetTextColor(dstDC, back);
 			SetStretchBltMode(dstDC, COLORONCOLOR);
@@ -396,31 +404,25 @@ private:
 	static gdi_bitmap& setup_scratch_1(const SIZE& sz)
 	{
 		if (!scratch1.has_value() || scratch1->get_size().cx < sz.cx || scratch1->get_size().cy < sz.cy)
-			scratch1.emplace(sz, 1);
+			scratch1.emplace(sz, image_type::monochrome);
 		return *scratch1;
 	}
 
 	static gdi_bitmap& setup_scratch_24(const SIZE& sz)
 	{
 		if (!scratch24.has_value() || scratch24->get_size().cx < sz.cx || scratch24->get_size().cy < sz.cy)
-			scratch24.emplace(sz, 24);
+			scratch24.emplace(sz, image_type::rgb);
 		return *scratch24;
 	}
 
 	static gdi_bitmap& setup_scratch_32(const SIZE& sz)
 	{
 		if (!scratch32.has_value() || scratch32->get_size().cx < sz.cx || scratch32->get_size().cy < sz.cy)
-			scratch32.emplace(sz, 32);
+			scratch32.emplace(sz, image_type::rgba);
 		return *scratch32;
 	}
 
 	friend class device_context;
-
-	enum class image_type {
-		monochrome = 1,
-		rgb = 24,
-		rgba = 32
-	};
 
 	void update_opacity(const BOUNDS& dstBounds, bool isSourceOpaque, bool blendAlpha)
 	{
@@ -437,12 +439,12 @@ private:
 public:
 	bitmap(rc_obj_base& desc, const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
 		: device_context(desc, dpi),
-		m_gdiBitmap(make_SIZE(sz), (int)imageType)
+		m_gdiBitmap(make_SIZE(sz), imageType)
 	{
 		set_HDC(m_gdiBitmap.get_HDC());
 		m_logicalSize = m_gdiBitmap.get_size();
 		m_logicalDipSize = sz;
-		if (m_gdiBitmap.get_depth() < 32)
+		if (m_gdiBitmap.get_image_type() < image_type::rgba)
 			m_isOpaque = true;
 		else
 		{
@@ -462,8 +464,8 @@ public:
 		m_gdiBitmap(gdi_bitmap::load(location)),
 		m_logicalSize(m_gdiBitmap.get_size())
 	{
-		m_isOpaque = m_gdiBitmap.get_depth() != (int)image_type::rgba || imageType != image_type::rgba;
-		m_gdiBitmap.resample((int)imageType);
+		m_isOpaque = m_gdiBitmap.get_image_type() != image_type::rgba || imageType != image_type::rgba;
+		m_gdiBitmap.resample(imageType);
 		set_HDC(m_gdiBitmap.get_HDC());
 		m_logicalDipSize = make_size(m_logicalSize);
 		COGS_ASSERT(get_HDC());
@@ -504,7 +506,7 @@ public:
 
 	virtual void invert(const bounds& b)
 	{
-		if (m_gdiBitmap.get_depth() != 32)
+		if (m_gdiBitmap.get_image_type() != image_type::rgba)
 			device_context::invert(b);
 		else
 		{
@@ -727,7 +729,7 @@ public:
 					if (newActualPixelSize.cy < actualSize.cy)
 						newActualPixelSize.cy = actualSize.cy;
 				}
-				gdi_bitmap newBitmap(newActualPixelSize, m_gdiBitmap.get_depth());
+				gdi_bitmap newBitmap(newActualPixelSize, m_gdiBitmap.get_image_type());
 				m_gdiBitmap.blit(newBitmap.get_HDC(), { { 0, 0 }, m_logicalSize }, { 0, 0 });
 				m_gdiBitmap.replace_with(std::move(newBitmap));
 			}

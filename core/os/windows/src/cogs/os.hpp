@@ -20,12 +20,15 @@
 #include <mswsock.h>
 #include <process.h>
 #include <io.h>
-#include <Gdiplus.h>
 #include <richedit.h>
 #include <shellscalingapi.h>
 #include <cmath>
 #include <memory>
+
+#pragma warning(push)
+#pragma warning(disable: 4458) // declaration hides class member
 #include <gdiplus.h>
+#pragma warning(pop)
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' " "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #pragma comment(lib, "advapi32.lib")
@@ -77,7 +80,7 @@ public:
 
 namespace gui {
 namespace os {
-	inline void beep() { MessageBeep(-1); }
+	inline void beep() { MessageBeep((UINT)-1); }
 }
 }
 

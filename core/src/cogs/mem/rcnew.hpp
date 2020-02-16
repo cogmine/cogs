@@ -58,7 +58,7 @@ rcnew_inner(
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	const char* debugStr,
 #endif
-	volatile allocator_t* al)
+	volatile allocator_t*)
 {
 	typedef rc_obj<type, allocator_t> rc_obj_t;
 	rc_obj_t* desc = rc_obj_t::allocate().get_ptr();
@@ -123,9 +123,12 @@ rcnew_inner(
 		[&](type* cogs_rcnew_obj, ::cogs::rc_obj_base* cogs_rcnew_desc, auto&&... cogs_rcnew_args)\
 		{\
 			if constexpr (std::is_base_of_v<::cogs::object, type>)\
-				new (cogs_rcnew_obj) type(*cogs_rcnew_desc, std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...); \
+				new (cogs_rcnew_obj) type(*cogs_rcnew_desc, std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
 			else \
-				new (cogs_rcnew_obj) type(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...); \
+			{\
+				(void)cogs_rcnew_desc;\
+				new (cogs_rcnew_obj) type(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
+			}\
 		}\
 	, ## __VA_ARGS__ )\
 )
@@ -141,10 +144,14 @@ rcnew_inner(
 //		{\
 //			if constexpr (std::is_base_of_v<::cogs::object, type>)\
 //				new (cogs_rcnew_obj) type(*cogs_rcnew_desc, std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...); \
-//			else if constexpr (sizeof...(cogs_rcnew_args) != 0) \
-//				new (cogs_rcnew_obj) type(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...); \
-//			else \
-//				new (cogs_rcnew_obj) type;\
+//			else\
+//			{\
+//				(void)cogs_rcnew_desc;\
+//				if constexpr (sizeof...(cogs_rcnew_args) != 0) \
+//					new (cogs_rcnew_obj) type(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
+//				else \
+//					new (cogs_rcnew_obj) type;\
+//			}\
 //		}\
 //	, ## __VA_ARGS__ )\
 //)
@@ -156,7 +163,6 @@ rcnew_inner(
 
 #endif
 
-//#error the other ones
 
 #define placement_rcnew(objPtr, descRef, ...) \
 (\
@@ -166,8 +172,11 @@ rcnew_inner(
 		{\
 			if constexpr (std::is_base_of_v<::cogs::object, std::remove_pointer_t<decltype(cogs_rcnew_obj)> >)\
 				new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>(*cogs_rcnew_desc, std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
-			else \
+			else\
+			{\
+				(void)cogs_rcnew_desc;\
 				new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
+			}\
 		}, ## __VA_ARGS__ \
 	)\
 )
@@ -183,10 +192,14 @@ rcnew_inner(
 //		{\
 //			if constexpr (std::is_base_of_v<::cogs::object, std::remove_pointer_t<decltype(cogs_rcnew_obj)> >)\
 //				new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>(*cogs_rcnew_desc, std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
-//			else if constexpr (sizeof...(cogs_rcnew_args) != 0)\
-//				new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
 //			else\
-//				new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>;\
+//			{\
+//				(void)cogs_rcnew_desc;\
+//				if constexpr (sizeof...(cogs_rcnew_args) != 0)\
+//					new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>(std::forward<decltype(cogs_rcnew_args)>(cogs_rcnew_args)...);\
+//				else\
+//					new (cogs_rcnew_obj) std::remove_pointer_t<decltype(cogs_rcnew_obj)>;\
+//			}\
 //		}, ## __VA_ARGS__ \
 //	)\
 //)

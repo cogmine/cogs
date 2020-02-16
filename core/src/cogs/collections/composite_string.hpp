@@ -14,11 +14,6 @@
 #include "cogs/math/const_max_int.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 namespace cogs {
 
 
@@ -3418,7 +3413,7 @@ public:
 	}
 
 	template <typename int_t>
-	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex
+	int_t to_int(uint8_t radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex
 	{
 		int_t result = 0;
 
@@ -3457,7 +3452,7 @@ public:
 			{
 				radix = 8;
 				tmp.advance();
-				const_iterator itor = tmp.get_first_iterator();
+				itor = tmp.get_first_iterator();
 				if (!!itor && ((*itor == (type)'x') || (*itor == (type)'X')))
 				{
 					radix = 16;
@@ -3713,7 +3708,5 @@ to_cstring(const T& t)
 
 }
 
-
-#pragma warning(pop)
 
 #endif

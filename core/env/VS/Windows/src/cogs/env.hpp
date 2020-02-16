@@ -49,4 +49,3 @@ static constexpr size_t longest_bits = sizeof(longest) * 8;
 
 
 #endif
-

@@ -16,10 +16,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 /// @ingroup CollectionAccessorMixIns
 /// @brief Provides a default tlink accessor mix-in type which leverages accessors in the intrusive element.
 /// @tparam link_t The link type to wrap access to.
@@ -212,14 +208,8 @@ class default_tlink_accessor<void, ref_type> : public default_tlink_accessor<tli
 {
 };
 
-
 typedef tlink_t<void> tlink;
 
-
-#pragma warning(pop)
-
-
 }
-
 
 #endif

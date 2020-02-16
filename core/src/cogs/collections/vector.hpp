@@ -31,11 +31,6 @@ namespace io
 	class composite_buffer_content;
 }
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 enum class include_empty_segments
 {
 	no = 1,
@@ -176,14 +171,13 @@ public:
 
 	size_t get_index_of(type* p) const { return p - get_base(); }
 
-	void set_constructed_range(type* p, size_t length) { }
-
+	void set_constructed_range(type*, size_t) { }
 
 	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::get_obj_from_header(this); }
 	type* get_ptr() const { return get_base(); }
 	size_t get_constructed_length() const { return m_capacity; }
 	size_t get_constructed_length(type* p) const { return get_capacity_after(p); }
-	void set_constructed_length(size_t newLength) { }
+	void set_constructed_length(size_t) { }
 
 	void advance(size_t n = 1) { }
 	void trim_unconstructed_trailing(size_t n) { }
@@ -548,7 +542,7 @@ public:
 	// Only call if is_owned()
 	void trim_leading_lingering()
 	{
-		if (!std::is_trivially_destructible_v<type>)
+		if constexpr (!std::is_trivially_destructible_v<type>)
 		{
 			// If there are any lingering constructed leading elements, dispose of them.
 			size_t constructedLeading = m_desc->get_index_of(m_ptr);
@@ -563,7 +557,7 @@ public:
 	// Only call if is_owned()
 	void trim_trailing_lingering()
 	{
-		if (!std::is_trivially_destructible_v<type>)
+		if constexpr (!std::is_trivially_destructible_v<type>)
 		{
 			// At this point we know that m_ptr == m_start
 			// If there are any lingering constructed trailing elements, dispose of them.
@@ -582,7 +576,7 @@ public:
 	// On exit, we know that: ((m_ptr == m_desc->m_start) && (m_length == m_desc->m_length))
 	void trim_lingering()
 	{
-		if (!std::is_trivially_destructible_v<type>)
+		if constexpr (!std::is_trivially_destructible_v<type>)
 		{
 			trim_leading_lingering();
 			trim_trailing_lingering();
@@ -599,8 +593,11 @@ public:
 			{
 				m_ptr += n;
 				m_length -= n;
-				if ((!std::is_trivially_destructible_v<type>) && !!m_desc && m_desc->is_owned()) // If non-pod data, and some are constructed before the current start, destruct them.
-					trim_leading_lingering();
+				if constexpr (!std::is_trivially_destructible_v<type>)
+				{
+					if (!!m_desc && m_desc->is_owned()) // If non-pod data, and some are constructed before the current start, destruct them.
+						trim_leading_lingering();
+				}
 			}
 		}
 	}
@@ -612,8 +609,11 @@ public:
 		else if (n < m_length)
 		{
 			m_length = n;
-			if ((!std::is_trivially_destructible_v<type>) && !!m_desc && m_desc->is_owned())
-				trim_trailing_lingering();
+			if constexpr (!std::is_trivially_destructible_v<type>)
+			{
+				if (!!m_desc && m_desc->is_owned())
+					trim_trailing_lingering();
+			}
 		}
 	}
 
@@ -1017,22 +1017,24 @@ public:
 	template <typename type2, class comparator_t>
 	bool equals(const type2* cmp, size_t n) const
 	{
-		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+		if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return (n == m_length) && (memcmp(m_ptr, cmp, n) == 0);
-
-		if (n != m_length)
-			return false;
-
-		if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
+		else
 		{
-			for (size_t i = 0; i < n; i++)
-			{
-				if (!comparator_t::equals(m_ptr[i], cmp[i]))
-					return false;
-			}
-		}
+			if (n != m_length)
+				return false;
 
-		return true;
+			if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
+			{
+				for (size_t i = 0; i < n; i++)
+				{
+					if (!comparator_t::equals(m_ptr[i], cmp[i]))
+						return false;
+				}
+			}
+
+			return true;
+		}
 	}
 
 	template <typename type2, class comparator_t>
@@ -1052,7 +1054,7 @@ public:
 	template <typename type2, class comparator_t>
 	bool starts_with(const type2* cmp, size_t n) const
 	{
-		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+		if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return (n <= m_length) && (memcmp(m_ptr, cmp, n) == 0);
 
 		if (!n || n > m_length)
@@ -1089,7 +1091,7 @@ public:
 	template <typename type2, class comparator_t>
 	bool ends_with(const type2* cmp, size_t n) const
 	{
-		if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+		if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			return(n <= m_length) && (memcmp(m_ptr + (m_length - n), cmp, n * sizeof(type)) == 0);
 
 		size_t length = m_length;
@@ -1137,7 +1139,7 @@ public:
 		if (!std::is_same_v<type, type2> || ((void*)cmp != (void*)m_ptr))
 		{
 			size_t shorterLength = cmpIsLonger ? m_length : n;
-			if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+			if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 			{
 				int i = memcmp(m_ptr, cmp, shorterLength);
 				if (i != 0)
@@ -1174,7 +1176,7 @@ public:
 			else
 			{
 				size_t shorterLength = cmpIsLonger ? m_length : n;
-				if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+				if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 				{
 					int i = memcmp(m_ptr, cmp, shorterLength);
 					result = (i == 0) ? cmpIsLonger : (i < 0);
@@ -1220,7 +1222,7 @@ public:
 			else
 			{
 				size_t shorterLength = cmpIsShorter ? n : m_length;
-				if (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
+				if constexpr (std::is_same_v<type, type2> && std::is_same_v<comparator_t, default_comparator> && (std::is_same_v<type, char> || std::is_same_v<type, unsigned char> || std::is_same_v<type, signed char>))
 				{
 					int i = memcmp(m_ptr, cmp, shorterLength);
 					result = (i == 0) ? cmpIsShorter : (i > 0);
@@ -2850,9 +2852,6 @@ protected:
 		return result;
 	}
 };
-
-
-#pragma warning(pop)
 
 
 }

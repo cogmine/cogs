@@ -1395,7 +1395,7 @@ protected:
 		}
 	}
 
-	virtual rcref<gfx::canvas::bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::canvas::bitmap> create_offscreen_buffer(pane&, const size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		rcref<gfx::canvas::bitmap> result = get_device_context().create_bitmap(sz, fillColor, get_device_context().get_dpi());
 		m_offscreenBuffers.append(result.static_cast_to<gfx::os::gdi::bitmap>());

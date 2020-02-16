@@ -326,8 +326,8 @@ public:
 		m_defaultSize(0, 0)
 	{ }
 
-	size& get_default_size_override(const size& sz) { return m_defaultSize; }
-	const size& get_default_size_override(const size& sz) const { return m_defaultSize; }
+	size& get_default_size_override() { return m_defaultSize; }
+	const size& get_default_size_override() const { return m_defaultSize; }
 	void set_default_size_override(const size& sz) { m_defaultSize = sz; }
 
 	virtual size get_default_size() const { return m_calculatedDefaultSize; }
@@ -397,7 +397,7 @@ public:
 
 	virtual range get_range() const { return range::make_fixed(get_default_size()); }
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> = std::nullopt, const range& r = range::make_unbounded(), size_mode = size_mode::both, size_mode = size_mode::both) const
 	{
 		propose_size_result result;
 		size sz2 = get_default_size();
@@ -559,7 +559,7 @@ public:
 
 	virtual range get_range() const { return range(m_calculatedSize, m_calculatedSize, true, true); }
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> = std::nullopt, const range& r = range::make_unbounded(), size_mode = size_mode::both, size_mode = size_mode::both) const
 	{
 		propose_size_result result;
 		if (!r.contains(m_calculatedSize))
@@ -966,7 +966,7 @@ public:
 		{
 			// Do we have rounding issues here?
 			size sz2 = sz * m_proportion;
-			propose_size_result result = frame::propose_size(sz2, resizeDimension, r, horizontalMode, verticalMode);
+			result = frame::propose_size(sz2, resizeDimension, r, horizontalMode, verticalMode);
 			result.m_sizes[0].m_size /= m_proportion;
 			result.m_sizes[1].m_size /= m_proportion;
 			result.m_sizes[2].m_size /= m_proportion;
@@ -993,7 +993,7 @@ public:
 
 	virtual range get_range() const { return range::make_unbounded(); }
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> = std::nullopt, const range& r = range::make_unbounded(), size_mode = size_mode::both, size_mode = size_mode::both) const
 	{
 		propose_size_result result;
 		if (r.is_empty())

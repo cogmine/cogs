@@ -15,10 +15,6 @@
 
 namespace cogs {
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 
 /// @ingroup LockFreeCollections
 /// @brief A stack container collection
@@ -151,11 +147,7 @@ public:
 };
 
 
-#pragma warning(pop)
-
-
 }
 
 
 #endif
-

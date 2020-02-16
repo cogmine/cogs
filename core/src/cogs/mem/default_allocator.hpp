@@ -20,11 +20,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @ingroup Mem
 /// @brief Provides access to the default memory management algorithm
 ///
@@ -185,9 +180,6 @@ typedef buddy_block_allocator< sizeof(void*), 1024 * 1024 * 4 > default_allocato
 
 
 }
-
-
-#pragma warning(pop)
 
 
 #include "cogs/mem/rc_obj_base.hpp"

@@ -23,10 +23,6 @@
 #include "cogs/math/fraction.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 namespace planar {
@@ -198,6 +194,9 @@ public:
 
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
+		(void)resizeDimension; // unused
+		(void)horizontalMode; // unused
+		(void)verticalMode; // unused
 		propose_size_result result;
 		range r2 = get_range() & r;
 		if (r2.is_empty())
@@ -239,6 +238,7 @@ protected:
 
 	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
+		(void)oldOrigin;
 		// Preserve size from last reshape
 		m_currentSize = newBounds.get_size();
 	}
@@ -248,14 +248,9 @@ protected:
 	static void reshape(cell& c, const bounds& newBounds, const point& oldOrigin = point(0, 0)) { c.reshape(newBounds, oldOrigin); }
 };
 
-
 }
-
 
 }
 }
-
-#pragma warning(pop)
-
 
 #endif

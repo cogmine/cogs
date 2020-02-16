@@ -51,7 +51,7 @@ private:
 			int i = recv(s, (char*)(m_currentBuffer.get_ptr()) + m_progress, (int)n, 0);
 			if (i == SOCKET_ERROR)
 			{
-				int i = WSAGetLastError();
+				i = WSAGetLastError();
 				if (i == WSAEWOULDBLOCK)
 					return true;
 				return false;
@@ -580,7 +580,7 @@ public:
 					int i = m_listenSocket->m_socket->bind_any(port);
 					if (i != SOCKET_ERROR)
 					{
-						int i = ::listen(m_listenSocket->m_socket->get(), SOMAXCONN);
+						i = ::listen(m_listenSocket->m_socket->get(), SOMAXCONN);
 						if (i != SOCKET_ERROR)
 						{
 							// Query for ptr to AcceptEx
@@ -599,9 +599,8 @@ public:
 							{
 								// Query for ptr to GetAcceptExSockaddrs
 								m_lpfnGetAcceptExSockaddrs = 0;
-								DWORD dwBytes;
 								GUID GuidGetAcceptExSockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
-								DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+								dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 													&GuidGetAcceptExSockaddrs,
 													sizeof(GuidGetAcceptExSockaddrs),
 													&m_lpfnGetAcceptExSockaddrs,

@@ -52,4 +52,3 @@ using bytes_to_uint_t = typename bytes_to_uint<bits>::type;
 #include "cogs/env.hpp"
 
 #endif
-

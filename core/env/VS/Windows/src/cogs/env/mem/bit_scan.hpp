@@ -203,4 +203,3 @@ bit_scan_forward(const T& t)
 
 
 #endif
-

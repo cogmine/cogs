@@ -83,4 +83,3 @@ constexpr size_t prev_exponent_of_two_v = prev_exponent_of_two<n>::value;
 
 
 #endif
-

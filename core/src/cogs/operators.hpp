@@ -343,7 +343,7 @@ template <typename T> inline constexpr std::enable_if_t<std::is_arithmetic_v<T> 
 is_negative(const T& t) { return load(t) < (std::remove_volatile_t<T>)0; }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && !std::is_signed_v<T>, bool>
-is_negative(const T& t) { return false; }
+is_negative(const T&) { return false; }
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_negative)
 

@@ -20,10 +20,6 @@ namespace gfx {
 
 // cogs::gfx::canvas::font is a base class for platform-specific fonts (size is embedded).
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 // cogs::gui:::font is platform-independent, and contains a priority-sorted list of fonts.
 // When applied to a particular platform, the first font that can be matched is loaded.
 
@@ -249,12 +245,9 @@ public:
 	}
 };
 
-#pragma warning(pop)
-
 
 }
 }
 
 
 #endif
-

@@ -26,11 +26,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 template <bool has_sign, size_t n_bits>
 class fixed_integer_native;
 
@@ -1610,7 +1605,7 @@ public:
 
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	this_t& operator=(const fixed_integer_native_const<has_sign2, bits2, value2>& src)
+	this_t& operator=(const fixed_integer_native_const<has_sign2, bits2, value2>&)
 	{
 		typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(value2);
 		operator=(tmp);
@@ -1618,7 +1613,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	this_t& operator=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src)
+	this_t& operator=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&)
 	{
 		typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(value2);
 		operator=(tmp);
@@ -1626,7 +1621,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	volatile this_t& operator=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile
+	volatile this_t& operator=(const fixed_integer_native_const<has_sign2, bits2, value2>&) volatile
 	{
 		typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(value2);
 		operator=(tmp);
@@ -1634,7 +1629,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-	volatile this_t& operator=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile
+	volatile this_t& operator=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>&) volatile
 	{
 		typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(value2);
 		operator=(tmp);
@@ -1689,16 +1684,16 @@ public:
 	volatile this_t& operator=(const volatile dynamic_integer& src) volatile; // { cogs::assign(m_int, src.get_int()); return *this; }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	this_t& operator=(const int_t2& src) { cogs::assign(m_int, src); return *this; }
+	this_t& operator=(const int_t2& src) { cogs::assign(m_int, (int_t)src); return *this; }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	this_t& operator=(const volatile int_t2& src) { cogs::assign(m_int, src); return *this; }
+	this_t& operator=(const volatile int_t2& src) { cogs::assign(m_int, (int_t)atomic::load(src)); return *this; }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	volatile this_t& operator=(const int_t2& src) volatile { cogs::assign(m_int, src); return *this; }
+	volatile this_t& operator=(const int_t2& src) volatile { cogs::assign(m_int, (int_t)src); return *this; }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-	volatile this_t& operator=(const volatile int_t2& src) volatile { cogs::assign(m_int, src); return *this; }
+	volatile this_t& operator=(const volatile int_t2& src) volatile { cogs::assign(m_int, (int_t)atomic::load(src)); return *this; }
 
 	template <typename numerator_t, typename denominator_t>
 	this_t& operator=(const fraction<numerator_t, denominator_t>& src)
@@ -5520,11 +5515,11 @@ public:
 
 
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const;
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const;
 
-	string_t<wchar_t> to_string(int radix = 10, size_t minDigits = 1) const;
+	string_t<wchar_t> to_string(uint8_t radix = 10, size_t minDigits = 1) const;
 
-	string_t<char> to_cstring(int radix = 10, size_t minDigits = 1) const;
+	string_t<char> to_cstring(uint8_t radix = 10, size_t minDigits = 1) const;
 
 	template <endian_t e>
 	io::buffer to_buffer() const;
@@ -5641,9 +5636,6 @@ typedef int_to_fixed_integer_t<bytes_to_uint_t<16> > uint128_type;
 
 typedef int_to_fixed_integer_t<longest> longest_type;
 typedef int_to_fixed_integer_t<ulongest> ulongest_type;
-
-
-#pragma warning(pop)
 
 
 }

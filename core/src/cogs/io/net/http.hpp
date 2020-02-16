@@ -965,7 +965,7 @@ private:
 								}
 								else
 								{
-									header_map_t::iterator itor = m_requestHeaders->find(cstring::literal("Content-Length"));
+									itor = m_requestHeaders->find(cstring::literal("Content-Length"));
 									if (!!itor) // if known content length, add a limiter.
 									{
 										m_contentLength = itor->to_int<size_t>();
@@ -1085,7 +1085,7 @@ private:
 			return simple_reply(composite_cstring(), code, statusPhrase, reuseConnection);
 		}
 
-		rcref<response> error_reply(response::status code = response::status::bad_request, const composite_cstring& statusPhrase = cstring::literal("Bad Request"), bool reuseConnection = true)
+		rcref<response> error_reply(response::status code = response::status::bad_request, const composite_cstring& statusPhrase = cstring::literal("Bad Request"))
 		{
 			int_type statusCode = (int)code;
 			composite_cstring statusCodeString = statusCode.to_cstring();
@@ -1265,4 +1265,3 @@ public:
 
 
 #endif
-

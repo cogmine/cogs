@@ -28,12 +28,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-#pragma warning (disable: 4307) // multiple copy constructors specified
-
-
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value_in>
 class fixed_integer_native_const;
 
@@ -1474,11 +1468,11 @@ public:
 	bool test_bit(size_t i) const volatile { non_const_t tmp(int_value); return tmp.test_bit(i); }
 
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const volatile;
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const volatile;
 
-	string_t<wchar_t> to_string(int radix = 10, size_t minDigits = 1) const volatile;
+	string_t<wchar_t> to_string(uint8_t radix = 10, size_t minDigits = 1) const volatile;
 
-	string_t<char> to_cstring(int radix = 10, size_t minDigits = 1) const volatile;
+	string_t<char> to_cstring(uint8_t radix = 10, size_t minDigits = 1) const volatile;
 
 	template <endian_t e>
 	io::buffer to_buffer() const volatile;
@@ -1917,8 +1911,6 @@ using signed_fixed_integer_const = fixed_integer_native_const<(n < 0), signed_va
 template <ulongest n>
 using unsigned_fixed_integer_const = fixed_integer_native_const<false, unsigned_value_to_bits_v<n>, n>;
 
-
-#pragma warning(pop)
 
 }
 

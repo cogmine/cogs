@@ -15,11 +15,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment oeprators specified
-
-
 /// @ingroup ReferenceContainerTypes
 /// @ingroup Synchronization
 /// @brief Provides an atomic ABA solution for pointer types.  Nullable.
@@ -1648,9 +1643,6 @@ public:
 	composite_string_t<wchar_t> to_string() const volatile;
 	composite_string_t<char> to_cstring() const volatile;
 };
-
-
-#pragma warning(pop)
 
 
 }

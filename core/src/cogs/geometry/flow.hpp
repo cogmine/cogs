@@ -10,10 +10,6 @@
 #define COGS_HEADER_GEOMETRY_FLOW
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 
@@ -170,15 +166,9 @@ enum class flow
 	z_descending_y_descending_x_descending = dimension_order_z_y_x,
 };
 
-
 }
 
 }
 }
-
-#pragma warning(pop)
-
 
 #endif
-
-

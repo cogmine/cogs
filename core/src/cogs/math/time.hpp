@@ -21,11 +21,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @defgroup UnitBases Unit Bases
 /// @{
 /// @ingroup Math
@@ -44,7 +39,7 @@ class nanoseconds : public unit_type<time>
 {
 public:
 	template <typename char_t, typename unit_t>
-	static composite_string_t<char_t> to_string_t(const unit_t& n, unsigned int radix = 10, size_t minDigits = 1)
+	static composite_string_t<char_t> to_string_t(const unit_t& n, uint8_t radix = 10, size_t minDigits = 1)
 	{
 		static constexpr char_t part2[] = { (char_t)'n', (char_t)'s' };
 		composite_string_t<char_t> result(n.template to_string_t<char_t>(radix, minDigits));
@@ -272,9 +267,6 @@ public:
 
 static_assert(is_courser_v<hours, seconds>);
 static_assert(is_finer_v<seconds, hours>);
-
-
-#pragma warning(pop)
 
 
 }

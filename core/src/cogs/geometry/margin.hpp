@@ -20,10 +20,6 @@
 #include "cogs/geometry/size.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 
@@ -377,14 +373,10 @@ inline size& size::operator+=(const margin& m) { m_contents[0] += m.get_width();
 inline size size::operator-(const margin& m) const { size result(m_contents[0] - m.get_width(), m_contents[1] - m.get_height()); return result; }
 inline size& size::operator-=(const margin& m) { m_contents[0] -= m.get_width(); m_contents[1] -= m.get_height(); return *this; }
 
-
 }
 
 }
 }
-
-#pragma warning(pop)
 
 
 #endif
-

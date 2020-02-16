@@ -186,7 +186,6 @@ public:
 			// expired.  We need to decrement the writer stall count
 			for (;;)
 			{
-				transactable<content_t>::write_token wt;
 				m_contents.begin_write(wt);
 				if (!wt->m_writersStalled)
 				{

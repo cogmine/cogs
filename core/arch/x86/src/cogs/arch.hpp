@@ -23,4 +23,3 @@ const endian_t current_endian = endian_t::little;
 
 
 #endif
-

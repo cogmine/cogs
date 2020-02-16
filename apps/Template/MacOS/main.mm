@@ -69,4 +69,3 @@ int main(int argc, const char * argv[]) {
     [NSApp run];
     return EXIT_SUCCESS;
 }
-

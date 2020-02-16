@@ -25,11 +25,6 @@
 
 namespace cogs {
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-#pragma warning (disable: 4307) // multiple copy constructors specified
-
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 class fixed_integer_native_const;
@@ -2325,7 +2320,7 @@ private:
 	static std::enable_if_t<
 		!simplification_helper<std::remove_cv_t<std::remove_reference_t<numerator_t2> >, std::remove_cv_t<denominator_t2> >::is_simplifiable,
 		numerator_t2&&>
-	simplify_numerator_type(numerator_t2&& n, const denominator_t2& d) { return std::forward<numerator_t2>(n); }
+	simplify_numerator_type(numerator_t2&& n, const denominator_t2&) { return std::forward<numerator_t2>(n); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2349,7 +2344,7 @@ private:
 	static std::enable_if_t<
 		!simplification_helper<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::is_simplifiable,
 		denominator_t2&&>
-	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return std::forward<denominator_t2>(d); }
+	simplify_denominator_type(const numerator_t2&, denominator_t2&& d) { return std::forward<denominator_t2>(d); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2358,7 +2353,7 @@ private:
 		&& !is_const_type_v<std::remove_cv_t<numerator_t2> >
 		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
 		one_t>
-	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return one_t(); }
+	simplify_denominator_type(const numerator_t2&, denominator_t2&&) { return one_t(); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	static std::enable_if_t<
@@ -2366,7 +2361,7 @@ private:
 		&& is_const_type_v<std::remove_cv_t<numerator_t2> >
 		&& is_const_type_v<std::remove_cv_t<std::remove_reference_t<denominator_t2> > >,
 		typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type>
-	simplify_denominator_type(const numerator_t2& n, denominator_t2&& d) { return typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type(); }
+	simplify_denominator_type(const numerator_t2&, denominator_t2&&) { return typename fraction<std::remove_cv_t<numerator_t2>, std::remove_cv_t<std::remove_reference_t<denominator_t2> > >::simplified_t::denominator_type(); }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -3728,9 +3723,6 @@ auto fraction<numerator_type, denominator_type>::reciprocal() const
 template <typename numerator_type, typename denominator_type>
 auto fraction<numerator_type, denominator_type>::reciprocal() const volatile
 { return cogs::reciprocal(simplify_content_type(*this)); }
-
-
-#pragma warning(pop)
 
 
 }

@@ -105,4 +105,3 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 }
 
 #endif
-

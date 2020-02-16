@@ -19,11 +19,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 // if thread safety is required, a container_skiplist is used.
 // if thread safety is not needed, and favor_lookup is false, a rbtree is used.
 // if thread safety is not needed, and favor_lookup is true, an avltree is used.
@@ -1204,9 +1199,6 @@ public:
 	iterator find_last_equal_or_nearest_less_than(const type& criteria) const { return iterator(m_tree.find_last_equal_or_nearest_less_than(criteria), m_tree); }
 	iterator find_last_equal_or_nearest_greater_than(const type& criteria) const { return iterator(m_tree.find_last_equal_or_nearest_greater_than(criteria), m_tree); }
 };
-
-
-#pragma warning(pop)
 
 
 }

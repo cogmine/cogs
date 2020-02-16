@@ -16,9 +16,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
 /// @brief Tree traversal order
 enum class btree_traversal
 {
@@ -736,7 +733,7 @@ protected:
 		{
 			lockedCompareTo = compare_to;
 			const key_t& cmp2 = lockedCompareTo->get_key();
-			bool isLess = comparator_t::is_less_than(cmp, cmp2);
+			isLess = comparator_t::is_less_than(cmp, cmp2);
 
 			// Check for an equal node.  If so, we're done.
 			if ((insertMode != sorted_btree_insert_mode::multi) && !isLess && !comparator_t::is_less_than(cmp2, cmp))
@@ -1406,9 +1403,6 @@ public:
 	}
 	/// @}
 };
-
-
-#pragma warning(pop)
 
 
 }

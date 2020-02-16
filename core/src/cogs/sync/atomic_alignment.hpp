@@ -37,6 +37,3 @@ constexpr size_t get_alignment_v = get_alignment<T>::value;
 
 
 #endif
-
-
-

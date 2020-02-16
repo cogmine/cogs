@@ -47,12 +47,16 @@ public:
 		virtual void telnet_erase_line() {} // Received an Erase Line (EL) message from remote party
 		virtual void telnet_break() {} // Received a Break message from remote party
 
-		virtual bool telnet_request_echo(bool echoOn) { return false; } // received request to set echo state
+		virtual bool telnet_request_echo(bool) { return false; } // received request to set echo state
 		virtual bool telnet_notify_echo(bool echoOn) { return echoOn; } // received request to set echo state
 
 		virtual cstring get_telnet_terminal_type() { return cstring::literal("UNKNOWN"); }
 
-		virtual void get_window_size(uint16_t& width, uint16_t& height) { }
+		virtual void get_window_size(uint16_t& width, uint16_t& height)
+		{
+			(void)width;
+			(void)height;
+		}
 
 		// Terminal utils
 		void send_window_size(uint16_t width, uint16_t height)
@@ -575,4 +579,3 @@ public:
 
 
 #endif
-

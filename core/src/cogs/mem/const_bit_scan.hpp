@@ -66,4 +66,3 @@ class const_bit_scan_forward<0> { }; // invalid
 
 
 #endif
-

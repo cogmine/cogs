@@ -100,7 +100,7 @@ protected:
 	static void shutdown()
 	{
 		volatile weak_rcptr<T>* g = &s_global.get();
-		if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
+		if constexpr (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
 		{
 			weak_rcptr<T> tmp;
 			g->swap(tmp);

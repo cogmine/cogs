@@ -7,7 +7,7 @@ using namespace cogs::gui;
 
 COGS_MAIN
 {
-	return cogs::main([](const auto& uiSubsystem)
+	return cogs::main([](const auto&)
 	{
 		auto guiSubsystem = gui::subsystem::get_default();
 		if (!guiSubsystem)

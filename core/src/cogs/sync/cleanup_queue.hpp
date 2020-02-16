@@ -102,7 +102,7 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 	weak_rcptr<T> oldValue = *g;
 
 	bool b;
-	if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
+	if constexpr (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
 	{
 		result = oldValue;
 		b = !result;
@@ -123,21 +123,25 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 		if (!g->compare_exchange(newValue, oldValue, oldValue))
 		{
 			newValue.get_desc()->release(reference_strength::strong);
-			if (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton || oldValue.get_mark() == 0)
+			if constexpr (posthumous_behavior == singleton_posthumous_behavior::create_new_singleton)
+				result = oldValue;
+			else if (oldValue.get_mark() == 0)
 				result = oldValue;
 		}
 		else
 		{
 			isNew = true;
 			result = std::move(newValue); // Return the one we just created.
-			if (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
+			if constexpr (cleanup_behavior == singleton_cleanup_behavior::use_cleanup_queue)
 				cleanup_queue::get()->dispatch(&singleton_base<T>::template shutdown<posthumous_behavior>);
 		}
 	}
 
-	if (posthumous_behavior == singleton_posthumous_behavior::create_new_per_caller && !result)
-		result = rcnew(bypass_constructor_permission<T>);
-
+	if constexpr (posthumous_behavior == singleton_posthumous_behavior::create_new_per_caller)
+	{
+		if (!result)
+			result = rcnew(bypass_constructor_permission<T>);
+	}
 	return result;
 }
 

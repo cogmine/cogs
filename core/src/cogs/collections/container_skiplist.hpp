@@ -28,11 +28,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @ingroup LockFreeCollections
 /// @brief Default container_skiplist payload type
 /// @tparam key_t The type used to compare elements.
@@ -517,6 +512,9 @@ private:
 				if (rt->m_mode == link_mode::removing)
 				{
 					notRemoved = false;
+					complete_remove(level, rt);
+					if (returnTokenEvenIfRemoved)
+						m_links[level].begin_read(rt);
 				}
 				break;
 			}
@@ -720,7 +718,7 @@ private:
 		void insert_replace_inner(height_t level, const key_t& criteria, const rcptr<link_t>& startFrom, bool& collision, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
 		{
 			rcptr<link_t> next;
-			rcptr<link_t> prev = sentinelPtr;
+			rcptr<link_t> prev = startFrom;
 			for (;;)
 			{
 				COGS_ASSERT(level <= prev->m_height);
@@ -775,7 +773,7 @@ private:
 		{
 			rcptr<link_t> result;
 			rcptr<link_t> next;
-			rcptr<link_t> prev = sentinelPtr;
+			rcptr<link_t> prev = startFrom;
 			for (;;)
 			{
 				COGS_ASSERT(level <= prev->m_height);
@@ -828,7 +826,7 @@ private:
 			write_token wt;
 			rcptr<volatile link_t> result;
 			rcptr<volatile link_t> prev;
-			rcptr<volatile link_t> next = sentinelPtr;
+			rcptr<volatile link_t> next = startFrom;
 			bool insertedLowerLevels = false;
 			for (;;)
 			{
@@ -1832,14 +1830,15 @@ public:
 			volatile_iterator result;
 			rcptr<volatile link_t> oldValue;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_next;
@@ -1856,7 +1855,9 @@ public:
 					done = true;
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -1885,14 +1886,15 @@ public:
 		void assign_next() volatile
 		{
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_next;
@@ -1907,7 +1909,9 @@ public:
 					done = m_link.compare_exchange(newLink, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 		}
 
 		volatile_iterator prev() const
@@ -1935,14 +1939,15 @@ public:
 		{
 			volatile_iterator result;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_prev;
@@ -1959,7 +1964,9 @@ public:
 					done = true;
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -1988,14 +1995,15 @@ public:
 		void assign_prev() volatile
 		{
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					rcptr<volatile link_t> newLink = rt->m_prev;
@@ -2010,7 +2018,9 @@ public:
 					done = m_link.compare_exchange(newLink, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 		}
 
 		volatile_iterator& operator++()
@@ -2024,14 +2034,15 @@ public:
 			volatile_iterator result;
 			rcptr<volatile link_t> newLink;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					result.m_link = rt->m_next;
@@ -2046,7 +2057,9 @@ public:
 					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -2074,14 +2087,15 @@ public:
 			volatile_iterator result;
 			rcptr<volatile link_t> newLink;
 			bool done = false;
-			do {
+			for (;;)
+			{
 				rcptr<volatile link_t> oldValue = m_link;
 				if (!oldValue)
 					break;
 				read_token rt;
 				oldValue->begin_read_and_complete(rt, true); // OK if already removed
 				if (oldValue != m_link)
-					continue;
+					continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 				for (;;)
 				{
 					result.m_link = rt->m_prev;
@@ -2096,7 +2110,9 @@ public:
 					done = m_link.compare_exchange(result.m_link, oldValue, oldValue);
 					break;
 				}
-			} while (!done);
+				if (done)
+					break;
+			}
 			return result;
 		}
 
@@ -4216,9 +4232,6 @@ public:
 	}
 
 };
-
-
-#pragma warning(pop)
 
 
 }

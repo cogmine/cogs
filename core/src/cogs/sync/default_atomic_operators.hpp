@@ -219,5 +219,3 @@ COGS_DEFINE_ARCH_DEFAULT_VOLATILE_ASSIGN_OPERATOR(post_assign_ ## fname)
 #endif
 
 #include "cogs/arch/sync/atomic_operators.hpp"
-
-

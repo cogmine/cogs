@@ -139,7 +139,8 @@ private:
 			content_t oldContents;
 			content_t newContents;
 
-			do {
+			for (;;)
+			{
 				atomic::load(curToken->m_contents, oldContents);
 				if (oldContents.m_value == value)
 				{
@@ -147,7 +148,7 @@ private:
 					newContents.m_value = (oldContents.m_state == state::empty) ? 0 : value;
 					newContents.m_state = (state)((int)oldContents.m_state + 1);
 					if (!atomic::compare_exchange(curToken->m_contents, newContents, oldContents, oldContents))
-						continue;
+						continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 					if (newContents.m_state == state::owned)
 					{
 						owned = false;
@@ -155,7 +156,9 @@ private:
 					}
 				}
 				curToken = curToken->m_next;
-			} while (!!curToken);
+				if (!curToken)
+					break;
+			}
 			return owned;
 		}
 

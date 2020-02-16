@@ -22,12 +22,8 @@ namespace cogs {
 /// @brief Mathematical
 /// @}
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
 
-
-	// forward declated.  Defined in string.hpp
+// forward declated.  Defined in string.hpp
 template <typename type>
 class string_t;
 
@@ -296,9 +292,6 @@ public:
 	string_t<wchar_t> to_string() const volatile;
 	string_t<char> to_cstring() const volatile;
 };
-
-
-#pragma warning(pop)
 
 
 }

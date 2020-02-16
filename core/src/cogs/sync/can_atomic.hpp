@@ -34,4 +34,3 @@ constexpr bool can_atomic_v = can_atomic<T>::value;
 }
 
 #endif
-

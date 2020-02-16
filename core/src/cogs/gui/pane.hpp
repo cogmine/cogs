@@ -107,6 +107,17 @@ public:
 	using cell = gfx::canvas::cell;
 
 private:
+	class serial_dispatch_state
+	{
+	public:
+		int m_scheduledPriority;
+		unsigned int m_flags;
+	};
+
+	alignas (atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
+	rcptr<task<void> > m_expireTask;
+	boolean m_expireDone;
+
 	weak_rcptr<pane> m_parent;
 	container_dlist<rcref<pane> > m_children;
 	container_dlist<rcref<pane> >::remove_token m_siblingIterator; // our element in our parent's list of children panes
@@ -221,18 +232,6 @@ private:
 		i.disown();
 		serial_dispatch();
 	}
-
-	class serial_dispatch_state
-	{
-	public:
-		int m_scheduledPriority;
-		unsigned int m_flags;
-	};
-
-	alignas (atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
-
-	rcptr<task<void> > m_expireTask;
-	boolean m_expireDone;
 
 	constexpr static int serial_dispatch_busy_flag = 0x01;      // 00001
 	constexpr static int serial_dispatch_dirty_flag = 0x02;     // 00010
@@ -1683,7 +1682,7 @@ protected:
 
 				if (!is_externally_drawn())
 				{
-					auto invalidBounds = newVisibleBounds - m_lastVisibleBounds;
+					invalidBounds = newVisibleBounds - m_lastVisibleBounds;
 					for (size_t i = 0; i < invalidBounds.second; i++)
 						p->invalidate(invalidBounds.first[i]);
 				}
@@ -2642,4 +2641,3 @@ inline void gui::subsystem::install(pane& p, const rcptr<volatile gui::subsystem
 
 
 #endif
-

@@ -26,19 +26,19 @@ private:
 
 	virtual rcref<task<void> > get_task() { return this_rcref; }
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int priority = 0) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int = 0) volatile
 	{
 		onComplete();
 		return signaled().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function& onCancel, int priority = 0) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function&, int = 0) volatile
 	{
 		onComplete();
 		return signaled().template static_cast_to<immediate_task<void> >().template static_cast_to<task_base>();
 	}
 
-	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
+	virtual void dispatch_inner(const rcref<task_base>& t, int) volatile
 	{
 		task<result_t>::signal_continuation(*t);
 	}
@@ -67,7 +67,7 @@ public:
 		return rcnew(this_t, std::forward<T>(t));
 	}
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
+	virtual int timed_wait(const timeout_t&, unsigned int = 0) const volatile { return 1; }
 
 	virtual const result_t& get() const volatile { return *const_cast<const result_t*>(&m_result); }
 
@@ -119,19 +119,19 @@ private:
 	virtual bool signal() volatile { return false; }
 	virtual bool signal(const cogs::rcref<cogs::task<void>>&) volatile { return false; }
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int priority = 0) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, int = 0) volatile
 	{
 		onComplete();
 		return this_rcref.template const_cast_to<this_t>().template static_cast_to<task_base>();
 	}
 
-	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function& onCancel, int priority = 0) volatile
+	virtual rcref<task_base> dispatch_default_task(const void_function& onComplete, const void_function&, int = 0) volatile
 	{
 		onComplete();
 		return this_rcref.template const_cast_to<this_t>().template static_cast_to<task_base>();
 	}
 
-	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
+	virtual void dispatch_inner(const rcref<task_base>& t, int) volatile
 	{
 		task<void>::signal_continuation(*t);
 	}
@@ -149,7 +149,7 @@ protected:
 public:
 	static rcref<task<void> > create() { return singleton<immediate_task<void> >::get(); }
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return 1; }
+	virtual int timed_wait(const timeout_t&, unsigned int = 0) const volatile { return 1; }
 
 	virtual rcref<task<bool> > cancel() volatile { return signaled(false); }
 };

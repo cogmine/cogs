@@ -19,10 +19,6 @@
 #include "cogs/geometry/margin.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 
@@ -1975,15 +1971,10 @@ public:
 	composite_cstring to_cstring() const { return to_string_t<char>(); }
 };
 
-
 }
-
 
 }
 }
-
-
-#pragma warning(pop)
 
 
 #endif

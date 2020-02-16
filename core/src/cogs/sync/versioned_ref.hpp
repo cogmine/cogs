@@ -18,11 +18,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment oeprators specified
-
-
 template <typename T>
 class versioned_ptr;
 
@@ -1623,9 +1618,6 @@ public:
 	composite_string_t<wchar_t> to_string() const volatile;
 	composite_string_t<char> to_cstring() const volatile;
 };
-
-
-#pragma warning(pop)
 
 
 }

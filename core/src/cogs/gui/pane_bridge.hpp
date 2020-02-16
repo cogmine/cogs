@@ -268,16 +268,16 @@ protected:
 		paneBridge->pane::uninstalling();
 	}
 
-	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool character_typing(wchar_t, const ui::modifier_keys_state&) { return false; }
 
-	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
-	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool key_pressing(wchar_t, const ui::modifier_keys_state&) { return false; }
+	virtual bool key_releasing(wchar_t, const ui::modifier_keys_state&) { return false; }
 
-	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
-	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
-	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool button_pressing(mouse_button, const point&, const ui::modifier_keys_state&) { return false; }
+	virtual bool button_releasing(mouse_button, const point&, const ui::modifier_keys_state&) { return false; }
+	virtual bool button_double_clicking(mouse_button, const point&, const ui::modifier_keys_state&) { return false; }
 
-	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers) { return false; }
+	virtual bool wheel_moving(double, const point&, const ui::modifier_keys_state&) { return false; }
 
 	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
 	{
@@ -623,4 +623,3 @@ inline rcref<bridgeable_pane> subsystem::create_native_pane() volatile
 
 
 #endif
-

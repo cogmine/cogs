@@ -72,4 +72,3 @@ inline constexpr ulongest const_uroot_v = const_uroot<exponent, low_part, high_p
 
 
 #endif
-

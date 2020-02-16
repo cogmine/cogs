@@ -242,4 +242,3 @@ typedef circular_slist_t<slink, ptr, default_slink_accessor<slink> > circular_sl
 
 
 #endif
-

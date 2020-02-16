@@ -14,11 +14,6 @@
 #include "cogs/sync/hazard.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 namespace cogs {
 namespace io {
 
@@ -566,7 +561,7 @@ public:
 
 	size_t index_of_segment(size_t i, const char* cmp, size_t n) const { return m_contents->template index_of_segment<char, default_comparator>(i, cmp, n); }
 
-	size_t index_of_segment(size_t i, const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_segment(cmp, n); }
+	size_t index_of_segment(size_t i, const char* cmp, size_t n) const volatile { buffer tmp(*this); return tmp.index_of_segment(i, cmp, n); }
 
 	size_t index_of_segment(size_t i, const buffer& cmp) const { return index_of_segment(i, cmp.get_const_ptr(), cmp.get_length()); }
 
@@ -1163,7 +1158,5 @@ inline io::buffer fixed_integer_native_const<has_sign, bits, value>::to_buffer()
 
 }
 
-
-#pragma warning(pop)
 
 #endif

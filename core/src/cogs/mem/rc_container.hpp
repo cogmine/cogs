@@ -71,10 +71,6 @@ class weak_rcptr;
 // similar to ptr<>, and compatible with: template <typename> class ref_type
 // when used as a template arg.
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment constructors specified
-
 
 template <typename type_in, reference_strength referenceStrength = reference_strength::strong>
 class rc_container;
@@ -299,7 +295,7 @@ public:
 			if (desc == nullptr)
 				break;
 			wt->m_desc = nullptr;
-		}  while (!end_write(wt));
+		} while (!end_write(wt));
 		return desc;
 	}
 
@@ -387,7 +383,7 @@ public:
 			{
 				// Should be able to acquire weak from any, or strong from strong
 				// This implies that any time we're using guarded_acquire with this_t, it will always acquire.
-				if ((referenceStrength2 == reference_strength::weak) || (referenceStrength == reference_strength::strong))
+				if constexpr ((referenceStrength2 == reference_strength::weak) || (referenceStrength == reference_strength::strong))
 					continue;
 			}
 			break;
@@ -398,7 +394,7 @@ public:
 	bool guarded_begin_read(read_token& rt) const volatile // returns false if it's a released weak reference.  May be treated as NULL.
 	{
 		bool result = true;
-		if (referenceStrength == reference_strength::strong)
+		if constexpr (referenceStrength == reference_strength::strong)
 			begin_read(rt);
 		else
 		{
@@ -920,8 +916,11 @@ public:
 	{
 		// If a weak reference, we need a strong reference before we can get a valid pointer value
 		// It's sufficient to make sure that the weak reference hasn't expired
-		if ((referenceStrength != reference_strength::strong) && !!m_contents->m_desc && m_contents->m_desc->is_released()) // No need to acquire a guard.  A weak ref retains the alloc, if not the object.
-			return nullptr;
+		if constexpr (referenceStrength != reference_strength::strong)
+		{
+			if (!!m_contents->m_desc && m_contents->m_desc->is_released()) // No need to acquire a guard.  A weak ref retains the alloc, if not the object.
+				return nullptr;
+		}
 		return m_contents->m_obj;
 	}
 

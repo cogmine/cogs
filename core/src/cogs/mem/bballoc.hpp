@@ -496,7 +496,7 @@ public:
 		}
 	}
 
-	virtual ptr<void> allocate(size_t n, size_t align) volatile
+	virtual ptr<void> allocate(size_t n, size_t) volatile
 	{
 		ptr<void> block;
 

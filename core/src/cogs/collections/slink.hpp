@@ -11,11 +11,9 @@
 #include <type_traits>
 #include "cogs/mem/ptr.hpp"
 
+
 namespace cogs {
 
-
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
 
 /// @defgroup CollectionMixIns Collection Mix-In's
 /// @{
@@ -352,9 +350,6 @@ class default_slink_accessor<void, ref_type> : public default_slink_accessor<sli
 
 
 typedef slink_t<void> slink;
-
-
-#pragma warning(pop)
 
 
 }

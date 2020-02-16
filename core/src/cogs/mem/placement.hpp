@@ -172,7 +172,7 @@ inline std::enable_if_t<
 	&& std::is_trivially_destructible_v<T>,
 	void
 >
-placement_destruct_multiple(T* t, size_t n)
+placement_destruct_multiple(T*, size_t)
 {
 }
 

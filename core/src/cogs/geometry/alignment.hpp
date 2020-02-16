@@ -14,10 +14,6 @@
 #include "cogs/geometry/dimension.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 
 /// @defgroup Geometry
@@ -117,9 +113,4 @@ public:
 }
 }
 
-
-#pragma warning(pop)
-
-
 #endif
-

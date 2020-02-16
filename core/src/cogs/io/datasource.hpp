@@ -575,7 +575,6 @@ protected:
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new writer
 	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(reader, ds); }
-
 };
 
 

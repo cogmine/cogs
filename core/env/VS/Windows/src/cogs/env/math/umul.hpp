@@ -40,4 +40,3 @@ inline ulongest umul_longest(const ulongest& src1, const ulongest& src2, ulonges
 
 
 #endif
-

@@ -20,10 +20,6 @@
 #include "cogs/sync/transactable.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 
@@ -709,8 +705,6 @@ public:
 
 }
 }
-
-#pragma warning(pop)
 
 
 #endif

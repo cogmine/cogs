@@ -30,11 +30,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 template <bool has_sign, size_t bits>
 class fixed_integer_extended;
 
@@ -65,7 +60,10 @@ public:
 	static constexpr size_t n_digits = (bits / (sizeof(longest) * 8)) + ((bits % (sizeof(longest) * 8) == 0) ? 0 : 1); // will be >0
 
 	static constexpr size_t bits_used = (sizeof(ulongest) * 8) * n_digits;
+#pragma warning(push)
+#pragma warning(disable: 4310) // cast truncates constant value
 	typedef fixed_integer_native_const<false, (const_bit_scan_reverse_v<bits_used>+1), (bits_to_int_t<(const_bit_scan_reverse_v<bits_used>+1), false>)bits_used> bits_used_t;
+#pragma warning(pop)
 
 private:
 	static_assert(bits > (sizeof(longest) * 8));
@@ -126,7 +124,7 @@ public:
 	template <bool has_sign2, size_t bits2>
 	this_t& operator=(const fixed_integer_extended_content<has_sign2, bits2>& src)
 	{
-		if (n_digits <= fixed_integer_extended<has_sign2, bits2>::n_digits)
+		if constexpr (n_digits <= fixed_integer_extended<has_sign2, bits2>::n_digits)
 		{
 			for (size_t i = 0; i < n_digits; i++)
 				m_digits[i] = src.m_digits[i];
@@ -1696,7 +1694,7 @@ public:
 	void multiply(const fixed_integer_native<has_sign2, bits2>& src1, const fixed_integer_native<has_sign3, bits3>& src2)
 	{
 		COGS_ASSERT(n_digits == 2);
-		if (!has_sign2 && !has_sign3)
+		if constexpr (!has_sign2 && !has_sign3)
 		{
 			COGS_ASSERT(!has_sign);
 			m_digits[0] = env::umul_longest(src1.get_int(), src2.get_int(), m_digits[1]);
@@ -8204,7 +8202,7 @@ public:
 
 
 	template <typename char_t>
-	string_t<char_t> to_string_t(unsigned int radix = 10, size_t minDigits = 1) const
+	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		if ((radix < 2) || !*this)
 		{
@@ -8291,12 +8289,12 @@ public:
 		return str;
 	}
 
-	string to_string(int radix = 10, size_t minDigits = 1) const
+	string to_string(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		return to_string_t<wchar_t>(radix, minDigits);
 	}
 
-	cstring to_cstring(int radix = 10, size_t minDigits = 1) const
+	cstring to_cstring(uint8_t radix = 10, size_t minDigits = 1) const
 	{
 		return to_string_t<char>(radix, minDigits);
 	}
@@ -8460,8 +8458,6 @@ divide_whole(const T& t, const A1& a)
 	return result;
 }
 
-
-#pragma warning(pop)
 
 }
 

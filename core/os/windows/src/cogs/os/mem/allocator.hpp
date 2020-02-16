@@ -38,10 +38,10 @@ public:
 
 	typedef ptr<void> ref_t;
 
-	static ptr<void> allocate(size_t n, size_t align) { return malloc(n); } // Let's hope we never need anything other than 16 byte alignment on MacOS
+	static ptr<void> allocate(size_t n, size_t) { return malloc(n); } // Let's hope we never need anything other than 16 byte alignment on MacOS
 	static void deallocate(const ptr<void>& p) { free(p.get_ptr()); }
-	static bool try_reallocate(const ptr<void>& p, size_t n) { return false; }
-	static size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize) { return knownSize; }
+	static bool try_reallocate(const ptr<void>&, size_t) { return false; }
+	static size_t get_allocation_size(const ptr<void>&, size_t, size_t knownSize) { return knownSize; }
 };
 
 

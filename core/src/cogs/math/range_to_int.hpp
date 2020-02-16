@@ -32,4 +32,3 @@ template <ulongest min_value, ulongest max_value> using range_to_int_t = typenam
 
 
 #endif
-

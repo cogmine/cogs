@@ -31,11 +31,6 @@ template <typename T>
 class composite_string_t;
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 /// @defgroup ReferenceContainerTypes Reference Container Types
 /// @{
 /// @ingroup Mem
@@ -2586,9 +2581,6 @@ public:
 	// void references don't support mark bits, because they could be using all of their bits to point to something.
 	// Provided to maintain the interface.
 };
-
-
-#pragma warning(pop)
 
 
 }

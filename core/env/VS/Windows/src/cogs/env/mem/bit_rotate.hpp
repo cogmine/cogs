@@ -125,4 +125,3 @@ bit_rotate_left(const T& t, const A1& n)
 
 
 #endif
-

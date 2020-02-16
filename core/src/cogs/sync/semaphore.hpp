@@ -120,7 +120,7 @@ public:
 
 	explicit semaphore(size_t n, size_t maxResources = 0)
 		: m_contents(typename transactable_t::construct_embedded_t(), n),
-		 m_maxResources(0)
+		 m_maxResources(maxResources)
 	{ }
 
 	// Waits for at least 1 to be available, but will acquire as many as present, if multiple.
@@ -349,14 +349,15 @@ public:
 	{
 		if (n != 0)
 		{
+			write_token wt;
 			size_t numToWake;
 			rcptr<os::semaphore> osSemaphore;
 			if (m_maxResources != 0)
 			{
-				write_token wt;
-				do {
+				read_token rt;
+				for (;;)
+				{
 					numToWake = 0;
-					read_token rt;
 					m_contents.begin_read(rt);
 					COGS_ASSERT(rt->m_resourceCount <= m_maxResources);
 					if (rt->m_resourceCount == m_maxResources)
@@ -371,16 +372,17 @@ public:
 						numToWake = numToAdd; // Wake however many are really stalled, or however many res we are adding, whichever is lesser.
 
 					if (!m_contents.promote_read_token(rt, wt))
-						continue;
+						continue; // Using continue to jump to the top, so cannot use a do-while loop, which would jump to the condition
 
 					wt->m_wakeCount += numToWake;
 					wt->m_resourceCount += numToAdd;
 					osSemaphore = wt->m_osSemaphore;
-				} while (!m_contents.end_write(wt));
+					if (m_contents.end_write(wt))
+						break;
+				}
 			}
 			else
 			{
-				write_token wt;
 				do {
 					m_contents.begin_write(wt);
 

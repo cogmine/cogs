@@ -50,4 +50,3 @@ using bits_to_uint_t = typename bits_to_uint<bits>::type;
 
 
 #endif
-

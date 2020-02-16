@@ -153,4 +153,3 @@ bit_scan_forward(const int_t& bits)
 
 
 #endif
-

@@ -173,6 +173,8 @@ public:
 			m_shouldAutoFadeScrollBarProperty.set_complete();
 		})
 	{
+		(void)dragAndFlickScrolling; // TBD
+
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
 
@@ -310,7 +312,7 @@ public:
 		}
 	}
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> = std::nullopt, const range& r = range::make_unbounded(), size_mode = size_mode::both, size_mode = size_mode::both) const
 	{
 		propose_size_result result;
 		range r2 = get_range() & r;

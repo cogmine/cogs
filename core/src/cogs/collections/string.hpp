@@ -20,10 +20,6 @@
 
 namespace cogs {
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 namespace io
 {
 	class buffer;
@@ -1311,7 +1307,7 @@ public:
 	}
 
 	template <typename int_t>
-	int_t to_int(unsigned int radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex
+	int_t to_int(uint8_t radix = 0) const // Max radix is 36.  Radix of 0 defaults to dec but auto-detects oct and hex
 	{
 		int_t result = 0;
 
@@ -1469,8 +1465,8 @@ inline bool string_t<wchar_t>::is_white_space(const wchar_t& c)
 }
 
 
-template <> inline char string_t<char>::get_uppercase(const char& c) { return toupper(c); }
-template <> inline char string_t<char>::get_lowercase(const char& c) { return tolower(c); }
+template <> inline char string_t<char>::get_uppercase(const char& c) { return static_cast<char>(toupper(static_cast<unsigned char>(c))); }
+template <> inline char string_t<char>::get_lowercase(const char& c) { return static_cast<char>(tolower(static_cast<unsigned char>(c))); }
 template <> inline wchar_t string_t<wchar_t>::get_uppercase(const wchar_t& c) { return towupper(c); }
 template <> inline wchar_t string_t<wchar_t>::get_lowercase(const wchar_t& c) { return towlower(c); }
 
@@ -1537,7 +1533,7 @@ inline string_t<char> boolean::to_cstring() const volatile { boolean cpy(*this);
 
 template <bool has_sign, size_t n_bits>
 template <typename char_t>
-inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsigned int radix, size_t minDigits) const
+inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(uint8_t radix, size_t minDigits) const
 {
 	if (!m_int || (radix < 2))
 	{
@@ -1603,33 +1599,33 @@ inline string_t<char_t> fixed_integer_native<has_sign, n_bits>::to_string_t(unsi
 }
 
 template <bool has_sign, size_t n_bits>
-inline string fixed_integer_native<has_sign, n_bits>::to_string(int radix, size_t minDigits) const
+inline string fixed_integer_native<has_sign, n_bits>::to_string(uint8_t radix, size_t minDigits) const
 {
 	return to_string_t<wchar_t>(radix, minDigits);
 }
 
 template <bool has_sign, size_t n_bits>
-inline cstring fixed_integer_native<has_sign, n_bits>::to_cstring(int radix, size_t minDigits) const
+inline cstring fixed_integer_native<has_sign, n_bits>::to_cstring(uint8_t radix, size_t minDigits) const
 {
 	return to_string_t<char>(radix, minDigits);
 }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
 template <typename char_t>
-inline string_t<char_t> fixed_integer_native_const<has_sign, bits, value>::to_string_t(unsigned int radix, size_t minDigits) const volatile
+inline string_t<char_t> fixed_integer_native_const<has_sign, bits, value>::to_string_t(uint8_t radix, size_t minDigits) const volatile
 {
 	non_const_t tmp(*this);
 	return tmp.template to_string_t<char_t>(radix, minDigits);
 }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
-inline string fixed_integer_native_const<has_sign, bits, value>::to_string(int radix, size_t minDigits) const volatile
+inline string fixed_integer_native_const<has_sign, bits, value>::to_string(uint8_t radix, size_t minDigits) const volatile
 {
 	return to_string_t<wchar_t>(radix, minDigits);
 }
 
 template <bool has_sign, size_t bits, bits_to_int_t<bits, has_sign> value>
-inline cstring fixed_integer_native_const<has_sign, bits, value>::to_cstring(int radix, size_t minDigits) const volatile
+inline cstring fixed_integer_native_const<has_sign, bits, value>::to_cstring(uint8_t radix, size_t minDigits) const volatile
 {
 	return to_string_t<char>(radix, minDigits);
 }
@@ -1724,11 +1720,7 @@ template <typename type>
 inline cstring vector<type>::to_cstring() const volatile { vector<type> cpy(*this); return cpy.to_cstring(); }
 
 
-#pragma warning(pop)
-
-
 }
 
 
 #endif
-

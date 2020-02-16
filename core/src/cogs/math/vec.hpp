@@ -11,13 +11,8 @@
 
 #include "cogs/collections/vector.hpp"
 
-	/*
+/*
 namespace cogs {
-
-
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
 
 
 template <size_t n, typename type>
@@ -872,12 +867,7 @@ public:
 	template <typename type2 = type> typename return_type_binary_operator_subtract<vec<n, type>, vec<n, type2> >::type operator-(const vec<n, type2>& src) const volatile { vec<n, type2> tmp(*this); return tmp - src; }
 
 	//-----------
-
-
 };
-
-
-#pragma warning(pop)
 
 
 typedef vec<2, bool> bvec2;

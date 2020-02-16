@@ -35,4 +35,3 @@ inline constexpr size_t least_multiple_of_v = least_multiple_of<n, multiple_of>:
 
 
 #endif
-

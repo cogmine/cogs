@@ -21,10 +21,6 @@
 #include "cogs/sync/transactable.hpp"
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-
-
 namespace cogs {
 namespace geometry {
 
@@ -332,12 +328,7 @@ inline point range::limit_max(const point& pt) const
 }
 
 }
-
-
 }
-
-
-#pragma warning(pop)
 
 
 #endif

@@ -284,14 +284,14 @@ private:
 
 		if (wasEmpty)
 		{
-			if (insertMode == insert_mode::only_if_not_empty)
+			if constexpr (insertMode == insert_mode::only_if_not_empty)
 				return true;
 
 			m_contents.m_tail = m_contents.m_head = l.get_ptr();
 		}
 		else
 		{
-			if (insertMode == insert_mode::only_if_empty)
+			if constexpr (insertMode == insert_mode::only_if_empty)
 				return false;
 
 			if (atEnd)

@@ -20,11 +20,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors speecified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
-
 template <class allocator_type,
 	bool is_static_in = allocator_type::is_static,
 	bool is_ptr_based = std::is_same_v<typename allocator_type::ref_t, ptr<void> > >
@@ -515,11 +510,7 @@ public:
 };
 
 
-#pragma warning(pop)
-
-
 }
 
 
 #endif
-

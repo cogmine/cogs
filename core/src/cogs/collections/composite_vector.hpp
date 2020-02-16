@@ -31,10 +31,6 @@ namespace io
 template <typename T>
 class composite_string_t;
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 
 template <typename T>
 class composite_vector_content_t
@@ -1580,7 +1576,7 @@ public:
 		{
 			size_t lengthAdjusted = v.validate_length_from(i, n);
 			if (!lengthAdjusted || (i >= lengthAdjusted))
-				return -1;
+				return (size_t)-1;
 
 			position_t pos = v.calculate_position(i);
 			return find_inner(v, i, pos, lengthAdjusted, cmp);
@@ -1614,13 +1610,13 @@ public:
 				{
 					size_t foundIndex = curSize + pos.m_innerIndex;
 					if (foundIndex >= n)
-						return -1;
+						return (size_t)-1;
 					return foundIndex;
 				}
 				curSize += curSubVector.get_length();
 				pos.m_innerIndex = 0;
 				if (++pos.m_outerIndex == subVectorCount)
-					return -1;
+					return (size_t)-1;
 			}
 		}
 
@@ -1629,7 +1625,7 @@ public:
 		{
 			size_t lengthAdjusted = v.validate_length_from(i, n);
 			if (!lengthAdjusted || (i >= lengthAdjusted))
-				return -1;
+				return (size_t)-1;
 
 			position_t pos = v.calculate_position(i);
 			return find_any_inner(v, i, pos, lengthAdjusted, cmp, cmpCount);
@@ -1661,13 +1657,13 @@ public:
 				{
 					size_t foundIndex = curSize + pos.m_innerIndex;
 					if (foundIndex >= n)
-						return -1;
+						return (size_t)-1;
 					return foundIndex;
 				}
 				curSize += curSubVector.get_length();
 				pos.m_innerIndex = 0;
 				if (++pos.m_outerIndex == subVectorCount)
-					return -1;
+					return (size_t)-1;
 			}
 		}
 
@@ -1796,7 +1792,7 @@ public:
 		static size_t find_segment_inner(const this_t& v, size_t i, position_t& pos, size_t lengthAdjusted, const vector<type2>& cmp, position_t& endPos)
 		{
 			size_t cmpLength = cmp.get_length();
-			size_t endIndex = v.m_length - cmpLength;
+			size_t endIndex = lengthAdjusted - cmpLength;
 			for (;;)
 			{
 				const vector<type>* subArray = &v.m_vectorVector.get_const_ptr()[pos.m_outerIndex];
@@ -6214,8 +6210,8 @@ protected:
 
 			// including empty segments gives us a clue as to where each split actually is.
 			vector<typename composite_vector_t::inner_t> v = curSrc.split_on_any(splitOn, n, include_empty_segments::yes);
-			size_t len = v.get_length();
-			for (size_t j = 0; j < len; j++)
+			size_t len2 = v.get_length();
+			for (size_t j = 0; j < len2; j++)
 			{
 				const typename composite_vector_t::inner_t& tmp = v.get_const_ptr()[j];
 				if (!!tmp)
@@ -6235,11 +6231,7 @@ protected:
 
 		return result;
 	}
-
 };
-
-
-#pragma warning(pop)
 
 
 }

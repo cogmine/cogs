@@ -44,8 +44,8 @@ public:
 
 	static ptr<void> allocate(size_t n, size_t align) { return _aligned_malloc(n, align); }
 	static void deallocate(const ptr<void>& p) { _aligned_free(p.get_ptr()); }
-	static bool try_reallocate(const ptr<void>& p, size_t n) { return false; }
-	static size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize) { return _aligned_msize(p.get_ptr(), align, 0); }
+	static bool try_reallocate(const ptr<void>&, size_t) { return false; }
+	static size_t get_allocation_size(const ptr<void>& p, size_t align, size_t) { return _aligned_msize(p.get_ptr(), align, 0); }
 };
 
 

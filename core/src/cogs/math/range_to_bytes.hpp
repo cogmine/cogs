@@ -50,4 +50,3 @@ constexpr size_t range_to_int_bytes_v = range_to_int_bytes<min_value, max_value>
 
 
 #endif
-

@@ -23,10 +23,6 @@
 namespace cogs {
 
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
-
 template <typename T>
 class transactable;
 
@@ -291,6 +287,8 @@ public:
 			release_inner();
 		}
 
+		bool operator!() const { return !m_read; }
+
 		const type* get() const { return m_read->get_obj(); }
 		const type& operator*() const { return *get(); }
 		const type* operator->() const { return get(); }
@@ -385,6 +383,8 @@ public:
 		{
 			release_inner();
 		}
+
+		bool operator!() const { return !m_write; }
 
 		type* get() { return m_write->get_obj(); }
 		const type* get() const { return m_write->get_obj(); }
@@ -1506,6 +1506,8 @@ public:
 		write_token& operator=(write_token&& wt) { return *this; }
 		void release() { }
 
+		bool operator!() const { return false; }
+
 		type* get() { return nullptr; }
 		const type* get() const { return nullptr; }
 		type& operator*() { return *get(); }
@@ -1523,6 +1525,8 @@ public:
 		read_token& operator=(read_token& rt) = delete;// { return *this; }
 		read_token& operator=(read_token&& rt) { return *this; }
 		void release() { }
+
+		bool operator!() const { return false; }
 
 		const type* get() const { return nullptr; }
 		const type& operator*() const { return *get(); }
@@ -1722,6 +1726,8 @@ public:
 
 		void release() { }
 
+		bool operator!() const { return false; }
+
 		type* get() { return &m_new.get(); }
 		const type* get() const { return &m_new.get(); }
 		type& operator*() { return m_new.get(); }
@@ -1767,6 +1773,8 @@ public:
 		}
 
 		void release() { }
+
+		bool operator!() const { return false; }
 
 		const type* get() const { return &m_obj.get(); }
 		const type& operator*() const { return m_obj.get(); }
@@ -2091,6 +2099,8 @@ public:
 		void release() { m_readToken.release(); }
 		/// @}
 
+		bool operator!() const { return !m_readToken; }
+
 		/// @{
 		/// @brief Gets the value referenced by this read_token
 		/// @return The value referenced by this read_token
@@ -2136,6 +2146,8 @@ public:
 		/// @brief Releases this write_token
 		void release() { m_writeToken.release(); }
 		/// @}
+
+		bool operator!() const { return !m_writeToken; }
 
 		/// @{
 		/// @brief Gets the value referenced by this write_token
@@ -2580,12 +2592,7 @@ public:
 			onFail();
 		}
 	}
-
-
 };
-
-
-#pragma warning(pop)
 
 
 }

@@ -17,9 +17,6 @@
 
 namespace cogs {
 
-#pragma warning(push)
-#pragma warning (disable: 4521) // multiple copy constructors specified
-#pragma warning (disable: 4522) // multiple assignment operators specified
 
 struct rgb_t
 {
@@ -30,14 +27,7 @@ struct rgb_t
 
 struct rgba_t
 {
-	union {
-		struct {
-			uint8_t m_red;
-			uint8_t m_green;
-			uint8_t m_blue;
-		};
-		rgb_t m_rgb;
-	};
+	rgb_t m_rgb;
 	uint8_t m_alpha;
 };
 
@@ -253,20 +243,20 @@ public:
 	rgb_t get_rgb() const { return m_rgba->m_rgb; }
 	rgb_t get_rgb() const volatile { return m_rgba.begin_read()->m_rgb; }
 
-	uint8_t get_red() const { return m_rgba->m_red; }
-	uint8_t get_green() const { return m_rgba->m_green; }
-	uint8_t get_blue() const { return m_rgba->m_blue; }
+	uint8_t get_red() const { return m_rgba->m_rgb.m_red; }
+	uint8_t get_green() const { return m_rgba->m_rgb.m_green; }
+	uint8_t get_blue() const { return m_rgba->m_rgb.m_blue; }
 	uint8_t get_alpha() const { return m_rgba->m_alpha; }
 
-	uint8_t get_red() const volatile { return m_rgba.begin_read()->m_red; }
-	uint8_t get_green() const volatile { return m_rgba.begin_read()->m_green; }
-	uint8_t get_blue() const volatile { return m_rgba.begin_read()->m_blue; }
+	uint8_t get_red() const volatile { return m_rgba.begin_read()->m_rgb.m_red; }
+	uint8_t get_green() const volatile { return m_rgba.begin_read()->m_rgb.m_green; }
+	uint8_t get_blue() const volatile { return m_rgba.begin_read()->m_rgb.m_blue; }
 	uint8_t get_alpha() const volatile { return m_rgba.begin_read()->m_alpha; }
 
 	constant get_constant() const
 	{
 		rgba_t c = get_rgba();
-		return (constant)((c.m_red << 16) | (c.m_green << 8) | c.m_blue | (c.m_alpha << 24));
+		return (constant)((c.m_rgb.m_red << 16) | (c.m_rgb.m_green << 8) | c.m_rgb.m_blue | (c.m_alpha << 24));
 	}
 
 	constant get_constant() const volatile { return get().get_constant(); }
@@ -277,18 +267,18 @@ public:
 
 	void set(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
-		m_rgba->m_red = r;
-		m_rgba->m_green = g;
-		m_rgba->m_blue = b;
+		m_rgba->m_rgb.m_red = r;
+		m_rgba->m_rgb.m_green = g;
+		m_rgba->m_rgb.m_blue = b;
 		m_rgba->m_alpha = a;
 	}
 
 	void set(uint8_t r, uint8_t g, uint8_t b, uint8_t a) volatile
 	{
 		rgba_t c;
-		c.m_red = r;
-		c.m_green = g;
-		c.m_blue = b;
+		c.m_rgb.m_red = r;
+		c.m_rgb.m_green = g;
+		c.m_rgb.m_blue = b;
 		c.m_alpha = a;
 		m_rgba.set(c);
 	}
@@ -296,8 +286,8 @@ public:
 	void set(uint8_t r, uint8_t g, uint8_t b) { set(r, g, b, 0xFF); }
 	void set(uint8_t r, uint8_t g, uint8_t b) volatile { set(r, g, b, 0xFF); }
 
-	void set(const rgba_t& c) { set(c.m_red, c.m_green, c.m_blue, c.m_alpha); }
-	void set(const rgba_t& c) volatile { set(c.m_red, c.m_green, c.m_blue, c.m_alpha); }
+	void set(const rgba_t& c) { set(c.m_rgb.m_red, c.m_rgb.m_green, c.m_rgb.m_blue, c.m_alpha); }
+	void set(const rgba_t& c) volatile { set(c.m_rgb.m_red, c.m_rgb.m_green, c.m_rgb.m_blue, c.m_alpha); }
 	void set(const rgb_t& c) { set(c.m_red, c.m_green, c.m_blue); }
 	void set(const rgb_t& c) volatile { set(c.m_red, c.m_green, c.m_blue); }
 	void set(const rgb_t& c, uint8_t a) { set(c.m_red, c.m_green, c.m_blue, a); }
@@ -309,9 +299,9 @@ public:
 	void set(constant c, uint8_t a) { set((uint8_t)((size_t)c >> 16), (uint8_t)((size_t)c >> 8), (uint8_t)c, a); }
 	void set(constant c, uint8_t a) volatile { set(color(c, a)); }
 
-	void set_red(uint8_t r) { m_rgba->m_red = r; }
-	void set_green(uint8_t g) { m_rgba->m_green = g; }
-	void set_blue(uint8_t b) { m_rgba->m_blue = b; }
+	void set_red(uint8_t r) { m_rgba->m_rgb.m_red = r; }
+	void set_green(uint8_t g) { m_rgba->m_rgb.m_green = g; }
+	void set_blue(uint8_t b) { m_rgba->m_rgb.m_blue = b; }
 	void set_alpha(uint8_t a) { m_rgba->m_alpha = a; }
 
 	void set_red(uint8_t r) volatile
@@ -319,7 +309,7 @@ public:
 		transactable<rgba_t>::write_token wt;
 		do {
 			m_rgba.begin_write(wt);
-			wt->m_red = r;
+			wt->m_rgb.m_red = r;
 		} while (!m_rgba.end_write(wt));
 	}
 
@@ -328,7 +318,7 @@ public:
 		transactable<rgba_t>::write_token wt;
 		do {
 			m_rgba.begin_write(wt);
-			wt->m_green = g;
+			wt->m_rgb.m_green = g;
 		} while (!m_rgba.end_write(wt));
 	}
 
@@ -337,7 +327,7 @@ public:
 		transactable<rgba_t>::write_token wt;
 		do {
 			m_rgba.begin_write(wt);
-			wt->m_blue = b;
+			wt->m_rgb.m_blue = b;
 		} while (!m_rgba.end_write(wt));
 	}
 
@@ -391,8 +381,6 @@ public:
 	composite_cstring to_cstring(bool trimZeroAlpha = true) const volatile { return get().template to_string_t<char>(trimZeroAlpha); }
 };
 
-
-#pragma warning(pop)
 
 }
 
