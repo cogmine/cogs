@@ -21,8 +21,14 @@ namespace cogs {
 template <typename int_t>
 class get_part_mask
 {
+private:
+	typedef std::make_unsigned_t<int_t> uint_t;
+
 public:
-	static constexpr int_t high_part_mask = (int_t)(~(int_t)0 << sizeof(int_t)*4);
+#pragma warning(push)
+#pragma warning(disable: 4310) // cast truncates constant value
+	static constexpr int_t high_part_mask = (int_t)((uint_t)-1 << sizeof(int_t)*4);
+#pragma warning(pop)
 	static constexpr int_t low_part_mask  = (int_t)~high_part_mask;
 };
 
