@@ -60,8 +60,8 @@ private:
 		}
 
 	public:
-		tcp_reader(rc_obj_base& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
-			: reader(desc, proxy),
+		tcp_reader(const rcref<datasource>& proxy, const rcref<tcp>& t)
+			: reader(proxy),
 			m_tcp(t),
 			m_socket(t->m_socket)
 		{
@@ -168,8 +168,8 @@ private:
 
 		volatile container_queue<task_type> m_completionSerializer;
 
-		tcp_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
-			: writer(desc, proxy),
+		tcp_writer(const rcref<datasink>& proxy, const rcref<tcp>& t)
+			: writer(proxy),
 			m_tcp(t),
 			m_socket(t->m_socket)
 		{ }
@@ -264,23 +264,21 @@ private:
 
 	virtual rcref<reader> create_reader(const rcref<datasource>& proxy)
 	{
-		return rcnew(tcp_reader, proxy, this_rcref);
+		return rcnew(tcp_reader)(proxy, this_rcref);
 	}
 
 	virtual rcref<writer> create_writer(const rcref<datasink>& proxy)
 	{
-		return rcnew(tcp_writer, proxy, this_rcref);
+		return rcnew(tcp_writer)(proxy, this_rcref);
 	}
 
 public:
-	tcp(rc_obj_base& desc, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		: connection(desc),
-		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
+	explicit tcp(address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: m_socket(rcnew(socket)(SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
 	{ }
 
-	tcp(rc_obj_base& desc, int sckt, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		: connection(desc),
-		m_socket(rcnew(socket, sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
+	explicit tcp(int sckt, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: m_socket(rcnew(socket)(sckt, SOCK_STREAM, IPPROTO_TCP, addressFamily, epp))
 	{ }
 
 	~tcp()
@@ -328,7 +326,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(tcp, addr.get_address_family(), m_epollPool);
+				m_tcp = rcnew(tcp)(addr.get_address_family(), m_epollPool);
 
 				// Bind local port to any address.
 				int i = m_tcp->m_socket->bind_any();
@@ -415,18 +413,16 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
-		connecter(rc_obj_base& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: signallable_task_base<connecter>(desc),
-			m_epollPool(epp),
+		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: m_epollPool(epp),
 			m_addresses(addresses),
 			m_remotePort(port)
 		{
 			connect();
 		}
 
-		connecter(rc_obj_base& desc, const address& addr, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: signallable_task_base<connecter>(desc),
-			m_epollPool(epp),
+		connecter(const address& addr, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: m_epollPool(epp),
 			m_remotePort(port)
 		{
 			m_addresses.append(1, addr);
@@ -449,12 +445,12 @@ public:
 
 	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		return rcnew(connecter, addresses, port, epp);
+		return rcnew(connecter)(addresses, port, epp);
 	}
 
 	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		return rcnew(connecter, addr, port, epp);
+		return rcnew(connecter)(addr, port, epp);
 	}
 
 	virtual void abort() { datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
@@ -486,11 +482,10 @@ public:
 
 			volatile container_queue<task_type> m_serializer;
 
-			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-				: object(desc),
-				m_epollPool(epp),
+			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+				: m_epollPool(epp),
 				m_listener(l),
-				m_listenSocket(rcnew(tcp, addressFamily, epp)),
+				m_listenSocket(rcnew(tcp)(addressFamily, epp)),
 				m_acceptDelegate(acceptDelegate),
 				m_addressFamily(addressFamily)
 			{
@@ -539,7 +534,7 @@ public:
 										int s = accept(m_listenSocket->m_socket->get(), 0, 0);
 										if (s != -1)
 										{
-											rcref<tcp> ds = rcnew(tcp, s, m_addressFamily, m_epollPool);
+											rcref<tcp> ds = rcnew(tcp)(s, m_addressFamily, m_epollPool);
 											ds->m_socket->read_endpoints();
 											thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }, ds{ std::move(ds) }]()
 											{
@@ -599,12 +594,10 @@ public:
 		}
 
 	public:
-		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: object(desc),
-			m_closeEvent(desc),
-			m_port(port)
+		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+			: m_port(port)
 		{
-			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily, epp);
+			rcnew(accept_helper)(this_rcref, acceptDelegate, port, addressFamily, epp);
 		}
 
 		~listener() { close(); }
@@ -616,7 +609,7 @@ public:
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
 	{
-		return rcnew(listener, acceptDelegate, port, addressFamily, epp);
+		return rcnew(listener)(acceptDelegate, port, addressFamily, epp);
 	}
 
 	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = address_family::inetv4)

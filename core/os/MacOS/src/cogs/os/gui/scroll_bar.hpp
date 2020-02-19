@@ -209,10 +209,10 @@ private:
 	}
 
 public:
-	scroll_bar(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: nsview_pane(desc, uiSubsystem),
+	explicit scroll_bar(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(uiSubsystem),
 		m_fadeDelayTimer(rcnew(resettable_timer)),
-		m_stateProperty(desc, uiSubsystem, [this]()
+		m_stateProperty(uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());
 		}, [this](const scroll_bar_state& state)
@@ -228,7 +228,7 @@ public:
 			}
 			m_stateProperty.set_complete();
 		}),
-		m_positionProperty(desc, uiSubsystem, [this]()
+		m_positionProperty(uiSubsystem, [this]()
 		{
 			return atomic::load(m_pos);
 		}, [this](double d)
@@ -242,7 +242,7 @@ public:
 			}
 			m_positionProperty.set_complete();
 		}),
-		m_canAutoFadeProperty(desc, uiSubsystem, [this]()
+		m_canAutoFadeProperty(uiSubsystem, [this]()
 		{
 			return m_canAutoFade;
 		}, [this](bool b)
@@ -273,7 +273,7 @@ public:
 			}
 			m_canAutoFadeProperty.set_complete();
 		}),
-		m_shouldAutoFadeProperty(desc, uiSubsystem, [this]()
+		m_shouldAutoFadeProperty(uiSubsystem, [this]()
 		{
 			return m_shouldAutoFade;
 		}, [this](bool b)
@@ -540,7 +540,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_subsystem::create_scroll_bar() volatile
 {
-	rcref<scroll_bar> sb = rcnew(scroll_bar, this_rcref);
+	rcref<scroll_bar> sb = rcnew(scroll_bar)(this_rcref);
 	return std::make_pair(sb, sb);
 }
 

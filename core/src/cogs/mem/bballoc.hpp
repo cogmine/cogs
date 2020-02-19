@@ -474,7 +474,7 @@ private:
 	}
 
 public:
-	explicit buddy_block_allocator()
+	buddy_block_allocator()
 	{
 		init();
 	}

@@ -49,14 +49,13 @@ private:
 	rcptr<check_box_interface> m_nativeCheckBox;
 
 public:
-	check_box(rc_obj_base& desc,
-		const action_delegate_t& action,
+	check_box(const action_delegate_t& action,
 		const composite_string& text,
 		bool isEnabled = true,
 		bool isChecked = false,
 		const gfx::font& fnt = gfx::font(),
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane_bridge(desc, frames),
+		: pane_bridge(frames),
 		m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
@@ -64,60 +63,52 @@ public:
 		m_action(action)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const composite_string& text,
+	explicit check_box(const composite_string& text,
 		bool isEnabled = true,
 		bool isChecked = false,
 		const gfx::font& fnt = gfx::font(),
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(desc, action_delegate_t(), text, isEnabled, isChecked, fnt, frames)
+		: check_box(action_delegate_t(), text, isEnabled, isChecked, fnt, frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const action_delegate_t& action,
+	check_box(const action_delegate_t& action,
 		const composite_string& text,
 		bool isEnabled,
 		bool isChecked,
 		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(desc, action, text, isEnabled, isChecked, gfx::font(), frames)
+		: check_box(action, text, isEnabled, isChecked, gfx::font(), frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const composite_string& text,
+	check_box(const composite_string& text,
 		bool isEnabled,
 		bool isChecked,
 		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(desc, action_delegate_t(), text, isEnabled, isChecked, gfx::font(), frames)
+		: check_box(action_delegate_t(), text, isEnabled, isChecked, gfx::font(), frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const action_delegate_t& action,
+	check_box(const action_delegate_t& action,
 		const composite_string& text,
 		const gfx::font& fnt = gfx::font(),
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(desc, action, text, true, false, fnt, frames)
+		: check_box(action, text, true, false, fnt, frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const composite_string& text,
+	explicit check_box(const composite_string& text,
 		const gfx::font& fnt = gfx::font(),
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(desc, action_delegate_t(), text, true, false, fnt, frames)
+		: check_box(action_delegate_t(), text, true, false, fnt, frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const action_delegate_t& action,
+	check_box(const action_delegate_t& action,
 		const composite_string& text,
 		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(desc, action, text, true, false, gfx::font(), frames)
+		: check_box(action, text, true, false, gfx::font(), frames)
 	{ }
 
-	check_box(rc_obj_base& desc,
-		const composite_string& text,
+	check_box(const composite_string& text,
 		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(desc, action_delegate_t(), text, true, false, gfx::font(), frames)
+		: check_box(action_delegate_t(), text, true, false, gfx::font(), frames)
 	{ }
-
 
 	virtual void installing()
 	{

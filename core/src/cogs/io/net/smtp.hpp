@@ -73,8 +73,8 @@ public:
 		connection(const connection&) = delete;
 		connection& operator=(const connection&) = delete;
 
-		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
-			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
+		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+			: net::request_response_server::connection(srvr, c, true, inactivityTimeout)
 		{ }
 
 		virtual void start()
@@ -145,8 +145,8 @@ public:
 		reply m_replyCode;
 		const composite_cstring m_text;
 
-		response(rc_obj_base& desc, const rcref<request>& r, reply replyCode, const composite_cstring& text = cstring())
-			: net::request_response_server::response(desc, r),
+		response(const rcref<request>& r, reply replyCode, const composite_cstring& text = cstring())
+			: net::request_response_server::response(r),
 			m_replyCode(replyCode),
 			m_text(text)
 		{ }
@@ -265,14 +265,14 @@ public:
 		rcref<response> begin_response(response::reply replyCode, const composite_cstring& text)
 		{
 			m_coupler->cancel();
-			rcref<response> r = rcnew(response, this_rcref, replyCode, text);
+			rcref<response> r = rcnew(response)(this_rcref, replyCode, text);
 			r->start();
 			return r;
 		}
 
-		request(rc_obj_base& desc, const rcref<connection>& c)
-			: net::request_response_server::request(desc, c),
-			m_sink(rcnew(datasink, [r{ this_weak_rcptr }](composite_buffer& b)
+		explicit request(const rcref<connection>& c)
+			: net::request_response_server::request(c),
+			m_sink(rcnew(datasink)([r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
 				if (!r2)
@@ -298,13 +298,13 @@ public:
 	};
 
 private:
-	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c) { return rcnew(request, c); }
+	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c) { return rcnew(request)(c); }
 
 	rcref<command_handler_map_t> m_commandHandlerMap;
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
-		return rcnew(connection, this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
+		return rcnew(connection)(this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
 	}
 
 public:
@@ -415,14 +415,12 @@ public:
 		return mapRef;
 	}
 
-	explicit server(rc_obj_base& desc)
-		: net::request_response_server(desc),
-		m_commandHandlerMap(get_default_command_handlers())
+	server()
+		: m_commandHandlerMap(get_default_command_handlers())
 	{ }
 
-	server(rc_obj_base& desc, const rcref<command_handler_map_t>& commandHandlers)
-		: net::request_response_server(desc),
-		m_commandHandlerMap(commandHandlers)
+	explicit server(const rcref<command_handler_map_t>& commandHandlers)
+		: m_commandHandlerMap(commandHandlers)
 	{ }
 
 	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2; // 2 minute inactivity timeout
@@ -448,7 +446,7 @@ public:
 
 //	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get())
 //	{
-//		return rcnew(connecter, addresses, port, cp);
+//		return rcnew(connecter)(addresses, port, cp);
 //	}
 //
 //	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get())

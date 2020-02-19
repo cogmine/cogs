@@ -17,12 +17,11 @@ COGS_MAIN
 			return EXIT_SUCCESS;
 		}
 
-		rcref<count_down_event> quitCountDown = rcnew(count_down_event, 0, []() { cogs::request_quit(); });
+		rcref<count_down_event> quitCountDown = rcnew(count_down_event)(0, []() { cogs::request_quit(); });
 
-		rcref<background> bg = rcnew(background, color::constant::white);
-		rcref<label> lbl = rcnew(label, string::literal(L"Hello World!"), gfx::font(38));
-		bg->nest(lbl);
-		*quitCountDown += guiSubsystem->open(string::literal(L"Template App"), bg);
+		*quitCountDown += guiSubsystem->open(string::literal(L"Template App"),
+			rcnew(background)(color::constant::white, {
+				rcnew(label)(string::literal(L"Hello World!"), gfx::font(38))}));
 
 		return EXIT_SUCCESS;
 	});

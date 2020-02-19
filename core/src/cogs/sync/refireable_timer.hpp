@@ -21,9 +21,10 @@ class refireable_timer : public timer
 private:
 	const bool m_wakeAll;
 
-	refireable_timer() = delete;
 	refireable_timer(const refireable_timer&) = delete;
+	refireable_timer(refireable_timer&&) = delete;
 	refireable_timer& operator=(const refireable_timer&) = delete;
+	refireable_timer& operator=(refireable_timer&&) = delete;
 
 	virtual void triggered()
 	{
@@ -35,14 +36,13 @@ private:
 	}
 
 public:
-	explicit refireable_timer(rc_obj_base& desc)
-		: timer(desc, timeout_t::infinite()),
+	refireable_timer()
+		: timer(timeout_t::infinite()),
 		m_wakeAll(true)
-	{
-	}
+	{ }
 
-	refireable_timer(rc_obj_base& desc, const timeout_t& t, bool wakeAll = true)
-		: timer(desc, t),
+	explicit refireable_timer(const timeout_t& t, bool wakeAll = true)
+		: timer(t),
 		m_wakeAll(wakeAll)
 	{
 		if (!t.is_infinite())

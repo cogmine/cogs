@@ -127,7 +127,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasource to associate with this task
-		datasource_task(rc_obj_base& desc, const rcref<datasource>& ds) : io::queue::io_task<result_t>(desc), m_source(ds) { }
+		explicit datasource_task(const rcref<datasource>& ds) : m_source(ds) { }
 
 		/// @brief Derived class implements executing() to executing the task
 		virtual void executing() = 0;
@@ -168,7 +168,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasource to associate with this flusher
-		flusher(rc_obj_base& desc, const rcref<datasource>& ds) : datasource_task<flusher>(desc, ds) { }
+		explicit flusher(const rcref<datasource>& ds) : datasource_task<flusher>(ds) { }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
@@ -208,7 +208,7 @@ public:
 
 	protected:
 		/// @brief Constructor
-		closer(rc_obj_base& desc, const rcref<datasource>& ds) : datasource_task<closer>(desc, ds) { }
+		explicit closer(const rcref<datasource>& ds) : datasource_task<closer>(ds) { }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
@@ -273,8 +273,8 @@ public:
 		}
 
 	protected:
-		reader(rc_obj_base& desc, const rcref<datasource>& ds)
-			: datasource_task<reader>(desc, ds),
+		explicit reader(const rcref<datasource>& ds)
+			: datasource_task<reader>(ds),
 			m_overflow(ds->m_overflow),
 			m_mode(read_mode::all)
 		{ }
@@ -502,9 +502,8 @@ protected:
 	/// @{
 	/// @brief Constructor
 
-	explicit datasource(rc_obj_base& desc)
-		: object(desc),
-		m_ioQueue(rcnew(queue)),
+	datasource()
+		: m_ioQueue(rcnew(queue)),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize(COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -513,9 +512,8 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size (COGS_DEFAULT_BLOCK_SIZE).
-	datasource(rc_obj_base& desc, size_t internalBufferSize)
-		: object(desc),
-		m_ioQueue(rcnew(queue)),
+	explicit datasource(size_t internalBufferSize)
+		: m_ioQueue(rcnew(queue)),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -525,9 +523,8 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	datasource(rc_obj_base& desc, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: object(desc),
-		m_ioQueue(rcnew(queue)),
+	explicit datasource(const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: m_ioQueue(rcnew(queue)),
 		m_overflow(overflow),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -537,9 +534,8 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	datasource(rc_obj_base& desc, const rcref<io::queue>& ioQueue, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: object(desc),
-		m_ioQueue(ioQueue),
+	explicit datasource(const rcref<io::queue>& ioQueue, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: m_ioQueue(ioQueue),
 		m_overflow(rcnew(composite_buffer)),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -550,9 +546,8 @@ protected:
 	/// @param internalBufferSize The size of a buffer that datasource manages internally for suballocated
 	/// read buffers.  If the derived datasource manages its own read buffers, this value is ignored.
 	/// A value of zero implies the default buffer size.  Default: COGS_DEFAULT_BLOCK_SIZE
-	datasource(rc_obj_base& desc, const rcref<io::queue>& ioQueue, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
-		: object(desc),
-		m_ioQueue(ioQueue),
+	datasource(const rcref<io::queue>& ioQueue, const rcref<composite_buffer>& overflow, size_t internalBufferSize = COGS_DEFAULT_BLOCK_SIZE)
+		: m_ioQueue(ioQueue),
 		m_overflow(overflow),
 		m_internalBufferSize((internalBufferSize > 0) ? internalBufferSize : COGS_DEFAULT_BLOCK_SIZE)
 	{ }
@@ -562,19 +557,19 @@ protected:
 	/// @param ds A datasource reference to encapsulate in the flusher.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds) { return rcnew(flusher, ds); }
+	virtual rcref<flusher> create_source_flusher(const rcref<datasource>& ds) { return rcnew(flusher)(ds); }
 
 	/// @brief Create a datasource::closer.  Used by derived datasources to create derived closer
 	/// @param ds A datasource reference to encapsulate in the closer.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds) { return rcnew(closer, ds); }
+	virtual rcref<closer> create_source_closer(const rcref<datasource>& ds) { return rcnew(closer)(ds); }
 
 	/// @brief Create a datasource::reader.  Used by derived datasources to create derived reader
 	/// @param ds A datasource reference to encapsulate in the reader.  This may different from this datasource, if
 	/// another datasource is acting as a facade.
 	/// @return A reference to a new writer
-	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(reader, ds); }
+	virtual rcref<reader> create_reader(const rcref<datasource>& ds) { return rcnew(reader)(ds); }
 };
 
 
@@ -610,10 +605,6 @@ private:
 		class plug : public io::queue::io_task<plug>
 		{
 		public:
-			explicit plug(rc_obj_base& desc)
-				: io::queue::io_task<plug>(desc)
-			{ }
-
 			volatile boolean m_transactionRunning; // Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::io_task<plug>::complete;
@@ -644,9 +635,8 @@ private:
 				p->complete();
 		}
 
-		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, propagate_close propagateClose)
-			: io::queue::io_task<transaction_task>(desc),
-			m_transactionIoQueue(ioQueue),
+		transaction_task(const rcref<io::queue>& ioQueue, propagate_close propagateClose)
+			: m_transactionIoQueue(ioQueue),
 			m_propagateClose(propagateClose)
 		{ }
 
@@ -722,9 +712,8 @@ private:
 	public:
 		rcref<transaction_task> m_transactionTask;
 
-		terminator(rc_obj_base& desc, const rcref<transaction_task>& t)
-			: io::queue::io_task<terminator>(desc),
-			m_transactionTask(t)
+		explicit terminator(const rcref<transaction_task>& t)
+			: m_transactionTask(t)
 		{ }
 
 		virtual void executing()
@@ -787,11 +776,11 @@ public:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasource.
 	/// @param propagateClose Indicates what happens to the target datasource when a datasource::transaction closes or aborts.
-	transaction(rc_obj_base& desc, const rcref<datasource>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
-		: datasource(desc, ds->m_overflow),
+	explicit transaction(const rcref<datasource>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
+		: datasource(ds->m_overflow),
 		m_source(ds),
 		m_started(startImmediately),
-		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), propagateClose))
+		m_transactionTask(rcnew(transaction_task)(m_ioQueue.dereference(), propagateClose))
 	{
 		if (startImmediately)
 			ds->source_enqueue(m_transactionTask);
@@ -825,7 +814,7 @@ public:
 	{
 		if (!!m_started)
 		{
-			rcref<terminator> t = rcnew(terminator, m_transactionTask);
+			rcref<terminator> t = rcnew(terminator)(m_transactionTask);
 			m_ioQueue->try_enqueue(t);
 		}
 
@@ -1087,19 +1076,17 @@ public:
 
 protected:
 	default_coupler(
-		rc_obj_base& desc,
 		const rcref<datasource>& src,
 		const rcref<datasink>& snk,
 		bool closeSinkOnSourceClose = false,
 		bool closeSourceOnSinkClose = false,
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t bufferBlockSize = COGS_DEFAULT_BLOCK_SIZE)
-		: signallable_task_base<void>(desc),
-		m_source(src),
+		: m_source(src),
 		m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 		m_closeSourceOnSinkClose(closeSourceOnSinkClose),
-		m_coupledRead(rcnew(datasource::transaction, src)),
-		m_coupledWrite(rcnew(datasink::transaction, snk)),
+		m_coupledRead(rcnew(datasource::transaction)(src)),
+		m_coupledWrite(rcnew(datasink::transaction)(snk)),
 		m_bufferBlockSize((bufferBlockSize == 0) ? COGS_DEFAULT_BLOCK_SIZE : bufferBlockSize),
 		m_remaining(maxLength),
 		m_hasMaxLength(!!maxLength)
@@ -1137,7 +1124,7 @@ inline rcref<task<void> > datasource::create_coupler(
 	const dynamic_integer& maxLength,
 	size_t bufferBlockSize)
 {
-	rcref<task<void> > result = rcnew(default_coupler, this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
+	rcref<task<void> > result = rcnew(default_coupler)(this_rcref, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength, bufferBlockSize);
 	result.template static_cast_to<default_coupler>()->start_coupler();
 	return result;
 }

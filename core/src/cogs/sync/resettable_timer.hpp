@@ -23,9 +23,10 @@ namespace cogs {
 class resettable_timer : public timer
 {
 private:
-	resettable_timer();
-	resettable_timer(const resettable_timer&);
-	resettable_timer& operator=(const resettable_timer&);
+	resettable_timer(const resettable_timer&) = delete;
+	resettable_timer(resettable_timer&&) = delete;
+	resettable_timer& operator=(const resettable_timer&) = delete;
+	resettable_timer& operator=(resettable_timer&&) = delete;
 
 	virtual void triggered()
 	{
@@ -33,13 +34,12 @@ private:
 	}
 
 public:
-	explicit resettable_timer(rc_obj_base& desc)
-		: timer(desc, timeout_t::infinite())
-	{
-	}
+	resettable_timer()
+		: timer(timeout_t::infinite())
+	{ }
 
-	resettable_timer(rc_obj_base& desc, const timeout_t& t)
-		: timer(desc, t)
+	explicit resettable_timer(const timeout_t& t)
+		: timer(t)
 	{
 		if (!t.is_infinite())
 			defer();

@@ -32,9 +32,8 @@ private:
 	auto_fd m_dupReadFd;
 
 public:
-	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		: object(desc),
-		m_fd(::socket((int)addressFamily, type, protocol)),
+	socket(int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: m_fd(::socket((int)addressFamily, type, protocol)),
 		m_epollPool(epp),
 		m_addressFamily(addressFamily)
 	{
@@ -48,9 +47,8 @@ public:
 		}
 	}
 
-	socket(rc_obj_base& desc, int sckt, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-		: object(desc),
-		m_fd(sckt),
+	socket(int sckt, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
+		: m_fd(sckt),
 		m_epollPool(epp),
 		m_addressFamily(addressFamily)
 	{

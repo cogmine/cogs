@@ -74,18 +74,17 @@ private:
 	delegated_dependency_property<bool> m_shouldAutoFadeProperty; // reflects callers choice to auto-fade
 
 public:
-	explicit scroll_bar(rc_obj_base& desc,
-		dimension d = dimension::vertical,
+	explicit scroll_bar(dimension d = dimension::vertical,
 		bool isHiddenWhenInactive = false,
 		const scroll_bar_state& s = scroll_bar_state(0, 0),
 		double pos = 0,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane_bridge(desc, frames),
+		: pane_bridge(frames),
 		m_dimension(d),
 		m_isHiddenWhenInactive(isHiddenWhenInactive),
 		m_state(typename transactable_t::construct_embedded_t(), s),
 		m_pos(pos),
-		m_stateProperty(desc, *this, [this]()
+		m_stateProperty(*this, [this]()
 		{
 			return *(m_state.begin_read());
 		}, [this](const scroll_bar_state& state)
@@ -97,7 +96,7 @@ public:
 				m_stateProperty.changed();
 			m_stateProperty.set_complete();
 		}),
-		m_positionProperty(desc, *this, [this]()
+		m_positionProperty(*this, [this]()
 		{
 			return atomic::load(m_pos);
 		}, [this](double d)
@@ -108,7 +107,7 @@ public:
 				m_positionProperty.changed();
 			m_positionProperty.set_complete();
 		}),
-		m_canAutoFadeProperty(desc, *this, [this]()
+		m_canAutoFadeProperty(*this, [this]()
 		{
 			return m_canAutoFade;
 		}, [this](bool b)
@@ -118,7 +117,7 @@ public:
 				m_canAutoFadeProperty.changed();
 			m_canAutoFadeProperty.set_complete();
 		}),
-		m_shouldAutoFadeProperty(desc, *this, [this]()
+		m_shouldAutoFadeProperty(*this, [this]()
 		{
 			return m_shouldAutoFade;
 		}, [this](bool b)
@@ -130,110 +129,95 @@ public:
 		})
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		bool isHiddenWhenInactive,
+	explicit scroll_bar(bool isHiddenWhenInactive,
 		const scroll_bar_state& s = scroll_bar_state(0, 0),
 		double pos = 0,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, s, pos, frames)
+		: scroll_bar(dimension::vertical, isHiddenWhenInactive, s, pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		const scroll_bar_state& s,
 		double pos = 0,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, d, false, s, pos, frames)
+		: scroll_bar(d, false, s, pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		bool isHiddenWhenInactive,
 		double pos,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, d, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
+		: scroll_bar(d, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		bool isHiddenWhenInactive,
 		const scroll_bar_state& s,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, d, isHiddenWhenInactive, s, 0, frames)
+		: scroll_bar(d, isHiddenWhenInactive, s, 0, frames)
 	{ }
 
 
-	scroll_bar(rc_obj_base& desc,
-		const scroll_bar_state& s,
+	scroll_bar(const scroll_bar_state& s,
 		double pos = 0,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, dimension::vertical, false, s, pos, frames)
+		: scroll_bar(dimension::vertical, false, s, pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		bool isHiddenWhenInactive,
+	scroll_bar(bool isHiddenWhenInactive,
 		double pos,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
+		: scroll_bar(dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		bool isHiddenWhenInactive,
+	scroll_bar(bool isHiddenWhenInactive,
 		const scroll_bar_state& s,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, s, 0, frames)
+		: scroll_bar(dimension::vertical, isHiddenWhenInactive, s, 0, frames)
 	{ }
 
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		double pos,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, d, false, scroll_bar_state(0, 0), pos, frames)
+		: scroll_bar(d, false, scroll_bar_state(0, 0), pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		const scroll_bar_state& s,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, d, false, s, 0, frames)
+		: scroll_bar(d, false, s, 0, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		bool isHiddenWhenInactive,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, d, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
+		: scroll_bar(d, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
 	{ }
 
 
-	scroll_bar(rc_obj_base& desc,
-		double pos,
+	explicit scroll_bar(double pos,
 		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(desc, dimension::vertical, false, scroll_bar_state(0, 0), pos, frames)
+		: scroll_bar(dimension::vertical, false, scroll_bar_state(0, 0), pos, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		const scroll_bar_state& s,
+	scroll_bar(const scroll_bar_state& s,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, dimension::vertical, false, s, 0, frames)
+		: scroll_bar(dimension::vertical, false, s, 0, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		bool isHiddenWhenInactive,
+	scroll_bar(bool isHiddenWhenInactive,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
+		: scroll_bar(dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		dimension d,
+	scroll_bar(dimension d,
 		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, d, false, scroll_bar_state(0, 0), 0, frames)
+		: scroll_bar(d, false, scroll_bar_state(0, 0), 0, frames)
 	{ }
 
-	scroll_bar(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(desc, dimension::vertical, false, scroll_bar_state(0, 0), 0, frames)
+	explicit scroll_bar(const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(dimension::vertical, false, scroll_bar_state(0, 0), 0, frames)
 	{ }
 
 

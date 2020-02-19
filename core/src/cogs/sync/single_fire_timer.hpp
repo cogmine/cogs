@@ -24,7 +24,6 @@ namespace cogs {
 class single_fire_timer : public timer
 {
 private:
-	single_fire_timer() = delete;
 	single_fire_timer(const single_fire_timer&) = delete;
 	single_fire_timer& operator=(const single_fire_timer&) = delete;
 
@@ -35,13 +34,13 @@ private:
 	}
 
 public:
-	explicit single_fire_timer(rc_obj_base& desc)
-		: timer(desc, timeout_t::infinite())
+	single_fire_timer()
+		: timer(timeout_t::infinite())
 	{
 	}
 
-	single_fire_timer(rc_obj_base& desc, const timeout_t& t)
-		: timer(desc, t)
+	explicit single_fire_timer(const timeout_t& t)
+		: timer(t)
 	{
 		if (!t.is_infinite())
 			defer();

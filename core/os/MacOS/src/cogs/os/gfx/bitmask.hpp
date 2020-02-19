@@ -383,12 +383,12 @@ inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src
 
 inline rcref<canvas::bitmask> graphics_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
 {
-	return rcnew(bitmask, sz, value);
+	return rcnew(bitmask)(sz, value);
 }
 
 inline rcref<canvas::bitmask> graphics_context::load_bitmask(const composite_string& location)
 {
-	return rcnew(bitmask, location);
+	return rcnew(bitmask)(location);
 }
 
 

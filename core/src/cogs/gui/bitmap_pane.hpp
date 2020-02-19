@@ -27,8 +27,8 @@ private:
 	rcptr<bitmap> m_image;
 
 public:
-	bitmap_pane(rc_obj_base& desc, const composite_string& imageLocation, const std::initializer_list<rcref<frame> >& frames = {})
-		: pane(desc, frames),
+	explicit bitmap_pane(const composite_string& imageLocation, const std::initializer_list<rcref<frame> >& frames = {})
+		: pane(frames),
 		m_imageLocation(imageLocation)
 	{ }
 

@@ -437,8 +437,8 @@ private:
 	}
 
 public:
-	bitmap(rc_obj_base& desc, const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
-		: device_context(desc, dpi),
+	bitmap(const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
+		: device_context(dpi),
 		m_gdiBitmap(make_SIZE(sz), imageType)
 	{
 		set_HDC(m_gdiBitmap.get_HDC());
@@ -459,8 +459,8 @@ public:
 		}
 	}
 
-	bitmap(rc_obj_base& desc, const composite_string& location, image_type imageType)
-		: device_context(desc, dip_dpi),
+	bitmap(const composite_string& location, image_type imageType)
+		: device_context(dip_dpi),
 		m_gdiBitmap(gdi_bitmap::load(location)),
 		m_logicalSize(m_gdiBitmap.get_size())
 	{
@@ -757,22 +757,22 @@ public:
 
 inline rcref<canvas::bitmap> device_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor, double dpi)
 {
-	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::rgba, fillColor, dpi);
+	return rcnew(gdi::bitmap)(sz, gdi::bitmap::image_type::rgba, fillColor, dpi);
 }
 
 inline rcref<canvas::bitmask> device_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
 {
-	return rcnew(gdi::bitmap, sz, gdi::bitmap::image_type::monochrome, value ? color::constant::white : color::constant::transparent);
+	return rcnew(gdi::bitmap)(sz, gdi::bitmap::image_type::monochrome, value ? color::constant::white : color::constant::transparent);
 }
 
 inline rcref<canvas::bitmap> device_context::load_bitmap(const composite_string& location)
 {
-	return rcnew(gdi::bitmap, location, gdi::bitmap::image_type::rgba);
+	return rcnew(gdi::bitmap)(location, gdi::bitmap::image_type::rgba);
 }
 
 inline rcref<canvas::bitmask> device_context::load_bitmask(const composite_string& location)
 {
-	return rcnew(gdi::bitmap, location, gdi::bitmap::image_type::monochrome);
+	return rcnew(gdi::bitmap)(location, gdi::bitmap::image_type::monochrome);
 }
 
 inline void device_context::draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha)

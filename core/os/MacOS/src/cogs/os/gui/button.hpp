@@ -49,8 +49,8 @@ private:
 	size m_defaultSize;
 
 public:
-	button(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: nsview_pane(desc, uiSubsystem)
+	explicit button(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(uiSubsystem)
 	{ }
 
 	void action()
@@ -123,7 +123,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > nsview_subsystem::create_button() volatile
 {
-	rcref<button> b = rcnew(button, this_rcref);
+	rcref<button> b = rcnew(button)(this_rcref);
 	return std::make_pair(b, b);
 }
 

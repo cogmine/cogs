@@ -248,7 +248,7 @@
 //
 //	void nest(const rcref<pane>& child, const primary_key_t& primaryKey, const secondary_key_t& secondaryKey, const rcptr<frame>& userReshaper = 0)
 //	{
-//		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
+//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
 //		rcptr<primary_row_t> r;
 //		typename primary_map_t::iterator itor = m_primaryRows.find_any_equal(primaryKey);
 //		if (!!itor)

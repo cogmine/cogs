@@ -354,28 +354,24 @@ private:
 	}
 
 public:
-	explicit device_context(rc_obj_base& desc, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: object(desc),
+	explicit device_context(const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_gdiPlusScope(gdiPlusScope)
+	{ }
+
+	explicit device_context(HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_hDC(hDC),
 		m_gdiPlusScope(gdiPlusScope)
 	{ }
 
-	explicit device_context(rc_obj_base& desc, HDC hDC, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: object(desc),
-		m_hDC(hDC),
-		m_gdiPlusScope(gdiPlusScope)
-	{ }
-
-	explicit device_context(rc_obj_base& desc, HDC hDC, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: object(desc),
-		m_hDC(hDC),
+	device_context(HDC hDC, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_hDC(hDC),
 		m_gdiPlusScope(gdiPlusScope)
 	{
 		set_dpi(dpi);
 	}
 
-	explicit device_context(rc_obj_base& desc, double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
-		: object(desc),
-		m_gdiPlusScope(gdiPlusScope)
+	explicit device_context(double dpi, const rcref<gdi_plus_scope>& gdiPlusScope = get_default_gdi_plus_scope())
+		: m_gdiPlusScope(gdiPlusScope)
 	{
 		set_dpi(dpi);
 	}
@@ -449,7 +445,7 @@ public:
 	virtual rcref<canvas::font> load_font(const gfx::font& f)
 	{
 		COGS_ASSERT(!!m_hDC);
-		return rcnew(font, f, this_rcref);
+		return rcnew(font)(f, this_rcref);
 	}
 
 	virtual gfx::font get_default_font() const

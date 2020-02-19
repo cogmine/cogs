@@ -107,7 +107,7 @@
 /// Cogs uses it's own reference-counted pointer type, and new-like operator.
 ///
 /// @code{.cpp}
-///		volatile rcptr<A> a1 = rcnew(A, constructorArgs);
+///		volatile rcptr<A> a1 = rcnew(A)(constructorArgs);
 ///
 ///		// in another thread:
 ///		rcptr<A> a2 = a1;

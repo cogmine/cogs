@@ -30,9 +30,8 @@ private:
 	size_t m_remaining;
 
 public:
-	limiter(rc_obj_base& desc, size_t n)
-		: filter(desc),
-		m_remaining(n)
+	explicit limiter(size_t n)
+		: m_remaining(n)
 	{ }
 
 	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)

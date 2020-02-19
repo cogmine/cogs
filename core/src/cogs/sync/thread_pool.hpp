@@ -72,12 +72,9 @@ private:
 		volatile parallel_task_level_map_t m_parallelTaskLevelMap;
 		volatile boolean m_exiting;
 
-		explicit main_loop(rc_obj_base& desc, size_t threadCount)
-			: object(desc),
-			m_tasks(desc),
-			m_semaphore(0, threadCount)
-		{
-		}
+		explicit main_loop(size_t threadCount)
+			: m_semaphore(0, threadCount)
+		{ }
 
 		void run()
 		{
@@ -258,7 +255,7 @@ public:
 
 	explicit thread_pool(bool startNow = false, size_t threadCount = get_default_size())
 		: m_threadCount(threadCount),
-		m_mainLoop(rcnew(main_loop, threadCount)),
+		m_mainLoop(rcnew(main_loop)(threadCount)),
 		m_state(0)
 	{
 		if (startNow)

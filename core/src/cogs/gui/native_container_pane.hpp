@@ -25,28 +25,24 @@ protected:
 	}
 
 public:
-	explicit native_container_pane(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames = {},
+	explicit native_container_pane(const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {},
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane_bridge(desc, frames, children, cb)
+		: pane_bridge(frames, children, cb)
 	{ }
 
-	native_container_pane(rc_obj_base& desc,
-		const std::initializer_list<rcref<pane> >& children,
+	explicit native_container_pane(const std::initializer_list<rcref<pane> >& children,
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: native_container_pane(desc, {}, children, cb)
+		: native_container_pane({}, children, cb)
 	{ }
 
-	native_container_pane(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames,
+	native_container_pane(const std::initializer_list<rcref<frame> >& frames,
 		compositing_behavior cb)
-		: native_container_pane(desc, frames, {}, cb)
+		: native_container_pane(frames, {}, cb)
 	{ }
 
-	explicit native_container_pane(rc_obj_base& desc,
-		compositing_behavior cb)
-		: native_container_pane(desc, {}, {}, cb)
+	explicit native_container_pane(compositing_behavior cb)
+		: native_container_pane({}, {}, cb)
 	{ }
 
 	using pane_container::nest;

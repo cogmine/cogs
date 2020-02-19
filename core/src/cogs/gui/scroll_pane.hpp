@@ -37,14 +37,14 @@ private:
 		delegated_dependency_property<double> m_positionProperty;
 		delegated_dependency_property<bool, io::permission::write> m_canAutoFadeProperty;
 
-		scroll_bar_info(rc_obj_base& desc, scroll_pane& scrollPane, dimension d)
-			: m_scrollBar(rcnew(scroll_bar, d, false)),
+		scroll_bar_info(scroll_pane& scrollPane, dimension d)
+			: m_scrollBar(rcnew(scroll_bar)(d, false)),
 			m_frame(rcnew(override_bounds_frame)),
-			m_stateProperty(desc, scrollPane, [this]()
+			m_stateProperty(scrollPane, [this]()
 			{
 				return *(m_state.begin_read());
 			}),
-			m_positionProperty(desc, scrollPane, [this]()
+			m_positionProperty(scrollPane, [this]()
 			{
 				return atomic::load(m_position);
 			}, [this, &scrollPane](double d)
@@ -58,7 +58,7 @@ private:
 				}
 				m_positionProperty.set_complete();
 			}),
-			m_canAutoFadeProperty(desc, scrollPane, [this, &scrollPane](bool b)
+			m_canAutoFadeProperty(scrollPane, [this, &scrollPane](bool b)
 			{
 				boolean oldValue = m_canAutoFade.exchange(b);
 				if (oldValue != b && scrollPane.m_shouldAutoFadeScrollBar)
@@ -147,16 +147,13 @@ public:
 	// Mode B: For touch screen, or if scrolling is otherwise provided by a device, scroll bars are displayed overlaying
 	// the content only when scrolling occurs, then fade.  Drag/flick scrolling is always enabled in Mode B.
 	// On MacOS, there is a user setting to dynamically switch between these modes.
-	explicit scroll_pane(
-		rc_obj_base& desc,
-		dimensions scrollDimensions = dimensions::both,
+	explicit scroll_pane(dimensions scrollDimensions = dimensions::both,
 		bool hideInactiveScrollBar = true,
 		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
 		bool dragAndFlickScrolling = true, // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {})
-		: pane(desc),
-		m_contentPane(rcnew(container_pane)),
+		: m_contentPane(rcnew(container_pane)),
 		m_clippingPane(rcnew(native_container_pane)),
 		m_cornerPane(rcnew(container_pane)),
 		m_contentFrame(rcnew(override_bounds_frame)),
@@ -164,7 +161,7 @@ public:
 		m_cornerFrame(rcnew(override_bounds_frame)),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
-		m_shouldAutoFadeScrollBarProperty(desc, *this, [this]()
+		m_shouldAutoFadeScrollBarProperty(*this, [this]()
 		{
 			return m_shouldAutoFadeScrollBar;
 		}, [this](bool b)
@@ -180,7 +177,7 @@ public:
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
 
-		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame, alignment(0, 0));
+		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame)(alignment(0, 0));
 
 		m_contentPane->prepend_frame(m_contentFrame);
 		m_contentPane->prepend_frame(unconstrainedFrame);
@@ -192,11 +189,12 @@ public:
 
 		m_hasScrollBar[(int)dimension::horizontal] = ((int)scrollDimensions & (int)dimensions::horizontal) != 0;
 		if (m_hasScrollBar[(int)dimension::horizontal])
-			new (&get_scroll_bar_info(dimension::horizontal)) scroll_bar_info(desc, *this, dimension::horizontal);
+			placement_rcnew(&get_scroll_bar_info(dimension::horizontal), this_desc)(*this, dimension::horizontal);
 
 		m_hasScrollBar[(int)dimension::vertical] = ((int)scrollDimensions & (int)dimensions::vertical) != 0;
 		if (m_hasScrollBar[(int)dimension::vertical])
-			new (&get_scroll_bar_info(dimension::vertical)) scroll_bar_info(desc, *this, dimension::vertical);
+
+		placement_rcnew(&get_scroll_bar_info(dimension::vertical), this_desc)(*this, dimension::vertical);
 
 		for (auto& frame : frames)
 			append_frame(frame);
@@ -205,63 +203,77 @@ public:
 			nest(child);
 	}
 
-	scroll_pane(
-		rc_obj_base& desc,
+	scroll_pane(dimensions scrollDimensions,
 		bool hideInactiveScrollBar,
+		bool shouldScrollBarAutoFade = true,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {})
+		: scroll_pane(scrollDimensions, hideInactiveScrollBar, shouldScrollBarAutoFade, true, frames, children)
+	{ }
+
+	scroll_pane(dimensions scrollDimensions,
+		bool hideInactiveScrollBar,
+		const std::initializer_list<rcref<frame> >& frames,
+		const std::initializer_list<rcref<pane> >& children = {})
+		: scroll_pane(scrollDimensions, hideInactiveScrollBar, true, true, frames, children)
+	{ }
+
+	explicit scroll_pane(bool hideInactiveScrollBar,
 		bool shouldScrollBarAutoFade = true,
 		bool dragAndFlickScrolling = true,
 		const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(desc, dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, frames, children)
+		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, frames, children)
 	{ }
 
-	scroll_pane(
-		rc_obj_base& desc,
-		dimensions scrollDimensions,
+	scroll_pane(bool hideInactiveScrollBar,
+		bool shouldScrollBarAutoFade,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {})
+		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, true, frames, children)
+	{ }
+
+	scroll_pane(bool hideInactiveScrollBar,
 		const std::initializer_list<rcref<frame> >& frames,
 		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(desc, scrollDimensions, true, true, true, frames, children)
+		: scroll_pane(dimensions::both, hideInactiveScrollBar, true, true, frames, children)
 	{ }
 
-	scroll_pane(
-		rc_obj_base& desc,
-		dimensions scrollDimensions,
+	scroll_pane(dimensions scrollDimensions,
+		const std::initializer_list<rcref<frame> >& frames,
+		const std::initializer_list<rcref<pane> >& children = {})
+		: scroll_pane(scrollDimensions, true, true, true, frames, children)
+	{ }
+
+	scroll_pane(dimensions scrollDimensions,
 		bool hideInactiveScrollBar,
 		bool shouldScrollBarAutoFade,
 		bool dragAndFlickScrolling,
 		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(desc, scrollDimensions, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
+		: scroll_pane(scrollDimensions, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
 	{ }
 
 
-	scroll_pane(
-		rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames,
+	explicit scroll_pane(const std::initializer_list<rcref<frame> >& frames,
 		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(desc, dimensions::both, true, true, true, frames, children)
+		: scroll_pane(dimensions::both, true, true, true, frames, children)
 	{ }
 
-	scroll_pane(
-		rc_obj_base& desc,
-		bool hideInactiveScrollBar,
+	scroll_pane(bool hideInactiveScrollBar,
 		bool shouldScrollBarAutoFade,
 		bool dragAndFlickScrolling,
 		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(desc, dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
+		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
 	{ }
 
-	scroll_pane(
-		rc_obj_base& desc,
-		dimensions scrollDimensions,
+	scroll_pane(dimensions scrollDimensions,
 		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(desc, scrollDimensions, true, true, true, {}, children)
+		: scroll_pane(scrollDimensions, true, true, true, {}, children)
 	{ }
 
 
-	scroll_pane(
-		rc_obj_base& desc,
-		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(desc, dimensions::both, true, true, true, {}, children)
+	explicit scroll_pane(const std::initializer_list<rcref<pane> >& children)
+		: scroll_pane(dimensions::both, true, true, true, {}, children)
 	{ }
 
 

@@ -58,11 +58,9 @@ private:
 	thread& operator=(const thread&) = delete;
 
 public:
-	thread(rc_obj_base& desc, const function<void()>& task)
-		: object(desc),
-		m_joinSync(desc)
+	thread(const function<void()>& task)
 	{
-		m_osThread = rcnew(os::thread, task);
+		m_osThread = rcnew(os::thread)(task);
 	}
 
 	static unsigned int get_processor_count()
@@ -72,7 +70,7 @@ public:
 
 	static rcref<thread> spawn(const function<void()>& tsk)
 	{
-		rcref<thread> threadRef = rcnew(thread, tsk);
+		rcref<thread> threadRef = rcnew(thread)(tsk);
 		register_waiter(threadRef);
 		return threadRef;
 	}

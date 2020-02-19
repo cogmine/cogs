@@ -83,11 +83,10 @@ public:
 		virtual rcref<datasource> get_datasource() const { return m_netConnection; }
 		virtual rcref<datasink> get_datasink() const { return m_netConnection; }
 
-		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
-			: object(desc),
-			m_server(srvr),
+		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeoutPeriod = make_measure<timeout_t::period_unitbase>(0))
+			: m_server(srvr),
 			m_netConnection(c),
-			m_inactivityTimer(rcnew(single_fire_timer, timeout_t::infinite())),
+			m_inactivityTimer(rcnew(single_fire_timer)(timeout_t::infinite())),
 			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod)
 		{
 			m_removeToken = srvr->m_connections.append(this_rcref);
@@ -136,10 +135,7 @@ public:
 		}
 	};
 
-public:
-	explicit server(rc_obj_base& desc)
-		: object(desc)
-	{ }
+	server() { }
 
 	virtual void connecting(const rcref<net::connection>& c)
 	{
@@ -191,8 +187,8 @@ public:
 		}
 
 	public:
-		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
-			: server::connection(desc, srvr, c, inactivityTimeout),
+		connection(const rcref<server>& srvr, const rcref<net::connection>& c, bool supportMultipleRequests = true, const timeout_t::period_t& inactivityTimeout = make_measure<timeout_t::period_unitbase>(0))
+			: server::connection(srvr, c, inactivityTimeout),
 			m_reuse(supportMultipleRequests)
 		{ }
 
@@ -238,10 +234,9 @@ public:
 			const rcref<datasource::transaction> m_transaction;
 			volatile boolean m_completed;
 
-			request(rc_obj_base& desc, const rcref<connection>& c)
-				: object(desc),
-				m_connection(c),
-				m_transaction(rcnew(datasource::transaction, c->get_datasource(), false, datasource::transaction::propagate_close::on_abort))
+			explicit request(const rcref<connection>& c)
+				: m_connection(c),
+				m_transaction(rcnew(datasource::transaction)(c->get_datasource(), false, datasource::transaction::propagate_close::on_abort))
 			{
 			}
 
@@ -293,11 +288,10 @@ public:
 		protected:
 			friend class request;
 
-			response(rc_obj_base& desc, const rcref<request>& r)
-				: object(desc),
-				m_request(r),
+			explicit response(const rcref<request>& r)
+				: m_request(r),
 				m_connection(r->get_connection()),
-				m_transaction(rcnew(datasink::transaction, r->get_connection()->get_datasink(), false, datasink::transaction::propagate_close::on_abort))
+				m_transaction(rcnew(datasink::transaction)(r->get_connection()->get_datasink(), false, datasink::transaction::propagate_close::on_abort))
 			{ }
 
 		public:
@@ -343,13 +337,10 @@ public:
 		}
 	};
 
+	request_response_server() { }
+
 	typedef connection::request request;
 	typedef connection::response response;
-
-public:
-	explicit request_response_server(rc_obj_base& desc)
-		: server(desc)
-	{ }
 };
 
 

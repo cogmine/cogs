@@ -35,12 +35,6 @@ private:
 	public:
 		volatile priority_dispatcher& get() volatile { return m_delegates; }
 
-		explicit delegates_t(rc_obj_base& desc)
-			: object(desc),
-			m_delegates(desc)
-		{
-		}
-
 		void clear()
 		{
 			m_delegates.clear();

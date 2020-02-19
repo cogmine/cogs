@@ -161,9 +161,8 @@ public:
 	protected:
 		friend class address;
 
-		lookup_result(rc_obj_base& desc, const composite_string& s, const rcref<network>& n = network::get_default())
-			: signallable_task_base<lookup_result>(desc),
-			m_inputString(s.composite()),
+		explicit lookup_result(const composite_string& s, const rcref<network>& n = network::get_default())
+			: m_inputString(s.composite()),
 			m_network(n)
 		{
 			rcref<thread_pool> pool = get_dns_thread_pool();
@@ -230,9 +229,8 @@ public:
 	protected:
 		friend class address;
 
-		reverse_lookup_result(rc_obj_base& desc, const address& addr, const rcref<network>& n = network::get_default())
-			: net::address::reverse_lookup_result(desc),
-			m_network(n)
+		explicit reverse_lookup_result(const address& addr, const rcref<network>& n = network::get_default())
+			: m_network(n)
 		{
 			m_sockAddrSize = addr.m_sockAddrSize;
 			memcpy(&m_sockAddr, &addr.m_sockAddr, m_sockAddrSize);
@@ -320,12 +318,12 @@ public:
 	// Any addr string, including host name or FQDN
 	static rcref<lookup_result> lookup(const composite_string& addr)
 	{
-		return rcnew(lookup_result, addr);
+		return rcnew(lookup_result)(addr);
 	}
 
 	virtual rcref<net::address::reverse_lookup_result> reverse_lookup() const
 	{
-		return rcnew(reverse_lookup_result, *this);
+		return rcnew(reverse_lookup_result)(*this);
 	}
 
 	static address get_local_host(address_family addressFamily = address_family::inetv4)

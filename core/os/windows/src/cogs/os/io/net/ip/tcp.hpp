@@ -68,8 +68,8 @@ private:
 				CancelIoEx((HANDLE)(m_socket->get()), m_overlapped);
 		}
 
-		tcp_reader(rc_obj_base& desc, const rcref<datasource>& proxy, const rcref<tcp>& t)
-			: reader(desc, proxy),
+		tcp_reader(const rcref<datasource>& proxy, const rcref<tcp>& t)
+			: reader(proxy),
 			m_tcp(t),
 			m_socket(t->m_socket),
 			m_overlapped(0),
@@ -236,8 +236,8 @@ private:
 		vector<WSABUF> m_wsaBuffers;
 		volatile fixed_integer<false, 2> m_abortStateBits; // bit 0=aborted, bit 1=started
 
-		tcp_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<tcp>& t)
-			: writer(desc, proxy),
+		tcp_writer(const rcref<datasink>& proxy, const rcref<tcp>& t)
+			: writer(proxy),
 			m_tcp(t),
 			m_socket(t->m_socket),
 			m_overlapped(0),
@@ -362,18 +362,17 @@ private:
 
 	virtual rcref<reader> create_reader(const rcref<datasource>& proxy)
 	{
-		return rcnew(tcp_reader, proxy, this_rcref);
+		return rcnew(tcp_reader)(proxy, this_rcref);
 	}
 
 	virtual rcref<writer> create_writer(const rcref<datasink>& proxy)
 	{
-		return rcnew(tcp_writer, proxy, this_rcref);
+		return rcnew(tcp_writer)(proxy, this_rcref);
 	}
 
 public:
-	tcp(rc_obj_base& desc, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-		: connection(desc),
-		m_socket(rcnew(socket, SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
+	tcp(address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+		: m_socket(rcnew(socket)(SOCK_STREAM, IPPROTO_TCP, addressFamily, cp, n))
 	{ }
 
 	~tcp()
@@ -414,7 +413,7 @@ public:
 				sa.sin_port = htons(m_remotePort);
 
 				// Allocate tcp obj to use
-				m_tcp = rcnew(tcp, addr.get_address_family(), m_completionPort, m_network);
+				m_tcp = rcnew(tcp)(addr.get_address_family(), m_completionPort, m_network);
 
 				// Bind local port to any address.
 				m_tcp->m_socket->bind_any();
@@ -480,9 +479,8 @@ public:
 		virtual const connecter& get() const volatile { return *(const connecter*)this; }
 
 	public:
-		connecter(rc_obj_base& desc, const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
-			: signallable_task_base<connecter>(desc),
-			m_network(n),
+		connecter(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+			: m_network(n),
 			m_completionPort(cp),
 			m_overlapped(0),
 			m_addresses(addresses),
@@ -499,9 +497,8 @@ public:
 			});
 		}
 
-		connecter(rc_obj_base& desc, const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
-			: signallable_task_base<connecter>(desc),
-			m_network(n),
+		connecter(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp, const rcref<network>& n = network::get_default())
+			: m_network(n),
 			m_completionPort(cp),
 			m_overlapped(0),
 			m_remotePort(port)
@@ -531,12 +528,12 @@ public:
 
 	static rcref<connecter> connect(const vector<address>& addresses, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
-		return rcnew(connecter, addresses, port, cp, n);
+		return rcnew(connecter)(addresses, port, cp, n);
 	}
 
 	static rcref<connecter> connect(const address& addr, unsigned short port, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
 	{
-		return rcnew(connecter, addr, port, cp, n);
+		return rcnew(connecter)(addr, port, cp, n);
 	}
 
 	virtual void abort() { datasource::abort_source(); datasink::abort_sink(); m_socket->close(); }
@@ -564,14 +561,13 @@ public:
 			LPFN_GETACCEPTEXSOCKADDRS m_lpfnGetAcceptExSockaddrs;
 			char m_acceptExBuffer[(16 + sizeof(SOCKADDR_STORAGE)) * 2];
 
-			accept_helper(rc_obj_base& desc, const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-				: object(desc),
-				m_network(n),
+			accept_helper(const rcref<listener>& l, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+				: m_network(n),
 				m_completionPort(cp),
 				m_listener(l),
 				m_acceptDelegate(acceptDelegate),
-				m_listenSocket(rcnew(tcp, addressFamily, cp, n)),
-				m_acceptSocket(rcnew(tcp, addressFamily, cp, n)),
+				m_listenSocket(rcnew(tcp)(addressFamily, cp, n)),
+				m_acceptSocket(rcnew(tcp)(addressFamily, cp, n)),
 				m_addressFamily(addressFamily)
 			{
 				l->m_acceptHelper = this_rcref;
@@ -691,7 +687,7 @@ public:
 							{
 								r->m_acceptDelegate(s);
 							});
-							m_acceptSocket = rcnew(tcp, m_addressFamily, m_completionPort, m_network); // replace accept-socket
+							m_acceptSocket = rcnew(tcp)(m_addressFamily, m_completionPort, m_network); // replace accept-socket
 							accept(); // accepted, start another
 							break;
 						}
@@ -723,12 +719,10 @@ public:
 		}
 
 	public:
-		listener(rc_obj_base& desc, const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
-			: object(desc),
-			m_closeEvent(desc),
-			m_port(port)
+		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
+			: m_port(port)
 		{
-			rcnew(accept_helper, this_rcref, acceptDelegate, port, addressFamily);
+			rcnew(accept_helper)(this_rcref, acceptDelegate, port, addressFamily);
 		}
 
 		~listener() { close(); }
@@ -740,7 +734,7 @@ public:
 
 	static rcref<listener> listen(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
 	{
-		return rcnew(listener, acceptDelegate, port, addressFamily);
+		return rcnew(listener)(acceptDelegate, port, addressFamily);
 	}
 
 	static rcref<listener> server_listen(const rcref<net::server>& srvr, unsigned short port, address_family addressFamily = address_family::inetv4)

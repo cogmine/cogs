@@ -58,14 +58,12 @@ private:
 
 	friend class frameable;
 
-	frame() = delete;
 	frame(frame&) = delete;
 	frame(frame&&) = delete;
 
 public:
-	explicit frame(rc_obj_base& desc)
-		: object(desc),
-		m_childPosition(0, 0)
+	frame()
+		: m_childPosition(0, 0)
 	{ }
 
 	virtual point get_child_position() const
@@ -197,12 +195,10 @@ private:
 	container_dlist<rcref<frame> > m_frames;
 
 public:
-	frameable() = delete;
 	frameable(frameable&) = delete;
 	frameable(frameable&&) = delete;
 
-	explicit frameable(rc_obj_base& desc, const std::initializer_list<rcref<frame> >& frames)
-		: object(desc)
+	explicit frameable(const std::initializer_list<rcref<frame> >& frames)
 	{
 		for (auto& frame : frames)
 			append_frame(frame);
@@ -291,6 +287,8 @@ public:
 	}
 
 protected:
+	frameable() { }
+
 	virtual void calculate_frame_range()
 	{
 		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
@@ -321,14 +319,8 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	override_default_size_frame(rc_obj_base& desc, const size& defaultSize)
-		: frame(desc),
-		m_defaultSize(defaultSize)
-	{ }
-
-	override_default_size_frame(rc_obj_base& desc)
-		: frame(desc),
-		m_defaultSize(0, 0)
+	explicit override_default_size_frame(const size& defaultSize = size(0, 0))
+		: m_defaultSize(defaultSize)
 	{ }
 
 	size& get_default_size_override() { return m_defaultSize; }
@@ -364,9 +356,8 @@ private:
 	}
 
 public:
-	aligned_frame_base(rc_obj_base& desc, const alignment& a = alignment::center())
-		: frame(desc),
-		m_alignment(a)
+	explicit aligned_frame_base(const alignment& a = alignment::center())
+		: m_alignment(a)
 	{
 		validate_alignment();
 	}
@@ -396,8 +387,8 @@ protected:
 class fixed_default_size_frame : public aligned_frame_base
 {
 public:
-	fixed_default_size_frame(rc_obj_base& desc, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a)
+	explicit fixed_default_size_frame(const alignment& a = alignment::center())
+		: aligned_frame_base(a)
 	{ }
 
 	virtual range get_range() const { return range::make_fixed(get_default_size()); }
@@ -436,13 +427,11 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	inset_frame(rc_obj_base& desc, const margin& m)
-		: frame(desc),
-		m_margin(m)
+	inset_frame()
 	{ }
 
-	inset_frame(rc_obj_base& desc)
-		: frame(desc)
+	explicit inset_frame(const margin& m)
+		: m_margin(m)
 	{ }
 
 	margin& get_margin() { return m_margin; }
@@ -534,13 +523,13 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	fixed_size_frame(rc_obj_base& desc, const size& sz, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a),
+	explicit fixed_size_frame(const size& sz, const alignment& a = alignment::center())
+		: aligned_frame_base(a),
 		m_size(sz)
 	{ }
 
-	fixed_size_frame(rc_obj_base& desc, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a),
+	explicit fixed_size_frame(const alignment& a = alignment::center())
+		: aligned_frame_base(a),
 		m_size(0, 0)
 	{ }
 
@@ -599,13 +588,13 @@ private:
 	bounds m_bounds;
 
 public:
-	override_bounds_frame(rc_obj_base& desc, const bounds& b, const alignment& a = alignment::top_left())
-		: aligned_frame_base(desc, a),
+	explicit override_bounds_frame(const bounds& b, const alignment& a = alignment::top_left())
+		: aligned_frame_base(a),
 		m_bounds(b)
 	{ }
 
-	override_bounds_frame(rc_obj_base& desc, const alignment& a = alignment::top_left())
-		: aligned_frame_base(desc, a),
+	explicit override_bounds_frame(const alignment& a = alignment::top_left())
+		: aligned_frame_base(a),
 		m_bounds(0, 0, 0, 0)
 	{ }
 
@@ -657,13 +646,11 @@ private:
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
-	limit_range_frame(rc_obj_base& desc, const range& rng)
-		: frame(desc),
-		m_range(rng)
+	limit_range_frame()
 	{ }
 
-	limit_range_frame(rc_obj_base& desc)
-		: frame(desc)
+	explicit limit_range_frame(const range& rng)
+		: m_range(rng)
 	{ }
 
 	const range& get_limit_range() const { return m_range; }
@@ -695,10 +682,6 @@ protected:
 class unstretchable_frame : public frame
 {
 public:
-	unstretchable_frame(rc_obj_base& desc)
-		: frame(desc)
-	{ }
-
 	virtual range get_range() const
 	{
 		range stretchRange(size(0, 0), get_default_size(), true, true);
@@ -716,10 +699,6 @@ public:
 class unshrinkable_frame : public frame
 {
 public:
-	unshrinkable_frame(rc_obj_base& desc)
-		: frame(desc)
-	{ }
-
 	virtual range get_range() const
 	{
 		range shrinkRange(get_default_size(), size(0, 0), false, false);
@@ -814,10 +793,6 @@ protected:
 	}
 
 public:
-	propose_aspect_ratio_frame(rc_obj_base& desc)
-		: frame(desc)
-	{ }
-
 	virtual range get_range() const { return m_calculatedRange; }
 
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
@@ -943,8 +918,8 @@ private:
 	}
 
 public:
-	proportional_frame(rc_obj_base& desc, const proportion& p, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a),
+	explicit proportional_frame(const proportion& p, const alignment& a = alignment::center())
+		: aligned_frame_base(a),
 		m_proportion(p)
 	{
 		validate_proportion();
@@ -992,8 +967,8 @@ protected:
 class unconstrained_frame : public aligned_frame_base
 {
 public:
-	unconstrained_frame(rc_obj_base& desc, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a)
+	explicit unconstrained_frame(const alignment& a = alignment::center())
+		: aligned_frame_base(a)
 	{ }
 
 	virtual range get_range() const { return range::make_unbounded(); }
@@ -1024,8 +999,8 @@ protected:
 class unconstrained_min_frame : public aligned_frame_base
 {
 public:
-	unconstrained_min_frame(rc_obj_base& desc, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a)
+	explicit unconstrained_min_frame(const alignment& a = alignment::center())
+		: aligned_frame_base(a)
 	{ }
 
 	virtual range get_range() const
@@ -1119,8 +1094,8 @@ protected:
 class unconstrained_max_frame : public aligned_frame_base
 {
 public:
-	unconstrained_max_frame(rc_obj_base& desc, const alignment& a = alignment::center())
-		: aligned_frame_base(desc, a)
+	explicit unconstrained_max_frame(const alignment& a = alignment::center())
+		: aligned_frame_base(a)
 	{ }
 
 	virtual range get_range() const

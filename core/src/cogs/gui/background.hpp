@@ -28,14 +28,13 @@ private:
 	delegated_dependency_property<color> m_colorProperty;
 
 public:
-	explicit background(rc_obj_base& desc,
-		const color& c = color::constant::white,
+	explicit background(const color& c = color::constant::white,
 		const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {},
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(desc, frames, children, cb),
+		: pane(frames, children, cb),
 		m_color(c),
-		m_colorProperty(desc, *this, [this]()
+		m_colorProperty(*this, [this]()
 		{
 			return m_color;
 		}, [this](color c)
@@ -46,52 +45,41 @@ public:
 		})
 	{ }
 
-
-	background(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames,
+	explicit background(const std::initializer_list<rcref<frame> >& frames,
 		const std::initializer_list<rcref<pane> >& children = {},
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(desc, color::constant::white, frames, children, cb)
+		: background(color::constant::white, frames, children, cb)
 	{ }
 
-	background(rc_obj_base& desc,
-		const color& c, 
+	background(const color& c, 
 		const std::initializer_list<rcref<pane> >& children,
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(desc, c, {}, children, cb)
+		: background(c, {}, children, cb)
 	{ }
 
-	background(rc_obj_base& desc,
-		const color& c, 
+	background(const color& c, 
 		const std::initializer_list<rcref<frame> >& frames,
 		compositing_behavior cb)
-		: background(desc, c, frames, {}, cb)
+		: background(c, frames, {}, cb)
 	{ }
 
 
-	background(rc_obj_base& desc,
-		const color& c,
-		compositing_behavior cb)
-		: background(desc, c, {}, {}, cb)
+	background(const color& c, compositing_behavior cb)
+		: background(c, {}, {}, cb)
 	{ }
 
-	background(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: background(desc, color::constant::white, frames, {}, cb)
+	background(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
+		: background(color::constant::white, frames, {}, cb)
 	{ }
 
-	background(rc_obj_base& desc,
-		const std::initializer_list<rcref<pane> >& children,
+	explicit background(const std::initializer_list<rcref<pane> >& children,
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(desc, color::constant::white, {}, children, cb)
+		: background(color::constant::white, {}, children, cb)
 	{ }
 
-	background(rc_obj_base& desc,
-		compositing_behavior cb)
-		: background(desc, color::constant::white, {}, {}, cb)
+	explicit background(compositing_behavior cb)
+		: background(color::constant::white, {}, {}, cb)
 	{ }
-
 
 	virtual bool is_opaque() const
 	{

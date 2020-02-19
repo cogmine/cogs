@@ -784,10 +784,8 @@ public:
 		}
 
 	public:
-		explicit ui_thread(rc_obj_base& desc)
-			: object(desc),
-			m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL)),
-			m_controlQueue(desc)
+		ui_thread()
+			: m_queueEvent(CreateEvent(NULL, FALSE, TRUE, NULL))
 		{
 			self_acquire();
 			m_thread = cogs::thread::spawn([r{ this_weak_rcptr }]()
@@ -827,10 +825,8 @@ public:
 		}
 
 	public:
-		explicit subsystem(rc_obj_base& desc)
-			: gui::windowing::subsystem(desc),
-			m_uiThread(desc),
-			m_visibleWindows(rcnew(visible_windows_list_t)),
+		subsystem()
+			: m_visibleWindows(rcnew(visible_windows_list_t)),
 			m_windowClass(window_class::get_default()),
 			m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
 			{
@@ -933,8 +929,7 @@ private:
 #endif
 
 public:
-	hwnd(rc_obj_base& desc,
-		const rcptr<hwnd>& parent,
+	hwnd(const rcptr<hwnd>& parent,
 		const rcptr<hwnd>& belowThis,
 		const rcref<hwnd_pane>& owner,
 		const composite_string& windowClassName,
@@ -942,8 +937,7 @@ public:
 		DWORD& style,
 		DWORD& extendedStyle,
 		const rcref<volatile subsystem>& uiSubsystem)
-		: object(desc),
-		m_uiSubsystem(uiSubsystem),
+		: m_uiSubsystem(uiSubsystem),
 		m_owner(owner),
 		m_parentHwndPane(parent)
 	{
@@ -1403,10 +1397,8 @@ protected:
 	}
 
 public:
-	hwnd_pane(rc_obj_base& desc, const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
-		: object(desc),
-		m_uiSubsystem(uiSubsystem),
-		m_offscreenBuffers(desc),
+	hwnd_pane(const composite_string& windowClassName, DWORD style, DWORD extendedStyle, const rcref<volatile hwnd::subsystem>& uiSubsystem, hwnd_draw_mode drawMode)
+		: m_uiSubsystem(uiSubsystem),
 		m_windowClassName(windowClassName),
 		m_drawMode(drawMode),
 		m_style(style),
@@ -1564,7 +1556,7 @@ public:
 			break;
 		}
 
-		m_hwnd = rcnew(hwnd,
+		m_hwnd = rcnew(hwnd)(
 			!m_parentHwndPane ? 0 : m_parentHwndPane->get_hwnd(),
 			!m_nextSiblingHwnd ? 0 : m_nextSiblingHwnd->get_hwnd(),
 			this_rcref,
@@ -2187,8 +2179,8 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 	class native_pane : public hwnd_pane
 	{
 	public:
-		native_pane(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& subSystem)
-			: hwnd_pane(desc, composite_string(), 0, 0, subSystem, hwnd_draw_mode::user)
+		explicit native_pane(const rcref<volatile hwnd::subsystem>& subSystem)
+			: hwnd_pane(composite_string(), 0, 0, subSystem, hwnd_draw_mode::user)
 		{ }
 
 		virtual void installing()
@@ -2198,7 +2190,7 @@ inline rcref<bridgeable_pane> hwnd::subsystem::create_native_pane() volatile
 		}
 	};
 
-	rcref<hwnd_pane> p = rcnew(native_pane, this_rcref);
+	rcref<hwnd_pane> p = rcnew(native_pane)(this_rcref);
 	return p;
 }
 

@@ -78,8 +78,8 @@ public:
 	bool m_heightChanged;
 	range m_calculatedRange;
 
-	window(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: nsview_pane(desc, uiSubsystem)
+	explicit window(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(uiSubsystem)
 	{
 	}
 
@@ -433,7 +433,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsystem::create_window() volatile
 {
-	rcref<window> w = rcnew(window, this_rcref);
+	rcref<window> w = rcnew(window)(this_rcref);
 	return std::make_pair(w, w);
 }
 

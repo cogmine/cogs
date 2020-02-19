@@ -86,10 +86,9 @@ private:
 	}
 
 public:
-	window(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, hwnd_draw_mode::user)
-	{
-	}
+	explicit window(const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(composite_string(), 0, WS_EX_NOPARENTNOTIFY | WS_EX_OVERLAPPEDWINDOW, uiSubsystem, hwnd_draw_mode::user)
+	{ }
 
 	virtual void installing()
 	{
@@ -703,7 +702,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsystem::create_window() volatile
 {
-	rcref<window> w = rcnew(window, this_rcref);
+	rcref<window> w = rcnew(window)(this_rcref);
 	return std::make_pair(w, w);
 }
 
@@ -715,7 +714,7 @@ inline rcref<gui::window> hwnd::subsystem::open_window(
 	const composite_string& title,
 	const rcref<pane>& p) volatile
 {
-	rcref<gui::window> w = rcnew(gui::window, screenPosition, frameSize, positionCentered, title);
+	rcref<gui::window> w = rcnew(gui::window)(screenPosition, frameSize, positionCentered, title);
 	w->nest(p);
 	install(*w, rcnew(hwnd::subsystem)); // Give each window it's own subsystem instance, so it's own UI thread.
 	return w;

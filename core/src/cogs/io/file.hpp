@@ -1843,8 +1843,8 @@
 //		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref)); }
 //	};
 //
-//	rcref<reader> read(file_size_t offset, buffer_size_t n) { return begin_read(rcnew(segment_map<file_size_t>, segment<file_size_t>(offset, n))); }
-//	rcref<reader> read(const segment<file_size_t>& s) { return begin_read(rcnew(segment_map<file_size_t>, s)); }
+//	rcref<reader> read(file_size_t offset, buffer_size_t n) { return begin_read(rcnew(segment_map<file_size_t>)(segment<file_size_t>(offset, n))); }
+//	rcref<reader> read(const segment<file_size_t>& s) { return begin_read(rcnew(segment_map<file_size_t>)(s)); }
 //	rcref<reader> read(const rcref<segment_map<file_size_t> >& sm) { return begin_read(sm); }
 //
 //	class size_reader : public waitable
@@ -1915,9 +1915,9 @@
 //		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
-//	rcref<writer> write(file_size_t offset, void* b, size_t n) { return begin_write(rcnew(segment_buffer_map, offset, const_buffer::contain(b, n))); }
-//	rcref<writer> write(file_size_t offset, const const_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
-//	rcref<writer> write(file_size_t offset, const composite_buffer& b) { return begin_write(rcnew(segment_buffer_map, offset, b)); }
+//	rcref<writer> write(file_size_t offset, void* b, size_t n) { return begin_write(rcnew(segment_buffer_map)(offset, const_buffer::contain(b, n))); }
+//	rcref<writer> write(file_size_t offset, const const_buffer& b) { return begin_write(rcnew(segment_buffer_map)(offset, b)); }
+//	rcref<writer> write(file_size_t offset, const composite_buffer& b) { return begin_write(rcnew(segment_buffer_map)(offset, b)); }
 //	rcref<writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm) { return begin_write(sbm); }
 //
 //	class size_writer : public waitable
@@ -2818,7 +2818,7 @@
 //
 ////	virtual rcref<size_reader> get_size() // TEMP!
 ////	{
-////		rcref<size_reader> result = rcnew(size_reader, m_eof);
+////		rcref<size_reader> result = rcnew(size_reader)(m_eof);
 ////		result->complete();
 ////		return result;
 ////	}
@@ -2826,7 +2826,7 @@
 ////	virtual rcref<size_writer> set_size(const file_size_t& sz) // TEMP!
 ////	{
 ////		m_eof = sz;
-////		rcref<size_writer> result = rcnew(size_writer, sz);
+////		rcref<size_writer> result = rcnew(size_writer)(sz);
 ////		result->complete();
 ////		return result;
 ////	}
@@ -3613,22 +3613,22 @@
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_access, file_size_t> >& syncReable, const rcref<file<read_access> >& rawReadable, const rcref<synchronized_file_impl<file_size_t> >& impl)
 //			: m_submitType(submitType),
-//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncReable, rawReadable, impl))
+//			m_transaction(rcnew(transaction_internals)(impl->get_commit_delegate<type>(), syncReable, rawReadable, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<write_access, file_size_t> >& syncWritable, const rcref<file<write_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
 //			: m_submitType(submitType),
-//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncWritable, rawWritable, impl))
+//			m_transaction(rcnew(transaction_internals)(impl->get_commit_delegate<type>(), syncWritable, rawWritable, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_write_access> >& rawFile, const rcref<synchronized_file_impl<file_size_t> >& impl)
 //			: m_submitType(submitType),
-//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawFile, impl))
+//			m_transaction(rcnew(transaction_internals)(impl->get_commit_delegate<type>(), syncFile, rawFile, impl))
 //		{ register_transaction(); }
 //
 //		transaction(transaction_submit_type submitType, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<read_access> >& rawReadable, const rcref<file<read_access> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl)
 //			: m_submitType(submitType),
-//			m_transaction(rcnew(transaction_internals, impl->get_commit_delegate<type>(), syncFile, rawReadable, rawWritable, impl))
+//			m_transaction(rcnew(transaction_internals)(impl->get_commit_delegate<type>(), syncFile, rawReadable, rawWritable, impl))
 //		{ register_transaction(); }
 //
 //		void set_write_mask(const file_mask<file_size_t>& fm)
@@ -3663,7 +3663,7 @@
 //		rcref<typename file<read_access, file_size_t>::reader> read(const rcref<segment_map<file_size_t> >& sm)
 //		{
 //			rcptr<transaction_internals> t = m_transaction;
-//			rcref<reader> r = rcnew(reader, sm, t);
+//			rcref<reader> r = rcnew(reader)(sm, t);
 //			if (!t)
 //				r->complete();
 //			else if (type == failable_transaction)
@@ -3678,7 +3678,7 @@
 //		rcref<typename file<write_access, file_size_t>::writer> write(const rcref<segment_buffer_map<file_size_t> >& sbm)
 //		{
 //			rcptr<transaction_internals> t = m_transaction;
-//			rcref<writer> w = rcnew(writer, sbm, t);
+//			rcref<writer> w = rcnew(writer)(sbm, t);
 //			if (!t)
 //				w->complete();
 //			else
@@ -3689,7 +3689,7 @@
 //		rcref<typename file<read_access, file_size_t>::size_reader> get_size()
 //		{
 //			rcptr<transaction_internals> t = m_transaction;
-//			rcref<size_reader> sr = rcnew(size_reader, t);
+//			rcref<size_reader> sr = rcnew(size_reader)(t);
 //			if (!t)
 //				sr->complete();
 //			else if (type == failable_transaction)
@@ -3704,7 +3704,7 @@
 //		rcref<typename file<write_access, file_size_t>::size_writer> set_size(const file_size_t& sz)
 //		{
 //			rcptr<transaction_internals> t = m_transaction;
-//			rcref<size_writer> sw = rcnew(size_writer, sz, t);
+//			rcref<size_writer> sw = rcnew(size_writer)(sz, t);
 //			if (!t)
 //				sw->complete();
 //			else
@@ -3725,19 +3725,19 @@
 //	template <access_mode accessMode, file_transaction_type type>
 //	rcref<transaction<type> > create_transaction(transaction_submit_type submitType, const rcref<synchronized_file<accessMode, file_size_t> >& syncFile, const rcref<file<accessMode, file_size_t> >& rawFile)
 //	{
-//		return rcnew(transaction<type>, submitType, syncFile, rawFile, this_rcref);
+//		return rcnew(transaction<type>)(submitType, syncFile, rawFile, this_rcref);
 //	}
 //
 //	template <access_mode accessMode, file_transaction_type type>
 //	rcref<transaction<type> > create_transaction(transaction_submit_type submitType, const rcref<synchronized_file<accessMode, file_size_t> >& syncFile, const rcref<file<io::read_access, file_size_t> >& rawReadable, const rcref<file<io::write_access, file_size_t> >& rawWritable)
 //	{
-//		return rcnew(transaction<type>, submitType, syncFile, rawReadable, rawWritable, this_rcref);
+//		return rcnew(transaction<type>)(submitType, syncFile, rawReadable, rawWritable, this_rcref);
 //	}
 //
 //	rcref<transaction<locking_transaction> > create_lock(const file_mask<file_size_t>& fileMask, transaction_submit_type submitType, const rcref<synchronized_file<read_write_access, file_size_t> >& syncFile, const rcref<file<io::read_access, file_size_t> >& rawReadable, const rcref<file<io::write_access, file_size_t> >& rawWritable)
 //	{
 //		typedef transaction<locking_transaction, type> transaction_t;
-//		rcref<transaction<locking_transaction> > result = rcnew(transaction_t, submitType, syncFile, rawReadable, rawWritable, this_rcref);
+//		rcref<transaction<locking_transaction> > result = rcnew(transaction_t)(submitType, syncFile, rawReadable, rawWritable, this_rcref);
 //		results->set_write_mask(fileMask);
 //		return result;
 //	}
@@ -3792,7 +3792,7 @@
 //
 //	static rcref<synchronized_file<read_access, file_size_t> > create(const rcref<file<read_access, file_size_t> >& rawReadable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
 //	{
-//		rcref<this_t> syncFile = rcnew(this_t, rawReadable, impl);
+//		rcref<this_t> syncFile = rcnew(this_t)(rawReadable, impl);
 //		syncFile->set_self_ref(syncFile);
 //		return syncFile;
 //	}
@@ -3826,7 +3826,7 @@
 //	template <file_transaction_type type>
 //	rcref<transaction<type> > create_transaction(transaction_submit_type submitType = auto_submit_transaction)
 //	{
-//		return rcnew(transaction<type>, m_impl->create_transaction<read_access, type>(submitType, m_impl, m_rawReadable));
+//		return rcnew(transaction<type>)(m_impl->create_transaction<read_access, type>(submitType, m_impl, m_rawReadable));
 //	}
 //};
 //
@@ -3866,7 +3866,7 @@
 //
 //	static rcref<synchronized_file<write_access, file_size_t> > create(const rcref<file<write_access, file_size_t> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
 //	{
-//		rcref<this_t> syncFile = rcnew(this_t, rawWritable, impl);
+//		rcref<this_t> syncFile = rcnew(this_t)(rawWritable, impl);
 //		syncFile->set_self_ref(syncFile);
 //		return syncFile;
 //	}
@@ -3900,7 +3900,7 @@
 //	template <file_transaction_type type>
 //	rcref<transaction<type> > create_transaction(transaction_submit_type submitType = auto_submit_transaction)
 //	{
-//		return rcnew(transaction<type>, m_impl->create_transaction<write_access, type>(submitType, m_impl, m_rawWritable));
+//		return rcnew(transaction<type>)(m_impl->create_transaction<write_access, type>(submitType, m_impl, m_rawWritable));
 //	}
 //};
 //
@@ -3941,7 +3941,7 @@
 //
 //	static rcref<synchronized_file<read_write_access, file_size_t> > create(const rcref<file<read_access, file_size_t> >& rawReadable, const rcref<file<write_access, file_size_t> >& rawWritable, const rcref<synchronized_file_impl<file_size_t> >& impl = rcnew(synchronized_file_impl<file_size_t>))
 //	{
-//		rcref<this_t> syncFile = rcnew(this_t, rawReadable, rawWritable, impl);
+//		rcref<this_t> syncFile = rcnew(this_t)(rawReadable, rawWritable, impl);
 //		syncFile->set_self_ref(syncFile);
 //		return syncFile;
 //	}
@@ -3977,12 +3977,12 @@
 //	template <file_transaction_type type>
 //	rcref<transaction<type> > create_transaction(transaction_submit_type submitType = auto_submit_transaction)
 //	{
-//		return rcnew(transaction<type>, m_impl->create_transaction<read_write_access, type>(submitType, m_impl, m_rawReadable, m_rawWritable));
+//		return rcnew(transaction<type>)(m_impl->create_transaction<read_write_access, type>(submitType, m_impl, m_rawReadable, m_rawWritable));
 //	}
 //
 //	rcref<transaction<locking_transaction> > create_lock(const file_mask<file_size_t>& fileMask, transaction_submit_type submitType = auto_submit_transaction)
 //	{
-//		return rcnew(transaction<locking_transaction>, m_impl->create_lock(fileMask, submitType, m_impl, m_rawReadable, m_rawWritable));
+//		return rcnew(transaction<locking_transaction>)(m_impl->create_lock(fileMask, submitType, m_impl, m_rawReadable, m_rawWritable));
 //	}
 //
 //	// redefined here to resolve multiple base class ambiguity
@@ -4054,7 +4054,7 @@
 //
 //		virtual rcref<datasource::reader> create_reader()
 //		{
-//			return rcnew(cursor_reader, this_rcref);
+//			return rcnew(cursor_reader)(this_rcref);
 //		}
 //
 //	public:
@@ -4194,28 +4194,28 @@
 //	public:
 //		rcref<seeker> seek(file_size_t pos)
 //		{
-//			rcref<seeker> skr = rcnew(seeker, pos, this_rcref);
+//			rcref<seeker> skr = rcnew(seeker)(pos, this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<seeker> seek_end()
 //		{
-//			rcref<seeker> skr = rcnew(eof_seeker, this_rcref);
+//			rcref<seeker> skr = rcnew(eof_seeker)(this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<teller> tell()
 //		{
-//			rcref<teller> tlr = rcnew(teller, this_rcref);
+//			rcref<teller> tlr = rcnew(teller)(his_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
 //
 //		rcref<teller> get_eof()
 //		{
-//			rcref<teller> tlr =  rcnew(eof_teller, this_rcref);
+//			rcref<teller> tlr =  rcnew(eof_teller)(this_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
@@ -4490,7 +4490,7 @@
 //
 //	rcref<composed_transaction> create_read_write_composed_transaction()
 //	{
-//		return rcnew(composed_transaction, this_rcref);
+//		return rcnew(composed_transaction)(this_rcref);
 //	}
 //
 //	class failable_transaction : public file<read_access>::failable_transaction
@@ -4514,7 +4514,7 @@
 //
 //	rcref<failable_transaction> create_read_write_failable_transaction()
 //	{
-//		return rcnew(failable_transaction, this_rcref);
+//		return rcnew(failable_transaction)(this_rcref);
 //	}
 //
 //	class locking_transaction : public file<read_access>::locking_transaction
@@ -4538,7 +4538,7 @@
 //
 //	rcref<locking_transaction> create_read_write_locking_transaction()
 //	{
-//		return rcnew(locking_transaction, this_rcref);
+//		return rcnew(locking_transaction)(this_rcref);
 //	}
 //
 //	enum class create_mode
@@ -5463,7 +5463,7 @@
 //
 //		virtual rcref<datasource::reader> create_reader()
 //		{
-//			return rcnew(cursor_reader, this_rcref);
+//			return rcnew(cursor_reader)(this_rcref);
 //		}
 //
 //	public:
@@ -5603,28 +5603,28 @@
 //	public:
 //		rcref<seeker> seek(file_size_t pos)
 //		{
-//			rcref<seeker> skr = rcnew(seeker, pos, this_rcref);
+//			rcref<seeker> skr = rcnew(seeker)(pos, this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<seeker> seek_end()
 //		{
-//			rcref<seeker> skr = rcnew(eof_seeker, this_rcref);
+//			rcref<seeker> skr = rcnew(eof_seeker)(this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<teller> tell()
 //		{
-//			rcref<teller> tlr = rcnew(teller, this_rcref);
+//			rcref<teller> tlr = rcnew(teller)(this_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
 //
 //		rcref<teller> get_eof()
 //		{
-//			rcref<teller> tlr =  rcnew(eof_teller, this_rcref);
+//			rcref<teller> tlr =  rcnew(eof_teller)(this_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
@@ -6311,12 +6311,12 @@
 //
 //	rcref<read_only_cursor> create_read_only_cursor()
 //	{
-//		return rcnew(read_only_cursor, this_rcref);
+//		return rcnew(read_only_cursor)(this_rcref);
 //	}
 //
 //	rcref<composed_transaction> create_read_only_composed_transaction()
 //	{
-//		return rcnew(composed_transaction, this_rcref);
+//		return rcnew(composed_transaction)(this_rcref);
 //	}
 //
 //protected:
@@ -6354,7 +6354,7 @@
 //
 //	rcref<composed_transaction> create_read_write_composed_transaction()
 //	{
-//		return rcnew(composed_transaction, this_rcref);
+//		return rcnew(composed_transaction)(this_rcref);
 //	}
 //
 //	class failable_transaction : public file<read_access>::failable_transaction
@@ -6378,7 +6378,7 @@
 //
 //	rcref<failable_transaction> create_read_write_failable_transaction()
 //	{
-//		return rcnew(failable_transaction, this_rcref);
+//		return rcnew(failable_transaction)(this_rcref);
 //	}
 //
 //	class locking_transaction : public file<read_access>::locking_transaction
@@ -6402,7 +6402,7 @@
 //
 //	rcref<locking_transaction> create_read_write_locking_transaction()
 //	{
-//		return rcnew(locking_transaction, this_rcref);
+//		return rcnew(locking_transaction)(this_rcref);
 //	}
 //
 //	enum class create_mode
@@ -7219,7 +7219,7 @@
 //
 //		virtual rcref<datasource::reader> create_reader()
 //		{
-//			return rcnew(cursor_reader, this_rcref);
+//			return rcnew(cursor_reader)(this_rcref);
 //		}
 //
 //	public:
@@ -7359,28 +7359,28 @@
 //	public:
 //		rcref<seeker> seek(uint64_t pos)
 //		{
-//			rcref<seeker> skr = rcnew(seeker, pos, this_rcref);
+//			rcref<seeker> skr = rcnew(seeker)(pos, this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<seeker> seek_end()
 //		{
-//			rcref<seeker> skr = rcnew(eof_seeker, this_rcref);
+//			rcref<seeker> skr = rcnew(eof_seeker)(this_rcref);
 //			skr->enqueue();
 //			return skr;
 //		}
 //
 //		rcref<teller> tell()
 //		{
-//			rcref<teller> tlr = rcnew(teller, this_rcref);
+//			rcref<teller> tlr = rcnew(teller)(this_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
 //
 //		rcref<teller> get_eof()
 //		{
-//			rcref<teller> tlr =  rcnew(eof_teller, this_rcref);
+//			rcref<teller> tlr =  rcnew(eof_teller)(this_rcref);
 //			tlr->enqueue();
 //			return tlr;
 //		}
@@ -7406,12 +7406,12 @@
 //
 //	rcref<read_only_cursor> create_read_only_cursor()
 //	{
-//		return rcnew(read_only_cursor, this_rcref);
+//		return rcnew(read_only_cursor)(this_rcref);
 //	}
 //
 //	rcref<read_only_transaction> create_read_only_transaction()
 //	{
-//		return rcnew(read_only_transaction, this_rcref);
+//		return rcnew(read_only_transaction)(this_rcref);
 //	}
 //
 //
@@ -7480,7 +7480,7 @@
 //
 //		virtual rcref<datasink::writer> create_writer()
 //		{
-//			return rcnew(cursor_writer, this_rcref);
+//			return rcnew(cursor_writer)(this_rcref);
 //		}
 //
 //	public:
@@ -7541,12 +7541,12 @@
 //
 //	rcref<read_write_cursor> create_read_write_cursor()
 //	{
-//		return rcnew(read_write_cursor, this_rcref);
+//		return rcnew(read_write_cursor)(this_rcref);
 //	}
 //
 //	rcref<read_write_transaction> create_read_write_transaction()
 //	{
-//		return rcnew(read_write_transaction, this_rcref);
+//		return rcnew(read_write_transaction)(this_rcref);
 //	}
 //
 //protected:

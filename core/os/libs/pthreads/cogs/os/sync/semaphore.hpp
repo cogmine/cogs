@@ -34,8 +34,7 @@ private:
 	sem_t m_semaphore;
 
 public:
-	explicit semaphore(rc_obj_base& desc)
-		: object(desc)
+	semaphore()
 	{
 		int result = sem_init(&m_semaphore, 0, 0);
 		COGS_ASSERT(result == 0);

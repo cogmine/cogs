@@ -1720,7 +1720,7 @@
 //			return *(m_vScrollBarState.begin_read());
 //		};
 //
-//		placement_rcnew(&m_vScrollBarStateProperty.get(), this_desc, *this, std::move(vStateGetter));
+//		placement_rcnew(&m_vScrollBarStateProperty.get(), this_desc)(*this, std::move(vStateGetter));
 //
 //		auto vPositionGetter = [this]()
 //		{
@@ -1739,7 +1739,7 @@
 //			m_vScrollBarPositionProperty->set_complete();
 //		};
 //
-//		placement_rcnew(&m_vScrollBarPositionProperty.get(), this_desc, *this, std::move(vPositionGetter), std::move(vPositionSetter));
+//		placement_rcnew(&m_vScrollBarPositionProperty.get(), this_desc)(*this, std::move(vPositionGetter), std::move(vPositionSetter));
 //
 //
 //		// TODO TO DO, fix
@@ -2399,7 +2399,7 @@
 //
 //	virtual void initializing()
 //	{
-//		rcptr<resettable_timer> blinkTimer = rcnew(resettable_timer, measure<int_type, milliseconds>(250));
+//		rcptr<resettable_timer> blinkTimer = rcnew(resettable_timer)(measure<int_type, milliseconds>(250));
 //		m_blinkTimer = blinkTimer;
 //		blinkTimer->dispatch(m_blinkTimerExpireDelegate);
 //	}
@@ -4484,7 +4484,7 @@
 //			if (!!ds)
 //			{
 //				rcref<datasource::wait_result> wr = ds->wait();
-//				rcref<read_handler> readHandler = rcnew(read_handler, m_self, curDatastreamVersion);
+//				rcref<read_handler> readHandler = rcnew(read_handler)(m_self, curDatastreamVersion);
 //				readHandler->m_self = readHandler;
 //				wr->wait(readHandler);
 //			}

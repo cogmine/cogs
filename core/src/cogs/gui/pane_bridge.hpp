@@ -378,25 +378,23 @@ private:
 	rcptr<bridgeable_pane> m_bridgedPane;
 
 protected:
-	explicit pane_bridge(rc_obj_base& desc,
-		const std::initializer_list<rcref<frame> >& frames = {},
+	explicit pane_bridge(const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {},
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(desc, frames, children, cb)
+		: pane(frames, children, cb)
 	{ }
 
-	pane_bridge(rc_obj_base& desc,
-		const std::initializer_list<rcref<pane> >& children,
+	explicit pane_bridge(const std::initializer_list<rcref<pane> >& children,
 		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane_bridge(desc, {}, children, cb)
+		: pane_bridge({}, children, cb)
 	{ }
 
-	pane_bridge(rc_obj_base& desc, const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
-		: pane_bridge(desc, frames, {}, cb)
+	pane_bridge(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
+		: pane_bridge(frames, {}, cb)
 	{ }
 
-	pane_bridge(rc_obj_base& desc, compositing_behavior cb)
-		: pane_bridge(desc, {}, {}, cb)
+	explicit pane_bridge(compositing_behavior cb)
+		: pane_bridge({}, {}, cb)
 	{ }
 
 	const rcptr<bridgeable_pane>& get_bridged() const { return m_bridgedPane; }
