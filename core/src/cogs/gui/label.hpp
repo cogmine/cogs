@@ -43,13 +43,12 @@ private:
 	size m_textExtent;
 
 public:
-	label(rc_obj_base& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::constant::black, bool useLineHeight = true)
-		: pane(desc),
-		m_text(text),
+	label(const composite_string& text, const gfx::font& fnt, const color& c = color::constant::black, bool useLineHeight = true)
+		: m_text(text),
 		m_font(fnt),
 		m_textColor(c),
 		m_useLineHeight(useLineHeight),
-		m_textProperty(desc, *this, [this]()
+		m_textProperty(*this, [this]()
 		{
 			return m_text;
 		}, [this](const composite_string& s)
@@ -62,7 +61,7 @@ public:
 				recompose();
 			}
 		}),
-		m_fontProperty(desc, *this, [this]()
+		m_fontProperty(*this, [this]()
 		{
 			return m_font;
 		}, [this](const gfx::font& f)
@@ -76,7 +75,7 @@ public:
 				recompose();
 			}
 		}),
-		m_colorProperty(desc, *this, [this]()
+		m_colorProperty(*this, [this]()
 		{
 			return m_textColor;
 		}, [this](color c)

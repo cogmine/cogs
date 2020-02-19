@@ -378,12 +378,12 @@ inline void graphics_context::draw_bitmap(const canvas::bitmap& src, const canva
 
 inline rcref<canvas::bitmap> graphics_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor)
 {
-	return rcnew(bitmap, sz, fillColor);
+	return rcnew(bitmap)(sz, fillColor);
 }
 
 inline rcref<canvas::bitmap> graphics_context::load_bitmap(const composite_string& location)
 {
-	return rcnew(bitmap, location);
+	return rcnew(bitmap)(location);
 }
 
 

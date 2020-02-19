@@ -77,9 +77,8 @@ private:
 
 		volatile container_queue<task_f> m_completionSerializer;
 
-		state(rc_obj_base& desc, const rcref<filter>& f)
-			: object(desc),
-			m_filter(f)
+		explicit state(const rcref<filter>& f)
+			: m_filter(f)
 		{ }
 
 		void process(task_f t)
@@ -415,8 +414,8 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		reader(rc_obj_base& desc, const rcref<datasource>& proxy, const rcref<filter::state>& s)
-			: datasource::reader(desc, proxy),
+		reader(const rcref<datasource>& proxy, const rcref<filter::state>& s)
+			: datasource::reader(proxy),
 			m_state(s)
 		{ }
 
@@ -466,8 +465,8 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		writer_base(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: datasink::writer(desc, proxy),
+		writer_base(const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: datasink::writer(proxy),
 			m_state(s)
 		{ }
 
@@ -513,8 +512,8 @@ private:
 	class writer : public writer_base
 	{
 	public:
-		writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: writer_base(desc, proxy, s)
+		writer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: writer_base(proxy, s)
 		{ }
 
 		virtual int fill_buffer()
@@ -542,8 +541,8 @@ private:
 	class bypass_writer : public writer_base
 	{
 	public:
-		bypass_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: writer_base(desc, proxy, s)
+		bypass_writer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: writer_base(proxy, s)
 		{ }
 
 		/// Empty writes complete without calling writing(), so we know this will add to m_filteredBuffer
@@ -572,8 +571,8 @@ private:
 
 		const rcref<filter::state> m_state;
 
-		closer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<filter::state>& s)
-			: datasink::closer(desc, proxy),
+		closer(const rcref<datasink>& proxy, const rcref<filter::state>& s)
+			: datasink::closer(proxy),
 			m_state(s)
 		{ }
 
@@ -613,15 +612,12 @@ private:
 		rcptr<task<void> > m_onSinkAbortTask;
 		bool isCompleting = true;
 
-		coupler(
-			rc_obj_base& desc,
-			const rcref<filter::state>& s,
+		coupler(const rcref<filter::state>& s,
 			const rcref<datasink>& snk,
 			bool closeSinkOnSourceClose = false,
 			bool closeSourceOnSinkClose = false,
 			const dynamic_integer& maxLength = dynamic_integer())
-				: io::queue::io_task<void>(desc),
-				m_sink(rcnew(datasink::transaction, snk)),
+				: m_sink(rcnew(datasink::transaction)(snk)),
 				m_state(s),
 				m_closeSinkOnSourceClose(closeSinkOnSourceClose),
 				m_closeSourceOnSinkClose(closeSourceOnSinkClose),
@@ -720,12 +716,12 @@ private:
 		}
 	};
 
-	virtual rcref<datasource::reader> create_reader(const rcref<datasource>& proxy) { return rcnew(reader, proxy, m_state); }
-	virtual rcref<datasink::writer> create_writer(const rcref<datasink>& proxy) { return rcnew(writer, proxy, m_state); }
+	virtual rcref<datasource::reader> create_reader(const rcref<datasource>& proxy) { return rcnew(reader)(proxy, m_state); }
+	virtual rcref<datasink::writer> create_writer(const rcref<datasink>& proxy) { return rcnew(writer)(proxy, m_state); }
 
 	virtual rcref<datasink::closer> create_sink_closer(const rcref<datasink>& proxy)
 	{
-		return rcnew(closer, proxy, m_state);
+		return rcnew(closer)(proxy, m_state);
 	}
 
 	virtual rcref<task<void> > create_coupler(
@@ -735,7 +731,7 @@ private:
 		const dynamic_integer& maxLength = dynamic_integer(),
 		size_t = COGS_DEFAULT_BLOCK_SIZE)
 	{
-		rcref<task<void> > result = rcnew(coupler, m_state, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength);
+		rcref<task<void> > result = rcnew(coupler)(m_state, snk, closeSinkOnSourceClose, closeSourceOnSinkClose, maxLength);
 		result.template static_cast_to<coupler>()->start_coupler();
 		return result;
 	}
@@ -754,60 +750,46 @@ public:
 	/// @brief Writes data that bypasses the filter.
 	rcref<datasink::writer> bypass(const composite_buffer& compBuf)
 	{
-		rcref<datasink::writer> w = rcnew(bypass_writer, this_rcref, m_state);
+		rcref<datasink::writer> w = rcnew(bypass_writer)(this_rcref, m_state);
 		datasink::write(compBuf, w);
 		return w;
 	}
 
 	/// @brief Constructor
-	explicit filter(rc_obj_base& desc)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref))
+	filter()
+		: m_state(rcnew(state)(this_rcref))
 	{ }
 
-	filter(rc_obj_base& desc, const filter_func_t& f)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	explicit filter(const filter_func_t& f)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(f)
 	{ }
 
-	filter(rc_obj_base& desc, filter_func_t&& f)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	explicit filter(filter_func_t&& f)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(std::move(f))
 	{ }
 
-	filter(rc_obj_base& desc, const filter_func_t& f, const finalize_func_t& fn)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	filter(const filter_func_t& f, const finalize_func_t& fn)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(f),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(rc_obj_base& desc, filter_func_t&& f, const finalize_func_t& fn)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	filter(filter_func_t&& f, const finalize_func_t& fn)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(std::move(f)),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(rc_obj_base& desc, const filter_func_t& f, finalize_func_t&& fn)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	filter(const filter_func_t& f, finalize_func_t&& fn)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(f),
 		m_finalizeFunc(fn)
 	{ }
 
-	filter(rc_obj_base& desc, filter_func_t&& f, finalize_func_t&& fn)
-		: datasink(desc),
-		datasource(desc),
-		m_state(rcnew(state, this_rcref)),
+	filter(filter_func_t&& f, finalize_func_t&& fn)
+		: m_state(rcnew(state)(this_rcref)),
 		m_filterFunc(std::move(f)),
 		m_finalizeFunc(fn)
 	{ }

@@ -29,10 +29,9 @@ private:
 	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
 
 public:
-	text_editor(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem, hwnd_draw_mode::system_direct)
-	{
-	}
+	explicit text_editor(const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem, hwnd_draw_mode::system_direct)
+	{ }
 
 	virtual void installing()
 	{
@@ -177,7 +176,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > hwnd::subsystem::create_text_editor() volatile
 {
-	rcref<text_editor> te = rcnew(text_editor, this_rcref);
+	rcref<text_editor> te = rcnew(text_editor)(this_rcref);
 	return std::make_pair(te, te);
 }
 

@@ -71,8 +71,7 @@ private:
 			return NULL;
 		}
 
-		explicit link_t(rc_obj_base& desc)
-			: object(desc)
+		link_t()
 		{
 			m_links->m_mode = link_mode::normal;
 		}
@@ -422,14 +421,12 @@ private:
 	public:
 		virtual type* get() { return &m_value.get(); }
 
-		explicit payload_link_t(rc_obj_base& desc)
-			: link_t(desc)
+		payload_link_t()
 		{
 			new (get()) type;
 		}
 
-		payload_link_t(rc_obj_base& desc, const type& t)
-			: link_t(desc)
+		 explicit payload_link_t(const type& t)
 		{
 			new (get()) type(t);
 		}
@@ -450,14 +447,13 @@ private:
 
 		delayed_construction<T3> m_aux;
 
-		explicit aux_payload_link_t(rc_obj_base& desc)
-			: payload_link_t(desc)
+		aux_payload_link_t()
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
 
-		explicit aux_payload_link_t(rc_obj_base& desc, const type& t)
-			: payload_link_t(desc, t)
+		explicit aux_payload_link_t(const type& t)
+			: payload_link_t(t)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
@@ -474,8 +470,7 @@ private:
 	public:
 		using link_t::m_links;
 
-		explicit sentinel_link_t(rc_obj_base& desc)
-			: link_t(desc)
+		sentinel_link_t()
 		{
 			m_links->m_next = m_links->m_prev = this_rcptr;
 		}
@@ -2020,8 +2015,8 @@ public:
 		return i;
 	}
 
-	preallocated preallocate() const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
-	preallocated preallocate(const type& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
+	preallocated preallocate() const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t)(); return i; }
+	preallocated preallocate(const type& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t)(t); return i; }
 
 	template <typename T2>
 	const rcref<T2>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
@@ -2036,7 +2031,7 @@ public:
 	const rcref<T2>& preallocate_with_aux(const type& t, preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
 	{
 		typedef aux_payload_link_t<T2> aux_payload_t;
-		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t, t);
+		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t)(t);
 		i.m_link = p;
 		return p->get_aux_ref(storage);
 	}
@@ -2093,7 +2088,7 @@ public:
 	volatile_iterator prepend(const type& t, insert_mode insertMode = insert_mode::normal) volatile
 	{
 		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 		if (!i.m_link.template const_cast_to<link_t>()->insert_after(lazy_init_sentinel(), insertMode))
 			i.release();
 		return i;
@@ -2102,7 +2097,7 @@ public:
 	volatile_iterator append(const type& t, insert_mode insertMode = insert_mode::normal) volatile
 	{
 		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 		if (!i.m_link.template const_cast_to<link_t>()->insert_before(lazy_init_sentinel(), insertMode))
 			i.release();
 		return i;
@@ -2129,7 +2124,7 @@ public:
 	iterator prepend(const type& t)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 		if (!i.m_link->insert_after(lazy_init_sentinel()))
 			i.release();
 		return i;
@@ -2138,7 +2133,7 @@ public:
 	iterator append(const type& t)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 		if (!i.m_link->insert_before(lazy_init_sentinel()))
 			i.release();
 		return i;
@@ -2207,7 +2202,7 @@ public:
 		iterator i;
 		if (!!insertBefore)
 		{
-			i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+			i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 			if (!i.m_link->insert_before(insertBefore.m_link))
 				i.release();
 		}
@@ -2219,7 +2214,7 @@ public:
 		iterator i;
 		if (!!insertAfter)
 		{
-			i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+			i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 			if (!i.m_link->insert_after(insertAfter.m_link))
 				i.release();
 		}
@@ -2255,7 +2250,7 @@ public:
 		volatile_iterator i;
 		if (!!insertBefore)
 		{
-			i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+			i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 			if (!i.m_link.template const_cast_to<link_t>()->insert_before(insertBefore.m_link))
 				i.release();
 		}
@@ -2267,7 +2262,7 @@ public:
 		volatile_iterator i;
 		if (!!insertAfter)
 		{
-			i.m_link = container_rcnew(m_allocator, payload_link_t, t);
+			i.m_link = container_rcnew(m_allocator, payload_link_t)(t);
 			if (!i.m_link.template const_cast_to<link_t>()->insert_after(insertAfter.m_link))
 				i.release();
 		}

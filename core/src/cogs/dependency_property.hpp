@@ -224,7 +224,7 @@ private:
 
 	void set_inner(const type& t, const rcptr<this_t>& src)
 	{
-		rcref<notification_context> ctx = rcnew(notification_context, t, src);
+		rcref<notification_context> ctx = rcnew(notification_context)(t, src);
 		m_setQueue.append(ctx);
 		start_pump();
 	}
@@ -239,14 +239,11 @@ private:
 	}
 
 protected:
-
-	explicit virtual_dependency_property_base(rc_obj_base& desc)
-		: object(desc)
+	virtual_dependency_property_base()
 	{ }
 
-	virtual_dependency_property_base(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: object(desc),
-		m_dispatcher(d)
+	explicit virtual_dependency_property_base(const rcref<volatile dispatcher>& d)
+		: m_dispatcher(d)
 	{ }
 
 	void changed()
@@ -285,7 +282,7 @@ protected:
 	// If both are read_write, the value of src will be used
 	static void bind2(const rcref<this_t>& src, const rcref<this_t>& snk, bool update)
 	{
-		rcref<binding> bindingObj = rcnew(binding, snk);
+		rcref<binding> bindingObj = rcnew(binding)(snk);
 		src->m_bindings.append(bindingObj);
 
 		if (update) // defer an update of just this binding
@@ -320,12 +317,11 @@ private:
 	virtual rcref<virtual_dependency_property_base<type> > get_virtual_dependency_property_base() { return this_rcref; }
 
 public:
-	explicit virtual_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	virtual_dependency_property()
 	{ }
 
-	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc, d)
+	explicit virtual_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
 	virtual void bind(const rcref<dependency_property<type, io::permission::read_write> >& srcSnk, bool useThisValue = false)
@@ -367,12 +363,11 @@ private:
 	virtual void setting(const type&) { }
 
 public:
-	explicit virtual_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	virtual_dependency_property()
 	{ }
 
-	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc, d)
+	explicit virtual_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
 	virtual void bind_to(const rcref<dependency_property<type, io::permission::write> >& snk)
@@ -403,12 +398,11 @@ private:
 	}
 
 public:
-	explicit virtual_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	virtual_dependency_property()
 	{ }
 
-	virtual_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc, d)
+	explicit virtual_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
 	virtual void bind_from(const rcref<dependency_property<type, io::permission::read> >& src)
@@ -441,14 +435,13 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_dependency_property(rc_obj_base& desc, const get_delegate_type& g, const set_delegate_type& s)
-		: base_t(desc),
-		m_getDelegate(g),
+	delegated_dependency_property(const get_delegate_type& g, const set_delegate_type& s)
+		: m_getDelegate(g),
 		m_setDelegate(s)
 	{ }
 
-	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
-		: base_t(desc, d),
+	delegated_dependency_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g, const set_delegate_type& s)
+		: base_t(d),
 		m_getDelegate(g),
 		m_setDelegate(s)
 	{ }
@@ -476,13 +469,12 @@ private:
 	get_delegate_type m_getDelegate;
 
 public:
-	delegated_dependency_property(rc_obj_base& desc, const get_delegate_type& g)
-		: base_t(desc),
-		m_getDelegate(g)
+	explicit delegated_dependency_property(const get_delegate_type& g)
+		: m_getDelegate(g)
 	{ }
 
-	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const get_delegate_type& g)
-		: base_t(desc, d),
+	delegated_dependency_property(const rcref<volatile dispatcher>& d, const get_delegate_type& g)
+		: base_t(d),
 		m_getDelegate(g)
 	{ }
 
@@ -503,13 +495,12 @@ private:
 	set_delegate_type m_setDelegate;
 
 public:
-	delegated_dependency_property(rc_obj_base& desc, const set_delegate_type& s)
-		: base_t(desc),
-		m_setDelegate(s)
+	explicit delegated_dependency_property(const set_delegate_type& s)
+		: m_setDelegate(s)
 	{ }
 
-	delegated_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const set_delegate_type& s)
-		: base_t(desc, d),
+	delegated_dependency_property(const rcref<volatile dispatcher>& d, const set_delegate_type& s)
+		: base_t(d),
 		m_setDelegate(s)
 	{ }
 
@@ -530,21 +521,19 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	explicit backed_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	backed_dependency_property()
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const type& t)
-		: base_t(desc),
-		m_contents(typename transactable_t::construct_embedded_t(), t)
+	explicit backed_dependency_property(const type& t)
+		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc, d)
+	explicit backed_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
-		: base_t(desc, d),
+	backed_dependency_property(const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
@@ -568,21 +557,19 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	explicit backed_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	backed_dependency_property()
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const type& t)
-		: base_t(desc),
-		m_contents(typename transactable_t::construct_embedded_t(), t)
+	explicit backed_dependency_property(const type& t)
+		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc)
+	explicit backed_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
-		: base_t(desc),
+	backed_dependency_property(const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
@@ -600,21 +587,19 @@ private:
 	volatile transactable_t m_contents;
 
 public:
-	explicit backed_dependency_property(rc_obj_base& desc)
-		: base_t(desc)
+	backed_dependency_property()
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const type& t)
-		: base_t(desc),
-		m_contents(typename transactable_t::construct_embedded_t(), t)
+	explicit backed_dependency_property(const type& t)
+		: m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d)
-		: base_t(desc, d)
+	explicit backed_dependency_property(const rcref<volatile dispatcher>& d)
+		: base_t(d)
 	{ }
 
-	backed_dependency_property(rc_obj_base& desc, const rcref<volatile dispatcher>& d, const type& t)
-		: base_t(desc, d),
+	backed_dependency_property(const rcref<volatile dispatcher>& d, const type& t)
+		: base_t(d),
 		m_contents(typename transactable_t::construct_embedded_t(), t)
 	{ }
 
@@ -630,7 +615,7 @@ template <typename F>
 inline rcref<dependency_property<type, io::permission::write> > dependency_property<type, io::permission::read>::on_changed(const rcref<volatile dispatcher>& d, F&& f)
 {
 	typedef delegated_dependency_property<type, io::permission::write> property_t;
-	rcref<dependency_property<type, io::permission::write> > result = rcnew(property_t, d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::permission::write> >& p)
+	rcref<dependency_property<type, io::permission::write> > result = rcnew(property_t)(d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::permission::write> >& p)
 	{
 		f(t, p);
 	}).template static_cast_to<dependency_property<type, io::permission::write> >();

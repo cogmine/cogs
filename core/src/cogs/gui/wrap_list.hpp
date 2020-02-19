@@ -390,23 +390,20 @@
 //		weak_rcptr<pane> m_pane;
 //	};
 //
-//	explicit wrap_list(rc_obj_base& desc)
-//		: pane(desc)
+//	wrap_list()
 //	{
 //		m_verticalAlignment = 0;
 //		m_horizontalAlignment = 0;
 //	}
 //
-//	wrap_list(rc_obj_base& desc, double primaryAlignment, double secondaryAlignment)
-//		: pane(desc)
+//	wrap_list(double primaryAlignment, double secondaryAlignment)
 //	{
 //		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 //		get_alignment(d) = primaryAlignment;
 //		get_alignment(!d) = secondaryAlignment;
 //	}
 //
-//	wrap_list(rc_obj_base& desc, double primaryAlignment)
-//		: pane(desc)
+//	explicit wrap_list(double primaryAlignment)
 //	{
 //		dimension d = geometry::planar::get_primary_flow_dimension(scriptFlow);
 //		get_alignment(d) = primaryAlignment;
@@ -420,7 +417,7 @@
 //		rcptr<canvas::cell> c2 = f;
 //		if (!c2)
 //			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
+//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
 //		c->m_removeToken = m_cells.prepend(c);
 //		pane::nest_first(child, c);
 //	}
@@ -430,7 +427,7 @@
 //		rcptr<canvas::cell> c2 = f;
 //		if (!c2)
 //			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
+//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
 //		c->m_removeToken = m_cells.append(c);
 //		pane::nest_last(child, c);
 //	}
@@ -440,7 +437,7 @@
 //		rcptr<canvas::cell> c2 = f;
 //		if (!c2)
 //			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
+//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
 //		rcptr<cell_t> beforeThisCell = beforeThis->get_outermost_frame().template static_cast_to<cell_t>();
 //		m_cells.insert_before(c, beforeThisCell->m_removeToken);
 //		pane::nest_before(child, beforeThis, c);
@@ -451,7 +448,7 @@
 //		rcptr<canvas::cell> c2 = f;
 //		if (!c2)
 //			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t, c2.dereference());
+//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
 //		rcptr<cell_t> afterThisCell = afterThis->get_outermost_frame().template static_cast_to<cell_t>();
 //		c->m_removeToken = m_cells.insert_after(c, afterThisCell->m_removeToken);
 //		pane::nest_after(child, afterThis, c);

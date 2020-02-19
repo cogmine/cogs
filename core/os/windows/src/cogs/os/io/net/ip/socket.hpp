@@ -32,9 +32,8 @@ private:
 	endpoint m_remoteEndpoint;
 
 public:
-	socket(rc_obj_base& desc, int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
-		: object(desc),
-		m_network(n),
+	socket(int type, int protocol, address_family addressFamily = address_family::inetv4, const rcref<os::io::completion_port>& cp = os::io::completion_port::get(), const rcref<network>& n = network::get_default())
+		: m_network(n),
 		m_completionPort(cp),
 		m_addressFamily(addressFamily)
 	{

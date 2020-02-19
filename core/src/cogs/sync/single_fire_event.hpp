@@ -29,11 +29,6 @@ private:
 	}
 
 public:
-	explicit single_fire_event(rc_obj_base& desc)
-		: object(desc),
-		m_signallableTask(desc)
-	{ }
-
 	virtual bool signal() volatile
 	{
 		return m_signallableTask.signal();

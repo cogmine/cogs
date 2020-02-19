@@ -73,12 +73,10 @@ private:
 	inline static unsigned int s_processorCount = 0;
 
 public:
-	thread(rc_obj_base& desc, const function<void()>& d)
-		: object(desc),
-		m_func(d),
+	explicit thread(const function<void()>& d)
+		: m_func(d),
 		m_releaseCount(0),
-		m_joinState(0),
-		m_exitSemaphore(desc)
+		m_joinState(0)
 	{
 		self_acquire(); // Last thread to interact will release explicit reference.
 		int i = pthread_create(&m_thread, NULL, thread_main, (void*)this);

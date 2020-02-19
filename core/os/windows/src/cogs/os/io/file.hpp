@@ -187,7 +187,7 @@
 //			HANDLE h = CreateFile(location.cstr(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_FLAG_OVERLAPPED, NULL);
 //			if (h != INVALID_HANDLE_VALUE)
 //			{
-//				o->m_handle = rcnew(auto_HANDLE, h);
+//				o->m_handle = rcnew(auto_HANDLE)(h);
 //
 //				BY_HANDLE_FILE_INFORMATION fileInfo;
 //				BOOL b = GetFileInformationByHandle(h, &fileInfo);
@@ -265,18 +265,18 @@
 //							m_fileIdMap.remove(itor);
 //						break; // go to end
 //					}
-//					writeHandle = rcnew(auto_HANDLE, h);
+//					writeHandle = rcnew(auto_HANDLE)(h);
 //				}
 //				FILE_STANDARD_INFO fsi;
 //				BOOL b = GetFileInformationByHandleEx(writeHandle->get(), FileStandardInfo, &fsi, sizeof(FILE_STANDARD_INFO));
 //				COGS_ASSERT(b);
-//				rawWriteFile = rcnew(file<io::write_access>, writeHandle.get_ref(), fileInfo.get_ref(), fsi.EndOfFile.QuadPart);
+//				rawWriteFile = rcnew(file<io::write_access>)(writeHandle.get_ref(), fileInfo.get_ref(), fsi.EndOfFile.QuadPart);
 //				fileInfo->m_rawWriteFile = rawWriteFile;
 //			}
 //
 //			if (((accessMode & io::read_access) != 0) && !rawReadFile)
 //			{
-//				rawReadFile = rcnew(file<io::read_access>, o->m_handle.get_ref(), fileInfo.get_ref());
+//				rawReadFile = rcnew(file<io::read_access>)(o->m_handle.get_ref(), fileInfo.get_ref());
 //				fileInfo->m_rawReadFile = rawReadFile;
 //			}
 //
@@ -354,7 +354,7 @@
 //
 // 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
 //	{
-//		return rcnew(reader, sm, this_rcref);
+//		return rcnew(reader)(sm, this_rcref);
 //	}
 //
 //	class size_reader : public io::file<io::read_access, file_size_t>::size_reader
@@ -372,7 +372,7 @@
 //		FILE_STANDARD_INFO fsi;
 //		BOOL b = GetFileInformationByHandleEx(m_readHandle->get(), FileStandardInfo, &fsi, sizeof(FILE_STANDARD_INFO));
 //
-//		rcref<size_reader> result = rcnew(size_reader, fsi.EndOfFile.QuadPart);
+//		rcref<size_reader> result = rcnew(size_reader)(fsi.EndOfFile.QuadPart);
 //		result->complete();
 //		return result;
 //	}
@@ -411,7 +411,7 @@
 //	static rcref<opener> open(const string& location)
 //	{
 //		rcptr<file_globals> g = file_globals::get_globals();
-//		return rcnew(opener, g->open<io::read_access>(location, false));
+//		return rcnew(opener)(g->open<io::read_access>(location, false));
 //	}
 //};
 //
@@ -444,7 +444,7 @@
 //
 // 	virtual rcref<io::file<io::write_access, file_size_t>::writer> begin_write(const rcref<io::segment_buffer_map<file_size_t> >& sbm)
 //	{
-//		return rcnew(writer, sbm, this_rcref);
+//		return rcnew(writer)(sbm, this_rcref);
 //	}
 //
 //	class size_writer : public io::file<io::write_access, file_size_t>::size_writer
@@ -464,7 +464,7 @@
 //		BOOL b = SetFileInformationByHandle(m_writeHandle->get(), FileEndOfFileInfo, &feofi, sizeof(FILE_END_OF_FILE_INFO));
 //		COGS_ASSERT(b);
 //
-//		rcref<size_writer> result = rcnew(size_writer, sz);
+//		rcref<size_writer> result = rcnew(size_writer)(sz);
 //		result->complete();
 //		return result;
 //	}
@@ -504,7 +504,7 @@
 //	static rcref<opener> open(const string& location, bool createIfNotPresent = false)
 //	{
 //		rcptr<file_globals> g = file_globals::get_globals();
-//		return rcnew(opener, g->open<io::write_access>(location, createIfNotPresent));
+//		return rcnew(opener)(g->open<io::write_access>(location, createIfNotPresent));
 //	}
 //};
 //
@@ -553,7 +553,7 @@
 //	static rcref<opener> open(const string& location, bool createIfNotPresent = true)
 //	{
 //		rcptr<file_globals> g = file_globals::get_globals();
-//		return rcnew(opener, g->open<io::read_write_access>(location, createIfNotPresent));
+//		return rcnew(opener)(g->open<io::read_write_access>(location, createIfNotPresent));
 //	}
 //};
 //
@@ -601,12 +601,12 @@
 //
 // 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
 //	{
-//		return rcnew(reader, sm, this_rcref);
+//		return rcnew(reader)(sm, this_rcref);
 //	}
 //
 //	virtual rcref<io::file<io::write_access, file_size_t>::writer> begin_write(const rcref<io::segment_buffer_map<file_size_t> >& sbm)
 //	{
-//		return rcnew(writer, sbm, this_rcref);
+//		return rcnew(writer)(sbm, this_rcref);
 //	}
 //
 //	// On Win32, the best way to tell if two paths refer to the same file is to open both files with CreateFile,
@@ -804,7 +804,7 @@
 //			HANDLE h = CreateFile(location.cstr(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_FLAG_OVERLAPPED, NULL);
 //			if (h != INVALID_HANDLE_VALUE)
 //			{
-//				o->m_handle = rcnew(auto_HANDLE, h);
+//				o->m_handle = rcnew(auto_HANDLE)(h);
 //
 //				// Even if we had created it with create_only, it's still possible another thread just now opened
 //				// the same file and already created a map entry for it.  Gotta check.
@@ -875,8 +875,8 @@
 //			}
 //			if (!readAlreadyOpen) // We need to add a new rawFile and synchronizedFile
 //			{
-//				rawFile = rcnew(file, o->m_handle.get_ref());
-//				synchronizedFileImpl = rcnew(io::synchronized_file_impl<file_size_t>, rawFile.get_ref(), rawFile.get_ref());
+//				rawFile = rcnew(file)(o->m_handle.get_ref());
+//				synchronizedFileImpl = rcnew(io::synchronized_file_impl<file_size_t>)(rawFile.get_ref(), rawFile.get_ref());
 //				itor->m_synchronizedFileImpl = synchronizedFileImpl;
 //				itor->m_rawFile = rawFile;
 //			}
@@ -884,9 +884,9 @@
 //			{
 //				++(rawFile->m_writeCount);
 //				if (!writeAlreadyOpen)
-//					rawFile->m_writeHandle = rcnew(auto_HANDLE, writeHandle);
+//					rawFile->m_writeHandle = rcnew(auto_HANDLE)(writeHandle);
 //			}
-//			o->m_file = rcnew(synchronized_file<accessMode>, synchronizedFileImpl.get_ref());
+//			o->m_file = rcnew(synchronized_file<accessMode>)(synchronizedFileImpl.get_ref());
 //			break;
 //		}
 //		o->m_handle = 0;
@@ -945,7 +945,7 @@
 //	HANDLE h = CreateFile(location.cstr(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 //	if (h == INVALID_HANDLE_VALUE)
 //		return rcptr<io::file<io::read_access> >();
-//	return rcnew(os::file, h);
+//	return rcnew(os::file)(h);
 //}
 //
 //inline rcptr<io::file<io::read_write_access> > io::file<io::read_write_access>::open(const string& location, io::file<io::read_write_access>::create_mode mode)
@@ -974,7 +974,7 @@
 //	if (h == INVALID_HANDLE_VALUE)
 //		return rcptr<io::file<io::read_write_access> >();
 //
-//	rcref<os::file> f = rcnew(os::file, h);
+//	rcref<os::file> f = rcnew(os::file)(h);
 //	f->m_eof = f->get_eof();
 //	return f;
 //}
@@ -1122,17 +1122,17 @@
 //	};
 //
 //	file(HANDLE h)
-//		: m_handle(rcnew(auto_HANDLE, h))
+//		: m_handle(rcnew(auto_HANDLE)(h))
 //	{ }
 //
 //	virtual rcref<io::file<io::read_write_access>::reader> create_reader()
 //	{
-//		return rcnew(file_reader, m_handle);
+//		return rcnew(file_reader)(m_handle);
 //	}
 //
 //	virtual rcref<io::file<io::read_write_access>::writer> create_writer()
 //	{
-//		return rcnew(file_writer, m_handle);
+//		return rcnew(file_writer)(m_handle);
 //	}
 //
 //	virtual const uint64_t eof()
@@ -1157,7 +1157,7 @@
 //	HANDLE h = CreateFile(location.cstr(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 //	if (h == INVALID_HANDLE_VALUE)
 //		return rcptr<io::file<io::read_access> >();
-//	return rcnew(os::file, h);
+//	return rcnew(os::file)(h);
 //}
 //*/
 ///*
@@ -1187,7 +1187,7 @@
 //	if (h == INVALID_HANDLE_VALUE)
 //		return rcptr<io::file<io::read_write_access> >();
 //
-//	rcref<os::file> f = rcnew(os::file, h);
+//	rcref<os::file> f = rcnew(os::file)(h);
 //	f->m_eof = f->get_eof();
 //	return f;
 //}

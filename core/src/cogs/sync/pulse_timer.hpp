@@ -25,9 +25,10 @@ class pulse_timer : public timer
 private:
 	const bool m_wakeAll;
 
-	pulse_timer() = delete;
 	pulse_timer(const pulse_timer&) = delete;
+	pulse_timer(pulse_timer&&) = delete;
 	pulse_timer& operator=(const pulse_timer&) = delete;
+	pulse_timer& operator=(pulse_timer&&) = delete;
 
 	virtual void triggered()
 	{
@@ -43,14 +44,14 @@ public:
 
 	// wakeAll false means only wake 1 waiter per timer expiration
 
-	explicit pulse_timer(rc_obj_base& desc)
-		: timer(desc, timeout_t::infinite()),
+	pulse_timer()
+		: timer(timeout_t::infinite()),
 		m_wakeAll(true)
 	{
 	}
 
-	pulse_timer(rc_obj_base& desc, const timeout_t& t, bool wakeAll = true)
-		: timer(desc, t),
+	explicit pulse_timer(const timeout_t& t, bool wakeAll = true)
+		: timer(t),
 		m_wakeAll(wakeAll)
 	{
 		if (!t.is_infinite())

@@ -378,10 +378,6 @@ private:
 	rcptr<bridgeable_pane> m_bridgedPane;
 
 protected:
-	explicit pane_bridge(rc_obj_base& desc)
-		: pane(desc)
-	{ }
-
 	const rcptr<bridgeable_pane>& get_bridged() const { return m_bridgedPane; }
 
 	void install_bridged(const rcref<bridgeable_pane>& bp)

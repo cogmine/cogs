@@ -113,13 +113,12 @@ private:
 	}
 
 protected:
-	explicit kqueue_pool(rc_obj_base& desc)
-		: object(desc),
-		m_fd(rcnew(auto_fd))
+	kqueue_pool()
+		: m_fd(rcnew(auto_fd))
 	{
 		int fd = kqueue();
 		m_fd->get() = fd;
-		m_func = rcnew(task, m_fd, this_rcref);
+		m_func = rcnew(task)(m_fd, this_rcref);
 	}
 
 public:

@@ -195,9 +195,8 @@ public:
 
 	protected:
 		/// @brief Constructor
-		explicit task_base(rc_obj_base& desc)
-			: object(desc),
-			m_state(state::queued),
+		task_base()
+			: m_state(state::queued),
 			m_wasClosed(false)
 		{
 		}
@@ -268,11 +267,6 @@ public:
 	public:
 		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(io_task<result_t>, task_base, signallable_task_base<result_t>);
 
-		explicit io_task(rc_obj_base& desc)
-			: task_base(desc),
-			signallable_task_base<result_t>(desc)
-		{ }
-
 		virtual rcref<task<bool> > cancel() volatile
 		{
 			abort();
@@ -342,7 +336,7 @@ protected:
 
 	public:
 		content_t()
-			: m_closeEvent(rcnew(count_down_event, 1))
+			: m_closeEvent(rcnew(count_down_event)(1))
 		{ }
 
 		~content_t()
@@ -371,9 +365,8 @@ protected:
 	}
 
 public:
-	explicit queue(rc_obj_base& desc)
-		: object(desc),
-		m_contents(rcnew(content_t))
+	queue()
+		: m_contents(rcnew(content_t))
 	{
 		m_closeEvent = m_contents->m_closeEvent;
 	}

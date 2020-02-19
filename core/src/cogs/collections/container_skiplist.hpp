@@ -111,9 +111,8 @@ private:
 		virtual payload_t* get_payload() { return NULL; }
 		virtual const payload_t* get_payload() const { return NULL; }
 
-		link_t(rc_obj_base& desc, height_t height, link_mode linkMode)
-			: object(desc),
-			m_height(height),
+		link_t(height_t height, link_mode linkMode)
+			: m_height(height),
 			m_primaryMode(linkMode)
 		{
 			height_t heightPlusOne = height + 1;
@@ -124,9 +123,8 @@ private:
 				m_links[i]->m_mode = linkMode;
 		}
 
-		link_t(rc_obj_base& desc, height_t height)
-			: object(desc),
-			m_height(height),
+		link_t(height_t height)
+			: m_height(height),
 			m_primaryMode(link_mode::inserting)
 		{
 			height_t heightPlusOne = height + 1;
@@ -137,14 +135,12 @@ private:
 				m_links[i]->m_mode = link_mode::inserting;
 		}
 
-		link_t(rc_obj_base& desc, link_mode linkMode)
-			: object(desc),
-			m_primaryMode(linkMode)
+		link_t(link_mode linkMode)
+			: m_primaryMode(linkMode)
 		{ }
 
-		explicit link_t(rc_obj_base& desc)
-			: object(desc),
-			m_primaryMode(link_mode::inserting)
+		link_t()
+			: m_primaryMode(link_mode::inserting)
 		{ }
 
 		~link_t()
@@ -1025,26 +1021,24 @@ private:
 		virtual payload_t* get_payload() { return &m_value.get(); }
 		virtual const payload_t* get_payload() const { return &m_value.get(); }
 
-		explicit payload_link_t(rc_obj_base& desc)
-			: link_t(desc)
+		payload_link_t()
 		{
 			new (get_payload()) payload_t;
 		}
 
-		payload_link_t(rc_obj_base& desc, const payload_t& t)
-			: link_t(desc)
+		explicit payload_link_t(const payload_t& t)
 		{
 			new (get_payload()) payload_t(t);
 		}
 
-		payload_link_t(rc_obj_base& desc, height_t height)
-			: link_t(desc, height)
+		explicit payload_link_t(height_t height)
+			: link_t(height)
 		{
 			new (get_payload()) payload_t;
 		}
 
-		payload_link_t(rc_obj_base& desc, const payload_t& t, height_t height)
-			: link_t(desc, height)
+		payload_link_t(const payload_t& t, height_t height)
+			: link_t(height)
 		{
 			new (get_payload()) payload_t(t);
 		}
@@ -1062,14 +1056,13 @@ private:
 
 		delayed_construction<T2> m_aux;
 
-		explicit aux_payload_link_t(rc_obj_base& desc)
-			: payload_link_t(desc)
+		aux_payload_link_t()
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
 
-		aux_payload_link_t(rc_obj_base& desc, const payload_t& t)
-			: payload_link_t(desc, t)
+		explicit aux_payload_link_t(const payload_t& t)
+			: payload_link_t(t)
 		{
 			placement_rcnew(&m_aux.get(), this_desc);
 		}
@@ -1084,8 +1077,8 @@ private:
 	class sentinel_link_t : public link_t
 	{
 	public:
-		explicit sentinel_link_t(rc_obj_base& desc)
-			: link_t(desc, max_height, link_mode::normal)
+		sentinel_link_t()
+			: link_t(max_height, link_mode::normal)
 		{
 			link_t::m_links[0]->m_prev = link_t::m_links[0]->m_next = this_rcptr;
 		}
@@ -2720,7 +2713,7 @@ public:
 	}
 
 	preallocated preallocate() const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
-	preallocated preallocate(const payload_t& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t, t); return i; }
+	preallocated preallocate(const payload_t& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t)(t); return i; }
 
 	template <typename T>
 	const rcref<T>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
@@ -2735,7 +2728,7 @@ public:
 	const rcref<T>& preallocate_with_aux(const payload_t& t, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
 	{
 		typedef aux_payload_link_t<T> aux_payload_t;
-		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t, t);
+		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t)(t);
 		i.m_link = p;
 		return p->get_aux_ref(storage);
 	}
@@ -2777,7 +2770,7 @@ public:
 	iterator insert_multi(const payload_t& t)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
 		i.m_link->insert_multi(m_heightAndCount.m_currentHeight, sentinel);
@@ -2797,7 +2790,7 @@ public:
 	volatile_iterator insert_multi(const payload_t& t, bool& wasEmpty) volatile
 	{
 		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
 		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
 		i.m_link.template const_cast_to<link_t>()->insert_multi(wasEmpty, height, sentinel);
@@ -2832,7 +2825,7 @@ public:
 	iterator insert_replace(const payload_t& t)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
 		i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
@@ -2843,7 +2836,7 @@ public:
 	iterator insert_replace(const payload_t& t, bool& collision)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
 		collision = i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
@@ -2923,7 +2916,7 @@ public:
 	iterator insert_unique(const payload_t& t)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
 		if (!!i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel))
@@ -2937,7 +2930,7 @@ public:
 	iterator insert_unique(const payload_t& t, bool& collision)
 	{
 		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<link_t>& sentinel = lazy_init_sentinel();
 		accommodate_height(i.m_link->m_height);
 		rcptr<link_t> collidedWith = i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel);
@@ -2953,7 +2946,7 @@ public:
 	volatile_iterator insert_unique(const payload_t& t) volatile
 	{
 		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
 		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
 		if (!!i.m_link.template const_cast_to<link_t>()->insert_unique(height, sentinel))
@@ -2967,7 +2960,7 @@ public:
 	volatile_iterator insert_unique(const payload_t& t, bool& collision) volatile
 	{
 		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t, t, generate_height());
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
 		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
 		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
 		rcptr<link_t> collidedWith = i.m_link.template const_cast_to<link_t>()->insert_unique(height, sentinel);

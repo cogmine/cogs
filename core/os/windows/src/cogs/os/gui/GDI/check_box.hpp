@@ -30,8 +30,8 @@ public:
 	bool m_isChecked;
 	HBRUSH m_backgroundBrush = NULL;
 
-	check_box(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, hwnd_draw_mode::system_direct)
+	explicit check_box(const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_AUTOCHECKBOX, 0, uiSubsystem, hwnd_draw_mode::system_direct)
 	{ }
 
 	virtual void installing()
@@ -187,7 +187,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > hwnd::subsystem::create_check_box() volatile
 {
-	rcref<check_box> cb = rcnew(check_box, this_rcref);
+	rcref<check_box> cb = rcnew(check_box)(this_rcref);
 	return std::make_pair(cb, cb);
 }
 

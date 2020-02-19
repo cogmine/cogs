@@ -25,11 +25,6 @@ protected:
 	}
 
 public:
-	explicit native_container_pane(rc_obj_base& desc)
-		: pane_bridge(desc)
-	{
-	}
-
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }

@@ -151,7 +151,7 @@
 //			if (needsReshape)
 //				reshape_children();
 //
-//			panel::nest(child, rcnew(cell_frame, row, column, rowCount, columnCount));
+//			panel::nest(child, rcnew(cell_frame)(row, column, rowCount, columnCount));
 //		}
 //	}
 //

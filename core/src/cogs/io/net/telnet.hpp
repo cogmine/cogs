@@ -511,8 +511,8 @@ private:
 	}
 
 public:
-	telnet(rc_obj_base& desc, const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
-		: datastream_protocol(desc, ds),
+	explicit telnet(const rcref<datastream>& ds, const rcptr<terminal>& term = 0)
+		: datastream_protocol(ds),
 		m_terminal(term)
 	{
 		if (!!term)

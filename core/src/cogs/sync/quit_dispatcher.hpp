@@ -138,10 +138,8 @@ private:
 
 public:
 
-	explicit quit_dispatcher(rc_obj_base& desc)
-		: object(desc),
-		m_event(desc),
-		m_priorityDispatcher(rcnew(priority_dispatcher))
+	quit_dispatcher()
+		: m_priorityDispatcher(rcnew(priority_dispatcher))
 	{
 		m_contents->m_refCount = 0;
 		m_contents->m_state = state::running;

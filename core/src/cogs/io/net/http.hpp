@@ -135,10 +135,6 @@ private:
 	trailer_map_t m_trailers;
 
 public:
-	explicit chunk_source(rc_obj_base& desc)
-		: filter(desc)
-	{ }
-
 	virtual rcref<task<composite_buffer> > filtering(composite_buffer& src)
 	{
 		composite_buffer result;
@@ -236,8 +232,8 @@ public:
 class chunk_sink : public filter
 {
 public:
-	explicit chunk_sink(rc_obj_base& desc)
-		: filter(desc, [](composite_buffer & src)
+	chunk_sink()
+		: filter([](composite_buffer & src)
 		{
 			composite_buffer result;
 			static constexpr char CRLF[2] = { special_characters<char>::CR, special_characters<char>::LF };
@@ -451,7 +447,7 @@ composite_cstring url_decode(const composite_cstring& s);
 //		if (!u.uses_default_port())
 //			port = u.get_port();
 //
-//		rcref<client> c = rcnew(client, u.get_host(), port, useSSL);
+//		rcref<client> c = rcnew(client)(u.get_host(), port, useSSL);
 //		//return c->begin_request();
 //	}
 //};
@@ -491,8 +487,8 @@ private:
 			return server::default_create_request(this_rcref);
 		}
 
-		connection(rc_obj_base& desc, const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
-			: net::request_response_server::connection(desc, srvr, c, true, inactivityTimeout)
+		connection(const rcref<server>& srvr, const rcref<net::connection>& c, const timeout_t::period_t& inactivityTimeout = timeout_t::period_t(0))
+			: net::request_response_server::connection(srvr, c, true, inactivityTimeout)
 		{ }
 	};
 
@@ -602,8 +598,8 @@ private:
 		friend class connection;
 		friend class request;
 
-		response(rc_obj_base& desc, const rcref<request>& r, status code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
-			: net::request_response_server::response(desc, r),
+		response(const rcref<request>& r, status code, const composite_cstring& statusPhrase, mode m, size_t contentLength, bool reuseConnection)
+			: net::request_response_server::response(r),
 			m_mode(m),
 			m_contentLength(contentLength),
 			m_statusCode(code),
@@ -666,7 +662,7 @@ private:
 
 						// Content-Length header.  (rfc2616,  14.13 Content-Length)
 						headers->insert_replace(cstring::literal("Content-Length"), contentLengthNum.to_cstring());
-						m_sinkContentLengthLimiter = rcnew(limiter, m_contentLength);
+						m_sinkContentLengthLimiter = rcnew(limiter)(m_contentLength);
 					}
 				}
 
@@ -969,7 +965,7 @@ private:
 									if (!!itor) // if known content length, add a limiter.
 									{
 										m_contentLength = itor->to_int<size_t>();
-										m_sourceContentLengthLimiter = rcnew(limiter, m_contentLength);
+										m_sourceContentLengthLimiter = rcnew(limiter)(m_contentLength);
 
 										couple(m_source.dereference(), m_sourceContentLengthLimiter.dereference(), true);
 										m_source = m_sourceContentLengthLimiter;
@@ -1016,14 +1012,14 @@ private:
 		}
 
 	protected:
-		request(rc_obj_base& desc, const rcref<connection>& c)
-			: net::request_response_server::request(desc, c),
+		explicit request(const rcref<connection>& c)
+			: net::request_response_server::request(c),
 			m_supportOutgoingChunking(true),
 			m_requestHeaders(rcnew(header_map_t)),
 			m_responseHeaders(rcnew(header_map_t)),
 			m_contentLength(0),
 			m_CRLFs(0),
-			m_sink(rcnew(datasink, [r{ this_weak_rcptr }](composite_buffer& b)
+			m_sink(rcnew(datasink)([r{ this_weak_rcptr }](composite_buffer& b)
 			{
 				rcptr<request> r2 = r;
 				if (!r2)
@@ -1113,7 +1109,7 @@ private:
 				m = response::mode::raw;
 
 			m_coupler->cancel();
-			rcref<response> r = rcnew(response, this_rcref, code, statusPhrase, m, contentLength, reuseConnection);
+			rcref<response> r = rcnew(response)(this_rcref, code, statusPhrase, m, contentLength, reuseConnection);
 			r->start();
 			return r;
 		}
@@ -1155,7 +1151,7 @@ private:
 private:
 	static rcref<net::request_response_server::request> default_create_request(const rcref<connection>& c)
 	{
-		return rcnew(request, c);
+		return rcnew(request)(c);
 	}
 
 	rcref<verb_handler_map_t> m_verbHandlerMap;
@@ -1164,7 +1160,7 @@ private:
 
 	virtual rcref<net::server::connection> create_connection(const rcref<net::connection>& ds)
 	{
-		return rcnew(connection, this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
+		return rcnew(connection)(this_rcref, ds);// , make_measure<seconds>(inactivity_timeout_in_seconds));
 	}
 
 	static void default_get_handler(const rcref<request>& r)
@@ -1240,14 +1236,12 @@ private:
 	}
 
 public:
-	explicit server(rc_obj_base& desc)
-		: net::request_response_server(desc),
-		m_verbHandlerMap(get_default_verb_handlers())
+	server()
+		: m_verbHandlerMap(get_default_verb_handlers())
 	{ }
 
-	server(rc_obj_base& desc, const rcref<verb_handler_map_t>& verbHandlers)
-		: net::request_response_server(desc),
-		m_verbHandlerMap(verbHandlers)
+	explicit server(const rcref<verb_handler_map_t>& verbHandlers)
+		: m_verbHandlerMap(verbHandlers)
 	{ }
 
 	//static constexpr uint16_t inactivity_timeout_in_seconds = 60 * 2; // 2 minute inactivity timeout

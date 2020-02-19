@@ -28,10 +28,10 @@ private:
 	delegated_dependency_property<color> m_colorProperty;
 
 public:
-	background(rc_obj_base& desc, const color& c, compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(desc, cb),
+	background(const color& c, compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(cb),
 		m_color(c),
-		m_colorProperty(desc, *this, [this]()
+		m_colorProperty(*this, [this]()
 			{
 				return m_color;
 			}, [this](color c)

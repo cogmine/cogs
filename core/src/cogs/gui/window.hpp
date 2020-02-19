@@ -41,9 +41,8 @@ private:
 	public:
 		window* m_window;
 
-		window_task(rc_obj_base& desc, window* w)
-			: task<void>(desc),
-			m_window(w)
+		explicit window_task(window* w)
+			: m_window(w)
 		{ }
 
 		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile
@@ -96,13 +95,11 @@ protected:
 	}
 
 public:
-	window(rc_obj_base& desc,
-		const gfx::canvas::point* screenPosition,
+	window(const gfx::canvas::point* screenPosition,
 		const gfx::canvas::size* frameSize,
 		bool positionCentered,
 		const composite_string& title)
-		: pane_bridge(desc),
-		m_windowTask(desc, this),
+		: m_windowTask(this),
 		m_hasInitialScreenPosition(screenPosition != nullptr),
 		m_hasInitialFrameSize(frameSize != nullptr),
 		m_initialPositionCentered(positionCentered),
@@ -201,7 +198,7 @@ inline rcref<gui::window> windowing::subsystem::open_window(
 	const composite_string& title,
 	const rcref<pane>& p) volatile
 {
-	rcref<gui::window> w = rcnew(window, screenPosition, frameSize, positionCentered, title);
+	rcref<gui::window> w = rcnew(window)(screenPosition, frameSize, positionCentered, title);
 	w->nest(p);
 	install(*w, this_rcref);
 	return w;

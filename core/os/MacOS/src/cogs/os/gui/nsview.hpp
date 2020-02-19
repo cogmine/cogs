@@ -69,10 +69,6 @@ private:
 	class control_queue_t : public priority_dispatcher
 	{
 	public:
-		explicit control_queue_t(rc_obj_base& desc)
-			: priority_dispatcher(desc)
-		{ }
-
 		~control_queue_t() { drain(); }
 
 		bool drain() volatile
@@ -145,9 +141,8 @@ private:
 	}
 
 protected:
-	explicit ui_thread(rc_obj_base& desc)
-		: object(desc),
-		m_controlQueue(rcnew(control_queue_t)),
+	ui_thread()
+		: m_controlQueue(rcnew(control_queue_t)),
 		m_dispatchMode(0)
 	{ }
 
@@ -196,9 +191,8 @@ private:
 	}
 
 public:
-	explicit nsview_subsystem(rc_obj_base& desc)
-		: gui::windowing::subsystem(desc),
-		m_visibleWindows(rcnew(visible_windows_list_t)),
+	nsview_subsystem()
+		: m_visibleWindows(rcnew(visible_windows_list_t)),
 		m_mainThreadDispatcher(ui_thread::get()),
 		m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
 		{
@@ -293,9 +287,8 @@ protected:
 	const rcref<volatile nsview_subsystem>& get_subsystem() const { return m_uiSubsystem; }
 
 public:
-	nsview_pane(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: object(desc),
-		m_uiSubsystem(uiSubsystem)
+	explicit nsview_pane(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: m_uiSubsystem(uiSubsystem)
 	{ }
 
 	NSView* get_NSView() const
@@ -615,8 +608,8 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 	class native_pane : public nsview_pane
 	{
 	public:
-		native_pane(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& subSystem)
-			: nsview_pane(desc, subSystem)
+		explicit native_pane(const rcref<volatile nsview_subsystem>& subSystem)
+			: nsview_pane(subSystem)
 		{ }
 
 		virtual void installing()
@@ -631,7 +624,7 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 		}
 	};
 
-	rcref<nsview_pane> p = rcnew(native_pane, this_rcref);
+	rcref<nsview_pane> p = rcnew(native_pane)(this_rcref);
 	return p;
 }
 

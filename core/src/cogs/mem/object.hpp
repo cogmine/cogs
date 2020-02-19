@@ -26,6 +26,15 @@ class rcref;
 template <typename T>
 class weak_rcptr;
 
+struct rcnew_glue_element_t
+{
+	mutable void* m_obj;
+	mutable rc_obj_base* m_desc;
+	mutable const rcnew_glue_element_t* m_saved;
+};
+
+inline static thread_local const rcnew_glue_element_t* rcnew_glue_element = nullptr;
+
 
 /// @ingroup Mem
 /// @brief A base class for objects intended to be allocated with rcnew.  Provides access to this_rcref, etc.
@@ -34,10 +43,13 @@ class object : public rc_object_base
 protected:
 	rc_obj_base* m_desc;
 
-	object() = delete;
-
 public:
-	explicit object(rc_obj_base& desc) : m_desc(&desc) { }
+	object()
+	{
+		COGS_ASSERT(rcnew_glue_element != nullptr);
+		COGS_ASSERT(rcnew_glue_element != (void*)0xcbcbcbcbcbcbcbcb);
+		m_desc = rcnew_glue_element->m_desc;
+	}
 
 	rc_obj_base* get_desc() const { return m_desc; }
 	rc_obj_base* get_desc() const volatile { return m_desc; } // Set on construction and not modified.

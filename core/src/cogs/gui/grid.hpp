@@ -325,9 +325,8 @@
 //	}
 //
 //public:
-//	explicit grid(rc_obj_base& desc)
-//		: pane(desc),
-//		m_wasRecalculated(false)
+//	grid()
+//		: m_wasRecalculated(false)
 //	{ }
 //
 //	void nest(const rcref<pane>& child, const primary_key_t& primaryKey, const secondary_key_t& secondaryKey, const rcptr<frame>& f = 0)
@@ -335,7 +334,7 @@
 //		rcptr<canvas::cell> f2 = f;
 //		if (!f2)
 //			f2 = child;
-//		rcref<cell_t> c = rcnew(cell_t, f2.dereference());
+//		rcref<cell_t> c = rcnew(cell_t)(f2.dereference());
 //		rcptr<primary_row_t> r;
 //		typename primary_map_t::iterator itor = m_primaryRows.find_any_equal(primaryKey);
 //		if (!!itor)

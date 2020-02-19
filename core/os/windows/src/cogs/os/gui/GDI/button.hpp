@@ -29,8 +29,8 @@ public:
 	size m_defaultSize;
 	HBRUSH m_backgroundBrush = NULL;
 
-	button(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, hwnd_draw_mode::system_offscreen)
+	explicit button(const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(composite_string::literal(L"BUTTON"), WS_TABSTOP | BS_CENTER | BS_PUSHBUTTON | BS_TEXT, 0, uiSubsystem, hwnd_draw_mode::system_offscreen)
 	{ }
 
 	virtual void installing()
@@ -190,7 +190,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > hwnd::subsystem::create_button() volatile
 {
-	rcref<button> b = rcnew(button, this_rcref);
+	rcref<button> b = rcnew(button)(this_rcref);
 	return std::make_pair(b, b);
 }
 

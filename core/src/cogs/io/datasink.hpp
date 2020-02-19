@@ -77,7 +77,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this task
-		datasink_task(rc_obj_base& desc, const rcref<datasink>& ds) : io::queue::io_task<result_t>(desc), m_sink(ds) { }
+		explicit datasink_task(const rcref<datasink>& ds) : m_sink(ds) { }
 
 		/// @brief Derived class implements executing() to execute the task
 		virtual void executing() = 0;
@@ -118,7 +118,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this flusher
-		flusher(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<flusher>(desc, ds) { }
+		explicit flusher(const rcref<datasink>& ds) : datasink_task<flusher>(ds) { }
 
 		/// @brief Derived class should implement flushing() to perform the flush operation.
 		///
@@ -158,7 +158,7 @@ public:
 
 	protected:
 		/// @brief Constructor
-		closer(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<closer>(desc, ds) { }
+		explicit closer(const rcref<datasink>& ds) : datasink_task<closer>(ds) { }
 
 		/// @brief Derived class implements closing() to perform the close operation.
 		///
@@ -207,7 +207,7 @@ public:
 	protected:
 		/// @brief Constructor
 		/// @param ds Datasink to associate with this writer
-		writer(rc_obj_base& desc, const rcref<datasink>& ds) : datasink_task<writer>(desc, ds) { }
+		explicit writer(const rcref<datasink>& ds) : datasink_task<writer>(ds) { }
 
 		/// @brief Derived writers should implement writing() to perform the write operation
 		///
@@ -305,8 +305,8 @@ private:
 	public:
 		const weak_rcptr<datasink> m_sink;
 
-		callback_writer(rc_obj_base& desc, const rcref<datasink>& proxy, const rcref<datasink>& ds)
-			: writer(desc, proxy),
+		callback_writer(const rcref<datasink>& proxy, const rcref<datasink>& ds)
+			: writer(proxy),
 			m_sink(ds)
 		{
 		}
@@ -328,16 +328,14 @@ private:
 	};
 
 protected:
-	explicit datasink(rc_obj_base& desc)
-		: object(desc),
-		m_ioQueue(rcnew(queue))
+	datasink()
+		: m_ioQueue(rcnew(queue))
 	{ }
 
 	/// @brief Constructor
 	/// @param ioQueue The io::queue to use.  Default: creates a new one
-	datasink(rc_obj_base& desc, const rcref<io::queue>& ioQueue)
-		: object(desc),
-		m_ioQueue(ioQueue)
+	explicit datasink(const rcref<io::queue>& ioQueue)
+		: m_ioQueue(ioQueue)
 	{ }
 
 	/// @brief Arbitrarily enqueues an io::queue::io_task in the datasink's IO queue
@@ -358,13 +356,13 @@ protected:
 	/// @param ds A datasink reference to encapsulate in the flusher.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new flusher
-	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds) { return rcnew(flusher, ds); }
+	virtual rcref<flusher> create_sink_flusher(const rcref<datasink>& ds) { return rcnew(flusher)(ds); }
 
 	/// @brief Create a datasink::closer.  Used by derived datasinks to create derived closer
 	/// @param ds A datasink reference to encapsulate in the closer.  This may different from this datasink, if
 	/// another datasink is acting as a facade.
 	/// @return A reference to a new closer
-	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds) { return rcnew(closer, ds); }
+	virtual rcref<closer> create_sink_closer(const rcref<datasink>& ds) { return rcnew(closer)(ds); }
 
 	/// @brief Create a datasink::writer.  Used by derived datasinks to create derived writer
 	/// @param ds A datasink reference to encapsulate in the writer.  This may different from this datasink, if
@@ -373,20 +371,18 @@ protected:
 	virtual rcref<writer> create_writer(const rcref<datasink>& ds)
 	{
 		if (!!m_writeFunc)
-			return rcnew(callback_writer, ds, this_rcref);
-		return rcnew(writer, ds);
+			return rcnew(callback_writer)(ds, this_rcref);
+		return rcnew(writer)(ds);
 	}
 
 public:
-	datasink(rc_obj_base& desc, const write_func_t& writeFunc)
-		: object(desc),
-		m_ioQueue(rcnew(queue)),
+	explicit datasink(const write_func_t& writeFunc)
+		: m_ioQueue(rcnew(queue)),
 		m_writeFunc(writeFunc)
 	{ }
 
-	datasink(rc_obj_base& desc, write_func_t&& writeFunc)
-		: object(desc),
-		m_ioQueue(rcnew(queue)),
+	explicit datasink(write_func_t&& writeFunc)
+		: m_ioQueue(rcnew(queue)),
 		m_writeFunc(std::move(writeFunc))
 	{ }
 };
@@ -424,10 +420,6 @@ private:
 		class plug : public io::queue::io_task<plug>
 		{
 		public:
-			explicit plug(rc_obj_base& desc)
-				: io::queue::io_task<plug>(desc)
-			{ }
-
 			volatile boolean m_transactionRunning; // Which of the 2 fails to set from false to true, completes the operation.
 
 			using io::queue::io_task<plug>::complete;
@@ -458,9 +450,8 @@ private:
 				p->complete();
 		}
 
-		transaction_task(rc_obj_base& desc, const rcref<io::queue>& ioQueue, propagate_close propagateClose)
-			: io::queue::io_task<transaction_task>(desc),
-			m_transactionIoQueue(ioQueue),
+		transaction_task(const rcref<io::queue>& ioQueue, propagate_close propagateClose)
+			: m_transactionIoQueue(ioQueue),
 			m_propagateClose(propagateClose)
 		{ }
 
@@ -536,9 +527,8 @@ private:
 	public:
 		rcref<transaction_task> m_transactionTask;
 
-		terminator(rc_obj_base& desc, const rcref<transaction_task>& t)
-			: io::queue::io_task<terminator>(desc),
-			m_transactionTask(t)
+		explicit terminator(const rcref<transaction_task>& t)
+			: m_transactionTask(t)
 		{ }
 
 		virtual void executing()
@@ -599,11 +589,10 @@ public:
 	/// @param startImmediately Indicates whether to start the transaction immediately.  If false, start() must be called
 	/// at some point to queue the transaction to the datasink.
 	/// @param propagateClose Indicates what happens to the target datasink when a datasink::transaction closes or aborts.
-	transaction(rc_obj_base& desc, const rcref<datasink>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
-		: datasink(desc),
-		m_sink(ds),
+	explicit transaction(const rcref<datasink>& ds, bool startImmediately = true, propagate_close propagateClose = propagate_close::on_close_or_abort)
+		: m_sink(ds),
 		m_started(startImmediately),
-		m_transactionTask(rcnew(transaction_task, m_ioQueue.dereference(), propagateClose))
+		m_transactionTask(rcnew(transaction_task)(m_ioQueue.dereference(), propagateClose))
 	{
 		if (startImmediately)
 			ds->sink_enqueue(m_transactionTask);
@@ -637,7 +626,7 @@ public:
 	{
 		if (!!m_started)
 		{
-			rcref<terminator> t = rcnew(terminator, m_transactionTask);
+			rcref<terminator> t = rcnew(terminator)(m_transactionTask);
 			m_ioQueue->try_enqueue(t);
 		}
 

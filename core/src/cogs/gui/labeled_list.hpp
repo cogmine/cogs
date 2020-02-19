@@ -704,7 +704,7 @@
 //	nest_token nest_before(const rcref<pane>& child, const nest_token& beforeThis, const rcptr<frame>& userReshaper = 0)
 //	{
 //		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
+//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
 //		nt.m_removeToken = cell->m_removeToken = m_cells.insert_before(cell, beforeThis.m_removeToken);
 //		pane::nest(child, cell);
 //		return nt;
@@ -713,7 +713,7 @@
 //	nest_token nest_after(const rcref<pane>& child, const nest_token& afterThis, const rcptr<frame>& userReshaper = 0)
 //	{
 //		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
+//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
 //		nt.m_removeToken = cell->m_removeToken = m_cells.insert_after(cell, afterThis.m_removeToken);
 //		pane::nest(child, cell);
 //		return nt;
@@ -722,7 +722,7 @@
 //	nest_token nest_first(const rcref<pane>& child, const rcptr<frame>& userReshaper = 0)
 //	{
 //		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
+//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
 //		nt.m_removeToken = cell->m_removeToken = m_cells.prepend(cell);
 //		pane::nest(child, cell);
 //		return nt;
@@ -731,7 +731,7 @@
 //	nest_token nest_last(const rcref<pane>& child, const rcptr<frame>& userReshaper = 0)
 //	{
 //		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t, child, userReshaper);
+//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
 //		nt.m_removeToken = cell->m_removeToken = m_cells.append(cell);
 //		pane::nest(child, cell);
 //		return nt;

@@ -116,9 +116,9 @@ private:
 	}
 
 public:
-	scroll_bar(rc_obj_base& desc, const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(desc, string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, hwnd_draw_mode::system_offscreen),
-		m_stateProperty(desc, uiSubsystem, [this]()
+	explicit scroll_bar(const rcref<volatile hwnd::subsystem>& uiSubsystem)
+		: hwnd_pane(string::literal(L"SCROLLBAR"), WS_TABSTOP, 0, uiSubsystem, hwnd_draw_mode::system_offscreen),
+		m_stateProperty(uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());
 		}, [this](const scroll_bar_state& state)
@@ -134,7 +134,7 @@ public:
 			}
 			m_stateProperty.set_complete();
 		}),
-		m_positionProperty(desc, uiSubsystem, [this]()
+		m_positionProperty(uiSubsystem, [this]()
 		{
 			return atomic::load(m_pos);
 		}, [this](double d)
@@ -148,7 +148,7 @@ public:
 			}
 			m_positionProperty.set_complete();
 		}),
-		m_canAutoFadeProperty(desc, uiSubsystem, [](){ return false; })
+		m_canAutoFadeProperty(uiSubsystem, [](){ return false; })
 	{
 	}
 
@@ -297,7 +297,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > hwnd::subsystem::create_scroll_bar() volatile
 {
-	rcref<scroll_bar> sb = rcnew(scroll_bar, this_rcref);
+	rcref<scroll_bar> sb = rcnew(scroll_bar)(this_rcref);
 	return std::make_pair(sb, sb);
 }
 

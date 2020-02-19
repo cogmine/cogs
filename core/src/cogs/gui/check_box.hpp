@@ -46,28 +46,26 @@ private:
 	rcptr<check_box_interface> m_nativeCheckBox;
 
 public:
-	check_box(rc_obj_base& desc, const function<void(const rcref<check_box>&)>& action, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
-		: pane_bridge(desc),
-		m_text(text),
+	check_box(const function<void(const rcref<check_box>&)>& action, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
+		: m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
 		m_font(fnt),
 		m_action(action)
 	{ }
 
-	check_box(rc_obj_base& desc, const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
-		: pane_bridge(desc),
-		m_text(text),
+	check_box(const composite_string& text, bool isEnabled = true, bool isChecked = false, const gfx::font& fnt = gfx::font())
+		: m_text(text),
 		m_isEnabled(isEnabled),
 		m_isChecked(isChecked),
 		m_font(fnt)
 	{ }
 
-	check_box(rc_obj_base& desc, const composite_string& text, bool isEnabled = true, bool isChecked = false)
-		: pane_bridge(desc),
-		m_text(text),
-		m_isEnabled(isEnabled),
-		m_isChecked(isChecked)
+	check_box(const composite_string& text, const gfx::font& fnt)
+		: m_text(text),
+		m_isEnabled(true),
+		m_isChecked(false),
+		m_font(fnt)
 	{ }
 
 	virtual void installing()

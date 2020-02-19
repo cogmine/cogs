@@ -50,13 +50,13 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	immediate_task(rc_obj_base& desc, const result_t& r)
-		: task<result_t>(desc, true),
+	explicit immediate_task(const result_t& r)
+		: task<result_t>(true),
 		m_result(r)
 	{ }
 
-	immediate_task(rc_obj_base& desc, result_t&& r)
-		: task<result_t>(desc, true),
+	explicit immediate_task(result_t&& r)
+		: task<result_t>(true),
 		m_result(std::move(r))
 	{ }
 
@@ -64,7 +64,7 @@ public:
 	template <typename T>
 	static rcref<task<std::remove_reference_t<T> > > create(T&& t)
 	{
-		return rcnew(this_t, std::forward<T>(t));
+		return rcnew(this_t)(std::forward<T>(t));
 	}
 
 	virtual int timed_wait(const timeout_t&, unsigned int = 0) const volatile { return 1; }
@@ -89,16 +89,16 @@ inline rcref<task<bool> > signaled(bool b)
 	class immediate_task_true : public immediate_task<bool>
 	{
 	public:
-		explicit immediate_task_true(rc_obj_base& desc)
-			: immediate_task<bool>(desc, true)
+		immediate_task_true()
+			: immediate_task<bool>(true)
 		{ }
 	};
 
 	class immediate_task_false : public immediate_task<bool>
 	{
 	public:
-		explicit immediate_task_false(rc_obj_base& desc)
-			: immediate_task<bool>(desc, false)
+		immediate_task_false()
+			: immediate_task<bool>(false)
 		{ }
 	};
 
@@ -142,8 +142,8 @@ private:
 	this_t& operator=(this_t&&) = delete;
 
 protected:
-	explicit immediate_task(rc_obj_base& desc)
-		: task<void>(desc, true)
+	immediate_task()
+		: task<void>(true)
 	{ }
 
 public:

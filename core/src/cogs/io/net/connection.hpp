@@ -25,10 +25,6 @@ namespace net {
 class connection : public datastream
 {
 public:
-	explicit connection(rc_obj_base& desc)
-		: datastream(desc)
-	{ }
-
 	virtual rcref<const endpoint> get_local_endpoint() const = 0;
 	virtual rcref<const endpoint> get_remote_endpoint() const = 0;
 };

@@ -27,9 +27,8 @@ private:
 	rcptr<bitmap> m_image;
 
 public:
-	bitmap_pane(rc_obj_base& desc, const composite_string& imageLocation)
-		: pane(desc),
-		m_imageLocation(imageLocation)
+	bitmap_pane(const composite_string& imageLocation)
+		: m_imageLocation(imageLocation)
 	{ }
 
 	virtual void installing()

@@ -89,7 +89,7 @@ private:
 	transactable_t m_contents;
 
 public:
-	explicit font()
+	font()
 	{ }
 
 	font(const font& src)
@@ -104,11 +104,11 @@ public:
 		: m_contents(typename transactable_t::construct_embedded_t(), description(pointSize))
 	{ }
 
-	font(const vector<composite_string>& fontNames, double pointSize = 0)
+	explicit font(const vector<composite_string>& fontNames, double pointSize = 0)
 		: m_contents(typename transactable_t::construct_embedded_t(), description(fontNames, pointSize))
 	{ }
 
-	font(const composite_string& fontName, double pointSize = 0)
+	explicit font(const composite_string& fontName, double pointSize = 0)
 		: m_contents(typename transactable_t::construct_embedded_t(), description(fontName, pointSize))
 	{ }
 

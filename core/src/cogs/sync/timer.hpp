@@ -323,9 +323,8 @@ private:
 			return result;
 		}
 
-		inner_timer(rc_obj_base& desc, const timeout_t& t, const rcref<timer>& tmr)
-			: object(desc),
-			m_timeoutInfo(transactable_t::construct_embedded_t(), t),
+		inner_timer(const timeout_t& t, const rcref<timer>& tmr)
+			: m_timeoutInfo(transactable_t::construct_embedded_t(), t),
 			m_outerTimer(tmr)
 		{ }
 	};
@@ -337,11 +336,10 @@ private:
 protected:
 	resettable_event m_event;
 
-	timer(rc_obj_base& desc, const timeout_t& t)
-		: object(desc)
+	explicit timer(const timeout_t& t)
 	{
 		if (!t.is_infinite())
-			m_innerTimer = rcnew(inner_timer, t, this_rcref);
+			m_innerTimer = rcnew(inner_timer)(t, this_rcref);
 	}
 
 	void defer() { m_innerTimer->defer(); }
@@ -378,7 +376,7 @@ protected:
 				}
 				// !tmr || !!wasAborted
 				if (!newTimer)
-					newTimer = rcnew(inner_timer, t, this_rcref);
+					newTimer = rcnew(inner_timer)(t, this_rcref);
 				if (!!m_innerTimer.compare_exchange(newTimer, tmr, tmr))
 					newTimer->defer();
 				// The only call that changes m_innerTimer is reschedule, so failure to swap it out means another reschedule succeeded.

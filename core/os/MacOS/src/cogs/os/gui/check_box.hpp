@@ -48,8 +48,8 @@ private:
 	size m_defaultSize;
 
 public:
-	check_box(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: nsview_pane(desc, uiSubsystem)
+	explicit check_box(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(uiSubsystem)
 	{ }
 
 	virtual bool is_checked() const
@@ -122,7 +122,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > nsview_subsystem::create_check_box() volatile
 {
-	rcref<check_box> cb = rcnew(check_box, this_rcref);
+	rcref<check_box> cb = rcnew(check_box)(this_rcref);
 	return std::make_pair(cb, cb);
 }
 

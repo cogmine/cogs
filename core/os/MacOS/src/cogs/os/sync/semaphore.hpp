@@ -37,8 +37,7 @@ private:
 	semaphore_t m_semaphore;
 
 public:
-	explicit semaphore(rc_obj_base& desc)
-		: object(desc)
+	semaphore()
 	{
 		kern_return_t result = semaphore_create(mach_task_self(), &m_semaphore, SYNC_POLICY_FIFO, 0);
 		COGS_ASSERT(result == KERN_SUCCESS);

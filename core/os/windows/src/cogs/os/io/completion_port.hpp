@@ -122,7 +122,7 @@ private:
 	void start()
 	{
 		m_pool.start();
-		rcref<task> r = rcnew(task, m_handle);
+		rcref<task> r = rcnew(task)(m_handle);
 		m_pool.dispatch_parallel(m_pool.get_thread_count(), [r{ std::move(r) }]()
 		{
 			r->run();
@@ -130,9 +130,8 @@ private:
 	}
 
 protected:
-	explicit completion_port(rc_obj_base& desc)
-		: object(desc),
-		m_handle(rcnew(auto_HANDLE))
+	completion_port()
+		: m_handle(rcnew(auto_HANDLE))
 	{
 		HANDLE h = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 		m_handle->set(h);

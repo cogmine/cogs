@@ -48,16 +48,14 @@ private:
 	rcptr<text_editor_interface> m_nativeTextEditor;
 
 public:
-	text_editor(rc_obj_base& desc, const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
-		: pane_bridge(desc),
-		m_text(text),
+	explicit text_editor(const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
+		: m_text(text),
 		m_maxLength(maxLength),
 		m_isEnabled(isEnabled),
 		m_isMultiLine(isMultiLine),
 		m_font(fnt),
 		m_textColor(color::constant::black)
-	{
-	}
+	{ }
 
 	virtual void installing()
 	{

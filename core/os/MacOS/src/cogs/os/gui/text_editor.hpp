@@ -50,8 +50,8 @@ private:
 	rcptr<gfx::os::graphics_context::font> m_cachedFont;
 
 public:
-	text_editor(rc_obj_base& desc, const rcref<volatile nsview_subsystem>& uiSubsystem)
-		: nsview_pane(desc, uiSubsystem)
+	explicit text_editor(const rcref<volatile nsview_subsystem>& uiSubsystem)
+		: nsview_pane(uiSubsystem)
 	{ }
 
 	virtual void installing()
@@ -122,7 +122,7 @@ public:
 
 inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > nsview_subsystem::create_text_editor() volatile
 {
-	rcref<text_editor> te = rcnew(text_editor, this_rcref);
+	rcref<text_editor> te = rcnew(text_editor)(this_rcref);
 	return std::make_pair(te, te);
 }
 

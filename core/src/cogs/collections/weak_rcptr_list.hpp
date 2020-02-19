@@ -299,13 +299,11 @@ public:
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 	};
 
-	explicit weak_rcptr_list(rc_obj_base& desc)
-		: object(desc)
+	weak_rcptr_list()
 	{ }
 
-	weak_rcptr_list(rc_obj_base& desc, this_t&& src)
-		: object(desc),
-		m_list(std::move(src.m_list))
+	explicit weak_rcptr_list(this_t&& src)
+		: m_list(std::move(src.m_list))
 	{ }
 
 	bool drain() volatile

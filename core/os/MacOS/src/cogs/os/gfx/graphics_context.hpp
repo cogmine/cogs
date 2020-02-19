@@ -267,7 +267,7 @@ public:
 	// text and font primatives
 	static rcref<canvas::font> load_font(const gfx::font& f, const CGContextRef& ctx = [[NSGraphicsContext currentContext] CGContext])
 	{
-		return rcnew(font, f, ctx);
+		return rcnew(font)(f, ctx);
 	}
 
 	static gfx::font get_default_font()
