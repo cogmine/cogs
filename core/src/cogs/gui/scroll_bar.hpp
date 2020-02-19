@@ -74,8 +74,13 @@ private:
 	delegated_dependency_property<bool> m_shouldAutoFadeProperty; // reflects callers choice to auto-fade
 
 public:
-	explicit scroll_bar(rc_obj_base& desc, dimension d = dimension::vertical, bool isHiddenWhenInactive = false, const scroll_bar_state& s = scroll_bar_state(0, 0), double pos = 0 )
-		: pane_bridge(desc),
+	explicit scroll_bar(rc_obj_base& desc,
+		dimension d = dimension::vertical,
+		bool isHiddenWhenInactive = false,
+		const scroll_bar_state& s = scroll_bar_state(0, 0),
+		double pos = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: pane_bridge(desc, frames),
 		m_dimension(d),
 		m_isHiddenWhenInactive(isHiddenWhenInactive),
 		m_state(typename transactable_t::construct_embedded_t(), s),
@@ -123,8 +128,114 @@ public:
 				m_shouldAutoFadeProperty.changed();
 			m_shouldAutoFadeProperty.set_complete();
 		})
-	{
-	}
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		bool isHiddenWhenInactive,
+		const scroll_bar_state& s = scroll_bar_state(0, 0),
+		double pos = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, s, pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		const scroll_bar_state& s,
+		double pos = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, d, false, s, pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		bool isHiddenWhenInactive,
+		double pos,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, d, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		bool isHiddenWhenInactive,
+		const scroll_bar_state& s,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, d, isHiddenWhenInactive, s, 0, frames)
+	{ }
+
+
+	scroll_bar(rc_obj_base& desc,
+		const scroll_bar_state& s,
+		double pos = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, dimension::vertical, false, s, pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		bool isHiddenWhenInactive,
+		double pos,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		bool isHiddenWhenInactive,
+		const scroll_bar_state& s,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, s, 0, frames)
+	{ }
+
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		double pos,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, d, false, scroll_bar_state(0, 0), pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		const scroll_bar_state& s,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, d, false, s, 0, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		bool isHiddenWhenInactive,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, d, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
+	{ }
+
+
+	scroll_bar(rc_obj_base& desc,
+		double pos,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: scroll_bar(desc, dimension::vertical, false, scroll_bar_state(0, 0), pos, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		const scroll_bar_state& s,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, dimension::vertical, false, s, 0, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		bool isHiddenWhenInactive,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		dimension d,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, d, false, scroll_bar_state(0, 0), 0, frames)
+	{ }
+
+	scroll_bar(rc_obj_base& desc,
+		const std::initializer_list<rcref<frame> >& frames)
+		: scroll_bar(desc, dimension::vertical, false, scroll_bar_state(0, 0), 0, frames)
+	{ }
+
 
 	dimension get_dimension() const { return m_dimension; }
 	bool is_hidden_when_inactive() const { return m_isHiddenWhenInactive; }

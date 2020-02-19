@@ -469,18 +469,35 @@ private:
 	}
 
 protected:
-	explicit pane(rc_obj_base& desc, compositing_behavior cb = compositing_behavior::no_buffer)
-		: frameable(desc),
+	explicit pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: frameable(desc, frames),
 		m_compositingBehavior(cb),
 		m_setSubsystemDelegate([r{ this_weak_rcptr }](const rcptr<volatile gui::subsystem>& s)
-		{
-			rcptr<pane> r2 = r;
-			if (!!r2)
-				r2->set_subsystem_inner(s);
-		})
+	{
+		rcptr<pane> r2 = r;
+		if (!!r2)
+			r2->set_subsystem_inner(s);
+	})
 	{
 		m_serialDispatchState.m_flags = 0;
+		for (auto& child : children)
+			nest(child);
 	}
+
+	pane(rc_obj_base& desc, const std::initializer_list<rcref<pane> >& children, compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(desc, {}, children, cb)
+	{ }
+
+	pane(rc_obj_base& desc, const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
+		: pane(desc, frames, {}, cb)
+	{ }
+
+	pane(rc_obj_base& desc, compositing_behavior cb)
+		: pane(desc, {}, {}, cb)
+	{ }
 
 	~pane()
 	{
@@ -2457,15 +2474,24 @@ public:
 class container_pane : public pane, public virtual pane_container
 {
 public:
-	explicit container_pane(rc_obj_base& desc)
-		: pane(desc, compositing_behavior::no_buffer)
-	{
-	}
+	explicit container_pane(rc_obj_base& desc, 
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(desc, frames, children, cb)
+	{ }
+
+	container_pane(rc_obj_base& desc, const std::initializer_list<rcref<pane> >& children, compositing_behavior cb = compositing_behavior::no_buffer)
+		: container_pane(desc, {}, children, cb)
+	{ }
+
+	container_pane(rc_obj_base& desc, const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
+		: container_pane(desc, frames, {}, cb)
+	{ }
 
 	container_pane(rc_obj_base& desc, compositing_behavior cb)
-		: pane(desc, cb)
-	{
-	}
+		: container_pane(desc, {}, {}, cb)
+	{ }
 
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
@@ -2499,12 +2525,117 @@ protected:
 	}
 
 public:
-	canvas_pane(rc_obj_base& desc, const draw_delegate_t& d = draw_delegate_t(), compositing_behavior cb = compositing_behavior::no_buffer, bool invalidateOnReshape = true)
-		: pane(desc, cb),
+	explicit canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d = draw_delegate_t(),
+		bool invalidateOnReshape = true,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane(desc, frames, children, cb),
 		m_drawDelegate(d),
 		m_invalidateOnReshape(invalidateOnReshape)
-	{
-	}
+	{ }
+
+
+	canvas_pane(rc_obj_base& desc,
+		bool invalidateOnReshape,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, draw_delegate_t(), invalidateOnReshape, frames, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		const std::initializer_list<rcref<frame> >& frames,
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, d, true, frames, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		bool invalidateOnReshape,
+		const std::initializer_list<rcref<pane> >& children,
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, d, invalidateOnReshape, {}, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		bool invalidateOnReshape,
+		const std::initializer_list<rcref<frame> >& frames,
+		compositing_behavior cb)
+		: canvas_pane(desc, d, invalidateOnReshape, frames, {}, cb)
+	{ }
+
+
+	canvas_pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<frame> >& frames,
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, draw_delegate_t(), true, frames, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		bool invalidateOnReshape,
+		const std::initializer_list<rcref<pane> >& children,
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, draw_delegate_t(), invalidateOnReshape, {}, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		bool invalidateOnReshape,
+		const std::initializer_list<rcref<frame> >& frames,
+		compositing_behavior cb)
+		: canvas_pane(desc, draw_delegate_t(), invalidateOnReshape, frames, {}, cb)
+	{ }
+
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		const std::initializer_list<rcref<pane> >& children,
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, d, true, {}, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		const std::initializer_list<rcref<frame> >& frames,
+		compositing_behavior cb)
+		: canvas_pane(desc, d, true, frames, {}, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		bool invalidateOnReshape,
+		compositing_behavior cb)
+		: canvas_pane(desc, d, invalidateOnReshape, {}, {}, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<pane> >& children,
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: canvas_pane(desc, draw_delegate_t(), true, {}, children, cb)
+	{ }
+
+	canvas_pane(rc_obj_base & desc,
+		const std::initializer_list<rcref<frame> >& frames,
+		compositing_behavior cb)
+		: canvas_pane(desc, draw_delegate_t(), true, frames, {}, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		bool invalidateOnReshape,
+		compositing_behavior cb)
+		: canvas_pane(desc, draw_delegate_t(), invalidateOnReshape, {}, {}, cb)
+	{ }
+
+	canvas_pane(rc_obj_base& desc,
+		const draw_delegate_t& d,
+		compositing_behavior cb)
+		: canvas_pane(desc, d, true, {}, {}, cb)
+	{ }
 
 	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
 	virtual void invert(const bounds& b) { pane::invert(b); }

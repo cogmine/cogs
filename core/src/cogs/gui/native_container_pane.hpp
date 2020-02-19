@@ -25,10 +25,29 @@ protected:
 	}
 
 public:
-	explicit native_container_pane(rc_obj_base& desc)
-		: pane_bridge(desc)
-	{
-	}
+	explicit native_container_pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<frame> >& frames = {},
+		const std::initializer_list<rcref<pane> >& children = {},
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: pane_bridge(desc, frames, children, cb)
+	{ }
+
+	native_container_pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<pane> >& children,
+		compositing_behavior cb = compositing_behavior::no_buffer)
+		: native_container_pane(desc, {}, children, cb)
+	{ }
+
+	native_container_pane(rc_obj_base& desc,
+		const std::initializer_list<rcref<frame> >& frames,
+		compositing_behavior cb)
+		: native_container_pane(desc, frames, {}, cb)
+	{ }
+
+	explicit native_container_pane(rc_obj_base& desc,
+		compositing_behavior cb)
+		: native_container_pane(desc, {}, {}, cb)
+	{ }
 
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }

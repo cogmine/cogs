@@ -9,6 +9,8 @@
 #define COGS_HEADER_GUI_FRAME
 
 
+#include  <initializer_list> 
+
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/gfx/canvas.hpp"
 #include "cogs/mem/rc_container.hpp"
@@ -199,9 +201,12 @@ public:
 	frameable(frameable&) = delete;
 	frameable(frameable&&) = delete;
 
-	frameable(rc_obj_base& desc)
+	explicit frameable(rc_obj_base& desc, const std::initializer_list<rcref<frame> >& frames)
 		: object(desc)
-	{ }
+	{
+		for (auto& frame : frames)
+			append_frame(frame);
+	}
 
 	virtual void insert_before_frame(const rcref<frame>& f, const rcref<frame>& beforeThis)
 	{

@@ -43,8 +43,13 @@ private:
 	size m_textExtent;
 
 public:
-	label(rc_obj_base& desc, const composite_string& text, const gfx::font& fnt, const color& c = color::constant::black, bool useLineHeight = true)
-		: pane(desc),
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt = gfx::font(),
+		const color& c = color::constant::black,
+		bool useLineHeight = true,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: pane(desc, frames),
 		m_text(text),
 		m_font(fnt),
 		m_textColor(c),
@@ -86,6 +91,59 @@ public:
 			invalidate(get_size());
 		})
 	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const color& c,
+		bool useLineHeight = true,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: label(desc, text, gfx::font(), c, useLineHeight, frames)
+	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt,
+		bool useLineHeight,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: label(desc, text, fnt, color::constant::black, useLineHeight, frames)
+	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt,
+		const color& c,
+		const std::initializer_list<rcref<frame> >& frames)
+		: label(desc, text, fnt, c, true, frames)
+	{ }
+
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		bool useLineHeight,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: label(desc, text, gfx::font(), color::constant::black, useLineHeight, frames)
+	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const color& c,
+		const std::initializer_list<rcref<frame> >& frames)
+		: label(desc, text, gfx::font(), c, true, frames)
+	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt,
+		const std::initializer_list<rcref<frame> >& frames)
+		: label(desc, text, fnt, color::constant::black, true, frames)
+	{ }
+
+	label(rc_obj_base& desc,
+		const composite_string& text,
+		const std::initializer_list<rcref<frame> >& frames)
+		: label(desc, text, gfx::font(), color::constant::black, true, frames)
+	{ }
+
 
 	virtual void installing()
 	{

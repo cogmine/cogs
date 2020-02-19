@@ -295,8 +295,8 @@ COGS_MAIN
 		//}
 
 		{
-			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 			rcref<scroll_pane> scrollPane = rcnew(scroll_pane);
+			rcref<bitmap_pane> img1 = rcnew(bitmap_pane, string::literal(L"guitar.bmp"));
 			img1->prepend_frame(rcnew(fixed_default_size_frame));
 			scrollPane->nest(img1);
 			////rcref<background> cornerPane = rcnew(background, color::constant::purple);

@@ -48,16 +48,146 @@ private:
 	rcptr<text_editor_interface> m_nativeTextEditor;
 
 public:
-	text_editor(rc_obj_base& desc, const composite_string& text, bool isMultiLine = false, const gfx::font& fnt = gfx::font(), size_t maxLength = 0, bool isEnabled = true)
-		: pane_bridge(desc),
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor = color::constant::black,
+		bool isMultiLine = false,
+		bool isEnabled = true,
+		const gfx::font& fnt = gfx::font(),
+		size_t maxLength = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: pane_bridge(desc, frames),
 		m_text(text),
 		m_maxLength(maxLength),
 		m_isEnabled(isEnabled),
 		m_isMultiLine(isMultiLine),
 		m_font(fnt),
-		m_textColor(color::constant::black)
-	{
-	}
+		m_textColor(textColor)
+	{ }
+
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		bool isMultiLine,
+		bool isEnabled = true,
+		const gfx::font& fnt = gfx::font(),
+		size_t maxLength = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, color::constant::black, isMultiLine, isEnabled, fnt, maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor,
+		const gfx::font& fnt,
+		size_t maxLength = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, textColor, false, true, fnt, maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor,
+		bool isMultiLine,
+		bool isEnabled,
+		size_t maxLength,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, textColor, isMultiLine, isEnabled, gfx::font(), maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor,
+		bool isMultiLine,
+		bool isEnabled,
+		const gfx::font& fnt,
+		const std::initializer_list<rcref<frame> >& frames)
+		: text_editor(desc, text, textColor, isMultiLine, isEnabled, fnt, 0, frames)
+	{ }
+
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt,
+		size_t maxLength = 0,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, color::constant::black, false, true, fnt, maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		bool isMultiLine,
+		bool isEnabled,
+		size_t maxLength,
+		const std::initializer_list<rcref<frame> >& frames = {})
+	: text_editor(desc, text, color::constant::black, isMultiLine, isEnabled, gfx::font(), maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		bool isMultiLine,
+		bool isEnabled,
+		const gfx::font& fnt,
+		const std::initializer_list<rcref<frame> >& frames)
+	: text_editor(desc, text, color::constant::black, isMultiLine, isEnabled, fnt, 0, frames)
+	{ }
+
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor,
+		size_t maxLength,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, textColor, false, true, gfx::font(), maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base & desc,
+		const composite_string & text,
+		const color & textColor,
+		const gfx::font & fnt,
+		const std::initializer_list<rcref<frame> > & frames)
+		: text_editor(desc, text, textColor, false, true, fnt, 0, frames)
+	{ }
+
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const color& textColor,
+		bool isMultiLine,
+		bool isEnabled,
+		const std::initializer_list<rcref<frame> >& frames)
+		: text_editor(desc, text, textColor, isMultiLine, isEnabled, gfx::font(), 0, frames)
+	{ }
+
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		size_t maxLength,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: text_editor(desc, text, color::constant::black, false, true, gfx::font(), maxLength, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const gfx::font& fnt,
+		const std::initializer_list<rcref<frame> >& frames)
+		: text_editor(desc, text, color::constant::black, false, true, fnt, 0, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		bool isMultiLine,
+		bool isEnabled,
+		const std::initializer_list<rcref<frame> >& frames)
+		: text_editor(desc, text, color::constant::black, isMultiLine, isEnabled, gfx::font(), 0, frames)
+	{ }
+
+	text_editor(rc_obj_base& desc,
+		const composite_string& text,
+		const std::initializer_list<rcref<frame> >& frames)
+		: text_editor(desc, text, color::constant::black, false, true, gfx::font(), 0, frames)
+	{ }
+
 
 	virtual void installing()
 	{

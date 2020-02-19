@@ -44,13 +44,43 @@ private:
 	rcptr<button_interface> m_nativeButton;
 
 public:
-	button(rc_obj_base& desc, const action_delegate_t& action, const composite_string& text, const gfx::font& fnt = gfx::font(), bool isEnabled = true, bool isDefault = false)
-		: pane_bridge(desc),
+	button(rc_obj_base& desc,
+		const action_delegate_t& action,
+		const composite_string& text,
+		bool isEnabled = true,
+		bool isDefault = false,
+		const gfx::font& fnt = gfx::font(),
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: pane_bridge(desc, frames),
 		m_action(action),
 		m_text(text),
 		m_font(fnt),
 		m_isEnabled(isEnabled),
 		m_isDefault(isDefault)
+	{ }
+
+	button(rc_obj_base& desc,
+		const action_delegate_t& action,
+		const composite_string& text,
+		bool isEnabled,
+		bool isDefault,
+		const std::initializer_list<rcref<frame> >& frames)
+		: button(desc, action, text, isEnabled, isDefault, gfx::font(), frames)
+	{ }
+
+	button(rc_obj_base& desc,
+		const action_delegate_t& action,
+		const composite_string& text,
+		const gfx::font& fnt,
+		const std::initializer_list<rcref<frame> >& frames = {})
+		: button(desc, action, text, true, false, fnt, frames)
+	{ }
+
+	button(rc_obj_base& desc,
+		const action_delegate_t& action,
+		const composite_string& text,
+		const std::initializer_list<rcref<frame> >& frames)
+		: button(desc, action, text, true, false, gfx::font(), frames)
 	{ }
 
 	virtual void installing()

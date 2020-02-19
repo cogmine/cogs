@@ -96,12 +96,14 @@ protected:
 	}
 
 public:
+	template <typename... P>
 	window(rc_obj_base& desc,
 		const gfx::canvas::point* screenPosition,
 		const gfx::canvas::size* frameSize,
 		bool positionCentered,
-		const composite_string& title)
-		: pane_bridge(desc),
+		const composite_string& title,
+		const std::initializer_list<rcref<pane> >& children = {})
+		: pane_bridge(desc, children),
 		m_windowTask(desc, this),
 		m_hasInitialScreenPosition(screenPosition != nullptr),
 		m_hasInitialFrameSize(frameSize != nullptr),
