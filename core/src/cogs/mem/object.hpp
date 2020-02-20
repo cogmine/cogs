@@ -26,15 +26,12 @@ class rcref;
 template <typename T>
 class weak_rcptr;
 
-struct rcnew_glue_element_t
+struct rcnew_glue_obj_t
 {
 	mutable void* m_obj;
 	mutable rc_obj_base* m_desc;
-	mutable const rcnew_glue_element_t* m_saved;
+	mutable const rcnew_glue_obj_t* m_saved;
 };
-
-inline static thread_local const rcnew_glue_element_t* rcnew_glue_element = nullptr;
-
 
 /// @ingroup Mem
 /// @brief A base class for objects intended to be allocated with rcnew.  Provides access to this_rcref, etc.
@@ -44,11 +41,12 @@ protected:
 	rc_obj_base* m_desc;
 
 public:
+	inline static thread_local const rcnew_glue_obj_t* rcnew_glue_obj;
+
 	object()
 	{
-		COGS_ASSERT(rcnew_glue_element != nullptr);
-		COGS_ASSERT(rcnew_glue_element != (void*)0xcbcbcbcbcbcbcbcb);
-		m_desc = rcnew_glue_element->m_desc;
+		COGS_ASSERT(object::rcnew_glue_obj != nullptr);
+		m_desc = object::rcnew_glue_obj->m_desc;
 	}
 
 	rc_obj_base* get_desc() const { return m_desc; }

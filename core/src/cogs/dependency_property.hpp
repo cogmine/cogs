@@ -615,10 +615,10 @@ template <typename F>
 inline rcref<dependency_property<type, io::permission::write> > dependency_property<type, io::permission::read>::on_changed(const rcref<volatile dispatcher>& d, F&& f)
 {
 	typedef delegated_dependency_property<type, io::permission::write> property_t;
-	rcref<dependency_property<type, io::permission::write> > result = rcnew(property_t)(d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::permission::write> >& p)
+	rcref<dependency_property<type, io::permission::write> > result = (rcnew(property_t)(d, [f{ std::move(f) }](const type& t, const rcref<dependency_property<type, io::permission::write> >& p)
 	{
 		f(t, p);
-	}).template static_cast_to<dependency_property<type, io::permission::write> >();
+	})).template static_cast_to<dependency_property<type, io::permission::write> >();
 	bind_to(result);
 	return result;
 }

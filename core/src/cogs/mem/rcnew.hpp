@@ -33,7 +33,7 @@ rcnew_glue(
 #endif
 	type*,
 	volatile allocator_t*,
-	const rcnew_glue_element_t& temp = rcnew_glue_element_t())
+	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
 	typedef rc_obj<type, allocator_t> rc_obj_t;
 	rc_obj_t* desc = rc_obj_t::allocate().get_ptr();
@@ -52,8 +52,8 @@ rcnew_glue(
 
 	temp.m_obj = obj;
 	temp.m_desc = desc;
-	temp.m_saved = rcnew_glue_element;
-	rcnew_glue_element = &temp;
+	temp.m_saved = object::rcnew_glue_obj;
+	object::rcnew_glue_obj = &temp;
 }
 
 template <typename type, typename allocator_t>
@@ -64,7 +64,7 @@ rcnew_glue(
 #endif
 	type*,
 	volatile allocator_t* al,
-	const rcnew_glue_element_t& temp = rcnew_glue_element_t())
+	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
 	typedef rc_obj<type, allocator_t> rc_obj_t;
 	rc_obj_t* desc = rc_obj_t::allocate(*al).get_ptr();
@@ -83,8 +83,8 @@ rcnew_glue(
 
 	temp.m_obj = obj;
 	temp.m_desc = desc;
-	temp.m_saved = rcnew_glue_element;
-	rcnew_glue_element = &temp;
+	temp.m_saved = object::rcnew_glue_obj;
+	object::rcnew_glue_obj = &temp;
 }
 
 
@@ -95,7 +95,7 @@ void rcnew_glue(
 #endif
 	type* obj,
 	rc_obj_base& desc,
-	const rcnew_glue_element_t& temp = rcnew_glue_element_t())
+	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
 #if COGS_DEBUG_RC_LOGGING
 	unsigned long rcCount = pre_assign_next(g_rcLogCount);
@@ -104,8 +104,8 @@ void rcnew_glue(
 
 	temp.m_obj = obj;
 	temp.m_desc = &desc;
-	temp.m_saved = rcnew_glue_element;
-	rcnew_glue_element = &temp;
+	temp.m_saved = object::rcnew_glue_obj;
+	object::rcnew_glue_obj = &temp;
 }
 
 template <typename type>
@@ -115,14 +115,14 @@ struct rcnew_glue_t
 
 	operator rcref<type>()
 	{
-		rcref<type> result((type*)rcnew_glue_element->m_obj, rcnew_glue_element->m_desc);
-		rcnew_glue_element = rcnew_glue_element->m_saved;
+		rcref<type> result((type*)object::rcnew_glue_obj->m_obj, object::rcnew_glue_obj->m_desc);
+		object::rcnew_glue_obj = object::rcnew_glue_obj->m_saved;
 		return result;
 	}
 
 	void operator!()
 	{
-		rcnew_glue_element = rcnew_glue_element->m_saved;
+		object::rcnew_glue_obj = object::rcnew_glue_obj->m_saved;
 	}
 };
 
@@ -130,21 +130,21 @@ struct rcnew_glue_t
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 
 
-#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (::cogs::default_allocator*)0), (type*)rcnew_glue_element->m_obj)) type
-#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al*)0), (type*)rcnew_glue_element->m_obj)) type
-#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, &(al)), (type*)rcnew_glue_element->m_obj)) type
-#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al).get_allocator().get_ptr()), (type*)rcnew_glue_element->m_obj)) type
-#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (objPtr), (descRef)), (decltype(objPtr)*)rcnew_glue_element->m_obj)) std::remove_pointer_t<decltype(objPtr)>
+#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (::cogs::default_allocator*)0), (type*)object::rcnew_glue_obj->m_obj)) type
+#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al*)0), (type*)object::rcnew_glue_obj->m_obj)) type
+#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, &(al)), (type*)object::rcnew_glue_obj->m_obj)) type
+#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al).get_allocator().get_ptr()), (type*)object::rcnew_glue_obj->m_obj)) type
+#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new ((::cogs::rcnew_glue(COGS_DEBUG_AT, (objPtr), (descRef)), (decltype(objPtr)*)object::rcnew_glue_obj->m_obj)) std::remove_pointer_t<decltype(objPtr)>
 
 
 #else
 
 
-#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (::cogs::default_allocator*)0), (type*)rcnew_glue_element->m_obj)) type
-#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (al*)0), (type*)rcnew_glue_element->m_obj)) type
-#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, &(al)), (type*)rcnew_glue_element->m_obj)) type
-#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (al).get_allocator().get_ptr()), (type*)rcnew_glue_element->m_obj)) type
-#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new ((::cogs::rcnew_glue((objPtr), (descRef)), (decltype(objPtr)*)rcnew_glue_element->m_obj)) std::remove_pointer_t<decltype(objPtr)>
+#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (::cogs::default_allocator*)0), (type*)object::rcnew_glue_obj->m_obj)) type
+#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (al*)0), (type*)object::rcnew_glue_obj->m_obj)) type
+#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, &(al)), (type*)object::rcnew_glue_obj->m_obj)) type
+#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new ((::cogs::rcnew_glue((type*)0, (al).get_allocator().get_ptr()), (type*)object::rcnew_glue_obj->m_obj)) type
+#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new ((::cogs::rcnew_glue((objPtr), (descRef)), (decltype(objPtr)*)object::rcnew_glue_obj->m_obj)) std::remove_pointer_t<decltype(objPtr)>
 
 
 #endif

@@ -538,20 +538,20 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)windowWillStartLiveResize:(NSNotification*)notification
 {
-    cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
-    if (!!cppWindow)
-    {
-        cppWindow->m_inResize = true;
-        cppWindow->m_widthChanged = false;
-        cppWindow->m_heightChanged = false;
-    }
+	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	if (!!cppWindow)
+	{
+		cppWindow->m_inResize = true;
+		cppWindow->m_widthChanged = false;
+		cppWindow->m_heightChanged = false;
+	}
 }
 
 -(void)windowWillEndLiveResize:(NSNotification*)notification
 {
-    cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
-    if (!!cppWindow)
-        cppWindow->m_inResize = false;
+	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	if (!!cppWindow)
+		cppWindow->m_inResize = false;
 }
 
 -(NSSize)windowWillResize:(NSWindow *) window toSize:(NSSize)newSize

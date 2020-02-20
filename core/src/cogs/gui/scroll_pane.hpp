@@ -347,11 +347,11 @@ public:
 		{
 			dimension d = (dimension)i;
 			if (has_scroll_bar(d))
-            {
-                auto& sbinfo = get_scroll_bar_info(d);
+			{
+				auto& sbinfo = get_scroll_bar_info(d);
 				sbinfo.m_frame->get_fixed_size(!d) = sbinfo.m_scrollBar->get_frame_default_size()[!d];
-            }
-        }
+			}
+		}
 
 		m_calculatedRange.set_min(0, 0);
 		m_calculatedRange.clear_max();

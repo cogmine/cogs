@@ -85,7 +85,7 @@ public:
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSFont* nsFont = m_cachedFont->get_NSFont();
 		[buttonCell setFont:nsFont];
-    }
+	}
 
 	virtual void installing()
 	{
