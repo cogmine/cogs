@@ -61,8 +61,8 @@ protected:
 	digit_t m_result[result_digits];
 	digit_t m_curDigit = 0;
 
-	function<void()> m_processBlockFunc;
 	function<void()> m_processDigitFunc;
+	function<void()> m_processBlockFunc;
 	function<void()> m_terminateFunc;
 
 	template <typename F1, typename F2, typename F3>
@@ -70,8 +70,8 @@ protected:
 		: m_digitProgress(src.m_digitProgress),
 		m_blockProgress(src.m_blockProgress),
 		m_curDigit(src.m_curDigit),
-		m_processBlockFunc(std::forward<F1>(processDigitFunc)),
-		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
+		m_processDigitFunc(std::forward<F1>(processDigitFunc)),
+		m_processBlockFunc(std::forward<F2>(processBlockFunc)),
 		m_terminateFunc(std::forward<F3>(terminateFunc))
 	{
 		for (size_t i = 0; i < result_digits; i++)
@@ -93,8 +93,8 @@ public:
 
 	template <typename F1, typename F2, typename F3>
 	serial_hash(F1&& processDigitFunc, F2&& processBlockFunc, F3&& terminateFunc)
-		: m_processBlockFunc(std::forward<F1>(processDigitFunc)),
-		m_processDigitFunc(std::forward<F2>(processBlockFunc)),
+		: m_processDigitFunc(std::forward<F1>(processDigitFunc)),
+		m_processBlockFunc(std::forward<F2>(processBlockFunc)),
 		m_terminateFunc(std::forward<F3>(terminateFunc))
 	{
 	}
