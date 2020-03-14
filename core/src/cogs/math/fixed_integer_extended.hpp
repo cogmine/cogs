@@ -4682,10 +4682,10 @@ public:
 	void assign_inverse_subtract(const volatile this_t& src) { m_contents->subtract(*(src.begin_read()), *m_contents); }
 	void assign_inverse_subtract(const volatile this_t& src) volatile { if (this == &src) clear(); else write_retry_loop([&](content_t& c) { c.subtract(*(src.begin_read()), c); }); }
 
-	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); }
+	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { assign_negative(); }
+	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { assign_negative(); }
+	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { assign_negative(); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_subtract(tmp); }
@@ -4718,10 +4718,10 @@ public:
 	const this_t& pre_assign_inverse_subtract(const volatile this_t& src) { m_contents->subtract(*(src.begin_read()), *m_contents); return *this; }
 	this_t pre_assign_inverse_subtract(const volatile this_t& src) volatile { if (this == &src) { this_t result; clear(); result.clear(); return result; } return write_retry_loop_pre([&](content_t& c) { c.subtract(*(src.begin_read()), c); }); }
 
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return pre_assign_negative(); }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return pre_assign_negative(); }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return pre_assign_negative(); }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return pre_assign_negative(); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t pre_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_inverse_subtract(tmp); }
@@ -4754,10 +4754,10 @@ public:
 	this_t post_assign_inverse_subtract(const volatile this_t& src) { this_t tmp(*this); m_contents->subtract(*(src.begin_read()), *m_contents); return tmp; }
 	this_t post_assign_inverse_subtract(const volatile this_t& src) volatile { if (this == &src) { return exchange(0); } return write_retry_loop_post([&](content_t& c) { c.subtract(*(src.begin_read()), c); }); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return post_assign_negative(); }
+	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return post_assign_negative(); }
+	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return post_assign_negative(); }
+	template <bool has_sign2, size_t bits2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return post_assign_negative(); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_inverse_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_inverse_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_inverse_subtract(tmp); }

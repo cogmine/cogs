@@ -2488,7 +2488,6 @@ public:
 		m_contents->assign(
 			simplify_numerator_type(std::forward<numerator_t2>(n), d),
 			simplify_denominator_type(n, std::forward<denominator_t2>(d)));
-		return *this;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2497,7 +2496,6 @@ public:
 		m_contents.set(
 			simplify_numerator_type(std::forward<numerator_t2>(n), d),
 			simplify_denominator_type(n, std::forward<denominator_t2>(d)));
-		return *this;
 	}
 
 	bool operator!() const { return !get_numerator(); }

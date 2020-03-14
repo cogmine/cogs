@@ -2240,18 +2240,18 @@ private:
 	class reverse_helper
 	{
 	public:
-		template <ulongest... args>
+		template <bool unused, ulongest... args>
 		class accumulate;
 
-		template <ulongest x, ulongest... args2>
-		class accumulate<x, args2...>
+		template <bool unused, ulongest x, ulongest... args2>
+		class accumulate<unused, x, args2...>
 		{
 		public:
-			typedef typename reverse_helper<b, x, args1...>::template accumulate<args2...>::type type;
+			typedef typename reverse_helper<b, x, args1...>::template accumulate<true, args2...>::type type;
 		};
 
-		template <>
-		class accumulate<>
+		template <bool unused>
+		class accumulate<unused>
 		{
 		public:
 			typedef fixed_integer_extended_const<is_const_negative, b, args1...> type;
@@ -2271,7 +2271,7 @@ private:
 		class helper<unused, false, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
 		{
 		public:
-			typedef typename reverse_helper<range_to_bits_v<0, highest_digit> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
+			typedef typename reverse_helper<range_to_bits_v<0, highest_digit> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<true, highest_digit, nextLowDigit, lowPart...>::type type;
 		};
 
 		template <bool unused, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
@@ -2299,14 +2299,14 @@ private:
 		class helper<unused, true, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
 		{
 		public:
-			typedef typename reverse_helper<range_to_bits_v<(longest)highest_digit, 0> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
+			typedef typename reverse_helper<range_to_bits_v<(longest)highest_digit, 0> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<true, highest_digit, nextLowDigit, lowPart...>::type type;
 		};
 
 		template <bool unused, size_t lowPartCount>
 		class helper<unused, true, (ulongest)-1, false, lowPartCount>
 		{
 		public:
-			typedef typename reverse_helper<1 + (sizeof(ulongest) * 8 * (lowPartCount))>::template accumulate<(ulongest)-1, nextLowDigit, lowPart...>::type type;
+			typedef typename reverse_helper<1 + (sizeof(ulongest) * 8 * (lowPartCount))>::template accumulate<true, (ulongest)-1, nextLowDigit, lowPart...>::type type;
 		};
 
 		template <bool unused, size_t lowPartCount>

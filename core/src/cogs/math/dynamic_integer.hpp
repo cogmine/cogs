@@ -9061,13 +9061,13 @@ template <bool has_sign, size_t bits>
 inline auto fixed_integer_extended<has_sign, bits>::inverse_subtract(const volatile dynamic_integer& src) const volatile { return src - *this; }
 
 template <bool has_sign, size_t bits>
-inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const dynamic_integer& src) { m_contents->inverse_subtract(src); return *this; }
+inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const dynamic_integer& src) { m_contents->inverse_subtract(src); }
 template <bool has_sign, size_t bits>
-inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const dynamic_integer& src) volatile { write_retry_loop([&](content_t& c) { c.inverse_subtract(src); }); return *this; }
+inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const dynamic_integer& src) volatile { write_retry_loop([&](content_t& c) { c.inverse_subtract(src); }); }
 template <bool has_sign, size_t bits>
-inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const volatile dynamic_integer& src) { dynamic_integer tmp(src); return operator-=(tmp); }
+inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const volatile dynamic_integer& src) { dynamic_integer tmp(src); assign_inverse_subtract(tmp); }
 template <bool has_sign, size_t bits>
-inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); return operator-=(tmp); }
+inline void fixed_integer_extended<has_sign, bits>::assign_inverse_subtract(const volatile dynamic_integer& src) volatile { dynamic_integer tmp(src); assign_inverse_subtract(tmp); }
 
 template <bool has_sign, size_t bits>
 inline const fixed_integer_extended<has_sign, bits>& fixed_integer_extended<has_sign, bits>::pre_assign_inverse_subtract(const dynamic_integer& src) { m_contents->inverse_subtract(src); return *this; }
@@ -9171,7 +9171,7 @@ inline auto fixed_integer_extended<has_sign, bits>::inverse_modulo(const volatil
 template <bool has_sign, size_t bits>
 inline void fixed_integer_extended<has_sign, bits>::assign_inverse_modulo(const dynamic_integer& src) { *this = src % *this; }
 template <bool has_sign, size_t bits>
-inline void fixed_integer_extended<has_sign, bits>::assign_inverse_modulo(const dynamic_integer& src) volatile { write_retry_loop([&](content_t& c) { dynamic_integer tmp = src % *this; c = *(tmp.m_contents); }); return *this; }
+inline void fixed_integer_extended<has_sign, bits>::assign_inverse_modulo(const dynamic_integer& src) volatile { write_retry_loop([&](content_t& c) { dynamic_integer tmp = src % *this; c = *(tmp.m_contents); }); }
 template <bool has_sign, size_t bits>
 inline void fixed_integer_extended<has_sign, bits>::assign_inverse_modulo(const volatile dynamic_integer& src) { dynamic_integer tmp(src); return assign_inverse_modulo(tmp); }
 template <bool has_sign, size_t bits>
