@@ -69,10 +69,10 @@ public:
 	}
 
 	double& get_position() { return m_position; }
-	const double get_position() const { return m_position; }
+	double get_position() const { return m_position; }
 
 	double& get_size() { return m_size; }
-	const double get_size() const { return m_size; }
+	double get_size() const { return m_size; }
 
 	double calc_size() const { return cogs::abs(m_size); }
 
@@ -442,28 +442,28 @@ public:
 	const point& get_position() const { return m_position; }
 
 	double& get_position(dimension d) { return m_position[d]; }
-	const double get_position(dimension d) const { return m_position[d]; }
+	double get_position(dimension d) const { return m_position[d]; }
 
 	double& get_x() { return m_position.get_x(); }
-	const double get_x() const { return m_position.get_x(); }
+	double get_x() const { return m_position.get_x(); }
 	double& get_y() { return m_position.get_y(); }
-	const double get_y() const { return m_position.get_y(); }
+	double get_y() const { return m_position.get_y(); }
 
 	double& get_left() { return m_position.get_x(); }
-	const double get_left() const { return m_position.get_x(); }
+	double get_left() const { return m_position.get_x(); }
 	double& get_top() { return m_position.get_y(); }
-	const double get_top() const { return m_position.get_y(); }
+	double get_top() const { return m_position.get_y(); }
 
 	size& get_size() { return m_size; }
 	const size& get_size() const { return m_size; }
 
 	double& get_size(dimension d) { return m_size[d]; }
-	const double get_size(dimension d) const { return m_size[d]; }
+	double get_size(dimension d) const { return m_size[d]; }
 
 	double& get_height() { return m_size.get_height(); }
-	const double get_height() const { return m_size.get_height(); }
+	double get_height() const { return m_size.get_height(); }
 	double& get_width() { return m_size.get_width(); }
-	const double get_width() const { return m_size.get_width(); }
+	double get_width() const { return m_size.get_width(); }
 
 	double calc_width() const { return cogs::abs(get_width()); }
 	double calc_height() const { return cogs::abs(get_height()); }

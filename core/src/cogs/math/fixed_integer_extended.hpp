@@ -158,7 +158,7 @@ public:
 		return *this;
 	}
 
-	void assign(const ulongest* src, size_t n)
+	void assign_unsigned(const ulongest* src, size_t n)
 	{
 		if (n_digits <= n)
 		{
@@ -3175,35 +3175,41 @@ public:
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	volatile this_t& operator=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile
 	{
-		typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src);
+		this_t tmp(src);
 		return operator=(tmp);
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	this_t& operator=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src)
 	{
-		typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src);
-		return operator=(tmp);
+		for (size_t i = 0; i < (sizeof...(values2) < n_digits ? sizeof...(values2) : n_digits); i++)
+			m_contents->m_digits[i] = src.get_digit(i);
+		if constexpr (sizeof...(values2) < n_digits)
+			m_contents->set_sign_extension(src.is_negative(), sizeof...(values2));
+		return *this;
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	this_t& operator=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src)
 	{
-		typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src);
-		return operator=(tmp);
+		for (size_t i = 0; i < (sizeof...(values2) < n_digits ? sizeof...(values2) : n_digits); i++)
+			m_contents->m_digits[i] = src.get_digit(i);
+		if constexpr (sizeof...(values2) < n_digits)
+			m_contents->set_sign_extension(src.is_negative(), sizeof...(values2));
+		return *this;
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	volatile this_t& operator=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile
 	{
-		typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src);
+		this_t tmp(src);
 		return operator=(tmp);
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
 	volatile this_t& operator=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile
 	{
-		typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src);
+		this_t tmp(src);
 		return operator=(tmp);
 	}
 
@@ -5545,7 +5551,7 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<this_t, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
-  auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
+	auto operator/(const int_t2& i) const { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const volatile { return fraction<this_t, int_t2>(*this, i); }
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >

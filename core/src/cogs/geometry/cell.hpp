@@ -31,7 +31,7 @@ namespace planar {
 class cell
 {
 private:
-	size m_currentSize;
+	size m_currentSize = size(0, 0);
 
 public:
 	cell()

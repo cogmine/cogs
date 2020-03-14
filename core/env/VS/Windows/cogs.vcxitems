@@ -291,6 +291,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\frame.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_bar.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\scroll_pane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\stack_panel.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\subsystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\table.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\text_editor.hpp" />

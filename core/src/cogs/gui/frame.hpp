@@ -54,7 +54,7 @@ private:
 	weak_rcptr<cell> m_frameable;
 
 	// Preserved position from last reshape, in parent coordinates (in which 0,0 is parent's origin).
-	point m_childPosition;
+	point m_childPosition = point(0, 0);
 
 	friend class frameable;
 
@@ -63,7 +63,6 @@ private:
 
 public:
 	frame()
-		: m_childPosition(0, 0)
 	{ }
 
 	virtual point get_child_position() const
@@ -240,8 +239,6 @@ public:
 		COGS_ASSERT(f.m_frameable == this);
 		m_frames.remove(f.m_siblingIterator);
 	}
-
-	virtual void remove_frames() { m_frames.clear(); }
 
 	bool has_frames() const { return !!m_frames; }
 
@@ -538,15 +535,15 @@ public:
 	void set_fixed_size(const size& sz) { m_size = sz; }
 
 	double& get_fixed_size(dimension d) { return m_size[d]; }
-	const double get_fixed_size(dimension d) const { return m_size[d]; }
+	double get_fixed_size(dimension d) const { return m_size[d]; }
 	void set_fixed_size(dimension d, double sz) { m_size[d] = sz; }
 
 	double& get_fixed_height() { return m_size.get_height(); }
-	const double get_fixed_height() const { return m_size.get_height(); }
+	double get_fixed_height() const { return m_size.get_height(); }
 	void set_fixed_height(double sz) { m_size.set_height(sz); }
 
 	double& get_fixed_width() { return m_size.get_width(); }
-	const double get_fixed_width() const { return m_size.get_width(); }
+	double get_fixed_width() const { return m_size.get_width(); }
 	void set_fixed_width(double sz) { m_size.set_width(sz); }
 
 	virtual size get_default_size() const { return m_calculatedSize; }
@@ -607,7 +604,7 @@ public:
 	void set_position(const point& pt) { m_bounds.set_position(pt); }
 
 	double& get_position(dimension d) { return m_bounds.get_position(d); }
-	const double get_position(dimension d) const { return m_bounds.get_position(d); }
+	double get_position(dimension d) const { return m_bounds.get_position(d); }
 	void set_position(dimension d, double d2) { return m_bounds.set_position(d, d2); }
 
 	size& get_fixed_size() { return m_bounds.get_size(); }
@@ -615,15 +612,15 @@ public:
 	void set_fixed_size(const size& sz) { m_bounds.set_size(sz); }
 
 	double& get_fixed_size(dimension d) { return m_bounds.get_size(d); }
-	const double get_fixed_size(dimension d) const { return m_bounds.get_size(d); }
+	double get_fixed_size(dimension d) const { return m_bounds.get_size(d); }
 	void set_fixed_size(dimension d, double d2) { m_bounds.set_size(d, d2); }
 
 	double& get_fixed_height() { return m_bounds.get_height(); }
-	const double get_fixed_height() const { return m_bounds.get_height(); }
+	double get_fixed_height() const { return m_bounds.get_height(); }
 	void set_fixed_height(double d) { m_bounds.set_height(d); }
 
 	double& get_fixed_width() { return m_bounds.get_width(); }
-	const double get_fixed_width() const { return m_bounds.get_width(); }
+	double get_fixed_width() const { return m_bounds.get_width(); }
 	void set_fixed_width(double d) { m_bounds.set_width(d); }
 
 protected:

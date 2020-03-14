@@ -132,17 +132,10 @@ private:
 
 
 public:
-	typedef std::conditional_t<can_reduce_positive,
-		typename fixed_integer_native_const<false, (sizeof(ulongest) * 8), low_digit>::reduced_t,
-		std::conditional_t<can_reduce_negative,
-		typename fixed_integer_native_const<true, (sizeof(longest) * 8), (longest)low_digit>::reduced_t,
-		typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<low_digit>::type
-		>
-	> reduced_t;
+	typedef typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<low_digit>::type reduced_t;
 
 	typedef typename calculate_negated<is_const_zero, true>::type::reduced_t negative_t;
 	typedef std::conditional_t<is_const_negative, negative_t, reduced_t> abs_t;
-
 
 private:
 
@@ -156,17 +149,8 @@ private:
 	template <ulongest... lowPart>
 	class calculate_reduced
 	{
-	private:
-		static constexpr size_t reduced_low_digit = is_const_negative ? range_to_bits_v<(longest)low_digit, 0> : range_to_bits_v<0, (ulongest)low_digit>;
-
 	public:
-		typedef std::conditional_t<can_reduce_positive,
-				fixed_integer_extended_const<false, (sizeof...(lowPart) * (sizeof(ulongest) * 8)) + reduced_low_digit, lowPart..., low_digit>,
-					std::conditional_t<can_reduce_negative,
-						fixed_integer_extended_const<true, (sizeof...(lowPart) * (sizeof(ulongest) * 8)) + reduced_low_digit, lowPart..., low_digit>,
-						typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<lowPart..., low_digit>::type
-					>
-			> type;
+		typedef typename fixed_integer_extended_const<is_const_negative, bits, highDigits...>::template calculate_reduced<low_digit, lowPart...>::type type;
 	};
 
 	template <ulongest... lowPart>
@@ -802,23 +786,23 @@ public:
 	this_t& operator=(const volatile this_t&) const { }
 	volatile this_t& operator=(const volatile this_t&) const volatile { }
 
-	constexpr ulongest get_int() const { return low_digit; }
+	constexpr ulongest get_int() const volatile { return low_digit; }
 	operator ulongest() const volatile { return low_digit; }
 
 	reduced_t simplify_type() const volatile { return reduced_t(); }
 
-	constexpr ulongest get_digit(size_t i) const
+	constexpr ulongest get_digit(size_t i) const volatile
 	{
 		if (i == 0)
 			return low_digit;
 		if (i >= n_digits)
 			return 0;
-		return fixed_integer_extended_const<has_sign, bits, highDigits...>::get_digit(i - 1);
+		fixed_integer_extended_const<has_sign, bits - (sizeof(ulongest) * 8), highDigits...> tmp;
+		return tmp.get_digit(i - 1);
 	}
 
 	constexpr bool operator!() const volatile { return is_const_zero; }
 
-	template <typename enable = void> // delays expansion until called
 	auto operator~() const volatile
 	{
 		typename fixed_integer_extended_const<has_sign, bits, ~low_digit_in, ~highDigits...>::reduced_t tmp;
@@ -831,7 +815,7 @@ public:
 		!low_digit
 			? fixed_integer_extended_const<is_const_negative, bits, highDigits...>::is_const_exponent_of_two
 			: (is_const_negative
-				? (((-(longest)low_digit_in & (~-(longest)low_digit_in + 1)) == low_digit_in)
+				? (((-(longest)low_digit_in & ((longest)~(ulongest)-(longest)low_digit_in + 1)) == low_digit_in)
 					&& fixed_integer_extended_const<has_sign_in, bits_in, highDigits...>::is_negative_one)
 				: (((low_digit_in & (~low_digit_in + 1)) == low_digit_in)
 					&& fixed_integer_extended_const<has_sign_in, bits_in, highDigits...>::is_const_zero)
@@ -847,7 +831,6 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = void> // delays expansion until called
 	auto operator-() const volatile
 	{
 		negative_t tmp;
@@ -1484,7 +1467,6 @@ public:
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
 
-
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto gcd(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
 	{
@@ -1984,7 +1966,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
@@ -1998,7 +1980,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
@@ -2011,9 +1993,29 @@ public:
 		return tmp;
 	}
 
+	bool test_bit(size_t i) const volatile
+	{
+		if (i >= bits)
+			return false;
+		if (i >= sizeof(ulongest) * 8)
+			return fixed_integer_extended_const<false, bits - (sizeof(ulongest) * 8), highDigits...>::test_bit(i - (sizeof(ulongest) * 8));
+		return (low_digit & ((ulongest)((ulongest)1 << i))) != 0;
+	}
 
-	bool test_bit(size_t i) const volatile { return false; }
-
+	template <size_t i>
+	constexpr bool test_bit_const() const volatile
+	{
+		if constexpr (i >= bits)
+			return false;
+		else if constexpr (i >= sizeof(ulongest) * 8)
+		{
+			constexpr size_t n = i - (sizeof(ulongest) * 8);
+			constexpr size_t bits2 = (bits - (sizeof(ulongest) * 8));
+			return fixed_integer_extended_const<false, bits2, highDigits...>::template test_bit_const<n>();
+		}
+		else
+			return (low_digit & ((ulongest)((ulongest)1 << i))) != 0;
+	}
 
 	template <typename char_t>
 	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const volatile
@@ -2131,7 +2133,7 @@ public:
 	static constexpr ulongest int_value = value;
 	static constexpr bool is_const_negative = !has_sign ? false : ((longest)value < 0);
 
-	static constexpr bool is_const_exponent_of_two = is_const_negative ? ((-(longest)int_value & (~- (longest)int_value + 1)) == -(longest)int_value) : ((int_value & (~int_value + 1)) == int_value);
+	static constexpr bool is_const_exponent_of_two = is_const_negative ? ((-(longest)int_value & ((longest)~(ulongest)-(longest)int_value + 1)) == -(longest)int_value) : ((int_value & (~int_value + 1)) == int_value);
 
 	static constexpr bool const_bit_scan_forward = fixed_integer_native_const<false, (sizeof(ulongest) * 8), value>::const_bit_scan_forward;
 	static constexpr bool const_bit_scan_reverse = fixed_integer_native_const<false, (sizeof(ulongest) * 8), value>::const_bit_scan_reverse;
@@ -2152,7 +2154,7 @@ private:
 	static constexpr bool is_negative_one = !has_sign ? false : (value == (ulongest)-1);
 	static constexpr bool is_high_digit_zero = is_const_zero;
 	static constexpr bool is_high_digit_negative_one = is_negative_one;
-	static constexpr size_t reduced_bits = is_const_negative ? range_to_bits_v<(longest)value, 0> : range_to_bits_v<0, (ulongest)value>;
+	static constexpr size_t reduced_bits = is_const_zero ? 0 : (is_const_negative ? range_to_bits_v<(longest)value, 0> : range_to_bits_v<0, (ulongest)value>);
 
 	template <bool is_zero, bool overflow, ulongest... lowPart>
 	class calculate_negated;
@@ -2234,14 +2236,99 @@ private:
 		typedef fixed_integer_extended_const<has_sign, bits, lowPart..., new_low_digit, last_digit> type;
 	};
 
-	template <ulongest... lowPart>
+	template <size_t b, ulongest... args1>
+	class reverse_helper
+	{
+	public:
+		template <ulongest... args>
+		class accumulate;
+
+		template <ulongest x, ulongest... args2>
+		class accumulate<x, args2...>
+		{
+		public:
+			typedef typename reverse_helper<b, x, args1...>::template accumulate<args2...>::type type;
+		};
+
+		template <>
+		class accumulate<>
+		{
+		public:
+			typedef fixed_integer_extended_const<is_const_negative, b, args1...> type;
+		};
+	};
+
+	template <ulongest nextLowDigit, ulongest... lowPart>
 	class calculate_reduced
 	{
 	private:
-		static constexpr size_t reduced_low_digit = is_const_negative ? range_to_bits_v<(longest)low_digit, 0> : range_to_bits_v<0, (ulongest)low_digit>;
+		template <bool is_const_native2, ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper
+		{
+		};
 
+		template<ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<false, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		{
+		public:
+			typedef typename reverse_helper<range_to_bits_v<0, highest_digit> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
+		};
+
+		template<bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<false, 0, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		{
+		public:
+			typedef typename fixed_integer_extended_const<false, bits, nextLowDigit>::template calculate_reduced<lowPart...>::type type;
+		};
+
+		template<>
+		class helper<false, 0, true, 0>
+		{
+		public:
+			typedef fixed_integer_native_const<false, 0, 0> type;
+		};
+
+		template<>
+		class helper<false, 0, false, 0>
+		{
+		public:
+			typedef fixed_integer_native_const<false, range_to_bits_v<0, nextLowDigit>, nextLowDigit> type;
+		};
+
+		template <ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<true, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		{
+		public:
+			typedef typename reverse_helper<range_to_bits_v<(longest)highest_digit, 0> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
+		};
+
+		template <size_t lowPartCount>
+		class helper<true, (ulongest)-1, false, lowPartCount>
+		{
+		public:
+			typedef typename reverse_helper<1 + (sizeof(ulongest) * 8 * (lowPartCount))>::template accumulate<(ulongest)-1, nextLowDigit, lowPart...>::type type;
+		};
+
+		template <size_t lowPartCount>
+		class helper<true, (ulongest)-1, true, lowPartCount>
+		{
+		public:
+			typedef typename fixed_integer_extended_const<true, bits, nextLowDigit>::template calculate_reduced<lowPart...>::type type;
+		};
+
+		template <>
+		class helper<true, (ulongest)-1, true, 0>
+		{
+		private:
+			static constexpr size_t reduced = range_to_bits_v<(longest)nextLowDigit, 0>;
+		public:
+#pragma warning(push)
+#pragma warning(disable: 4310) // cast truncates constant value
+			typedef fixed_integer_native_const<true, reduced, (bits_to_int_t<reduced>)nextLowDigit> type;
+#pragma warning(pop)
+		};
 	public:
-		typedef fixed_integer_extended_const<is_const_negative, (sizeof...(lowPart)* (sizeof(ulongest) * 8)) + reduced_low_digit, lowPart..., low_digit> type;
+		typedef typename helper<is_const_negative, low_digit, (is_const_negative ? ((longest)nextLowDigit == 0) : (nextLowDigit == 0)), sizeof...(lowPart)>::type type;
 	};
 
 	template <ulongest... lowPart>
@@ -2305,19 +2392,11 @@ private:
 			static constexpr ulongest new_low_digit = low_digit + value2 + (overflow ? 1 : 0);
 			static constexpr bool new_overflow = overflow ? (new_low_digit <= low_digit) : (new_low_digit < low_digit);
 			static constexpr bool is_negative2 = has_sign2 && ((longest)value2 < 0);
-			static constexpr ulongest high_digit = (is_const_negative == is_negative2) ?
-													(is_const_negative ?
-													(overflow ? ~(ulongest)0 : (~(ulongest)0 - 1))
-														:
-														(overflow ? 1 : 0)
-														)
-													:
-													(overflow ? 0 : ~(ulongest)0);
+			static constexpr bool is_high_digit_negative = (is_const_negative == is_negative2) ? is_const_negative : (is_negative2 ? !!overflow : !overflow);
 
-			static constexpr bool is_high_digit_negative = (is_const_negative == is_negative2) ? is_const_negative : !overflow;
-
+			static constexpr ulongest high_digit = is_high_digit_negative ? (ulongest)-1 : 0;
 		public:
-			typedef typename fixed_integer_extended_const<is_high_digit_negative, bits2, lowPart..., new_low_digit, high_digit>::reduced_t type;
+			typedef typename fixed_integer_extended_const<is_high_digit_negative, 8 * sizeof(ulongest) * (2 + sizeof...(lowPart)), lowPart..., new_low_digit, high_digit>::reduced_t type;
 		};
 
 		typedef typename calculate_added_extended<false>::type type;
@@ -2529,24 +2608,24 @@ private:
 		static constexpr int value = !is_same_sign ? (is_const_negative ? -1 : 1) : tmp;
 	};
 
-
 	template <typename greater_t, typename lesser_t, typename modulo_t>
 	class get_gcd
 	{
 	public:
-		typedef decltype(std::declval<lesser_t>() % std::declval<modulo_t>()) modulo_t2;
+		typedef typename lesser_t::as_extended_t::template get_modulo<typename modulo_t::as_extended_t>::type::as_extended_t modulo_t2;
+
 		typedef typename get_gcd<lesser_t, modulo_t, modulo_t2>::type type;
 	};
 
 	template <typename greater_t, typename lesser_t>
-	class get_gcd<greater_t, lesser_t, zero_t>
+	class get_gcd<greater_t, lesser_t, zero_t::as_extended_t>
 	{
 	public:
 		typedef lesser_t type;
 	};
 
 	template <typename greater_t>
-	class get_gcd<greater_t, zero_t, zero_t>
+	class get_gcd<greater_t, zero_t::as_extended_t, greater_t>
 	{
 	public:
 		typedef greater_t type;
@@ -2747,7 +2826,6 @@ private:
 	};
 
 public:
-
 	typedef fixed_integer_native<is_const_negative, reduced_bits> non_const_t;
 
 	constexpr ulongest get_digit(size_t i) const volatile { return (i == 0) ? low_digit : 0; }
@@ -2759,6 +2837,22 @@ public:
 	constexpr size_t bit_scan_reverse() const volatile { return const_bit_scan_reverse; }
 
 	constexpr size_t bit_count() const volatile { return const_bit_count; }
+
+	bool test_bit(size_t i) const volatile
+	{
+		if (i >= bits)
+			return false;
+		return (low_digit & ((ulongest)((ulongest)1 << i))) != 0;
+	}
+
+	template <size_t i>
+	constexpr bool test_bit_const() const volatile
+	{
+		if constexpr (i >= bits)
+			return false;
+		else
+			return (low_digit & ((ulongest)((ulongest)1 << i))) != 0;
+	}
 
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
 	auto divide_whole(const fixed_integer_native_const<has_sign2, bits2, value2>&) const volatile
@@ -3001,7 +3095,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	constexpr auto const_compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
@@ -3015,7 +3109,7 @@ public:
 	}
 
 	template <bool has_sign2, size_t bits2, ulongest... values2>
-	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& i) const volatile
+	constexpr auto const_compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>&) const volatile
 	{
 		constexpr int value = compare_extended2<fixed_integer_extended_const<has_sign2, bits2, values2...> >::value;
 		std::conditional_t<value == 0,
@@ -3055,7 +3149,6 @@ public:
 	{
 		return zero_t();
 	}
-
 };
 
 

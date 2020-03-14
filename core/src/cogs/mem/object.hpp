@@ -41,11 +41,13 @@ protected:
 	rc_obj_base* m_desc;
 
 public:
-	inline static thread_local const rcnew_glue_obj_t* rcnew_glue_obj;
+	inline static thread_local const rcnew_glue_obj_t* rcnew_glue_obj = nullptr;
 
 	object()
 	{
 		COGS_ASSERT(object::rcnew_glue_obj != nullptr);
+		COGS_ASSERT(object::rcnew_glue_obj->m_desc != nullptr);
+		COGS_ASSERT(object::rcnew_glue_obj->m_desc->contains(this));
 		m_desc = object::rcnew_glue_obj->m_desc;
 	}
 

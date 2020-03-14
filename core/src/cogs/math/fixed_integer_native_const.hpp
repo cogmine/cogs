@@ -100,8 +100,8 @@ public:
 
 	static constexpr bool is_const_negative = !has_sign ? false : (value < 0);
 	static constexpr bool is_const_exponent_of_two = is_const_negative
-		? ((-(std::make_signed_t<int_t>)value & (~-(std::make_signed_t<int_t>)value + 1)) == -(std::make_signed_t<int_t>)value)
-		: ((value & (~value + 1)) == value);
+		? ((-(std::make_signed_t<int_t>)value & ((longest)~(ulongest)-(std::make_signed_t<int_t>)value + 1)) == -(std::make_signed_t<int_t>)value)
+		: ((value & ((longest)~value + 1)) == value);
 
 	typedef fixed_integer_extended_const<is_const_negative, bits, (ulongest)value> as_extended_t;
 
@@ -1464,8 +1464,10 @@ public:
 	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
 	int compare(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
 
+	bool test_bit(size_t i) const volatile { return (get_int() & ((int_t)((int_t)1 << i))) != 0; }
 
-	bool test_bit(size_t i) const volatile { non_const_t tmp(int_value); return tmp.test_bit(i); }
+	template <size_t i>
+	constexpr bool test_bit_const() const volatile { return (get_int() & ((int_t)((int_t)1 << i))) != 0; }
 
 	template <typename char_t>
 	string_t<char_t> to_string_t(uint8_t radix = 10, size_t minDigits = 1) const volatile;

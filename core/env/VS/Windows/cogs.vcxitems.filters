@@ -1323,6 +1323,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\count_args.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\stack_panel.hpp">
+      <Filter>core\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">

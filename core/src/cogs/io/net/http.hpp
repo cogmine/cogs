@@ -881,7 +881,7 @@ private:
 										}
 
 										size_t i2 = currentHeader.index_of(':');
-										if (i2 == -1) // Bogus header?
+										if (i2 == (size_t)-1) // Bogus header?
 										{
 											error_reply()->complete();
 											break;

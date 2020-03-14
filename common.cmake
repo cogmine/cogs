@@ -65,7 +65,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     include_directories(
       ${CMAKE_CURRENT_LIST_DIR}/core/env/VS/Windows/src
     )
-    
+
     # clang 10 can't currently compile ATL headers, so disable use of ATL thunk
     target_compile_definitions(${EXECUTABLE_NAME} PUBLIC -DCOGS_USE_ATL_THUNK=0)
 
@@ -83,7 +83,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     )
   endif()
   ################################################################
- 
+
   if (X64)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16) 
   elseif (X32)
@@ -153,13 +153,12 @@ endif()
 
 ###################################################################### MSVC OR CLANG-CL
 if (MSVC OR CLANGCL)
-  target_compile_options(${EXECUTABLE_NAME} PUBLIC /W3 /std:c++latest /bigobj /Oi /Zi /permissive-)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC /W4 /std:c++latest /bigobj /Oi /Zi /permissive-)
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:/MDd /GS /Od /RTC1 >)
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:/Zc:inline /Gd /Oy /MD /FC /O2 /GS- /GL >)
   target_link_options(${EXECUTABLE_NAME} PUBLIC /INCREMENTAL:NO /NXCOMPAT /DYNAMICBASE)
 endif()
 ######################################################################
-
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 

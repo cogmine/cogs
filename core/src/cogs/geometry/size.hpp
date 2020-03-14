@@ -79,10 +79,10 @@ public:
 	double operator[](dimension d) const { return m_contents[(int)d]; }
 
 	double& get_width() { return m_contents[0]; }
-	const double get_width() const { return m_contents[0]; }
+	double get_width() const { return m_contents[0]; }
 
 	double& get_height() { return m_contents[1]; }
-	const double get_height() const { return m_contents[1]; }
+	double get_height() const { return m_contents[1]; }
 
 	point to_point() const;
 

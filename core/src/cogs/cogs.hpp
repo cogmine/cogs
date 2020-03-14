@@ -332,6 +332,7 @@
 #include "cogs/gui/bitmap_pane.hpp"
 #include "cogs/gui/scroll_bar.hpp"
 #include "cogs/gui/scroll_pane.hpp"
+#include "cogs/gui/stack_panel.hpp"
 #include "cogs/gui/subsystem.hpp"
 #include "cogs/gui/table.hpp"
 #include "cogs/gui/text_editor.hpp"

@@ -104,6 +104,13 @@ private:
 		p.get_ptr()->type::~type();
 	}
 
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_obj();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
+	}
+
 	virtual void dispose()
 	{
 		ref_t selfRef = m_selfReference;
@@ -179,6 +186,13 @@ private:
 		p.get_ptr()->type::~type();
 	}
 
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_obj();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
+	}
+
 	virtual void dispose()
 	{
 		ref_t selfRef = m_selfReference;
@@ -252,6 +266,13 @@ private:
 		p.get_ptr()->type::~type();
 	}
 
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_obj();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
+	}
+
 	virtual void dispose()
 	{
 		allocator_container<default_allocator>::destruct_deallocate_type<this_t>(this);
@@ -316,6 +337,13 @@ private:
 		p.get_ptr()->type::~type();
 	}
 
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_obj();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
+	}
+
 	virtual void dispose()
 	{
 		allocator_container<default_allocator>::destruct_deallocate_type<this_t>(this);
@@ -377,6 +405,13 @@ private:
 	virtual void released()
 	{
 		placement_destruct(get_obj());
+	}
+
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_obj();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
 	}
 
 	virtual void dispose()

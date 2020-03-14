@@ -1166,7 +1166,7 @@ public:
 		{
 			const vector<char>& curSubVector = m_vectorVector.get_const_ptr()[pos.m_outerIndex];
 			pos.m_innerIndex = curSubVector.index_of(pos.m_innerIndex, cmp);
-			if (pos.m_innerIndex != -1)
+			if (pos.m_innerIndex != (size_t)-1)
 			{
 				size_t foundIndex = curSize + pos.m_innerIndex;
 				if (foundIndex >= n)
@@ -1210,7 +1210,7 @@ public:
 		{
 			const vector<char>& curSubVector = m_vectorVector.get_const_ptr()[pos.m_outerIndex];
 			pos.m_innerIndex = curSubVector.index_of_any(pos.m_innerIndex, cmp, cmpCount);
-			if (pos.m_innerIndex != -1)
+			if (pos.m_innerIndex != (size_t)-1)
 			{
 				size_t foundIndex = curSize + pos.m_innerIndex;
 				if (foundIndex >= n)
@@ -3267,43 +3267,43 @@ public:
 	}
 
 
-	bool contains(const char& cmp) const { return m_contents->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const char& cmp) const { return m_contents->index_of(0, const_max_int_v<size_t>, cmp) != (size_t)-1; }
 
-	bool contains(const char& cmp) const volatile { return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(const char& cmp) const volatile { return m_contents.begin_read()->index_of(0, const_max_int_v<size_t>, cmp) != (size_t)-1; }
 
-	bool contains(size_t i, const char& cmp) const { return m_contents->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const char& cmp) const { return m_contents->index_of(i, const_max_int_v<size_t>, cmp) != (size_t)-1; }
 
-	bool contains(size_t i, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp) != -1; }
+	bool contains(size_t i, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, const_max_int_v<size_t>, cmp) != (size_t)-1; }
 
 	bool contains(const position_t& pos, const char& cmp) const { return get_end_position() != m_contents->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 	bool contains(const position_t& pos, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, const_max_int_v<size_t>, cmp); }
 
 
-	bool contains(size_t i, size_t n, const char& cmp) const { return m_contents->index_of(i, n, cmp) != -1; }
+	bool contains(size_t i, size_t n, const char& cmp) const { return m_contents->index_of(i, n, cmp) != (size_t)-1; }
 
-	bool contains(size_t i, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, n, cmp) != -1; }
+	bool contains(size_t i, size_t n, const char& cmp) const volatile { return m_contents.begin_read()->index_of(i, n, cmp) != (size_t)-1; }
 
 	bool contains(const position_t& pos, size_t n, const char& cmp) const { return get_end_position() != m_contents->position_of(pos.m_pos, n, cmp); }
 
 	bool contains(const position_t& pos, size_t n, const char& cmp) const volatile { return get_end_position() != m_contents.begin_read()->position_of(pos.m_pos, n, cmp); }
 
 
-	bool contains_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
-	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
-	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const { return m_contents->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
 	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const { return get_end_position() != m_contents->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
 	bool contains_segment(const position_t& pos, size_t n, const char* cmp, size_t cmpLength) const { return get_end_position() != m_contents->position_of_segment(pos.m_pos, n, buffer::contain(cmp, cmpLength)); }
 
-	bool contains_segment(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
-	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
-	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != -1; }
+	bool contains_segment(size_t i, size_t n, const char* cmp, size_t cmpLength) const volatile { return m_contents.begin_read()->index_of_segment(i, n, buffer::contain(cmp, cmpLength)) != (size_t)-1; }
 
 	bool contains_segment(const position_t& pos, const char* cmp, size_t cmpLength) const volatile { return get_end_position() != m_contents.begin_read()->position_of_segment(pos.m_pos, const_max_int_v<size_t>, buffer::contain(cmp, cmpLength)); }
 
@@ -3312,145 +3312,145 @@ public:
 
 	bool contains_segment(const buffer& cmp) const
 	{
-		return m_contents->index_of_segment(0, const_max_int_v<size_t>, cmp) != -1;
+		return m_contents->index_of_segment(0, const_max_int_v<size_t>, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(const buffer& cmp) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, cmp) != -1;
+		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(const volatile buffer& cmp) const
 	{
 		buffer tmp = cmp;
-		return index_of_segment(tmp) != -1;
+		return index_of_segment(tmp) != (size_t)-1;
 	}
 
 	bool contains_segment(const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(const volatile composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 
 	bool contains_segment(size_t i, const buffer& cmp) const
 	{
-		return m_contents->index_of_segment(i, const_max_int_v<size_t>, cmp) != -1;
+		return m_contents->index_of_segment(i, const_max_int_v<size_t>, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const buffer& cmp) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, cmp) != -1;
+		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const volatile buffer& cmp) const
 	{
 		buffer tmp = cmp;
-		return index_of_segment(i, tmp) != -1;
+		return index_of_segment(i, tmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const volatile composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 
 	bool contains_segment(size_t i, size_t n, const buffer& cmp) const
 	{
-		return m_contents->index_of_segment(i, n, cmp) != -1;
+		return m_contents->index_of_segment(i, n, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const buffer& cmp) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, n, cmp) != -1;
+		return m_contents.begin_read()->index_of_segment(i, n, cmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const volatile buffer& cmp) const
 	{
 		buffer tmp = cmp;
-		return index_of_segment(i, n, tmp) != -1;
+		return index_of_segment(i, n, tmp) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpIndex, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const volatile composite_buffer& cmp, size_t cmpIndex = 0, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, n, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != -1;
+		return m_contents->index_of_segment(i, n, *(cmp.m_contents.begin_read()), cmpIndex, cmpLength) != (size_t)-1;
 	}
 
 
 	bool contains_segment(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(0, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 
 	bool contains_segment(size_t i, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(i, const_max_int_v<size_t>, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const volatile
 	{
-		return m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents.begin_read()->index_of_segment(i, n, *(cmp.m_contents), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 	bool contains_segment(size_t i, size_t n, const volatile composite_buffer& cmp, const position_t& cmpPos, size_t cmpLength = const_max_int_v<size_t>) const
 	{
-		return m_contents->index_of_segment(i, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != -1;
+		return m_contents->index_of_segment(i, n, *(cmp.m_contents.begin_read()), cmpPos.m_pos, cmpLength) != (size_t)-1;
 	}
 
 

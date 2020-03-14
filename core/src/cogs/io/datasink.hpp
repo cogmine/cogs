@@ -244,7 +244,7 @@ public:
 
 		/// @brief Gets the actual number of bytes writen.  Intended to be called after the writer completes.
 		/// @return The actaul number of bytes written.
-		const size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.get_length(); }
+		size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.get_length(); }
 
 		/// @brief Tests if any bytes were written.  Intended to be called after the writer completes.
 		/// @return True if any bytes were written.

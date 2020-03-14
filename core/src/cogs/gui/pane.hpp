@@ -2149,16 +2149,6 @@ public:
 			recompose();
 	}
 
-	virtual void remove_frames()
-	{
-		if (has_frames())
-		{
-			frameable::remove_frames();
-			if (m_installed && !m_uninstalling)
-				recompose();
-		}
-	}
-
 	rcref<pane> get_top_pane()
 	{
 		rcptr<pane> p = this_rcptr;

@@ -35,7 +35,7 @@ assign(T& t, S&& src)
 // Provide assignment to scalar volatile, as otherwise the compiler would perform the assignment unsafely.
 template <typename T, typename S>
 inline std::enable_if_t<
-	std::is_assignable_v<std::remove_volatile_t<T>&, std::remove_volatile_t<std::remove_reference_t<S> > >
+	std::is_constructible_v<std::remove_volatile_t<T>, decltype(load(std::declval<S>()))>
 	&& !std::is_class_v<T>
 	&& std::is_volatile_v<T>,
 	void

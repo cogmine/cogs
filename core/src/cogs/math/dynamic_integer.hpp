@@ -3047,12 +3047,12 @@ public:
 	}
 
 	template <bool has_sign, size_t bits>
-	dynamic_integer(const fixed_integer_native_const<has_sign, bits, 0>& src)
+	dynamic_integer(const fixed_integer_native_const<has_sign, bits, 0>&)
 	{
 	}
 
 	template <bool has_sign, size_t bits>
-	dynamic_integer(const volatile fixed_integer_native_const<has_sign, bits, 0>& src)
+	dynamic_integer(const volatile fixed_integer_native_const<has_sign, bits, 0>&)
 	{
 	}
 
@@ -3175,21 +3175,21 @@ public:
 	}
 
 	template <bool has_sign, size_t bits>
-	dynamic_integer& operator=(const fixed_integer_native_const<has_sign, bits, 0>& src)
+	dynamic_integer& operator=(const fixed_integer_native_const<has_sign, bits, 0>&)
 	{
 		clear();
 		return *this;
 	}
 
 	template <bool has_sign, size_t bits>
-	dynamic_integer& operator=(const volatile fixed_integer_native_const<has_sign, bits, 0>& src)
+	dynamic_integer& operator=(const volatile fixed_integer_native_const<has_sign, bits, 0>&)
 	{
 		clear();
 		return *this;
 	}
 
 	template <bool has_sign, size_t bits>
-	volatile dynamic_integer& operator=(const fixed_integer_native_const<has_sign, bits, 0>& src) volatile
+	volatile dynamic_integer& operator=(const fixed_integer_native_const<has_sign, bits, 0>&) volatile
 	{
 		clear();
 		return *this;
@@ -3197,7 +3197,7 @@ public:
 
 
 	template <bool has_sign, size_t bits>
-	volatile dynamic_integer& operator=(const volatile fixed_integer_native_const<has_sign, bits, 0>& src) volatile
+	volatile dynamic_integer& operator=(const volatile fixed_integer_native_const<has_sign, bits, 0>&) volatile
 	{
 		clear();
 		return *this;
@@ -4305,10 +4305,10 @@ public:
 
 	void assign_inverse_modulo(const volatile dynamic_integer& src) { dynamic_integer tmp(src); *this = src % *this; }
 	void assign_inverse_modulo(const volatile dynamic_integer& src) volatile { if (this == &src) clear(); else { dynamic_integer tmp(src); assign_inverse_modulo(tmp); } }
-	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { COGS_ASSERT(!!*this); clear(); }
-	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { COGS_ASSERT(!!*this); clear(); }
-	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { dynamic_integer tmp1; auto tmp2 = exchange(tmp1); COGS_ASSERT(!!tmp2); }
-	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { dynamic_integer tmp1; auto tmp2 = exchange(tmp1); COGS_ASSERT(!!tmp2); }
+	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
+	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { COGS_ASSERT(!!*this); clear(); }
+	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { dynamic_integer tmp1; auto tmp2 = exchange(tmp1); COGS_ASSERT(!!tmp2); }
+	template <bool has_sign2, size_t bits2> auto assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { dynamic_integer tmp1; auto tmp2 = exchange(tmp1); COGS_ASSERT(!!tmp2); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> void assign_inverse_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); assign_inverse_modulo(tmp); }
@@ -8681,7 +8681,7 @@ inline fixed_integer_extended_content<has_sign, n_bits>& fixed_integer_extended_
 	if (src.is_negative())
 		assign_negative(src.get_const_ptr(), src.get_length());
 	else
-		assign(src.get_const_ptr(), src.get_length());
+		assign_unsigned(src.get_const_ptr(), src.get_length());
 	return *this;
 }
 

@@ -522,6 +522,8 @@ public:
 	virtual void released() = 0;
 	virtual void dispose() = 0;
 
+	virtual bool contains(void* obj) const = 0;
+
 	template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, rc_obj_base&> > >
 	released_handler_remove_token on_released(F&& f) const;
 

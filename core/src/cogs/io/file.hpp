@@ -450,7 +450,7 @@
 //
 //	const file_size_t& get_length() const { return m_length; }
 //	const file_size_t& get_start() const { return m_start; }
-//	const file_size_t get_end() const { return m_start + m_length; }
+//	file_size_t get_end() const { return m_start + m_length; }
 //
 //	void set_start(const file_size_t& s) { m_start = s; }
 //	void set_length(const file_size_t& l) { m_length = l; }
@@ -576,10 +576,10 @@
 //		m_buffer(b)
 //	{ }
 //
-//	const size_t get_length() const { return m_buffer.size(); }
+//	size_t get_length() const { return m_buffer.size(); }
 //	const file_size_t& get_start() const { return m_start; }
-//	const file_size_t get_end() const { return m_start + m_buffer.size(); }
-//	const segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
+//	file_size_t get_end() const { return m_start + m_buffer.size(); }
+//	segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
 //	const const_buffer& get_buffer() const { return m_buffer; }
 //
 //	this_t split_off_after(size_t n)
@@ -631,15 +631,15 @@
 //{
 //private:
 //	typedef segment_bufferlist<file_size_t> this_t;
-//	file_size_t	m_start;
-//	composite_buffer	m_buffer;
+//	file_size_t m_start;
+//	composite_buffer m_buffer;
 //
 //public:
 //	segment_bufferlist()
 //	{ }
 //
 //	segment_bufferlist(const this_t& s)
-//		:m_start(s.m_start),
+//		: m_start(s.m_start),
 //		m_buffer(s.m_buffer)
 //	{ }
 //
@@ -653,10 +653,10 @@
 //		m_buffer(b)
 //	{ }
 //
-//	const size_t get_length() const { return m_buffer.get_length(); }
+//	size_t get_length() const { return m_buffer.get_length(); }
 //	const file_size_t& get_start() const { return m_start; }
-//	const file_size_t get_end() const { return m_start + m_buffer.size(); }
-//	const segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
+//	file_size_t get_end() const { return m_start + m_buffer.size(); }
+//	segment<file_size_t> get_segment() const { return segment<file_size_t>(m_start, m_buffer.size()); }
 //	const composite_buffer& get_buffer() const { return m_buffer; }
 //
 //	this_t split_off_after(size_t n)
@@ -788,7 +788,7 @@
 //
 //		const file_size_t& get_start() const { return m_segment.get_start(); }
 //		const file_size_t& get_length() const { return m_segment.get_length(); }
-//		const file_size_t  get_end() const { return m_segment.get_end(); }
+//		file_size_t get_end() const { return m_segment.get_end(); }
 //	};
 //
 //	typedef sorted_list<file_size_t, true, node> list_t;
@@ -1064,7 +1064,7 @@
 //
 //		const file_size_t& get_start() const { return m_segmentBuffer.get_start(); }
 //		const file_size_t& get_length() const { return m_segmentBuffer.get_length(); }
-//		const file_size_t  get_end() const { return m_segmentBuffer.get_end(); }
+//		file_size_t get_end() const { return m_segmentBuffer.get_end(); }
 //
 //		void advance(size_t n) { m_segmentBuffer.advance(n); }
 //		void truncate_to(size_t n) { m_segmentBuffer.truncate_to(n); }
@@ -1665,7 +1665,7 @@
 //	const file_size_t& get_key() const { return m_segment.get_start(); }
 //	const file_size_t& get_start() const { return m_segment.get_start(); }
 //	const file_size_t& get_length() const { return m_segment.get_length(); }
-//	const file_size_t  get_end() const { return m_segment.get_end(); }
+//	file_size_t get_end() const { return m_segment.get_end(); }
 //};
 //
 //template <typename dereived_segment_state_map_node_t, typename file_size_t>
@@ -4910,11 +4910,11 @@
 //			m_aux(aux)
 //		{ }
 //
-//		const file_size_t get_start() const { return m_start; }
-//		const file_size_t get_length() const { return m_aux.get_length(); }
-//		const file_size_t get_end() const { return m_start + get_length(); }
+//		file_size_t get_start() const { return m_start; }
+//		file_size_t get_length() const { return m_aux.get_length(); }
+//		file_size_t get_end() const { return m_start + get_length(); }
 //
-//		const segment<file_size_t> get_segment() const { return segment<file_size_t>(get_start(), get_length()); }
+//		segment<file_size_t> get_segment() const { return segment<file_size_t>(get_start(), get_length()); }
 //
 //		this_t split_off_after(file_size_t n)
 //		{
@@ -4985,13 +4985,13 @@
 //			m_buffer(sb.m_buffer)
 //		{ }
 //
-//		segment_buffer(const file_size_t start, const composite_buffer& buffer)
+//		segment_buffer(file_size_t start, const composite_buffer& buffer)
 //			: m_start(start),
 //			m_buffer(buffer)
 //		{ }
 //
-//		const segment get_segment() const { return segment(m_start, m_buffer.size()); }
-//		const file_size_t get_end() const { return m_start + m_buffer.size(); }
+//		segment get_segment() const { return segment(m_start, m_buffer.size()); }
+//		file_size_t get_end() const { return m_start + m_buffer.size(); }
 //
 //		// merge() stores the union of both segment_buffers.  It's an error to use merge() with
 //		// segment_buffers that are not overlaping or adjacent.
@@ -5125,7 +5125,7 @@
 //
 //		~segment_list_base() { clear_inner(); }
 //
-//		const size_t count() const { return m_count; }
+//		size_t count() const { return m_count; }
 //		bool is_empty() const { return !m_count; }
 //
 //		void clear()
@@ -6300,7 +6300,7 @@
 //		}
 //	};
 //
-//	virtual const file_size_t eof() = 0;
+//	virtual file_size_t eof() = 0;
 //
 //	rcref<reader> read(file_size_t offset, size_t n)
 //	{
@@ -6459,8 +6459,8 @@
 //		return *this;
 //	}
 //
-//	const uint64_t start() const { return m_start; }
-//	const uint64_t end() const { return m_end; }
+//	uint64_t start() const { return m_start; }
+//	uint64_t end() const { return m_end; }
 //
 //	byte_segment_t split_off_after_at(uint64_t midpoint)
 //	{
@@ -6510,10 +6510,10 @@
 //	public:
 //
 //		uint64_t& start() { return m_start; }
-//		const uint64_t start() const { return m_start; }
+//		uint64_t start() const { return m_start; }
 //
 //		uint64_t& end() { return m_end; }
-//		const uint64_t end() const { return m_end; }
+//		uint64_t end() const { return m_end; }
 //
 //		// sorted_list_node interface
 //		uint64_t get_key() const { return start(); }
@@ -6675,10 +6675,10 @@
 //		}
 //
 //	public:
-//		const size_t get_requested_size() const { return m_requestedSize; }
+//		size_t get_requested_size() const { return m_requestedSize; }
 //		const composite_buffer& get_unwritten_buffer() const { return m_unwrittenBufferList; }
-//		const size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.size(); } // m_writeSize; }
-//		const uint64_t get_offset() const { return m_offset; }
+//		size_t get_write_size() const { return m_requestedSize - m_unwrittenBufferList.size(); } // m_writeSize; }
+//		uint64_t get_offset() const { return m_offset; }
 //		bool was_any_written() const { return m_requestedSize != m_unwrittenBufferList.size(); }
 //
 //		typedef delegate_t<void, const rcref<const file_writer>&> dispatch_t;
@@ -6723,9 +6723,9 @@
 //		}
 //
 //	public:
-//		const size_t get_requested_size() const { return m_requestedSize; }
-//		const size_t get_read_size() const { return m_bufferList.size(); }
-//		const uint64_t get_offset() const { return m_offset; }
+//		size_t get_requested_size() const { return m_requestedSize; }
+//		size_t get_read_size() const { return m_bufferList.size(); }
+//		uint64_t get_offset() const { return m_offset; }
 //		const composite_buffer& get_composite_buffer() const { return m_bufferList; }
 //
 //		typedef delegate_t<void, const rcref<const file_reader>&> dispatch_t;
@@ -6957,10 +6957,10 @@
 //		}
 //
 //		uint64_t& start() { return m_start; }
-//		const uint64_t start() const { return m_start; }
+//		uint64_t start() const { return m_start; }
 //
 //		uint64_t& end() { return m_end; }
-//		const uint64_t end() const { return m_end; }
+//		uint64_t end() const { return m_end; }
 //
 //		// sorted_list_node interface
 //		uint64_t get_key() const { return start(); }

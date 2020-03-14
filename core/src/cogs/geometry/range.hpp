@@ -157,9 +157,9 @@ public:
 	bool has_max() const { return m_hasMax; }
 
 	double& get_min() { return m_min; }
-	const double get_min() const { return m_min; }
+	double get_min() const { return m_min; }
 	double& get_max() { return m_max; }
-	const double get_max() const { return m_max; }
+	double get_max() const { return m_max; }
 
 	// empty/not
 	bool is_empty() const { return (m_hasMax && (m_min > m_max)); }
@@ -919,25 +919,25 @@ public:
 	const size& get_min() const { return m_minSize; }
 
 	double& get_min(dimension d) { return m_minSize[d]; }
-	const double get_min(dimension d) const { return m_minSize[d]; }
+	double get_min(dimension d) const { return m_minSize[d]; }
 
 	size& get_max() { return m_maxSize; }
 	const size& get_max() const { return m_maxSize; }
 
 	double& get_max(dimension d) { return m_maxSize[d]; }
-	const double get_max(dimension d) const { return m_maxSize[d]; }
+	double get_max(dimension d) const { return m_maxSize[d]; }
 
 	double& get_min_height() { return m_minSize.get_height(); }
-	const double get_min_height() const { return m_minSize.get_height(); }
+	double get_min_height() const { return m_minSize.get_height(); }
 
 	double& get_max_height() { return m_maxSize.get_height(); }
-	const double get_max_height() const { return m_maxSize.get_height(); }
+	double get_max_height() const { return m_maxSize.get_height(); }
 
 	double& get_min_width() { return m_minSize.get_width(); }
-	const double get_min_width() const { return m_minSize.get_width(); }
+	double get_min_width() const { return m_minSize.get_width(); }
 
 	double& get_max_width() { return m_maxSize.get_width(); }
-	const double get_max_width() const { return m_maxSize.get_width(); }
+	double get_max_width() const { return m_maxSize.get_width(); }
 
 	const linear::range get_width() const { return linear::range(m_minSize.get_width(), m_maxSize.get_width(), m_hasMaxWidth); }
 	const linear::range get_height() const { return linear::range(m_minSize.get_height(), m_maxSize.get_height(), m_hasMaxHeight); }

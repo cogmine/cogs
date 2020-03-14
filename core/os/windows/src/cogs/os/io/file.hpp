@@ -1135,7 +1135,7 @@
 //		return rcnew(file_writer)(m_handle);
 //	}
 //
-//	virtual const uint64_t eof()
+//	virtual uint64_t eof()
 //	{
 //		LARGE_INTEGER fileSize;
 //		BOOL b = GetFileSizeEx(m_handle->m_handle, &fileSize);

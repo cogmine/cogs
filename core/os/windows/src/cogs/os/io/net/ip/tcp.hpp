@@ -422,7 +422,7 @@ public:
 				LPFN_CONNECTEX m_lpfnConnectEx = 0;
 				DWORD dwBytes;
 				GUID GuidConnectEx = WSAID_CONNECTEX;
-				DWORD dwErr = WSAIoctl(m_tcp->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+				int err = WSAIoctl(m_tcp->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 									&GuidConnectEx,
 									sizeof(GuidConnectEx),
 									&m_lpfnConnectEx,
@@ -430,7 +430,7 @@ public:
 									&dwBytes,
 									NULL,
 									NULL);
-				if (dwErr == SOCKET_ERROR)
+				if (err == SOCKET_ERROR)
 				{ // Another address might actually have a different socket type, so try again
 					m_addresses.erase(0, 1);
 					continue;
@@ -449,8 +449,8 @@ public:
 				if (!!m_lpfnConnectEx(m_tcp->m_socket->get(), (sockaddr*)&sa, (int)(addr.get_sockaddr_size()), NULL, 0, NULL, m_overlapped->get()))
 					break; // completed synchronously
 
-				DWORD err = WSAGetLastError();
-				if (err == WSA_IO_PENDING)
+				DWORD err2 = WSAGetLastError();
+				if (err2 == WSA_IO_PENDING)
 					break; // completing asynchronously
 
 				m_addresses.erase(0, 1);
@@ -583,7 +583,7 @@ public:
 							m_lpfnAcceptEx = 0;
 							DWORD dwBytes;
 							GUID GuidAcceptEx = WSAID_ACCEPTEX;
-							DWORD dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+							int err = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 												&GuidAcceptEx,
 												sizeof(GuidAcceptEx),
 												&m_lpfnAcceptEx,
@@ -591,12 +591,12 @@ public:
 												&dwBytes,
 												NULL,
 												NULL);
-							if (dwErr != SOCKET_ERROR)
+							if (err != SOCKET_ERROR)
 							{
 								// Query for ptr to GetAcceptExSockaddrs
 								m_lpfnGetAcceptExSockaddrs = 0;
 								GUID GuidGetAcceptExSockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
-								dwErr = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+								err = WSAIoctl(m_listenSocket->m_socket->get(), SIO_GET_EXTENSION_FUNCTION_POINTER,
 													&GuidGetAcceptExSockaddrs,
 													sizeof(GuidGetAcceptExSockaddrs),
 													&m_lpfnGetAcceptExSockaddrs,
@@ -604,7 +604,7 @@ public:
 													&dwBytes,
 													NULL,
 													NULL);
-								if (dwErr != SOCKET_ERROR)
+								if (err != SOCKET_ERROR)
 								{
 									m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_rcref }]()
 									{

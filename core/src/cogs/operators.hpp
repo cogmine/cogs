@@ -233,7 +233,7 @@ template <typename T>
 struct unary_array_operation_to_args_helper<0, T, void>
 {
 	template <typename F, typename U, typename... args_t>
-	static decltype(auto) expand(F&& f, U&& u, T&&, args_t&&... a)
+	static decltype(auto) expand(F&& f, U&&, T&&, args_t&&... a)
 	{ return f(std::forward<args_t>(a)...); }
 };
 
@@ -283,13 +283,13 @@ template <typename T, typename T2>
 struct binary_array_operation_to_args_helper<0, T, T2, void>
 {
 	template <typename F, typename B, typename... args_t>
-	static decltype(auto) expand(F&& f, B&& b, T&&, T2&&, args_t&&... a)
+	static decltype(auto) expand(F&& f, B&&, T&&, T2&&, args_t&&... a)
 	{ return f(std::forward<args_t>(a)...); }
 };
 
 template <typename F, typename B, typename T, typename T2>
 inline decltype(auto) binary_array_operation_to_args(F&& f, B&& b, T&& t, T2&& t2, std::enable_if_t<(extent_v<T> == extent_v<T2>), int> = 0)
-{ return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t)); }
+{ return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), std::forward<T2>(t2)); }
 
 
 template <size_t i, typename... args_t>
@@ -359,7 +359,7 @@ is_exponent_of_two(const T& t) { return is_exponent_of_two(abs(t)); }
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_exponent_of_two)
 
 template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, bool>
-has_fractional_part(const T& t) { return false; }
+has_fractional_part(const T&) { return false; }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), nullptr))>
 has_fractional_part(const T& t) { return std::modf(load(t), nullptr) != 0.0; }
@@ -897,7 +897,7 @@ COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(round)
 
 
 template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, int>
-fractional_part(const T& t) { return 0; }
+fractional_part(const T&) { return 0; }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), std::declval<std::nullptr_t>()))>
 fractional_part(const T& t) { return std::modf(load(t), nullptr); }

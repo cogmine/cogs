@@ -83,10 +83,10 @@ public:
 	double operator[](dimension d) const { return m_contents[(int)d]; }
 
 	double& get_x() { return m_contents[0]; }
-	const double get_x() const { return m_contents[0]; }
+	double get_x() const { return m_contents[0]; }
 
 	double& get_y() { return m_contents[1]; }
-	const double get_y() const { return m_contents[1]; }
+	double get_y() const { return m_contents[1]; }
 
 	size to_size() const { size sz(m_contents); return sz; }
 

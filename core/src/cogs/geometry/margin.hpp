@@ -97,12 +97,12 @@ public:
 
 	// get
 	double& get_leading() { return m_leading; }
-	const double get_leading() const { return m_leading; }
+	double get_leading() const { return m_leading; }
 
 	double& get_trailing() { return m_trailing; }
-	const double get_trailing() const { return m_trailing; }
+	double get_trailing() const { return m_trailing; }
 
-	const double get_size() const { return m_leading + m_trailing; }
+	double get_size() const { return m_leading + m_trailing; }
 
 	bool is_empty() const { return !m_leading && !m_trailing; }
 	bool operator!() const { return is_empty(); }
@@ -286,16 +286,16 @@ public:
 	const size& get_bottom_right() const { return m_bottomRightMargin; }
 
 	double& get_top() { return m_topLeftMargin.get_height(); }
-	const double get_top() const { return m_topLeftMargin.get_height(); }
+	double get_top() const { return m_topLeftMargin.get_height(); }
 	double& get_left() { return m_topLeftMargin.get_width(); }
-	const double get_left() const { return m_topLeftMargin.get_width(); }
+	double get_left() const { return m_topLeftMargin.get_width(); }
 	double& get_bottom() { return m_bottomRightMargin.get_height(); }
-	const double get_bottom() const { return m_bottomRightMargin.get_height(); }
+	double get_bottom() const { return m_bottomRightMargin.get_height(); }
 	double& get_right() { return m_bottomRightMargin.get_width(); }
-	const double get_right() const { return m_bottomRightMargin.get_width(); }
+	double get_right() const { return m_bottomRightMargin.get_width(); }
 
-	const double get_width() const { return get_left() + get_right(); }
-	const double get_height() const { return get_top() + get_bottom(); }
+	double get_width() const { return get_left() + get_right(); }
+	double get_height() const { return get_top() + get_bottom(); }
 
 	size get_size() const
 	{

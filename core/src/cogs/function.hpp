@@ -275,7 +275,7 @@ private:
 		typedef std::remove_reference_t<F> F_t;
 		const size_t blockSize = sizeof(block<F_t>);
 		m_size = blockSize;
-		if (blockSize <= n)
+		if constexpr (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
 			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));

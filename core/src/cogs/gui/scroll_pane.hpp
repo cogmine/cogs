@@ -21,7 +21,7 @@ namespace gui {
 /// @ingroup GUI
 /// @brief A scrollable GUI outer pane, providing a view of an inner pane.
 /// Inner pane should have a minimum size, under which size the need for a scroll bar is incurred
-class scroll_pane : public pane
+class scroll_pane : public pane, protected virtual pane_container
 {
 private:
 	class scroll_bar_info
@@ -33,17 +33,13 @@ private:
 		volatile double m_position = 0;
 		volatile boolean m_canAutoFade;
 
-		delegated_dependency_property<scroll_bar_state, io::permission::read> m_stateProperty;
 		delegated_dependency_property<double> m_positionProperty;
 		delegated_dependency_property<bool, io::permission::write> m_canAutoFadeProperty;
+		delegated_dependency_property<scroll_bar_state, io::permission::read> m_stateProperty;
 
 		scroll_bar_info(scroll_pane& scrollPane, dimension d)
 			: m_scrollBar(rcnew(scroll_bar)(d, false)),
 			m_frame(rcnew(override_bounds_frame)),
-			m_stateProperty(scrollPane, [this]()
-			{
-				return *(m_state.begin_read());
-			}),
 			m_positionProperty(scrollPane, [this]()
 			{
 				return atomic::load(m_position);
@@ -64,6 +60,10 @@ private:
 				if (oldValue != b && scrollPane.m_shouldAutoFadeScrollBar)
 					scrollPane.recompose();
 				m_canAutoFadeProperty.set_complete();
+			}),
+			m_stateProperty(scrollPane, [this]()
+			{
+				return *(m_state.begin_read());
 			})
 		{
 			m_scrollBar->prepend_frame(m_frame);
@@ -78,13 +78,13 @@ private:
 	bool m_hasScrollBar[2];
 	placement<scroll_bar_info> m_scrollBarInfo[2];
 
-	rcref<container_pane> m_contentPane;
-	rcref<native_container_pane> m_clippingPane; // using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
-	rcref<container_pane> m_cornerPane;
-
 	rcref<override_bounds_frame> m_contentFrame;
 	rcref<override_bounds_frame> m_clippingFrame;
 	rcref<override_bounds_frame> m_cornerFrame;
+
+	rcref<container_pane> m_contentPane;
+	rcref<native_container_pane> m_clippingPane; // using a native pane ensures clipping of platform dependent pane children (i.e. OS buttons, etc.)
+	rcref<container_pane> m_cornerPane;
 
 	range m_calculatedRange;
 	size m_calculatedDefaultSize;
@@ -153,12 +153,13 @@ public:
 		bool dragAndFlickScrolling = true, // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
 		const std::initializer_list<rcref<frame> >& frames = {},
 		const std::initializer_list<rcref<pane> >& children = {})
-		: m_contentPane(rcnew(container_pane)),
-		m_clippingPane(rcnew(native_container_pane)),
-		m_cornerPane(rcnew(container_pane)),
+		: pane(frames),
 		m_contentFrame(rcnew(override_bounds_frame)),
 		m_clippingFrame(rcnew(override_bounds_frame)),
 		m_cornerFrame(rcnew(override_bounds_frame)),
+		m_contentPane(rcnew(container_pane)({ rcnew(unconstrained_frame)(alignment(0, 0)), m_contentFrame })),
+		m_clippingPane(rcnew(native_container_pane)({ m_clippingFrame }, { m_contentPane })),
+		m_cornerPane(rcnew(container_pane)({ m_cornerFrame })),
 		m_hideInactiveScrollBar(hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
 		m_shouldAutoFadeScrollBarProperty(*this, [this]()
@@ -177,14 +178,7 @@ public:
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
 
-		rcref<unconstrained_frame> unconstrainedFrame = rcnew(unconstrained_frame)(alignment(0, 0));
-
-		m_contentPane->prepend_frame(m_contentFrame);
-		m_contentPane->prepend_frame(unconstrainedFrame);
-		m_clippingPane->nest(m_contentPane);
-		m_clippingPane->prepend_frame(m_clippingFrame);
 		pane::nest_last(m_clippingPane);
-		m_cornerPane->prepend_frame(m_cornerFrame);
 		pane::nest_last(m_cornerPane);
 
 		m_hasScrollBar[(int)dimension::horizontal] = ((int)scrollDimensions & (int)dimensions::horizontal) != 0;
@@ -193,14 +187,10 @@ public:
 
 		m_hasScrollBar[(int)dimension::vertical] = ((int)scrollDimensions & (int)dimensions::vertical) != 0;
 		if (m_hasScrollBar[(int)dimension::vertical])
-
-		placement_rcnew(&get_scroll_bar_info(dimension::vertical), this_desc)(*this, dimension::vertical);
-
-		for (auto& frame : frames)
-			append_frame(frame);
+			placement_rcnew(&get_scroll_bar_info(dimension::vertical), this_desc)(*this, dimension::vertical);
 
 		for (auto& child : children)
-			nest(child);
+			m_contentPane->nest_last(child);
 	}
 
 	scroll_pane(dimensions scrollDimensions,

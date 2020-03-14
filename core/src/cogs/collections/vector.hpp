@@ -66,6 +66,13 @@ private:
 
 	virtual void released() { placement_destruct_multiple(m_start, m_length); }
 
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_ptr();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + get_constructed_length()));
+	}
+
 public:
 	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }
 
@@ -156,6 +163,13 @@ private:
 	size_t m_capacity;
 
 	virtual void released() { }
+
+	virtual bool contains(void* obj) const
+	{
+		type* start = get_ptr();
+		unsigned char* p = (unsigned char*)obj;
+		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + get_constructed_length()));
+	}
 
 public:
 	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }

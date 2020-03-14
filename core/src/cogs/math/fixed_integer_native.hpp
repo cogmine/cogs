@@ -2902,9 +2902,9 @@ public:
 	template <bool has_sign2, size_t bits2> fixed_integer<true, (bits > bits2 ? bits : bits2) + 1> operator-(const volatile fixed_integer_native<has_sign2, bits2>& src) const { return cogs::subtract(m_int, src.m_int); }
 	template <bool has_sign2, size_t bits2> fixed_integer<true, (bits > bits2 ? bits : bits2) + 1> operator-(const volatile fixed_integer_native<has_sign2, bits2>& src) const volatile { return cogs::subtract(m_int, src.m_int); }
 	template <bool has_sign2, size_t bits2> auto operator-(const fixed_integer_extended<has_sign2, bits2>& src) const { fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, src); return result; }
-	template <bool has_sign2, size_t bits2> auto operator-(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(tmp, src); return result; }
-	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { fixed_integer_extended<has_sign2, bits2> tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
-	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { fixed_integer_extended<has_sign2, bits2> tmp(*this);  fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
+	template <bool has_sign2, size_t bits2> auto operator-(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { this_t tmp(*this); fixed_integer_extended<true, bits2 + 1> result; result.subtract(tmp, src); return result; }
+	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const { fixed_integer_extended<has_sign2, bits2> tmp(src); fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
+	template <bool has_sign2, size_t bits2> auto operator-(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { fixed_integer_extended<has_sign2, bits2> tmp(src); fixed_integer_extended<true, bits2 + 1> result; result.subtract(*this, tmp); return result; }
 	auto operator-(const dynamic_integer& src) const; // { return src.inverse_subtract(*this); }
 	auto operator-(const dynamic_integer& src) const volatile; // { return src.inverse_subtract(*this); }
 	auto operator-(const volatile dynamic_integer& src) const; // { return src.inverse_subtract(*this); }

@@ -330,7 +330,7 @@ private:
 
 			if (!oldContents.m_head) // The list was empty.
 			{
-				if (insertMode == insert_mode::only_if_not_empty)
+				if constexpr (insertMode == insert_mode::only_if_not_empty)
 					return true;
 
 				newContents.m_head = newContents.m_tail = myLink.get_ptr();
@@ -342,7 +342,7 @@ private:
 				continue;
 			}
 
-			if (insertMode == insert_mode::only_if_empty)
+			if constexpr (insertMode == insert_mode::only_if_empty)
 				return false;
 
 			if (atEnd)

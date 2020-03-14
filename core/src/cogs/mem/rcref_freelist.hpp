@@ -48,6 +48,13 @@ private:
 			// We don't destruct
 		}
 
+		virtual bool contains(void* obj) const
+		{
+			T* start = get_obj();
+			unsigned char* p = (unsigned char*)obj;
+			return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
+		}
+
 		virtual void dispose()
 		{
 			// Return to freelist
@@ -164,6 +171,13 @@ private:
 		virtual void released()
 		{
 			// We don't destruct
+		}
+
+		virtual bool contains(void* obj) const
+		{
+			T* start = get_obj();
+			unsigned char* p = (unsigned char*)obj;
+			return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
 		}
 
 		virtual void dispose()

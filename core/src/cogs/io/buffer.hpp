@@ -1130,7 +1130,7 @@ inline io::buffer fixed_integer_native<has_sign, n_bits>::to_buffer() const
 	unsigned_int_t src = m_int;
 	for (size_t i = 0; i < width_bytes; i++)
 	{
-		if (e == endian_t::little)
+		if constexpr (e == endian_t::little)
 			resultPtr[i] = (uint8_t)(src >> (i * 8));
 		else
 			resultPtr[i] = (uint8_t)(src >> (((width_bytes - 1) - i) * 8));
