@@ -29,7 +29,7 @@ elseif (APPLE)
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.cogmine.cogs.scratch"
     RESOURCE "guitar.bmp"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS YES
-    MACOSX_BUNDLE_INFO_PLIST ./Info.plist
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist
   )
 
     target_sources(${EXECUTABLE_NAME} PUBLIC
@@ -37,7 +37,7 @@ elseif (APPLE)
     guitar.bmp
   )
 
-  configure_file("CMake/Info.plist.in" "./Info.plist")
-  target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ./Info.plist")
+  configure_file("CMake/Info.plist.in" "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
+  target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
 
 endif()

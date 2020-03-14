@@ -2262,73 +2262,74 @@ private:
 	class calculate_reduced
 	{
 	private:
-		template <bool is_const_native2, ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		template <bool unused, bool is_const_native2, ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
 		class helper
 		{
 		};
 
-		template<ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
-		class helper<false, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		template <bool unused, ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<unused, false, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
 		{
 		public:
 			typedef typename reverse_helper<range_to_bits_v<0, highest_digit> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
 		};
 
-		template<bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
-		class helper<false, 0, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		template <bool unused, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<unused, false, 0, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
 		{
 		public:
 			typedef typename fixed_integer_extended_const<false, bits, nextLowDigit>::template calculate_reduced<lowPart...>::type type;
 		};
 
-		template<>
-		class helper<false, 0, true, 0>
+		template <bool unused>
+		class helper<unused, false, 0, true, 0>
 		{
 		public:
 			typedef fixed_integer_native_const<false, 0, 0> type;
 		};
 
-		template<>
-		class helper<false, 0, false, 0>
+		template <bool unused>
+		class helper<unused, false, 0, false, 0>
 		{
 		public:
 			typedef fixed_integer_native_const<false, range_to_bits_v<0, nextLowDigit>, nextLowDigit> type;
 		};
 
-		template <ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
-		class helper<true, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
+		template <bool unused, ulongest highest_digit, bool isNextLowDigitNegativeOrUnsignedZero, size_t lowPartCount>
+		class helper<unused, true, highest_digit, isNextLowDigitNegativeOrUnsignedZero, lowPartCount>
 		{
 		public:
 			typedef typename reverse_helper<range_to_bits_v<(longest)highest_digit, 0> + (sizeof(ulongest) * 8 * (1 + lowPartCount))>::template accumulate<highest_digit, nextLowDigit, lowPart...>::type type;
 		};
 
-		template <size_t lowPartCount>
-		class helper<true, (ulongest)-1, false, lowPartCount>
+		template <bool unused, size_t lowPartCount>
+		class helper<unused, true, (ulongest)-1, false, lowPartCount>
 		{
 		public:
 			typedef typename reverse_helper<1 + (sizeof(ulongest) * 8 * (lowPartCount))>::template accumulate<(ulongest)-1, nextLowDigit, lowPart...>::type type;
 		};
 
-		template <size_t lowPartCount>
-		class helper<true, (ulongest)-1, true, lowPartCount>
+		template <bool unused, size_t lowPartCount>
+		class helper<unused, true, (ulongest)-1, true, lowPartCount>
 		{
 		public:
 			typedef typename fixed_integer_extended_const<true, bits, nextLowDigit>::template calculate_reduced<lowPart...>::type type;
 		};
 
-		template <>
-		class helper<true, (ulongest)-1, true, 0>
+		template <bool unused>
+		class helper<unused, true, (ulongest)-1, true, 0>
 		{
 		private:
 			static constexpr size_t reduced = range_to_bits_v<(longest)nextLowDigit, 0>;
+			typedef bits_to_int_t<reduced> reduced_t;
 		public:
 #pragma warning(push)
 #pragma warning(disable: 4310) // cast truncates constant value
-			typedef fixed_integer_native_const<true, reduced, (bits_to_int_t<reduced>)nextLowDigit> type;
+			typedef fixed_integer_native_const<true, reduced, (reduced_t)nextLowDigit> type;
 #pragma warning(pop)
 		};
 	public:
-		typedef typename helper<is_const_negative, low_digit, (is_const_negative ? ((longest)nextLowDigit == 0) : (nextLowDigit == 0)), sizeof...(lowPart)>::type type;
+		typedef typename helper<true, is_const_negative, low_digit, (is_const_negative ? ((longest)nextLowDigit == 0) : (nextLowDigit == 0)), sizeof...(lowPart)>::type type;
 	};
 
 	template <ulongest... lowPart>

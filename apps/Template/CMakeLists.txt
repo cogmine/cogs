@@ -27,14 +27,14 @@ elseif (APPLE)
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.cogmine.cogs.Template"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS YES
-    MACOSX_BUNDLE_INFO_PLIST ./Info.plist
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist
   )
 
     target_sources(${EXECUTABLE_NAME} PUBLIC
     MacOS/main.mm
   )
 
-  configure_file("CMake/Info.plist.in" "./Info.plist")
-  target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ./Info.plist")
+  configure_file("CMake/Info.plist.in" "${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
+  target_link_libraries(${EXECUTABLE_NAME} "-sectcreate __TEXT __info_plist ${CMAKE_CURRENT_BINARY_DIR}/Info.plist")
 
 endif()
