@@ -100,7 +100,7 @@ public:
 				++m_curPos;
 			}
 
-			new (result->get_contents()) type;
+			placement_construct(result->get_contents());
 		}
 
 		return result->get_contents();
@@ -136,7 +136,7 @@ public:
 				result = m_preallocated[oldPos].get_header();
 			}
 
-			new (result->get_contents()) type;
+			placement_construct(result->get_contents());
 			break;
 		}
 
@@ -215,7 +215,7 @@ public:
 		else
 		{
 			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
-			new (result->get_contents()) type;
+			placement_construct(result->get_contents());
 		}
 
 		return result->get_contents();
@@ -239,7 +239,7 @@ public:
 			}
 
 			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
-			new (result->get_contents()) type;
+			placement_construct(result->get_contents());
 			break;
 		}
 

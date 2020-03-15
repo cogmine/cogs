@@ -23,6 +23,7 @@
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/resettable_event.hpp"
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/serial_dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"
 #include "cogs/ui/keyboard.hpp"
 
@@ -96,6 +97,7 @@ public:
 
 class bridgeable_pane;
 
+
 /// @ingroup GUI
 /// @brief Base class for 2D visual UI elements
 class pane : public dispatcher, public frameable, protected virtual gfx::canvas, protected virtual pane_container
@@ -107,17 +109,6 @@ public:
 	using cell = gfx::canvas::cell;
 
 private:
-	class serial_dispatch_state
-	{
-	public:
-		int m_scheduledPriority;
-		unsigned int m_flags;
-	};
-
-	alignas (atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
-	rcptr<task<void> > m_expireTask;
-	boolean m_expireDone;
-
 	weak_rcptr<pane> m_parent;
 	container_dlist<rcref<pane> > m_children;
 	container_dlist<rcref<pane> >::remove_token m_siblingIterator; // our element in our parent's list of children panes
@@ -160,11 +151,6 @@ private:
 	volatile boolean m_recomposing;
 	volatile boolean m_detaching;
 
-	class serial_dispatched;
-	priority_queue<int, ptr<serial_dispatched> > m_priorityQueue;
-
-	const function<void(const rcptr<volatile gui::subsystem>&)> m_setSubsystemDelegate;
-
 	rcref<volatile dispatcher> get_next_dispatcher() const
 	{
 		rcptr<volatile dispatcher> subSystem = m_uiSubSystem;
@@ -176,297 +162,34 @@ private:
 		return thread_pool::get_default_or_immediate();
 	}
 
-	rcref<volatile dispatcher> get_next_dispatcher() const volatile
+	class dispatcher_proxy : public dispatcher
 	{
-		return ((const pane*)this)->get_next_dispatcher();
-	}
+	private:
+		const pane& m_pane;
 
-	class serial_dispatched : public dispatched
-	{
 	public:
-		priority_queue<int, ptr<serial_dispatched> >::remove_token m_removeToken;
-		bool m_async;
-
-		// m_removeToken is accessed in a thread-safe way.  Cast away volatility
-		priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() volatile { return ((serial_dispatched*)this)->m_removeToken; }
-		const priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() const volatile { return ((const serial_dispatched*)this)->m_removeToken; }
-
-		serial_dispatched(bool async, const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
-			: dispatched(parentDispatcher, t),
-			m_removeToken(rt),
-			m_async(async)
+		dispatcher_proxy(const pane& p)
+			: m_pane(p)
 		{ }
 
-		// const.  Cast away volatility
-		bool get_async() const volatile { return ((const serial_dispatched*)this)->m_async; }
+		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
+		{
+			dispatcher::dispatch_inner(*(m_pane.get_next_dispatcher()), t, priority);
+		}
 	};
 
-	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile
-	{
-		volatile serial_dispatched& d2 = *(volatile serial_dispatched*)&d;
-		const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt = d2.get_remove_token();
-		bool b = m_priorityQueue.remove(rt);
-		if (b)
-			serial_dispatch();
-		return signaled(b);
-	}
+	// The purpose of this proxy is to selective defer tasks to either the UI subsystem the,
+	// pane is currently installed into, or the global thread pool if not installed.
+	dispatcher_proxy m_dispatcherProxy;
 
-	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
-	{
-		volatile serial_dispatched& d2 = *(volatile serial_dispatched*)&d;
-		priority_queue<int, ptr<serial_dispatched> >::remove_token& rt = d2.get_remove_token();
-		m_priorityQueue.change_priority(rt, newPriority);
-		serial_dispatch();
-	}
+	serial_dispatcher m_serialDispatcher;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<serial_dispatched> >::preallocated i;
-		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
-		serial_dispatched* d = &(r->get());
-		i.get_value() = d;
-		placement_rcnew(d, *r.get_desc())(false, this_rcref, t, i);
-		m_priorityQueue.insert_preallocated(i);
-		rcref<dispatched> d2(d, i.get_desc());
-		t->set_dispatched(d2);
-		i.disown();
-		serial_dispatch();
+		dispatcher::dispatch_inner(m_serialDispatcher, t, priority);
 	}
 
-	constexpr static int serial_dispatch_busy_flag = 0x01;      // 00001
-	constexpr static int serial_dispatch_dirty_flag = 0x02;     // 00010
-	constexpr static int serial_dispatch_scheduled_flag = 0x04; // 00100
-	constexpr static int serial_dispatch_expired_flag = 0x08;   // 01000
-	constexpr static int serial_dispatch_hand_off_flag = 0x10;  // 10000
-
-	void serial_dispatch() volatile
-	{
-		serial_dispatch_state oldState;
-		atomic::load(m_serialDispatchState, oldState);
-		for (;;)
-		{
-			if ((oldState.m_flags & serial_dispatch_dirty_flag) != 0)
-				break;
-
-			serial_dispatch_state newState = oldState;
-			bool own = (oldState.m_flags & serial_dispatch_busy_flag) == 0;
-			if (own)
-				newState.m_flags |= serial_dispatch_busy_flag;
-			else
-				newState.m_flags |= serial_dispatch_dirty_flag;
-
-			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-				continue;
-
-			if (!own)
-				break;
-
-			get_next_dispatcher()->dispatch([r{ this_rcref }]()
-			{
-				r->serial_update();
-			}, const_min_int_v<int>); // best possible priority
-			break;
-		}
-	}
-
-	void serial_expire() volatile
-	{
-		if (!m_expireDone.compare_exchange(true, false))
-			return;
-
-		m_expireTask.release();
-		serial_dispatch_state oldState;
-		atomic::load(m_serialDispatchState, oldState);
-		for (;;)
-		{
-			COGS_ASSERT((oldState.m_flags & serial_dispatch_expired_flag) == 0);
-			serial_dispatch_state newState = oldState;
-			newState.m_flags &= ~serial_dispatch_scheduled_flag & ~serial_dispatch_hand_off_flag & ~serial_dispatch_dirty_flag; // remove scheduled flag, and hand-off flag if it was present
-			newState.m_flags |= serial_dispatch_busy_flag | serial_dispatch_expired_flag;
-			bool own = ((oldState.m_flags & serial_dispatch_busy_flag) == 0) || ((oldState.m_flags & serial_dispatch_hand_off_flag) != 0);
-			if (!own)
-				newState.m_flags |= serial_dispatch_dirty_flag;
-
-			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-				continue;
-
-			if (own)
-				serial_update();
-			break;
-		}
-	}
-
-	void serial_update() volatile
-	{
-		serial_dispatch_state oldState;
-		serial_dispatch_state newState;
-		priority_queue<int, ptr<serial_dispatched> >::value_token vt;
-		atomic::load(m_serialDispatchState, oldState);
-		for (;;)
-		{
-			COGS_ASSERT((oldState.m_flags & serial_dispatch_hand_off_flag) == 0);
-			if ((oldState.m_flags & serial_dispatch_dirty_flag) != 0) // Immediately remove the retry tripwire
-			{
-				newState = oldState;
-				newState.m_flags &= ~serial_dispatch_dirty_flag;
-				if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-					continue;
-				oldState.m_flags = newState.m_flags;
-			}
-
-			vt = m_priorityQueue.peek();
-			int priority = 0;
-			bool removeScheduled = false;
-			if (!vt)
-			{
-				if ((oldState.m_flags & serial_dispatch_scheduled_flag) == 0) // Nothing scheduled, done if we can transition out
-				{
-					newState = oldState;
-					newState.m_flags &= ~serial_dispatch_busy_flag & ~serial_dispatch_expired_flag;
-					if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-						continue;
-					break;
-				}
-
-				removeScheduled = true;
-			}
-			else
-			{
-				priority = vt.get_key();
-				if ((oldState.m_flags & serial_dispatch_scheduled_flag) != 0)
-				{
-					if (priority == oldState.m_scheduledPriority) // Something the same priority is already scheduled, done if we can transition out
-					{
-						newState = oldState;
-						newState.m_flags &= ~serial_dispatch_busy_flag;
-						if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-							continue;
-						break;
-					}
-					removeScheduled = true;
-				}
-			}
-
-			if (removeScheduled)
-			{
-				bool canceled = m_expireDone.compare_exchange(true, false);
-				if (canceled) // This is only thread that will schedule/unschedule
-				{
-					m_expireTask->cancel();
-					m_expireTask.release();
-					for (;;) // Nothing is scheduled now.  Remove scheduled bit foracbly.
-					{
-						newState = oldState;
-						newState.m_flags &= ~serial_dispatch_scheduled_flag;
-						newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
-						if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-							continue;
-						oldState.m_flags = newState.m_flags;
-						break;
-					}
-					continue; // Start from the beginning, in case other flags have changed
-				}
-				for (;;) // Try to release update to expiring thread, if it doesn't expire before we get the chance
-				{
-					newState = oldState;
-					newState.m_flags |= serial_dispatch_hand_off_flag;
-					newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
-					if (atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-						return;
-					if (((oldState.m_flags & serial_dispatch_expired_flag) != 0)) // Already expired
-						break;
-					//continue;
-				}
-				continue; // Start from the beginning, in case other flags have changed
-			}
-
-			if ((oldState.m_flags & serial_dispatch_expired_flag) != 0)
-			{
-				if (priority <= oldState.m_scheduledPriority)
-				{
-					COGS_ASSERT(!!vt);
-					if (!m_priorityQueue.remove(vt))
-						continue;
-
-					const ptr<serial_dispatched>& d = *vt;
-					const rcref<task_base>& taskBase = d->get_task_base();
-					if (!taskBase->signal())
-						continue;
-
-					if (d->get_async() == false)
-						serial_resume();
-					return;
-				}
-
-				for (;;) // Expired, but too soon.  Need to reschedule anyway.  Remove expired bit foracbly.
-				{
-					newState = oldState;
-					newState.m_flags &= ~serial_dispatch_expired_flag;
-					newState.m_flags &= ~serial_dispatch_dirty_flag; // slight efficiency
-					if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-						continue;
-					oldState.m_flags = newState.m_flags;
-					break;
-				}
-				continue; // Start from the beginning, in case other flags have changed
-			}
-
-			COGS_ASSERT(!!vt);
-			newState.m_scheduledPriority = priority;
-			newState.m_flags = oldState.m_flags & ~serial_dispatch_busy_flag;
-			newState.m_flags |= serial_dispatch_scheduled_flag;
-			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-				continue;
-
-			((pane*)this)->m_expireDone = false; // don't need to set with atomicity, so cast away
-			m_expireTask = get_next_dispatcher()->dispatch([r{ this_rcref }]()
-			{
-				r->serial_expire();
-			}, priority);
-			break;
-		}
-	}
-
-	void serial_resume() volatile
-	{
-		serial_dispatch_state oldState;
-		atomic::load(m_serialDispatchState, oldState);
-		for (;;)
-		{
-			COGS_ASSERT((oldState.m_flags & serial_dispatch_expired_flag) != 0);
-			COGS_ASSERT((oldState.m_flags & serial_dispatch_busy_flag) != 0);
-
-			serial_dispatch_state newState = oldState;
-			newState.m_flags &= ~serial_dispatch_dirty_flag & ~serial_dispatch_expired_flag;
-			if (!atomic::compare_exchange(m_serialDispatchState, newState, oldState, oldState))
-				continue;
-
-			get_next_dispatcher()->dispatch([r{ this_rcref }]()
-			{
-				r->serial_update();
-			}, const_min_int_v<int>); // highest possible priority
-			break;
-		}
-	}
-
-	template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F> > >
-	auto dispatch_async(F&& f, int priority = 0) volatile
-	{
-		typedef std::invoke_result_t<F> result_t2;
-		typedef forwarding_function_task<result_t2, void> task_t;
-		rcref<task<result_t2> > result = (rcnew(task_t)(std::forward<F>(f), priority)).template static_cast_to<task<result_t2> >();
-		priority_queue<int, ptr<serial_dispatched> >::preallocated i;
-		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
-		serial_dispatched* d = &(r->get());
-		i.get_value() = d;
-		placement_rcnew(d, *r.get_desc())(true, this_rcref, result.template static_cast_to<task_t>().template static_cast_to<task_base>(), i);
-		m_priorityQueue.insert_preallocated(i);
-		rcref<dispatched> d2(d, i.get_desc());
-		result.template static_cast_to<task_t>().template static_cast_to<task_base>()->set_dispatched(d2);
-		i.disown();
-		serial_dispatch();
-		return result;
-	}
+	rcptr<signallable_task<void> > m_installTask;
 
 protected:
 	explicit pane(const std::initializer_list<rcref<frame> >& frames = {},
@@ -474,14 +197,9 @@ protected:
 		compositing_behavior cb = compositing_behavior::no_buffer)
 		: frameable(frames),
 		m_compositingBehavior(cb),
-		m_setSubsystemDelegate([r{ this_weak_rcptr }](const rcptr<volatile gui::subsystem>& s)
+		m_dispatcherProxy(*this),
+		m_serialDispatcher(m_dispatcherProxy)
 	{
-		rcptr<pane> r2 = r;
-		if (!!r2)
-			r2->set_subsystem_inner(s);
-	})
-	{
-		m_serialDispatchState.m_flags = 0;
 		for (auto& child : children)
 			nest(child);
 	}
@@ -497,17 +215,6 @@ protected:
 	explicit pane(compositing_behavior cb)
 		: pane({}, {}, cb)
 	{ }
-
-	~pane()
-	{
-		for (;;)
-		{
-			priority_queue<int, ptr<serial_dispatched> >::value_token vt = m_priorityQueue.peek();
-			if (!vt)
-				break;
-			(*vt)->get_task_base()->cancel();
-		}
-	}
 
 	void set_externally_drawn(const rcref<gfx::canvas>& externalCanvas)
 	{
@@ -538,7 +245,7 @@ protected:
 		self_acquire();
 		dispatch([r{ this_rcptr }, s]()
 		{
-			r->m_setSubsystemDelegate(s);
+			r->set_subsystem_inner(s);
 		});
 	}
 
@@ -656,24 +363,34 @@ protected:
 		return parent;
 	}
 
-	void install(const rcptr<volatile subsystem>& subSystem)
+	rcref<task<void> > install(const rcptr<volatile subsystem>& subSystem)
 	{
+		COGS_ASSERT(!m_installTask);
+		rcref<task<void> > installTask = (m_installTask = rcnew(signallable_task<void>)).dereference();
 		subSystem->dispatch([r{ this_rcref }, subSystem]()
 		{
 			r->m_uiSubSystem = subSystem;
-			r->dispatch_async([r]()
+			r->dispatch([r]()
 			{
+				rcptr<signallable_task<void> > installTask2 = r->m_installTask;
 				r->install_inner2();
+				return installTask2.dereference();
 			});
 		});
+		return installTask;
 	}
 
-	void uninstall()
+	rcref<task<void> > uninstall()
 	{
-		dispatch_async([r{ this_rcref }]()
+		COGS_ASSERT(!m_installTask);
+		rcref<task<void> > installTask = (m_installTask = rcnew(signallable_task<void>)).dereference();
+		dispatch([r{ this_rcref }]()
 		{
+			rcptr<signallable_task<void> > installTask2 = r->m_installTask;
 			r->uninstall_inner();
+			return installTask2.dereference();
 		});
+		return installTask;
 	}
 
 	virtual void nest_last(const rcref<pane>& child)
@@ -1476,9 +1193,12 @@ protected:
 			COGS_ASSERT(!((*m_childInstallItor)->m_parentInstalling));
 			(*m_childInstallItor)->m_parentInstalling = this_rcref; // extends reference through installation of child pane
 			(*m_childInstallItor)->m_parentUISubSystem = get_subsystem();
-			(*m_childInstallItor)->dispatch_async([r{ m_childInstallItor->dereference() }]()
+			(*m_childInstallItor)->dispatch([r{ m_childInstallItor->dereference() }]()
 			{
+				COGS_ASSERT(!r->m_installTask);
+				rcref<task<void> > installTask = (r->m_installTask = rcnew(signallable_task<void>)).dereference();
 				r->install_inner2();
+				return installTask;
 			});
 		}
 	}
@@ -1777,9 +1497,12 @@ private:
 					(*itor)->m_parentInstalling = parentInstalling;
 					rcptr<volatile subsystem> tmp = m_parentUISubSystem;
 					(*itor)->m_parentUISubSystem = tmp;
-					(*itor)->dispatch_async([r{ itor->dereference() }]()
+					(*itor)->dispatch([r{ itor->dereference() }]()
 					{
+						COGS_ASSERT(!r->m_installTask);
+						rcref<task<void> > installTask = (r->m_installTask = rcnew(signallable_task<void>)).dereference();
 						r->install_inner2();
+						return installTask;
 					});
 					break;
 				}
@@ -1798,7 +1521,10 @@ private:
 			break;
 		}
 
-		serial_resume();
+		rcptr<signallable_task<void> > installTask = m_installTask;
+		m_installTask.release();
+		COGS_ASSERT(!!installTask);
+		installTask->signal();
 		self_release();
 	}
 
@@ -1821,9 +1547,12 @@ private:
 		{
 			rcref<pane>& child = *m_childInstallItor;
 			child->m_parentInstalling = this_rcref;
-			child->dispatch_async([r{ child.dereference() }]()
+			child->dispatch([r{ child.dereference() }]()
 			{
+				COGS_ASSERT(!r->m_installTask);
+				rcref<task<void> > installTask = (r->m_installTask = rcnew(signallable_task<void>)).dereference();
 				r->uninstall_inner2();
+				return installTask;
 			});
 		}
 	}
@@ -1854,9 +1583,12 @@ private:
 				if (!!itor)
 				{
 					(*itor)->m_parentInstalling = parentInstalling;
-					(*itor)->dispatch_async([r{ itor->dereference() }]()
+					(*itor)->dispatch([r{ itor->dereference() }]()
 					{
-						return r->uninstall_inner2();
+						COGS_ASSERT(!r->m_installTask);
+						rcref<task<void> > installTask = (r->m_installTask = rcnew(signallable_task<void>)).dereference();
+						r->uninstall_inner2();
+						return installTask;
 					});
 					break;
 				}
@@ -1874,7 +1606,10 @@ private:
 		}
 
 		m_parentUISubSystem.release();
-		serial_resume();
+		rcptr<signallable_task<void> > installTask = m_installTask;
+		m_installTask.release();
+		COGS_ASSERT(!!installTask);
+		installTask->signal();
 		self_release();
 	}
 

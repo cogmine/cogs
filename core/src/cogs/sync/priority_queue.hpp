@@ -37,9 +37,9 @@ private:
 		volatile rcptr<payload> m_removed; // Used to synchronized priority changes with concurrent scheduled removals (gets)
 		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
 
-		void construct(const type& t) { new (&get_value()) type(t); }
+		void construct(const type& t) { m_value.construct(t); }
 
-		void construct() { new (&get_value()) type; }
+		void construct() { m_value.construct(); }
 
 		void set_removed(rcptr<payload>&& removed)
 		{

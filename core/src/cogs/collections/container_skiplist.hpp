@@ -1023,24 +1023,24 @@ private:
 
 		payload_link_t()
 		{
-			new (get_payload()) payload_t;
+			placement_construct(get_payload());
 		}
 
 		explicit payload_link_t(const payload_t& t)
 		{
-			new (get_payload()) payload_t(t);
+			placement_construct(get_payload(), t);
 		}
 
 		explicit payload_link_t(height_t height)
 			: link_t(height)
 		{
-			new (get_payload()) payload_t;
+			placement_construct(get_payload());
 		}
 
 		payload_link_t(const payload_t& t, height_t height)
 			: link_t(height)
 		{
-			new (get_payload()) payload_t(t);
+			placement_construct(get_payload(), t);
 		}
 
 		~payload_link_t() { m_value.destruct(); }

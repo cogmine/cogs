@@ -56,8 +56,8 @@ template <typename T>
 rcref<task<std::remove_reference_t<T> > > signaled(T&& t);
 
 
-template <typename T> struct is_rcref_task : std::false_type {};
-template <typename T> struct is_rcref_task<rcref<task<T> > > : std::true_type {};
+template <typename T, typename enable = void> struct is_rcref_task : std::false_type {};
+template <typename T> struct is_rcref_task<rcref<T>, typename std::enable_if_t<std::is_convertible_v<T*, task<void>*> > > : std::true_type {};
 template <typename T> inline constexpr bool is_rcref_task_v = is_rcref_task<T>::value;
 
 
@@ -83,7 +83,7 @@ public:
 	inline std::enable_if_t<
 		std::is_invocable_v<F>
 		&& is_rcref_task_v<std::invoke_result_t<F> >,
-		std::invoke_result_t<F> >
+		rcref<task<typename std::invoke_result_t<F>::type::result_type> > >
 	dispatch(F&& onComplete, int priority = 0) volatile;
 
 	template <typename F1, typename F2, typename... args_t>
@@ -91,7 +91,7 @@ public:
 		std::is_invocable_v<F1>
 		&& std::is_invocable_v<F2>
 		&& is_rcref_task_v<std::invoke_result_t<F1> >,
-		std::invoke_result_t<F1> >
+		rcref<task<typename std::invoke_result_t<F1>::type::result_type> > >
 	dispatch(F1&& onComplete, F2&& onCancel, int priority = 0) volatile;
 
 	template <typename F>
@@ -173,6 +173,11 @@ public:
 	virtual bool signal() volatile = 0;
 	virtual rcref<task<bool> > cancel() volatile = 0;
 	virtual rcref<task<void> > get_task() = 0;
+	virtual rcptr<task<void> > get_chained_task()
+	{
+		rcptr<task<void> > tmp;
+		return tmp;
+	}
 
 	void set_dispatched(const rcref<volatile dispatched>& d) { m_dispatched = d; }
 
@@ -434,6 +439,17 @@ public:
 	task()
 	{ }
 
+	virtual rcptr<task<void> > get_chained_task()
+	{
+		if constexpr (is_rcref_task_v<result_t>)
+			return get().template static_cast_to<task<void> >();
+		else
+		{
+			rcptr<task<void> > tmp;
+			return tmp;
+		}
+	}
+
 	using task<void>::dispatch;
 
 	template <typename F>
@@ -455,7 +471,7 @@ public:
 	inline std::enable_if_t<
 		std::is_invocable_v<F, const result_t&>
 		&& is_rcref_task_v<std::invoke_result_t<F, const result_t&> >,
-		std::invoke_result_t<F, const result_t&> >
+		rcref<task<typename std::invoke_result_t<F, const result_t&>::type::result_type> > >
 	dispatch(F&& onComplete, int priority = 0) const volatile;
 
 	template <typename F1, typename F2>
@@ -463,7 +479,7 @@ public:
 		std::is_invocable_v<F1, const result_t&>
 		&& std::is_invocable_v<F2>
 		&& is_rcref_task_v<std::invoke_result_t<F1, const result_t&> >,
-		std::invoke_result_t<F1, const result_t&> >
+		rcref<task<typename std::invoke_result_t<F1, const result_t&>::type::result_type> > >
 	dispatch(F1&& onComplete, F2&& onCancel, int priority = 0) const volatile;
 
 
@@ -486,7 +502,7 @@ public:
 	inline std::enable_if_t<
 		std::is_invocable_v<F, const rcref<task<result_t> >&>
 		&& is_rcref_task_v<std::invoke_result_t<F, const rcref<task<result_t> >&> >,
-		std::invoke_result_t<F, const rcref<task<result_t> >&> >
+		rcref<task<typename std::invoke_result_t<F, const rcref<task<result_t> >&>::type::result_type> > >
 	dispatch(F&& onComplete, int priority = 0) const volatile;
 
 	template <typename F1, typename F2>
@@ -494,7 +510,7 @@ public:
 		std::is_invocable_v<F1, const rcref<task<result_t> >&>
 		&& std::is_invocable_v<F2>
 		&& is_rcref_task_v<std::invoke_result_t<F1, const rcref<task<result_t> >&> >,
-		std::invoke_result_t<F1, const rcref<task<result_t> >&> >
+		rcref<task<typename std::invoke_result_t<F1, const rcref<task<result_t> >&>::type::result_type> > >
 	dispatch(F1&& onComplete, F2&& onCancel, int priority = 0) const volatile;
 
 
@@ -773,7 +789,7 @@ public:
 		TaskState oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
-		new (get_result_ptr()) result_t(std::forward<args_t>(a)...);
+		placement_construct(get_result_ptr(), std::forward<args_t>(a)...);
 		post_signal(oldTaskState);
 		return true;
 	}
@@ -945,7 +961,7 @@ public:
 
 	virtual void invoke_completion(const rcref<task<arg_t> >& parentTask) volatile
 	{
-		new (&get()) result_t(get_primary_func()(parentTask->get()));
+		placement_construct(&get(), get_primary_func()(parentTask->get()));
 		get_primary_func().release();
 		get_cancel_func().release();
 	}
@@ -991,12 +1007,12 @@ public:
 
 	virtual void invoke_completion() volatile
 	{
-		new (&get()) result_t(get_primary_func()());
+		placement_construct(&get(), get_primary_func()());
 		get_primary_func().release();
 		get_cancel_func().release();
 	}
 
-	virtual void invoke_completion(const rcref<task<void> >& parentTask) volatile
+	virtual void invoke_completion(const rcref<task<void> >&) volatile
 	{
 		invoke_completion();
 	}
@@ -1147,7 +1163,7 @@ public:
 
 	virtual void invoke_completion(const rcref<task<arg_t> >& parentTask) volatile
 	{
-		new (&get()) result_t(get_primary_func()(parentTask));
+		placement_construct(&get(), get_primary_func()(parentTask));
 		get_primary_func().release();
 		get_cancel_func().release();
 	}
@@ -1247,7 +1263,7 @@ public:
 
 	virtual void invoke_completion(const rcref<task<void> >& parentTask) volatile
 	{
-		new (&get()) result_t(get_primary_func()(parentTask));
+		placement_construct(&get(), get_primary_func()(parentTask));
 		get_primary_func().release();
 		get_cancel_func().release();
 	}
@@ -1575,7 +1591,7 @@ template <typename F, typename... args_t>
 inline std::enable_if_t<
 	std::is_invocable_v<F>
 	&& is_rcref_task_v<std::invoke_result_t<F> >,
-	std::invoke_result_t<F> >
+	rcref<task<typename std::invoke_result_t<F>::type::result_type> > >
 dispatcher::dispatch(F&& onComplete, int priority) volatile
 {
 	typedef std::invoke_result_t<F> result_rcref_task_t;
@@ -1584,7 +1600,7 @@ dispatcher::dispatch(F&& onComplete, int priority) volatile
 	rcref<linked_task<result_t> > t = rcnew(linked_task<result_t>)(priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t]()
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
@@ -1616,7 +1632,7 @@ dispatcher::dispatch(F&& onComplete, int priority) volatile
 	{
 		t->cancel_inner();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 
@@ -1625,7 +1641,7 @@ inline std::enable_if_t<
 	std::is_invocable_v<F1>
 	&& std::is_invocable_v<F2>
 	&& is_rcref_task_v<std::invoke_result_t<F1> >,
-	std::invoke_result_t<F1> >
+	rcref<task<typename std::invoke_result_t<F1>::type::result_type> > >
 dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 {
 	typedef std::invoke_result_t<F1> result_rcref_task_t;
@@ -1634,7 +1650,7 @@ dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 	rcref<linked_task<result_t> > t = rcnew(linked_task<result_t>)(priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority]()
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 		{
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
@@ -1671,7 +1687,7 @@ dispatcher::dispatch(F1&& onComplete, F2&& onCancel, int priority) volatile
 		t->cancel_inner();
 		onCancel();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 
@@ -1680,7 +1696,7 @@ template <typename F>
 inline std::enable_if_t<
 	std::is_invocable_v<F, const result_t&>
 	&& is_rcref_task_v<std::invoke_result_t<F, const result_t&> >,
-	std::invoke_result_t<F, const result_t&> >
+	rcref<task<typename std::invoke_result_t<F, const result_t&>::type::result_type> > >
 task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 {
 	typedef std::invoke_result_t<F, const result_t&> result_rcref_task_t;
@@ -1689,7 +1705,7 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>)(priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const result_t& r)
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
@@ -1721,7 +1737,7 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	{
 		t->cancel_inner();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 
@@ -1731,7 +1747,7 @@ inline std::enable_if_t<
 	std::is_invocable_v<F1, const result_t&>
 	&& std::is_invocable_v<F2>
 	&& is_rcref_task_v<std::invoke_result_t<F1, const result_t&> >,
-	std::invoke_result_t<F1, const result_t&> >
+	rcref<task<typename std::invoke_result_t<F1, const result_t&>::type::result_type> > >
 task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const volatile
 {
 	typedef std::invoke_result_t<F1, const result_t&> result_rcref_task_t;
@@ -1740,7 +1756,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>)(priority);
 	rcref<result_task_t> innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const result_t& r)
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 		{
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
@@ -1777,7 +1793,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 		t->cancel_inner();
 		onCancel();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 
@@ -1818,7 +1834,7 @@ template <typename F>
 inline std::enable_if_t<
 	std::is_invocable_v<F, const rcref<task<result_t> >&>
 	&& is_rcref_task_v<std::invoke_result_t<F, const rcref<task<result_t> >&> >,
-	std::invoke_result_t<F, const rcref<task<result_t> >&> >
+	rcref<task<typename std::invoke_result_t<F, const rcref<task<result_t> >&>::type::result_type> > >
 task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 {
 	typedef std::invoke_result_t<F, const rcref<task<result_t> >&> result_rcref_task_t;
@@ -1827,7 +1843,7 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>)(priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F>(onComplete) }, t, priority](const rcref<task<result_t> >& r)
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
 		else
@@ -1859,7 +1875,7 @@ task<result_t>::dispatch(F&& onComplete, int priority) const volatile
 	{
 		t.cancel_inner();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 
@@ -1869,7 +1885,7 @@ inline std::enable_if_t<
 	std::is_invocable_v<F1, const rcref<task<result_t> >&>
 	&& std::is_invocable_v<F2>
 	&& is_rcref_task_v<std::invoke_result_t<F1, const rcref<task<result_t> >&> >,
-	std::invoke_result_t<F1, const rcref<task<result_t> >&> >
+	rcref<task<typename std::invoke_result_t<F1, const rcref<task<result_t> >&>::type::result_type> > >
 task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const volatile
 {
 	typedef std::invoke_result_t<F1, const rcref<task<result_t> >&> result_rcref_task_t;
@@ -1878,7 +1894,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 	rcref<linked_task<result_t2> > t = rcnew(linked_task<result_t2>)(priority);
 	t->m_innerTask1 = dispatch([onComplete{ std::forward<F1>(onComplete) }, onCancel, t, priority](const rcref<task<result_t> >& r)
 	{
-		rcptr<result_task_t> oldValue = t->m_innerTask2;
+		rcptr<task<void> > oldValue = t->m_innerTask2;
 		if (!!oldValue) // Marked, cancel is in progress
 		{
 			t->cancel_inner(); // We consider cancellation successful as long as the last in the chain does not compelete.
@@ -1915,7 +1931,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 		t.cancel_inner();
 		onCancel();
 	}, priority);
-	return t.template static_cast_to<result_task_t>();
+	return t.template static_cast_to<task<result_t> >();
 }
 
 

@@ -47,20 +47,20 @@ private:
 
 		void construct(const key_t& key, const value_t& value)
 		{
-			new (&m_key.get()) key_t(key);
-			new (&m_value.get()) value_t(value);
+			placement_construct(&m_key.get(), key);
+			placement_construct(&m_value.get(), value);
 		}
 
 		void construct(const key_t& key)
 		{
-			new (&m_key.get()) key_t(key);
-			new (&m_value.get()) value_t;
+			placement_construct(&m_key.get(), key);
+			placement_construct(&m_value.get());
 		}
 
 		void construct()
 		{
-			new (&m_key.get()) key_t;
-			new (&m_value.get()) value_t;
+			placement_construct(&m_key.get());
+			placement_construct(&m_value.get());
 		}
 
 		key_t& get_key() { return m_key.get(); }

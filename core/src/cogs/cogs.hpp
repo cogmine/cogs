@@ -468,6 +468,7 @@
 #include "cogs/sync/rwlock.hpp"
 #include "cogs/sync/semaphore.hpp"
 #include "cogs/sync/serial_defer_guard.hpp"
+#include "cogs/sync/serial_dispatcher.hpp"
 #include "cogs/sync/single_fire_event.hpp"
 #include "cogs/sync/single_fire_timer.hpp"
 #include "cogs/sync/thread.hpp"

@@ -20,7 +20,6 @@
 * Implement UI element focus/defucus processing
 * Rework dependency_property to use tasks for async set()
 * Implement more UI properties as dependency_property's
-* Rework serial dispatcher (currently embedded in pane) to use task completion to kick off next task, instead of call to serial_resume().
 * Get ANSI terminal w/telnet up and running again
 * Add gui::stack_panel
 * Add/rework gui::wrap_list

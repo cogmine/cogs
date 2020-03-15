@@ -423,12 +423,12 @@ private:
 
 		payload_link_t()
 		{
-			new (get()) type;
+			placement_construct(get());
 		}
 
 		 explicit payload_link_t(const type& t)
 		{
-			new (get()) type(t);
+			 placement_construct(get(), t);
 		}
 
 		~payload_link_t()

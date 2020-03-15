@@ -41,17 +41,15 @@ public:
 		})
 	{ }
 
-	virtual void installing()
+	virtual void showing()
 	{
-		pane::installing();
 		m_boxTimer = rcnew(resettable_timer)(m_timeoutPeriod);
 		m_boxTimer->dispatch(m_expireDelegate);
 	}
 
-	virtual void uninstalling()
+	virtual void hiding()
 	{
 		m_boxTimer.release();
-		pane::uninstalling();
 	}
 
 	void box_timer_expired()

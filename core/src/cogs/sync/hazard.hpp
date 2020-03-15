@@ -607,7 +607,7 @@ public:
 	/// hazard::release() will return false, and actual release is deferred until there are no longer associated
 	/// hazard pointers.
 	/// @param value Pointer value of object to release
-	/// @return If true, the caller has ownership and should actually release the object.  If false, actual release is defered.
+	/// @return If true, the caller has ownership and should actually release the object.  If false, actual release is deferred.
 	template <typename type>
 	bool release(type* value) volatile { return release_inner((void*)value); }
 	/// @}

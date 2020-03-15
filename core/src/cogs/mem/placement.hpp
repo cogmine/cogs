@@ -30,6 +30,49 @@ namespace cogs {
 // construct the specified type.
 
 
+template <typename T, typename... args_t>
+inline std::enable_if_t<
+	std::is_constructible_v<T, args_t...>,
+	void
+>
+placement_construct(T* t, args_t&&... args)
+{
+	new (t) T(std::forward<args_t>(args)...);
+}
+
+template <typename T>
+inline std::enable_if_t<
+	std::is_constructible_v<T>,
+	void
+>
+placement_construct(T* t)
+{
+	new (t) T;
+}
+
+template <typename T>
+inline std::enable_if_t<
+	std::is_constructible_v<T>,
+	void
+>
+placement_construct_init(T* t)
+{
+	new (t) T();
+}
+
+// Work around the fact that placement operator new for size_t is disallowed:
+//		The placement form void* operator new(std::size_t, std::size_t) is not allowed because
+//		the matching signature of the deallocation function, void operator delete(void*, std::size_t),
+//		is a usual(not placement) deallocation function.
+inline void placement_construct(size_t* t, size_t n)
+{
+	*t = n;
+}
+
+inline void placement_construct(size_t*) { }
+inline void placement_construct_init(size_t*) { }
+
+
 /// @ingroup Mem
 /// @brief A helper class that facilitates placement storage
 /// @tparam n Size of type
@@ -63,7 +106,17 @@ public:
 	>
 	construct(args_t&&... args)
 	{
-		new (get()) T(std::forward<args_t>(args)...); // placement new
+		placement_construct(&get(), std::forward<args_t>(args)...); // placement new
+	}
+
+	template <typename... args_t>
+	std::enable_if_t<
+		std::is_constructible_v<T, args_t...>,
+		void
+	>
+	construct_init(args_t&&... args)
+	{
+		placement_construct_init(get(), std::forward<args_t>(args)...); // placement new
 	}
 
 	void destruct() { get().~T(); }
@@ -75,17 +128,6 @@ public:
 
 template <typename T, typename... args_t>
 inline std::enable_if_t<
-	std::is_constructible_v<T, args_t...>,
-	void
->
-placement_construct(T* t, args_t&&... args)
-{
-	new (t) T(std::forward<args_t>(args)...);
-}
-
-
-template <typename T, typename... args_t>
-inline std::enable_if_t<
 	std::is_constructible_v<T, args_t&...>,
 	void
 >
@@ -93,6 +135,28 @@ placement_construct_multiple(T* t, size_t n, args_t&... args)
 {
 	for (size_t i = 0; i < n; i++)
 		new (&t[i]) T(args...);
+}
+
+template <typename T>
+inline std::enable_if_t<
+	std::is_constructible_v<T>,
+	void
+>
+placement_construct_multiple(T* t, size_t n)
+{
+	for (size_t i = 0; i < n; i++)
+		new (&t[i]) T;
+}
+
+template <typename T>
+inline std::enable_if_t<
+	std::is_constructible_v<T>,
+	void
+>
+placement_construct_init_multiple(T* t, size_t n)
+{
+	for (size_t i = 0; i < n; i++)
+		new (&t[i]) T();
 }
 
 
@@ -195,6 +259,20 @@ inline std::enable_if_t<
 	&& std::is_constructible_v<T, args_t...>,
 	void
 >
+placement_reconstruct_init(T* t, args_t&&... args)
+{
+	placement_destruct(t);
+	placement_construct_init(t, std::forward<args_t>(args)...);
+}
+
+
+
+template <typename T, typename... args_t>
+inline std::enable_if_t<
+	std::is_destructible_v<T>
+	&& std::is_constructible_v<T, args_t...>,
+	void
+>
 placement_reconstruct_multiple(T* t, size_t n, args_t&&... args)
 {
 	for (size_t i = 0; i < n; i++)
@@ -202,6 +280,22 @@ placement_reconstruct_multiple(T* t, size_t n, args_t&&... args)
 		T* t2 = t + i;
 		placement_destruct(t2);
 		placement_construct(t2, std::forward<args_t>(args)...);
+	}
+}
+
+template <typename T, typename... args_t>
+inline std::enable_if_t<
+	std::is_destructible_v<T>
+	&& std::is_constructible_v<T, args_t...>,
+	void
+>
+placement_reconstruct_init_multiple(T* t, size_t n, args_t&&... args)
+{
+	for (size_t i = 0; i < n; i++)
+	{
+		T* t2 = t + i;
+		placement_destruct(t2);
+		placement_construct_init(t2, std::forward<args_t>(args)...);
 	}
 }
 

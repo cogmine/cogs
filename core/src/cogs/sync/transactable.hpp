@@ -1857,7 +1857,7 @@ public:
 		type* ptr = get();
 		cogs::assign(rtn, *ptr);
 		ptr->~type();
-		new (ptr) type(std::forward<args_t>(src)...);
+		placement_construct(ptr, std::forward<args_t>(src)...);
 	}
 
 	template <typename type2, typename... args_t>

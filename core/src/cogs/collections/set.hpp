@@ -43,8 +43,8 @@ private:
 	public:
 		payload() { }
 		~payload() { m_value.destruct(); }
-		void construct(const type& v) { new (&m_value.get()) type(v); }
-		void construct() { new (&m_value.get()) type; }
+		void construct(const type& v) { m_value.construct(v); }
+		void construct() { m_value.construct(); }
 		type& get_key() { return m_value.get(); }
 		const type& get_key() const { return m_value.get(); }
 	};

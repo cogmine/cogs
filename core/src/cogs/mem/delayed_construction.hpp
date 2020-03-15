@@ -26,8 +26,8 @@ private:
 
 public:
 	delayed_construction() { }
-	delayed_construction(this_t&& src) { new (&get()) T(std::move(src.get())); }
-	delayed_construction(const this_t& src) { new (&get()) T(src.get()); }
+	delayed_construction(this_t&& src) { m_contents.construct(std::move(src.get())); }
+	delayed_construction(const this_t& src) { m_contents.construct(src.get()); }
 	~delayed_construction() { m_contents.destruct(); }
 
 	this_t& operator=(this_t&& src) { get() = std::move(src.get()); return *this; }
@@ -59,19 +59,9 @@ public:
 //	placement<T> m_contents;
 //
 //public:
-//	explicit delayed_construction_obj()
-//	{ }
-//
-//	delayed_construction_obj(this_t&& src)
-//	{
-//		new (&get()) T(std::move(src.get()));
-//	}
-//
-//	delayed_construction_obj(const this_t& src)
-//	{
-//		new (&get()) T(src.get());
-//	}
-//
+//	delayed_construction_obj() { }
+//	delayed_construction_obj(this_t&& src) { m_contents.construct(std::move(src.get())); }
+//	delayed_construction_obj(const this_t& src) { m_contents.construct(src.get()); }
 //	~delayed_construction_obj() { m_contents.destruct(); }
 //
 //	this_t& operator=(this_t&& src) { get() = std::move(src.get()); return *this; }

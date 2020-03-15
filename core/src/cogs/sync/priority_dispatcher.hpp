@@ -108,6 +108,14 @@ public:
 		return result;
 	}
 
+	int get_next_priority() const volatile
+	{
+		priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.peek();
+		if (!!vt)
+			return vt.get_key();
+		return const_max_int_v<int>;
+	}
+
 	bool invoke() volatile
 	{
 		for (;;)
