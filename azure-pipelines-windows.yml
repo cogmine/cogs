@@ -9,14 +9,31 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  buildPlatform: 'x86|x64'
-  buildConfiguration: 'Release|Debug'
-
 steps:
 - task: VSBuild@1
   inputs:
-    platform: '$(buildPlatform)'
+    platform: 'x86'
     solution: 'cogs.sln'
-    configuration: '$(buildConfiguration)'
+    configuration: 'Release'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x86'
+    solution: 'cogs.sln'
+    configuration: 'Debug'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x64'
+    solution: 'cogs.sln'
+    configuration: 'Release'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x64'
+    solution: 'cogs.sln'
+    configuration: 'Debug'
     msbuildArgs: ''
