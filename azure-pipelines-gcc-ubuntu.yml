@@ -11,7 +11,7 @@ pool:
 
 steps:
 - script: |
-    cmake .
+    cmake CC=gcc-9 CXX=g++-9 .
   displayName: 'CMake Configure'
 
 - script: |
