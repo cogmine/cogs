@@ -1,0 +1,39 @@
+# Universal Windows Platform
+# Build a Universal Windows Platform project using Visual Studio.
+# Add steps that test and distribute an app, save build artifacts, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: VSBuild@1
+  inputs:
+    platform: 'x86'
+    solution: 'cogs.sln'
+    configuration: 'Release'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x86'
+    solution: 'cogs.sln'
+    configuration: 'Debug'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x64'
+    solution: 'cogs.sln'
+    configuration: 'Release'
+    msbuildArgs: ''
+
+- task: VSBuild@1
+  inputs:
+    platform: 'x64'
+    solution: 'cogs.sln'
+    configuration: 'Debug'
+    msbuildArgs: ''
