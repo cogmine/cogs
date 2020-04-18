@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 //
 //// Status: Placeholder
@@ -221,7 +221,7 @@
 //		rcptr<file<io::write_access> > rawWriteFile;
 //
 //		rcptr<file_info> fileInfo = rcnew(file_info);
-//		file_id_map_t::iterator itor = m_fileIdMap.try_insert(o->m_fileId, fileInfo, collision);
+//		file_id_map_t::iterator itor = m_fileIdMap.insert_unique(o->m_fileId, fileInfo, collision);
 //		for (;;) // just for a goto using break.
 //		{
 //			if (collision)
@@ -840,7 +840,7 @@
 //		bool collision;
 //		HANDLE writeHandle = INVALID_HANDLE_VALUE;
 //		rcptr<globals> g = get_globals();
-//		file_id_map_t::iterator itor = g->m_fileIdMap.try_insert(o->m_fileId, collision);
+//		file_id_map_t::iterator itor = g->m_fileIdMap.insert_unique(o->m_fileId, collision);
 //		if (collision) // Update existing file_id in the map to include write access, in case we just added that.
 //		{
 //			synchronizedFileImpl = itor->m_synchronizedFileImpl;

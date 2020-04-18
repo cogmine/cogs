@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -17,7 +17,6 @@
 #include "cogs/mem/rc_container.hpp"
 #include "cogs/mem/rc_obj.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/rcptr.hpp"
 #include "cogs/mem/weak_rcptr.hpp"
 #include "cogs/sync/transactable.hpp"
 
@@ -3377,7 +3376,7 @@ public:
 }
 
 
-#include "cogs/mem/rcnew.hpp"
+#include "cogs/mem/rcptr.hpp"
 
 
 #endif

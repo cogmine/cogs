@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -1546,10 +1546,10 @@ public:
 	//template <typename... args_t>
 	//empty_transactable(args_t&&... src) { }
 
-	this_t& operator=(const volatile this_t& src) { return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { return *this; }
+	this_t& operator=(const volatile this_t&) { return *this; }
+	volatile this_t& operator=(const volatile this_t&) volatile { return *this; }
 
-	this_t& operator=(this_t&& src) { return *this; }
+	this_t& operator=(this_t&&) { return *this; }
 
 
 	bool operator==(const this_t& cmp) const volatile { return true; }
@@ -2596,9 +2596,6 @@ public:
 
 
 }
-
-
-#include "cogs/mem/rcnew.hpp"
 
 
 #endif

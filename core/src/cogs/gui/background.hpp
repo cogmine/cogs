@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -28,12 +28,25 @@ private:
 	delegated_dependency_property<color> m_colorProperty;
 
 public:
-	explicit background(const color& c = color::constant::white,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(frames, children, cb),
-		m_color(c),
+	struct options
+	{
+		color backgroundColor = color::constant::white;
+		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
+		frame_list frames;
+		pane_list children;
+	};
+
+	background()
+		: background(options())
+	{ }
+
+	explicit background(options&& o)
+		: pane({
+			.compositingBehavior = o.compositingBehavior,
+			.frames = std::move(o.frames),
+			.children = std::move(o.children)
+		}),
+		m_color(o.backgroundColor),
 		m_colorProperty(*this, [this]()
 		{
 			return m_color;
@@ -43,42 +56,6 @@ public:
 			m_colorProperty.set_complete(true);
 			invalidate(get_size());
 		})
-	{ }
-
-	explicit background(const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(color::constant::white, frames, children, cb)
-	{ }
-
-	background(const color& c, 
-		const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(c, {}, children, cb)
-	{ }
-
-	background(const color& c, 
-		const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: background(c, frames, {}, cb)
-	{ }
-
-
-	background(const color& c, compositing_behavior cb)
-		: background(c, {}, {}, cb)
-	{ }
-
-	background(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
-		: background(color::constant::white, frames, {}, cb)
-	{ }
-
-	explicit background(const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: background(color::constant::white, {}, children, cb)
-	{ }
-
-	explicit background(compositing_behavior cb)
-		: background(color::constant::white, {}, {}, cb)
 	{ }
 
 	virtual bool is_opaque() const
@@ -107,8 +84,8 @@ public:
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
 };
 
 

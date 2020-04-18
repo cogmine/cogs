@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -44,77 +44,40 @@ private:
 	bool m_isEnabled;
 	bool m_isChecked;
 	gfx::font m_font;
-
 	action_delegate_t m_action;
 	rcptr<check_box_interface> m_nativeCheckBox;
 
 public:
-	check_box(const action_delegate_t& action,
-		const composite_string& text,
-		bool isEnabled = true,
-		bool isChecked = false,
-		const gfx::font& fnt = gfx::font(),
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane_bridge(frames),
-		m_text(text),
-		m_isEnabled(isEnabled),
-		m_isChecked(isChecked),
-		m_font(fnt),
-		m_action(action)
+	struct options
+	{
+		composite_string text;
+		bool isEnabled = true;
+		bool isChecked = false;
+		gfx::font font;
+		action_delegate_t action;
+		frame_list frames;
+	};
+
+	check_box()
+		: check_box(options())
 	{ }
 
-	explicit check_box(const composite_string& text,
-		bool isEnabled = true,
-		bool isChecked = false,
-		const gfx::font& fnt = gfx::font(),
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(action_delegate_t(), text, isEnabled, isChecked, fnt, frames)
-	{ }
-
-	check_box(const action_delegate_t& action,
-		const composite_string& text,
-		bool isEnabled,
-		bool isChecked,
-		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(action, text, isEnabled, isChecked, gfx::font(), frames)
-	{ }
-
-	check_box(const composite_string& text,
-		bool isEnabled,
-		bool isChecked,
-		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(action_delegate_t(), text, isEnabled, isChecked, gfx::font(), frames)
-	{ }
-
-	check_box(const action_delegate_t& action,
-		const composite_string& text,
-		const gfx::font& fnt = gfx::font(),
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(action, text, true, false, fnt, frames)
-	{ }
-
-	explicit check_box(const composite_string& text,
-		const gfx::font& fnt = gfx::font(),
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: check_box(action_delegate_t(), text, true, false, fnt, frames)
-	{ }
-
-	check_box(const action_delegate_t& action,
-		const composite_string& text,
-		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(action, text, true, false, gfx::font(), frames)
-	{ }
-
-	check_box(const composite_string& text,
-		const std::initializer_list<rcref<frame> >& frames)
-		: check_box(action_delegate_t(), text, true, false, gfx::font(), frames)
+	explicit check_box(options&& o)
+		: pane_bridge({
+			.frames = std::move(o.frames)
+		}),
+		m_text(std::move(o.text)),
+		m_isEnabled(o.isEnabled),
+		m_isChecked(o.isChecked),
+		m_font(std::move(o.font)),
+		m_action(std::move(o.action))
 	{ }
 
 	virtual void installing()
 	{
 		auto nativeCheckBox = get_subsystem()->create_check_box();
-		m_nativeCheckBox = std::move(nativeCheckBox.second);
 		pane_bridge::install_bridged(std::move(nativeCheckBox.first));
+		m_nativeCheckBox = std::move(nativeCheckBox.second);
 	}
 
 	virtual void uninstalling()

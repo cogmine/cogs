@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -250,7 +250,7 @@ public:
 						commandStr.to_uppercase();
 						command_handler_map_t::iterator commandItor = srvr->m_commandHandlerMap->find(commandStr);
 						if (!!commandItor)
-							(*commandItor)(this_rcref);
+							commandItor->value(this_rcref);
 						else
 							begin_response(response::reply::command_not_implemented, cstring::literal("Command not recognized: \"") + m_currentCommand + cstring::literal("\""))->complete();
 					}
@@ -401,11 +401,11 @@ public:
 	static rcref<command_handler_map_t> get_default_command_handlers()
 	{
 		rcref<command_handler_map_t> mapRef = rcnew(command_handler_map_t);
-		mapRef->try_insert(cstring::literal("HELO"), &default_HELO_handler);
-		mapRef->try_insert(cstring::literal("EHLO"), &default_HELO_handler);
-		mapRef->try_insert(cstring::literal("NOOP"), &default_NOOP_handler);
-		mapRef->try_insert(cstring::literal("QUIT"), &default_QUIT_handler);
-		mapRef->try_insert(cstring::literal("MAIL"), &default_MAIL_handler);
+		mapRef->insert_unique(cstring::literal("HELO"), &default_HELO_handler);
+		mapRef->insert_unique(cstring::literal("EHLO"), &default_HELO_handler);
+		mapRef->insert_unique(cstring::literal("NOOP"), &default_NOOP_handler);
+		mapRef->insert_unique(cstring::literal("QUIT"), &default_QUIT_handler);
+		mapRef->insert_unique(cstring::literal("MAIL"), &default_MAIL_handler);
 		// RCPT
 		// SIZE
 		// DATA

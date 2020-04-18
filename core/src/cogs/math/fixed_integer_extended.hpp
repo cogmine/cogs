@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -4041,10 +4041,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator|=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_or(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c.assign_bit_or(*(src.begin_read())); }); return *this; }
 
-	template <bool has_sign2, size_t bits2> this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator|=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator|=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator|=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator|=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator|=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator|=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> volatile this_t& operator|=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator|=(tmp); }
@@ -4068,10 +4068,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_or(const volatile fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_or(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_or(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_or(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_or(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_or(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t pre_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_or(tmp); }
@@ -4095,10 +4095,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); m_contents->assign_bit_or(*(src.begin_read())); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_or(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_or(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_or(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_or(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_or(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_or(tmp); }
@@ -4278,10 +4278,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator^=(const volatile fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_xor(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator^=(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { write_retry_loop([&](content_t& c) { c.assign_bit_xor(*(src.begin_read())); }); return *this; }
 
-	template <bool has_sign2, size_t bits2> this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator^=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator^=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator^=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator^=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator^=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator^=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator^=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> volatile this_t& operator^=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator^=(tmp); }
@@ -4305,10 +4305,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_xor(const volatile fixed_integer_extended<has_sign2, bits2>& src) { m_contents->assign_bit_xor(*(src.begin_read())); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_xor(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return write_retry_loop_pre([&](content_t& c) { c.assign_bit_xor(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_xor(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_xor(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t pre_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_bit_xor(tmp); }
@@ -4332,10 +4332,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_extended<has_sign2, bits2>& src) { this_t tmp(*this); m_contents->assign_bit_xor(*(src.begin_read())); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_extended<has_sign2, bits2>& src) volatile { return write_retry_loop_post([&](content_t& c) { c.assign_bit_xor(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_xor(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_xor(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_xor(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_bit_xor(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_bit_xor(tmp); }
@@ -4399,10 +4399,10 @@ public:
 	this_t& operator+=(const volatile dynamic_integer& src); // { dynamic_integer tmp(src); return operator+=(tmp); }
 	volatile this_t& operator+=(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return operator+=(tmp); }
 
-	template <bool has_sign2, size_t bits2> this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator+=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator+=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator+=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> volatile this_t& operator+=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator+=(tmp); }
@@ -4430,10 +4430,10 @@ public:
 	const this_t& pre_assign_add(const volatile dynamic_integer& src); // { dynamic_integer tmp(src); return pre_assign_add(tmp); }
 	this_t pre_assign_add(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return pre_assign_add(tmp); }
 
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t pre_assign_add(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_add(tmp); }
@@ -4461,10 +4461,10 @@ public:
 	this_t post_assign_add(const volatile dynamic_integer& src); // { dynamic_integer tmp(src); return post_assign_add(tmp); }
 	this_t post_assign_add(const volatile dynamic_integer& src) volatile; // { dynamic_integer tmp(src); return post_assign_add(tmp); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_add(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_add(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_add(tmp); }
@@ -4538,10 +4538,10 @@ public:
 	this_t& operator-=(const volatile this_t& src) { m_contents->subtract(*(src.begin_read())); return *this; }
 	volatile this_t& operator-=(const volatile this_t& src) volatile { if (this == &src) clear(); else write_retry_loop([&](content_t& c) { c.subtract(*(src.begin_read())); }); return *this; }
 
-	template <bool has_sign2, size_t bits2> this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator-=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t& operator-=(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator-=(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> volatile this_t& operator-=(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return operator-=(tmp); }
@@ -4574,10 +4574,10 @@ public:
 	const this_t& pre_assign_subtract(const volatile this_t& src) { m_contents->subtract(*(src.begin_read())); return *this; }
 	this_t pre_assign_subtract(const volatile this_t& src) volatile { if (this == &src) { this_t result; clear(); result.clear(); return result; } return write_retry_loop_pre([&](content_t& c) { c.subtract(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> const this_t& pre_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t pre_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return pre_assign_subtract(tmp); }
@@ -4610,10 +4610,10 @@ public:
 	this_t post_assign_subtract(const volatile this_t& src) { this_t tmp(*this); m_contents->subtract(*(src.begin_read())); return tmp; }
 	this_t post_assign_subtract(const volatile this_t& src) volatile { if (this == &src) { return exchange(0); } return write_retry_loop_post([&](content_t& c) { c.subtract(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_subtract(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_subtract(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_subtract(tmp); }
@@ -4838,10 +4838,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { clear(); return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> volatile this_t& operator*=(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
 	template <size_t bits2> this_t& operator*=(const fixed_integer_native_const<true, bits2, -1>& src) { assign_negative(); return *this; }
 	template <size_t bits2> this_t& operator*=(const volatile fixed_integer_native_const<true, bits2, -1>& src) { assign_negative(); return *this; }
 	template <size_t bits2> volatile this_t& operator*=(const fixed_integer_native_const<true, bits2, -1>& src) volatile { assign_negative(); return *this; }
@@ -4877,10 +4877,10 @@ public:
 	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { clear(); return *this; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { clear(); return 0; }
 	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { clear(); return 0; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t pre_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
 	template <size_t bits2> const this_t& pre_assign_multiply(const fixed_integer_native_const<true, bits2, -1>& src) { assign_negative(); return *this; }
 	template <size_t bits2> const this_t& pre_assign_multiply(const volatile fixed_integer_native_const<true, bits2, -1>& src) { assign_negative(); return *this; }
 	template <size_t bits2> this_t pre_assign_multiply(const fixed_integer_native_const<true, bits2, -1>& src) volatile { return pre_assign_negative(); }
@@ -4916,10 +4916,10 @@ public:
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { this_t tmp(*this); clear(); return tmp; }
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return exchange(0); }
 	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return exchange(0); }
-	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<has_sign2, bits2, 1>&) volatile { return *this; }
 	template <size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<true, bits2, -1>& src) { this_t tmp(*this); assign_negative(); return tmp; }
 	template <size_t bits2> this_t post_assign_multiply(const volatile fixed_integer_native_const<true, bits2, -1>& src) { this_t tmp(*this); assign_negative(); return tmp; }
 	template <size_t bits2> this_t post_assign_multiply(const fixed_integer_native_const<true, bits2, -1>& src) volatile { return post_assign_negative(); }
@@ -5106,10 +5106,10 @@ public:
 	this_t post_assign_modulo(const volatile this_t& src) { this_t tmp(*this); m_contents->divide_whole_and_assign_modulo(*(src.begin_read())); return tmp; }
 	this_t post_assign_modulo(const volatile this_t& src) volatile { if (this == &src) { this_t tmp(exchange(zero_t())); COGS_ASSERT(!!tmp); return tmp; } return write_retry_loop_post([&](content_t& c) { c.divide_whole_and_assign_modulo(*(src.begin_read())); }); }
 
-	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
-	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>& src) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
+	template <bool has_sign2, size_t bits2> this_t post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, 0>&) volatile { return *this; }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_modulo(const volatile fixed_integer_native_const<has_sign2, bits2, value2>& src) { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2> this_t post_assign_modulo(const fixed_integer_native_const<has_sign2, bits2, value2>& src) volatile { typename fixed_integer_native_const<has_sign2, bits2, value2>::non_const_t tmp(src); return post_assign_modulo(tmp); }

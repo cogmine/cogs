@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,7 +9,7 @@
 #define COGS_HEADER_GUI_FRAME
 
 
-#include  <initializer_list> 
+#include <initializer_list>
 
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/gfx/canvas.hpp"
@@ -44,13 +44,15 @@ typedef gfx::canvas::bitmask bitmask;
 // frame and cell facilitate sizing/resizing behavior of 2D rectangular elements.
 
 class frameable;
+class frame;
 
+typedef container_dlist<rcref<frame> > frame_list;
 
 // The base frame passes everything through to the equivalent methods in contained cell.
 class frame : public cell, public object
 {
 private:
-	container_dlist<rcref<frame> >::remove_token m_siblingIterator;
+	frame_list::remove_token m_siblingIterator;
 	weak_rcptr<cell> m_frameable;
 
 	// Preserved position from last reshape, in parent coordinates (in which 0,0 is parent's origin).
@@ -72,7 +74,7 @@ public:
 
 	virtual size get_default_size() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -90,7 +92,7 @@ public:
 
 	virtual range get_range() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -108,7 +110,7 @@ public:
 
 	virtual dimension get_primary_flow_dimension() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -126,7 +128,7 @@ public:
 
 	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -145,7 +147,7 @@ public:
 protected:
 	virtual void calculate_range()
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -168,7 +170,7 @@ protected:
 		m_childPosition = b.get_position();
 		cell::reshape(b, oldOrigin);
 
-		container_dlist<rcref<frame> >::iterator itor = m_siblingIterator;
+		frame_list::iterator itor = m_siblingIterator;
 		if (!!itor)
 		{
 			++itor;
@@ -191,11 +193,24 @@ protected:
 class frameable : public cell, public object
 {
 private:
-	container_dlist<rcref<frame> > m_frames;
+	frame_list m_frames;
 
 public:
 	frameable(frameable&) = delete;
 	frameable(frameable&&) = delete;
+
+	explicit frameable(frame_list&& frames)
+		: m_frames(std::move(frames))
+	{
+		frame_list::iterator itor = m_frames.get_first();
+		while (!!itor)
+		{
+			COGS_ASSERT(!(*itor)->m_siblingIterator);
+			(*itor)->m_siblingIterator = itor;
+			(*itor)->m_frameable = this_rcref;
+			++itor;
+		}
+	}
 
 	explicit frameable(const std::initializer_list<rcref<frame> >& frames)
 	{
@@ -207,7 +222,7 @@ public:
 	{
 		COGS_ASSERT(!f->m_siblingIterator);
 		COGS_ASSERT(!!beforeThis->m_siblingIterator);
-		f->m_siblingIterator = m_frames.insert_before(f, beforeThis->m_siblingIterator);
+		f->m_siblingIterator = m_frames.insert_before(beforeThis->m_siblingIterator, f);
 		f->m_frameable = this_rcref;
 	}
 
@@ -215,7 +230,7 @@ public:
 	{
 		COGS_ASSERT(!f->m_siblingIterator);
 		COGS_ASSERT(!!afterThis->m_siblingIterator);
-		f->m_siblingIterator = m_frames.insert_after(f, afterThis->m_siblingIterator);
+		f->m_siblingIterator = m_frames.insert_after(afterThis->m_siblingIterator, f);
 		f->m_frameable = this_rcref;
 	}
 
@@ -244,7 +259,7 @@ public:
 
 	point get_position() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_last();
+		frame_list::iterator itor = m_frames.get_last();
 		if (!!itor)
 			return (*itor)->get_child_position();
 		point pt(0, 0);
@@ -253,7 +268,7 @@ public:
 
 	virtual size get_frame_default_size() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return (*itor)->get_default_size();
 		return get_default_size();
@@ -261,7 +276,7 @@ public:
 
 	virtual range get_frame_range() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return (*itor)->get_range();
 		return get_range();
@@ -269,7 +284,7 @@ public:
 
 	virtual dimension get_frame_primary_flow_dimension() const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return (*itor)->get_primary_flow_dimension();
 		return get_primary_flow_dimension();
@@ -277,7 +292,7 @@ public:
 
 	virtual propose_size_result propose_frame_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return (*itor)->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 		return propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
@@ -288,7 +303,7 @@ protected:
 
 	virtual void calculate_frame_range()
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return cell::calculate_range(**itor);
 		return calculate_range();
@@ -296,7 +311,7 @@ protected:
 
 	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
-		container_dlist<rcref<frame> >::iterator itor = m_frames.get_first();
+		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
 			return cell::reshape(**itor, newBounds, oldOrigin);
 		return reshape(newBounds, oldOrigin);
@@ -455,14 +470,34 @@ public:
 			adjustedBy.get_height() = doesMarginHeightFit ? marginSize.get_height() : sz.get_height();
 			size newSize = sz - adjustedBy;
 			result = frame::propose_size(newSize, resizeDimension, r - adjustedBy, horizontalMode, verticalMode);
-			result.m_sizes[0].m_size += marginSize;
-			result.m_sizes[1].m_size += marginSize;
-			result.m_sizes[2].m_size += marginSize;
-			result.m_sizes[3].m_size += marginSize;
 			if (!doesMarginWidthFit)
-				result.m_sizes[0].m_isValid = result.m_sizes[1].m_isValid = false;
-			if (!doesMarginHeightFit)
-				result.m_sizes[0].m_isValid = result.m_sizes[2].m_isValid = false;
+			{
+				result.sizes[0].reset();
+				result.sizes[1].reset();
+				if (!doesMarginHeightFit)
+					result.sizes[2].reset();
+				else if (result.sizes[2].has_value())
+					result.sizes[2].value() += marginSize;
+			}
+			else
+			{
+				if (!doesMarginHeightFit)
+				{
+					result.sizes[0].reset();
+					result.sizes[2].reset();
+				}
+				else
+				{
+					if (result.sizes[0].has_value())
+						result.sizes[0].value() += marginSize;
+					if (result.sizes[2].has_value())
+						result.sizes[2].value() += marginSize;
+				}
+				if (result.sizes[1].has_value())
+					result.sizes[1].value() += marginSize;
+			}
+			if (result.sizes[3].has_value())
+				result.sizes[3].value() += marginSize;
 		}
 		return result;
 	}
@@ -944,10 +979,14 @@ public:
 			// Do we have rounding issues here?
 			size sz2 = sz * m_proportion;
 			result = frame::propose_size(sz2, resizeDimension, r, horizontalMode, verticalMode);
-			result.m_sizes[0].m_size /= m_proportion;
-			result.m_sizes[1].m_size /= m_proportion;
-			result.m_sizes[2].m_size /= m_proportion;
-			result.m_sizes[3].m_size /= m_proportion;
+			if (result.sizes[0].has_value())
+				result.sizes[0].value() /= m_proportion;
+			if (result.sizes[1].has_value())
+				result.sizes[1].value() /= m_proportion;
+			if (result.sizes[2].has_value())
+				result.sizes[2].value() /= m_proportion;
+			if (result.sizes[3].has_value())
+				result.sizes[3].value() /= m_proportion;
 		}
 		return result;
 	}
@@ -1016,60 +1055,60 @@ public:
 		else
 		{
 			result = frame::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
-			if (!result.m_sizes[0].m_isValid)
+			if (!result.sizes[0].has_value())
 			{
+				size index0;
 				size sz2 = r.limit(sz);
-				result.m_sizes[0].m_isValid = true;
-				if (!result.m_sizes[1].m_isValid)
+				if (!result.sizes[1].has_value())
 				{
-					result.m_sizes[0].m_size.get_width() = sz2.get_width();
-					result.m_sizes[2].m_size.get_width() = sz2.get_width();
-					if (!result.m_sizes[2].m_isValid)
+					// There is only a greater/greater result (or no result).  Set all to the requested size.
+					if (!result.sizes[2].has_value())
 					{
-						result.m_sizes[1].m_isValid = true;
-						result.m_sizes[2].m_isValid = true;
-						result.m_sizes[3].m_isValid = true;
-						result.m_sizes[0].m_size.get_height() = sz2.get_height();
-						result.m_sizes[2].m_size.get_height() = sz2.get_height();
-						result.m_sizes[1].m_size = sz2;
-						result.m_sizes[3].m_size = sz2;
+						result.sizes[0] = sz2;
+						result.sizes[1] = sz2;
+						result.sizes[2] = sz2;
+						result.sizes[3] = sz2;
 					}
 					else
 					{
-						result.m_sizes[0].m_size.get_height() = result.m_sizes[2].m_size.get_height();
-						if (result.m_sizes[3].m_isValid)
+						//result.sizes[0] = size(sz2.get_width(), result.sizes[2].value().get_height());
+						result.sizes[2].value().get_width() = sz2.get_width();
+						if (result.sizes[3].has_value())
 						{
-							result.m_sizes[1].m_isValid = true;
-							result.m_sizes[1].m_size.get_height() = result.m_sizes[3].m_size.get_height();
-							result.m_sizes[3].m_size.get_width() = sz2.get_width();
-							result.m_sizes[1].m_size.get_width() = sz2.get_width();
+							// There were no lesser width results, but there were both lesser and greater height results.
+							// Use the height results, and use our width.
+							result.sizes[3].value().get_width() = sz2.get_width();
+							result.sizes[1] = result.sizes[3].value();
 						}
+						// else // If only greater/lesser is provided, use lesser height and our width
+						result.sizes[0] = result.sizes[2].value();
 					}
 				}
 				else
 				{
-					result.m_sizes[0].m_size.get_height() = sz2.get_height();
-					result.m_sizes[1].m_size.get_height() = sz2.get_height();
-					if (!result.m_sizes[2].m_isValid)
+					if (!result.sizes[2].has_value())
 					{
-						result.m_sizes[0].m_size.get_width() = result.m_sizes[1].m_size.get_width();
-						if (result.m_sizes[3].m_isValid)
+						result.sizes[1].value().get_height() = sz2.get_height();
+						if (result.sizes[3].has_value())
 						{
-							result.m_sizes[2].m_isValid = true;
-							result.m_sizes[2].m_size.get_width() = result.m_sizes[3].m_size.get_width();
-							result.m_sizes[3].m_size.get_height() = sz2.get_height();
-							result.m_sizes[2].m_size.get_height() = sz2.get_height();
+							// We have greater heights, and both lesser and greater widths.
+							// Use those widths.  Use our height.
+							result.sizes[3].value().get_height() = sz2.get_height();
+							result.sizes[2] = result.sizes[3].value();
 						}
+						// else // The only provided size was a lesser width and greater height size.
+						// Use the lesser width and use our height instead.  Don't provider geater width.
+						result.sizes[0] = result.sizes[1].value();
 					}
 					else
 					{
-						result.m_sizes[1].m_isValid = true;
-						result.m_sizes[2].m_isValid = true;
-						result.m_sizes[3].m_isValid = true;
-						result.m_sizes[0].m_size.get_width() = sz2.get_width();
-						result.m_sizes[1].m_size.get_width() = sz2.get_width();
-						result.m_sizes[2].m_size = sz2;
-						result.m_sizes[3].m_size = sz2;
+						// Both of these scenarios involve imposing minimums in one dimension to allow
+						// a lesser value in the other.  Rather than pick one of those, consider either
+						// of them to be  imposing a minimum we want to override.  Use our own sizes.
+						result.sizes[0] = sz2;
+						result.sizes[1] = sz2;
+						result.sizes[2] = sz2;
+						result.sizes[3] = sz2;
 					}
 				}
 			}
@@ -1112,57 +1151,60 @@ public:
 		{
 			result = frame::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
 			size sz2 = r.limit(sz);
-			if (!result.m_sizes[3].m_isValid)
+			if (!result.sizes[3].has_value())
 			{
-				result.m_sizes[3].m_isValid = true;
-				if (result.m_sizes[2].m_isValid)
+				if (!result.sizes[2].has_value())
 				{
-					result.m_sizes[3].m_size.get_height() = sz2.get_height();
-					result.m_sizes[2].m_size.get_height() = sz2.get_height();
-					if (result.m_sizes[1].m_isValid)
+					// If only a lesser/lesser result, or not result, use ours.
+						// If there is only lesser width, greater height
+						// Consider this to be imposing a maximum.  Use ours.
+					if (!result.sizes[1].has_value())
 					{
-						result.m_sizes[0].m_isValid = true;
-						result.m_sizes[0].m_size = sz2;
-						result.m_sizes[1].m_size = sz2;
-						result.m_sizes[2].m_size.get_width() = sz2.get_width();
-						result.m_sizes[3].m_size.get_width() = sz2.get_width();
+						result.sizes[0] = sz2;
+						result.sizes[1] = sz2;
+						result.sizes[2] = sz2;
+						result.sizes[3] = sz2;
 					}
 					else
 					{
-						result.m_sizes[3].m_size.get_width() = result.m_sizes[2].m_size.get_width();
-						if (result.m_sizes[0].m_isValid)
+						result.sizes[1].value().get_width() = sz2.get_width();
+						if (result.sizes[0].has_value())
 						{
-							result.m_sizes[1].m_isValid = true;
-							result.m_sizes[1].m_size.get_width() = result.m_sizes[0].m_size.get_width();
-							result.m_sizes[1].m_size.get_height() = sz2.get_height();
-							result.m_sizes[0].m_size.get_height() = sz2.get_height();
+							// If there were no greater widths, but there were lesser and greater height results.
+							// Use the height results, and use our width;
+							result.sizes[0].value().get_width() = sz2.get_width();
+							result.sizes[2] = result.sizes[0].value();
 						}
+						// else // If only lesser/greater, use greater height and our width instead.
+						result.sizes[3] = result.sizes[1].value();
 					}
+
 				}
 				else
 				{
-					result.m_sizes[1].m_size.get_width() = sz2.get_width();
-					result.m_sizes[3].m_size.get_width() = sz2.get_width();
-					if (result.m_sizes[1].m_isValid)
+					if (!result.sizes[1].has_value())
 					{
-						result.m_sizes[3].m_size.get_height() = result.m_sizes[1].m_size.get_height();
-						if (result.m_sizes[0].m_isValid)
+						result.sizes[2].value().get_height() = sz2.get_height();
+						if (result.sizes[0].has_value())
 						{
-							result.m_sizes[2].m_isValid = true;
-							result.m_sizes[2].m_size.get_height() = result.m_sizes[0].m_size.get_height();
-							result.m_sizes[2].m_size.get_width() = sz2.get_width();
-							result.m_sizes[0].m_size.get_width() = sz2.get_width();
+							// We have lesser heights, and both lesser and greater widths.
+							// Use those widths.  Use our height.
+							result.sizes[0].value().get_height() = sz2.get_height();
+							result.sizes[1] = result.sizes[0].value();
 						}
+						// else // The only provided size was a greater width and lesser height size.
+						// Use the greater width and use our height instead.  Don't provider lesser width.
+						result.sizes[3] = result.sizes[2].value();
 					}
 					else
 					{
-						result.m_sizes[0].m_isValid = true;
-						result.m_sizes[1].m_isValid = true;
-						result.m_sizes[2].m_isValid = true;
-						result.m_sizes[1].m_size = sz2;
-						result.m_sizes[2].m_size = sz2;
-						result.m_sizes[0].m_size.get_height() = sz2.get_height();
-						result.m_sizes[3].m_size.get_height() = sz2.get_height();
+						// Both of these scenarios involve imposing maximums in one dimension to allow
+						// a greater value in the other.  Rather than pick one of those, consider either
+						// of them to be  imposing a maximum we want to override.  Use our own sizes.
+						result.sizes[0] = sz2;
+						result.sizes[1] = sz2;
+						result.sizes[2] = sz2;
+						result.sizes[3] = sz2;
 					}
 				}
 			}

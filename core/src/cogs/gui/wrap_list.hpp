@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -412,47 +412,47 @@
 //
 //	using pane_container::nest;
 //
-//	virtual void nest_first(const rcref<pane>& child, const rcptr<frame>& f = 0)
-//	{
-//		rcptr<canvas::cell> c2 = f;
-//		if (!c2)
-//			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
-//		c->m_removeToken = m_cells.prepend(c);
-//		pane::nest_first(child, c);
-//	}
-//
-//	virtual void nest_last(const rcref<pane>& child, const rcptr<frame>& f = 0)
-//	{
-//		rcptr<canvas::cell> c2 = f;
-//		if (!c2)
-//			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
-//		c->m_removeToken = m_cells.append(c);
-//		pane::nest_last(child, c);
-//	}
-//
-//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, const rcptr<frame>& f = 0)
-//	{
-//		rcptr<canvas::cell> c2 = f;
-//		if (!c2)
-//			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
-//		rcptr<cell_t> beforeThisCell = beforeThis->get_outermost_frame().template static_cast_to<cell_t>();
-//		m_cells.insert_before(c, beforeThisCell->m_removeToken);
-//		pane::nest_before(child, beforeThis, c);
-//	}
-//
-//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, const rcptr<frame>& f = 0)
-//	{
-//		rcptr<canvas::cell> c2 = f;
-//		if (!c2)
-//			c2 = child;
-//		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
-//		rcptr<cell_t> afterThisCell = afterThis->get_outermost_frame().template static_cast_to<cell_t>();
-//		c->m_removeToken = m_cells.insert_after(c, afterThisCell->m_removeToken);
-//		pane::nest_after(child, afterThis, c);
-//	}
+////	virtual void nest_first(const rcref<pane>& child)
+////	{
+////		rcptr<canvas::cell> c2 = f;
+////		if (!c2)
+////			c2 = child;
+////		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
+////		c->m_removeToken = m_cells.prepend(c);
+////		pane::nest_first(child, c);
+////	}
+////
+////	virtual void nest_last(const rcref<pane>& child)
+////	{
+////		rcptr<canvas::cell> c2 = f;
+////		if (!c2)
+////			c2 = child;
+////		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
+////		c->m_removeToken = m_cells.append(c);
+////		pane::nest_last(child, c);
+////	}
+////
+////	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child)
+////	{
+////		rcptr<canvas::cell> c2 = f;
+////		if (!c2)
+////			c2 = child;
+////		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
+////		rcptr<cell_t> beforeThisCell = beforeThis->get_outermost_frame().template static_cast_to<cell_t>();
+////		m_cells.insert_before(beforeThisCell->m_removeToken, c);
+////		pane::nest_before(beforeThis, child);
+////	}
+////
+////	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child)
+////	{
+////		rcptr<canvas::cell> c2 = f;
+////		if (!c2)
+////			c2 = child;
+////		rcref<cell_t> c = rcnew(cell_t)(c2.dereference());
+////		rcptr<cell_t> afterThisCell = afterThis->get_outermost_frame().template static_cast_to<cell_t>();
+////		c->m_removeToken = m_cells.insert_after(afterThisCell->m_removeToken, c);
+////		pane::nest_after(afterThis, child);
+////	}
 //
 //	void clear()
 //	{

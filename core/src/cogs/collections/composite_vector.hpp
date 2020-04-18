@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -23,8 +23,7 @@ class composite_vector;
 
 
 // forward declare
-namespace io
-{
+namespace io {
 	class composite_buffer;
 }
 
@@ -2454,133 +2453,6 @@ protected:
 	}
 
 public:
-	/// @brief A composite_vector element iterator
-	class iterator
-	{
-	protected:
-		this_t* m_array;
-		position_t m_position;
-
-		iterator(this_t* v, const position_t& pos)
-			: m_array(v),
-			m_position(pos)
-		{ }
-
-		iterator(this_t* v, size_t outerIndex, size_t i)
-			: m_array(v),
-			m_position(outerIndex, i)
-		{ }
-
-		template <typename>
-		friend class composite_vector;
-
-	public:
-		iterator()
-		{ }
-
-		iterator(const iterator& i)
-			: m_array(i.m_array),
-			m_position(i.m_position)
-		{ }
-
-		void release() { m_array = 0; }
-
-		iterator& operator++()
-		{
-			if (m_array)
-			{
-				size_t subVectorCount = m_array->get_inner_count();
-				if (m_position.get_outer_index() >= subVectorCount)
-					m_array = 0;
-				else
-				{
-					vector<type> buf = m_array->get_inner(m_position.get_outer_index());
-					if (++m_position.get_inner_index() >= buf.get_length())
-					{
-						if (m_position.get_outer_index() >= subVectorCount - 1)
-							m_array = 0;
-						else
-						{
-							m_position.get_outer_index()++;
-							m_position.get_inner_index() = 0;
-						}
-					}
-				}
-			}
-			return *this;
-		}
-
-		iterator& operator--()
-		{
-			if (m_array)
-			{
-				size_t subVectorCount = m_array->get_inner_count();
-				if (m_position.get_outer_index() >= subVectorCount)
-				{
-					if ((m_position.get_outer_index() == subVectorCount)
-						&& (m_position.get_inner_index() == 0))
-					{
-						--m_position.get_outer_index();
-						m_position.get_inner_index() = m_array->get_inner(m_position.get_outer_index()).get_length() - 1;
-					}
-					else
-						m_array = 0;
-				}
-				else
-				{
-					if (!!m_position.get_inner_index())
-						--m_position.get_inner_index();
-					else
-					{
-						if (!m_position.get_outer_index())
-							m_array = 0;
-						else
-						{
-							--m_position.get_outer_index();
-							m_position.get_inner_index() = m_array->get_inner(m_position.get_outer_index()).get_length() - 1;
-						}
-					}
-				}
-			}
-			return *this;
-		}
-
-		iterator operator++(int) { iterator i(*this); ++*this; return i; }
-		iterator operator--(int) { iterator i(*this); --*this; return i; }
-
-		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
-
-		bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator!=(const iterator& i) const { return !operator==(i); }
-
-		iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
-
-		type* get() const { return m_array->get_inner(m_position.get_outer_index()).get_ptr() + m_position.get_inner_index(); }
-		type& operator*() const { return *get(); }
-		type* operator->() const { return get(); }
-
-		position_t get_position() const
-		{
-			if (!m_array)
-				return position_t(const_max_int_v<size_t>, const_max_int_v<size_t>);
-			return m_position;
-		}
-
-		iterator next() const { iterator result(*this); ++result; return result; }
-
-		iterator prev() const { iterator result(*this); --result; return result; }
-	};
-
-	iterator get_first_iterator() { size_t sz = get_length(); return iterator(!!sz ? this : 0, 0, 0); }
-	iterator get_last_iterator()
-	{
-		size_t subVectorCount = get_inner_count();
-		if (!subVectorCount)
-			return iterator(0, 0, 0);
-		size_t lastSubVectorIndex = subVectorCount - 1;
-		return iterator(this, lastSubVectorIndex, get_inner(lastSubVectorIndex).get_length() - 1);
-	}
-
 	/// @brief A composite_vector constant element iterator
 	class const_iterator
 	{
@@ -2606,11 +2478,6 @@ public:
 		{ }
 
 		const_iterator(const const_iterator& i)
-			: m_array(i.m_array),
-			m_position(i.m_position)
-		{ }
-
-		const_iterator(const iterator& i)
 			: m_array(i.m_array),
 			m_position(i.m_position)
 		{ }
@@ -2685,11 +2552,8 @@ public:
 		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
 		bool operator==(const const_iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
-		bool operator!=(const iterator& i) const { return !operator==(i); }
 		const_iterator& operator=(const const_iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
-		const_iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
 
 		const type* get() const { return m_array->get_inner(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
 		const type& operator*() const { return *get(); }
@@ -6195,6 +6059,10 @@ public:
 		return split_on_any_inner<this_t, type2>(*this, splitOnCpy.get_const_ptr(), splitOnCpy.get_length(), opt);
 	}
 
+	const_iterator begin() const { return get_first_const_iterator(); }
+	const_iterator rbegin() const { return get_last_const_iterator(); }
+	const_iterator end() const { const_iterator i; return i; }
+	const_iterator rend() const { const_iterator i; return i; }
 
 protected:
 	template <class composite_vector_t, typename type2>

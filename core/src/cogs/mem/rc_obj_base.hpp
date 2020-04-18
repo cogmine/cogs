@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -553,7 +553,7 @@ public:
 
 		void check_overflow()
 		{
-			for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+			for (size_t i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
 				COGS_ASSERT(checker[i] == COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE);
 		}
 	};
@@ -583,7 +583,7 @@ public:
 
 		void check_overflow()
 		{
-			for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+			for (size_t i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
 				COGS_ASSERT(checker[i] == COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE);
 		}
 
@@ -603,7 +603,7 @@ public:
 	volatile ptr<header> m_firstAdded;
 	volatile ptr<header> m_lastAdded;
 
-	virtual ptr<void> allocate(size_t n, size_t align) volatile
+	virtual ptr<void> allocate(size_t n, size_t) volatile
 	{
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
 		// Pad request size to proper alignment for footer, before adding footer size.
@@ -619,7 +619,7 @@ public:
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
 		footer * ftr = (footer*)((unsigned char*)ptr + header_size + n);
 		hdr->m_footer = ftr;
-		for (int i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
+		for (size_t i = 0; i < COGS_OVERFLOW_CHECK_SIZE; i++)
 		{
 			ftr->checker[i] = COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE;
 			hdr->checker[i] = COGS_DEBUG_ALLOC_OVERFLOW_CHECKING_VALUE;
@@ -666,12 +666,11 @@ public:
 		return ptr;
 	}
 
-	virtual size_t get_allocation_size(const ptr<void>& p, size_t align, size_t knownSize) const volatile
+	virtual size_t get_allocation_size(const ptr<void>&, size_t, size_t knownSize) const volatile
 	{
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
 		return knownSize;
 #else
-
 		header* hdr = (header*)((unsigned char*)p.get_ptr() - header_size);
 		return default_allocator_t::get_allocation_size(hdr, largest_alignment, overhead + knownSize) - overhead;
 #endif
@@ -739,7 +738,7 @@ public:
 #endif
 
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION || COGS_DEBUG_ALLOC_OVERFLOW_CHECKING || COGS_DEBUG_ALLOC_BUFFER_DEINIT
-	virtual bool try_reallocate(const ptr<void>& p, size_t newSize) volatile
+	virtual bool try_reallocate(const ptr<void>&, size_t) volatile
 	{
 		return false;//(newSize <= get_allocation_size(p)); // disable try_reallocate() to make things simpler for debugging.
 	}
@@ -876,5 +875,6 @@ inline void default_allocator::shutdown()
 
 
 }
+
 
 #endif

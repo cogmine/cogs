@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,15 +30,15 @@ private:
 	class priority_dispatched : public dispatched
 	{
 	public:
-		priority_queue<int, ptr<priority_dispatched> >::remove_token m_removeToken;
+		priority_queue<int, priority_dispatched>::remove_token m_removeToken;
 
-		priority_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<priority_dispatched> >::remove_token& rt)
+		priority_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, priority_dispatched>::remove_token& rt)
 			: dispatched(parentDispatcher, t),
 			m_removeToken(rt)
 		{ }
 	};
 
-	priority_queue<int, ptr<priority_dispatched> > m_priorityQueue;
+	priority_queue<int, priority_dispatched> m_priorityQueue;
 
 	priority_dispatcher(priority_dispatcher&&) = delete;
 	priority_dispatcher(const priority_dispatcher&) = delete;
@@ -48,7 +48,7 @@ private:
 	virtual rcref<task<bool> > cancel_inner(volatile dispatched& t) volatile
 	{
 		priority_dispatched& d = *(priority_dispatched*)&t;
-		bool b = m_priorityQueue.remove(d.m_removeToken);
+		bool b = m_priorityQueue.remove(d.m_removeToken).wasRemoved;
 		return signaled(b);
 	}
 
@@ -60,15 +60,12 @@ private:
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<priority_dispatched> >::preallocated i;
-		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<priority_dispatched> >(priority, i);
-		priority_dispatched* d = &(r->get());
-		i.get_value() = d;
-		placement_rcnew(d, *r.get_desc())(this_rcref, t, i);
-		rcref<dispatched> d2(d, i.get_desc());
-		t->set_dispatched(d2);
-		m_priorityQueue.insert_preallocated(i);
-		i.disown();
+		m_priorityQueue.insert_via([&](priority_queue<int, priority_dispatched>::value_token& vt)
+		{
+			*const_cast<int*>(&vt.get_priority()) = priority;
+			placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+			t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
+		});
 	}
 
 public:
@@ -83,10 +80,10 @@ public:
 
 	rcptr<task<void> > peek() const volatile
 	{
-		priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.peek();
+		priority_queue<int, priority_dispatched>::value_token vt = m_priorityQueue.peek();
 		if (!!vt)
 		{
-			priority_dispatched& d = *vt.get_value();
+			priority_dispatched& d = *vt;
 			return d.get_task_base()->get_task();
 		}
 
@@ -96,11 +93,11 @@ public:
 
 	rcptr<task<void> > peek(int& priority) const volatile
 	{
-		priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.peek();
+		priority_queue<int, priority_dispatched>::value_token vt = m_priorityQueue.peek();
 		if (!!vt)
 		{
-			priority = vt.get_key();
-			priority_dispatched& d = *vt.get_value();
+			priority = vt.get_priority();
+			priority_dispatched& d = *vt;
 			return d.get_task_base()->get_task();
 		}
 
@@ -110,9 +107,9 @@ public:
 
 	int get_next_priority() const volatile
 	{
-		priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.peek();
+		priority_queue<int, priority_dispatched>::value_token vt = m_priorityQueue.peek();
 		if (!!vt)
-			return vt.get_key();
+			return vt.get_priority();
 		return const_max_int_v<int>;
 	}
 
@@ -120,10 +117,10 @@ public:
 	{
 		for (;;)
 		{
-			priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.get();
+			priority_queue<int, priority_dispatched>::value_token vt = m_priorityQueue.get();
 			if (!vt)
 				return false;
-			if (!!vt.get_value()->get_task_base()->signal())
+			if (!!vt->get_task_base()->signal())
 				return true;
 			//continue;
 		}
@@ -133,11 +130,11 @@ public:
 	{
 		for (;;)
 		{
-			priority_queue<int, ptr<priority_dispatched> >::value_token vt = m_priorityQueue.try_get(lowestPriority);
+			priority_queue<int, priority_dispatched>::value_token vt = m_priorityQueue.try_get(lowestPriority);
 			if (!vt)
 				return false;
 
-			if (!!vt.get_value()->get_task_base()->signal())
+			if (!!vt->get_task_base()->signal())
 				return true;
 			//continue;
 		}
@@ -146,7 +143,7 @@ public:
 	bool remove_and_invoke(const rcref<task<void> >& t) volatile
 	{
 		rcptr<volatile priority_dispatched> d = get_dispatched(*t).template static_cast_to<volatile priority_dispatched>();
-		if (!d || !m_priorityQueue.remove(d->m_removeToken))
+		if (!d || !m_priorityQueue.remove(d->m_removeToken).wasRemoved)
 			return false;
 
 		return d->get_task_base()->signal();

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -264,7 +264,6 @@ placement_reconstruct_init(T* t, args_t&&... args)
 	placement_destruct(t);
 	placement_construct_init(t, std::forward<args_t>(args)...);
 }
-
 
 
 template <typename T, typename... args_t>

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -271,20 +271,12 @@ public:
 
 	/// @{
 	/// @brief Swaps the contents of this tree with another.
-	/// @param srcDst The tree to swap with.
-	void swap(this_t& srcDst)
+	/// @param wth The tree to swap with.
+	void swap(this_t& wth)
 	{
-		ref_t tmp = m_root;
-		m_root = srcDst.m_root;
-		srcDst.m_root = tmp;
-
-		tmp = m_leftmost;
-		m_leftmost = srcDst.m_leftmost;
-		srcDst.m_leftmost = tmp;
-
-		tmp = m_rightmost;
-		m_rightmost = srcDst.m_root;
-		srcDst.m_rightmost = tmp;
+		cogs::swap(m_root, wth.m_root);
+		cogs::swap(m_rightmost, wth.m_rightmost);
+		cogs::swap(m_leftmost, wth.m_leftmost);
 	}
 	/// @}
 
@@ -646,16 +638,20 @@ protected:
 	/// @brief Inserts a node into the sorted_btree.
 	/// @param n The node to insert.
 	/// @param insertMode The mode of the insert operation
+	/// @param hint If set, must be the result of a prior call to one of the 'last_equal' or
+	/// 'nearest_greater' find() functions passed the value being inserted.  This is useful
+	/// if additional work is needed before insert, only if an existing match is or is not found.
 	/// @return A reference to an equal node in the case of collision, or an empty node if no collision.
-	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode)
+	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode, const ref_t& hint = ref_t())
 	{
 		ref_t emptyRef;
 		typename ref_t::locked_t lockedRef = n;
 		lockedRef->set_left_link(emptyRef);
 		lockedRef->set_right_link(emptyRef);
 
-		bool has_root = !!get_root();
-		if (!has_root)
+		// If empty
+		bool hasRoot = !!get_root();
+		if (!hasRoot)
 		{
 			lockedRef->set_parent_link(emptyRef);
 			set_root(n);
@@ -663,22 +659,19 @@ protected:
 			set_rightmost(n);
 			return emptyRef;
 		}
+		const key_t& key = lockedRef->get_key();
 
-		const key_t& cmp = lockedRef->get_key();
-		typename ref_t::locked_t lockedCompareTo;
-
-		// Append/Prepend optimization
-		ref_t compare_to = get_rightmost();
-		lockedCompareTo = compare_to;
-		const key_t& cmp2a = lockedCompareTo->get_key();
-		bool isNotLess = !comparator_t::is_less_than(cmp, cmp2a);
+		// Prepend optimization
+		typename ref_t::locked_t lockedCompareTo = get_rightmost();
+		const key_t& rightmostKey = lockedCompareTo->get_key();
+		bool isNotLess = !comparator_t::is_less_than(key, rightmostKey);
 		if (isNotLess)
 		{
-			bool isEqual = !comparator_t::is_less_than(cmp2a, cmp);
+			bool isEqual = !comparator_t::is_less_than(rightmostKey, key);
 			if (isEqual)
 			{
 				if (insertMode == sorted_btree_insert_mode::unique)
-					return compare_to;
+					return get_rightmost();
 
 				if (insertMode == sorted_btree_insert_mode::replace)
 				{
@@ -700,43 +693,45 @@ protected:
 						typename ref_t::locked_t lockedParentNode = parentNode;
 						lockedParentNode->set_child_link(true, n);
 					}
-					else // if (compare_to == get_root())
+					else // if (get_rightmost() == get_root())
 						set_root(n);
 
-					return compare_to;
+					return get_rightmost();
 				}
 			}
 
-			lockedRef->set_parent_link(compare_to);
+			lockedRef->set_parent_link(get_rightmost());
 			lockedCompareTo->set_right_link(n);
+			ref_t result = isEqual ? get_rightmost() : emptyRef;
 			set_rightmost(n);
-			return isEqual ? compare_to : emptyRef;
+			return result;
 		}
 
-		compare_to = get_leftmost();
-		lockedCompareTo = compare_to;
-		const key_t& cmp2b = lockedCompareTo->get_key();
-		bool isLess = comparator_t::is_less_than(cmp, cmp2b);
+		// Append optimization
+		lockedCompareTo = get_leftmost();
+		const key_t& leftmostKey = lockedCompareTo->get_key();
+		bool isLess = comparator_t::is_less_than(key, leftmostKey);
 		if (isLess)
 		{
-			lockedRef->set_parent_link(compare_to);
+			lockedRef->set_parent_link(get_leftmost());
 			lockedCompareTo->set_left_link(n);
 			set_leftmost(n);
 			return emptyRef;
 		}
 
-		compare_to = get_root();
+		// If hint is present, we know it's a valid parent node for the node being inserted.
+		ref_t compareTo = !hint ? get_root() : hint;
 
 		bool wasLess = false;
 		ref_t parent;
 		for (;;)
 		{
-			lockedCompareTo = compare_to;
-			const key_t& cmp2 = lockedCompareTo->get_key();
-			isLess = comparator_t::is_less_than(cmp, cmp2);
+			lockedCompareTo = compareTo;
+			const key_t& cmpKey = lockedCompareTo->get_key();
+			isLess = comparator_t::is_less_than(key, cmpKey);
 
 			// Check for an equal node.  If so, we're done.
-			if ((insertMode != sorted_btree_insert_mode::multi) && !isLess && !comparator_t::is_less_than(cmp2, cmp))
+			if ((insertMode != sorted_btree_insert_mode::multi) && !isLess && !comparator_t::is_less_than(cmpKey, key))
 			{
 				if (insertMode == sorted_btree_insert_mode::replace)
 				{
@@ -765,15 +760,15 @@ protected:
 						typename ref_t::locked_t lockedParent = parent;
 						lockedParent->set_child_link(!wasLess, n);
 					}
-					else // if (compare_to == get_root())
+					else // if (compareTo == get_root())
 						set_root(n);
 				}
-				return compare_to;
+				return compareTo;
 			}
 			wasLess = isLess;
-			parent = compare_to;
-			compare_to = lockedCompareTo->get_child_link(!isLess);
-			if (!compare_to)
+			parent = compareTo;
+			compareTo = lockedCompareTo->get_child_link(!isLess);
+			if (!compareTo)
 			{
 				lockedRef->set_parent_link(parent);
 				if (isLess)
@@ -895,13 +890,13 @@ protected:
 	}
 	/// @}
 
-public:
 	/// @{
 	/// @brief Swaps the contents of this tree with another.
 	/// @param srcDst The tree to swap with.
-	void swap(this_t& srcDst) { base_t::swap(srcDst); }
+	void swap(this_t& wth) { base_t::swap(wth); }
 	/// @}
 
+public:
 	/// @{
 	/// @brief Tests if the tree is empty
 	/// @return True if the tree is empty
@@ -976,10 +971,10 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 				break;
@@ -1000,17 +995,17 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(cmp, criteria))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
-			else if (comparator_t::is_less_than(criteria, cmp))
+			else if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
 			else
 			{
 				lastFound = n;
 				// Once we've found an equal node, and go left, all nodes
 				// are either smaller or equal to criteria. No need to check
-				// if criteria is less than cmp.
+				// if criteria is less than key.
 				n = lockedRef->get_left_link();
 				while (!!n)
 				{
@@ -1042,17 +1037,17 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
 				lastFound = n;
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
-				// if cmp is less than criteria.
+				// if key is less than criteria.
 				n = lockedRef->get_right_link();
 				while (!!n)
 				{
@@ -1084,19 +1079,19 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(cmp, criteria))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(key, criteria))
 			{
 				lastFound = n;
 				n = lockedRef->get_right_link();
 			}
-			else if (comparator_t::is_less_than(criteria, cmp))
+			else if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
 			else
 			{
 				// Once we've found an equal node, and go left, all nodes
 				// are either smaller or equal to criteria. No need to check
-				// if criteria is less than cmp.
+				// if criteria is less than key.
 				n = lockedRef->get_left_link();
 				while (!!n)
 				{
@@ -1128,19 +1123,19 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 			{
 				lastFound = n;
 				n = lockedRef->get_left_link();
 			}
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
-				// if cmp is less than criteria.
+				// if key is less than criteria.
 				n = lockedRef->get_right_link();
 				while (!!n)
 				{
@@ -1173,13 +1168,13 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(cmp, criteria))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(key, criteria))
 			{
 				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
-			else if (comparator_t::is_less_than(criteria, cmp))
+			else if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
 			else
 			{
@@ -1203,13 +1198,13 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 			{
 				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
@@ -1234,20 +1229,20 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(cmp, criteria))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(key, criteria))
 			{
 				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
-			else if (comparator_t::is_less_than(criteria, cmp))
+			else if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
 			else
 			{
 				lastFound = n; // equal
 				// Once we've found an equal node, and go left, all nodes
 				// are either smaller or equal to criteria. No need to check
-				// if criteria is less than cmp.
+				// if criteria is less than key.
 				n = lockedRef->get_left_link();
 				while (!!n)
 				{
@@ -1279,20 +1274,20 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 			{
 				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
 				lastFound = n; // equal
 				// Once we've found an equal node, and go left, all nodes
 				// are either lesser or equal to criteria. No need to check
-				// if criteria is less than cmp.
+				// if criteria is less than key.
 				n = lockedRef->get_left_link();
 				while (!!n)
 				{
@@ -1325,20 +1320,20 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(cmp, criteria))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(key, criteria))
 			{
 				lastLesser = n; // lesser
 				n = lockedRef->get_right_link();
 			}
-			else if (comparator_t::is_less_than(criteria, cmp))
+			else if (comparator_t::is_less_than(criteria, key))
 				n = lockedRef->get_left_link();
 			else
 			{
 				lastFound = n; // equal
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
-				// if cmp is less than criteria.
+				// if key is less than criteria.
 				n = lockedRef->get_right_link();
 				while (!!n)
 				{
@@ -1370,20 +1365,20 @@ public:
 		while (!!n)
 		{
 			lockedRef = n;
-			const key_t& cmp = lockedRef->get_key();
-			if (comparator_t::is_less_than(criteria, cmp))
+			const key_t& key = lockedRef->get_key();
+			if (comparator_t::is_less_than(criteria, key))
 			{
 				lastFound = n; // greater
 				n = lockedRef->get_left_link();
 			}
-			else if (comparator_t::is_less_than(cmp, criteria))
+			else if (comparator_t::is_less_than(key, criteria))
 				n = lockedRef->get_right_link();
 			else
 			{
 				lastFound = n; // equal
 				// Once we've found an equal node, and go right, all nodes
 				// are either greater or equal to criteria. No need to check
-				// if cmp is less than criteria.
+				// if key is less than criteria.
 				n = lockedRef->get_right_link();
 				while (!!n)
 				{

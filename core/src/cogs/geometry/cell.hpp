@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -70,22 +70,6 @@ public:
 	// If the value can be matched exactly, all lesser and greater values will be set/valid and equal to the proposed value.
 	// If the call is incapable of being successfully sized to any size, no values will be set/valid.
 
-	struct proposed_size
-	{
-		size m_size;
-
-		// False if this index cannot be matched due to a minimum or maximum being imposed.
-		// For example, if the requested size is below minimums for both height/width, only the greater/greater position will be valid,
-		// and set to minimum lengths.
-		bool m_isValid;
-
-		void set(const size& sz)
-		{
-			m_size = sz;
-			m_isValid = true;
-		}
-	};
-
 	struct propose_size_result
 	{
 		// Sizes are in the following order:
@@ -93,19 +77,22 @@ public:
 		//     [<=, >=] - lesser or equal width and greater or equal height
 		//     [>=, <=] - greater or equal width and lesser or equal height
 		//     [>=, >=] - greater or equal width and greater or equal height
-		proposed_size m_sizes[4];
+		//
+		// A size may not exist.  For example, if the requested size is below minimums for both height/width,
+		// only the greater/greater position will be valid, and set to minimum lengths.
+		std::optional<size> sizes[4];
 
 		static int get_index(bool greaterWidth, bool greaterHeight) { return greaterWidth ? (greaterHeight ? 3 : 2) : (greaterHeight ? 1 : 0); }
 
-		size& get_size(bool greaterWidth, bool greaterHeight) { return m_sizes[get_index(greaterWidth, greaterHeight)].m_size; }
-		const size& get_size(bool greaterWidth, bool greaterHeight) const { return m_sizes[get_index(greaterWidth, greaterHeight)].m_size; }
+		size& get_size(bool greaterWidth, bool greaterHeight) { return sizes[get_index(greaterWidth, greaterHeight)].value(); }
+		const size& get_size(bool greaterWidth, bool greaterHeight) const { return sizes[get_index(greaterWidth, greaterHeight)].value(); }
 
 		void set(const size& sz)
 		{
-			m_sizes[0].set(sz);
-			m_sizes[1].set(sz);
-			m_sizes[2].set(sz);
-			m_sizes[3].set(sz);
+			sizes[0] = sz;
+			sizes[1] = sz;
+			sizes[2] = sz;
+			sizes[3] = sz;
 		}
 
 		enum class first_valid_size_order : int
@@ -141,8 +128,8 @@ public:
 			for (int i = 0; i < 16; i += 4)
 			{
 				int i2 = ((int)order >> i) & 0x0F;
-				if (m_sizes[i2].m_isValid)
-					return m_sizes[i2].m_size;
+				if (sizes[i2].has_value())
+					return sizes[i2].value();
 			}
 			return size(0, 0);
 		}
@@ -155,18 +142,24 @@ public:
 			return find_first_valid_size(order);
 		}
 
-		bool is_empty() const { return !m_sizes[0].m_isValid && !m_sizes[1].m_isValid && !m_sizes[2].m_isValid && !m_sizes[3].m_isValid; }
-		void set_empty() { m_sizes[0].m_isValid = m_sizes[1].m_isValid = m_sizes[2].m_isValid = m_sizes[3].m_isValid = false; }
+		bool is_empty() const { return !sizes[0].has_value() && !sizes[1].has_value() && !sizes[2].has_value() && !sizes[3].has_value(); }
+		void set_empty()
+		{
+			sizes[0].reset();
+			sizes[1].reset();
+			sizes[2].reset();
+			sizes[3].reset();;
+		}
 
 		void make_relative(const size& sz)
 		{
 			auto f1 = [&](int i1, int i2, dimension d)
 			{
-				if (m_sizes[i1].m_isValid && m_sizes[i1].m_size[d] >= sz[d])
+				if (sizes[i1].has_value() && sizes[i1].value()[d] >= sz[d])
 				{
-					m_sizes[i2] = m_sizes[i1];
-					if (m_sizes[i1].m_size[d] > sz[d])
-						m_sizes[i1].m_isValid = false;
+					sizes[i2] = sizes[i1];
+					if (sizes[i1].value()[d] > sz[d])
+						sizes[i1].reset();
 				}
 			};
 
@@ -177,11 +170,11 @@ public:
 
 			auto f2 = [&](int i1, int i2, dimension d)
 			{
-				if (m_sizes[i1].m_isValid && m_sizes[i1].m_size[d] <= sz[d])
+				if (sizes[i1].has_value() && sizes[i1].value()[d] <= sz[d])
 				{
-					m_sizes[i2] = m_sizes[i1];
-					if (m_sizes[i1].m_size[d] < sz[d])
-						m_sizes[i1].m_isValid = false;
+					sizes[i2] = sizes[i1];
+					if (sizes[i1].value()[d] < sz[d])
+						sizes[i1].reset();
 				}
 			};
 

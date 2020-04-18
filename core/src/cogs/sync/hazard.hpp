@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -34,7 +34,8 @@ class function;
 /// <a href='https://en.wikipedia.org/wiki/Hazard_pointer'>Hazard pointers</a> ensure
 /// data structures are not disposed out from under lock-free algorithms.
 ///
-/// cogs::hazard is inspired by work published by Maged M Michael, but diverges significantly.
+/// cogs::hazard is inspired by a paper published by Maged M Michael titled, ""Based loosely on a paper by Maged M. Michael
+/// titled, "Hazard Pointers: Safe Memory Reclamation for Lock-Free Objects", but diverges significantly.
 /// This implementation is independent of the deallocation mechanism, releases resources immediately when
 /// no longer referenced, and is contextual (opt-in).
 ///

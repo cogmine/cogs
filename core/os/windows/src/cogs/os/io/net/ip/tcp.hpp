@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -154,7 +154,8 @@ private:
 										m_overlapped->clear();
 									else
 									{
-										m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
+										m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+										new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
 										{
 											rcptr<tcp_reader> r2 = r;
 											if (!!r2)
@@ -217,11 +218,9 @@ private:
 						complete(closing);
 						break;
 					}
-					bool wasLast;
-					m_completionSerializer.remove_first(wasLast);
-					if (wasLast)
+					if (m_completionSerializer.remove().wasEmptied)
 						break;
-					m_completionSerializer.peek_first(taskType);
+					m_completionSerializer.peek(taskType);
 				}
 			}
 		}
@@ -319,7 +318,8 @@ private:
 					if (!!ds)
 					{
 						int i;
-						m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
+						m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+						new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
 						{
 							rcptr<tcp_writer> r2 = r;
 							if (!!r2)
@@ -440,7 +440,8 @@ public:
 					m_overlapped->clear();
 				else
 				{
-					m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_rcref }]()
+					m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+					new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_rcref }]()
 					{
 						r->connect_done();
 					});
@@ -606,7 +607,8 @@ public:
 													NULL);
 								if (err != SOCKET_ERROR)
 								{
-									m_overlapped = new (default_allocator::get()) os::io::completion_port::overlapped_t([r{ this_rcref }]()
+									m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+									new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_rcref }]()
 									{
 										r->connection_accepted();
 									});

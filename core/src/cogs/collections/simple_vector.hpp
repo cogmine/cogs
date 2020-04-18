@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -349,6 +349,11 @@ public:
 	const_iterator get_first_const_iterator() const { return const_iterator(!!m_length ? this : 0, 0); }
 	const_iterator get_last_const_iterator() const { return const_iterator(!!m_length ? this : 0, m_length - 1); }
 
+	simple_vector()
+		: m_length(0),
+		m_capacity(0)
+	{ }
+
 	simple_vector(this_t&& src)
 		: m_allocator(std::move(src.m_allocator)),
 		m_length(std::move(src.m_length)),
@@ -357,22 +362,6 @@ public:
 	{
 		src.m_capacity = 0;
 	}
-
-	this_t& operator=(this_t&& src)
-	{
-		m_allocator = std::move(src.m_allocator);
-		m_length = std::move(src.m_length);
-		m_capacity = src.m_capacity;
-		m_ptr = src.m_ptr;
-		src.m_capacity = 0;
-		return *this;
-	}
-
-
-	simple_vector()
-		: m_length(0),
-		m_capacity(0)
-	{ }
 
 	explicit simple_vector(volatile allocator_type& al)
 		: m_allocator(al),
@@ -499,6 +488,23 @@ public:
 	{
 		if (m_capacity > 0)
 			m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+	}
+
+	this_t& operator=(const type& src) { assign(1, src); return *this; }
+
+	this_t& operator=(const this_t& src) { assign(src); return *this; }
+
+	template <typename type2, class allocator_type2>
+	this_t& operator=(const simple_vector<type2, allocator_type2>& src) { assign(src); return *this; }
+
+	this_t& operator=(this_t&& src)
+	{
+		m_allocator = std::move(src.m_allocator);
+		m_length = std::move(src.m_length);
+		m_capacity = src.m_capacity;
+		m_ptr = src.m_ptr;
+		src.m_capacity = 0;
+		return *this;
 	}
 
 	size_t get_length() const { return m_length; }
@@ -1177,13 +1183,6 @@ public:
 		clear();
 	}
 
-	this_t& operator=(const type& src) { assign(1, src); return *this; }
-
-	this_t& operator=(const this_t& src) { assign(src); return *this; }
-
-	template <typename type2, class allocator_type2>
-	this_t& operator=(const simple_vector<type2, allocator_type2>& src) { assign(src); return *this; }
-
 	void append(size_t n = 1)
 	{
 		if (!!n)
@@ -1569,6 +1568,24 @@ public:
 		m_ptr = wth.m_ptr;
 		wth.m_ptr = ptr;
 	}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	iterator begin() const { return get_first_iterator(); }
+	iterator rbegin() const { return get_last_iterator(); }
+	iterator end() const { iterator i; return i; }
+	iterator rend() const { iterator i; return i; }
 };
 
 

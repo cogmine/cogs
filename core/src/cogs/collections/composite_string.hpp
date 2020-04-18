@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -18,8 +18,7 @@ namespace cogs {
 
 
 // forward declare
-namespace io
-{
+namespace io {
 	class composite_buffer;
 }
 
@@ -84,46 +83,6 @@ public:
 		size_t get_inner_index() const { return m_pos.get_inner_index(); }
 	};
 
-	/// @brief A composite_string element iterator
-	class iterator
-	{
-	private:
-		template <typename>
-		friend class composite_string_t;
-
-		typename content_t::iterator m_contents;
-
-		iterator(const typename content_t::iterator& i) : m_contents(i) { }
-
-	public:
-		iterator() { }
-		iterator(const iterator& i) : m_contents(i.m_contents) { }
-
-		iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
-
-		void release() { m_contents.release(); }
-
-		iterator& operator++() { ++m_contents; return *this; }
-		iterator& operator--() { --m_contents; return *this; }
-
-		iterator operator++(int) { iterator i(*this); ++*this; return i; }
-		iterator operator--(int) { iterator i(*this); --*this; return i; }
-
-		bool operator!() const { return !m_contents; }
-
-		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
-		bool operator!=(const iterator& i) const { return !operator==(i); }
-
-		type* get() const { return m_contents.get(); }
-		type& operator*() const { return *get(); }
-		type* operator->() const { return get(); }
-
-		position_t get_position() const { return m_contents.get_position(); }
-
-		iterator next() const { return m_contents.next(); }
-		iterator prev() const { return m_contents.prev(); }
-	};
-
 	/// @brief A composite_string constant element iterator
 	class const_iterator
 	{
@@ -138,10 +97,8 @@ public:
 	public:
 		const_iterator() { }
 		const_iterator(const const_iterator& i) : m_contents(i.m_contents) { }
-		const_iterator(const iterator& i) : m_contents(i.m_contents) { }
 
 		const_iterator& operator=(const const_iterator& i) { m_contents = i.m_contents; return *this; }
-		const_iterator& operator=(const iterator& i) { m_contents = i.m_contents; return *this; }
 
 		void release() { m_contents.release(); }
 
@@ -154,9 +111,7 @@ public:
 		bool operator!() const { return !m_contents; }
 
 		bool operator==(const const_iterator& i) const { return m_contents == i.m_contents; }
-		bool operator==(const iterator& i) const { return m_contents == i.m_contents; }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
-		bool operator!=(const iterator& i) const { return !operator==(i); }
 
 		const type* get() const { return m_contents.get(); }
 		const type& operator*() const { return *get(); }
@@ -170,9 +125,6 @@ public:
 
 	const_iterator get_first_const_iterator() const { return m_contents.get_first_const_iterator(); }
 	const_iterator get_last_const_iterator() const { return m_contents.get_last_const_iterator(); }
-
-	iterator get_first_iterator() { return m_contents.get_first_iterator(); }
-	iterator get_last_iterator() { return m_contents.get_last_iterator(); }
 
 	static this_t literal(const type* src) { return this_t(string_t<type>::literal(src)); }
 	static this_t literal(type& src) { return this_t(string_t<type>::literal(src)); }
@@ -3429,7 +3381,7 @@ public:
 
 		for (;;)
 		{
-			const_iterator itor = tmp.get_first_iterator();
+			const_iterator itor = tmp.get_first_const_iterator();
 			if (!itor)
 				break;
 
@@ -3447,12 +3399,12 @@ public:
 		// Try to deduce the radix if not specified
 		if (!gotRadix)
 		{
-			const_iterator itor = tmp.get_first_iterator();
+			const_iterator itor = tmp.get_first_const_iterator();
 			if (!!itor && (*itor == (type)'0'))
 			{
 				radix = 8;
 				tmp.advance();
-				itor = tmp.get_first_iterator();
+				itor = tmp.get_first_const_iterator();
 				if (!!itor && ((*itor == (type)'x') || (*itor == (type)'X')))
 				{
 					radix = 16;
@@ -3466,7 +3418,7 @@ public:
 		{
 			type maxAlphaDigitLower = ((type)radix - 11) + (type)'a';
 			type maxAlphaDigitUpper = ((type)radix - 11) + (type)'A';
-			const_iterator itor = tmp.get_first_iterator();
+			const_iterator itor = tmp.get_first_const_iterator();
 			while (!!itor)
 			{
 				type c = *itor;
@@ -3498,7 +3450,7 @@ public:
 		}
 		else
 		{
-			const_iterator itor = tmp.get_first_iterator();
+			const_iterator itor = tmp.get_first_const_iterator();
 			while (!!itor)
 			{
 				type c = *itor;
@@ -3523,6 +3475,11 @@ public:
 			result = negate_if_signed<int_t>::get(result);
 		return result;
 	}
+
+	const_iterator begin() const { return get_first_const_iterator(); }
+	const_iterator rbegin() const { return get_last_const_iterator(); }
+	const_iterator end() const { const_iterator i; return i; }
+	const_iterator rend() const { const_iterator i; return i; }
 };
 
 

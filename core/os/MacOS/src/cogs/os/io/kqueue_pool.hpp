@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -87,7 +87,7 @@ private:
 				map_t::volatile_iterator itor = taskMap->find(fd);
 				if (!!itor)
 				{
-					if (taskMap->remove(itor))
+					if (taskMap->remove(itor).wasRemoved)
 					{
 						rcptr<kqueue_pool> kq = m_kqueuePool;
 						COGS_ASSERT(!!kq);
@@ -176,7 +176,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
-		map_t::volatile_iterator itor = m_func->m_writeTasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_writeTasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
@@ -190,7 +190,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_LOWAT, minBytes, 0);
-		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
@@ -200,7 +200,7 @@ public:
 
 	void abort_write_waiter(const remove_token& rt)
 	{
-		if (m_func->m_writeTasks.remove(rt.m_removeToken))
+		if (m_func->m_writeTasks.remove(rt.m_removeToken).wasRemoved)
 		{
 			self_release();
 			struct kevent kevt;
@@ -212,7 +212,7 @@ public:
 
 	void abort_read_waiter(const remove_token& rt)
 	{
-		if (m_func->m_readOrListenTasks.remove(rt.m_removeToken))
+		if (m_func->m_readOrListenTasks.remove(rt.m_removeToken).wasRemoved)
 		{
 			self_release();
 			struct kevent kevt;
@@ -228,7 +228,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
-		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
@@ -238,7 +238,7 @@ public:
 
 	void deregister_listener(const remove_token& rt)
 	{
-		if (m_func->m_readOrListenTasks.remove(rt.m_removeToken))
+		if (m_func->m_readOrListenTasks.remove(rt.m_removeToken).wasRemoved)
 			self_release();
 	}
 

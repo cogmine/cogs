@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -162,7 +162,7 @@ private:
 		for (;;)
 		{
 			rcptr<notification_context> ctx;
-			m_setQueue.pop_first(ctx.dereference());
+			m_setQueue.pop(ctx.dereference());
 			if (!!ctx)
 			{
 				m_lastBoundSet.release();

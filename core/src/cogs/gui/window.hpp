@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -76,8 +76,8 @@ protected:
 	virtual void installing()
 	{
 		auto nativeWindow = get_subsystem().template static_cast_to<volatile windowing::subsystem>()->create_window();
-		m_nativeWindow = std::move(nativeWindow.second);
 		pane_bridge::install_bridged(std::move(nativeWindow.first));
+		m_nativeWindow = std::move(nativeWindow.second);
 	}
 
 	virtual void uninstalling()
@@ -95,13 +95,14 @@ protected:
 	}
 
 public:
-	template <typename... P>
 	window(const gfx::canvas::point* screenPosition,
 		const gfx::canvas::size* frameSize,
 		bool positionCentered,
 		const composite_string& title,
-		const std::initializer_list<rcref<pane> >& children = {})
-		: pane_bridge(children),
+		pane_list&& children = pane_list())
+		: pane_bridge({
+			.children = std::move(children)
+		}),
 		m_windowTask(this),
 		m_hasInitialScreenPosition(screenPosition != nullptr),
 		m_hasInitialFrameSize(frameSize != nullptr),
@@ -166,8 +167,8 @@ public:
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
 
 	using pane_bridge::reshape;
 
@@ -201,8 +202,7 @@ inline rcref<gui::window> windowing::subsystem::open_window(
 	const composite_string& title,
 	const rcref<pane>& p) volatile
 {
-	rcref<gui::window> w = rcnew(window)(screenPosition, frameSize, positionCentered, title);
-	w->nest(p);
+	rcref<gui::window> w = rcnew(window)(screenPosition, frameSize, positionCentered, title, pane_list::create(p));
 	install(*w, this_rcref);
 	return w;
 }

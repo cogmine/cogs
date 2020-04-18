@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -23,15 +23,14 @@ namespace cogs {
 template <class allocator_type,
 	bool is_static_in = allocator_type::is_static,
 	bool is_ptr_based = std::is_same_v<typename allocator_type::ref_t, ptr<void> > >
-class allocator_container
+class allocator_container // <allocator_type, false, false>
 {
 private:
+	typedef allocator_container<allocator_type, is_static_in, is_ptr_based> this_t;
 	ptr<volatile allocator_type> m_allocator;
 
 public:
 	static constexpr bool is_static = is_static_in;
-
-	typedef allocator_container<allocator_type, false, false> this_t;
 
 	typedef typename allocator_type::ref_t ref_t;
 
@@ -114,6 +113,24 @@ public:
 
 	template <typename type> size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize) const volatile
 	{ return m_allocator->get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
+
+	void swap(this_t& wth)
+	{
+		cogs::swap(m_allocator, wth.m_allocator);
+	}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
 };
 
 
@@ -121,11 +138,10 @@ template <class allocator_type>
 class allocator_container<allocator_type, false, true>
 {
 private:
+	typedef allocator_container<allocator_type, false, true> this_t;
 	ptr<volatile allocator_type> m_allocator;
 
 public:
-	typedef allocator_container<allocator_type, false, true> this_t;
-
 	static constexpr bool is_static = false;
 
 	typedef ptr<void> ref_t;
@@ -334,15 +350,34 @@ public:
 	{
 		return get_allocation_size_without_header<header_t, std::alignment_of_v<type> >(p, knownSize * sizeof(type)) / sizeof(type);
 	}
+
+	void swap(this_t& wth)
+	{
+		cogs::swap(m_allocator, wth.m_allocator);
+	}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
 };
 
 
 template <class allocator_type>
 class allocator_container<allocator_type, true, false>
 {
-public:
-	typedef allocator_container<allocator_type, true, false> this_t;
+private:
+	typedef allocator_container<allocator_type, false, true> this_t;
 
+public:
 	static constexpr bool is_static = true;
 
 	typedef typename allocator_type::ref_t ref_t;
@@ -352,9 +387,9 @@ public:
 	allocator_container(const volatile this_t& src) { }
 	allocator_container(volatile allocator_type&); // not linkable
 
-	this_t& operator=(const this_t& src) { return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { return *this; }
-	this_t& operator=(const volatile this_t& src) { return *this; }
+	this_t& operator=(const this_t&) { return *this; }
+	volatile this_t& operator=(const this_t&) volatile { return *this; }
+	this_t& operator=(const volatile this_t&) { return *this; }
 
 	volatile allocator_type* get_allocator() const volatile { return 0; }
 
@@ -389,27 +424,38 @@ public:
 
 	template <typename type> static size_t get_allocation_size_type(const ptr<type>& p, size_t knownSize)
 	{ return allocator_type::get_allocation_size(p.template reinterpret_cast_to<void>(), std::alignment_of_v<type>, knownSize * sizeof(type)) / sizeof(type); }
+
+	void swap(this_t& wth) { }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp;
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn) { }
 };
 
 
 template <class allocator_type>
 class allocator_container<allocator_type, true, true>
 {
-public:
+private:
 	typedef allocator_container<allocator_type, true, true> this_t;
 
+public:
 	static constexpr bool is_static = true;
 
 	typedef ptr<void> ref_t;
 
 	allocator_container() { }
-	allocator_container(const this_t& src) { }
-	allocator_container(const volatile this_t& src) { }
+	allocator_container(const this_t&) { }
+	allocator_container(const volatile this_t&) { }
 	allocator_container(volatile allocator_type&); // not linkable
 
-	this_t& operator=(const this_t& src) { return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { return *this; }
-	this_t& operator=(const volatile this_t& src) { return *this; }
+	this_t& operator=(const this_t&) { return *this; }
+	volatile this_t& operator=(const this_t&) volatile { return *this; }
+	this_t& operator=(const volatile this_t&) { return *this; }
 
 	ptr<volatile allocator_type> get_allocator() const volatile { return 0; }
 
@@ -507,6 +553,16 @@ public:
 	{
 		return get_allocation_size_without_header<header_t, std::alignment_of_v<type> >(p, knownSize * sizeof(type)) / sizeof(type);
 	}
+
+	void swap(this_t& wth) { }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp;
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn) { }
 };
 
 

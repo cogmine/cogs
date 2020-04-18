@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -74,16 +74,27 @@ private:
 	delegated_dependency_property<bool> m_shouldAutoFadeProperty; // reflects callers choice to auto-fade
 
 public:
-	explicit scroll_bar(dimension d = dimension::vertical,
-		bool isHiddenWhenInactive = false,
-		const scroll_bar_state& s = scroll_bar_state(0, 0),
-		double pos = 0,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane_bridge(frames),
-		m_dimension(d),
-		m_isHiddenWhenInactive(isHiddenWhenInactive),
-		m_state(typename transactable_t::construct_embedded_t(), s),
-		m_pos(pos),
+	struct options
+	{
+		dimension scrollDimension = dimension::vertical;
+		bool isHiddenWhenInactive = false;
+		scroll_bar_state scrollBarState;
+		double position = 0;
+		frame_list frames;
+	};
+
+	scroll_bar()
+		: scroll_bar(options())
+	{ }
+
+	explicit scroll_bar(options&& o)
+		: pane_bridge({
+			.frames = std::move(o.frames)
+		}),
+		m_dimension(o.scrollDimension),
+		m_isHiddenWhenInactive(o.isHiddenWhenInactive),
+		m_state(typename transactable_t::construct_embedded_t(), std::move(o.scrollBarState)),
+		m_pos(o.position),
 		m_stateProperty(*this, [this]()
 		{
 			return *(m_state.begin_read());
@@ -128,98 +139,6 @@ public:
 			m_shouldAutoFadeProperty.set_complete();
 		})
 	{ }
-
-	explicit scroll_bar(bool isHiddenWhenInactive,
-		const scroll_bar_state& s = scroll_bar_state(0, 0),
-		double pos = 0,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(dimension::vertical, isHiddenWhenInactive, s, pos, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		const scroll_bar_state& s,
-		double pos = 0,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(d, false, s, pos, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		bool isHiddenWhenInactive,
-		double pos,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(d, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		bool isHiddenWhenInactive,
-		const scroll_bar_state& s,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(d, isHiddenWhenInactive, s, 0, frames)
-	{ }
-
-
-	scroll_bar(const scroll_bar_state& s,
-		double pos = 0,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(dimension::vertical, false, s, pos, frames)
-	{ }
-
-	scroll_bar(bool isHiddenWhenInactive,
-		double pos,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), pos, frames)
-	{ }
-
-	scroll_bar(bool isHiddenWhenInactive,
-		const scroll_bar_state& s,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(dimension::vertical, isHiddenWhenInactive, s, 0, frames)
-	{ }
-
-
-	scroll_bar(dimension d,
-		double pos,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(d, false, scroll_bar_state(0, 0), pos, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		const scroll_bar_state& s,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(d, false, s, 0, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		bool isHiddenWhenInactive,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(d, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
-	{ }
-
-
-	explicit scroll_bar(double pos,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: scroll_bar(dimension::vertical, false, scroll_bar_state(0, 0), pos, frames)
-	{ }
-
-	scroll_bar(const scroll_bar_state& s,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(dimension::vertical, false, s, 0, frames)
-	{ }
-
-	scroll_bar(bool isHiddenWhenInactive,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(dimension::vertical, isHiddenWhenInactive, scroll_bar_state(0, 0), 0, frames)
-	{ }
-
-	scroll_bar(dimension d,
-		const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(d, false, scroll_bar_state(0, 0), 0, frames)
-	{ }
-
-	explicit scroll_bar(const std::initializer_list<rcref<frame> >& frames)
-		: scroll_bar(dimension::vertical, false, scroll_bar_state(0, 0), 0, frames)
-	{ }
-
 
 	dimension get_dimension() const { return m_dimension; }
 	bool is_hidden_when_inactive() const { return m_isHiddenWhenInactive; }

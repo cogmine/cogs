@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -139,11 +139,9 @@ private:
 							complete();
 						}
 					}
-					bool wasLast;
-					m_completionSerializer.remove_first(wasLast);
-					if (wasLast)
+					if (m_completionSerializer.remove().wasEmptied)
 						break;
-					m_completionSerializer.peek_first(taskType);
+					m_completionSerializer.peek(taskType);
 				}
 			}
 		}
@@ -199,11 +197,9 @@ private:
 							complete();
 						}
 					}
-					bool wasLast;
-					m_completionSerializer.remove_first(wasLast);
-					if (wasLast)
+					if (m_completionSerializer.remove().wasEmptied)
 						break;
-					m_completionSerializer.peek_first(taskType);
+					m_completionSerializer.peek(taskType);
 				}
 			}
 		}
@@ -398,11 +394,9 @@ public:
 							self_release();
 						}
 					}
-					bool wasLast;
-					m_serializer.remove_first(wasLast);
-					if (wasLast)
+					if (m_serializer.remove().wasEmptied)
 						break;
-					m_serializer.peek_first(taskType);
+					m_serializer.peek(taskType);
 				}
 			}
 		}
@@ -561,11 +555,9 @@ public:
 								m_listenSocket = 0;
 							}
 						}
-						bool wasLast;
-						m_serializer.remove_first(wasLast);
-						if (wasLast)
+						if (m_serializer.remove().wasEmptied)
 							break;
-						m_serializer.peek_first(taskType);
+						m_serializer.peek(taskType);
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -41,8 +41,11 @@ private:
 		size_t m_parallelCount;
 		volatile size_type m_progress;
 
-		parallel_task()
-			: m_progress(0)
+		parallel_task(size_t n, const function<void(size_t)>& d, const function<void()>& doneDelegate)
+			: m_delegate(d),
+			m_doneDelegate(doneDelegate),
+			m_parallelCount(n),
+			m_progress(0)
 		{ }
 
 		~parallel_task()
@@ -51,7 +54,7 @@ private:
 		}
 	};
 
-	typedef container_dlist<parallel_task> parallel_task_list_t;
+	typedef container_dlist<rcref<parallel_task> > parallel_task_list_t;
 
 	class parallel_task_level
 	{
@@ -59,9 +62,16 @@ private:
 		volatile parallel_task_list_t m_parallelTasks;
 		volatile parallel_task_list_t::volatile_iterator m_parallelTaskItor;
 		volatile boolean m_alternateFlag;
+
+		parallel_task_level() { }
+
+		parallel_task_level(const rcref<parallel_task>& t)
+		{
+			m_parallelTasks.prepend(t);
+		}
 	};
 
-	typedef map<int, parallel_task_level> parallel_task_level_map_t;
+	typedef map<int, rcref<parallel_task_level> > parallel_task_level_map_t;
 
 	class main_loop : public object
 	{
@@ -96,13 +106,13 @@ private:
 					continue;
 				}
 
-				if (currentPriorityLevelItor->m_parallelTasks.is_empty())
+				if (currentPriorityLevelItor->value->m_parallelTasks.is_empty())
 				{
 					m_parallelTaskLevelMap.remove(currentPriorityLevelItor);
 					continue;
 				}
 
-				int currentPriority = currentPriorityLevelItor.get_key();
+				int currentPriority = currentPriorityLevelItor->key;
 				int p;
 				rcptr<task<void> > vt = m_tasks.peek(p);
 				if (!!vt)
@@ -111,7 +121,7 @@ private:
 					if (p <= currentPriority)
 					{
 						// If better priority, or we haven't run one yet
-						if ((p < currentPriority) || !currentPriorityLevelItor->m_alternateFlag)
+						if ((p < currentPriority) || !currentPriorityLevelItor->value->m_alternateFlag)
 						{
 							if (!m_tasks.remove_and_invoke(vt.dereference()))
 								continue;
@@ -119,49 +129,49 @@ private:
 							// Ran higher priority event, recheck priorities
 							if (p < currentPriority)
 								continue;
-							currentPriorityLevelItor->m_alternateFlag = true;
+							currentPriorityLevelItor->value->m_alternateFlag = true;
 						}
 					}
 				}
 
 				// Run next parallel task
-				parallel_task_list_t::volatile_iterator parallelTaskItor = currentPriorityLevelItor->m_parallelTaskItor++;
+				parallel_task_list_t::volatile_iterator parallelTaskItor = currentPriorityLevelItor->value->m_parallelTaskItor++;
 				for (;;)
 				{
 					if (!!parallelTaskItor)
 					{
-						size_type progress = parallelTaskItor->m_progress;
+						size_type progress = (*parallelTaskItor)->m_progress;
 						bool done;
 						for (;;)
 						{
-							done = progress == parallelTaskItor->m_parallelCount;
+							done = progress == (*parallelTaskItor)->m_parallelCount;
 							if (done)
 								break;
 							size_type progressPlusOne = progress;
 							++progressPlusOne;
-							if (parallelTaskItor->m_progress.compare_exchange(progressPlusOne, progress, progress))
+							if ((*parallelTaskItor)->m_progress.compare_exchange(progressPlusOne, progress, progress))
 								break;
 						}
 
 						if (done)
 						{
-							currentPriorityLevelItor->m_parallelTasks.remove(parallelTaskItor);
-							parallelTaskItor = currentPriorityLevelItor->m_parallelTaskItor++;
+							currentPriorityLevelItor->value->m_parallelTasks.remove(parallelTaskItor);
+							parallelTaskItor = currentPriorityLevelItor->value->m_parallelTaskItor++;
 							continue;
 						}
 
-						parallelTaskItor->m_delegate(progress.get_int());
-						currentPriorityLevelItor->m_alternateFlag = false;
+						(*parallelTaskItor)->m_delegate(progress.get_int());
+						currentPriorityLevelItor->value->m_alternateFlag = false;
 						break;
 					}
-					parallel_task_list_t::volatile_iterator firstItor = currentPriorityLevelItor->m_parallelTasks.get_first();
+					parallel_task_list_t::volatile_iterator firstItor = currentPriorityLevelItor->value->m_parallelTasks.get_first();
 					if (!firstItor)
 					{
 						m_parallelTaskLevelMap.remove(currentPriorityLevelItor);
 						break;
 					}
 
-					currentPriorityLevelItor->m_parallelTaskItor.compare_exchange(firstItor, parallelTaskItor, parallelTaskItor);
+					currentPriorityLevelItor->value->m_parallelTaskItor.compare_exchange(firstItor, parallelTaskItor, parallelTaskItor);
 				}
 				//continue;
 			}
@@ -286,13 +296,29 @@ public:
 
 	size_t get_thread_count() const { return m_threadCount; }
 
-	void dispatch_parallel(size_t n, const function<void(size_t)>& d, const function<void()>& doneDelegate = function<void()>(), int priority = 0) volatile
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, size_t>
+		|| std::is_invocable_v<F>,
+		void>
+	dispatch_parallel(size_t n, F&& f, int priority = 0) volatile
+	{
+		dispatch_parallel(n, std::forward<F>(f), []() {}, priority);
+	}
+
+	template <typename F, typename D>
+	std::enable_if_t<
+		(std::is_invocable_v<F, size_t> || std::is_invocable_v<F>)
+		&& std::is_invocable_v<D>,
+		void>
+	dispatch_parallel(size_t n, F&& f, D&& doneFunc, int priority = 0) volatile
 	{
 		COGS_ASSERT(m_state == 1);
 		if (!!n)
 		{
-			parallel_task_list_t::preallocated preallocatedTask;
-			parallel_task_level_map_t::preallocated preallocatedLevel;
+			rcref<parallel_task> t = rcnew(parallel_task)(n, std::move(f), std::move(doneFunc));
+			rcptr<parallel_task_level> level;
+
 			parallel_task_level_map_t::volatile_iterator i;
 			for (;;)
 			{
@@ -300,17 +326,9 @@ public:
 					i = m_mainLoop->m_parallelTaskLevelMap.find(priority);
 				if (!!i)
 				{
-					if (!preallocatedTask)
+					if (!i->value->m_parallelTasks.prepend_emplace_if_not_empty(t).iterator)
 					{
-						preallocatedTask = i->m_parallelTasks.preallocate();
-						preallocatedTask->m_delegate = d;
-						preallocatedTask->m_doneDelegate = doneDelegate;
-						preallocatedTask->m_parallelCount = n;
-					}
-					parallel_task_list_t::volatile_iterator taskItor = i->m_parallelTasks.prepend_preallocated(preallocatedTask, insert_mode::only_if_not_empty);
-					if (!taskItor) // was not added, preallocatedTask is still good.
-					{
-						COGS_ASSERT(i->m_parallelTasks.is_empty());
+						COGS_ASSERT(i->value->m_parallelTasks.is_empty());
 						m_mainLoop->m_parallelTaskLevelMap.remove(i);
 						i.release();
 						continue;
@@ -318,22 +336,9 @@ public:
 					m_mainLoop->m_semaphore.release(n);
 					break;
 				}
-				if (!preallocatedLevel)
-				{
-					preallocatedLevel = m_mainLoop->m_parallelTaskLevelMap.preallocate();
-					if (!preallocatedTask)
-					{
-						preallocatedTask = preallocatedLevel->m_parallelTasks.preallocate();
-						preallocatedTask->m_delegate = d;
-						preallocatedTask->m_doneDelegate = doneDelegate;
-						preallocatedTask->m_parallelCount = n;
-					}
-					preallocatedLevel->m_parallelTasks.prepend_preallocated(preallocatedTask);
-					preallocatedTask.release();
-				}
-				bool collision;
-				i = m_mainLoop->m_parallelTaskLevelMap.try_insert_preallocated(preallocatedLevel, collision);
-				if (!!collision)
+				if (!level)
+					level = rcnew(parallel_task_level)(t);
+				if (m_mainLoop->m_parallelTaskLevelMap.insert_unique_emplace(priority, level.dereference()).hadCollision)
 					continue;
 				m_mainLoop->m_semaphore.release(n);
 				break;
@@ -388,7 +393,7 @@ inline void thread::register_waiter(const rcref<thread>& t)
 	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
 		thread_waiters_singleton_t;
 	rcref<volatile container_dlist<rcref<thread> > > threadWaiters = thread_waiters_singleton_t::get();
-	t->m_removeToken = threadWaiters->prepend(t);
+	t->m_removeToken = threadWaiters->prepend(t).iterator;
 }
 
 inline void thread::deregister_waiter() const

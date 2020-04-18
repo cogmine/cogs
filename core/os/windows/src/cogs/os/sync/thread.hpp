@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_OS_SYNC_THREAD
@@ -39,7 +39,9 @@ private:
 public:
 	explicit thread(const function<void()>& d)
 	{
-		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)new (default_allocator::get()) function<void()>(d), 0, (unsigned int*)&m_threadId);
+		function<void()>* taskPtr = default_allocator::allocate_type<function<void()> >();
+		new (taskPtr) function<void()>(d);
+		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)taskPtr, 0, (unsigned int*)&m_threadId);
 	}
 
 	~thread() { CloseHandle(m_hThread); }

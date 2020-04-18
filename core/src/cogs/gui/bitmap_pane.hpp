@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -27,9 +27,21 @@ private:
 	rcptr<bitmap> m_image;
 
 public:
-	explicit bitmap_pane(const composite_string& imageLocation, const std::initializer_list<rcref<frame> >& frames = {})
-		: pane(frames),
-		m_imageLocation(imageLocation)
+	struct options
+	{
+		composite_string imageLocation;
+		frame_list frames;
+	};
+
+	bitmap_pane()
+		: bitmap_pane(options())
+	{ }
+
+	explicit bitmap_pane(options&& o)
+		: pane({
+			.frames = std::move(o.frames)
+		}),
+		m_imageLocation(std::move(o.imageLocation))
 	{ }
 
 	virtual void installing()

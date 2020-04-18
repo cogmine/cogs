@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -1114,6 +1114,18 @@ public:
 
 	string to_string() const { return to_string_t<wchar_t>(); }
 	cstring to_cstring() const { return to_string_t<char>(); }
+
+	iterator begin() { return get_first_iterator(); }
+	const_iterator begin() const { return get_first_const_iterator(); }
+
+	iterator rbegin() { return get_last_iterator(); }
+	const_iterator rbegin() const { return get_last_const_iterator(); }
+
+	iterator end() { iterator i; return i; }
+	const_iterator end() const { const_iterator i; return i; }
+
+	iterator rend() { iterator i; return i; }
+	const_iterator rend() const { const_iterator i; return i; }
 };
 
 

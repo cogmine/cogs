@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -439,74 +439,33 @@ public:
 
 	void set_can_auto_fade(bool b)
 	{
-		//objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
 		m_canAutoFadeProperty.set(b);
 	}
-
-	//bool drawRect(const NSRect& dirtyRect)
-	//{
-	//	objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
-	//	if ([objcScrollBar respondsToSelector : @selector(scrollerStyle)] && objcScrollBar.scrollerStyle == NSScrollerStyleOverlay) {
-	//		[[NSColor clearColor]set];
-	//		NSRectFill(NSInsetRect([objcScrollBar bounds], -1.0, -1.0));
-
-	//		NSGraphicsContext* curContext = [NSGraphicsContext currentContext];
-	//		CGContextRef context = [curContext CGContext];
-	//		CGContextSaveGState(context);
-	//		CGContextSetAlpha(context, m_knobAlpha);
-
-	//		if (m_isKnobSlotVisible) {
-	//			[objcScrollBar drawKnobSlotInRect : [objcScrollBar rectForPart : NSScrollerKnobSlot] highlight : NO] ;
-	//		}
-	//		[objcScrollBar drawKnob];
-	//		CGContextRestoreGState(context);
-	//		return true;
-	//	}
-	//	return false;
-	//}
 
 	void drawKnob()
 	{
 		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
-		//if ([objcScrollBar respondsToSelector : @selector(scrollerStyle)] && objcScrollBar.scrollerStyle == NSScrollerStyleOverlay) {
-		//	[[NSColor clearColor]set];
-		//	NSRectFill(NSInsetRect([objcScrollBar bounds], -1.0, -1.0));
 
 		NSGraphicsContext* curContext = [NSGraphicsContext currentContext];
 		CGContextRef context = [curContext CGContext];
 		CGContextSaveGState(context);
 		CGContextSetAlpha(context, m_knobAlpha);
 
-		//if (m_isKnobSlotVisible) {
-		//	[objcScrollBar drawKnobSlotInRect : [objcScrollBar rectForPart : NSScrollerKnobSlot] highlight : NO] ;
-		//}
 		[objcScrollBar defaultDrawKnob];
 		CGContextRestoreGState(context);
-		//}
-		//else
-		//	[objcScrollBar defaultDrawKnob];
 	}
 
 	void drawKnobSlotInRect(const NSRect& slotRect, bool highlightFlag)
 	{
 		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
-		//if ([objcScrollBar respondsToSelector : @selector(scrollerStyle)] && objcScrollBar.scrollerStyle == NSScrollerStyleOverlay) {
-		//	[[NSColor clearColor]set];
-		//	NSRectFill(NSInsetRect([objcScrollBar bounds], -1.0, -1.0));
 
 		NSGraphicsContext* curContext = [NSGraphicsContext currentContext];
 		CGContextRef context = [curContext CGContext];
 		CGContextSaveGState(context);
 		CGContextSetAlpha(context, m_knobAlpha);
 
-		//if (m_isKnobSlotVisible) {
-		//	[objcScrollBar drawKnobSlotInRect : [objcScrollBar rectForPart : NSScrollerKnobSlot] highlight : NO] ;
-		//}
 		[objcScrollBar defaultDrawKnobSlotInRect: slotRect highlight: highlightFlag];
 		CGContextRestoreGState(context);
-		//}
-		//else
-		//	[objcScrollBar defaultDrawKnob];
 	}
 
 	void fade()
@@ -616,56 +575,12 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 	[super drawRect:dirtyRect];
 }
 
-//-(void)drawRect:(NSRect)dirtyRect
-//{
-//	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
-//	if (!cppScrollBar || !cppScrollBar->drawRect(dirtyRect))
-//		[super drawRect:dirtyRect];
-//}
-
 -(void)fade:(NSTimer*)timer
 {
 	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 		cppScrollBar->fade();
 }
-
-//+(CGFloat)scrollerWidthForScrollerStyle:(NSScrollerStyle)scrollerStyle
-//{
-//	if (scrollerStyle == NSScrollerStyleOverlay)
-//		return 10; // BUG: +[NSScroller scrollerWidthForControlSize:scrollerStyle:] returns 15 for NSScrollerStyleOverlay...
-//	return[NSScroller scrollerWidth];
-//}
-//
-//-(void)setState:(MyScrollViewState)state knobSlotState : (MyScrollViewState)knobSlotState
-//{
-//	self.hidden = (state == MyScrollViewStateNormal);
-//	knobSlotVisible = (state == knobSlotState);
-//	[self setNeedsDisplay: YES] ;
-//}
-
-//-(void)removeTrackingAreas
-//{
-//	if (trackingArea != nil)
-//	{
-//		[self removeTrackingArea : trackingArea] ;
-//		[trackingArea release] ;
-//		trackingArea = nil;
-//	}
-//}
-//
-//-(void)updateTrackingAreas
-//{
-//	[self removeTrackingAreas] ;
-//
-//	if ([self respondsToSelector : @selector(scrollerStyle)]) {
-//		trackingArea = [[NSTrackingArea alloc]initWithRect:self.bounds
-//			options : NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways
-//			owner : self
-//			userInfo : nil];
-//		[self addTrackingArea : trackingArea] ;
-//	}
-//}
 
 
 @end

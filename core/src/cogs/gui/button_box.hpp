@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -248,7 +248,7 @@
 //		rcref<button> b = rcnew(button)(this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
-//		m_buttonList.insert_before(b, before->m_removeToken);
+//		m_buttonList.insert_before(before->m_removeToken, b);
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
@@ -271,7 +271,7 @@
 //		rcref<button> b = rcnew(button)(this_rcref, action, text, fnt, isEnabled);
 //		if (isDefault)
 //			m_defaultButton = b;
-//		m_buttonList.insert_after(b, after->m_removeToken);
+//		m_buttonList.insert_after(after->m_removeToken, b);
 //		rcptr<button_box_interface> buttonBox = get_bridged();
 //		if (!!buttonBox)
 //		{
@@ -448,7 +448,7 @@
 //		rcref<gui::button> uiButton = rcnew(gui::button)(action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button)(uiButton);
 //		rcref<default_button_box_button> beforeBtn = before.template static_cast_to<default_button_box_button>();
-//		m_wrapList->nest_before(uiButton, beforeBtn->m_uiButton);
+//		m_wrapList->nest_before(beforeBtn->m_uiButton, uiButton);
 //		if (isDefault)
 //			m_defaultButton = b;
 //		return b;
@@ -459,7 +459,7 @@
 //		rcref<gui::button> uiButton = rcnew(gui::button)(action, text, fnt, isEnabled, isDefault);
 //		rcref<default_button_box_button> b = rcnew(default_button_box_button)(uiButton);
 //		rcref<default_button_box_button> afterBtn = after.template static_cast_to<default_button_box_button>();
-//		m_wrapList->nest_before(uiButton, afterBtn->m_uiButton);
+//		m_wrapList->nest_before(afterBtn->m_uiButton, uiButton);
 //		if (isDefault)
 //			m_defaultButton = b;
 //		return b;

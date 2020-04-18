@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -378,8 +378,8 @@
 //
 //	virtual void nest_last(const rcref<pane>& child);
 //	virtual void nest_first(const rcref<pane>& child);
-//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis);
-//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis);
+//	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child);
+//	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child);
 //
 //	/*
 //	collection<rcref<cell_t> > m_cells;
@@ -701,54 +701,54 @@
 //		m_alignment[!d] = secondaryAlignment;
 //	}
 //
-//	nest_token nest_before(const rcref<pane>& child, const nest_token& beforeThis, const rcptr<frame>& userReshaper = 0)
-//	{
-//		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
-//		nt.m_removeToken = cell->m_removeToken = m_cells.insert_before(cell, beforeThis.m_removeToken);
-//		pane::nest(child, cell);
-//		return nt;
-//	}
-//
-//	nest_token nest_after(const rcref<pane>& child, const nest_token& afterThis, const rcptr<frame>& userReshaper = 0)
-//	{
-//		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
-//		nt.m_removeToken = cell->m_removeToken = m_cells.insert_after(cell, afterThis.m_removeToken);
-//		pane::nest(child, cell);
-//		return nt;
-//	}
-//
-//	nest_token nest_first(const rcref<pane>& child, const rcptr<frame>& userReshaper = 0)
-//	{
-//		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
-//		nt.m_removeToken = cell->m_removeToken = m_cells.prepend(cell);
-//		pane::nest(child, cell);
-//		return nt;
-//	}
-//
-//	nest_token nest_last(const rcref<pane>& child, const rcptr<frame>& userReshaper = 0)
-//	{
-//		nest_token nt;
-//		rcref<cell_t> cell = rcnew(cell_t)(child, userReshaper);
-//		nt.m_removeToken = cell->m_removeToken = m_cells.append(cell);
-//		pane::nest(child, cell);
-//		return nt;
-//	}
-//
-//	nest_token nest(const rcref<pane>& child, const rcptr<frame>& userReshaper = 0)
-//	{
-//		return nest_last(child, userReshaper);
-//	}
-//
-//	virtual void detaching_child(const rcref<pane>& p)
-//	{
-//		rcptr<cell_t> cell = p->get_frame().template static_cast_to<cell_t>();
-//		m_cells.remove(cell->m_removeToken);
-//		pane::detaching_child(p);
-//		reshape(get_bounds());
-//	}
+////	nest_token nest_before(const nest_token& beforeThis, const rcref<pane>& child)
+////	{
+////		nest_token nt;
+////		rcref<cell_t> cell = rcnew(cell_t)(child);
+////		nt.m_removeToken = cell->m_removeToken = m_cells.insert_before(beforeThis.m_removeToken, cell);
+////		pane::nest(cell, child);
+////		return nt;
+////	}
+////
+////	nest_token nest_after(const nest_token& afterThis, const rcref<pane>& child)
+////	{
+////		nest_token nt;
+////		rcref<cell_t> cell = rcnew(cell_t)(child);
+////		nt.m_removeToken = cell->m_removeToken = m_cells.insert_after(afterThis.m_removeToken, cell);
+////		pane::nest(cell, child);
+////		return nt;
+////	}
+////
+////	nest_token nest_first(const rcref<pane>& child)
+////	{
+////		nest_token nt;
+////		rcref<cell_t> cell = rcnew(cell_t)(child);
+////		nt.m_removeToken = cell->m_removeToken = m_cells.prepend(cell);
+////		pane::nest(cell, child);
+////		return nt;
+////	}
+////
+////	nest_token nest_last(const rcref<pane>& child)
+////	{
+////		nest_token nt;
+////		rcref<cell_t> cell = rcnew(cell_t)(child);
+////		nt.m_removeToken = cell->m_removeToken = m_cells.append(cell);
+////		pane::nest(cell, child);
+////		return nt;
+////	}
+////
+////	nest_token nest(const rcref<pane>& child)
+////	{
+////		return nest_last(child);
+////	}
+////
+////	virtual void detaching_child(const rcref<pane>& p)
+////	{
+////		rcptr<cell_t> cell = p->get_frame().template static_cast_to<cell_t>();
+////		m_cells.remove(cell->m_removeToken);
+////		pane::detaching_child(p);
+////		reshape(get_bounds());
+////	}
 //
 //	void clear()
 //	{

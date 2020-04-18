@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -123,95 +123,95 @@ public:
 		{
 		case format::RFC1123DateTime: // Thu, 30 Apr 1998 15:59:59 GMT
 		{
-			result = string_t<char_t>::literal(WeekDay3[d.m_dayOfWeek.get_int()]);
+			result = string_t<char_t>::literal(WeekDay3[d.dayOfWeek.get_int()]);
 			result += string_t<char_t>::literal(commaSpace);
 
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			string_t<char_t> spaceStr = string_t<char_t>::contain(&space, 1);
 			result += spaceStr;
 
-			result += string_t<char_t>::literal(Month3[d.m_month.get_int() - 1]);
+			result += string_t<char_t>::literal(Month3[d.month.get_int() - 1]);
 			result += spaceStr;
 
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result += yearString;
 			result += spaceStr;
 
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result += hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			result += colonStr;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			result += string_t<char_t>::contain(gmt, 4);
 			break;
 		}
 		case format::RFC850DateTime: // Thursday, 30-Apr-98 15:59:59 GMT
 		{
-			result = string_t<char_t>::literal(WeekDay[d.m_dayOfWeek.get_int()]);
+			result = string_t<char_t>::literal(WeekDay[d.dayOfWeek.get_int()]);
 			result += string_t<char_t>::literal(commaSpace);
 
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			string_t<char_t> dashStr = string_t<char_t>::contain(&dash, 1);
 			result += dashStr;
 
-			result += string_t<char_t>::literal(Month3[d.m_month.get_int() - 1]);
+			result += string_t<char_t>::literal(Month3[d.month.get_int() - 1]);
 			result += dashStr;
 
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(2);
 			result += yearString;
 			string_t<char_t> spaceStr = string_t<char_t>::contain(&space, 1);
 			result += spaceStr;
 
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result += hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			result += colonStr;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			result += string_t<char_t>::contain(gmt, 4);
 			break;
 		}
 		case format::ANSICasctime: // Thu Apr 30 15:59:59 1998   OR   Thu Apr  9 15:59:59 1998
 		{
-			result = string_t<char_t>::literal(WeekDay3[d.m_dayOfWeek.get_int()]);
+			result = string_t<char_t>::literal(WeekDay3[d.dayOfWeek.get_int()]);
 			string_t<char_t> spaceStr = string_t<char_t>::contain(&space, 1);
 			result += spaceStr;
 
-			result += string_t<char_t>::literal(Month3[d.m_month.get_int() - 1]);
+			result += string_t<char_t>::literal(Month3[d.month.get_int() - 1]);
 			result += spaceStr;
 
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			result += spaceStr;
 
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result += hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			result += colonStr;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result += yearString;
 			break;
@@ -219,32 +219,32 @@ public:
 
 		case format::ISO8601Date: // 1998-04-30
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
 			string_t<char_t> dashStr = string_t<char_t>::contain(&dash, 1);
 			result += dashStr;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
 			result += dashStr;
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			break;
 		}
 		case format::ISO8601Month: // 1998-04
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
 			string_t<char_t> dashStr = string_t<char_t>::contain(&dash, 1);
 			result += dashStr;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
 			break;
 		}
 		case format::ISO8601Year: // 1998
 		{
-			result = d.m_year.to_string_t<char_t>(10, 4);
+			result = d.year.to_string_t<char_t>(10, 4);
 			result.truncate_to_right(4);
 			break;
 		}
@@ -262,21 +262,21 @@ public:
 		//}
 		case format::ISO8601DateCompact: // 19980430
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			break;
 		}
 		case format::ISO8601MonthCompact: // 199804
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
 			break;
 		}
@@ -294,16 +294,16 @@ public:
 		//}
 		case format::ISO8601Time: // 23:59:59
 		{
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			result += colonStr;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			break;
 		}
@@ -313,87 +313,87 @@ public:
 		//}
 		case format::ISO8601TimeMinutes: // 23:59
 		{
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			break;
 		}
 		case format::ISO8601TimeCompact: // 235959
 		{
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			break;
 		}
 		case format::ISO8601TimeMinutesCompact: // 2359
 		{
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			break;
 		}
 		case format::ISO8601Hour: // 23
 		{
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 			break;
 		}
 		case format::ISO8601DateTime: // 1998-04-30T23:59:59
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
 			string_t<char_t> dashStr = string_t<char_t>::contain(&dash, 1);
 			result += dashStr;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
 			result += dashStr;
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			result += string_t<char_t>::contain(&tee, 1);
 
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 			string_t<char_t> colonStr = string_t<char_t>::contain(&colon, 1);
 			result += colonStr;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 			result += colonStr;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			break;
 		}
 		case format::ISO8601DateTimeCompact: // 19980430T235959
 		{
-			string_t<char_t> yearString = d.m_year.to_string_t<char_t>(10, 4);
+			string_t<char_t> yearString = d.year.to_string_t<char_t>(10, 4);
 			yearString.truncate_to_right(4);
 			result = yearString;
-			string_t<char_t> monthString = d.m_month.to_string_t<char_t>(10, 2);
+			string_t<char_t> monthString = d.month.to_string_t<char_t>(10, 2);
 			result += monthString;
-			string_t<char_t> dayString = d.m_day.to_string_t<char_t>(10, 2);
+			string_t<char_t> dayString = d.day.to_string_t<char_t>(10, 2);
 			result += dayString;
 			result += string_t<char_t>::contain(&tee, 1);
 
-			string_t<char_t> hourString = d.m_hour.to_string_t<char_t>(10, 2);
+			string_t<char_t> hourString = d.hour.to_string_t<char_t>(10, 2);
 			result = hourString;
 
-			string_t<char_t> minuteString = d.m_minute.to_string_t<char_t>(10, 2);
+			string_t<char_t> minuteString = d.minute.to_string_t<char_t>(10, 2);
 			result += minuteString;
 
-			string_t<char_t> secondString = d.m_second.to_string_t<char_t>(10, 2);
+			string_t<char_t> secondString = d.second.to_string_t<char_t>(10, 2);
 			result += secondString;
 			break;
 		}

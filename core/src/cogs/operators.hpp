@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -36,8 +36,7 @@
 #include "cogs/mem/is_same_instance.hpp"
 
 
-namespace cogs
-{
+namespace cogs {
 
 
 // is_array - matches T[n], or std::array<T, n>
@@ -292,33 +291,10 @@ inline decltype(auto) binary_array_operation_to_args(F&& f, B&& b, T&& t, T2&& t
 { return binary_array_operation_to_args_helper<extent_v<T>, T, T2>::expand(std::forward<F>(f), std::forward<B>(b), std::forward<T>(t), std::forward<T2>(t2)); }
 
 
-template <size_t i, typename... args_t>
-struct do_for_each_arg_helper
+template<typename F, typename... args_t>
+void do_for_each_arg(F&& f, args_t&&... args)
 {
-};
-
-template <size_t i>
-struct do_for_each_arg_helper<i>
-{
-	template <typename F> static void f(F&& f2) { }
-};
-
-template <size_t i, typename T, typename... args_t>
-struct do_for_each_arg_helper<i, T, args_t...>
-{
-	template <typename F>
-	static void f(F&& f2, T&& t, args_t&&... a)
-	{
-		f2(i, std::forward<T>(t));
-		do_for_each_arg_helper<i + 1, args_t...>::f(std::forward<F>(f2), std::forward<args_t>(a)...);
-	}
-};
-
-
-template <typename F, typename... args_t>
-void do_for_each_arg(F&& f2, args_t&&... a)
-{
-	do_for_each_arg_helper<0, args_t...>::f(std::forward<F>(f2), std::forward<args_t>(a)...);
+	(f(std::forward<args_t>(args)), ...);
 }
 
 
@@ -1264,7 +1240,6 @@ equals(const T& t, const A1& a)
 }
 COGS_DEFINE_BINARY_OPERATOR_FOR_MEMBER_OPERATOR(equals, == )
 
-
 template <typename T, typename A1> inline constexpr std::enable_if_t<!std::is_class_v<T> && std::is_class_v<A1>, bool>
 not_equals(const T& t, const A1& a) { return a != t; }
 
@@ -1397,7 +1372,7 @@ compare(const T& t, const A1& a)
 
 COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(compare)
 
-// TODO: Add compare_3way / <=>, once it makes it into the standard
+// TODO: Instead of a comparator, leverage the 'ufo' operator (<=>) once it's supported.
 
 /// @ingroup Collections
 /// @brief A default comparator

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -33,30 +33,41 @@ private:
 	{
 	public:
 		placement<type> m_value;
-		volatile boolean m_priorityChanged; // Used to synchronize concurrent priority changes
-		volatile rcptr<payload> m_removed; // Used to synchronized priority changes with concurrent scheduled removals (gets)
+
+		// Used to synchronize concurrent priority changes.
+		volatile boolean m_priorityChanged;
+
+		// Used to synchronized priority changes with concurrent scheduled removals (gets)
+		// m_removed is set to 1 (marked 0) when removed, or to the original element that has been rescheduled (using this one)
+		// If pointing to an payload, it will always be the original element, not a link in a reschedule chain.
+		volatile rcptr<payload> m_removed;
+
 		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
 
 		void construct(const type& t) { m_value.construct(t); }
 
 		void construct() { m_value.construct(); }
 
-		void set_removed(rcptr<payload>&& removed)
-		{
-			// Do not need volatility here, so cast it away
-			*(rcptr<payload>*)&m_removed = std::move(removed);
-		}
+		payload() {}
+
+		explicit payload(const rcptr<payload>& removed)
+			: m_removed(removed)
+		{ }
+
+		explicit payload(rcptr<payload>&& removed)
+			: m_removed(std::move(removed))
+		{ }
 
 		~payload()
 		{
-			rcptr<payload>& removed = *(rcptr<payload>*)&m_removed;
-			if (!removed.get_unmarked())
+			// An element with an m_removed set to a payload (not just a 1), does not construct its own payload contents
+			if (!const_cast<rcptr<payload>*>(&m_removed)->get_unmarked())
 				m_value.destruct();
 		}
 
 		type& get_value()
 		{
-			rcptr<payload> removed = m_removed; // If resheduled, we retain the original object
+			rcptr<payload> removed = m_removed; // If resheduled, we refer to the original object in m_removed
 			if (!!removed && removed.get_mark() == 0)
 				return removed->m_value.get();
 			return m_value.get();
@@ -72,85 +83,32 @@ private:
 	bool get_inner(const typename map_t::volatile_iterator& itor) volatile
 	{
 		bool result = false;
-		rcptr<payload> oldRemoved = itor->m_removed;
+		rcptr<payload> oldRemoved = itor->value.m_removed;
 		rcptr<payload> newRemoved;
 		newRemoved.set_to_mark(1);
 		if (!oldRemoved)
 		{
-			// If anyone else was going to reschedule us, they would only transition this from 0 to obj, not to 1.
-			if (itor->m_removed.compare_exchange(newRemoved, oldRemoved, oldRemoved))
+			// We only call get_inner() if we successfully removed the element, so no-one else will transition it to 1.
+			// If another thread were to change priority, they would transition this from 0 to obj, not to 1.
+			if (itor->value.m_removed.compare_exchange(newRemoved, oldRemoved, oldRemoved))
 				result = true;
 		}
 		if (!result)
 		{
 			COGS_ASSERT(!!oldRemoved);
 			COGS_ASSERT(oldRemoved.get_mark() == 0);
-			if (oldRemoved->m_removed.compare_exchange(newRemoved, oldRemoved, oldRemoved))
+			rcptr<payload> empty;
+			if (oldRemoved->m_removed.compare_exchange(newRemoved, empty, empty))
 				result = true;
 			else
-				COGS_ASSERT(oldRemoved == newRemoved);
+				COGS_ASSERT(newRemoved == empty);
 		}
-
 		return result;
 	}
 
 public:
-	class preallocated;
 	class value_token;
 	class remove_token;
-
-	/// @brief A preallocated priority_queue element
-	class preallocated
-	{
-	protected:
-		friend class priority_queue;
-
-		typename map_t::preallocated m_contents;
-
-		payload& get_payload() { return *m_contents; }
-
-		preallocated(const typename map_t::preallocated& i) : m_contents(i) { }
-		preallocated& operator=(const typename map_t::preallocated& i) { m_contents = i; return *this; }
-
-	public:
-		preallocated() { }
-		preallocated(const preallocated& src) : m_contents(src.m_contents) { }
-
-		void disown() { m_contents.disown(); }
-		void disown() volatile { m_contents.disown(); }
-
-		void release() { m_contents.release(); }
-
-		bool operator!() const { return !m_contents; }
-		bool operator==(const preallocated& i) const { return m_contents == i.m_contents; }
-		bool operator!=(const preallocated& i) const { return !operator==(i); }
-		preallocated& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
-
-		key_t& get_key() const { return m_contents.get_key(); }
-		type& get_value() const { return m_contents->get_value(); }
-
-		type& operator*() const { return m_contents->get_value(); }
-		type* operator->() const { return &(m_contents->get_value()); }
-
-		rcptr<key_t> get_key_obj() const { return m_contents.get_key_obj(); }
-
-		rcptr<type> get_value_obj() const
-		{
-			rcptr<type> result;
-			rcptr<payload> obj = m_contents.get_value_obj();
-			if (!!obj)
-			{
-				result.set(&(obj->get_value()), obj.get_desc());
-				obj.disown();
-			}
-			return result;
-		}
-
-		rcptr<type> get_obj() const { return get_value_obj(); }
-
-		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
-	};
 
 	/// @brief A priority_queue value token
 	class value_token
@@ -158,10 +116,29 @@ public:
 	protected:
 		typename map_t::volatile_iterator m_contents;
 
+		value_token(const typename map_t::iterator& i) : m_contents(i) { }
+		value_token(const typename map_t::remove_token& rt) : m_contents(rt) { }
+		value_token(const volatile typename map_t::iterator& i) : m_contents(i) { }
+		value_token(const volatile typename map_t::remove_token& rt) : m_contents(rt) { }
+		value_token(typename map_t::iterator&& i) : m_contents(std::move(i)) { }
+
 		value_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
 		value_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 		value_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
 		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		value_token(typename map_t::volatile_iterator&& i) : m_contents(std::move(i)) { }
+
+		value_token& operator=(const typename map_t::iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(const volatile typename map_t::iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const volatile typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(typename map_t::iterator&& i) { m_contents = std::move(i); return *this; }
+
+		value_token& operator=(const typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(const volatile typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const volatile typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(typename map_t::volatile_iterator&& i) { m_contents = std::move(i); return *this; }
 
 		friend class priority_queue;
 
@@ -171,10 +148,13 @@ public:
 		value_token(const remove_token& rt) : m_contents(rt.m_contents) { }
 		value_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
 		value_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
+		value_token(value_token&& vt) : m_contents(std::move(vt.m_contents)) { }
 
 		value_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
 		value_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
 		volatile value_token& operator=(const value_token& vt) volatile { m_contents = vt.m_contents; return *this; }
+		value_token& operator=(value_token&& vt) { m_contents = std::move(vt.m_contents); return *this; }
+		volatile value_token& operator=(value_token&& vt) volatile { m_contents = std::move(vt.m_contents); return *this; }
 
 		value_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		value_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
@@ -213,29 +193,25 @@ public:
 		bool operator!=(const volatile remove_token& rt) const { return !operator==(rt); }
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 
-		const key_t& get_key() const { return m_contents.get_key(); }
-		type& get_value() const { return m_contents->get_value(); }
-		type& operator*() const { return m_contents->get_value(); }
-		type* operator->() const { return &(m_contents->get_value()); }
-
-		rcptr<const key_t> get_key_obj() const { return m_contents.get_key_obj(); }
-
-		rcptr<type> get_value_obj() const
-		{
-			rcptr<type> result;
-			rcptr<payload> obj = m_contents.get_value_obj();
-			if (!!obj)
-			{
-				result.set(&(obj->get_value()), obj.get_desc());
-				obj.disown();
-			}
-			return result;
-		}
-
-		rcptr<type> get_obj() const { return get_value_obj(); }
-
 		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
 		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
+
+		const key_t& get_priority() const { return m_contents->key; }
+
+		type& operator*() const { return m_contents->value.get_value(); }
+		type* operator->() const { return &m_contents->value.get_value(); }
+
+		const rcptr<const key_t>& get_priority_obj(unowned_t<rcptr<const key_t> >& storage = unowned_t<rcptr<const key_t> >().get_unowned()) const
+		{
+			return m_contents.get_key_obj(storage);
+		}
+
+		const rcptr<type>& get_obj(unowned_t<rcptr<type> >& storage = unowned_t<rcptr<type> >().get_unowned()) const
+		{
+			if (!!m_contents)
+				storage.set(&m_contents->value.get_value(), m_contents.get_desc());
+			return storage;
+		}
 	};
 
 	/// @brief A priority_queue element remove token
@@ -248,22 +224,43 @@ public:
 
 		typename map_t::volatile_remove_token m_contents;
 
+		remove_token(const typename map_t::iterator& i) : m_contents(i) { }
+		remove_token(const typename map_t::remove_token& rt) : m_contents(rt) { }
+		remove_token(const volatile typename map_t::iterator& i) : m_contents(i) { }
+		remove_token(const volatile typename map_t::remove_token& rt) : m_contents(rt) { }
+		remove_token(typename map_t::remove_token&& rt) : m_contents(std::move(rt)) { }
+
 		remove_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
 		remove_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		remove_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
+		remove_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		remove_token(typename map_t::volatile_remove_token&& rt) : m_contents(std::move(rt)) { }
+
+		remove_token& operator=(const typename map_t::iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(const volatile typename map_t::iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const volatile typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(typename map_t::remove_token&& rt) { m_contents = std::move(rt); return *this; }
+
+		remove_token& operator=(const typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(const volatile typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const volatile typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(typename map_t::volatile_remove_token&& rt) { m_contents = std::move(rt); return *this; }
+
 	public:
 		remove_token() { }
-		remove_token(const preallocated& i) : m_contents(i.m_contents) { }
 		remove_token(const remove_token& rt) : m_contents(rt.m_contents) { }
 		remove_token(const value_token& vt) : m_contents(vt.m_contents) { }
 		remove_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 		remove_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
-
-		remove_token& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
-		remove_token& operator=(const preallocated& i) volatile { m_contents = i.m_contents; return *this; }
+		remove_token(remove_token&& rt) : m_contents(std::move(rt.m_contents)) { }
 
 		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		volatile remove_token& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
+		remove_token& operator=(remove_token&& rt) { m_contents = std::move(rt.m_contents); return *this; }
+		volatile remove_token& operator=(remove_token&& rt) volatile { m_contents = std::move(rt.m_contents); return *this; }
 
 		remove_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
 		remove_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
@@ -295,7 +292,11 @@ public:
 
 	priority_queue() { }
 
-	priority_queue(volatile allocator_type& al) : m_contents(al) { }
+	priority_queue(this_t&& src)
+		: m_contents(std::move(src.m_contents))
+	{ }
+
+	explicit priority_queue(volatile allocator_type& al) : m_contents(al) { }
 
 	void clear() { m_contents.clear(); }
 	bool drain() { return m_contents.drain(); }
@@ -304,92 +305,60 @@ public:
 	bool operator!() const volatile { return is_empty(); }
 	size_t size() const volatile { return m_contents.size(); }
 
-	value_token insert(const key_t& k, const type& t) volatile
+	struct insert_result
 	{
-		typename map_t::preallocated i = m_contents.preallocate_key(k);
-		i.get_value().construct(t);
-		value_token result(m_contents.insert_preallocated(i));
-		return result;
-	}
+		value_token valueToken;
+		bool wasEmpty;
+	};
 
-	void insert_multiple(size_t n, const key_t& k, const type& t) volatile
+	template <typename F>
+	insert_result insert_via(F&& f) volatile
 	{
-		for (size_t i = 0; i < n; i++)
+		value_token vt;
+		auto p = m_contents.insert_via([&](typename map_t::iterator& i)
 		{
-			typename map_t::preallocated p = m_contents.preallocate_key(k);
-			p.get_value().construct(t);
-			m_contents.insert_preallocated(p);
-		}
+			new (&i->value) payload;
+			vt = std::move(i);
+			f(vt);
+		});
+		return { std::move(vt), p.wasEmpty };
 	}
 
-
-	value_token insert(const key_t& k, const type& t, bool& wasEmpty) volatile
+	insert_result insert(const key_t& k, const type& v) volatile
 	{
-		typename map_t::preallocated i = m_contents.preallocate_key(k);
-		i.get_value().construct(t);
-		value_token result(m_contents.insert_preallocated(i, wasEmpty));
-		return result;
-	}
-
-	void insert_multiple(size_t n, const key_t& k, const type& t, bool& wasEmpty) volatile
-	{
-		for (size_t i = 0; i < n; i++)
+		return insert_via([&](value_token& vt)
 		{
-			typename map_t::preallocated p = m_contents.preallocate_key(k);
-			p.get_value().construct(t);
-			m_contents.insert_preallocated(p, wasEmpty);
-		}
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
+		});
 	}
 
-
-	preallocated preallocate() const volatile
+	insert_result insert(key_t&& k, const type& v) volatile
 	{
-		preallocated i = m_contents.preallocate();
-		i.get_payload().construct();
-		return i;
+		return insert_via([&](value_token& vt)
+		{
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
+		});
 	}
 
-	preallocated preallocate(const key_t& k, const type& t) const volatile
+	insert_result insert(const key_t& k, type&& v) volatile
 	{
-		preallocated i = m_contents.preallocate_key(k);
-		i.get_payload().construct(t);
-		return i;
+		return insert_via([&](value_token& vt)
+		{
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
+		});
 	}
 
-	preallocated preallocate_key(const key_t& k) const volatile
+	insert_result insert(key_t&& k, type&& v) volatile
 	{
-		preallocated i = m_contents.preallocate_key(k);
-		i.get_payload().construct();
-		return i;
+		return insert_via([&](value_token& vt)
+		{
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
+		});
 	}
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		m_contents.template preallocate_with_aux<T>(i.m_contents, storage);
-		i.get_payload().construct();
-		return storage.dereference();
-	}
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(const key_t& k, const type& t, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
-		i.get_payload().construct(t);
-		return storage.dereference();
-	}
-
-	template <typename T>
-	const rcref<T>& preallocate_key_with_aux(const key_t& k, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
-		i.get_payload().construct();
-		return storage.dereference();
-	}
-
-	value_token insert_preallocated(const preallocated& i) volatile { value_token result(m_contents.insert_preallocated(i.m_contents)); return result; }
-
-	value_token insert_preallocated(const preallocated& i, bool& wasEmpty) volatile { value_token result(m_contents.insert_preallocated(i.m_contents, wasEmpty)); return result; }
 
 	value_token get() volatile
 	{
@@ -398,7 +367,7 @@ public:
 		{
 			if (m_contents.is_empty())
 				break;
-			result.m_contents = m_contents.pop_first();
+			result.m_contents = m_contents.pop_first().iterator;
 			if (!result.m_contents || get_inner(result.m_contents))
 				break;
 		}
@@ -415,12 +384,12 @@ public:
 			result.m_contents = m_contents.get_first();
 			if (!result.m_contents)
 				break;
-			if (result.m_contents.get_key() > lowestPriority)
+			if (result.m_contents->key > lowestPriority)
 			{
 				result.release();
 				break;
 			}
-			if (m_contents.remove(result.m_contents) && get_inner(result.m_contents))
+			if (m_contents.remove(result.m_contents).wasRemoved && get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -428,23 +397,26 @@ public:
 
 	value_token peek() const volatile { value_token vt(m_contents.get_first()); return vt; }
 
+	// Changing priority invalidates any existing tokens referencing the element,
+	// except for the value_token passed in, which is updated to refer to the new element.
 	bool change_priority(value_token& vt, const key_t& newPriority) volatile
 	{
 		bool b = false;
 
 		// Remove risk of a race for priority change of same element.
-		// We will replace m_contents if able to set m_priorityChanged to true.
-		// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
-		if (!!vt && vt.m_contents->m_priorityChanged.compare_exchange(true, false))
+		if (!!vt)
 		{
-			int oldPriority = vt.m_contents.get_key();
+			key_t oldPriority = vt.m_contents->key;
 			b = oldPriority == newPriority;
-			if (!b)
+
+			// We will replace m_contents if able to set m_priorityChanged to true.
+			// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
+			if (!b && vt.m_contents->value.m_priorityChanged.compare_exchange(true, false))
 			{
-				typename map_t::volatile_iterator itor;
-				rcptr<payload> oldRemoved = vt.m_contents->m_removed;
+				rcptr<payload> oldRemoved = vt.m_contents->value.m_removed;
 				for (;;)
 				{
+					// Another thread might remove this node, but we will detect that later as removal failure.
 					if (!oldRemoved)
 						oldRemoved = vt.m_contents.get_value_obj();
 					else if (oldRemoved.get_mark() != 0) // Already scheduled/removed, nothing to do.
@@ -453,30 +425,32 @@ public:
 						break;
 
 					// Add new element at new priority
-					preallocated i = m_contents.preallocate_key(newPriority);
-					i.get_payload().set_removed(std::move(oldRemoved));
-					itor = m_contents.insert_preallocated(i.m_contents);
+					typename map_t::volatile_iterator itor = m_contents.insert_via([&](typename map_t::iterator& i)
+					{
+						new (const_cast<key_t*>(&i->key)) key_t(newPriority);
+						new (&i->value) payload(std::move(oldRemoved));
+					}).iterator;
 
 					// Link old to new element
-					vt.m_contents->m_rescheduledTo = itor;
+					vt.m_contents->value.m_rescheduledTo = itor;
 
 					// Try to remove the old element
-					bool removedOld = m_contents.remove(vt.m_contents);
+					bool removedOld = m_contents.remove(vt.m_contents).wasRemoved;
 					if (removedOld) // We were able to remove the old one, done
 					{
 						b = true;
-						vt.m_contents = itor; // TODO: Does this write to vt.m_contents need to be atomic?
+						vt.m_contents = itor;
 						break;
 					}
 					// Failed to remove it.  Must have been scheduled/removed.
 					vt.release(); // It's gone, clear vt.
 
 					//  Try to remove the new one, it's superfluous.
-					bool removedNew = m_contents.remove(itor);
+					bool removedNew = m_contents.remove(itor).wasRemoved;
 					if (removedNew)
 						break;
 
-					typename map_t::volatile_iterator itor2 = itor->m_rescheduledTo;
+					typename map_t::volatile_iterator itor2 = itor->value.m_rescheduledTo;
 					if (!itor2)
 					{
 						// Both fired.  Did we succeed in changing the priority?  Let's say if the priority was raised, it doesn't matter, Yes.
@@ -487,8 +461,8 @@ public:
 					}
 
 					// If, upon failing to remove it, it had been successfully rescheduled, we need to follow the trail and remove them all, until one fails.
-					while (!!m_contents.remove(itor2))
-						itor2 = itor2->m_rescheduledTo;
+					while (m_contents.remove(itor2).wasRemoved)
+						itor2 = itor2->value.m_rescheduledTo;
 					b = true;
 					break;
 				}
@@ -509,8 +483,10 @@ public:
 		return false;
 	}
 
-	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
-	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
+	typedef typename map_t::volatile_remove_result remove_result;
+
+	remove_result remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	remove_result remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
 template <typename key_t, class comparator_t, class allocator_type>
@@ -522,15 +498,25 @@ private:
 	class payload
 	{
 	public:
-		volatile boolean m_priorityChanged; // Used to synchronize concurrent priority changes
-		volatile rcptr<payload> m_removed; // Used to synchronized priority changes with concurrent scheduled removals (gets)
+		// Used to synchronize concurrent priority changes.
+		volatile boolean m_priorityChanged;
+
+		// Used to synchronized priority changes with concurrent scheduled removals (gets)
+		// m_removed is set to 1 (marked 0) when removed, or to the original element that has been rescheduled (using this one).
+		// If pointing to an payload, it will always be the original element, not a link in a reschedule chain.
+		volatile rcptr<payload> m_removed;
+
 		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
 
-		void set_removed(rcptr<payload>&& removed)
-		{
-			// Do not need volatility here, so cast it away
-			*(rcptr<payload>*)&m_removed = std::move(removed);
-		}
+		payload() {}
+
+		explicit payload(const rcptr<payload>& removed)
+			: m_removed(removed)
+		{ }
+
+		explicit payload(rcptr<payload>&& removed)
+			: m_removed(std::move(removed))
+		{ }
 	};
 
 	typedef multimap<key_t, payload, comparator_t, allocator_type> map_t;
@@ -542,62 +528,32 @@ private:
 	bool get_inner(const typename map_t::volatile_iterator& itor) volatile
 	{
 		bool result = false;
-		rcptr<volatile boolean> oldRemoved = itor->m_removed;
+		rcptr<payload> oldRemoved = itor->value.m_removed;
+		rcptr<payload> newRemoved;
+		newRemoved.set_to_mark(1);
 		if (!oldRemoved)
 		{
-			rcptr<volatile boolean> newRemoved;
-			newRemoved.set_to_mark(1); // If anyone else was going to reschedule us, they would only transition this from 0 to obj, not to 1.
-			if (itor->m_removed.compare_exchange(newRemoved, oldRemoved, oldRemoved))
+			// We only call get_inner() if we successfully removed the element, so no-one else will transition it to 1.
+			// If another thread were to change priority, they would transition this from 0 to obj, not to 1.
+			if (itor->value.m_removed.compare_exchange(newRemoved, oldRemoved, oldRemoved))
 				result = true;
 		}
 		if (!result)
 		{
 			COGS_ASSERT(!!oldRemoved);
 			COGS_ASSERT(oldRemoved.get_mark() == 0);
-			if (oldRemoved->compare_exchange(true, false))
+			rcptr<payload> empty;
+			if (oldRemoved->m_removed.compare_exchange(newRemoved, empty, empty))
 				result = true;
+			else
+				COGS_ASSERT(newRemoved == empty);
 		}
-
 		return result;
 	}
 
 public:
-	class preallocated;
 	class remove_token;
 	class value_token;
-
-	/// @brief A preallocated priority_queue element
-	class preallocated
-	{
-	protected:
-		typename map_t::preallocated m_contents;
-
-		preallocated(const typename map_t::preallocated& i) : m_contents(i) { }
-
-		friend class priority_queue;
-
-	public:
-		preallocated() { }
-		preallocated(const preallocated& src) : m_contents(src.m_contents) { }
-
-		void disown() { m_contents.disown(); }
-		void disown() volatile { m_contents.disown(); }
-
-		void release() { m_contents.release(); }
-
-		bool operator!() const { return !m_contents; }
-		bool operator==(const preallocated& i) const { return m_contents == i.m_contents; }
-		bool operator!=(const preallocated& i) const { return !operator==(i); }
-		preallocated& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
-
-		key_t& operator*() const { return *m_contents; }
-		key_t* operator->() const { return &*m_contents; }
-
-		rcptr<key_t> get_obj() const { return m_contents.get_key_obj(); }
-
-		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
-	};
 
 	/// @brief A priority_queue value token
 	class value_token
@@ -605,22 +561,45 @@ public:
 	protected:
 		typename map_t::volatile_iterator m_contents;
 
+		value_token(const typename map_t::iterator& i) : m_contents(i) { }
+		value_token(const typename map_t::remove_token& rt) : m_contents(rt) { }
+		value_token(const volatile typename map_t::iterator& i) : m_contents(i) { }
+		value_token(const volatile typename map_t::remove_token& rt) : m_contents(rt) { }
+		value_token(typename map_t::iterator&& i) : m_contents(std::move(i)) { }
+
 		value_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
 		value_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
 		value_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
 		value_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		value_token(typename map_t::volatile_iterator&& i) : m_contents(std::move(i)) { }
+
+		value_token& operator=(const typename map_t::iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(const volatile typename map_t::iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const volatile typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(typename map_t::iterator&& i) { m_contents = std::move(i); return *this; }
+
+		value_token& operator=(const typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(const volatile typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		value_token& operator=(const volatile typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		value_token& operator=(typename map_t::volatile_iterator&& i) { m_contents = std::move(i); return *this; }
 
 		friend class priority_queue;
+
 	public:
 		value_token() { }
 		value_token(const value_token& vt) : m_contents(vt.m_contents) { }
 		value_token(const remove_token& rt) : m_contents(rt.m_contents) { }
 		value_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
 		value_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
+		value_token(value_token&& vt) : m_contents(std::move(vt.m_contents)) { }
 
 		value_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
 		value_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
 		volatile value_token& operator=(const value_token& vt) volatile { m_contents = vt.m_contents; return *this; }
+		value_token& operator=(value_token&& vt) { m_contents = std::move(vt.m_contents); return *this; }
+		volatile value_token& operator=(value_token&& vt) volatile { m_contents = std::move(vt.m_contents); return *this; }
 
 		value_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		value_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
@@ -659,16 +638,19 @@ public:
 		bool operator!=(const volatile remove_token& rt) const { return !operator==(rt); }
 		bool operator!=(const remove_token& rt) const volatile { return !operator==(rt); }
 
-		const key_t& operator*() const { return m_contents.get_key(); }
-		const key_t* operator->() const { return &(m_contents.get_key()); }
-
-		rcptr<const key_t> get_obj() const { return m_contents.get_key_obj(); }
-
 		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
 		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
+
+		const key_t& operator*() const { return m_contents->key; }
+		const key_t* operator->() const { return &m_contents->value; }
+
+		const rcptr<const key_t>& get_obj(unowned_t<rcptr<const key_t> >& storage = unowned_t<rcptr<const key_t> >().get_unowned()) const
+		{
+			return m_contents.get_key_obj(storage);
+		}
 	};
 
-	/// @brief A preallocated element remove token
+	/// @brief A priority_queue element remove token
 	///
 	/// A remove token is like a value token, but keeps a weak reference to the content.
 	class remove_token
@@ -678,22 +660,43 @@ public:
 
 		typename map_t::volatile_remove_token m_contents;
 
+		remove_token(const typename map_t::iterator& i) : m_contents(i) { }
+		remove_token(const typename map_t::remove_token& rt) : m_contents(rt) { }
+		remove_token(const volatile typename map_t::iterator& i) : m_contents(i) { }
+		remove_token(const volatile typename map_t::remove_token& rt) : m_contents(rt) { }
+		remove_token(typename map_t::remove_token&& rt) : m_contents(std::move(rt)) { }
+
 		remove_token(const typename map_t::volatile_iterator& i) : m_contents(i) { }
 		remove_token(const typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		remove_token(const volatile typename map_t::volatile_iterator& i) : m_contents(i) { }
+		remove_token(const volatile typename map_t::volatile_remove_token& rt) : m_contents(rt) { }
+		remove_token(typename map_t::volatile_remove_token&& rt) : m_contents(std::move(rt)) { }
+
+		remove_token& operator=(const typename map_t::iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(const volatile typename map_t::iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const volatile typename map_t::remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(typename map_t::remove_token&& rt) { m_contents = std::move(rt); return *this; }
+
+		remove_token& operator=(const typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(const volatile typename map_t::volatile_iterator& i) { m_contents = i; return *this; }
+		remove_token& operator=(const volatile typename map_t::volatile_remove_token& rt) { m_contents = rt; return *this; }
+		remove_token& operator=(typename map_t::volatile_remove_token&& rt) { m_contents = std::move(rt); return *this; }
+
 	public:
 		remove_token() { }
-		remove_token(const preallocated& i) : m_contents(i.m_contents) { }
 		remove_token(const remove_token& rt) : m_contents(rt.m_contents) { }
 		remove_token(const value_token& vt) : m_contents(vt.m_contents) { }
 		remove_token(const volatile remove_token& rt) : m_contents(rt.m_contents) { }
 		remove_token(const volatile value_token& vt) : m_contents(vt.m_contents) { }
-
-		remove_token& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
-		remove_token& operator=(const preallocated& i) volatile { m_contents = i.m_contents; return *this; }
+		remove_token(remove_token&& rt) : m_contents(std::move(rt.m_contents)) { }
 
 		remove_token& operator=(const remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		volatile remove_token& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
+		remove_token& operator=(remove_token&& rt) { m_contents = std::move(rt.m_contents); return *this; }
+		volatile remove_token& operator=(remove_token&& rt) volatile { m_contents = std::move(rt.m_contents); return *this; }
 
 		remove_token& operator=(const value_token& vt) { m_contents = vt.m_contents; return *this; }
 		remove_token& operator=(const volatile value_token& vt) { m_contents = vt.m_contents; return *this; }
@@ -735,7 +738,7 @@ public:
 
 	priority_queue() { }
 
-	priority_queue(volatile allocator_type& al) : m_contents(al) { }
+	explicit priority_queue(volatile allocator_type& al) : m_contents(al) { }
 
 	void clear() { m_contents.clear(); }
 	bool drain() { return m_contents.drain(); }
@@ -744,41 +747,46 @@ public:
 	bool operator!() const volatile { return is_empty(); }
 	size_t size() const volatile { return m_contents.size(); }
 
-	value_token insert(const key_t& k) volatile
+	struct insert_result
 	{
-		value_token result(m_contents.insert_preallocated(m_contents.preallocate_key(k)));
-		return result;
+		value_token valueToken;
+		bool wasEmpty;
+	};
+
+	template <typename F>
+	insert_result insert_via(F&& f) volatile
+	{
+		value_token vt;
+		auto p = m_contents.insert([&](typename map_t::iterator& i)
+		{
+			vt = std::move(i);
+			f(vt);
+		});
+		return { std::move(vt), p.wasEmpty };
 	}
 
-	void insert_multiple(size_t n, const key_t& k) volatile
+	insert_result insert(const key_t& k) volatile
 	{
-		for (size_t i = 0; i < n; i++)
-			m_contents.insert_preallocated(m_contents.preallocate_key(k));
+		return insert_via([&](value_token& vt)
+		{
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+		});
 	}
 
-	preallocated preallocate() const volatile { return preallocated(m_contents.preallocate()); }
-	preallocated preallocate(const key_t& k) const volatile { return preallocated(m_contents.preallocate_key(k)); }
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(preallocated& i, rcref<T>& storage = unowned_t<rcref<T> >().get_unowned()) const volatile
+	insert_result insert(key_t&& k) volatile
 	{
-		return m_contents.template preallocate_with_aux<T>(i.m_contents, storage);
+		return insert_via([&](value_token& vt)
+		{
+			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+		});
 	}
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(const key_t& k, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		return m_contents.template preallocate_key_with_aux<T>(k, i.m_contents, storage);
-	}
-
-	value_token insert_preallocated(const preallocated& i) volatile { value_token result(m_contents.insert_preallocated(i.m_contents)); return result; }
 
 	value_token get() volatile
 	{
 		value_token result;
 		for (;;)
 		{
-			result.m_contents = m_contents.pop_first();
+			result.m_contents = m_contents.pop_first().iterator;
 			if (!result.m_contents || get_inner(result.m_contents))
 				break;
 		}
@@ -793,12 +801,12 @@ public:
 			result.m_contents = m_contents.get_first();
 			if (!result.m_contents)
 				break;
-			if (result.m_contents.get_key() > lowestPriority)
+			if (result.m_contents->key > lowestPriority)
 			{
 				result.release();
 				break;
 			}
-			if (m_contents.remove(result.m_contents) && get_inner(result.m_contents))
+			if (m_contents.remove(result.m_contents).wasRemoved && get_inner(result.m_contents))
 				break;
 		}
 		return result;
@@ -806,43 +814,48 @@ public:
 
 	value_token peek() const volatile { value_token vt(m_contents.get_first()); return vt; }
 
+	// Changing priority invalidates any existing tokens referencing the element,
+	// except for the value_token passed in, which is updated to refer to the new element.
 	bool change_priority(value_token& vt, const key_t& newPriority) volatile
 	{
 		bool b = false;
 
 		// Remove risk of a race for priority change of same element.
-		// We will replace m_contents if able to set m_priorityChanged to true.
-		// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
-		if (!!vt && vt.m_contents->m_priorityChanged.compare_exchange(true, false))
+		if (!!vt)
 		{
-			int oldPriority = vt.m_contents.get_key();
+			key_t oldPriority = vt.m_contents->key;
 			b = oldPriority == newPriority;
-			if (!b)
+
+			// We will replace m_contents if able to set m_priorityChanged to true.
+			// Any callers attempting to change priority prior to m_contents being replaces, will no-op.
+			if (!b && vt.m_contents->value.m_priorityChanged.compare_exchange(true, false))
 			{
 				typename map_t::volatile_iterator itor;
-				rcptr<volatile boolean> newRemoved;
-				rcptr<volatile boolean> oldRemoved = vt.m_contents->m_removed;
+				rcptr<volatile boolean> oldRemoved = vt.m_contents->value.m_removed;
 				for (;;)
 				{
+					// Another thread might remove this node, but we will detect that later as removal failure.
 					if (!oldRemoved)
 						oldRemoved = vt.get_value_obj();
 					else if (oldRemoved.get_mark() != 0) // Already scheduled/removed, nothing to do.
 						break;
 
 					// Add new element at new priority
-					preallocated i = m_contents.preallocate_key(newPriority);
-					i.get_payload().set_removed(oldRemoved);
-					itor = m_contents.insert_preallocated(i.m_contents);
+					m_contents.insert_via([&](typename map_t::iterator& i)
+					{
+						new (const_cast<key_t*>(&i->key)) key_t(newPriority);
+						new (&i->value) payload(std::move(oldRemoved));
+					});
 
 					// Link old to new element
-					vt.m_contents->m_rescheduledTo = itor;
+					vt.m_contents->value.m_rescheduledTo = itor;
 
 					// Try to remove the old element
 					bool removedOld = m_contents.remove(vt.m_contents);
 					if (removedOld) // We were able to remove the old one, done
 					{
 						b = true;
-						vt.m_contents = itor; // TODO: Does this write to vt.m_contents need to be atomic?
+						vt.m_contents = itor;
 						break;
 					}
 					// Failed to remove it.  Must have been scheduled/removed.
@@ -853,7 +866,7 @@ public:
 					if (removedNew)
 						break;
 
-					typename map_t::volatile_iterator itor2 = itor->m_rescheduledTo;
+					typename map_t::volatile_iterator itor2 = itor->value.m_rescheduledTo;
 					if (!itor2)
 					{
 						// Both fired.  Did we succeed in changing the priority?  Let's say if the priority was raised, it doesn't matter, Yes.
@@ -865,7 +878,7 @@ public:
 
 					// If, upon failing to remove it, it had been successfully rescheduled, we need to follow the trail and remove them all, until one fails.
 					while (!!m_contents.remove(itor2))
-						itor2 = itor2->m_rescheduledTo;
+						itor2 = itor2->value.m_rescheduledTo;
 					b = true;
 					break;
 				}
@@ -886,8 +899,10 @@ public:
 		return false;
 	}
 
-	bool remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
-	bool remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
+	typedef typename map_t::volatile_remove_result remove_result;
+
+	remove_result remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	remove_result remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
 

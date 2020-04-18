@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -41,10 +41,11 @@ public:
 			m_style |= ES_MULTILINE | WS_VSCROLL | ES_WANTRETURN;
 		else
 			m_style |= ES_AUTOHSCROLL;
+
 		install_HWND();
 
-		set_font(te->get_font());
 		set_text(te->get_text());
+		set_font(te->get_font());
 		set_max_length(te->get_max_length());
 
 		HDC hDC = GetDC(get_HWND());

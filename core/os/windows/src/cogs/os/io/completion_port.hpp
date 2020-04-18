@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -166,7 +166,8 @@ public:
 	// let's defer the issuing of all overlapped IO to the worker threads.
 	void dispatch(const function<void()>& d) const volatile
 	{
-		self_destructing_overlapped_t* o = new (default_allocator::get()) self_destructing_overlapped_t(d);
+		self_destructing_overlapped_t* o = default_allocator::allocate_type<self_destructing_overlapped_t>();
+		new (o) self_destructing_overlapped_t(d);
 		PostQueuedCompletionStatus(m_handle->get(), 0, 0, o->get());
 	}
 };

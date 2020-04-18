@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #include <iostream>
@@ -11,7 +11,6 @@ using namespace cogs::io;
 using namespace cogs::io::net;
 using namespace cogs::io::net::ip;
 
-
 class box : public background
 {
 public:
@@ -21,11 +20,24 @@ public:
 	function<void()> m_expireInUiThreadDelegate;
 	rcptr<resettable_timer> m_boxTimer;
 
-	explicit box(const color& c,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {})
-		: background(c, frames, children),
-		m_baseColor(c),
+	struct options
+	{
+		color backgroundColor = color::constant::white;
+		frame_list frames;
+		pane_list children;
+	};
+
+	box()
+		: box(options())
+	{ }
+
+	explicit box(options&& o)
+		: background({
+			.backgroundColor = o.backgroundColor,
+			.frames = std::move(o.frames),
+			.children = std::move(o.children)
+		}),
+		m_baseColor(o.backgroundColor),
 		m_timeoutPeriod(measure<int_type, milliseconds>(5)),
 		m_expireDelegate([r{ this_weak_rcptr }]()
 		{
@@ -33,7 +45,7 @@ public:
 			if (!!r2)
 				r2->box_timer_expired();
 		}),
-		m_expireInUiThreadDelegate([r { this_weak_rcptr }]()
+		m_expireInUiThreadDelegate([r{ this_weak_rcptr }]()
 		{
 			rcptr<box> r2 = r;
 			if (!!r2)
@@ -121,710 +133,1182 @@ COGS_MAIN
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Single content test"),
-		//		rcnew(background)(color(0xFF, 0x00, 0x00, 0xFF)));
+		//		rcnew(background)({
+		//			.backgroundColor = color(0xFF, 0x00, 0x00, 0xFF)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Fixed size window"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(background)(color(0xFF, 0x00, 0x00), {
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00),
+		//					.frames = frame_list::create(rcnew(fixed_size_frame)(gfx::canvas::size(200, 200)))
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Centering"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(background)(color(0xFF, 0x00, 0x00), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::center()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::center()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Alpha blend and animated + resizing test (black background)"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(box)(color(0xFF, 0x00, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(box)(color(0x00, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(box)(color(0x00, 0x00, 0xFF, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(box)(color(0xFF, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = { // TODO: Construct pane_list, when cl.exe no longer generates bad code
+		//				rcnew(box)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(box)({
+		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(box)({
+		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(box)({
+		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				})
+		//			}
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background)"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(background)(color(0xFF, 0x00, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0x00, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0x00, 0x00, 0xFF, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0xFF, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = { // TODO: Construct pane_list, when cl.exe no longer generates bad code
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				})
+		//			}
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background)"),
-		//		rcnew(background)(color::constant::white, {
-		//			rcnew(background)(color(0xFF, 0x00, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0x00, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0x00, 0x00, 0xFF, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))}),
-		//			rcnew(background)(color(0xFF, 0xFF, 0x00, 0x7F), {
-		//				rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::white,
+		//			.children = { // TODO: Construct pane_list, when cl.exe no longer generates bad code
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				}),
+		//				rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
+		//						rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				})
+		//			}
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Alpha blend + resizing test (black background, native_container_pane's)"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0xFF, 0x00, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0x00, 0xFF, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0x00, 0x00, 0xFF, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0xFF, 0xFF, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = pane_list::create(
+		//				rcnew(native_container_pane)({
+		//					.children = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(background)({
+		//							.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						})
+		//					}
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Alpha blend + resizing test (white background, native_container_pane's)"),
-		//		rcnew(background)(color::constant::white, {
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0xFF, 0x00, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0x00, 0xFF, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0x00, 0x00, 0xFF, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})}),
-		//			rcnew(native_container_pane)({
-		//				rcnew(background)(color(0xFF, 0xFF, 0x00, 0x7F), {
-		//					rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
-		//					rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))})})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::white,
+		//			.children = pane_list::create(
+		//				rcnew(native_container_pane)({
+		//					.children = { // TODO: Construct pane_list, when cl.exe no longer generates bad code
+		//						rcnew(background)({
+		//							.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						}),
+		//						rcnew(background)({
+		//							.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
+		//							.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//								rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()),
+		//								rcnew(fixed_size_frame)(gfx::canvas::size(200, 200))
+		//							}
+		//						})
+		//					}
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image aspect ratio test"),
-		//		rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)),
-		//			rcnew(propose_aspect_ratio_frame)}));
+		//		rcnew(bitmap_pane)({
+		//			.imageLocation = L"guitar.bmp",
+		//			.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)),
+		//				rcnew(propose_aspect_ratio_frame)
+		//			}
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image aspect ratio test w/size"),
-		//		rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//			rcnew(propose_aspect_ratio_frame),
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))}));
+		//		rcnew(bitmap_pane)({
+		//			.imageLocation = L"guitar.bmp",
+		//			.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//				rcnew(propose_aspect_ratio_frame),
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			}
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image aspect ratio test2"),
-		//		rcnew(background)(color::constant::beige, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unconstrained_frame),
-		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)),
-		//				rcnew(propose_aspect_ratio_frame)})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::beige,
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame),
+		//						rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)),
+		//						rcnew(propose_aspect_ratio_frame)
+		//					}
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image aspect ratio test2 w/size"),
-		//		rcnew(background)(color::constant::beige, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unconstrained_frame),
-		//				rcnew(propose_aspect_ratio_frame),
-		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))})}));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::beige,
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_frame),
+		//						rcnew(propose_aspect_ratio_frame),
+		//						rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//					}
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image stretch test"),
-		//		rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))}));
+		//		rcnew(bitmap_pane)({
+		//			.imageLocation = L"guitar.bmp",
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			)
+		//		})
+		//	);
 		//}
 
+
 		{
-			*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"),
+			*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test"),
 				rcnew(scroll_pane)({
-					rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-					rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-						rcnew(fixed_default_size_frame) }) }));
+					.frames = frame_list::create(
+						rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+					),
+					.children = pane_list::create(
+						rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = frame_list::create(
+								rcnew(fixed_default_size_frame)
+							)
+						})
+					)
+				})
+			);
 		}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(fixed_default_size_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test, vert only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(fixed_default_size_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test, horiz only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"),
 		//		rcnew(scroll_pane)({
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
-		//}
-
-		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test"),
 		//		rcnew(scroll_pane)({
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"),
+		//		rcnew(scroll_pane)({
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
+		//{
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
+		//}
 
 		//////// same with scroll bar that does not auto-hide
 
-
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::both, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(fixed_default_size_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test"),
+		//		rcnew(scroll_pane)({
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(fixed_default_size_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test, vert only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"fixed scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(fixed_default_size_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"scroll_pane resizing test, horiz only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::both, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
+		//		rcnew(scroll_pane)({
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"unshrinkable scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unshrinkable_frame) }) }));
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unshrinkable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::both, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test"),
+		//		rcnew(scroll_pane)({
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test, vert only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::vertical, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, vert only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::vertical,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable_frame scroll_pane resizing test, horiz only"),
-		//		rcnew(scroll_pane)(scroll_pane::dimensions::horizontal, false, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200)) }, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"), {
-		//				rcnew(unstretchable_frame) }) }));
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"unstretchable scroll_pane resizing test, horiz only"),
+		//		rcnew(scroll_pane)({
+		//			.scrollDimensions = scroll_pane::dimensions::horizontal,
+		//			.hideInactiveScrollBar = false,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = frame_list::create(
+		//						rcnew(unstretchable_frame)
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
-
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"lines and nested checkbox"),
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//		{
-		//			f->fill(f->get_size(), color::constant::blue);
-		//			gfx::canvas::point dstpt(0, 0);
-		//			dstpt += f->get_size();
-		//			f->draw_line(gfx::canvas::point(0, 0), dstpt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstpt.get_y()), gfx::canvas::point(dstpt.get_x(), 0), 1, color::constant::red);
-		//			f->draw_line(gfx::canvas::point(0, dstpt.get_y() / 2), gfx::canvas::point(dstpt.get_x(), dstpt.get_y() / 2), 1, color::constant::red);
-		//			f->draw_line(gfx::canvas::point(dstpt.get_x() / 2, dstpt.get_y()), gfx::canvas::point(dstpt.get_x() / 2, 0), 1, color::constant::red);
-		//			f->draw_line(gfx::canvas::point(0, 0), dstpt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstpt.get_y()), gfx::canvas::point(dstpt.get_x(), 0), 1, color::constant::red);
-		//		}, {
-		//			rcnew(background)(color(color::constant::turquoise, 0x7f), {
-		//				rcnew(unconstrained_max_frame),
-		//				rcnew(fixed_default_size_frame)}, {
-		//				rcnew(check_box)(string::literal(L"check box"), true, false, gfx::font(18), {
-		//					rcnew(unshrinkable_frame)})})}));
-		//}
-
-		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and text_editor"),
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//		{
-		//			f->fill(f->get_size(), color::constant::blue);
-		//			gfx::canvas::point dstPt(0, 0);
-		//			dstPt += f->get_size();
-		//			f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
-		//		}, {
-		//			rcnew(background)(color(color::constant::turquoise, 0x7F), {
-		//				rcnew(unconstrained_max_frame),
-		//				rcnew(fixed_size_frame)(size(300, 300))}, {
-		//				rcnew(text_editor)(string::literal(L"text editor"), true, gfx::font(string::literal(L"Arial"), 38))})}));
+		//		rcnew(canvas_pane)({
+		//			.drawDelegate = [](const rcref<canvas_pane>& f)
+		//			{
+		//				f->fill(f->get_size(), color::constant::blue);
+		//				gfx::canvas::point dstPt(0, 0);
+		//				dstPt += f->get_size();
+		//				f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y() / 2), gfx::canvas::point(dstPt.get_x(), dstPt.get_y() / 2), 1, color::constant::red);
+		//				f->draw_line(gfx::canvas::point(dstPt.get_x() / 2, dstPt.get_y()), gfx::canvas::point(dstPt.get_x() / 2, 0), 1, color::constant::red);
+		//				f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//			},
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(color::constant::turquoise, 0x7f),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_max_frame),
+		//						rcnew(fixed_default_size_frame)
+		//					},
+		//					.children = pane_list::create(
+		//						rcnew(check_box)({
+		//							.text = string::literal(L"check box"),
+		//							.font = gfx::font(18),
+		//							.frames = frame_list::create(
+		//								rcnew(unshrinkable_frame)
+		//							)
+		//						})
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and label"),
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//		{
-		//			f->fill(f->get_size(), color::constant::blue);
-		//			gfx::canvas::point dstPt(0, 0);
-		//			dstPt += f->get_size();
-		//			f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
-		//		}, {
-		//			rcnew(background)(color(color::constant::white, 0x3F), {
-		//				rcnew(unconstrained_max_frame),
-		//				rcnew(fixed_default_size_frame)}, {
-		//				rcnew(label)(string::literal(L"LABEL"), gfx::font(string::literal(L"font not found"), 38))})}));
-		//}
-		
-		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and label"),
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//		{
-		//			f->fill(f->get_size(), color::constant::blue);
-		//			gfx::canvas::point dstPt(0, 0);
-		//			dstPt += f->get_size();
-		//			f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
-		//		}, {
-		//			rcnew(background)(color(color::constant::white, 0x3F), {
-		//				rcnew(fixed_default_size_frame)}, {
-		//				rcnew(label)(string::literal(L"LABEL CANT RESIZE"), gfx::font(38))})}));
-		//}
-		
-		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and label"),
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//		{
-		//			f->fill(f->get_size(), color::constant::blue);
-		//			gfx::canvas::point dstPt(0, 0);
-		//			dstPt += f->get_size();
-		//			f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
-		//			f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
-		//		}, {
-		//			rcnew(background)(color(color::constant::white, 0x3F), {
-		//				rcnew(unconstrained_max_frame),
-		//				rcnew(fixed_default_size_frame)}, {
-		//				rcnew(button)([]() {}, string::literal(L"BUTTON"), gfx::font(38))})}));
+		//		rcnew(canvas_pane)({
+		//			.drawDelegate = [](const rcref<canvas_pane>& f)
+		//			{
+		//				f->fill(f->get_size(), color::constant::blue);
+		//				gfx::canvas::point dstPt(0, 0);
+		//				dstPt += f->get_size();
+		//				f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//			},
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(color::constant::white, 0x3F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_max_frame),
+		//						rcnew(fixed_default_size_frame)
+		//					},
+		//					.children = pane_list::create(
+		//						rcnew(label)({
+		//							.text = string::literal(L"LABEL"),
+		//							.font = gfx::font(string::literal(L"what happens when a font is not found"), 38),
+		//							.textColor = color::constant::black
+		//						})
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
+		//{
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and label, no resize"),
+		//		rcnew(canvas_pane)({
+		//			.drawDelegate = [](const rcref<canvas_pane>& f)
+		//			{
+		//				f->fill(f->get_size(), color::constant::blue);
+		//				gfx::canvas::point dstPt(0, 0);
+		//				dstPt += f->get_size();
+		//				f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//			},
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(color::constant::turquoise, 0x7f),
+		//					.frames = frame_list::create(
+		//						rcnew(fixed_default_size_frame)
+		//					),
+		//					.children = pane_list::create(
+		//						rcnew(label)({
+		//							.text = string::literal(L"LABEL, no resize"),
+		//							.font = gfx::font(38),
+		//							.textColor = color::constant::black
+		//						})
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
+		//}
+
+		//{
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"Lines and button"),
+		//		rcnew(canvas_pane)({
+		//			.drawDelegate = [](const rcref<canvas_pane>& f)
+		//			{
+		//				f->fill(f->get_size(), color::constant::blue);
+		//				gfx::canvas::point dstPt(0, 0);
+		//				dstPt += f->get_size();
+		//				f->draw_line(gfx::canvas::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::canvas::point(0, dstPt.get_y()), gfx::canvas::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//			},
+		//			.children = pane_list::create(
+		//				rcnew(background)({
+		//					.backgroundColor = color(color::constant::white, 0x3F),
+		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//						rcnew(unconstrained_max_frame),
+		//						rcnew(fixed_default_size_frame)
+		//					},
+		//					.children = pane_list::create(
+		//						rcnew(button)({
+		//							.text = string::literal(L"BUTTON"),
+		//							.font = gfx::font(38)
+		//						})
+		//					)
+		//				})
+		//			)
+		//		})
+		//	);
+		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//			{
-		//				color grn(0x40, 40, 40);
-		//				grn.set_alpha(0x90);
-		//				f->fill(f->get_size(), grn);
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(800, 650))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						color grn(0x40, 40, 40);
+		//						grn.set_alpha(0x90);
+		//						f->fill(f->get_size(), grn);
 		//
-		//				color a(color::constant::red);
-		//				color b(color::constant::blue);
+		//						color a(color::constant::red);
+		//						color b(color::constant::blue);
 		//
-		//				rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//				msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//				msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
+		//						rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, false, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, false, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, false, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, false, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::constant::transparent, false, false);
+		//						a.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::constant::transparent, false, false);
 		//
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::constant::transparent, b, false, false);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::constant::transparent, b, false, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, false, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, false, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, false, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, false, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::constant::transparent, false, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::constant::transparent, false, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::constant::transparent, b, false, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::constant::transparent, b, false, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x20);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, false, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x20);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, false, false);
 		//
-		//				a.set_alpha(0x20);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, false, false);
+		//						a.set_alpha(0x20);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, false, false);
 		//
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, true, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, true, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, true, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, true, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::constant::transparent, true, true);
+		//						a.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::constant::transparent, true, true);
 		//
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::constant::transparent, b, true, true);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::constant::transparent, b, true, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, true, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, true, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, true, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, true, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::constant::transparent, true, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::constant::transparent, true, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::constant::transparent, b, true, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::constant::transparent, b, true, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x20);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, true, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x20);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, true, true);
 		//
-		//				a.set_alpha(0x20);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, true, true);
-		//			}, {
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(800, 650))},
-		//			compositing_behavior::buffer_self_and_children)}));
+		//						a.set_alpha(0x20);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, true, true);
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test2"),
-		//		rcnew(background)(color::constant::black, {
-		//			rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//			{
-		//				color grn(0x40, 40, 40);
-		//				grn.set_alpha(0x90);
-		//				f->fill(f->get_size(), grn);
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(800, 650))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						color grn(0x40, 40, 40);
+		//						grn.set_alpha(0x90);
+		//						f->fill(f->get_size(), grn);
 		//
-		//				color a(color::constant::red);
-		//				color b(color::constant::blue);
+		//						color a(color::constant::red);
+		//						color b(color::constant::blue);
 		//
-		//				rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//				msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//				msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
+		//						rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk->fill(gfx::canvas::bounds(0, 0, 50, 50), gfx::canvas::bitmask::fill_mode::set_mode);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, true, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 50, 100, 100), a, b, true, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, true, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 200, 100, 100), a, b, true, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::constant::transparent, true, false);
+		//						a.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 50, 100, 100), a, color::constant::transparent, true, false);
 		//
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::constant::transparent, b, true, false);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 200, 100, 100), color::constant::transparent, b, true, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, true, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 50, 100, 100), a, b, true, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, true, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 200, 100, 100), a, b, true, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::constant::transparent, true, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 50, 100, 100), a, color::constant::transparent, true, false);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::constant::transparent, b, true, false);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 200, 100, 100), color::constant::transparent, b, true, false);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x20);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, true, false);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x20);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 50, 100, 100), a, b, true, false);
 		//
-		//				a.set_alpha(0x20);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, true, false);
+		//						a.set_alpha(0x20);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 200, 100, 100), a, b, true, false);
 		//
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, false, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 350, 100, 100), a, b, false, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, false, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(50, 500, 100, 100), a, b, false, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::constant::transparent, false, true);
+		//						a.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 350, 100, 100), a, color::constant::transparent, false, true);
 		//
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::constant::transparent, b, false, true);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(200, 500, 100, 100), color::constant::transparent, b, false, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0xFF);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, false, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0xFF);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 350, 100, 100), a, b, false, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, false, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(350, 500, 100, 100), a, b, false, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::constant::transparent, false, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 350, 100, 100), a, color::constant::transparent, false, true);
 		//
-		//				a.set_alpha(0xFF);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::constant::transparent, b, false, true);
+		//						a.set_alpha(0xFF);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(500, 500, 100, 100), color::constant::transparent, b, false, true);
 		//
-		//				a.set_alpha(0x7F);
-		//				b.set_alpha(0x20);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, false, true);
+		//						a.set_alpha(0x7F);
+		//						b.set_alpha(0x20);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 350, 100, 100), a, b, false, true);
 		//
-		//				a.set_alpha(0x20);
-		//				b.set_alpha(0x7F);
-		//				f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, false, true);
-		//			}, {
-		//				rcnew(fixed_size_frame)(gfx::canvas::size(800, 650))},
-		//			compositing_behavior::buffer_self_and_children)}));
+		//						a.set_alpha(0x20);
+		//						b.set_alpha(0x7F);
+		//						f->draw_bitmask(*msk, msk->get_size(), gfx::canvas::bounds(650, 500, 100, 100), a, b, false, true);
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
+		//}
+
+		//{
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"image stretch test"),
+		//		rcnew(bitmap_pane)({
+		//			.imageLocation = L"guitar.bmp",
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"image stretch testx"),
-		//		rcnew(background)(color::constant::purple, {
-		//			rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))}, {
-		//			rcnew(bitmap_pane)(string::literal(L"guitar.bmp"))},
-		//			compositing_behavior::buffer_self_and_children));
-		//}
-
-		//{
-		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test2"), 
-		//		rcnew(background)(color::constant::green, {
-		//			rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))}, {
-		//				rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//				{
-		//					color grn(color::constant::green);
-		//					//color grn(0x40, 40, 40);
-		//					//grn.set_alpha(0x90);
-		//
-		//					f->fill(f->get_size(), grn);
-		//
-		//					rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//					msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//					msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
-		//
-		//					rcref<gfx::canvas::bitmask> msk2 = f->create_bitmask(gfx::canvas::size(100, 100));
-		//					msk2->fill(msk2->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//					msk2->fill(gfx::canvas::bounds(5, 15, 30, 30));
-		//
-		//					rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
-		//
-		//					rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size());
-		//
-		//					tmpImg->draw_bitmap_with_bitmask(*img, img->get_size(), *msk2, msk2->get_size(), tmpImg->get_size(), false, false);
-		//
-		//					//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size(), false);
-		//
-		//					rcref<gfx::canvas::bitmap> tmpImg2 = f->create_bitmap(f->get_size());
-		//					tmpImg2->fill(tmpImg2->get_size(), color::constant::purple, false);
-		//
-		//					//tmpImg2->draw_bitmap(*tmpImg, tmpImg->get_size(), tmpImg2->get_size(), false);
-		//					tmpImg2->draw_bitmap_with_bitmask(*tmpImg, tmpImg->get_size(), *msk, msk->get_size(), tmpImg2->get_size(), false, false);
-		//
-		//					f->draw_bitmap(*tmpImg2, tmpImg2->get_size(), f->get_size(), false);
-		//				},
-		//				compositing_behavior::buffer_self_and_children)},
-		//			compositing_behavior::buffer_self_and_children));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::purple,
+		//			.compositingBehavior = compositing_behavior::buffer_self_and_children,
+		//			.frames = frame_list::create(
+		//				rcnew(override_default_size_frame)(gfx::canvas::size(200, 200))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp"
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test3"),
-		//		rcnew(background)(color::constant::green, {
-		//			rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))}, {
-		//			rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//			{
-		//				color grn(color::constant::green);
-		//				//color grn(0x40, 40, 40);
-		//				//grn.set_alpha(0x90);
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::green,
+		//			.compositingBehavior = compositing_behavior::buffer_self_and_children,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						color grn(color::constant::green);
+		//						//color grn(0x40, 40, 40);
+		//						//grn.set_alpha(0x90);
 		//
-		//				f->fill(f->get_size(), grn);
+		//						f->fill(f->get_size(), grn);
 		//
-		//				rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//				msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//				msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
+		//						rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
 		//
-		//				rcref<gfx::canvas::bitmask> msk2 = f->create_bitmask(gfx::canvas::size(100, 100));
-		//				msk2->fill(msk2->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//				msk2->fill(gfx::canvas::bounds(5, 15, 30, 30));
+		//						rcref<gfx::canvas::bitmask> msk2 = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk2->fill(msk2->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk2->fill(gfx::canvas::bounds(5, 15, 30, 30));
+		//
+		//						rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
+		//
+		//						rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size());
+		//
+		//						tmpImg->draw_bitmap_with_bitmask(*img, img->get_size(), *msk2, msk2->get_size(), tmpImg->get_size(), false, false);
+		//
+		//						//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size(), false);
+		//
+		//						rcref<gfx::canvas::bitmap> tmpImg2 = f->create_bitmap(f->get_size());
+		//						tmpImg2->fill(tmpImg2->get_size(), color::constant::purple, false);
+		//
+		//						//tmpImg2->draw_bitmap(*tmpImg, tmpImg->get_size(), tmpImg2->get_size(), false);
+		//						tmpImg2->draw_bitmap_with_bitmask(*tmpImg, tmpImg->get_size(), *msk, msk->get_size(), tmpImg2->get_size(), false, false);
+		//
+		//						f->draw_bitmap(*tmpImg2, tmpImg2->get_size(), f->get_size(), false);
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
+		//}
+		//
+		//{
+		//	*quitCountDown += guiSubsystem->open(string::literal(L"Mask render test4"),
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::green,
+		//			.compositingBehavior = compositing_behavior::buffer_self_and_children,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						color grn(color::constant::green);
+		//						//color grn(0x40, 40, 40);
+		//						//grn.set_alpha(0x90);
+		//
+		//						f->fill(f->get_size(), grn);
+		//
+		//						rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
+		//
+		//						rcref<gfx::canvas::bitmask> msk2 = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk2->fill(msk2->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk2->fill(gfx::canvas::bounds(5, 15, 30, 30));
 		//
 		//
-		//				rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
+		//						rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
 		//
-		//				rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size() + size(100, 100));
+		//						rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size() + size(100, 100));
 		//
-		//				tmpImg->draw_bitmap_with_bitmask(*img, img->get_size(), *msk2, msk2->get_size(), tmpImg->get_size(), false, false);
+		//						tmpImg->draw_bitmap_with_bitmask(*img, img->get_size(), *msk2, msk2->get_size(), tmpImg->get_size(), false, false);
 		//
-		//				//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size(), false);
+		//						//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size(), false);
 		//
-		//				rcref<gfx::canvas::bitmap> tmpImg2 = f->create_bitmap(f->get_size());
-		//				tmpImg2->fill(tmpImg2->get_size(), color::constant::purple, false);
+		//						rcref<gfx::canvas::bitmap> tmpImg2 = f->create_bitmap(f->get_size());
+		//						tmpImg2->fill(tmpImg2->get_size(), color::constant::purple, false);
 		//
-		//				//tmpImg2->draw_bitmap(*tmpImg, tmpImg->get_size(), tmpImg2->get_size(), false);
-		//				tmpImg2->draw_bitmap_with_bitmask(*tmpImg, tmpImg->get_size(), *msk, msk->get_size(), tmpImg2->get_size(), false, false);
+		//						//tmpImg2->draw_bitmap(*tmpImg, tmpImg->get_size(), tmpImg2->get_size(), false);
+		//						tmpImg2->draw_bitmap_with_bitmask(*tmpImg, tmpImg->get_size(), *msk, msk->get_size(), tmpImg2->get_size(), false, false);
 		//
-		//				f->draw_bitmap(*tmpImg2, tmpImg2->get_size(), f->get_size(), false);
-		//			},
-		//			compositing_behavior::buffer_self_and_children)},
-		//		compositing_behavior::buffer_self_and_children));
+		//						f->draw_bitmap(*tmpImg2, tmpImg2->get_size(), f->get_size(), false);
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"draw_image test with different buffer sizes"),
-		//		rcnew(background)(color::constant::green, {
-		//		rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))}, {
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//			{
-		//				rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::green,
+		//			.compositingBehavior = compositing_behavior::buffer_self_and_children,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
 		//
-		//				rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
-		//				msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
-		//				msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
-		//				img->mask_out(*msk, msk->get_size(), img->get_size());
+		//						rcref<gfx::canvas::bitmask> msk = f->create_bitmask(gfx::canvas::size(100, 100));
+		//						msk->fill(msk->get_size(), gfx::canvas::bitmask::fill_mode::clear_mode);
+		//						msk->fill(gfx::canvas::bounds(20, 10, 30, 30));
+		//						img->mask_out(*msk, msk->get_size(), img->get_size());
 		//
-		//				//rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size() + size(100, 100));
-		//				//tmpImg->draw_bitmap(*img, img->get_size(), tmpImg->get_size());
-		//				//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size());
-		//				f->draw_bitmap(*img, img->get_size(), f->get_size());
-		//			},
-		//			compositing_behavior::buffer_self_and_children)},
-		//		compositing_behavior::buffer_self_and_children));
+		//						//rcref<gfx::canvas::bitmap> tmpImg = f->create_bitmap(img->get_size() + size(100, 100));
+		//						//tmpImg->draw_bitmap(*img, img->get_size(), tmpImg->get_size());
+		//						//f->draw_bitmap(*tmpImg, tmpImg->get_size(), f->get_size());
+		//						f->draw_bitmap(*img, img->get_size(), f->get_size());
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(string::literal(L"invert test"),
-		//		rcnew(background)(color::constant::green, {
-		//		rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))}, {
-		//		rcnew(canvas_pane)([](const rcref<canvas_pane>& f)
-		//			{
-		//				rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
-		//				img->invert(img->get_size());
-		//				f->draw_bitmap(*img, img->get_size(), f->get_size());
-		//			},
-		//			compositing_behavior::buffer_self_and_children)},
-		//		compositing_behavior::buffer_self_and_children));
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::green,
+		//			.compositingBehavior = compositing_behavior::buffer_self_and_children,
+		//			.frames = frame_list::create(
+		//				rcnew(fixed_size_frame)(gfx::canvas::size(300, 400))
+		//			),
+		//			.children = pane_list::create(
+		//				rcnew(canvas_pane)({
+		//					.drawDelegate = [](const rcref<canvas_pane>& f)
+		//					{
+		//						rcref<gfx::canvas::bitmap> img = f->load_bitmap(L"guitar.bmp");
+		//						img->invert(img->get_size());
+		//						f->draw_bitmap(*img, img->get_size(), f->get_size());
+		//					},
+		//					.compositingBehavior = compositing_behavior::buffer_self_and_children
+		//				})
+		//			)
+		//		})
+		//	);
 		//}
 
-
-		// TBD:
+		//// TBD:
 
 		//////{
 		//////	rcref<button> btn1 = rcnew(button)([](const rcref<button>& btn)

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -8,6 +8,7 @@
 #ifndef COGS_HEADER_COLLECTION_CONTAINER_SKIPLIST
 #define COGS_HEADER_COLLECTION_CONTAINER_SKIPLIST
 
+#include <initializer_list>
 #include <type_traits>
 
 #include "cogs/operators.hpp"
@@ -58,14 +59,24 @@ public:
 };
 
 
+template <bool allow_multiple, typename key_t, class payload_t = default_container_skiplist_payload<key_t>, class comparator_t = default_comparator, class allocator_type = default_allocator>
+class container_skiplist;
+
+
 /// @ingroup LockFreeCollections
 /// @brief A skip-list container collection.
 /// @tparam key_t The type used to compare elements.
 /// @tparam payload_t Type to contain, if different from key_t.  default_container_skiplist_payload<key_t>
 template <typename key_t, class payload_t = default_container_skiplist_payload<key_t>, class comparator_t = default_comparator, class allocator_type = default_allocator>
-class container_skiplist
+class container_skiplist_base
 {
-private:
+public:
+	class iterator;
+	class volatile_iterator;
+	class remove_token;
+	class volatile_remove_token;
+
+protected:
 	enum class link_mode
 	{
 		inserting = 0,
@@ -77,7 +88,9 @@ private:
 	static constexpr size_t max_height = (sizeof(size_t) * 8) - 1;
 	typedef range_to_int_t<0, max_height> height_t;
 
-	typedef container_skiplist<key_t, payload_t, comparator_t, allocator_type> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> this_t;
+
+	class sentinel_link_t;
 
 	class link_t : public object
 	{
@@ -100,7 +113,8 @@ private:
 
 	public:
 		ptr<transactable_t> m_links;
-		height_t m_height;
+		const height_t m_height;
+		const bool m_isSentinel;
 
 		// Primary mode starts as link_mode::inserting at the start of a volatile insert.
 		// As the last insert is completed for this link, the primary mode is changed to link_mode::normal.
@@ -108,11 +122,9 @@ private:
 		// If an insert finds the mode has been changed to link_mode::removing, the insert owns the removal.
 		alignas (atomic::get_alignment_v<link_mode>) link_mode m_primaryMode;
 
-		virtual payload_t* get_payload() { return NULL; }
-		virtual const payload_t* get_payload() const { return NULL; }
-
-		link_t(height_t height, link_mode linkMode)
+		explicit link_t(height_t height, link_mode linkMode, bool isSentinel = false)
 			: m_height(height),
+			m_isSentinel(isSentinel),
 			m_primaryMode(linkMode)
 		{
 			height_t heightPlusOne = height + 1;
@@ -123,50 +135,14 @@ private:
 				m_links[i]->m_mode = linkMode;
 		}
 
-		link_t(height_t height)
-			: m_height(height),
-			m_primaryMode(link_mode::inserting)
-		{
-			height_t heightPlusOne = height + 1;
-			m_links = allocator_container<default_allocator>::template allocate_type<transactable_t>(heightPlusOne);
-			for (size_t i = 0; i <= height; i++)
-				new (m_links.get_ptr() + i) transactable_t;
-			for (height_t i = 0; i <= height; i++)
-				m_links[i]->m_mode = link_mode::inserting;
-		}
-
-		link_t(link_mode linkMode)
-			: m_primaryMode(linkMode)
-		{ }
-
-		link_t()
-			: m_primaryMode(link_mode::inserting)
-		{ }
-
 		~link_t()
 		{
 			if (!!m_links)
 				default_allocator::destruct_deallocate_type<transactable_t>(m_links, m_height + 1);
 		}
 
-		void initialize(height_t height, link_mode linkMode = link_mode::inserting)
-		{
-			COGS_ASSERT(!m_links);
-			m_height = height;
-			m_primaryMode = linkMode;
-			height_t heightPlusOne = height + 1;
-			m_links = allocator_container<default_allocator>::template allocate_type<transactable_t>(heightPlusOne);
-			for (size_t i = 0; i <= height; i++)
-				new (m_links.get_ptr() + i) transactable_t;
-			for (height_t i = 0; i <= height; i++)
-			{
-				transactable_t* t = &(m_links[i]);
-				(*t)->m_mode = linkMode;
-			}
-		}
-
-		virtual bool is_sentinel() const { return false; }
-		virtual bool is_sentinel() const volatile { return false; }
+		bool is_sentinel() const { return m_isSentinel; }
+		bool is_sentinel() const volatile { return const_cast<const link_t*>(this)->m_isSentinel; }
 
 		bool is_removed() { return m_primaryMode == link_mode::removing; }
 		bool is_removed() volatile { link_mode primaryMode; atomic::load(m_primaryMode, primaryMode); return primaryMode == link_mode::removing; }
@@ -202,10 +178,10 @@ private:
 			COGS_ASSERT(!is_sentinel());
 
 			m_links[level]->m_mode = link_mode::removing;
-			m_links[level]->m_next->m_links[level]->m_prev = m_links[level]->m_prev;
-			m_links[level]->m_prev->m_links[level]->m_next = m_links[level]->m_next;
-			m_links[level]->m_prev.release();
-			m_links[level]->m_next.release();
+			link_t* nextPtr = m_links[level]->m_next.get_ptr();
+			link_t* prevPtr = m_links[level]->m_prev.get_ptr();
+			nextPtr->m_links[level]->m_prev = std::move(m_links[level]->m_prev);
+			prevPtr->m_links[level]->m_next = std::move(m_links[level]->m_next);
 			return true;
 		}
 
@@ -242,7 +218,7 @@ private:
 
 		void remove_from_all_levels(bool& wasLast) volatile
 		{
-			height_t level = m_height;
+			height_t level = const_cast<const link_t*>(this)->m_height;
 			for (;;)
 			{
 				remove_from_level(wasLast, level);
@@ -259,7 +235,7 @@ private:
 			// This last fix up avoids the issue where multiple equal keys are removed simultaneously,
 			// having been listed in different orders at different level.  Multiple removed nodes
 			// are ensured not to have forward links to each other.
-			height_t level = m_height;
+			height_t level = const_cast<const link_t*>(this)->m_height;
 			for (;;)
 			{
 				remove_cleanup(level);
@@ -271,7 +247,7 @@ private:
 
 		void remove_cleanup(height_t level) volatile
 		{
-			COGS_ASSERT(level <= m_height);
+			COGS_ASSERT(level <= const_cast<const link_t*>(this)->m_height);
 			read_token rt;
 			for (;;)
 			{
@@ -284,6 +260,8 @@ private:
 					if (!m_links[level].promote_read_token(rt, wt))
 						continue;
 					wt->m_next = rt_next->m_next;
+					COGS_ASSERT(!!wt->m_next.get_desc());
+
 					m_links[level].end_write(wt);
 					continue;
 				}
@@ -305,7 +283,7 @@ private:
 
 		bool remove_from_level(bool& wasLast, height_t level) volatile
 		{
-			COGS_ASSERT(level <= m_height);
+			COGS_ASSERT(level <= const_cast<const link_t*>(this)->m_height);
 			bool result = false;
 			for (;;)
 			{
@@ -334,7 +312,7 @@ private:
 					maybeLast = (prev_prev.get_ptr() == this);
 				}
 				write_token wt_prev;
-				COGS_ASSERT(level <= prev->m_height);
+				COGS_ASSERT(level <= prev.template const_cast_to<const link_t>()->m_height);
 				if (!prev->m_links[level].promote_read_token(rt_prev, wt_prev))
 					continue;
 				wt_prev->m_mode = link_mode::removing_next;
@@ -356,8 +334,8 @@ private:
 			rcptr<volatile link_t> prev = rt->m_prev;
 			COGS_ASSERT(!!prev);
 			rcptr<volatile link_t> next = rt->m_next;
-			COGS_ASSERT(level <= prev->m_height);
-			COGS_ASSERT(level <= next->m_height);
+			COGS_ASSERT(level <= prev.template const_cast_to<const link_t>()->m_height);
+			COGS_ASSERT(level <= next.template const_cast_to<const link_t>()->m_height);
 			for (;;)
 			{
 				read_token rt_next;
@@ -392,6 +370,7 @@ private:
 					if (!prev->m_links[level].promote_read_token(rt_prev, wt_prev))
 						continue;
 					wt_prev->m_next = rt->m_next;
+					COGS_ASSERT(!!wt_prev->m_next.get_desc());
 					wt_prev->m_mode = link_mode::normal;
 					if (!prev->m_links[level].end_write(wt_prev))
 						continue;
@@ -403,7 +382,7 @@ private:
 		void complete_remove_next(height_t level, read_token& rt) volatile
 		{
 			rcptr<volatile link_t> next = rt->m_next;
-			COGS_ASSERT(level <= next->m_height);
+			COGS_ASSERT(level <= next.template const_cast_to<const link_t>()->m_height);
 			for (;;)
 			{
 				read_token rt_next;
@@ -434,13 +413,13 @@ private:
 
 		void complete_insert(height_t level, read_token& rt) volatile
 		{
-			COGS_ASSERT(level <= m_height);
+			COGS_ASSERT(level <= const_cast<const link_t*>(this)->m_height);
 			COGS_ASSERT(rt->m_mode == link_mode::inserting);
 
 			// rt->m_inserting is known to be set.  We know the next time this link is written to, it's
 			// going to be to remove the inserting flag, so we don't need a retry loop.
 			rcptr<volatile link_t> next = rt->m_next;
-			COGS_ASSERT(level <= next->m_height);
+			COGS_ASSERT(level <= next.template const_cast_to<const link_t>()->m_height);
 			for (;;)
 			{
 				read_token rt_next;
@@ -475,7 +454,7 @@ private:
 
 		void complete_insert(height_t level) volatile
 		{
-			COGS_ASSERT(level <= m_height);
+			COGS_ASSERT(level <= const_cast<const link_t*>(this)->m_height);
 			read_token rt;
 			m_links[level].begin_read(rt);
 			if (rt->m_mode == link_mode::inserting)
@@ -484,7 +463,7 @@ private:
 
 		bool begin_read_and_complete(read_token& rt, bool returnTokenEvenIfRemoved, height_t level = 0) volatile // returns false this link was removed.
 		{
-			COGS_ASSERT(level <= m_height);
+			COGS_ASSERT(level <= const_cast<const link_t*>(this)->m_height);
 			bool notRemoved = true;
 			rt.release();
 			for (;;)
@@ -526,7 +505,7 @@ private:
 
 		// Scan for the last equal element, and add after it.
 		// Ensures elements appear in the list in the order inserted if equal.
-		void insert_multi_inner(height_t level, const key_t& criteria, const rcptr<link_t>& startFrom, bool& prevWasEqual, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
+		void insert_multi_inner(height_t level, const key_t& criteria, const rcref<link_t>& startFrom, bool& prevWasEqual, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
 		{
 			rcptr<link_t> next;
 			rcptr<link_t> prev = startFrom;
@@ -534,12 +513,12 @@ private:
 			{
 				COGS_ASSERT(level <= prev->m_height);
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -553,7 +532,7 @@ private:
 						}
 						if (advance)
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -565,11 +544,15 @@ private:
 				}
 				if (level <= m_height)
 				{
-					m_links[level]->m_mode = link_mode::normal;
-					m_links[level]->m_next = next;
-					m_links[level]->m_prev = prev;
 					COGS_ASSERT(level <= next->m_height);
 					prev->m_links[level]->m_next = next->m_links[level]->m_prev = this_rcptr;
+					COGS_ASSERT(!!prev->m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!next->m_links[level]->m_prev.get_desc());
+					m_links[level]->m_mode = link_mode::normal;
+					m_links[level]->m_next = std::move(next);
+					m_links[level]->m_prev = std::move(prev);
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 				}
 				break;
 			}
@@ -577,30 +560,36 @@ private:
 
 		// insert_multi_from_front_inner() is just like insert_multi_from_end_inner(), and should have the same performance characteristics,
 		// however insert_multi_from_front_inner() is used if the criteria is < the first element, to optimize for prepend.
-		void insert_multi_from_front_inner(bool& wasEmpty, height_t level, const key_t& criteria, const rcptr<volatile link_t>& startFrom, bool& prevWasEqual, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
+		void insert_multi_from_front_inner(bool& wasEmpty, height_t level, const key_t& criteria, const rcref<volatile link_t>& startFrom, bool& prevWasEqual, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
 		{
 			read_token rt;
 			write_token wt;
 			rcptr<volatile link_t> next;
 			rcptr<volatile link_t> prev = startFrom;
+			COGS_ASSERT(!!prev.get_desc());
 			bool insertedLowerLevels = false;
 			for (;;)
 			{
+				COGS_ASSERT(!!prev.get_desc());
 				bool emptyList = false;
 				if (!prev->begin_read_and_complete(rt, true, level))
 				{
 					prevWasEqual = false;
+					COGS_ASSERT(!!rt->m_prev.get_desc());
+
 					prev = rt->m_prev;
 					COGS_ASSERT(!!prev);
+					COGS_ASSERT(!!prev.get_desc());
 					continue;
 				}
 				next = rt->m_next;
-				if (next != lastAdjacent)
+				COGS_ASSERT(!!next.get_desc());
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (!emptyList && (next.get_ptr() != sentinelPtr)) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next.template const_cast_to<link_t>()->get_payload()->get_key();
+						const key_t& nextCriteria = next.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -614,7 +603,9 @@ private:
 						}
 						if (advance)
 						{
-							prev = next;
+							COGS_ASSERT(!!next.get_desc());
+							prev = std::move(next);
+							COGS_ASSERT(!!prev.get_desc());
 							continue;
 						}
 					}
@@ -623,29 +614,37 @@ private:
 				{
 					insertedLowerLevels = true;
 					rcptr<volatile link_t> newLastAdjacent = next;
-					insert_multi_from_front_inner(wasEmpty, level - 1, criteria, prev, prevWasEqual, newLastAdjacent, sentinelPtr);
+					insert_multi_from_front_inner(wasEmpty, level - 1, criteria, prev.dereference(), prevWasEqual, newLastAdjacent, sentinelPtr);
 				}
 				if (level <= m_height)
 				{
-					COGS_ASSERT(level <= prev->m_height);
+					COGS_ASSERT(level <= prev.template const_cast_to<const link_t>()->m_height);
 					if (!prev->m_links[level].promote_read_token(rt, wt))
 						continue;
+					volatile link_t* prevPtr = prev.get_ptr();
+					bool mayBeEmpty = next.get_ptr() == prevPtr;
 					next->complete_insert(level);
-					m_links[level]->m_next = next.template const_cast_to<link_t>();
+					m_links[level]->m_next = std::move(next).template const_cast_to<link_t>();
 					m_links[level]->m_prev = prev.template const_cast_to<link_t>();
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 					wt->m_next = this_rcptr;
-					bool maybeEmpty = next.get_ptr() == prev.get_ptr();
-					if (!prev->m_links[level].end_write(wt))
+					COGS_ASSERT(!!wt->m_next.get_desc());
+					COGS_ASSERT(!!prev.get_desc());
+					if (!prevPtr->m_links[level].end_write(wt))
+					{
+						COGS_ASSERT(!!prev.get_desc());
 						continue;
+					}
 					if (!level)
-						wasEmpty = maybeEmpty;
+						wasEmpty = mayBeEmpty;
 					complete(level);
 				}
 				break;
 			}
 		}
 
-		void insert_multi_from_end_inner(bool& wasEmpty, height_t level, const key_t& criteria, const rcptr<volatile link_t>& startFrom, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
+		void insert_multi_from_end_inner(bool& wasEmpty, height_t level, const key_t& criteria, const rcref<volatile link_t>& startFrom, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
 		{
 			read_token rt;
 			read_token rt_prev;
@@ -653,14 +652,19 @@ private:
 			write_token wt;
 			rcptr<volatile link_t> prev;
 			rcptr<volatile link_t> next = startFrom;
+			COGS_ASSERT(!!next.get_desc());
 			bool insertedLowerLevels = false;
 			for (;;)
 			{
+				COGS_ASSERT(!!next.get_desc());
 				if (!next->begin_read_and_complete(rt, true, level))
 				{
+					COGS_ASSERT(!!rt->m_next.get_desc());
 					next = rt->m_next;
+					COGS_ASSERT(!!next.get_desc());
 					continue;
 				}
+				COGS_ASSERT(!!next.get_desc());
 				prev = rt->m_prev;
 				if (!prev->begin_read_and_complete(rt_prev, false, level))
 					continue;
@@ -671,15 +675,17 @@ private:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& prevCriteria = prev.template const_cast_to<link_t>()->get_payload()->get_key();
+						const key_t& prevCriteria = prev.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(criteria, prevCriteria))
 						{
-							next = prev;
+							COGS_ASSERT(!!prev.get_desc());
+							next = std::move(prev);
+							COGS_ASSERT(!!next.get_desc());
 							continue;
 						}
 					}
@@ -688,22 +694,26 @@ private:
 				{
 					insertedLowerLevels = true;
 					rcptr<volatile link_t> newLastAdjacent = prev;
-					insert_multi_from_end_inner(wasEmpty, level - 1, criteria, next, newLastAdjacent, sentinelPtr);
+					insert_multi_from_end_inner(wasEmpty, level - 1, criteria, next.dereference(), newLastAdjacent, sentinelPtr);
 				}
 				if (level <= m_height)
 				{
-					COGS_ASSERT(level <= prev->m_height);
+					COGS_ASSERT(level <= prev.template const_cast_to<const link_t>()->m_height);
 					if (!prev->m_links[level].promote_read_token(rt_prev, wt))
 						continue;
 					next->complete_insert(level);
+					volatile link_t* prevPtr = prev.get_ptr();
+					bool mayBeEmpty = prevPtr == next.get_ptr();
 					m_links[level]->m_next = next.template const_cast_to<link_t>();
-					m_links[level]->m_prev = prev.template const_cast_to<link_t>();
+					m_links[level]->m_prev = std::move(prev).template const_cast_to<link_t>();
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 					wt->m_next = this_rcptr;
-					bool maybeEmpty = prev.get_ptr() == next.get_ptr();
-					if (!prev->m_links[level].end_write(wt))
+					COGS_ASSERT(!!wt->m_next.get_desc());
+					if (!prevPtr->m_links[level].end_write(wt))
 						continue;
 					if (!level)
-						wasEmpty = maybeEmpty;
+						wasEmpty = mayBeEmpty;
 					complete(level);
 				}
 				break;
@@ -711,61 +721,7 @@ private:
 		}
 
 		// Scan for first equal element, removes all equal elements, inserts.
-		void insert_replace_inner(height_t level, const key_t& criteria, const rcptr<link_t>& startFrom, bool& collision, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
-		{
-			rcptr<link_t> next;
-			rcptr<link_t> prev = startFrom;
-			for (;;)
-			{
-				COGS_ASSERT(level <= prev->m_height);
-				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
-				{
-					lastAdjacent.release();
-					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
-					{
-						if (next != lastAdjacent)
-						{
-							if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
-							{
-								prev = next;
-								continue;
-							}
-						}
-					}
-				}
-				if (!level)
-				{
-					if (next.get_ptr() != sentinelPtr)
-					{
-						// If at the bottom level, remove matching elements before inserting this.
-						if (!comparator_t::is_less_than(criteria, next->get_payload()->get_key()))
-						{
-							collision |= next->remove();
-							continue;
-						}
-					}
-				}
-				else //if (!!level)
-				{
-					rcptr<link_t> newLastAdjacent = next;
-					insert_replace_inner(level - 1, criteria, prev, collision, newLastAdjacent, sentinelPtr);
-				}
-				if (level <= m_height)
-				{
-					m_links[level]->m_mode = link_mode::normal;
-					m_links[level]->m_next = next;
-					m_links[level]->m_prev = prev;
-					COGS_ASSERT(level <= next->m_height);
-					prev->m_links[level]->m_next = next->m_links[level]->m_prev = this_rcptr;
-				}
-				break;
-			}
-		}
-
-		// Scan for any equal element, and abort if already present.
-		// Returns null if no matching element, otherwise returns matching element.
-		rcptr<link_t> insert_unique_inner(height_t level, const key_t& criteria, const rcptr<link_t>& startFrom, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
+		rcptr<link_t> insert_replace_inner(height_t level, const key_t& criteria, const rcref<link_t>& startFrom, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
 		{
 			rcptr<link_t> result;
 			rcptr<link_t> next;
@@ -774,20 +730,77 @@ private:
 			{
 				COGS_ASSERT(level <= prev->m_height);
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						if (comparator_t::is_less_than(next.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
+						{
+							prev = std::move(next);
+							continue;
+						}
+					}
+				}
+				if (!level)
+				{
+					if (next.get_ptr() != sentinelPtr)
+					{
+						// If at the bottom level, remove matching element before inserting this.
+						if (!comparator_t::is_less_than(criteria, next.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
+						{
+							next->remove();
+							result = next;
+							continue;
+						}
+					}
+				}
+				else //if (!!level)
+				{
+					rcptr<link_t> newLastAdjacent = next;
+					result = insert_replace_inner(level - 1, criteria, prev, newLastAdjacent, sentinelPtr);
+				}
+				if (level <= m_height)
+				{
+					COGS_ASSERT(level <= next->m_height);
+					prev->m_links[level]->m_next = next->m_links[level]->m_prev = this_rcptr;
+					COGS_ASSERT(!!prev->m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!next->m_links[level]->m_prev.get_desc());
+					m_links[level]->m_next = std::move(next);
+					m_links[level]->m_prev = std::move(prev);
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
+				}
+				break;
+			}
+			return result;
+		}
+
+		// Scan for any equal element, and abort if already present.
+		// Returns null if no matching element, otherwise returns matching element.
+		rcptr<link_t> insert_unique_inner(height_t level, const key_t& criteria, const rcref<link_t>& startFrom, rcptr<link_t>& lastAdjacent, link_t* sentinelPtr)
+		{
+			rcptr<link_t> result;
+			rcptr<link_t> next;
+			rcptr<link_t> prev = startFrom;
+			for (;;)
+			{
+				COGS_ASSERT(level <= prev->m_height);
+				next = prev->m_links[level]->m_next;
+				if (next.get_ptr() != lastAdjacent.get_ptr())
+				{
+					lastAdjacent.release();
+					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
+					{
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 						if (!comparator_t::is_less_than(criteria, nextCriteria))
 						{
-							result = next;
+							result = std::move(next);
 							break;
 						}
 					}
@@ -801,11 +814,15 @@ private:
 				}
 				if (level <= m_height)
 				{
-					m_links[level]->m_mode = link_mode::normal;
-					m_links[level]->m_next = next;
-					m_links[level]->m_prev = prev;
 					COGS_ASSERT(level <= next->m_height);
 					prev->m_links[level]->m_next = next->m_links[level]->m_prev = this_rcptr;
+					COGS_ASSERT(!!prev->m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!next->m_links[level]->m_prev.get_desc());
+
+					m_links[level]->m_next = std::move(next);
+					m_links[level]->m_prev = std::move(prev);
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 				}
 				break;
 			}
@@ -814,7 +831,7 @@ private:
 
 		// If a volatile non-dupe insert, we can't assume the first match isn't in the process of being removed.
 		// Scan all the way down to lowest level before declaring a duplicate.  Will be efficient due to lastAdjacent var.
-		rcptr<volatile link_t> insert_unique_inner(height_t level, const key_t& criteria, const rcptr<volatile link_t>& startFrom, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
+		rcptr<volatile link_t> insert_unique_inner(bool& wasEmpty, height_t level, const key_t& criteria, const rcref<volatile link_t>& startFrom, rcptr<volatile link_t>& lastAdjacent, volatile link_t* sentinelPtr)
 		{
 			read_token rt;
 			read_token rt_prev;
@@ -841,14 +858,14 @@ private:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>()->get_payload()->get_key()))
+						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -858,9 +875,9 @@ private:
 					if (prev.get_ptr() != sentinelPtr)
 					{
 						// If at the bottom level, abort if there is a match
-						if (!comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria)) // if prev and arg are equal
+						if (!comparator_t::is_less_than(prev.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria)) // if prev and arg are equal
 						{
-							result = prev;
+							result = std::move(prev);
 							break;
 						}
 					}
@@ -869,21 +886,28 @@ private:
 				{
 					insertedLowerLevels = true;
 					rcptr<volatile link_t> newLastAdjacent = prev;
-					result = insert_unique_inner(level - 1, criteria, next, newLastAdjacent, sentinelPtr);
+					result = insert_unique_inner(wasEmpty, level - 1, criteria, next.dereference(), newLastAdjacent, sentinelPtr);
 					if (!!result)
 						break;
 				}
 				if (level <= m_height)
 				{
-					COGS_ASSERT(level <= prev->m_height);
+					COGS_ASSERT(level <= prev.template const_cast_to<const link_t>()->m_height);
 					if (!prev->m_links[level].promote_read_token(rt_prev, wt))
 						continue;
+					volatile link_t* prevPtr = prev.get_ptr();
+					bool mayBeEmpty = next.get_ptr() == prevPtr;
 					next->complete_insert(level);
 					m_links[level]->m_next = next.template const_cast_to<link_t>();
-					m_links[level]->m_prev = prev.template const_cast_to<link_t>();
+					m_links[level]->m_prev = std::move(prev).template const_cast_to<link_t>();
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 					wt->m_next = this_rcptr;
-					if (!prev->m_links[level].end_write(wt))
+					COGS_ASSERT(!!wt->m_next.get_desc());
+					if (!prevPtr->m_links[level].end_write(wt))
 						continue;
+					if (!level)
+						wasEmpty = mayBeEmpty;
 					complete(level);
 				}
 				break;
@@ -891,23 +915,25 @@ private:
 			return result;
 		}
 
-		void insert_multi(height_t height, const rcptr<link_t>& sentinel)
+		void insert_multi(height_t height, const rcref<sentinel_link_t>& sentinel)
 		{
-			m_primaryMode = link_mode::normal;
 			link_t* sentinelPtr = sentinel.get_ptr();
-			const key_t& criteria = get_payload()->get_key();
+			const key_t& criteria = static_cast<payload_link_t*>(this)->get_payload()->get_key();
 
 			// Append/Prepend optimization
 			height_t level = 0;
 			rcptr<link_t> prev = sentinelPtr->m_links[0]->m_prev;
-			if ((prev.get_ptr() == sentinelPtr) || !comparator_t::is_less_than(prev->get_payload()->get_key(), criteria))
+			if ((prev.get_ptr() == sentinelPtr) || !comparator_t::is_less_than(prev.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
 			{
 				for (;;)
 				{
-					m_links[level]->m_mode = link_mode::normal;
-					m_links[level]->m_next = sentinel;
-					m_links[level]->m_prev = prev;
 					prev->m_links[level]->m_next = sentinel->m_links[level]->m_prev = this_rcptr;
+					COGS_ASSERT(!!prev->m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!sentinel->m_links[level]->m_prev.get_desc());
+					m_links[level]->m_next = sentinel;
+					m_links[level]->m_prev = std::move(prev);
+					COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+					COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 					if (level == m_height)
 						break;
 					++level;
@@ -917,15 +943,19 @@ private:
 			else
 			{
 				rcptr<link_t> next = sentinelPtr->m_links[0]->m_next;
-				if ((next.get_ptr() == sentinelPtr) || comparator_t::is_less_than(criteria, next->get_payload()->get_key()))
+				if ((next.get_ptr() == sentinelPtr) || comparator_t::is_less_than(criteria, next.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 				{
 					for (;;)
 					{
-						m_links[level]->m_mode = link_mode::normal;
-						m_links[level]->m_next = next;
-						m_links[level]->m_prev = sentinel;
 						COGS_ASSERT(level <= next->m_height);
 						sentinel->m_links[level]->m_next = next->m_links[level]->m_prev = this_rcptr;
+						COGS_ASSERT(!!sentinel->m_links[level]->m_next.get_desc());
+						COGS_ASSERT(!!next->m_links[level]->m_prev.get_desc());
+
+						m_links[level]->m_next = std::move(next);
+						m_links[level]->m_prev = sentinel;
+						COGS_ASSERT(!!m_links[level]->m_next.get_desc());
+						COGS_ASSERT(!!m_links[level]->m_prev.get_desc());
 						if (level == m_height)
 							break;
 						++level;
@@ -941,7 +971,7 @@ private:
 			}
 		}
 
-		void insert_multi(bool& wasEmpty, height_t height, const rcptr<volatile link_t>& sentinel)
+		void insert_multi(bool& wasEmpty, height_t height, const rcref<volatile sentinel_link_t>& sentinel)
 		{
 			// Append/Prepend optimization.
 			// Whether or not we scan forward or in reverse, the performance characteristics should be equivalent.
@@ -950,7 +980,7 @@ private:
 			// If new node is < the first node, we scan forward, which is optimized for prepend.
 			rcptr<volatile link_t> lastAdjacent;
 			volatile link_t* sentinelPtr = sentinel.get_ptr();
-			const key_t& criteria = get_payload()->get_key();
+			const key_t& criteria = (static_cast<payload_link_t*>(this))->get_payload()->get_key();
 			rcptr<link_t> next;
 			for (;;)
 			{
@@ -962,7 +992,7 @@ private:
 				COGS_ASSERT(!sentinelPtr->m_links[0].is_current(rt));
 			}
 
-			if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next->get_payload()->get_key()))
+			if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 				insert_multi_from_end_inner(wasEmpty, height, criteria, sentinel, lastAdjacent, sentinelPtr);
 			else
 			{
@@ -976,26 +1006,22 @@ private:
 			}
 		}
 
-		bool insert_replace(height_t height, const rcptr<link_t>& sentinel)
-		{
-			bool collision = false;
-			rcptr<link_t> lastAdjacent;
-			m_primaryMode = link_mode::normal;
-			insert_replace_inner(height, get_payload()->get_key(), sentinel, collision, lastAdjacent, sentinel.get_ptr());
-			return collision;
-		}
-
-		rcptr<link_t> insert_unique(height_t height, const rcptr<link_t>& sentinel)
+		rcptr<link_t> insert_replace(height_t height, const rcref<sentinel_link_t>& sentinel)
 		{
 			rcptr<link_t> lastAdjacent;
-			m_primaryMode = link_mode::normal;
-			return insert_unique_inner(height, get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
+			return insert_replace_inner(height, (static_cast<payload_link_t*>(this))->get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
 		}
 
-		rcptr<volatile link_t> insert_unique(height_t height, const rcptr<volatile link_t>& sentinel)
+		rcptr<link_t> insert_unique(height_t height, const rcref<sentinel_link_t>& sentinel)
+		{
+			rcptr<link_t> lastAdjacent;
+			return insert_unique_inner(height, (static_cast<payload_link_t*>(this))->get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
+		}
+
+		rcptr<volatile link_t> insert_unique(bool& wasEmpty, height_t height, const rcref<volatile sentinel_link_t>& sentinel)
 		{
 			rcptr<volatile link_t> lastAdjacent;
-			rcptr<volatile link_t> result = insert_unique_inner(height, get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
+			rcptr<volatile link_t> result = insert_unique_inner(wasEmpty, height, (static_cast<payload_link_t*>(this))->get_payload()->get_key(), sentinel, lastAdjacent, sentinel.get_ptr());
 			if (!result) // If no collision, and was inesrted.
 			{
 				if (!atomic::compare_exchange(m_primaryMode, link_mode::normal, link_mode::inserting))
@@ -1012,87 +1038,6 @@ private:
 	typedef typename link_t::read_token read_token;
 	typedef typename link_t::write_token write_token;
 
-	class payload_link_t : public link_t
-	{
-	private:
-		placement<payload_t> m_value;
-
-	public:
-		virtual payload_t* get_payload() { return &m_value.get(); }
-		virtual const payload_t* get_payload() const { return &m_value.get(); }
-
-		payload_link_t()
-		{
-			placement_construct(get_payload());
-		}
-
-		explicit payload_link_t(const payload_t& t)
-		{
-			placement_construct(get_payload(), t);
-		}
-
-		explicit payload_link_t(height_t height)
-			: link_t(height)
-		{
-			placement_construct(get_payload());
-		}
-
-		payload_link_t(const payload_t& t, height_t height)
-			: link_t(height)
-		{
-			placement_construct(get_payload(), t);
-		}
-
-		~payload_link_t() { m_value.destruct(); }
-
-		rcref<payload_t> get_obj() { return object::get_self_rcref(get_payload()); }
-	};
-
-	template <typename T>
-	class aux_payload_link_t : public payload_link_t
-	{
-	public:
-		typedef std::remove_cv_t<T> T2;
-
-		delayed_construction<T2> m_aux;
-
-		aux_payload_link_t()
-		{
-			placement_rcnew(&m_aux.get(), this_desc);
-		}
-
-		explicit aux_payload_link_t(const payload_t& t)
-			: payload_link_t(t)
-		{
-			placement_rcnew(&m_aux.get(), this_desc);
-		}
-
-		const rcref<T2>& get_aux_ref(unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T> >().get_unowned())
-		{
-			storage.set(&m_aux.get(), &this_desc);
-			return storage.dereference();
-		}
-	};
-
-	class sentinel_link_t : public link_t
-	{
-	public:
-		sentinel_link_t()
-			: link_t(max_height, link_mode::normal)
-		{
-			link_t::m_links[0]->m_prev = link_t::m_links[0]->m_next = this_rcptr;
-		}
-
-		void clear()
-		{
-			link_t::m_links[0]->m_prev.release();
-			link_t::m_links[0]->m_next.release();
-		}
-
-		virtual bool is_sentinel() const { return true; }
-		virtual bool is_sentinel() const volatile { return true; }
-	};
-
 	class height_and_count_t
 	{
 	public:
@@ -1100,121 +1045,196 @@ private:
 		alignas (atomic::get_alignment_v<ptrdiff_t>) ptrdiff_t m_count;
 	};
 
-	rcptr<link_t> m_sentinel;
-	alignas (atomic::get_alignment_v<height_and_count_t>) height_and_count_t m_heightAndCount;
+	class sentinel_link_t : public link_t
+	{
+	public:
+		using link_t::m_links;
+
+		alignas (atomic::get_alignment_v<height_and_count_t>) height_and_count_t m_heightAndCount;
+
+		sentinel_link_t()
+			: link_t(max_height, link_mode::normal, true)
+		{
+			link_t::m_links[0]->m_prev = link_t::m_links[0]->m_next = this_rcptr;
+			COGS_ASSERT(!!link_t::m_links[0]->m_prev.get_desc());
+			COGS_ASSERT(!!link_t::m_links[0]->m_next.get_desc());
+			m_heightAndCount.m_currentHeight = 0;
+			m_heightAndCount.m_count = 0;
+		}
+
+		void clear()
+		{
+			height_t level = 0;
+			for (;;)
+			{
+				if (!m_links[level]->m_next)
+					break;
+				m_links[level]->m_next.release();
+				m_links[level]->m_prev.release();
+				if (level == max_height)
+					break;
+				++level;
+			}
+		}
+
+		// 1) 1/2 chance the end bit is 1
+		// 2) 1/4 chance the end bits are 10    (not 00, 01, or 11)
+		// 3) 1/8 chance the end bits are 100   (not 000, 001, 010, 011, 101, 110, 111)
+		// 4) 1/16 chance the end bits are 1000 (etc.)
+		static height_t generate_height(height_t currentHeight)
+		{
+			// Normalized to 1-based, then extend by 1
+			// 0 will not be returned, so normalizing back to 0-based
+			height_t h = (height_t)random_coin_flips<height_t>(currentHeight + 2);
+			COGS_ASSERT(!!h);
+			if (!!h)
+				--h;
+			return h;
+		}
+
+		height_t generate_height()
+		{
+			height_t h = generate_height(m_heightAndCount.m_currentHeight);
+			accommodate_height(h);
+			return h;
+		}
+
+		height_t generate_height() volatile
+		{
+			height_t currentHeight;
+			atomic::load(m_heightAndCount.m_currentHeight, currentHeight);
+			height_t h = generate_height(currentHeight);
+			accommodate_height(h);
+			return h;
+		}
+
+		height_t accommodate_height(height_t newHeight)
+		{
+			if (newHeight <= m_heightAndCount.m_currentHeight)
+				return m_heightAndCount.m_currentHeight;
+
+			COGS_ASSERT(newHeight <= max_height);
+
+			transactable_t* links = link_t::m_links.get_ptr();
+			transactable_t* pos = links + newHeight;
+			transactable_t* end = links + m_heightAndCount.m_currentHeight;
+			for (;;)
+			{
+				if (!!(*pos)->m_next)
+					break;
+				(*pos)->m_prev = (*pos)->m_next = m_sentinel;
+				COGS_ASSERT(!!(*pos)->m_prev.get_desc());
+				COGS_ASSERT(!!(*pos)->m_next.get_desc());
+				if (--pos == end)
+					break;
+			}
+
+			m_heightAndCount.m_currentHeight = newHeight;
+			return newHeight;
+		}
+
+		height_t accommodate_height(height_t newHeight) volatile
+		{
+			height_t oldHeight;
+			atomic::load(m_heightAndCount.m_currentHeight, oldHeight);
+			if (newHeight <= oldHeight)
+				return oldHeight;
+
+			COGS_ASSERT(newHeight <= max_height);
+
+			transactable_t* links = link_t::m_links.get_ptr();
+			transactable_t* pos = links + newHeight;
+			transactable_t* end = links + oldHeight;
+			for (;;)
+			{
+				read_token rt;
+				pos->begin_read(rt);
+				if (!!rt->m_next)
+					break;
+
+				write_token wt;
+				if (!pos->promote_read_token(rt, wt))
+					break;
+
+				wt->m_prev = wt->m_next = this_rcref.template static_cast_to<volatile link_t>().template const_cast_to<link_t>();
+				COGS_ASSERT(!!wt->m_prev.get_desc());
+				COGS_ASSERT(!!wt->m_next.get_desc());
+				pos->end_write(wt); // no need to verify, the first write is always to set these.
+				if (--pos == end)
+					break;
+			}
+
+			atomic::compare_exchange(m_heightAndCount.m_currentHeight, newHeight, oldHeight);
+			// ignore failure to set height
+			// it doesn't matter if another thread increased it, and it's not really
+			// detrimental if it to zero - implying the list is extremely simple right now.
+
+			return newHeight;
+		}
+
+		void dec_count()
+		{
+			if (--m_heightAndCount.m_count < m_heightAndCount.m_currentHeight)
+				m_heightAndCount.m_currentHeight = m_heightAndCount.m_count;
+		}
+
+		void dec_count() volatile
+		{
+			height_and_count_t oldHeightAndCount;
+			height_and_count_t newHeightAndCount;
+			atomic::load(m_heightAndCount, oldHeightAndCount);
+			do { // might bounce below zero if something is removed in the middle of being added
+				newHeightAndCount.m_count = oldHeightAndCount.m_count - 1;
+				ptrdiff_t minHeight = (ptrdiff_t)oldHeightAndCount.m_count;
+				if (minHeight < 0)
+					minHeight = 0;
+				if (minHeight < oldHeightAndCount.m_currentHeight)
+					newHeightAndCount.m_currentHeight = (height_t)minHeight;
+				else
+					newHeightAndCount.m_currentHeight = oldHeightAndCount.m_currentHeight;
+			} while (!atomic::compare_exchange(m_heightAndCount, newHeightAndCount, oldHeightAndCount, oldHeightAndCount));
+		}
+	};
+
+	class payload_link_t : public link_t
+	{
+	private:
+		delayed_construction<payload_t> m_value;
+		weak_rcptr<sentinel_link_t> m_sentinel; // Set once before inserted, so OK to read without atomicity
+
+	public:
+		payload_t* get_payload() const { return &(const_cast<payload_link_t*>(this)->m_value.get()); }
+		payload_t* get_payload() const volatile { return &(const_cast<payload_link_t*>(this)->m_value.get()); }
+
+		payload_link_t(const rcref<sentinel_link_t>& sentinel, height_t height)
+			: link_t(height, link_mode::normal),
+			m_sentinel(sentinel)
+		{ }
+
+		payload_link_t(const rcref<volatile sentinel_link_t>& sentinel, height_t height)
+			: link_t(height, link_mode::inserting),
+			m_sentinel(sentinel.template const_cast_to<sentinel_link_t>())
+		{ }
+
+		const rcref<payload_t>& get_obj(unowned_t<rcptr<payload_t> >& storage = unowned_t<rcptr<payload_t> >().get_unowned())
+		{
+			storage.set(&m_value.get(), &this_desc);
+			return storage.dereference();
+		}
+
+		void set_sentinel(const rcref<sentinel_link_t>& sentinel) { m_sentinel = sentinel; }
+		void set_sentinel(const rcref<volatile sentinel_link_t>& sentinel) volatile { m_sentinel = sentinel.template const_cast_to<sentinel_link_t>(); }
+
+		const weak_rcptr<sentinel_link_t>& get_sentinel() const { return m_sentinel; }
+		rcptr<volatile sentinel_link_t> get_sentinel() const volatile { return const_cast<const payload_link_t*>(this)->m_sentinel; }
+	};
+
 	allocator_container<allocator_type> m_allocator;
-
-	void dec_count()
-	{
-		if (--(m_heightAndCount.m_count) < m_heightAndCount.m_currentHeight)
-			m_heightAndCount.m_currentHeight = m_heightAndCount.m_count;
-	}
-
-	void dec_count() volatile
-	{
-		height_and_count_t oldHeightAndCount;
-		height_and_count_t newHeightAndCount;
-		atomic::load(m_heightAndCount, oldHeightAndCount);
-		do { // might bounce below zero if something is removed in the middle of being added
-			newHeightAndCount.m_count = oldHeightAndCount.m_count - 1;
-			ptrdiff_t minHeight = (ptrdiff_t)oldHeightAndCount.m_count;
-			if (minHeight < 0)
-				minHeight = 0;
-			if (minHeight < oldHeightAndCount.m_currentHeight)
-				newHeightAndCount.m_currentHeight = (height_t)minHeight;
-			else
-				newHeightAndCount.m_currentHeight = oldHeightAndCount.m_currentHeight;
-		} while (!atomic::compare_exchange(m_heightAndCount, newHeightAndCount, oldHeightAndCount, oldHeightAndCount));
-	}
-
-	// 1) 1/2 chance the end bit is 1
-	// 2) 1/4 chance the end bits are 10    (not 00, 01, or 11)
-	// 3) 1/8 chance the end bits are 100   (not 000, 001, 010, 011, 101, 110, 111)
-	// 4) 1/16 chance the end bits are 1000 (etc.)
-	static height_t generate_height(height_t currentHeight)
-	{
-		// Normalized to 1-based, then extend by 1
-		// 0 will not be returned, so normalizing back to 0-based
-		height_t h = (height_t)random_coin_flips<height_t>(currentHeight + 2);
-		COGS_ASSERT(!!h);
-		if (!!h)
-			--h;
-		return h;
-	}
-
-	height_t generate_height() const { return generate_height(m_heightAndCount.m_currentHeight); }
-
-	height_t generate_height() const volatile
-	{
-		height_t currentHeight;
-		atomic::load(m_heightAndCount.m_currentHeight, currentHeight);
-		return generate_height(currentHeight);
-	}
-
-	height_t accommodate_height(height_t newHeight)
-	{
-		if (newHeight <= m_heightAndCount.m_currentHeight)
-			return m_heightAndCount.m_currentHeight;
-
-		COGS_ASSERT(newHeight <= max_height);
-
-		rcptr<link_t>& sentinel = m_sentinel;
-		transactable_t* links = sentinel->m_links.get_ptr();
-		transactable_t* pos = links + newHeight;
-		transactable_t* end = links + m_heightAndCount.m_currentHeight;
-		for (;;)
-		{
-			if (!!(*pos)->m_next)
-				break;
-			(*pos)->m_prev = (*pos)->m_next = m_sentinel;
-			if (--pos == end)
-				break;
-		}
-
-		m_heightAndCount.m_currentHeight = newHeight;
-		return newHeight;
-	}
-
-	height_t accommodate_height(height_t newHeight) volatile
-	{
-		height_t oldHeight;
-		atomic::load(m_heightAndCount.m_currentHeight, oldHeight);
-		if (newHeight <= oldHeight)
-			return oldHeight;
-
-		COGS_ASSERT(newHeight <= max_height);
-
-		rcptr<volatile link_t> sentinel = m_sentinel;
-		transactable_t* links = sentinel->m_links.get_ptr();
-		transactable_t* pos = links + newHeight;
-		transactable_t* end = links + oldHeight;
-		for (;;)
-		{
-			read_token rt;
-			pos->begin_read(rt);
-			if (!!rt->m_next)
-				break;
-
-			write_token wt;
-			if (!pos->promote_read_token(rt, wt))
-				break;
-
-			wt->m_prev = wt->m_next = sentinel.template const_cast_to<link_t>();
-			pos->end_write(wt); // no need to verify, the first write is always to set these.
-			if (--pos == end)
-				break;
-		}
-
-		atomic::compare_exchange(m_heightAndCount.m_currentHeight, newHeight, oldHeight);
-		// ignore failure to set height
-		// it doesn't matter if another thread increased it, and it's not really
-		// detrimental if it to zero - implying the list is extremely simple right now.
-
-		return newHeight;
-	}
+	rcptr<sentinel_link_t> m_sentinel;
 
 	void clear_inner()
 	{
+		COGS_ASSERT(!!m_sentinel);
 		link_t* sentinelPtr = m_sentinel.get_ptr();
 		// Could allow the links to free themselves, but that would cause a cascade of
 		// link releases, that could potential overflow the stack if the list is long enough.
@@ -1231,48 +1251,72 @@ private:
 					break;
 				--level;
 			}
-			l = next;
+			l = std::move(next);
 		}
 	}
 
 	// To support use of zero-initialized buffer placement, lazy-initialize the sentinel
-	rcptr<link_t>& lazy_init_sentinel()
+	const rcref<sentinel_link_t>& lazy_init_sentinel()
 	{
 		if (!m_sentinel)
 			m_sentinel = container_rcnew(m_allocator, sentinel_link_t);
-		return m_sentinel;
+		return m_sentinel.dereference();
 	}
 
-	rcptr<link_t> lazy_init_sentinel() volatile
+	rcref<volatile sentinel_link_t> lazy_init_sentinel() volatile
 	{
-		rcptr<link_t> sentinel = m_sentinel;
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		if (!sentinel)
 		{
-			rcptr<link_t> newSentinel = container_rcnew(m_allocator, sentinel_link_t);
+			rcptr<sentinel_link_t> newSentinel = container_rcnew(m_allocator, sentinel_link_t);
 			if (m_sentinel.compare_exchange(newSentinel, sentinel, sentinel))
 				sentinel = newSentinel;
 			else
-			{
-				sentinel_link_t* unusedSentinel = (sentinel_link_t*)newSentinel.get_ptr();
-				unusedSentinel->clear();
-			}
+				newSentinel->clear();
 		}
-		return sentinel;
+		return std::move(sentinel.dereference());
 	}
 
-	container_skiplist(const this_t&) = delete;
+	container_skiplist_base(const this_t&) = delete;
+	container_skiplist_base(const volatile this_t&) = delete;
+
 	this_t& operator=(const this_t&) = delete;
+	this_t& operator=(const volatile this_t&) = delete;
+
+	this_t& operator=(const this_t&) volatile = delete;
+	this_t& operator=(const volatile this_t&) volatile = delete;
+
+	template <typename F>
+	iterator insert_inner(F&& f)
+	{
+		iterator i;
+		const rcref<sentinel_link_t>& sentinel = lazy_init_sentinel();
+		height_t height = sentinel->generate_height();
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(sentinel, height);
+		height_t currentHeight = sentinel->accommodate_height(height);
+		if (f(i, currentHeight, sentinel))
+			++(sentinel->m_heightAndCount.m_count);
+		return i;
+	}
+
+	template <typename F>
+	volatile_iterator insert_inner(F&& f) volatile
+	{
+		iterator i;
+		rcref<volatile sentinel_link_t> sentinel = lazy_init_sentinel();
+		height_t height = sentinel->generate_height();
+		i.m_link = container_rcnew(m_allocator, payload_link_t)(sentinel, height);
+		height_t currentHeight = sentinel->accommodate_height(height);
+		if (f(i, currentHeight, sentinel))
+			assign_next(sentinel->m_heightAndCount.m_count);
+		volatile_iterator i2 = std::move(i);
+		return i2;
+	}
 
 public:
-	class iterator;
-	class volatile_iterator;
-	class remove_token;
-	class volatile_remove_token;
-	class preallocated;
-
 	template <typename T2> static constexpr bool is_iterator_type_v = std::is_same_v<iterator, std::remove_cv_t<T2> > || std::is_same_v<volatile_iterator, std::remove_cv_t<T2> >;
 	template <typename T2> static constexpr bool is_remove_token_type_v = std::is_same_v<remove_token, std::remove_cv_t<T2> > || std::is_same_v<volatile_remove_token, std::remove_cv_t<T2> >;
-	template <typename T2> static constexpr bool is_element_reference_type_v = std::is_same_v<preallocated, std::remove_cv_t<T2> > || is_iterator_type_v<T2> || is_remove_token_type_v<T2>;
+	template <typename T2> static constexpr bool is_element_reference_type_v = is_iterator_type_v<T2> || is_remove_token_type_v<T2>;
 
 	/// @brief A container_skiplist element iterator
 	class iterator
@@ -1280,11 +1324,11 @@ public:
 	protected:
 		rcptr<link_t> m_link;
 
-		friend class container_skiplist;
+		friend class container_skiplist_base;
+		template <bool, typename, class, class, class> friend class container_skiplist;
 		friend class volatile_iterator;
 		friend class remove_token;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		iterator(const rcptr<link_t>& l) : m_link(l) { }
 		iterator(const volatile rcptr<link_t>& l) : m_link(l) { }
@@ -1293,6 +1337,14 @@ public:
 		iterator(const rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
 		iterator(const volatile rcptr<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
 		iterator(rcptr<volatile link_t>&& l) : m_link(std::move(l).template const_cast_to<link_t>()) { }
+
+		iterator(const rcref<link_t>& l) : m_link(l) { }
+		iterator(const volatile rcref<link_t>& l) : m_link(l) { }
+		iterator(rcref<link_t>&& l) : m_link(std::move(l)) { }
+
+		iterator(const rcref<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		iterator(const volatile rcref<volatile link_t>& l) : m_link(l.template const_cast_to<link_t>()) { }
+		iterator(rcref<volatile link_t>&& l) : m_link(std::move(l).template const_cast_to<link_t>()) { }
 
 		iterator(const weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
 		iterator(const volatile weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
@@ -1326,6 +1378,20 @@ public:
 		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
 		void assign(rcptr<volatile link_t>&& l) { m_link = std::move(l).template const_cast_to<link_t>(); }
 		void assign(rcptr<volatile link_t>&& l) volatile { m_link = std::move(l).template const_cast_to<link_t>(); }
+
+		void assign(const rcref<link_t>& l) { m_link = l; }
+		void assign(const rcref<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) volatile { m_link = l; }
+		void assign(rcref<link_t>&& l) { m_link = std::move(l); }
+		void assign(rcref<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcref<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const rcref<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcref<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcref<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(rcref<volatile link_t>&& l) { m_link = std::move(l).template const_cast_to<link_t>(); }
+		void assign(rcref<volatile link_t>&& l) volatile { m_link = std::move(l).template const_cast_to<link_t>(); }
 
 		void assign(const weak_rcptr<link_t>& l)
 		{
@@ -1413,25 +1479,30 @@ public:
 		bool is_removed() const { return !!m_link && m_link->is_removed(); } // implies that it was in the list.  null m_link returns false
 		bool is_removed() const volatile { iterator i(*this); return i.is_removed(); }
 
-		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
-		payload_t& operator*() const { return *(m_link->get_payload()); }
-		payload_t* operator->() const { return m_link->get_payload(); }
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template static_cast_to<payload_link_t>()->get_payload(); }
+		payload_t& operator*() const { return *(get()); }
+		payload_t* operator->() const { return get(); }
 
 		rc_obj_base* get_desc() const { return m_link.get_desc(); }
 		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
-		rcptr<payload_t> get_obj() const
+		const rcptr<payload_t>& get_obj(unowned_t<rcptr<payload_t> >& storage = unowned_t<rcptr<payload_t> >().get_unowned()) const
 		{
-			rcptr<payload_t> result;
 			if (!!m_link)
-				result = m_link.template static_cast_to<payload_link_t>()->get_obj();
-			return result;
+				storage.set(m_link.template static_cast_to<payload_link_t>()->get_payload(), m_link.get_desc());
+			return storage;
 		}
 
 		rcptr<payload_t> get_obj() const volatile
 		{
-			iterator tmp = *this;
-			return tmp.get_obj();
+			rcptr<payload_t> result;
+			rcptr<volatile link_t> lnk = m_link;
+			if (!!lnk)
+			{
+				result.set(lnk.template static_cast_to<payload_link_t>()->get_payload(), lnk.get_desc());
+				lnk.disown();
+			}
+			return result;
 		}
 
 		bool operator!() const { return !m_link; }
@@ -1616,13 +1687,13 @@ public:
 		}
 
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
 
@@ -1633,10 +1704,10 @@ public:
 		iterator exchange(T2&& src) volatile { return iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
 
@@ -1647,10 +1718,10 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 
 	};
@@ -1661,11 +1732,11 @@ public:
 	protected:
 		rcptr<volatile link_t> m_link;
 
-		friend class container_skiplist;
+		friend class container_skiplist_base;
+		template <bool, typename, class, class, class> friend class container_skiplist;
 		friend class iterator;
 		friend class remove_token;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		volatile_iterator(const rcptr<link_t>& l) : m_link(l) { }
 		volatile_iterator(const volatile rcptr<link_t>& l) : m_link(l) { }
@@ -1674,6 +1745,14 @@ public:
 		volatile_iterator(const rcptr<volatile link_t>& l) : m_link(l) { }
 		volatile_iterator(const volatile rcptr<volatile link_t>& l) : m_link(l) { }
 		volatile_iterator(rcptr<volatile link_t>&& l) : m_link(std::move(l)) { }
+
+		volatile_iterator(const rcref<link_t>& l) : m_link(l) { }
+		volatile_iterator(const volatile rcref<link_t>& l) : m_link(l) { }
+		volatile_iterator(rcref<link_t>&& l) : m_link(std::move(l)) { }
+
+		volatile_iterator(const rcref<volatile link_t>& l) : m_link(l) { }
+		volatile_iterator(const volatile rcref<volatile link_t>& l) : m_link(l) { }
+		volatile_iterator(rcref<volatile link_t>&& l) : m_link(std::move(l)) { }
 
 		volatile_iterator(const weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
 		volatile_iterator(const volatile weak_rcptr<link_t>& l) : m_link(l) { if (is_removed()) release(); }
@@ -1695,6 +1774,20 @@ public:
 		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l; }
 		void assign(rcptr<volatile link_t>&& l) { m_link = std::move(l); }
 		void assign(rcptr<volatile link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcref<link_t>& l) { m_link = l; }
+		void assign(const rcref<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) volatile { m_link = l; }
+		void assign(rcref<link_t>&& l) { m_link = std::move(l); }
+		void assign(rcref<link_t>&& l) volatile { m_link = std::move(l); }
+
+		void assign(const rcref<volatile link_t>& l) { m_link = l; }
+		void assign(const rcref<volatile link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<volatile link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<volatile link_t>& l) volatile { m_link = l; }
+		void assign(rcref<volatile link_t>&& l) { m_link = std::move(l); }
+		void assign(rcref<volatile link_t>&& l) volatile { m_link = std::move(l); }
 
 		void assign(const weak_rcptr<link_t>& l) { m_link = l; if (is_removed()) release(); }
 
@@ -1760,25 +1853,30 @@ public:
 		bool is_removed() const { return !!m_link && m_link->is_removed(); }
 		bool is_removed() const volatile { rcptr<volatile link_t> lnk = m_link; return !!lnk && lnk->is_removed(); }
 
-		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template const_cast_to<link_t>()->get_payload(); }
+		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link.template static_cast_to<volatile payload_link_t>()->get_payload(); }
 		payload_t& operator*() const { return *(get()); }
 		payload_t* operator->() const { return get(); }
 
 		rc_obj_base* get_desc() const { return m_link.get_desc(); }
 		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
 
-		rcptr<payload_t> get_obj() const
+		const rcptr<payload_t>& get_obj(unowned_t<rcptr<payload_t> >& storage = unowned_t<rcptr<payload_t> >().get_unowned()) const
 		{
-			rcptr<payload_t> result;
 			if (!!m_link)
-				result = m_link.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_obj();
-			return result;
+				storage.set(m_link.template static_cast_to<volatile payload_link_t>()->get_payload(), m_link.get_desc());
+			return storage;
 		}
 
 		rcptr<payload_t> get_obj() const volatile
 		{
-			volatile_iterator tmp = *this;
-			return tmp.get_obj();
+			rcptr<payload_t> result;
+			rcptr<volatile link_t> lnk = m_link;
+			if (!!lnk)
+			{
+				result.set(lnk.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload(), lnk.get_desc());
+				lnk.disown();
+			}
+			return result;
 		}
 
 		bool operator!() const { return !m_link; }
@@ -2123,13 +2221,13 @@ public:
 		}
 
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
 
@@ -2140,10 +2238,10 @@ public:
 		iterator exchange(T2&& src) volatile { return iterator(m_link.exchange(forward_member<T2>(src.m_link))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
 
@@ -2154,155 +2252,11 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
-	};
-
-	/// @brief A preallocated container_skiplist element
-	class preallocated
-	{
-	protected:
-		rcptr<link_t> m_link;
-
-		friend class container_skiplist;
-		friend class iterator;
-		friend class volatile_iterator;
-		friend class remove_token;
-		friend class volatile_remove_token;
-
-		preallocated(const rcptr<link_t>& l) : m_link(l) { }
-		preallocated(const volatile rcptr<link_t>& l) : m_link(l) { }
-		preallocated(rcptr<link_t>&& l) : m_link(std::move(l)) { }
-
-	public:
-		preallocated() { }
-		preallocated(const preallocated& src) : m_link(src.m_link) { }
-		preallocated(const volatile preallocated& src) : m_link(src.m_link) { }
-		preallocated(preallocated&& src) : m_link(std::move(src.m_link)) { }
-
-		preallocated& operator=(const preallocated& i) { m_link = i.m_link; return *this; }
-		preallocated& operator=(const volatile preallocated& i) { m_link = i.m_link; return *this; }
-		preallocated& operator=(preallocated&& i) { m_link = std::move(i.m_link); return *this; }
-		volatile preallocated& operator=(const preallocated& i) volatile { m_link = i.m_link; return *this; }
-		volatile preallocated& operator=(const volatile preallocated& i) volatile { m_link = i.m_link; return *this; }
-		volatile preallocated& operator=(preallocated&& i) volatile { m_link = std::move(i.m_link); return *this; }
-
-		void disown() { m_link.disown(); }
-		void disown() volatile { m_link.disown(); }
-
-		void release() { m_link.release(); }
-		void release() volatile { m_link.release(); }
-
-		payload_t* get() const { return (!m_link) ? (payload_t*)0 : m_link->get_payload(); }
-		payload_t& operator*() const { return *(m_link->get_payload()); }
-		payload_t* operator->() const { return m_link->get_payload(); }
-
-		rc_obj_base* get_desc() const { return m_link.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_link.get_desc(); }
-
-		rcptr<payload_t> get_obj() const
-		{
-			rcptr<payload_t> result;
-			if (!!m_link)
-				result = m_link.template static_cast_to<payload_link_t>()->get_obj();
-			return result;
-		}
-
-		rcptr<payload_t> get_obj() const volatile
-		{
-			preallocated tmp = *this;
-			return tmp.get_obj();
-		}
-
-		bool operator!() const { return !m_link; }
-		bool operator!() const volatile { return !m_link; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const { return m_link == i.m_link; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const volatile { return m_link == i.m_link; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const { return m_link != i.m_link; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
-
-
-		void swap(preallocated& wth) { m_link.swap(wth.m_link); }
-		void swap(preallocated& wth) volatile { m_link.swap(wth.m_link); }
-		void swap(volatile preallocated& wth) { m_link.swap(wth.m_link); }
-
-
-		preallocated exchange(const preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(const volatile preallocated& src) { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(preallocated&& src) { return preallocated(m_link.exchange(std::move(src.m_link))); }
-
-		preallocated exchange(const preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(const volatile preallocated& src) volatile { return preallocated(m_link.exchange(src.m_link)); }
-		preallocated exchange(preallocated&& src) volatile { return preallocated(m_link.exchange(std::move(src.m_link))); }
-
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) { m_link.exchange(src.m_link, rtn.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) volatile { m_link.exchange(src.m_link, rtn.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) volatile { m_link.exchange(std::move(src.m_link), rtn.m_link); }
-
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link); }
-
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(src.m_link, cmp.m_link, rtn.m_link); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(std::move(src.m_link), cmp.m_link, rtn.m_link); }
-
 	};
 
 	/// @brief A container_skiplist element remove token
@@ -2313,11 +2267,11 @@ public:
 	protected:
 		weak_rcptr<link_t> m_link;
 
-		friend class container_skiplist;
+		friend class container_skiplist_base;
+		template <bool, typename, class, class, class> friend class container_skiplist;
 		friend class iterator;
 		friend class volatile_iterator;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		remove_token(const weak_rcptr<link_t>& l) : m_link(l) { }
 		remove_token(const volatile weak_rcptr<link_t>& l) : m_link(l) { }
@@ -2357,6 +2311,16 @@ public:
 		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
 		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
 
+		void assign(const rcref<link_t>& l) { m_link = l; }
+		void assign(const rcref<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) volatile { m_link = l; }
+
+		void assign(const rcref<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const rcref<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcref<volatile link_t>& l) { m_link = l.template const_cast_to<link_t>(); }
+		void assign(const volatile rcref<volatile link_t>& l) volatile { m_link = l.template const_cast_to<link_t>(); }
+
 	public:
 		remove_token() { }
 
@@ -2393,13 +2357,13 @@ public:
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
 		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
 
@@ -2410,10 +2374,10 @@ public:
 		remove_token exchange(T2&& src) volatile { return remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
 
@@ -2424,14 +2388,14 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
-	/// @brief A volatile container_skiplist element remove token
+	/// @brief A container_skiplist element volatile remove token
 	///
 	/// A remove token is like an iterator, but keeps a weak reference to the content.
 	class volatile_remove_token
@@ -2439,11 +2403,11 @@ public:
 	protected:
 		weak_rcptr<volatile link_t> m_link;
 
-		friend class container_skiplist;
+		friend class container_skiplist_base;
+		template <bool, typename, class, class, class> friend class container_skiplist;
 		friend class iterator;
 		friend class volatile_iterator;
 		friend class remove_token;
-		friend class preallocated;
 
 		volatile_remove_token(const weak_rcptr<link_t>& l) : m_link(l) { }
 		volatile_remove_token(const volatile weak_rcptr<link_t>& l) : m_link(l) { }
@@ -2483,6 +2447,16 @@ public:
 		void assign(const volatile rcptr<volatile link_t>& l) { m_link = l; }
 		void assign(const volatile rcptr<volatile link_t>& l) volatile { m_link = l; }
 
+		void assign(const rcref<link_t>& l) { m_link = l; }
+		void assign(const rcref<link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<link_t>& l) volatile { m_link = l; }
+
+		void assign(const rcref<volatile link_t>& l) { m_link = l; }
+		void assign(const rcref<volatile link_t>& l) volatile { m_link = l; }
+		void assign(const volatile rcref<volatile link_t>& l) { m_link = l; }
+		void assign(const volatile rcref<volatile link_t>& l) volatile { m_link = l; }
+
 	public:
 		volatile_remove_token() { }
 
@@ -2519,13 +2493,13 @@ public:
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
 		bool operator!=(const T2& i) const volatile { return m_link != i.m_link; }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_link.swap(wth.m_link); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_link.swap(wth.m_link); }
 
 
@@ -2536,10 +2510,10 @@ public:
 		volatile_remove_token exchange(T2&& src) volatile { return volatile_remove_token(m_link.exchange(forward_member<T2>(src.m_link))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_link.exchange(forward_member<T2>(src.m_link), rtn.m_link); }
 
 
@@ -2550,57 +2524,53 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_link.compare_exchange(forward_member<T2>(src.m_link), cmp.m_link, rtn.m_link); }
 	};
 
-	container_skiplist(this_t&& src)
-		: m_allocator(std::move(src.m_allocator)),
-		m_sentinel(std::move(m_sentinel)),
-		m_heightAndCount(m_heightAndCount)
+	container_skiplist_base() { }
+
+	container_skiplist_base(this_t&& src)
+		: m_sentinel(std::move(m_sentinel))
 	{ }
 
-	container_skiplist()
-	{
-		m_heightAndCount.m_currentHeight = 0;
-		m_heightAndCount.m_count = 0;
-	}
+	explicit container_skiplist_base(volatile allocator_type& al)
+		: m_allocator(al)
+	{ }
 
-	~container_skiplist()
+	~container_skiplist_base()
 	{
 		if (!!m_sentinel)
 		{
 			clear_inner();
-			height_t level = 0;
-			for (;;)
-			{
-				if (!m_sentinel->m_links[level]->m_next)
-					break;
-				m_sentinel->m_links[level]->m_next.release();
-				m_sentinel->m_links[level]->m_prev.release();
-				if (level == max_height)
-					break;
-				++level;
-			}
-			m_sentinel.release();
+			m_sentinel->clear();
+			COGS_ASSERT(m_sentinel.get_desc()->is_owned());
 		}
 	}
 
 	this_t& operator=(this_t&& src)
 	{
-		clear_inner();
+		if (!!m_sentinel)
+			clear_inner();
 		m_allocator = std::move(src.m_allocator);
 		m_sentinel = std::move(src.m_sentinel);
-		m_heightAndCount = src.m_heightAndCount;
+		return *this;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		m_sentinel.exchange(src.m_sentinel);
+		src.m_sentinel.release();
 		return *this;
 	}
 
 	void clear()
 	{
-		if (!!m_heightAndCount.m_count)
+		if (!!m_sentinel && !!m_sentinel->m_heightAndCount.m_count)
 		{
 			clear_inner();
 			height_t level = 0;
@@ -2610,38 +2580,56 @@ public:
 					break;
 				m_sentinel->m_links[level]->m_next = m_sentinel;
 				m_sentinel->m_links[level]->m_prev = m_sentinel;
+				COGS_ASSERT(!!m_sentinel->m_links[level]->m_next.get_desc());
+				COGS_ASSERT(!!m_sentinel->m_links[level]->m_prev.get_desc());
 				if (level == max_height)
 					break;
 				++level;
 			}
-			m_heightAndCount.m_count = 0;
-			m_heightAndCount.m_currentHeight = 0;
+			m_sentinel->m_heightAndCount.m_count = 0;
+			m_sentinel->m_heightAndCount.m_currentHeight = 0;
 		}
 	}
 
 	bool drain() volatile
 	{
 		bool foundAny = false;
-		while (!!pop_last())
+		while (!pop_last().wasEmptied)
 			foundAny = true;
 		return foundAny;
 	}
 
-	size_t size() const { return m_heightAndCount.m_count; }
+	size_t size() const
+	{
+		if (!m_sentinel)
+			return 0;
+		return m_sentinel->m_heightAndCount.m_count;
+	}
+
 	size_t size() const volatile
 	{
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		if (!sentinel)
+			return 0;
 		ptrdiff_t sz;
-		atomic::load(m_heightAndCount.m_count, sz);
+		atomic::load(sentinel->m_heightAndCount.m_count, sz);
 		if (sz < 0) // The count can bounce below zero, if an item is added, removed, and dec'ed before inc'ed.
 			sz = 0;
 		return sz;
 	}
 
-	bool is_empty() const { return !m_heightAndCount.m_count; }
+	bool is_empty() const
+	{
+		return !m_sentinel || !m_sentinel->m_heightAndCount.m_count;
+	}
+
 	bool is_empty() const volatile
 	{
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		if (!sentinel)
+			return true;
 		ptrdiff_t sz;
-		atomic::load(m_heightAndCount.m_count, sz);
+		atomic::load(sentinel->m_heightAndCount.m_count, sz);
 		return (sz <= 0);
 	}
 
@@ -2659,7 +2647,7 @@ public:
 	volatile_iterator get_first() const volatile
 	{
 		volatile_iterator i;
-		rcptr<volatile link_t> sentinel = m_sentinel;
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		if (!!sentinel)
 		{
 			rcptr<volatile link_t> lnk;
@@ -2673,7 +2661,7 @@ public:
 					break;
 				if (!lnk->begin_read_and_complete(rt, false)) // just in case it needs help removing...
 					continue;
-				i.m_link = lnk;
+				i.m_link = std::move(lnk);
 				break;
 			}
 		}
@@ -2691,7 +2679,7 @@ public:
 	volatile_iterator get_last() const volatile
 	{
 		volatile_iterator i;
-		rcptr<volatile link_t> sentinel = m_sentinel;
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		if (!!sentinel)
 		{
 			rcptr<volatile link_t> lnk;
@@ -2705,270 +2693,10 @@ public:
 					break;
 				if (!lnk->begin_read_read_and_complete(0, rt, false)) // just in case it needs help removing...
 					continue;
-				i.m_link = lnk;
+				i.m_link = std::move(lnk);
 				break;
 			}
 		}
-		return i;
-	}
-
-	preallocated preallocate() const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t); return i; }
-	preallocated preallocate(const payload_t& t) const volatile { preallocated i; i.m_link = container_rcnew(m_allocator, payload_link_t)(t); return i; }
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		typedef aux_payload_link_t<T> aux_payload_t;
-		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t);
-		i.m_link = p;
-		return p->get_aux_ref(storage);
-	}
-
-	template <typename T>
-	const rcref<T>& preallocate_with_aux(const payload_t& t, preallocated& i, unowned_t<rcptr<T> >& storage = unowned_t<rcptr<T> >().get_unowned()) const volatile
-	{
-		typedef aux_payload_link_t<T> aux_payload_t;
-		rcref<aux_payload_t> p = container_rcnew(m_allocator, aux_payload_t)(t);
-		i.m_link = p;
-		return p->get_aux_ref(storage);
-	}
-
-	iterator insert_multi_preallocated(const preallocated& i)
-	{
-		iterator result;
-		i.m_link->initialize(generate_height());
-		result.m_link = i.m_link;
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		i.m_link->insert_multi(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return result;
-	}
-
-	volatile_iterator insert_multi_preallocated(const preallocated& i) volatile
-	{
-		bool wasEmpty;
-		return insert_multi_preallocated(i, wasEmpty);
-	}
-
-	// wasEmpty is of limited usefulness, as parallel inserts and removes could
-	// occur and invalidate the value before it's evaluated.  It's only useful if the access
-	// pattern is known not to invalidate it.
-	volatile_iterator insert_multi_preallocated(const preallocated& i, bool& wasEmpty) volatile
-	{
-		volatile_iterator result;
-		i.m_link->initialize(generate_height());
-		result.m_link = i.m_link;
-		wasEmpty = false;
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
-		i.m_link.template const_cast_to<link_t>()->insert_multi(wasEmpty, height, sentinel);
-		assign_next(m_heightAndCount.m_count);
-		return result;
-	}
-
-	iterator insert_multi(const payload_t& t)
-	{
-		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		i.m_link->insert_multi(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return i;
-	}
-
-	volatile_iterator insert_multi(const payload_t& t) volatile
-	{
-		bool wasEmpty;
-		return insert_multi(t, wasEmpty);
-	}
-
-	// wasEmpty is of limited usefulness, as parallel inserts and removes could
-	// occur and invalidate the value before it's evaluated.  It's only useful is access
-	// pattern is known not to invalidate it.
-	volatile_iterator insert_multi(const payload_t& t, bool& wasEmpty) volatile
-	{
-		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
-		i.m_link.template const_cast_to<link_t>()->insert_multi(wasEmpty, height, sentinel);
-		assign_next(m_heightAndCount.m_count);
-		return i;
-	}
-
-	iterator insert_replace_preallocated(const preallocated& i)
-	{
-		iterator result;
-		i.m_link->initialize(generate_height());
-		result.m_link = i.m_link;
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return result;
-	}
-
-	iterator insert_replace_preallocated(const preallocated& i, bool& collision)
-	{
-		iterator result;
-		i.m_link->initialize(generate_height());
-		result.m_link = i.m_link;
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		collision = i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return result;
-	}
-
-	iterator insert_replace(const payload_t& t)
-	{
-		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return i;
-	}
-
-	iterator insert_replace(const payload_t& t, bool& collision)
-	{
-		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		collision = i.m_link->insert_replace(m_heightAndCount.m_currentHeight, sentinel);
-		++(m_heightAndCount.m_count);
-		return i;
-	}
-
-	// returns null iterator if collision
-	iterator insert_unique_preallocated(const preallocated& i)
-	{
-		iterator result;
-		i.m_link->initialize(generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		if (!i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel))
-		{
-			result.m_link = i.m_link;
-			++(m_heightAndCount.m_count);
-		}
-		return result;
-	}
-
-	// If collision, sets collision to true and returns collided result.
-	iterator insert_unique_preallocated(const preallocated& i, bool& collision)
-	{
-		iterator result;
-		i.m_link->initialize(generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		rcptr<link_t> collidedWith = i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel);
-		collision = !!collidedWith;
-		if (collision)
-			result.m_link = collidedWith;
-		else
-		{
-			result.m_link = i.m_link;
-			++(m_heightAndCount.m_count);
-		}
-		return result;
-	}
-
-	// returns null iterator if collision
-	volatile_iterator insert_unique_preallocated(const preallocated& i) volatile
-	{
-		volatile_iterator result;
-		i.m_link->initialize(generate_height());
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link->m_height);
-		if (!i.m_link->insert_unique(height, sentinel))
-		{
-			result.m_link = i.m_link;
-			assign_next(m_heightAndCount.m_count);
-		}
-		return result;
-	}
-
-	// If collision, sets collision to true and returns collided result.
-	volatile_iterator insert_unique_preallocated(const preallocated& i, bool& collision) volatile
-	{
-		volatile_iterator result;
-		i.m_link->initialize(generate_height());
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link->m_height);
-		rcptr<volatile link_t> collidedWith = i.m_link->insert_unique(height, sentinel);
-		collision = !!collidedWith;
-		if (collision)
-			result.m_link = collidedWith;
-		else
-		{
-			result.m_link = i.m_link;
-			assign_next(m_heightAndCount.m_count);
-		}
-		return result;
-	}
-
-	// returns null iterator if collision
-	iterator insert_unique(const payload_t& t)
-	{
-		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		if (!!i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel))
-			i.m_link.release();
-		else
-			++(m_heightAndCount.m_count);
-		return i;
-	}
-
-	// If collision, sets collision to true and returns collided result.
-	iterator insert_unique(const payload_t& t, bool& collision)
-	{
-		iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<link_t>& sentinel = lazy_init_sentinel();
-		accommodate_height(i.m_link->m_height);
-		rcptr<link_t> collidedWith = i.m_link->insert_unique(m_heightAndCount.m_currentHeight, sentinel);
-		collision = !!collidedWith;
-		if (collision)
-			i.m_link = collidedWith;
-		else
-			++(m_heightAndCount.m_count);
-		return i;
-	}
-
-	// returns null iterator if collision
-	volatile_iterator insert_unique(const payload_t& t) volatile
-	{
-		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
-		if (!!i.m_link.template const_cast_to<link_t>()->insert_unique(height, sentinel))
-			i.m_link.release();
-		else
-			assign_next(m_heightAndCount.m_count);
-		return i;
-	}
-
-	// If collision, sets collision to true and returns collided result.
-	volatile_iterator insert_unique(const payload_t& t, bool& collision) volatile
-	{
-		volatile_iterator i;
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(t, generate_height());
-		rcptr<volatile link_t> sentinel = lazy_init_sentinel();
-		height_t height = accommodate_height(i.m_link.template const_cast_to<link_t>()->m_height);
-		rcptr<link_t> collidedWith = i.m_link.template const_cast_to<link_t>()->insert_unique(height, sentinel);
-		collision = !!collidedWith;
-		if (collision)
-			i.m_link = collidedWith;
-		else
-			assign_next(m_heightAndCount.m_count);
 		return i;
 	}
 
@@ -2978,8 +2706,8 @@ public:
 		if (!!i.m_link)
 		{
 			b = i.m_link->remove();
-			if (b)
-				dec_count();
+			if (b && !!m_sentinel)
+				m_sentinel->dec_count();
 		}
 		return b;
 	}
@@ -2990,51 +2718,40 @@ public:
 		return remove(i);
 	}
 
-	bool remove(const volatile_iterator& i, bool& wasLast) volatile
+	struct volatile_remove_result
 	{
-		wasLast = false;
+		bool wasRemoved;
+		bool wasEmptied;
+	};
+
+	volatile_remove_result remove(const volatile_iterator& i) volatile
+	{
+		bool wasLast = false;
 		rcptr<volatile link_t> lnk = i.m_link;
 		bool b = false;
 		if (!!lnk)
 		{
 			b = lnk->remove(wasLast);
 			if (b)
-				dec_count();
+			{
+				rcptr<volatile sentinel_link_t> sentinel = i.m_link.template static_cast_to<volatile payload_link_t>()->get_sentinel();
+				if (!!sentinel)
+					sentinel->dec_count();
+			}
 		}
-		return b;
+		return { b, wasLast };
 	}
 
-	bool remove(const volatile_remove_token& rt, bool& wasLast) volatile
+	volatile_remove_result remove(const volatile_remove_token& rt) volatile
 	{
 		volatile_iterator i(rt);
-		return remove(i, wasLast);
-	}
-
-	bool remove(const volatile_iterator& i) volatile
-	{
-		bool wasEmpty;
-		return remove(i, wasEmpty);
-	}
-
-	bool remove(const volatile_remove_token& rt) volatile
-	{
-		volatile_iterator i(rt);
-		bool wasEmpty;
-		return remove(i, wasEmpty);
+		return remove(i);
 	}
 
 	iterator pop_first()
 	{
 		iterator i = get_first();
 		remove(i);
-		return i;
-	}
-
-	iterator pop_first(bool& wasLast)
-	{
-		iterator i = get_first();
-		remove(i);
-		wasLast = !m_heightAndCount.m_count;
 		return i;
 	}
 
@@ -3045,36 +2762,22 @@ public:
 		return i;
 	}
 
-	iterator pop_last(bool& wasLast)
+	struct pop_result
 	{
-		iterator i = get_last();
-		remove(i);
-		wasLast = !m_heightAndCount.m_count;
-		return i;
-	}
+		volatile_iterator iterator;
+		bool wasEmptied;
+	};
 
-	volatile_iterator pop_first() volatile
-	{
-		bool wasLast;
-		return pop_first(wasLast);
-	}
-
-	volatile_iterator pop_last() volatile
-	{
-		bool wasLast;
-		return pop_last(wasLast);
-	}
-
-	volatile_iterator pop_first(bool& wasLast) volatile
+	pop_result pop_first() volatile
 	{
 		volatile_iterator itor;
-		rcptr<volatile link_t> sentinel = m_sentinel;
+		bool wasLast = false;
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		if (!!sentinel)
 		{
 			read_token rt_sentinel;
 			for (;;)
 			{
-				wasLast = false;
 				bool b = sentinel->begin_read_and_complete(rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				COGS_ASSERT(b);
 				rcptr<volatile link_t> prev = rt_sentinel->m_prev;
@@ -3092,7 +2795,7 @@ public:
 				COGS_ASSERT(wt->m_mode == link_mode::normal);
 				COGS_ASSERT(wt->m_next == firstLink);
 
-				wasLast = wt->m_next.get_ptr() == prev.get_ptr();
+				bool mayBeLast = wt->m_next.get_ptr() == wt->m_prev.get_ptr();
 
 				wt->m_mode = link_mode::removing_next;
 				if (!sentinel->m_links[0].end_write(wt))
@@ -3101,31 +2804,31 @@ public:
 				sentinel->begin_read_and_complete(rt_sentinel, false); // completes remove-next
 				if (!firstLink->remove())
 					continue; // someone else marked it first.
-				dec_count();
-				itor.m_link = firstLink;
+				wasLast = mayBeLast;
+				sentinel->dec_count();
+				itor.m_link = std::move(firstLink);
 				break;
 			}
 		}
-		return itor;
+		return { std::move(itor), wasLast };
 	}
 
-	volatile_iterator pop_last(bool& wasLast) volatile
+	pop_result pop_last() volatile
 	{
-		rcptr<volatile link_t> sentinel = m_sentinel;
+		volatile_iterator itor;
+		bool wasLast = false;
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		read_token rt_last;
 		read_token rt_prev;
 		read_token rt_sentinel;
-		volatile_iterator itor;
 		if (!!sentinel)
 		{
 			for (;;)
 			{
-				wasLast = false;
 				sentinel->begin_read_and_complete(rt_sentinel, false); // sentinel won't get deleted, no need to check result
 				rcptr<volatile link_t> lastLink = rt_sentinel->m_prev;
 				if (lastLink.get_ptr() == sentinel.get_ptr())
 					break;
-
 				rcptr<volatile link_t> prev;
 				rcptr<volatile link_t> prev_prev;
 				bool outerContinue = false;
@@ -3167,7 +2870,7 @@ public:
 				COGS_ASSERT(wt_prev->m_mode == link_mode::normal);
 				COGS_ASSERT(wt_prev->m_next == lastLink);
 
-				wasLast = wt_prev->m_next.get_ptr() == prev_prev.get_ptr();
+				bool mayBeLast = wt_prev->m_next.get_ptr() == prev_prev.get_ptr();
 
 				wt_prev->m_mode = link_mode::removing_next;
 				if (!prev->m_links[0].end_write(wt_prev))
@@ -3176,48 +2879,50 @@ public:
 				prev->begin_read_and_complete(rt_prev, false); // completes remove-next
 				if (!lastLink->remove())
 					continue;
-				dec_count();
-				itor.m_link = lastLink;
+				wasLast = mayBeLast;
+				sentinel->dec_count();
+				itor.m_link = std::move(lastLink);
 				break;
 			}
 		}
-		return itor;
+		return { std::move(itor), wasLast };
 	}
+
 
 	iterator find_any_equal(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 						if (!comparator_t::is_less_than(criteria, nextCriteria))
 						{
-							i.m_link = next;
+							i.m_link = std::move(next);
 							break;
 						}
 					}
 				}
 				if (!level)
 					break;
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3235,35 +2940,35 @@ public:
 	iterator find_first_equal(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
+						if (comparator_t::is_less_than(next.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
 				}
 				if (!level)
 				{
-					if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next->get_payload()->get_key()))// if next and arg are equal
-						i.m_link = next;
+					if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next.template static_cast_to<payload_link_t>()->get_payload()->get_key()))// if next and arg are equal
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3274,7 +2979,8 @@ public:
 	volatile_iterator find_first_equal(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3286,7 +2992,7 @@ public:
 			rcptr<volatile link_t> lastAdjacent;
 			bool nextWasEqual = false;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -3305,12 +3011,12 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
-						const key_t& prevCriteria = prev->get_payload()->get_key();
+						const key_t& prevCriteria = prev.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
@@ -3324,7 +3030,7 @@ public:
 						}
 						if (advance)
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -3332,10 +3038,10 @@ public:
 				if (!level)
 				{
 					if (nextWasEqual)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -3346,10 +3052,10 @@ public:
 	iterator find_last_equal(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
@@ -3357,12 +3063,12 @@ public:
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -3376,7 +3082,7 @@ public:
 						}
 						if (advance)
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -3384,10 +3090,10 @@ public:
 				if (!level)
 				{
 					if (prevWasEqual)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3398,7 +3104,8 @@ public:
 	volatile_iterator find_last_equal(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3409,7 +3116,7 @@ public:
 			rcptr<volatile link_t> prev;
 			rcptr<volatile link_t> lastAdjacent;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -3427,25 +3134,25 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
-						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>()->get_payload()->get_key()))
+						if (comparator_t::is_less_than(criteria, prev.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
 				}
 				if (!level)
 				{
-					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev.template const_cast_to<link_t>()->get_payload()->get_key(), criteria)) // if next and arg are equal
-						i.m_link = prev;
+					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev.template const_cast_to<link_t>().template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria)) // if next and arg are equal
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -3456,24 +3163,24 @@ public:
 	iterator find_nearest_less_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
+						if (comparator_t::is_less_than(next.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -3481,10 +3188,10 @@ public:
 				if (!level)
 				{
 					if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3495,7 +3202,8 @@ public:
 	volatile_iterator find_nearest_less_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3507,7 +3215,7 @@ public:
 			rcptr<volatile link_t> lastAdjacent;
 			bool nextWasEqual = false;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -3526,12 +3234,12 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& prevCriteria = prev->get_payload()->get_key();
+						const key_t& prevCriteria = prev.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
@@ -3545,7 +3253,7 @@ public:
 						}
 						if (advance)
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -3553,10 +3261,10 @@ public:
 				if (!level)
 				{
 					if (nextWasEqual && (prev.get_ptr() != sentinelPtr))
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -3567,10 +3275,10 @@ public:
 	iterator find_nearest_greater_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
@@ -3578,12 +3286,12 @@ public:
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -3597,7 +3305,7 @@ public:
 						}
 						if (advance)
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -3605,10 +3313,10 @@ public:
 				if (!level)
 				{
 					if (prevWasEqual && (next.get_ptr() != sentinelPtr))
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3619,7 +3327,8 @@ public:
 	volatile_iterator find_nearest_greater_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3630,7 +3339,7 @@ public:
 			rcptr<volatile link_t> prev;
 			rcptr<volatile link_t> lastAdjacent;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -3648,14 +3357,14 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if prev is not sentinel
 					{
-						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
+						if (comparator_t::is_less_than(criteria, prev.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -3663,10 +3372,10 @@ public:
 				if (!level)
 				{
 					if (next.get_ptr() != sentinelPtr)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -3677,30 +3386,30 @@ public:
 	iterator find_any_equal_or_nearest_less_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 						if (!comparator_t::is_less_than(criteria, nextCriteria))
 						{
-							i.m_link = next;
+							i.m_link = std::move(next);
 							break;
 						}
 					}
@@ -3708,10 +3417,10 @@ public:
 				if (!level)
 				{
 					if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3729,37 +3438,37 @@ public:
 	iterator find_any_equal_or_nearest_greater_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						if (comparator_t::is_less_than(nextCriteria, criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 						if (!comparator_t::is_less_than(criteria, nextCriteria)) // if next and arg are equal
 						{
-							i.m_link = next;
+							i.m_link = std::move(next);
 							break;
 						}
 					}
 				}
 				if (!level)
 					break;
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3777,37 +3486,37 @@ public:
 	iterator find_first_equal_or_nearest_less_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
+						if (comparator_t::is_less_than(next.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
 				}
 				if (!level)
 				{
-					if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next->get_payload()->get_key()))
-						i.m_link = next;
+					if ((next.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(criteria, next.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
+						i.m_link = std::move(next);
 					else if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3818,7 +3527,8 @@ public:
 	volatile_iterator find_first_equal_or_nearest_less_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3830,7 +3540,7 @@ public:
 			rcptr<volatile link_t> lastAdjacent;
 			bool nextWasEqual = false;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -3849,12 +3559,12 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& prevCriteria = prev->get_payload()->get_key();
+						const key_t& prevCriteria = prev.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
@@ -3868,7 +3578,7 @@ public:
 						}
 						if (advance)
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -3876,12 +3586,12 @@ public:
 				if (!level)
 				{
 					if (nextWasEqual)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					else if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -3892,24 +3602,24 @@ public:
 	iterator find_first_equal_or_nearest_greater_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(next->get_payload()->get_key(), criteria))
+						if (comparator_t::is_less_than(next.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria))
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -3917,10 +3627,10 @@ public:
 				if (!level)
 				{
 					if (next.get_ptr() != sentinelPtr)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -3931,7 +3641,8 @@ public:
 	volatile_iterator find_first_equal_or_nearest_greater_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -3942,7 +3653,7 @@ public:
 			rcptr<volatile link_t> prev;
 			rcptr<volatile link_t> lastAdjacent;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			bool nextWasEqual = false;
 			for (;;)
 			{
@@ -3962,12 +3673,12 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& prevCriteria = prev->get_payload()->get_key();
+						const key_t& prevCriteria = prev.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!nextWasEqual)
 							advance = comparator_t::is_less_than(criteria, prevCriteria);
@@ -3981,7 +3692,7 @@ public:
 						}
 						if (advance)
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -3989,10 +3700,10 @@ public:
 				if (!level)
 				{
 					if (next.get_ptr() != sentinelPtr)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -4003,10 +3714,10 @@ public:
 	iterator find_last_equal_or_nearest_less_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
@@ -4014,12 +3725,12 @@ public:
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -4033,7 +3744,7 @@ public:
 						}
 						if (advance)
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -4041,10 +3752,10 @@ public:
 				if (!level)
 				{
 					if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -4055,7 +3766,8 @@ public:
 	volatile_iterator find_last_equal_or_nearest_less_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -4066,7 +3778,7 @@ public:
 			rcptr<volatile link_t> prev = sentinelPtr;
 			rcptr<volatile link_t> lastAdjacent;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -4084,14 +3796,14 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
+						if (comparator_t::is_less_than(criteria, prev.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
@@ -4099,10 +3811,10 @@ public:
 				if (!level)
 				{
 					if (prev.get_ptr() != sentinelPtr)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -4113,10 +3825,10 @@ public:
 	iterator find_last_equal_or_nearest_greater_than(const key_t& criteria) const
 	{
 		iterator i;
-		link_t* sentinelPtr = m_sentinel.get_ptr();
+		sentinel_link_t* sentinelPtr = m_sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
-			height_t level = m_heightAndCount.m_currentHeight;
+			height_t level = sentinelPtr->m_heightAndCount.m_currentHeight;
 			rcptr<link_t> next;
 			rcptr<link_t> prev = sentinelPtr;
 			rcptr<link_t> lastAdjacent;
@@ -4124,12 +3836,12 @@ public:
 			for (;;)
 			{
 				next = prev->m_links[level]->m_next;
-				if (next != lastAdjacent)
+				if (next.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (next.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						const key_t& nextCriteria = next->get_payload()->get_key();
+						const key_t& nextCriteria = next.template static_cast_to<payload_link_t>()->get_payload()->get_key();
 						bool advance = false;
 						if (!prevWasEqual)
 							advance = comparator_t::is_less_than(nextCriteria, criteria);
@@ -4143,7 +3855,7 @@ public:
 						}
 						if (advance)
 						{
-							prev = next;
+							prev = std::move(next);
 							continue;
 						}
 					}
@@ -4151,12 +3863,12 @@ public:
 				if (!level)
 				{
 					if (prevWasEqual)
-						i.m_link = prev;
+						i.m_link = std::move(prev);
 					else if (next.get_ptr() != sentinelPtr)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = next;
+				lastAdjacent = std::move(next);
 				--level;
 				continue;
 			}
@@ -4167,7 +3879,8 @@ public:
 	volatile_iterator find_last_equal_or_nearest_greater_than(const key_t& criteria) const volatile
 	{
 		volatile_iterator i;
-		volatile link_t* sentinelPtr = m_sentinel.get_ptr();
+		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
+		volatile sentinel_link_t* sentinelPtr = sentinel.get_ptr();
 		if (!!sentinelPtr)
 		{
 			read_token rt;
@@ -4178,7 +3891,7 @@ public:
 			rcptr<volatile link_t> prev;
 			rcptr<volatile link_t> lastAdjacent;
 			height_t level;
-			atomic::load(m_heightAndCount.m_currentHeight, level);
+			atomic::load(sentinelPtr->m_heightAndCount.m_currentHeight, level);
 			for (;;)
 			{
 				if (!next->begin_read_and_complete(rt, true, level))
@@ -4196,27 +3909,27 @@ public:
 					COGS_ASSERT(!next->m_links[level].is_current(rt));
 					continue;
 				}
-				if (prev != lastAdjacent)
+				if (prev.get_ptr() != lastAdjacent.get_ptr())
 				{
 					lastAdjacent.release();
 					if (prev.get_ptr() != sentinelPtr) // if next is not sentinel
 					{
-						if (comparator_t::is_less_than(criteria, prev->get_payload()->get_key()))
+						if (comparator_t::is_less_than(criteria, prev.template static_cast_to<payload_link_t>()->get_payload()->get_key()))
 						{
-							next = prev;
+							next = std::move(prev);
 							continue;
 						}
 					}
 				}
 				if (!level)
 				{
-					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev->get_payload()->get_key(), criteria)) // if prev and arg are equal
-						i.m_link = prev;
+					if ((prev.get_ptr() != sentinelPtr) && !comparator_t::is_less_than(prev.template static_cast_to<payload_link_t>()->get_payload()->get_key(), criteria)) // if prev and arg are equal
+						i.m_link = std::move(prev);
 					else if (next.get_ptr() != sentinelPtr)
-						i.m_link = next;
+						i.m_link = std::move(next);
 					break;
 				}
-				lastAdjacent = prev;
+				lastAdjacent = std::move(prev);
 				--level;
 				continue;
 			}
@@ -4224,6 +3937,500 @@ public:
 		return i;
 	}
 
+
+	void swap(this_t& wth)
+	{
+		m_sentinel.swap(wth.m_sentinel);
+		m_allocator.swap(wth.m_allocator);
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile
+	{
+		m_sentinel.swap(wth.m_sentinel);
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth)
+	{
+		m_sentinel.swap(wth.m_sentinel);
+	}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void exchange(this_t&& src, this_t& rtn) volatile
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	iterator begin() const { return get_first(); }
+	volatile_iterator begin() const volatile { return get_first(); }
+
+	iterator rbegin() const { return get_last(); }
+	volatile_iterator rbegin() const volatile { return get_last(); }
+
+	iterator end() const { iterator i; return i; }
+	volatile_iterator end() const volatile { volatile_iterator i; return i; }
+
+	iterator rend() const { iterator i; return i; }
+	volatile_iterator rend() const volatile { volatile_iterator i; return i; }
+};
+
+
+template <typename key_t, class payload_t, class comparator_t, class allocator_type>
+class container_skiplist<false, key_t, payload_t, comparator_t, allocator_type> : public container_skiplist_base<key_t, payload_t, comparator_t, allocator_type>
+{
+private:
+	typedef container_skiplist<false, key_t, payload_t, comparator_t, allocator_type> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> base_t;
+
+	container_skiplist(const this_t&) = delete;
+	container_skiplist(const volatile this_t&) = delete;
+
+	this_t& operator=(const this_t&) = delete;
+	this_t& operator=(const volatile this_t&) = delete;
+
+	this_t& operator=(const this_t&) volatile = delete;
+	this_t& operator=(const volatile this_t&) volatile = delete;
+
+	using typename base_t::link_t;
+	using typename base_t::sentinel_link_t;
+	using typename base_t::height_t;
+
+	using base_t::insert_inner;
+
+public:
+	using typename base_t::iterator;
+	using typename base_t::volatile_iterator;
+
+	container_skiplist() { }
+
+	container_skiplist(this_t&& src)
+		: base_t(std::move(src))
+	{ }
+
+	explicit container_skiplist(volatile allocator_type& al)
+		: base_t(al)
+	{ }
+
+	container_skiplist(const std::initializer_list<payload_t>& src)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	container_skiplist(volatile allocator_type& al, const std::initializer_list<payload_t>& src)
+		: base_t(al)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		base_t::operator=(std::move(src));
+		return *this;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		base_t::operator=(std::move(src));
+		return *this;
+	}
+
+	this_t& operator=(const std::initializer_list<payload_t>& src)
+	{
+		this_t tmp(src);
+		base_t::operator=(std::move(tmp));
+		return *this;
+	}
+
+	volatile this_t& operator=(const std::initializer_list<payload_t>& src) volatile
+	{
+		this_t tmp(src);
+		base_t::operator=(std::move(tmp));
+		return *this;
+	}
+
+
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.insert_replace(std::forward<args_t>(args)), ...);
+		return result;
+	}
+
+	struct insert_replace_result
+	{
+		iterator replaced;
+		iterator inserted;
+	};
+
+	// The first iterator is the newly created element.  The second is the element that was replaced, if any.
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_replace_result>
+	insert_replace_via(F&& f)
+	{
+		iterator collidedWith;
+		iterator i = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
+		{
+			link_t* l = i.m_link.get_ptr();
+			f(i);
+			collidedWith.m_link = l->insert_replace(currentHeight, sentinel);
+			return true;
+		});
+		return { std::move(collidedWith), std::move(i) };
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<payload_t>&>,
+		insert_replace_result>
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(i.get_obj().dereference()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<payload_t>&>
+		&& std::is_invocable_v<F, payload_t&>,
+		insert_replace_result>
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(*i.get()); }); }
+
+	insert_replace_result insert_replace(const payload_t& src) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	insert_replace_result insert_replace(payload_t&& src) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<payload_t, F&&>
+		&& !std::is_convertible_v<F, const payload_t&>
+		&& !std::is_convertible_v<F, payload_t&&>,
+		insert_replace_result>
+	insert_replace(F&& f) { return insert_replace_via(std::forward<F>(f)); }
+
+	template <typename... args_t> insert_replace_result insert_replace_emplace(args_t&&... args) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+
+
+	struct insert_unique_result
+	{
+		iterator iterator;
+		bool hadCollision;
+	};
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_unique_result>
+	insert_unique_via(F&& f)
+	{
+		bool collided;
+		iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
+		{
+			link_t* l = i.m_link.get_ptr();
+			f(i);
+			rcptr<link_t> collidedWith = l->insert_unique(currentHeight, sentinel);
+			collided = !!collidedWith;
+			if (collided)
+			{
+				i.m_link = std::move(collidedWith);
+				return false;
+			}
+			return true;
+		});
+		return { std::move(i2), collided };
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<payload_t>&>,
+		insert_unique_result>
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<payload_t>&>
+		&& std::is_invocable_v<F, payload_t&>,
+		insert_unique_result>
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(*i.get()); }); }
+
+	insert_unique_result insert_unique(const payload_t& src) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	insert_unique_result insert_unique(payload_t&& src) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<payload_t, F&&>
+		&& !std::is_convertible_v<F, const payload_t&>
+		&& !std::is_convertible_v<F, payload_t&&>,
+		insert_unique_result>
+	insert_unique(F&& f) { return insert_unique_via(std::forward<F>(f)); }
+
+	template <typename... args_t> insert_unique_result insert_unique_emplace(args_t&&... args) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+
+	struct volatile_insert_unique_result
+	{
+		volatile_iterator iterator;
+		bool hadCollision;
+		bool wasEmpty;
+	};
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile
+	{
+		bool wasEmpty = false;
+		bool collided;
+		volatile_iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
+		{
+			link_t* l = i.m_link.template const_cast_to<link_t>().get_ptr();
+			f(i);
+			rcptr<volatile link_t> collidedWith = l->insert_unique(wasEmpty, currentHeight, sentinel);
+			collided = !!collidedWith;
+			if (collided)
+			{
+				i.m_link = std::move(collidedWith).template const_cast_to<link_t>();
+				return false;
+			}
+			return true;
+		});
+		return { std::move(i2), collided, wasEmpty };
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<payload_t>&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<payload_t>&>
+		&& std::is_invocable_v<F, payload_t&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(*i.get()); }); }
+
+	volatile_insert_unique_result insert_unique(const payload_t& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	volatile_insert_unique_result insert_unique(payload_t&& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<payload_t, F&&>
+		&& !std::is_convertible_v<F, const payload_t&>
+		&& !std::is_convertible_v<F, payload_t&&>,
+		volatile_insert_unique_result>
+	insert_unique(F&& f) volatile { return insert_unique_via(std::forward<F>(f)); }
+
+	template <typename... args_t> volatile_insert_unique_result insert_unique_emplace(args_t&&... args) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+};
+
+
+template <typename key_t, class payload_t, class comparator_t, class allocator_type>
+class container_skiplist<true, key_t, payload_t, comparator_t, allocator_type> : public container_skiplist_base<key_t, payload_t, comparator_t, allocator_type>
+{
+private:
+	typedef container_skiplist<true, key_t, payload_t, comparator_t, allocator_type> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> base_t;
+
+	container_skiplist(const this_t&) = delete;
+	container_skiplist(const volatile this_t&) = delete;
+
+	this_t& operator=(const this_t&) = delete;
+	this_t& operator=(const volatile this_t&) = delete;
+
+	this_t& operator=(const this_t&) volatile = delete;
+	this_t& operator=(const volatile this_t&) volatile = delete;
+
+	using typename base_t::link_t;
+	using typename base_t::sentinel_link_t;
+	using typename base_t::height_t;
+
+	using base_t::insert_inner;
+
+public:
+	using typename base_t::iterator;
+	using typename base_t::volatile_iterator;
+
+	container_skiplist() { }
+
+	container_skiplist(this_t&& src)
+		: base_t(std::move(src))
+	{ }
+
+	explicit container_skiplist(volatile allocator_type& al)
+		: base_t(al)
+	{ }
+
+	container_skiplist(const std::initializer_list<payload_t>& src)
+	{
+		for (auto& entry : src)
+			insert_multi(entry);
+	}
+
+	container_skiplist(volatile allocator_type& al, const std::initializer_list<payload_t>& src)
+		: base_t(al)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	this_t& operator=(this_t&& src)
+	{
+		base_t::operator=(std::move(src));
+		return *this;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		base_t::operator=(std::move(src));
+		return *this;
+	}
+
+	this_t& operator=(const std::initializer_list<payload_t>& src)
+	{
+		this_t tmp(src);
+		base_t::operator=(std::move(tmp));
+		return *this;
+	}
+
+	volatile this_t& operator=(const std::initializer_list<payload_t>& src) volatile
+	{
+		this_t tmp(src);
+		base_t::operator=(std::move(tmp));
+		return *this;
+	}
+
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.insert_multi(std::forward<args_t>(args)), ...);
+		return result;
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		iterator>
+	insert_multi_via(F&& f)
+	{
+		return insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
+		{
+			link_t* l = i.m_link.template const_cast_to<link_t>().get_ptr();
+			f(i);
+			l->insert_multi(currentHeight, sentinel);
+			return true;
+		});
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<payload_t>&>,
+		iterator>
+	insert_multi_via(F&& f) { return insert_multi_via([&](iterator& i) { f(i.get_obj().dereference()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, payload_t&>,
+		iterator>
+	insert_multi_via(F&& f) { return insert_multi_via([&](iterator& i) { f(*i.get()); }); }
+
+	iterator insert_multi(const payload_t& src) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	iterator insert_multi(payload_t&& src) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<payload_t, F&&>
+		&& !std::is_convertible_v<F, const payload_t&>
+		&& !std::is_convertible_v<F, payload_t&&>,
+		iterator>
+	insert_multi(F&& f) { return insert_multi_via(std::forward<F>(f)); }
+
+	template <typename... args_t> iterator insert_multi_emplace(args_t&&... args) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+
+
+	struct volatile_insert_multi_result
+	{
+		volatile_iterator iterator;
+		bool wasEmpty;
+	};
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		volatile_insert_multi_result>
+	insert_multi_via(F&& f) volatile
+	{
+		bool wasEmpty = false;
+		volatile_iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
+		{
+			link_t* l = i.m_link.template const_cast_to<link_t>().get_ptr();
+			f(i);
+			l->insert_multi(wasEmpty, currentHeight, sentinel);
+			return true;
+		});
+		return { std::move(i2), wasEmpty };
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<payload_t>&>,
+		volatile_insert_multi_result>
+	insert_multi_via(F&& f) volatile { return insert_multi_via([&](iterator& i) { f(i.get_obj().dereference()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<payload_t>&>
+		&& std::is_invocable_v<F, payload_t&>,
+		volatile_insert_multi_result>
+	insert_multi_via(F&& f) volatile { return insert_multi_via([&](iterator& i) { f(*i.get()); }); }
+
+	volatile_insert_multi_result insert_multi(const payload_t& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	volatile_insert_multi_result insert_multi(payload_t&& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<payload_t, F&&>
+		&& !std::is_convertible_v<F, const payload_t&>
+		&& !std::is_convertible_v<F, payload_t&&>,
+		volatile_insert_multi_result>
+	insert_multi(F&& f) volatile { return insert_multi_via(std::forward<F>(f)); }
+
+	template <typename... args_t> volatile_insert_multi_result insert_multi_emplace(args_t&&... args) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 };
 
 

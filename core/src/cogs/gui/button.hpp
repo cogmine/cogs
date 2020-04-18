@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -44,46 +44,36 @@ private:
 	rcptr<button_interface> m_nativeButton;
 
 public:
-	button(const action_delegate_t& action,
-		const composite_string& text,
-		bool isEnabled = true,
-		bool isDefault = false,
-		const gfx::font& fnt = gfx::font(),
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane_bridge(frames),
-		m_action(action),
-		m_text(text),
-		m_font(fnt),
-		m_isEnabled(isEnabled),
-		m_isDefault(isDefault)
+	struct options
+	{
+		action_delegate_t action;
+		composite_string text;
+		bool isEnabled = true;
+		bool isDefault = false;
+		gfx::font font;
+		frame_list frames;
+	};
+
+	button()
+		: button(options())
 	{ }
 
-	button(const action_delegate_t& action,
-		const composite_string& text,
-		bool isEnabled,
-		bool isDefault,
-		const std::initializer_list<rcref<frame> >& frames)
-		: button(action, text, isEnabled, isDefault, gfx::font(), frames)
-	{ }
-
-	button(const action_delegate_t& action,
-		const composite_string& text,
-		const gfx::font& fnt,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: button(action, text, true, false, fnt, frames)
-	{ }
-
-	button(const action_delegate_t& action,
-		const composite_string& text,
-		const std::initializer_list<rcref<frame> >& frames)
-		: button(action, text, true, false, gfx::font(), frames)
+	explicit button(options&& o)
+		: pane_bridge({
+			.frames = std::move(o.frames)
+		}),
+		m_action(std::move(o.action)),
+		m_text(std::move(o.text)),
+		m_font(std::move(o.font)),
+		m_isEnabled(o.isEnabled),
+		m_isDefault(o.isDefault)
 	{ }
 
 	virtual void installing()
 	{
 		auto nativeButton = get_subsystem()->create_button();
-		m_nativeButton = std::move(nativeButton.second);
 		pane_bridge::install_bridged(std::move(nativeButton.first));
+		m_nativeButton = std::move(nativeButton.second);
 	}
 
 	virtual void uninstalling()

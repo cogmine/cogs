@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_IO_COMPOSITE_BUFFER
@@ -1635,12 +1635,9 @@ public:
 		bool operator!() const { return !m_array || (m_position >= m_array->get_end_position()); }
 
 		bool operator==(const const_iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
-		//bool operator==(const iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
-		//bool operator!=(const iterator& i) const { return !operator==(i); }
 		const_iterator& operator=(const const_iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
-		//const_iterator& operator=(const iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
-
+		
 		const char* get() const { return m_array->get_inner_array(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
 		const char& operator*() const { return *get(); }
 		const char* operator->() const { return get(); }
@@ -4170,6 +4167,11 @@ public:
 
 	composite_string to_string() const { return to_string_t<wchar_t>(); }
 	composite_cstring to_cstring() const { return to_string_t<char>(); }
+
+	const_iterator begin() const { return get_first_const_iterator(); }
+	const_iterator rbegin() const { return get_last_const_iterator(); }
+	const_iterator end() const { const_iterator i; return i; }
+	const_iterator rend() const { const_iterator i; return i; }
 };
 
 

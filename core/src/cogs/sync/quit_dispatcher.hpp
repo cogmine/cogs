@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -250,7 +250,7 @@ public:
 			for (;;)
 			{
 				function<void()> f;
-				if (m_abortCallbacks.pop(f))
+				if (m_abortCallbacks.pop(f).wasRemoved)
 				{
 					f();
 					if (m_contents.is_current(rt))
@@ -303,3 +303,4 @@ inline void force_quit()
 
 
 #endif
+

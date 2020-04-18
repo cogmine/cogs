@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -180,9 +180,6 @@ typedef buddy_block_allocator< sizeof(void*), 1024 * 1024 * 4 > default_allocato
 
 
 }
-
-
-#include "cogs/mem/rc_obj_base.hpp"
 
 
 #endif

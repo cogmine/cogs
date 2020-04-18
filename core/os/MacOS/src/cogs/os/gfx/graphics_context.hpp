@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -83,7 +83,7 @@ public:
 				__strong NSArray* fonts = [[NSFontManager sharedFontManager]availableFontFamilies];
 				size_t numFonts = [fonts count];
 				for (size_t i = 0; i < numFonts; ++i)
-					try_insert(NSString_to_string(fonts[i]));
+					insert_unique(NSString_to_string(fonts[i]));
 			}
 		};
 
@@ -182,9 +182,9 @@ public:
 		virtual font::metrics get_metrics() const
 		{
 			font::metrics result;
-			result.m_ascent = CTFontGetAscent(m_font);
-			result.m_descent = CTFontGetDescent(m_font);
-			result.m_spacing = result.m_ascent + result.m_descent + CTFontGetLeading(m_font);
+			result.ascent = CTFontGetAscent(m_font);
+			result.descent = CTFontGetDescent(m_font);
+			result.spacing = result.ascent + result.descent + CTFontGetLeading(m_font);
 			return result;
 		}
 

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -43,16 +43,23 @@ private:
 	size m_textExtent;
 
 public:
-	explicit label(const composite_string& text,
-		const gfx::font& fnt = gfx::font(),
-		const color& c = color::constant::black,
-		bool useLineHeight = true,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: pane(frames),
-		m_text(text),
-		m_font(fnt),
-		m_textColor(c),
-		m_useLineHeight(useLineHeight),
+	struct options
+	{
+		composite_string text;
+		gfx::font font;
+		color textColor;
+		bool useLineHeight;
+		frame_list frames;
+	};
+
+	explicit label(options&& o)
+		: pane({
+			.frames = std::move(o.frames)
+		}),
+		m_text(std::move(o.text)),
+		m_font(std::move(o.font)),
+		m_textColor(o.textColor),
+		m_useLineHeight(o.useLineHeight),
 		m_textProperty(*this, [this]()
 		{
 			return m_text;
@@ -91,52 +98,6 @@ public:
 		})
 	{ }
 
-	label(const composite_string& text,
-		const color& c,
-		bool useLineHeight = true,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: label(text, gfx::font(), c, useLineHeight, frames)
-	{ }
-
-	label(const composite_string& text,
-		const gfx::font& fnt,
-		bool useLineHeight,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: label(text, fnt, color::constant::black, useLineHeight, frames)
-	{ }
-
-	label(const composite_string& text,
-		const gfx::font& fnt,
-		const color& c,
-		const std::initializer_list<rcref<frame> >& frames)
-		: label(text, fnt, c, true, frames)
-	{ }
-
-
-	label(const composite_string& text,
-		bool useLineHeight,
-		const std::initializer_list<rcref<frame> >& frames = {})
-		: label(text, gfx::font(), color::constant::black, useLineHeight, frames)
-	{ }
-
-	label(const composite_string& text,
-		const color& c,
-		const std::initializer_list<rcref<frame> >& frames)
-		: label(text, gfx::font(), c, true, frames)
-	{ }
-
-	label(const composite_string& text,
-		const gfx::font& fnt,
-		const std::initializer_list<rcref<frame> >& frames)
-		: label(text, fnt, color::constant::black, true, frames)
-	{ }
-
-	label(const composite_string& text,
-		const std::initializer_list<rcref<frame> >& frames)
-		: label(text, gfx::font(), color::constant::black, true, frames)
-	{ }
-
-
 	virtual void installing()
 	{
 		gfx::font f = m_font;
@@ -166,11 +127,11 @@ public:
 		{
 			font::metrics fm = f->get_metrics();
 			double height = m_textExtent.get_height();
-			double lineCount = height / fm.m_spacing;
+			double lineCount = height / fm.spacing;
 			double lineCount2 = std::floor(lineCount);
 			if (lineCount != lineCount2)
 				lineCount2++;
-			m_textExtent.get_height() = lineCount2 * fm.m_spacing;
+			m_textExtent.get_height() = lineCount2 * fm.spacing;
 		}
 	}
 

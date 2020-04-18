@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "cogs/cogs.hpp"
 
@@ -20,8 +19,17 @@ COGS_MAIN
 		rcref<count_down_event> quitCountDown = rcnew(count_down_event)(0, []() { cogs::request_quit(); });
 
 		*quitCountDown += guiSubsystem->open(string::literal(L"Template App"),
-			rcnew(background)(color::constant::white, {
-				rcnew(label)(string::literal(L"Hello World!"), gfx::font(38))}));
+			rcnew(background)({
+				.backgroundColor = color::constant::white,
+				.children = pane_list::create(
+					rcnew(label)({
+						.text = string::literal(L"Hello World!"),
+						.font = gfx::font(38),
+						.textColor = color::constant::black
+					})
+				)
+			})
+		);
 
 		return EXIT_SUCCESS;
 	});

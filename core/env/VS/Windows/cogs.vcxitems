@@ -14,7 +14,6 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\Code\Cogs\core\src\cogs\mem\unowned.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\sync\atomic.hpp" />
@@ -405,6 +404,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\rc_obj_base.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\ref.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\storage_union.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\weak_rcptr.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\operators.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\parser\escseq.hpp" />

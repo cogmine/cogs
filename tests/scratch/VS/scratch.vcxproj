@@ -42,6 +42,7 @@
     <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
     <ProjectName>scratch</ProjectName>
   </PropertyGroup>
+  <Import Project="$(SolutionDir)\Microsoft.VCToolsVersion.14.25.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -180,7 +181,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -220,7 +221,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <CallingConvention />
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -259,7 +260,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -295,7 +296,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -335,7 +336,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -372,7 +373,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <CallingConvention />
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -412,7 +413,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
@@ -447,7 +448,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /MP3 /permissive-</AdditionalOptions>
+      <AdditionalOptions>/bigobj /MP3 /permissive- /wd4324</AdditionalOptions>
       <CallingConvention />
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>

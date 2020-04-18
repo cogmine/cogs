@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -315,16 +315,15 @@ protected:
 
 		void execute_next()
 		{
-			bool wasLast;
 			for (;;)
 			{
 				rcptr<task_base> t;
-				m_queue.pop(t.dereference(), wasLast);
+				bool wasEmptied = m_queue.pop(t.dereference()).wasEmptied;
 				COGS_ASSERT(!!t);
 
 				t.release();
 
-				if (wasLast)
+				if (wasEmptied)
 					break;
 
 				m_queue.peek(t.dereference());
@@ -419,3 +418,4 @@ public:
 
 
 #endif
+

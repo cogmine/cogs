@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -38,18 +38,14 @@ private:
 	class payload
 	{
 	private:
-		placement<type> m_value;
+		delayed_construction<type> m_value;
 
 	public:
-		payload() { }
-		~payload() { m_value.destruct(); }
-		void construct(const type& v) { m_value.construct(v); }
-		void construct() { m_value.construct(); }
 		type& get_key() { return m_value.get(); }
 		const type& get_key() const { return m_value.get(); }
 	};
 
-	typedef container_skiplist<type, payload, comparator_t, allocator_type> container_skiplist_t;
+	typedef container_skiplist<false, type, payload, comparator_t, allocator_type> container_skiplist_t;
 	container_skiplist_t m_contents;
 
 	set(const this_t&) = delete;
@@ -60,11 +56,10 @@ public:
 	class volatile_iterator;
 	class remove_token;
 	class volatile_remove_token;
-	class preallocated;
 
 	template <typename T2> static constexpr bool is_iterator_type_v = std::is_same_v<iterator, std::remove_cv_t<T2> > || std::is_same_v<volatile_iterator, std::remove_cv_t<T2> >;
 	template <typename T2> static constexpr bool is_remove_token_type_v = std::is_same_v<remove_token, std::remove_cv_t<T2> > || std::is_same_v<volatile_remove_token, std::remove_cv_t<T2> >;
-	template <typename T2> static constexpr bool is_element_reference_type_v = std::is_same_v<preallocated, std::remove_cv_t<T2> > || is_iterator_type_v<T2> || is_remove_token_type_v<T2>;
+	template <typename T2> static constexpr bool is_element_reference_type_v = is_iterator_type_v<T2> || is_remove_token_type_v<T2>;
 
 	/// @brief A set element iterator
 	class iterator
@@ -74,7 +69,6 @@ public:
 		friend class volatile_iterator;
 		friend class remove_token;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		typename container_skiplist_t::iterator m_contents;
 
@@ -93,10 +87,6 @@ public:
 		iterator(const typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		iterator(const volatile typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		iterator(typename container_skiplist_t::volatile_remove_token&& i) : m_contents(std::move(i)) { }
-
-		iterator(const typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		iterator(const volatile typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		iterator(typename container_skiplist_t::preallocated&& i) : m_contents(std::move(i)) { }
 
 	public:
 		iterator() { }
@@ -150,17 +140,11 @@ public:
 		type& operator*() const { return m_contents.get()->get_key(); }
 		type* operator->() const { return &(m_contents.get()->get_key()); }
 
-		rcptr<type> get_obj() const
+		const rcptr<const type>& get_obj(unowned_t<rcptr<const type> >& storage = unowned_t<rcptr<const type> >().get_unowned()) const
 		{
-			rcptr<type> result;
-			rcptr<payload> obj = m_contents->get_obj();
-			if (!!obj)
-			{
-				result.set(obj.get_desc(), &(obj->get_value()));
-				obj.disown();
-			}
-
-			return result;
+			if (!!m_contents)
+				storage.set(&m_contents->get_key(), m_contents.get_desc());
+			return storage;
 		}
 
 		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
@@ -178,13 +162,13 @@ public:
 		void assign_prev() { m_contents.assign_prev(); }
 		void assign_prev() volatile { m_contents.assign_prev(); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_contents.swap(wth.m_contents); }
 
 
@@ -195,10 +179,10 @@ public:
 		iterator exchange(T2&& src) volatile { return iterator(m_contents.exchange(forward_member<T2>(src.m_contents))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
 
@@ -209,10 +193,10 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 	};
 
@@ -224,7 +208,6 @@ public:
 		friend class iterator;
 		friend class remove_token;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		typename container_skiplist_t::volatile_iterator m_contents;
 
@@ -243,10 +226,6 @@ public:
 		volatile_iterator(const typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		volatile_iterator(const volatile typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		volatile_iterator(typename container_skiplist_t::volatile_remove_token&& i) : m_contents(std::move(i)) { }
-
-		volatile_iterator(const typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		volatile_iterator(const volatile typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		volatile_iterator(typename container_skiplist_t::preallocated&& i) : m_contents(std::move(i)) { }
 
 	public:
 		volatile_iterator() { }
@@ -300,17 +279,11 @@ public:
 		type& operator*() const { return m_contents->get_key(); }
 		type* operator->() const { return &(m_contents->get_key()); }
 
-		rcptr<type> get_obj() const
+		const rcptr<const type>& get_obj(unowned_t<rcptr<const type> >& storage = unowned_t<rcptr<const type> >().get_unowned()) const
 		{
-			rcptr<type> result;
-			rcptr<payload> obj = m_contents->get_obj();
-			if (!!obj)
-			{
-				result.set(obj.get_desc(), &(obj->get_value()));
-				obj.disown();
-			}
-
-			return result;
+			if (!!m_contents)
+				storage.set(&m_contents->get_key(), m_contents.get_desc());
+			return storage;
 		}
 
 		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
@@ -328,13 +301,13 @@ public:
 		void assign_prev() { m_contents.assign_prev(); }
 		void assign_prev() volatile { m_contents.assign_prev(); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_contents.swap(wth.m_contents); }
 
 
@@ -345,10 +318,10 @@ public:
 		volatile_iterator exchange(T2&& src) volatile { return volatile_iterator(m_contents.exchange(forward_member<T2>(src.m_contents))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
 
@@ -359,153 +332,11 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
-	};
-
-	class preallocated
-	{
-	private:
-		friend class set;
-		friend class iterator;
-		friend class volatile_iterator;
-		friend class remove_token;
-		friend class volatile_remove_token;
-
-		typename container_skiplist_t::preallocated m_contents;
-
-		payload& get_payload() const { return *m_contents; }
-
-		preallocated(const typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		preallocated(const volatile typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		preallocated(typename container_skiplist_t::preallocated&& i) : m_contents(std::move(i)) { }
-
-	public:
-		preallocated() { }
-
-		preallocated(const preallocated& src) : m_contents(src.m_contents) { }
-		preallocated(const volatile preallocated& src) : m_contents(src.m_contents) { }
-		preallocated(preallocated&& src) : m_contents(std::move(src.m_contents)) { }
-
-		preallocated& operator=(const preallocated& i) { m_contents = i.m_contents; return *this; }
-		preallocated& operator=(const volatile preallocated& i) { m_contents = i.m_contents; return *this; }
-		preallocated& operator=(preallocated&& i) { m_contents = std::move(i.m_contents); return *this; }
-		volatile preallocated& operator=(const preallocated& i) volatile { m_contents = i.m_contents; return *this; }
-		volatile preallocated& operator=(const volatile preallocated& i) volatile { m_contents = i.m_contents; return *this; }
-		volatile preallocated& operator=(preallocated&& i) volatile { m_contents = std::move(i.m_contents); return *this; }
-
-		void disown() { m_contents.disown(); }
-		void disown() volatile { m_contents.disown(); }
-
-		void release() { m_contents.release(); }
-		void release() volatile { m_contents.release(); }
-
-		bool operator!() const { return !m_contents; }
-		bool operator!() const volatile { return !m_contents; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const { return m_contents == i.m_contents; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator==(const T2& i) const volatile { return m_contents == i.m_contents; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const { return m_contents != i.m_contents; }
-
-		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> > >
-		bool operator!=(const T2& i) const volatile { return m_contents != i.m_contents; }
-
-		type& operator*() const { return m_contents->get_key(); }
-		type* operator->() const { return &(m_contents->get_key()); }
-
-		rcptr<type> get_obj() const
-		{
-			rcptr<type> result;
-			rcptr<payload> obj = m_contents->get_obj();
-			if (!!obj)
-			{
-				result.set(obj.get_desc(), &(obj->get_value()));
-				obj.disown();
-			}
-
-			return result;
-		}
-
-		rc_obj_base* get_desc() const { return m_contents.get_desc(); }
-		rc_obj_base* get_desc() const volatile { return m_contents.get_desc(); }
-
-		void swap(preallocated& wth) { m_contents.swap(wth.m_contents); }
-		void swap(preallocated& wth) volatile { m_contents.swap(wth.m_contents); }
-		void swap(volatile preallocated& wth) { m_contents.swap(wth.m_contents); }
-
-
-		preallocated exchange(const preallocated& src) { return preallocated(m_contents.exchange(src.m_contents)); }
-		preallocated exchange(const volatile preallocated& src) { return preallocated(m_contents.exchange(src.m_contents)); }
-		preallocated exchange(preallocated&& src) { return preallocated(m_contents.exchange(std::move(src.m_contents))); }
-
-		preallocated exchange(const preallocated& src) volatile { return preallocated(m_contents.exchange(src.m_contents)); }
-		preallocated exchange(const volatile preallocated& src) volatile { return preallocated(m_contents.exchange(src.m_contents)); }
-		preallocated exchange(preallocated&& src) volatile { return preallocated(m_contents.exchange(std::move(src.m_contents))); }
-
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) { m_contents.exchange(src.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) { m_contents.exchange(std::move(src.m_contents), rtn.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const preallocated& src, T3& rtn) volatile { m_contents.exchange(src.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(const volatile preallocated& src, T3& rtn) volatile { m_contents.exchange(src.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
-		void exchange(preallocated&& src, T3& rtn) volatile { m_contents.exchange(std::move(src.m_contents), rtn.m_contents); }
-
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents); }
-
-		template <typename T3, typename = std::enable_if_t<is_element_reference_type_v<T3> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp) volatile { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents); }
-
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const preallocated& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(const volatile preallocated& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(src.m_contents, cmp.m_contents, rtn.m_contents); }
-
-		template <typename T3, typename T4, typename = std::enable_if_t<is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
-		bool compare_exchange(preallocated&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(std::move(src.m_contents), cmp.m_contents, rtn.m_contents); }
 	};
 
 	/// @brief A set element remove token
@@ -516,7 +347,6 @@ public:
 		friend class iterator;
 		friend class volatile_iterator;
 		friend class volatile_remove_token;
-		friend class preallocated;
 
 		typename container_skiplist_t::remove_token m_contents;
 
@@ -535,10 +365,6 @@ public:
 		remove_token(const typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		remove_token(const volatile typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		remove_token(typename container_skiplist_t::volatile_remove_token&& i) : m_contents(std::move(i)) { }
-
-		remove_token(const typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		remove_token(const volatile typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		remove_token(typename container_skiplist_t::preallocated&& i) : m_contents(std::move(i)) { }
 
 	public:
 		remove_token() { }
@@ -579,13 +405,13 @@ public:
 		bool operator!=(const T2& i) const volatile { return m_contents != i.m_contents; }
 
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_contents.swap(wth.m_contents); }
 
 
@@ -596,10 +422,10 @@ public:
 		remove_token exchange(T2&& src) volatile { return remove_token(m_contents.exchange(forward_member<T2>(src.m_contents))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
 
@@ -610,10 +436,10 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 	};
 
@@ -625,7 +451,6 @@ public:
 		friend class iterator;
 		friend class volatile_iterator;
 		friend class remove_token;
-		friend class preallocated;
 
 		typename container_skiplist_t::volatile_remove_token m_contents;
 
@@ -644,10 +469,6 @@ public:
 		volatile_remove_token(const typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		volatile_remove_token(const volatile typename container_skiplist_t::volatile_remove_token& i) : m_contents(i) { }
 		volatile_remove_token(typename container_skiplist_t::volatile_remove_token&& i) : m_contents(std::move(i)) { }
-
-		volatile_remove_token(const typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		volatile_remove_token(const volatile typename container_skiplist_t::preallocated& i) : m_contents(i) { }
-		volatile_remove_token(typename container_skiplist_t::preallocated&& i) : m_contents(std::move(i)) { }
 
 	public:
 		volatile_remove_token() { }
@@ -688,13 +509,13 @@ public:
 		bool operator!=(const T2& i) const volatile { return m_contents != i.m_contents; }
 
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(T2& wth) { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> && !std::is_volatile_v<T2> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> && !std::is_volatile_v<T2> > >
 		void swap(T2& wth) volatile { m_contents.swap(wth.m_contents); }
 
-		template <typename T2, typename = std::enable_if_t<is_iterator_type_v<T2> && !std::is_const_v<T2> && !std::is_same_v<std::remove_cv_t<T2>, preallocated> > >
+		template <typename T2, typename = std::enable_if_t<is_remove_token_type_v<T2> && !std::is_const_v<T2> > >
 		void swap(volatile T2& wth) { m_contents.swap(wth.m_contents); }
 
 
@@ -705,10 +526,10 @@ public:
 		volatile_remove_token exchange(T2&& src) volatile { return volatile_remove_token(m_contents.exchange(forward_member<T2>(src.m_contents))); }
 
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
-		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> && !std::is_same_v<std::remove_cv_t<T3>, preallocated> > >
+		template <typename T2, typename T3, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && !std::is_const_v<T3> > >
 		void exchange(T2&& src, T3& rtn) volatile { m_contents.exchange(forward_member<T2>(src.m_contents), rtn.m_contents); }
 
 
@@ -719,16 +540,35 @@ public:
 		bool compare_exchange(T2&& src, const T3& cmp) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents); }
 
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 
-		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> && !std::is_same_v<std::remove_cv_t<T4>, preallocated> > >
+		template <typename T2, typename T3, typename T4, typename = std::enable_if_t< is_element_reference_type_v<std::remove_reference_t<T2> > && is_element_reference_type_v<T3> && is_element_reference_type_v<T4> && !std::is_const_v<T4> > >
 		bool compare_exchange(T2&& src, const T3& cmp, T4& rtn) volatile { return m_contents.compare_exchange(forward_member<T2>(src.m_contents), cmp.m_contents, rtn.m_contents); }
 	};
+
+	set() { }
 
 	set(this_t&& src)
 		: m_contents(std::move(src.m_contents))
 	{ }
+
+	explicit set(volatile allocator_type& al)
+		: m_contents(al)
+	{ }
+
+	set(const std::initializer_list<type>& src)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	set(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_contents(al)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
 
 	this_t& operator=(this_t&& src)
 	{
@@ -736,8 +576,33 @@ public:
 		return *this;
 	}
 
-	set() { }
-	set(volatile allocator_type& al) : m_contents(al) { }
+	volatile this_t& operator=(this_t&& src) volatile
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
+	}
+
+	this_t& operator=(const std::initializer_list<type>& src)
+	{
+		this_t tmp(src);
+		*this = std::move(tmp);
+		return *this;
+	}
+
+	volatile this_t& operator=(const std::initializer_list<type>& src) volatile
+	{
+		this_t tmp(src);
+		*this = std::move(tmp);
+		return *this;
+	}
+
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.insert_replace(std::forward<args_t>(args)), ...);
+		return result;
+	}
 
 	/// @{
 	/// @brief Removes all elements.
@@ -791,106 +656,201 @@ public:
 	volatile_iterator get_last() const volatile { return volatile_iterator(m_contents.get_last()); }
 	/// @}
 
-	/// @{
-	/// @brief Inserts an element, replacing any existing element with an equal value
-	/// @param t Value to insert
-	/// @return An iterator to the newly inserted element
-	iterator insert_replace(const type& t)
+	struct insert_replace_result
 	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return iterator(m_contents.insert_replace_preallocated(i));
+		iterator replaced;
+		iterator inserted;
+	};
+
+	// The first iterator is the newly created element.  The second is the element that was replaced, if any.
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_replace_result>
+	insert_replace_via(F&& f)
+	{
+		iterator i;
+		auto p = m_contents.insert_replace_via([&](typename container_skiplist_t::iterator& i2)
+		{
+			new (i2.get()) payload;	// should be no-op, but for completeness.
+			i = std::move(i2);
+			f(i);
+		});
+		return { std::move(p.replaced), std::move(i) };
 	}
 
-	/// @brief Inserts an element, replacing any existing element with an equal value
-	/// @param t Value to insert
-	/// @param[out] collision Receives a value indicating whether the insert encountered a collision and removed another element
-	/// @return An iterator to the newly inserted element
-	iterator insert_replace(const type& t, bool& collision)
-	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return iterator(m_contents.insert_replace_preallocated(i, collision));
-	}
-	/// @}
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<type>&>,
+		insert_replace_result>
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
 
-	/// @{
-	/// @brief Inserts an element only if there is no existing element with the same value.
-	/// @param t Value to insert
-	/// @return An iterator to the newly inserted element, or an empty iterator if there was already an element with the same value.
-	iterator try_insert(const type& t)
-	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return iterator(m_contents.insert_unique_preallocated(i));
-	}
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<type>&>
+		&& std::is_invocable_v<F, type&>,
+		insert_replace_result>
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(*const_cast<type*>(&i.get_key())); }); }
 
-	/// @brief Inserts an element only if there is no existing element with the same value.
-	/// @param t Value to insert
-	/// @param[out] collision Receives a value indicating whether the insert encountered a collision and removed another element
-	/// @return An iterator to the newly inserted element, or an empty iterator if there was already an element with the same value.
-	iterator try_insert(const type& t, bool& collision)
+
+	insert_replace_result insert_replace(const type& k)
 	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return iterator(m_contents.insert_unique_preallocated(i, collision));
+		return insert_replace_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+		});
 	}
 
-	/// @brief Thread-safe implementation of try_insert()
-	volatile_iterator try_insert(const type& t) volatile
+	insert_replace_result insert_replace(type&& k)
 	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return volatile_iterator(m_contents.insert_unique_preallocated(i));
+		return insert_replace_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+		});
 	}
 
-	/// @brief Thread-safe implementation of try_insert()
-	volatile_iterator try_insert(const type& t, bool& collision) volatile
-	{
-		typename container_skiplist_t::preallocated i = m_contents.preallocate();
-		i.get()->construct(t);
-		return volatile_iterator(m_contents.insert_unique_preallocated(i, collision));
-	}
-	/// @}
 
-	preallocated preallocate() const volatile
+	template <typename... args_t>
+	insert_replace_result insert_replace_emplace(args_t&&... args)
 	{
-		preallocated i = m_contents.preallocate();
-		i.get_payload().construct();
-		return i;
+		return insert_replace_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
+		});
 	}
 
-	preallocated preallocate(const type& v) const volatile
+	struct insert_unique_result
 	{
-		preallocated i = m_contents.preallocate();
-		i.get_payload().construct(v);
-		return i;
+		iterator iterator;
+		bool hadCollision;
+	};
+
+	// The returned iterator is the new element, or the element collided with.
+	// The returned bool indicates whether or not a collision occured.
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_unique_result>
+	insert_unique_via(F&& f)
+	{
+		iterator i;
+		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i2)
+		{
+			new (i2.get()) payload;	// should be no-op, but for completeness.
+			i = std::move(i2);
+			f(i);
+		});
+		return { std::move(i), p.hadCollision };
 	}
 
-	template <typename T2>
-	const rcref<T2>& preallocate_with_aux(preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<type>&>,
+		insert_unique_result>
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<type>&>
+		&& std::is_invocable_v<F, type&>,
+		insert_unique_result>
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(*const_cast<type*>(&*i)); }); }
+
+
+	struct volatile_insert_unique_result
 	{
-		m_contents.template preallocate_with_aux<T2>(i.m_contents, storage);
-		i.get_payload().construct();
-		return storage.dereference();
+		volatile_iterator iterator;
+		bool hadCollision;
+		bool wasEmpty;
+	};
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile
+	{
+		iterator i;
+		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i2)
+		{
+			new (i2.get()) payload;	// should be no-op, but for completeness.
+			i = std::move(i2);
+			f(i);
+		});
+		return { std::move(i), p.hadCollision, p.wasEmpty };
 	}
 
-	template <typename T2>
-	const rcref<T2>& preallocate_with_aux(const type& v, preallocated& i, unowned_t<rcptr<T2> >& storage = unowned_t<rcptr<T2> >().get_unowned()) const volatile
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, const rcref<type>&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& !std::is_invocable_v<F, const rcref<type>&>
+		&& std::is_invocable_v<F, type&>,
+		volatile_insert_unique_result>
+	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(*const_cast<type*>(&*i)); }); }
+
+
+	insert_unique_result insert_unique(const type& k)
 	{
-		m_contents.template preallocate_with_aux<T2>(i.m_contents, storage);
-		i.get_payload().construct(v);
-		return storage.dereference();
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+		});
 	}
 
-	iterator insert_replace_preallocated(const preallocated& i) { return iterator(m_contents.insert_replace_preallocated(i.m_contents)); }
-	iterator insert_replace_preallocated(const preallocated& i, bool& collision) { return iterator(m_contents.insert_replace_preallocated(i.m_contents, collision)); }
+	insert_unique_result insert_unique(type&& k)
+	{
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+		});
+	}
 
-	iterator try_insert_preallocated(const preallocated& i) { return iterator(m_contents.insert_unique_preallocated(i.m_contents)); }
-	iterator try_insert_preallocated(const preallocated& i, bool& collision) { return iterator(m_contents.insert_unique_preallocated(i.m_contents, collision)); }
 
-	volatile_iterator try_insert_preallocated(const preallocated& i) volatile { return volatile_iterator(m_contents.insert_unique_preallocated(i.m_contents)); }
-	volatile_iterator try_insert_preallocated(const preallocated& i, bool& collision) volatile { return volatile_iterator(m_contents.insert_unique_preallocated(i.m_contents, collision)); }
+	volatile_insert_unique_result insert_unique(const type& k) volatile
+	{
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+		});
+	}
+
+	volatile_insert_unique_result insert_unique(type&& k) volatile
+	{
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+		});
+	}
+
+
+	template <typename... args_t>
+	insert_unique_result insert_unique_emplace(args_t&&... args)
+	{
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
+		});
+	}
+
+	template <typename... args_t>
+	volatile_insert_unique_result insert_unique_emplace(args_t&&... args) volatile
+	{
+		return insert_unique_via([&](iterator& i)
+		{
+			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
+		});
+	}
 
 	/// @{
 	/// @brief Removes an element
@@ -898,22 +858,35 @@ public:
 	/// @return True if the remove was successful, false if the element has already been removed
 	bool remove(const remove_token& e) { return m_contents.remove(e.m_contents); }
 	bool remove(const iterator& e) { return m_contents.remove(e.m_contents); }
-	/// @brief Removes an element
-	/// @param e Element to remove
-	/// @param[out] wasLast Receives a value indicating whether this was the last element in the list
-	/// @return True if the remove was successful, false if the element has already been removed
-	bool remove(const remove_token& e, bool& wasLast) { bool b = m_contents.remove(e.m_contents); wasLast = b && is_empty(); return b; }
-	/// @brief Removes an element
-	/// @param e Element to remove
-	/// @param[out] wasLast Receives a value indicating whether this was the last element in the list
-	/// @return True if the remove was successful, false if the element has already been removed
-	bool remove(const iterator& e, bool& wasLast) { bool b = m_contents.remove(e.m_contents); wasLast = b && is_empty(); return b; }
-	/// @brief Thread-safe implementation of remove()
-	bool remove(const volatile_remove_token& e) volatile { return m_contents.remove(e.m_contents); }
-	/// @brief Thread-safe implementation of remove()
-	bool remove(const volatile_iterator& e) volatile { return m_contents.remove(e.m_contents); }
 	/// @}
 
+	typedef typename container_skiplist_t::volatile_remove_result volatile_remove_result;
+
+	volatile_remove_result remove(const volatile_remove_token& e) volatile { return m_contents.remove(e.m_contents); }
+	volatile_remove_result remove(const volatile_iterator& e) volatile { return m_contents.remove(e.m_contents); }
+
+	iterator pop_first() { return iterator(m_contents.pop_first()); }
+	iterator pop_last() { return iterator(m_contents.pop_last()); }
+
+	struct pop_result
+	{
+		volatile_iterator iterator;
+		bool wasEmptied;
+	};
+
+	pop_result pop_first() volatile
+	{
+		auto p = m_contents.pop_first();
+		volatile_iterator i(std::move(p.iterator));
+		return { std::move(i), p.wasEmptied };
+	}
+
+	pop_result pop_last() volatile
+	{
+		auto p = m_contents.pop_last();
+		volatile_iterator i(std::move(p.iterator));
+		return { std::move(i), p.wasEmptied };
+	}
 
 	/// @{
 	/// @brief Find an element with the matching value
@@ -959,6 +932,54 @@ public:
 	/// @brief Thread-safe implementation of find_equal_or_nearest_greater_than()
 	volatile_iterator find_equal_or_nearest_greater_than(const type& criteria) const volatile { return volatile_iterator(m_contents.find_any_equal_or_nearest_greater_than(criteria)); }
 	/// @}
+
+	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	this_t exchange(this_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	template <typename enable = std::enable_if_t<allocator_type::is_static> >
+	void exchange(this_t&& src, this_t& rtn) volatile
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	iterator begin() const { return get_first(); }
+	volatile_iterator begin() const volatile { return get_first(); }
+
+	iterator rbegin() const { return get_last(); }
+	volatile_iterator rbegin() const volatile { return get_last(); }
+
+	iterator end() const { iterator i; return i; }
+	volatile_iterator end() const volatile { volatile_iterator i; return i; }
+
+	iterator rend() const { iterator i; return i; }
+	volatile_iterator rend() const volatile { volatile_iterator i; return i; }
 };
 
 
@@ -973,17 +994,12 @@ private:
 
 	class node : public std::conditional_t<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >
 	{
+	private:
+		delayed_construction<type> m_value;
+
 	public:
-		type m_contents;
-
-		node(const type& src)
-			: m_contents(src)
-		{ }
-
-		const type& get_key() const
-		{
-			return m_contents;
-		}
+		type& get_key() { return m_value.get(); }
+		const type& get_key() const { return m_value.get(); }
 	};
 
 	typedef std::conditional_t<favor_lookup, avltree<type, node, comparator_t>, rbtree<type, node, comparator_t> > tree_t;
@@ -1050,8 +1066,8 @@ public:
 		iterator& operator=(const iterator& i) { m_node = i.m_node; m_tree = i.m_tree; return *this; }
 		iterator& operator=(iterator&& i) { m_node = std::move(i.m_node); m_tree = i.m_tree; return *this; }
 
-		type& operator*() const { return m_node->m_contents; }
-		type* operator->() const { return &(m_node->m_contents); }
+		const type& operator*() const { return m_node->get_key(); }
+		const type* operator->() const { return &(m_node->get_key()); }
 
 		iterator next() const
 		{
@@ -1088,11 +1104,40 @@ public:
 		}
 	};
 
+	nonvolatile_set()
+		: m_count(0)
+	{ }
+
 	nonvolatile_set(this_t&& src)
 		: m_allocator(std::move(src.m_allocator)),
 		m_tree(std::move(src.m_tree)),
 		m_count(src.m_count)
 	{ }
+
+	explicit nonvolatile_set(volatile allocator_type& al)
+		: m_count(0),
+		m_allocator(al)
+	{ }
+
+	nonvolatile_set(const std::initializer_list<type>& src)
+		: m_count(0)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	nonvolatile_set(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_count(0),
+		m_allocator(al)
+	{
+		for (auto& entry : src)
+			insert_replace(entry);
+	}
+
+	~nonvolatile_set()
+	{
+		clear_inner();
+	}
 
 	this_t& operator=(this_t&& src)
 	{
@@ -1102,26 +1147,19 @@ public:
 		return *this;
 	}
 
-	nonvolatile_set()
-		: m_count(0)
-	{ }
-
-	nonvolatile_set(volatile allocator_type& al)
-		: m_count(0),
-		m_allocator(al)
-	{ }
-
-	~nonvolatile_set()
+	this_t& operator=(const std::initializer_list<type>& src)
 	{
-		clear_inner();
+		this_t tmp(src);
+		*this = std::move(tmp);
+		return *this;
 	}
 
-	void swap(this_t& srcDst)
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
 	{
-		m_tree.swap(srcDst.m_tree);
-		size_t tmpCount = m_count;
-		m_count = srcDst.m_count;
-		srcDst.m_count = tmpCount;
+		this_t result;
+		(result.insert_replace(std::forward<args_t>(args)), ...);
+		return result;
 	}
 
 	void clear()
@@ -1140,52 +1178,95 @@ public:
 	iterator get_first() const { return iterator(m_tree.get_first(), m_tree); }
 	iterator get_last() const { return iterator(m_tree.get_last(), m_tree); }
 
-	iterator insert_replace(const type& t, bool& collision)
+	struct insert_replace_result
 	{
+		iterator iterator;
+		bool wasReplacement;
+	};
+
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_replace_result>
+	insert_replace_via(F&& f)
+	{
+		insert_replace_result result;
 		ref_t r = m_allocator.template allocate_type<node>();
-		typename ref_t::locked_t n = r;
-		new (n) node(t);
+		new (r.get_ptr()) node();
+		result.iterator = iterator(r, m_tree);
+		f(result.iterator);
 		ref_t existing = m_tree.insert_replace(r);
-		collision = !!existing;
-		if (collision)
+		result.wasReplacement = !!existing;
+		if (result.wasReplacement)
 			m_allocator.template destruct_deallocate_type<node>(existing);
 		else
 			m_count++;
-		return iterator(r, m_tree);
+		return result;
 	}
 
-	iterator insert_replace(const type& t) { bool b; return insert_replace(t, b); }
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, type&>,
+		insert_replace_result>
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(i.m_node->get_key()); }); }
 
-	iterator try_insert(const type& t)
+	insert_replace_result insert_replace(const type& t) { return insert_replace_via([&](iterator& i) { new (&i.m_node->get_key()) type(t); }); }
+
+	insert_replace_result insert_replace(type&& t) { return insert_replace_via([&](iterator& i) { new (&i.m_node->get_key()) type(std::move(t)); }); }
+
+	template <typename... args_t>
+	insert_replace_result insert_replace_emplace(args_t&&... args)
 	{
-		ref_t r = m_allocator.template allocate_type<node>();
-		typename ref_t::locked_t n = r;
-		new (n) node(t);
-		ref_t existing = m_tree.insert_unique(r);
-		if (!existing)
-		{
-			m_count++;
-			return iterator(r, m_tree);
-		}
-		m_allocator.template destruct_deallocate_type<node>(n);
-		return iterator();
+		return insert_replace_via([&](iterator& i) { new (&i.m_node->get_key()) type(std::forward<args_t>(args)...); });
 	}
 
-	iterator try_insert(const type& t, bool& collision)
+	struct insert_unique_result
 	{
+		iterator iterator;
+		bool hadCollision;
+	};
+
+	// The returned iterator is the new element, or the element collided with.
+	// The returned bool indicates whether or not a collision occured.
+	template <typename F>
+	std::enable_if_t<
+		std::is_invocable_v<F, iterator&>,
+		insert_unique_result>
+	insert_unique_via(F&& f)
+	{
+		insert_unique_result result;
 		ref_t r = m_allocator.template allocate_type<node>();
-		typename ref_t::locked_t n = r;
-		new (n) node(t);
+		new (r.get_ptr()) node();
+		result.iterator = iterator(r, m_tree);
+		f(result.iterator);
 		ref_t existing = m_tree.insert_unique(r);
-		if (!existing)
-		{
-			collision = false;
+		result.hadCollision = !!existing;
+		if (!result.hadCollision)
 			m_count++;
-			return iterator(r, m_tree);
+		else
+		{
+			m_allocator.template destruct_deallocate_type<node>(r);
+			result.iterator.m_node = std::move(existing);
 		}
-		collision = true;
-		m_allocator.template destruct_deallocate_type<node>(n);
-		return iterator(existing);
+		return result;
+	}
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_invocable_v<F, iterator&>
+		&& std::is_invocable_v<F, type&>,
+		insert_unique_result>
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(i.m_node->get_key()); }); }
+
+	insert_unique_result insert_unique(const type& t) { return insert_unique_via([&](iterator& i) { new (&i.m_node->get_key()) type(t); }); }
+
+	insert_unique_result insert_unique(type&& t) { return insert_unique_via([&](iterator& i) { new (&i.m_node->get_key()) type(std::move(t)); }); }
+
+	template <typename... args_t>
+	insert_unique_result insert_unique_emplace(args_t&&... args)
+	{
+		return insert_unique_via([&](iterator& i) { new (&i.m_node->get_key()) type(std::forward<args_t>(args)...); });
 	}
 
 	void remove(const iterator& i)
@@ -1201,6 +1282,30 @@ public:
 	iterator find_equal_or_nearest_less_than(const type& criteria) const { return iterator(m_tree.find_any_equal_or_nearest_less_than(criteria), m_tree); }
 	iterator find_equal_or_nearest_greater_than(const type& criteria) const { return iterator(m_tree.find_any_equal_or_nearest_greater_than(criteria), m_tree); }
 
+	void swap(this_t& wth)
+	{
+		m_tree.swap(wth.m_tree);
+		cogs::swap(m_count, wth.m_count);
+		m_allocator.swap(wth.m_allocator);
+	}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
+
+	iterator begin() const { return get_first(); }
+	iterator rbegin() const { return get_last(); }
+	iterator end() const { iterator i; return i; }
+	iterator rend() const { iterator i; return i; }
 };
 
 

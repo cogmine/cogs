@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -378,23 +378,14 @@ private:
 	rcptr<bridgeable_pane> m_bridgedPane;
 
 protected:
-	explicit pane_bridge(const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(frames, children, cb)
+	typedef pane::options options;
+
+	pane_bridge()
+		: pane_bridge(options())
 	{ }
 
-	explicit pane_bridge(const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane_bridge({}, children, cb)
-	{ }
-
-	pane_bridge(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
-		: pane_bridge(frames, {}, cb)
-	{ }
-
-	explicit pane_bridge(compositing_behavior cb)
-		: pane_bridge({}, {}, cb)
+	explicit pane_bridge(options&& o)
+		: pane(std::move(o))
 	{ }
 
 	const rcptr<bridgeable_pane>& get_bridged() const { return m_bridgedPane; }
@@ -613,8 +604,8 @@ protected:
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
 
 public:
 	using pane::get_size;

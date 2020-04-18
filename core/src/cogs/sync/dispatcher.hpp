@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -272,13 +272,13 @@ public:
 class continuation_dispatched : public dispatched
 {
 public:
-	priority_queue<int, ptr<continuation_dispatched> >::remove_token m_removeToken;
+	priority_queue<int, continuation_dispatched>::remove_token m_removeToken;
 
 	// m_removeToken is accessed in a thread-safe way.  Cast away volatility
-	priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() volatile { return ((continuation_dispatched*)this)->m_removeToken; }
-	const priority_queue<int, ptr<continuation_dispatched> >::remove_token& get_remove_token() const volatile { return ((const continuation_dispatched*)this)->m_removeToken; }
+	priority_queue<int, continuation_dispatched>::remove_token& get_remove_token() volatile { return ((continuation_dispatched*)this)->m_removeToken; }
+	const priority_queue<int, continuation_dispatched>::remove_token& get_remove_token() const volatile { return ((const continuation_dispatched*)this)->m_removeToken; }
 
-	continuation_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt)
+	continuation_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, continuation_dispatched>::remove_token& rt)
 		: dispatched(parentDispatcher, t),
 		m_removeToken(rt)
 	{ }
@@ -291,7 +291,7 @@ class task<void> : public waitable, public object
 protected:
 	friend class dispatcher;
 
-	priority_queue<int, ptr<continuation_dispatched> > m_continuationSubTasks;
+	priority_queue<int, continuation_dispatched> m_continuationSubTasks;
 	volatile boolean m_continuationSubTaskDrainDone;
 
 	virtual rcptr<volatile dispatched> get_dispatched() const volatile { return rcptr<volatile dispatched>(); }
@@ -299,15 +299,15 @@ protected:
 	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile
 	{
 		volatile continuation_dispatched& d2 = *(volatile continuation_dispatched*)&d;
-		priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt = d2.get_remove_token();
-		bool b = m_continuationSubTasks.remove(rt);
+		priority_queue<int, continuation_dispatched>::remove_token& rt = d2.get_remove_token();
+		bool b = m_continuationSubTasks.remove(rt).wasRemoved;
 		return signaled(b);
 	}
 
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
 	{
 		volatile continuation_dispatched& d2 = *(volatile continuation_dispatched*)&d;
-		priority_queue<int, ptr<continuation_dispatched> >::remove_token& rt = d2.get_remove_token();
+		priority_queue<int, continuation_dispatched>::remove_token& rt = d2.get_remove_token();
 		m_continuationSubTasks.change_priority(rt, newPriority);
 	}
 
@@ -316,7 +316,7 @@ protected:
 		bool setDoneState = false;
 		for (;;)
 		{
-			priority_queue<int, ptr<continuation_dispatched> >::value_token vt = m_continuationSubTasks.get();
+			priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.get();
 			if (!vt)
 			{
 				if (setDoneState)
@@ -325,33 +325,29 @@ protected:
 				m_continuationSubTaskDrainDone = true;
 				continue;
 			}
-			(*vt)->get_task_base()->cancel();
+			vt->get_task_base()->cancel();
 		}
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<continuation_dispatched> >::preallocated i;
-		auto r = m_continuationSubTasks.preallocate_key_with_aux<delayed_construction<continuation_dispatched> >(priority, i);
-		continuation_dispatched* d = &(r->get());
-		i.get_value() = d;
-		placement_rcnew(d, *r.get_desc())(this_rcref, t, i);
-		rcref<continuation_dispatched> d2(d, i.get_desc());
-		t->set_dispatched(d2);
-		i.disown();
 		for (;;)
 		{
 			if (!m_continuationSubTaskDrainDone)
 			{
-				m_continuationSubTasks.insert_preallocated(i);
-				if (!m_continuationSubTaskDrainDone || !m_continuationSubTasks.remove(i))
+				priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.insert_via([&](priority_queue<int, continuation_dispatched>::value_token& vt)
+				{
+					*const_cast<int*>(&vt.get_priority()) = priority;
+					placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+					t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
+				}).valueToken;
+				if (!m_continuationSubTaskDrainDone || !m_continuationSubTasks.remove(vt).wasRemoved)
 					break; // was handled
 			}
-			i.release();
 			if (is_signaled())
-				signal_continuation(*d->get_task_base());
+				signal_continuation(*t);
 			else
-				d->get_task_base()->cancel();
+				t->cancel();
 			break;
 		}
 	}
@@ -367,7 +363,7 @@ protected:
 		bool setDoneState = false;
 		for (;;)
 		{
-			priority_queue<int, ptr<continuation_dispatched> >::value_token vt = m_continuationSubTasks.get();
+			priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.get();
 			if (!vt)
 			{
 				if (setDoneState)
@@ -376,9 +372,7 @@ protected:
 				m_continuationSubTaskDrainDone = true;
 				continue;
 			}
-
-			ptr<continuation_dispatched> d = (*vt).template static_cast_to<continuation_dispatched>();
-			signal_continuation(*d->get_task_base());
+			signal_continuation(*vt->get_task_base());
 		}
 	}
 
@@ -393,10 +387,10 @@ public:
 	{
 		for (;;)
 		{
-			priority_queue<int, ptr<continuation_dispatched> >::value_token vt = m_continuationSubTasks.get();
+			priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.get();
 			if (!vt)
 				break;
-			(*vt)->get_task_base()->cancel();
+			vt->get_task_base()->cancel();
 		}
 	}
 

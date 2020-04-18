@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,11 +9,15 @@
 #define COGS_HEADER_COLLECTION_CONTAINER_DEQUE
 
 
+#include <initializer_list>
+
 #include "cogs/collections/dlink.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
+#include "cogs/mem/allocator.hpp"
 #include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/math/boolean.hpp"
 #include "cogs/operators.hpp"
@@ -23,17 +27,7 @@
 
 namespace cogs {
 
-
-enum class insert_mode
-{
-	normal = 0,
-	only_if_empty = 1,
-	only_if_not_empty = 2
-};
-
-
-// A lock-free deque implementation based loosely on a paper by Maged M. Michael
-
+// Based loosely on a paper by Maged M. Michael titled, "CAS-Based Lock-Free Algorithm for Shared Deques".
 
 /// @ingroup LockFreeCollections
 /// @brief A double-ended queue container collection
@@ -47,18 +41,18 @@ public:
 	typedef T type;
 	typedef container_deque<type, false, allocator_type> this_t;
 
-private:
-	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
+	struct volatile_pop_result
 	{
-	public:
-		typedef typename versioned_ptr<link_t>::version_t version_t;
-
-		type m_contents;
-
-		link_t(const type& t)
-			: m_contents(t)
-		{ }
+		bool wasRemoved;
+		bool wasEmptied;
 	};
+
+private:
+	class link_t : public delayed_construction<type>, public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
+	{
+	};
+
+	typedef typename versioned_ptr<link_t>::version_t version_t;
 
 	mutable hazard m_hazard;
 
@@ -72,9 +66,9 @@ private:
 
 	void stabilize(content_t& oldContents) volatile
 	{
-		typename hazard::pointer hazardPointer1;
-		typename hazard::pointer hazardPointer2;
-		typename link_t::version_t v;
+		hazard::pointer hazardPointer1;
+		hazard::pointer hazardPointer2;
+		version_t v;
 		content_t newContents;
 		for (;;)
 		{
@@ -162,42 +156,33 @@ private:
 	}
 
 	template <bool fromEnd>
-	bool remove_inner(type* t, bool& wasLast)
+	bool remove_inner(type* t)
 	{
-		wasLast = false;
-
 		ptr<link_t> oldLink = fromEnd ? m_contents.m_tail : m_contents.m_head;
 		if (!oldLink)
 			return false;
-
 		if (!!t)
-			*t = oldLink->m_contents;
-
+			*t = std::move(oldLink->get());
 		if (m_contents.m_tail == m_contents.m_head)
-		{
 			m_contents.m_tail = m_contents.m_head = 0;
-			wasLast = true;
-		}
 		else if (fromEnd)
 			m_contents.m_tail = oldLink->get_prev_link().get_ptr();
 		else
 			m_contents.m_head = oldLink->get_next_link().get_ptr();
-
 		m_allocator.template destruct_deallocate_type<link_t>(oldLink);
 		return true;
 	}
 
 	template <bool fromEnd>
-	bool remove_inner(type* t, bool& wasLast) volatile
+	volatile_pop_result remove_inner(type* t) volatile
 	{
 		bool result = false;
-
+		bool wasLast = false;
 		typename hazard::pointer hazardPointer;
 		content_t newContents;
 		content_t oldContents;
 		for (;;)
 		{
-			wasLast = false;
 			stabilize(oldContents);
 
 			if (!oldContents.m_head)
@@ -209,11 +194,9 @@ private:
 			if ((newContents.m_head != oldContents.m_head) || (newContents.m_tail != oldContents.m_tail) || (!hazardPointer.validate()))
 				continue;
 
-			if (oldContents.m_head == oldContents.m_tail)
-			{
+			wasLast = oldContents.m_head == oldContents.m_tail;
+			if (wasLast)
 				newContents.m_head = newContents.m_tail = 0;
-				wasLast = true;
-			}
 			else if (fromEnd)
 			{
 				newContents.m_head = oldContents.m_head;
@@ -230,7 +213,7 @@ private:
 			{
 				result = true;
 				if (!!t)
-					*t = oldLink->m_contents;
+					*t = std::move(oldLink->get());
 				bool b = m_hazard.release(oldLink.get_ptr()); // We have a hazard, so this will not return ownership
 				COGS_ASSERT(!b);
 			}
@@ -242,7 +225,7 @@ private:
 				break;
 			// continue;
 		}
-		return result;
+		return { result, wasLast };
 	}
 
 	template <bool fromEnd>
@@ -263,7 +246,7 @@ private:
 				atomic::load(m_contents, newContents);
 				if ((oldLink != (fromEnd ? newContents.m_tail : newContents.m_head)) || (!hazardPointer.validate()))
 					continue;
-				t = oldLink->m_contents;
+				t = oldLink->get();
 				if (hazardPointer.release())
 					m_allocator.template destruct_deallocate_type<link_t>(oldLink);
 				result = true;
@@ -273,21 +256,24 @@ private:
 		return result;
 	}
 
+	enum class insert_mode
+	{
+		normal = 0,
+		only_if_empty = 1,
+		only_if_not_empty = 2
+	};
+
 	template <bool atEnd, insert_mode insertMode>
-	bool insert_inner(const type& t)
+	bool insert_inner(link_t* l)
 	{
 		ptr<link_t> oldLink = atEnd ? m_contents.m_tail : m_contents.m_head;
 		bool wasEmpty = !oldLink;
-
-		ptr<link_t> l = m_allocator.template allocate_type<link_t>();
-		new (l.get_ptr()) link_t(t);
-
 		if (wasEmpty)
 		{
 			if constexpr (insertMode == insert_mode::only_if_not_empty)
 				return true;
 
-			m_contents.m_tail = m_contents.m_head = l.get_ptr();
+			m_contents.m_tail = m_contents.m_head = l;
 		}
 		else
 		{
@@ -298,13 +284,13 @@ private:
 			{
 				l->set_prev_link(oldLink);
 				oldLink->set_next_link(l);
-				m_contents.m_tail = l.get_ptr();
+				m_contents.m_tail = l;
 			}
 			else
 			{
 				l->set_next_link(oldLink);
 				oldLink->set_prev_link(l);
-				m_contents.m_head = l.get_ptr();
+				m_contents.m_head = l;
 			}
 		}
 
@@ -312,13 +298,10 @@ private:
 	}
 
 	template <bool atEnd, insert_mode insertMode>
-	bool insert_inner(const type& t) volatile
+	bool insert_inner(link_t* lnk) volatile
 	{
 		bool wasEmpty = false;
-
-		ptr<link_t> myLink = m_allocator.template allocate_type<link_t>();
-		new (myLink.get_ptr()) link_t(t);
-
+		ptr<link_t> l = lnk;
 		content_t newContents;
 		content_t oldContents;
 		bool done = false;
@@ -333,7 +316,7 @@ private:
 				if constexpr (insertMode == insert_mode::only_if_not_empty)
 					return true;
 
-				newContents.m_head = newContents.m_tail = myLink.get_ptr();
+				newContents.m_head = newContents.m_tail = l.get_ptr();
 				if (atomic::compare_exchange(m_contents, newContents, oldContents))
 				{ // success
 					wasEmpty = true;
@@ -347,14 +330,14 @@ private:
 
 			if (atEnd)
 			{
-				myLink->set_prev_link(oldContents.m_tail);
-				newContents.m_tail = myLink.get_marked(1); // indicate an append is in progress.
+				l->set_prev_link(oldContents.m_tail);
+				newContents.m_tail = l.get_marked(1); // indicate an append is in progress.
 				newContents.m_head = oldContents.m_head;
 			}
 			else
 			{
-				myLink->set_next_link(oldContents.m_head);
-				newContents.m_head = myLink.get_marked(1); // indicate a prepend is in progress.
+				l->set_next_link(oldContents.m_head);
+				newContents.m_head = l.get_marked(1); // indicate a prepend is in progress.
 				newContents.m_tail = oldContents.m_tail;
 			}
 			done = atomic::compare_exchange(m_contents, newContents, oldContents);
@@ -364,7 +347,14 @@ private:
 	}
 
 	container_deque(const container_deque& src) = delete;
+	container_deque(const volatile container_deque& src) = delete;
+
 	this_t& operator=(const container_deque& src) = delete;
+	this_t& operator=(const volatile container_deque& src) = delete;
+
+	volatile this_t& operator=(container_deque&& src) volatile = delete;
+	volatile this_t& operator=(const container_deque& src) volatile = delete;
+	volatile this_t& operator=(const volatile container_deque& src) volatile = delete;
 
 	allocator_container<allocator_type> m_allocator;
 
@@ -384,6 +374,32 @@ public:
 		src.m_contents.m_tail = 0;
 	}
 
+	explicit container_deque(volatile allocator_type& al)
+		: m_allocator(al)
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+	}
+
+	container_deque(const std::initializer_list<type>& src)
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+		for (auto& entry : src)
+			append(entry);
+	}
+
+	container_deque(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_allocator(std::move(src.m_allocator))
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+		for (auto& entry : src)
+			append(entry);
+	}
+
+	~container_deque() { clear_inner(); }
+
 	this_t& operator=(this_t&& src)
 	{
 		clear_inner();
@@ -395,22 +411,20 @@ public:
 		return *this;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const std::initializer_list<type>& src)
 	{
-		swap(src);
-		src.clear();
+		this_t tmp(src);
+		*this = std::move(tmp);
 		return *this;
 	}
 
-	explicit container_deque(volatile allocator_type& al)
-		: m_allocator(al)
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
 	{
-		m_contents.m_head = 0;
-		m_contents.m_tail = 0;
+		this_t result;
+		(result.append(std::forward<args_t>(args)), ...);
+		return result;
 	}
-
-	~container_deque() { clear_inner(); }
 
 	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
@@ -439,25 +453,260 @@ public:
 		}
 	}
 
+	// lamba is used passed referenced to unconstructed object,
+	// and is required to construct it.
+
 	// Return true if list was empty, false if it was not
-	bool prepend(const type& t) { return insert_inner<false, insert_mode::normal>(t); }
-	bool prepend(const type& t) volatile { return insert_inner<false, insert_mode::normal>(t); }
-	bool append(const type& t) { return insert_inner<true, insert_mode::normal>(t); }
-	bool append(const type& t) volatile { return insert_inner<true, insert_mode::normal>(t); }
+	template <typename F>
+	bool prepend_via(F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l);
+	}
+
+	template <typename F>
+	bool prepend_via(F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l);
+	}
+
+	bool prepend(const type& src) { return prepend_via([&](type& t) { new (&t) type(src); }); }
+	bool prepend(type&& src) { return prepend_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend(F&& f) { return prepend_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace(args_t&&... args) { return prepend_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool prepend(const type& src) volatile { return prepend_via([&](type& t) { new (&t) type(src); }); }
+	bool prepend(type&& src) volatile { return prepend_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend(F&& f) volatile { return prepend_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace(args_t&&... args) volatile { return prepend_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool append_via(F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l);
+	}
+
+	template <typename F>
+	bool append_via(F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l);
+	}
+
+	bool append(const type& src) { return append_via([&](type& t) { new (&t) type(src); }); }
+	bool append(type&& src) { return append_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append(F&& f) { return append_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace(args_t&&... args) { return append_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append(const type& src) volatile { return append_via([&](type& t) { new (&t) type(src); }); }
+	bool append(type&& src) volatile { return append_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append(F&& f) volatile { return append_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace(args_t&&... args) volatile { return append_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
 
 	// Returns true if added, false if not added
-	bool prepend_if_not_empty(const type& t) { return !insert_inner<false, insert_mode::only_if_not_empty>(t); }
-	bool prepend_if_not_empty(const type& t) volatile { return !insert_inner<false, insert_mode::only_if_not_empty>(t); }
-	bool append_if_not_empty(const type& t) { return !insert_inner<true, insert_mode::only_if_not_empty>(t); }
-	bool append_if_not_empty(const type& t) volatile { return !insert_inner<true, insert_mode::only_if_not_empty>(t); }
-	bool insert_if_empty(const type& t) { return insert_inner<true, insert_mode::only_if_empty>(t); }
-	bool insert_if_empty(const type& t) volatile { return insert_inner<true, insert_mode::only_if_empty>(t); }
+	template <typename F>
+	bool prepend_via_if_not_empty(F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<false, insert_mode::only_if_not_empty>(l);
+		return true;
+	}
 
-	bool peek_first(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_first(type& t) const volatile { return peek_inner<false>(t); }
+	template <typename F>
+	bool prepend_via_if_not_empty(F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<false, insert_mode::only_if_not_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
 
-	bool peek_last(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_last(type& t) const volatile { return peek_inner<true>(t); }
+
+	bool prepend_if_not_empty(const type& src) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool prepend_if_not_empty(type&& src) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_if_not_empty(F&& f) { return prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_if_not_empty(args_t&&... args) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool prepend_if_not_empty(const type& src) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool prepend_if_not_empty(type&& src) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_if_not_empty(F&& f) volatile { return prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_if_not_empty(args_t&&... args) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Returns true if added, false if not added
+	template <typename F>
+	bool append_via_if_not_empty(F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_not_empty>(l);
+		return true;
+	}
+
+	template <typename F>
+	bool append_via_if_not_empty(F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<true, insert_mode::only_if_not_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+	bool append_if_not_empty(const type& src) { return append_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool append_if_not_empty(type&& src) { return append_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_if_not_empty(F&& f) { return append_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_if_not_empty(args_t&&... args) { return append_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append_if_not_empty(const type& src) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool append_if_not_empty(type&& src) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_if_not_empty(F&& f) volatile { return append_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_if_not_empty(args_t&&... args) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool insert_via_if_empty(F&& f)
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_empty>(l);
+		return true;
+	}
+
+	template <typename F>
+	bool insert_via_if_empty(F&& f) volatile
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = insert_inner<true, insert_mode::only_if_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+	bool insert_if_empty(const type& src) { return insert_via_if_empty([&](type& t) { new (&t) type(src); }); }
+	bool insert_if_empty(type&& src) { return insert_via_if_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_if_empty(F&& f) { return insert_via_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_if_empty(args_t&&... args) { return insert_via_if_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool insert_if_empty(const type& src) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(src); }); }
+	bool insert_if_empty(type&& src) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_if_empty(F&& f) volatile { return insert_via_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_if_empty(args_t&&... args) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	// It is only valid to peek at a volatile element if you know it wont
+	// be removed by another thread.  Doing so is caller error.  Only
+	// call from a thread or context that is the only remover of elements.
+
+	bool peek_front(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->get(); return true; }
+	bool peek_front(type& t) const volatile { return peek_inner<false>(t); }
+
+	bool peek_back(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->get(); return true; }
+	bool peek_back(type& t) const volatile { return peek_inner<true>(t); }
 
 	bool is_empty() const { return !m_contents.m_head; }
 	bool is_empty() const volatile { link_t* l; atomic::load(m_contents.m_head, l); return !l; }
@@ -468,49 +717,27 @@ public:
 	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
 	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
 
-	bool pop_first(type& t, bool& wasLast) { return remove_inner<false>(&t, wasLast); }
-	bool pop_first(type& t, bool& wasLast) volatile { return remove_inner<false>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) { return remove_inner<true>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) volatile { return remove_inner<true>(&t, wasLast); }
+	bool pop_front(type& t) { return remove_inner<false>(&t); }
+	bool pop_back(type& t) { return remove_inner<true>(&t); }
 
-	bool pop_first(type& t) { bool wasLast; return pop_first(t, wasLast); }
-	bool pop_first(type& t) volatile { bool wasLast; return pop_first(t, wasLast); }
-	bool pop_last(type& t) { bool wasLast; return pop_last(t, wasLast); }
-	bool pop_last(type& t) volatile { bool wasLast; return pop_last(t, wasLast); }
+	bool remove_front() { return remove_inner<false>(0); }
+	bool remove_last() { return remove_inner<true>(0); }
 
+	volatile_pop_result pop_front(type& t) volatile { return remove_inner<false>(&t); }
+	volatile_pop_result pop_back(type& t) volatile { return remove_inner<true>(&t); }
 
-	bool remove_first(bool& wasLast) { return remove_inner<false>(0, wasLast); }
-	bool remove_first(bool& wasLast) volatile { return remove_inner<false>(0, wasLast); }
-	bool remove_last(bool& wasLast) { return remove_inner<true>(0, wasLast); }
-	bool remove_last(bool& wasLast) volatile { return remove_inner<true>(0, wasLast); }
+	typedef volatile_pop_result volatile_remove_result;
 
-	bool remove_first() { bool wasLast; return remove_first(wasLast); }
-	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
-	bool remove_last() { bool wasLast; return remove_last(wasLast); }
-	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
+	volatile_remove_result remove_front() volatile { return remove_inner<false>(0); }
+	volatile_remove_result remove_last() volatile { return remove_inner<true>(0); }
 
 	void swap(this_t& wth)
 	{
 		content_t tmp = m_contents;
 		m_contents = wth.m_contents;
 		wth.m_contents = tmp;
-		allocator_container<allocator_type> tmp2 = m_allocator;
-		m_allocator = wth.m_allocator;
-		wth.m_allocator = tmp2;
+		m_allocator.swap(wth.m_allocator);
 	}
-
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(this_t& wth) volatile
-	{
-		content_t oldContents;
-		do {
-			stabilize(oldContents);
-		} while (!atomic::compare_exchange(m_contents, wth.m_contents, oldContents));
-		wth.m_contents = oldContents;
-	}
-
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	this_t exchange(this_t&& src)
 	{
@@ -519,12 +746,10 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	this_t exchange(this_t&& src) volatile
+	void exchange(this_t&& src, this_t& rtn)
 	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		return tmp;
+		rtn = std::move(src);
+		swap(rtn);
 	}
 };
 
@@ -536,24 +761,22 @@ public:
 	typedef T type;
 	typedef container_deque<type, true, allocator_type> this_t;
 
+	struct volatile_pop_result
+	{
+		bool wasRemoved;
+		bool wasEmptied;
+	};
+
 private:
-	class link_t : public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
+	class link_t : public delayed_construction<type>, public dlink_t<link_t, versioned_ptr, default_dlink_accessor<link_t, versioned_ptr> >
 	{
 	public:
-		typedef typename versioned_ptr<link_t>::version_t version_t;
-
-		type m_contents;
-
 		alignas (atomic::get_alignment_v<size_t>) size_t m_remainingCount;
 
-		volatile boolean m_removed;
-
-		link_t(const type& t, size_t n)
-			: m_contents(t)
-		{
-			m_remainingCount = n;
-		}
+		volatile boolean m_isRemoved;
 	};
+
+	typedef typename versioned_ptr<link_t>::version_t version_t;
 
 	mutable hazard m_hazard;
 
@@ -567,9 +790,9 @@ private:
 
 	void stabilize(content_t& oldContents) volatile
 	{
-		typename hazard::pointer hazardPointer1;
-		typename hazard::pointer hazardPointer2;
-		typename link_t::version_t v;
+		hazard::pointer hazardPointer1;
+		hazard::pointer hazardPointer2;
+		version_t v;
 		content_t newContents;
 		for (;;)
 		{
@@ -657,43 +880,42 @@ private:
 	}
 
 	template <bool fromEnd>
-	bool remove_inner(type* t, bool& wasLast)
+	bool remove_inner(type* t)
 	{
-		wasLast = false;
 		ptr<link_t> oldLink = fromEnd ? m_contents.m_tail : m_contents.m_head;
 		if (!oldLink)
 			return false;
-
-		if (!!t)
-			*t = oldLink->get();
-
 		if (!--(oldLink->m_remainingCount))
 		{
+			if (!!t)
+				*t = std::move(oldLink->get());
 			if (m_contents.m_tail == m_contents.m_head)
-			{
 				m_contents.m_tail = m_contents.m_head = 0;
-				wasLast = true;
-			}
 			else if (fromEnd)
 				m_contents.m_tail = oldLink->get_prev_link().get_ptr();
 			else
 				m_contents.m_head = oldLink->get_next_link().get_ptr();
 			m_allocator.template destruct_deallocate_type<link_t>(oldLink);
 		}
+		else
+		{
+			if (!!t)
+				*t = oldLink->get();
+		}
 		return true;
 	}
 
 	template <bool fromEnd>
-	bool remove_inner(type* t, bool& wasLast) volatile
+	volatile_pop_result remove_inner(type* t) volatile
 	{
 		bool result = false;
-		typename hazard::pointer hazardPointer;
+		bool wasLast = false;
 		bool ownedRemoval = false;
+		typename hazard::pointer hazardPointer;
 		content_t newContents;
 		content_t oldContents;
 		for (;;)
 		{
-			wasLast = false;
 			stabilize(oldContents);
 
 			if (!oldContents.m_head)
@@ -742,10 +964,10 @@ private:
 			if (result)
 			{
 				if (!!t)
-					*t = oldLink->m_contents;
+					*t = oldLink->get();
 				if (ownedRemoval)
 				{
-					oldLink->m_removed = true;
+					oldLink->m_isRemoved = true;
 					bool b = m_hazard.release(oldLink.get_ptr()); // We have a hazard, so this will not return ownership
 					COGS_ASSERT(!b);
 				}
@@ -759,7 +981,7 @@ private:
 			break;
 		}
 
-		return result;
+		return { result, wasLast };
 	}
 
 	template <bool fromEnd>
@@ -780,7 +1002,7 @@ private:
 				atomic::load(m_contents, newContents);
 				if ((oldLink != (fromEnd ? newContents.m_tail : newContents.m_head)) || (!hazardPointer.validate()))
 					continue;
-				t = oldLink->m_contents;
+				t = oldLink->get();
 				if (hazardPointer.release())
 					m_allocator.template destruct_deallocate_type<link_t>(oldLink);
 				result = true;
@@ -790,51 +1012,54 @@ private:
 		return result;
 	}
 
-	template <bool atEnd, insert_mode insertMode>
-	bool insert_inner(const type& t, size_t n)
+	enum class insert_mode
 	{
+		normal = 0,
+		only_if_empty = 1,
+		only_if_not_empty = 2
+	};
+
+	template <bool atEnd, insert_mode insertMode>
+	bool insert_inner(link_t* l, size_t n = 1)
+	{
+		l->m_remainingCount = n;
 		ptr<link_t> oldLink = atEnd ? m_contents.m_tail : m_contents.m_head;
 		bool wasEmpty = !oldLink;
 		if (wasEmpty)
 		{
-			if (insertMode == insert_mode::only_if_not_empty)
+			if constexpr (insertMode == insert_mode::only_if_not_empty)
 				return true;
-		}
-		else if (insertMode == insert_mode::only_if_empty)
-			return false;
 
-		if ((!wasEmpty) && (oldLink->get() == t))
-			oldLink->m_remainingCount += n;
+			m_contents.m_tail = m_contents.m_head = l;
+		}
 		else
 		{
-			ptr<link_t> l = m_allocator.template allocate_type<link_t>();
-			new (l.get_ptr()) link_t(t, n);
-			if (wasEmpty)
-				m_contents.m_tail = m_contents.m_head = l.get_ptr();
-			else if (atEnd)
+			if constexpr (insertMode == insert_mode::only_if_empty)
+				return false;
+
+			if (atEnd)
 			{
 				l->set_prev_link(oldLink);
 				oldLink->set_next_link(l);
-				m_contents.m_tail = l.get_ptr();
+				m_contents.m_tail = l;
 			}
 			else
 			{
 				l->set_next_link(oldLink);
 				oldLink->set_prev_link(l);
-				m_contents.m_head = l.get_ptr();
+				m_contents.m_head = l;
 			}
 		}
+
 		return wasEmpty;
 	}
 
 	template <bool atEnd, insert_mode insertMode>
-	bool insert_inner(const type& t, size_t n) volatile
+	bool insert_inner(link_t* lnk, size_t n = 1) volatile
 	{
 		bool wasEmpty = false;
-
-		ptr<link_t> myLink = m_allocator.template allocate_type<link_t>();
-		new (myLink.get_ptr()) link_t(t, n);
-
+		ptr<link_t> l = lnk;
+		l->m_remainingCount = n;
 		content_t newContents;
 		content_t oldContents;
 		bool done = false;
@@ -849,7 +1074,7 @@ private:
 				if (insertMode == insert_mode::only_if_not_empty)
 					return true;
 
-				newContents.m_head = newContents.m_tail = myLink.get_ptr();
+				newContents.m_head = newContents.m_tail = l.get_ptr();
 				if (atomic::compare_exchange(m_contents, newContents, oldContents))
 				{ // success
 					wasEmpty = true;
@@ -863,14 +1088,14 @@ private:
 
 			if (atEnd)
 			{
-				myLink->set_prev_link(oldContents.m_tail);
-				newContents.m_tail = myLink.get_marked(1); // indicate an append is in progress.
+				l->set_prev_link(oldContents.m_tail);
+				newContents.m_tail = l.get_marked(1); // indicate an append is in progress.
 				newContents.m_head = oldContents.m_head;
 			}
 			else
 			{
-				myLink->set_next_link(oldContents.m_head);
-				newContents.m_head = myLink.get_marked(1); // indicate a prepend is in progress.
+				l->set_next_link(oldContents.m_head);
+				newContents.m_head = l.get_marked(1); // indicate a prepend is in progress.
 				newContents.m_tail = oldContents.m_tail;
 			}
 			done = atomic::compare_exchange(m_contents, newContents, oldContents);
@@ -880,7 +1105,14 @@ private:
 	}
 
 	container_deque(const container_deque& src) = delete;
+	container_deque(const volatile container_deque& src) = delete;
+
 	this_t& operator=(const container_deque& src) = delete;
+	this_t& operator=(const volatile container_deque& src) = delete;
+
+	volatile this_t& operator=(container_deque&& src) volatile = delete;
+	volatile this_t& operator=(const container_deque& src) volatile = delete;
+	volatile this_t& operator=(const volatile container_deque& src) volatile = delete;
 
 	allocator_container<allocator_type> m_allocator;
 
@@ -907,6 +1139,25 @@ public:
 		m_contents.m_tail = 0;
 	}
 
+	container_deque(const std::initializer_list<type>& src)
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+		for (auto& entry : src)
+			append(entry);
+	}
+
+	container_deque(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_allocator(std::move(src.m_allocator))
+	{
+		m_contents.m_head = 0;
+		m_contents.m_tail = 0;
+		for (auto& entry : src)
+			append(entry);
+	}
+
+	~container_deque() { clear_inner(); }
+
 	this_t& operator=(this_t&& src)
 	{
 		clear_inner();
@@ -918,15 +1169,20 @@ public:
 		return *this;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const std::initializer_list<type>& src)
 	{
-		swap(src);
-		src.clear();
+		this_t tmp(src);
+		*this = std::move(tmp);
 		return *this;
 	}
 
-	~container_deque() { clear_inner(); }
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.append(std::forward<args_t>(args)), ...);
+		return result;
+	}
 
 	void clear() { clear_inner(); m_contents.m_head = 0; m_contents.m_tail = 0; }
 	void clear() volatile
@@ -955,25 +1211,499 @@ public:
 		}
 	}
 
+	// lamba is used passed referenced to unconstructed object,
+	// and is required to construct it.
+
 	// Return true if list was empty, false if it was not
-	bool prepend(const type& t, size_t n = 1) { return insert_inner<false, insert_mode::normal>(t, n); }
-	bool prepend(const type& t, size_t n = 1) volatile { return insert_inner<false, insert_mode::normal>(t, n); }
-	bool append(const type& t, size_t n = 1) { return insert_inner<true, insert_mode::normal>(t, n); }
-	bool append(const type& t, size_t n = 1) volatile { return insert_inner<true, insert_mode::normal>(t, n); }
+	template <typename F>
+	bool prepend_via(F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l);
+	}
+
+	template <typename F>
+	bool prepend_via(F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l);
+	}
+
+	bool prepend(const type& src) { return prepend_via([&](type& t) { new (&t) type(src); }); }
+	bool prepend(type&& src) { return prepend_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend(F&& f) { return prepend_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace(args_t&&... args) { return prepend_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool prepend(const type& src) volatile { return prepend_via([&](type& t) { new (&t) type(src); }); }
+	bool prepend(type&& src) volatile { return prepend_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend(F&& f) volatile { return prepend_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace(args_t&&... args) volatile { return prepend_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool append_via(F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l);
+	}
+
+	template <typename F>
+	bool append_via(F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l);
+	}
+
+	bool append(const type& src) { return append_via([&](type& t) { new (&t) type(src); }); }
+	bool append(type&& src) { return append_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append(F&& f) { return append_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace(args_t&&... args) { return append_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append(const type& src) volatile { return append_via([&](type& t) { new (&t) type(src); }); }
+	bool append(type&& src) volatile { return append_via([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append(F&& f) volatile { return append_via(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace(args_t&&... args) volatile { return append_via([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
 
 	// Returns true if added, false if not added
-	bool prepend_if_not_empty(const type& t, size_t n = 1) { return !insert_inner<false, insert_mode::only_if_not_empty>(t, n); }
-	bool prepend_if_not_empty(const type& t, size_t n = 1) volatile { return !insert_inner<false, insert_mode::only_if_not_empty>(t, n); }
-	bool append_if_not_empty(const type& t, size_t n = 1) { return !insert_inner<true, insert_mode::only_if_not_empty>(t, n); }
-	bool append_if_not_empty(const type& t, size_t n = 1) volatile { return !insert_inner<true, insert_mode::only_if_not_empty>(t, n); }
-	bool insert_if_empty(const type& t, size_t n = 1) { return insert_inner<true, insert_mode::only_if_empty>(t, n); }
-	bool insert_if_empty(const type& t, size_t n = 1) volatile { return insert_inner<true, insert_mode::only_if_empty>(t, n); }
+	template <typename F>
+	bool prepend_via_if_not_empty(F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<false, insert_mode::only_if_not_empty>(l);
+		return true;
+	}
 
-	bool peek_first(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_first(type& t) const volatile { return peek_inner<false>(t); }
+	template <typename F>
+	bool prepend_via_if_not_empty(F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<false, insert_mode::only_if_not_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
 
-	bool peek_last(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->m_contents; return true; }
-	bool peek_last(type& t) const volatile { return peek_inner<true>(t); }
+
+	bool prepend_if_not_empty(const type& src) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool prepend_if_not_empty(type&& src) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+	template <typename... args_t> bool prepend_emplace_if_not_empty(args_t&&... args) { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_if_not_empty(F&& f) { return prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	bool prepend_if_not_empty(const type& src) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool prepend_if_not_empty(type&& src) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_if_not_empty(F&& f) volatile { return prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_if_not_empty(args_t&&... args) volatile { return prepend_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Returns true if added, false if not added
+	template <typename F>
+	bool append_via_if_not_empty(F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_not_empty>(l);
+		return true;
+	}
+
+	template <typename F>
+	bool append_via_if_not_empty(F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<true, insert_mode::only_if_not_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+	bool append_if_not_empty(const type& src) { return append_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool append_if_not_empty(type&& src) { return append_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_if_not_empty(F&& f) { return append_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_if_not_empty(args_t&&... args) { return append_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append_if_not_empty(const type& src) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(src); }); }
+	bool append_if_not_empty(type&& src) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_if_not_empty(F&& f) volatile { return append_via_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_if_not_empty(args_t&&... args) volatile { return append_via_if_not_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool insert_via_if_empty(F&& f)
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_empty>(l);
+		return true;
+	}
+
+	template <typename F>
+	bool insert_via_if_empty(F&& f) volatile
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = insert_inner<true, insert_mode::only_if_empty>(l);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+	bool insert_if_empty(const type& src) { return insert_via_if_empty([&](type& t) { new (&t) type(src); }); }
+	bool insert_if_empty(type&& src) { return insert_via_if_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_if_empty(F&& f) { return insert_via_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_if_empty(args_t&&... args) { return insert_via_if_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool insert_if_empty(const type& src) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(src); }); }
+	bool insert_if_empty(type&& src) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_if_empty(F&& f) volatile { return insert_via_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_if_empty(args_t&&... args) volatile { return insert_via_if_empty([&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool prepend_multiple_via(size_t n, F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l, n);
+	}
+
+	template <typename F>
+	bool prepend_multiple_via(size_t n, F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<false, insert_mode::normal>(l, n);
+	}
+
+	bool prepend_multiple(size_t n, const type& src) { return prepend_multiple_via(n, [&](type& t) { new (&t) type(src); }); }
+	bool prepend_multiple(size_t n, type&& src) { return prepend_multiple_via(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_multiple(size_t n, F&& f) { return prepend_multiple_via(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_multiple(size_t n, args_t&&... args) { return prepend_multiple_via(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool prepend_multiple(size_t n, const type& src) volatile { return prepend_multiple_via(n, [&](type& t) { new (&t) type(src); }); }
+	bool prepend_multiple(size_t n, type&& src) volatile { return prepend_multiple_via(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_multiple(size_t n, F&& f) volatile { return prepend_multiple_via(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_multiple(size_t n, args_t&&... args) volatile { return prepend_multiple_via(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	template <typename F>
+	bool append_multiple_via(size_t n, F&& f)
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l, n);
+	}
+
+	template <typename F>
+	bool append_multiple_via(size_t n, F&& f) volatile
+	{
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		return insert_inner<true, insert_mode::normal>(l, n);
+	}
+
+	bool append_multiple(size_t n, const type& src) { return append_multiple_via(n, [&](type& t) { new (&t) type(src); }); }
+	bool append_multiple(size_t n, type&& src) { return append_multiple_via(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_multiple(size_t n, F&& f) { return append_multiple_via(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_multiple(size_t n, args_t&&... args) { return append_multiple_via(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append_multiple(size_t n, const type& src) volatile { return append_multiple_via(n, [&](type& t) { new (&t) type(src); }); }
+	bool append_multiple(size_t n, type&& src) volatile { return append_multiple_via(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_multiple(size_t n, F&& f) volatile { return append_multiple_via(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_multiple(size_t n, args_t&&... args) volatile { return append_multiple_via(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	// Returns true if added, false if not added
+	template <typename F>
+	bool prepend_multiple_via_if_not_empty(size_t n, F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<false, insert_mode::only_if_not_empty>(l, n);
+		return true;
+	}
+
+	template <typename F>
+	bool prepend_multiple_via_if_not_empty(size_t n, F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<false, insert_mode::only_if_not_empty>(l, n);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+
+	bool prepend_multiple_if_not_empty(size_t n, const type& src) { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool prepend_multiple_if_not_empty(size_t n, type&& src) { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_multiple_if_not_empty(size_t n, F&& f) { return prepend_multiple_via_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_multiple_if_not_empty(size_t n, args_t&&... args) { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool prepend_multiple_if_not_empty(size_t n, const type& src) volatile { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool prepend_multiple_if_not_empty(size_t n, type&& src) volatile { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	prepend_multiple_if_not_empty(size_t n, F&& f) volatile { return prepend_multiple_via_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool prepend_emplace_multiple_if_not_empty(size_t n, args_t&&... args) volatile { return prepend_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	template <typename F>
+	bool append_multiple_via_if_not_empty(size_t n, F&& f)
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_not_empty>(l, n);
+		return true;
+	}
+
+	template <typename F>
+	bool append_multiple_via_if_not_empty(size_t n, F&& f) volatile
+	{
+		if (is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = !insert_inner<true, insert_mode::only_if_not_empty>(l, n);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+
+	bool append_multiple_if_not_empty(size_t n, const type& src) { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool append_multiple_if_not_empty(size_t n, type&& src) { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_multiple_if_not_empty(size_t n, F&& f) { return append_multiple_via_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_multiple_if_not_empty(size_t n, args_t&&... args) { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool append_multiple_if_not_empty(size_t n, const type& src) volatile { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool append_multiple_if_not_empty(size_t n, type&& src) volatile { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	append_multiple_if_not_empty(size_t n, F&& f) volatile { return append_multiple_via_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool append_emplace_multiple_if_not_empty(size_t n, args_t&&... args) volatile { return append_multiple_via_if_not_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	// Return true if list was empty, false if it was not
+	template <typename F>
+	bool insert_multiple_via_if_empty(size_t n, F&& f)
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		insert_inner<true, insert_mode::only_if_empty>(l, n);
+		return true;
+	}
+
+	template <typename F>
+	bool insert_multiple_via_if_empty(size_t n, F&& f) volatile
+	{
+		if (!is_empty())
+			return false;
+		link_t* l = new (m_allocator.template allocate_type<link_t>()) link_t;
+		f(l->get());
+		bool b = insert_inner<true, insert_mode::only_if_empty>(l, n);
+		if (!b)
+			m_allocator.template destruct_deallocate_type<link_t>(l);
+		return b;
+	}
+
+	bool insert_multiple_if_empty(size_t n, const type& src) { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool insert_multiple_if_empty(size_t n, type&& src) { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_multiple_if_empty(size_t n, F&& f) { return insert_multiple_via_if_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_multiple_if_empty(size_t n, args_t&&... args) { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+	bool insert_multiple_if_empty(size_t n, const type& src) volatile { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(src); }); }
+	bool insert_multiple_if_empty(size_t n, type&& src) volatile { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(std::move(src)); }); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	insert_multiple_if_empty(size_t n, F&& f) volatile { return insert_multiple_via_if_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool insert_emplace_multiple_if_empty(size_t n, args_t&&... args) volatile { return insert_multiple_via_if_empty(n, [&](type& t) { new (&t) type(std::forward<args_t>(args)...); }); }
+
+
+	bool peek_front(type& t) const { ptr<link_t> l = m_contents.m_head; if (!l) return false; t = l->get(); return true; }
+	bool peek_front(type& t) const volatile { return peek_inner<false>(t); }
+
+	bool peek_back(type& t) const { ptr<link_t> l = m_contents.m_tail; if (!l) return false; t = l->get(); return true; }
+	bool peek_back(type& t) const volatile { return peek_inner<true>(t); }
 
 	bool is_empty() const { return !m_contents.m_head; }
 	bool is_empty() const volatile { link_t* l; atomic::load(m_contents.m_head, l); return !l; }
@@ -984,49 +1714,27 @@ public:
 	bool contains_one() const { return !!m_contents.m_head && m_contents.m_head == m_contents.m_tail; }
 	bool contains_one() const volatile { content_t c; atomic::load(m_contents, c); return !!c.m_head && c.m_head == c.m_tail; }
 
-	bool pop_first(type& t, bool& wasLast) { return remove_inner<false>(&t, wasLast); }
-	bool pop_first(type& t, bool& wasLast) volatile { return remove_inner<false>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) { return remove_inner<true>(&t, wasLast); }
-	bool pop_last(type& t, bool& wasLast) volatile { return remove_inner<true>(&t, wasLast); }
+	bool pop_front(type& t) { return remove_inner<false>(&t); }
+	bool pop_back(type& t) { return remove_inner<true>(&t); }
 
-	bool pop_first(type& t) { bool wasLast; return pop_first(t, wasLast); }
-	bool pop_first(type& t) volatile { bool wasLast; return pop_first(t, wasLast); }
-	bool pop_last(type& t) { bool wasLast; return pop_last(t, wasLast); }
-	bool pop_last(type& t) volatile { bool wasLast; return pop_last(t, wasLast); }
+	bool remove_front() { return remove_inner<false>(0); }
+	bool remove_last() { return remove_inner<true>(0); }
 
+	volatile_pop_result pop_front(type& t) volatile { return remove_inner<false>(&t); }
+	volatile_pop_result pop_back(type& t) volatile { return remove_inner<true>(&t); }
 
-	bool remove_first(bool& wasLast) { return remove_inner<false>(0, wasLast); }
-	bool remove_first(bool& wasLast) volatile { return remove_inner<false>(0, wasLast); }
-	bool remove_last(bool& wasLast) { return remove_inner<true>(0, wasLast); }
-	bool remove_last(bool& wasLast) volatile { return remove_inner<true>(0, wasLast); }
+	typedef volatile_pop_result volatile_remove_result;
 
-	bool remove_first() { bool wasLast; return remove_first(wasLast); }
-	bool remove_first() volatile { bool wasLast; return remove_first(wasLast); }
-	bool remove_last() { bool wasLast; return remove_last(wasLast); }
-	bool remove_last() volatile { bool wasLast; return remove_last(wasLast); }
+	volatile_remove_result remove_front() volatile { return remove_inner<false>(0); }
+	volatile_remove_result remove_last() volatile { return remove_inner<true>(0); }
 
 	void swap(this_t& wth)
 	{
 		content_t tmp = m_contents;
 		m_contents = wth.m_contents;
 		wth.m_contents = tmp;
-		allocator_container<allocator_type> tmp2 = m_allocator;
-		m_allocator = wth.m_allocator;
-		wth.m_allocator = tmp2;
+		m_allocator.swap(wth.m_allocator);
 	}
-
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(this_t& wth) volatile
-	{
-		content_t oldContents;
-		do {
-			stabilize(oldContents);
-		} while (!atomic::compare_exchange(m_contents, wth.m_contents, oldContents));
-		wth.m_contents = oldContents;
-	}
-
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(volatile this_t& wth) { wth.swap(*this); }
 
 	this_t exchange(this_t&& src)
 	{
@@ -1035,20 +1743,15 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	this_t exchange(this_t&& src) volatile
+	void exchange(this_t&& src, this_t& rtn)
 	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		return tmp;
+		rtn = std::move(src);
+		swap(rtn);
 	}
 };
 
 
 }
-
-
-#include "cogs/collections/container_dlist.hpp"
 
 
 #endif

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -28,6 +28,7 @@ template <typename return_t, typename... args_t>
 class function_list<return_t(args_t...)> : public container_dlist<function<return_t(args_t...)> >
 {
 private:
+	typedef function_list<return_t(args_t...)> this_t;
 	typedef container_dlist<function<return_t(args_t...)> > base_t;
 
 public:
@@ -48,6 +49,8 @@ public:
 		return result;
 	}
 
+	// Safe to call in parallel with move operations, but may continue to
+	// iterate over nodes moved to destination container.
 	return_t invoke(args_t... a) volatile
 	{
 		return_t result;
@@ -61,6 +64,27 @@ public:
 		}
 		return result;
 	}
+
+	// Redefined to provide redirect type for return type
+	this_t exchange(base_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<base_t::allocator_type::is_static> >
+	this_t exchange(base_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(base_t&& src, base_t& rtn) { base_t::exchange(std::move(src), std::move(rtn)); }
+
+	template <typename enable = std::enable_if_t<base_t::allocator_type::is_static> >
+	void exchange(base_t&& src, base_t& rtn) volatile { base_t::exchange(std::move(src), rtn); }
 };
 
 
@@ -68,6 +92,7 @@ template <typename return_t, typename... args_t>
 class async_function_list<rcref<task<return_t> >(args_t...)> : public container_dlist<function<rcref<task<return_t> >(args_t...)> >
 {
 private:
+	typedef async_function_list<rcref<task<return_t> >(args_t...)> this_t;
 	typedef container_dlist<function<rcref<task<return_t> >(args_t...)> > base_t;
 
 	static rcref<task<return_t> > continue_invoke(const typename base_t::volatile_iterator& itor, args_t... a)
@@ -89,6 +114,8 @@ public:
 
 	// It's caller error to allow the object to go out of scope while an invoke is still in progress.
 
+	// Safe to call in parallel with move operations, but may continue to
+	// iterate over nodes moved to destination container.
 	rcref<task<return_t> > invoke(args_t... a) volatile
 	{
 		typename base_t::volatile_iterator itor = base_t::get_first();
@@ -101,6 +128,26 @@ public:
 		return continue_invoke(itor, a...);
 	}
 
+	// Redefined to provide redirect type for return type
+	this_t exchange(base_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	template <typename enable = std::enable_if_t<base_t::allocator_type::is_static> >
+	this_t exchange(base_t&& src) volatile
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(base_t&& src, base_t& rtn) { base_t::exchange(std::move(src), std::move(rtn)); }
+
+	template <typename enable = std::enable_if_t<base_t::allocator_type::is_static> >
+	void exchange(base_t&& src, base_t& rtn) volatile { base_t::exchange(std::move(src), rtn); }
 };
 
 

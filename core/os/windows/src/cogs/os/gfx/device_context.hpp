@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -129,7 +129,7 @@ public:
 			static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC*, DWORD, LPARAM lParam)
 			{
 				auto fontList = (fontlist*)lParam;
-				fontList->try_insert(lpelfe->lfFaceName);
+				fontList->insert_unique(lpelfe->lfFaceName);
 				return 1;
 			}
 
@@ -296,17 +296,17 @@ private:
 		int descent = ff.GetCellDescent(Gdiplus::FontStyleRegular);
 		int lineSpacing = ff.GetLineSpacing(Gdiplus::FontStyleRegular);
 
-		result.m_ascent = (((double)size * ascent) / emHeight) / m_scale;
-		result.m_descent = (((double)size * descent) / emHeight) / m_scale;
-		result.m_spacing = (((double)size * lineSpacing) / emHeight) / m_scale;
+		result.ascent = (((double)size * ascent) / emHeight) / m_scale;
+		result.descent = (((double)size * descent) / emHeight) / m_scale;
+		result.spacing = (((double)size * lineSpacing) / emHeight) / m_scale;
 #else // GDI
 		HFONT savedFont = SelectFont(m_hDC, f.get_HFONT());
 		TEXTMETRIC tm = {};
 		GetTextMetrics(m_hDC, &tm);
 		SelectFont(m_hDC, savedFont);
-		result.m_ascent = tm.tmAscent / m_scale;
-		result.m_descent = tm.tmDescent / m_scale;
-		result.m_spacing = (tm.tmHeight + tm.tmExternalLeading) / m_scale;
+		result.ascent = tm.tmAscent / m_scale;
+		result.descent = tm.tmDescent / m_scale;
+		result.spacing = (tm.tmHeight + tm.tmExternalLeading) / m_scale;
 #endif
 
 		return result;

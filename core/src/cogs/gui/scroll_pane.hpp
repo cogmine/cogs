@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -38,7 +38,7 @@ private:
 		delegated_dependency_property<scroll_bar_state, io::permission::read> m_stateProperty;
 
 		scroll_bar_info(scroll_pane& scrollPane, dimension d)
-			: m_scrollBar(rcnew(scroll_bar)(d, false)),
+			: m_scrollBar(rcnew(scroll_bar)({ .scrollDimension = d })),
 			m_frame(rcnew(override_bounds_frame)),
 			m_positionProperty(scrollPane, [this]()
 			{
@@ -147,21 +147,41 @@ public:
 	// Mode B: For touch screen, or if scrolling is otherwise provided by a device, scroll bars are displayed overlaying
 	// the content only when scrolling occurs, then fade.  Drag/flick scrolling is always enabled in Mode B.
 	// On MacOS, there is a user setting to dynamically switch between these modes.
-	explicit scroll_pane(dimensions scrollDimensions = dimensions::both,
-		bool hideInactiveScrollBar = true,
-		bool shouldScrollBarAutoFade = true, // If false, scroll bars are always displayed in mode B.
-		bool dragAndFlickScrolling = true, // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {})
-		: pane(frames),
+
+	struct options
+	{
+		dimensions scrollDimensions = dimensions::both;
+		bool hideInactiveScrollBar = true;
+		bool shouldScrollBarAutoFade = true; // If false, scroll bars are always displayed in mode B.
+		bool dragAndFlickScrolling = true; // If true, enables drag and flick scrolling in mode A.  It's always enabled in mode B.
+		frame_list frames;
+		pane_list children;
+	};
+
+	scroll_pane()
+		: scroll_pane(options())
+	{ }
+
+	explicit scroll_pane(options&& o)
+		: pane({
+			.frames = std::move(o.frames)
+		}),
 		m_contentFrame(rcnew(override_bounds_frame)),
 		m_clippingFrame(rcnew(override_bounds_frame)),
 		m_cornerFrame(rcnew(override_bounds_frame)),
-		m_contentPane(rcnew(container_pane)({ rcnew(unconstrained_frame)(alignment(0, 0)), m_contentFrame })),
-		m_clippingPane(rcnew(native_container_pane)({ m_clippingFrame }, { m_contentPane })),
-		m_cornerPane(rcnew(container_pane)({ m_cornerFrame })),
-		m_hideInactiveScrollBar(hideInactiveScrollBar),
-		m_shouldAutoFadeScrollBar(shouldScrollBarAutoFade),
+		m_contentPane(rcnew(container_pane)({
+			.frames = frame_list::create(rcnew(unconstrained_frame)(alignment(0, 0)), m_contentFrame),
+			.children = std::move(o.children)
+		})),
+		m_clippingPane(rcnew(native_container_pane)({
+			.frames = frame_list::create(m_clippingFrame),
+			.children = pane_list::create(m_contentPane)
+		})),
+		m_cornerPane(rcnew(container_pane)({
+			.frames = frame_list::create(m_cornerFrame)
+		})),
+		m_hideInactiveScrollBar(o.hideInactiveScrollBar),
+		m_shouldAutoFadeScrollBar(o.shouldScrollBarAutoFade),
 		m_shouldAutoFadeScrollBarProperty(*this, [this]()
 		{
 			return m_shouldAutoFadeScrollBar;
@@ -173,7 +193,7 @@ public:
 			m_shouldAutoFadeScrollBarProperty.set_complete();
 		})
 	{
-		(void)dragAndFlickScrolling; // TBD
+		// TBD: dragAndFlickScrolling
 
 		// TODO: May need to address what happens when a native control is offscreen when drawn, and backing buffer is unavailable
 		//m_contentPane->set_compositing_behavior(compositing_behavior::buffer_self_and_children);
@@ -181,91 +201,14 @@ public:
 		pane::nest_last(m_clippingPane);
 		pane::nest_last(m_cornerPane);
 
-		m_hasScrollBar[(int)dimension::horizontal] = ((int)scrollDimensions & (int)dimensions::horizontal) != 0;
+		m_hasScrollBar[(int)dimension::horizontal] = ((int)o.scrollDimensions & (int)dimensions::horizontal) != 0;
 		if (m_hasScrollBar[(int)dimension::horizontal])
 			placement_rcnew(&get_scroll_bar_info(dimension::horizontal), this_desc)(*this, dimension::horizontal);
 
-		m_hasScrollBar[(int)dimension::vertical] = ((int)scrollDimensions & (int)dimensions::vertical) != 0;
+		m_hasScrollBar[(int)dimension::vertical] = ((int)o.scrollDimensions & (int)dimensions::vertical) != 0;
 		if (m_hasScrollBar[(int)dimension::vertical])
 			placement_rcnew(&get_scroll_bar_info(dimension::vertical), this_desc)(*this, dimension::vertical);
-
-		for (auto& child : children)
-			m_contentPane->nest_last(child);
 	}
-
-	scroll_pane(dimensions scrollDimensions,
-		bool hideInactiveScrollBar,
-		bool shouldScrollBarAutoFade = true,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(scrollDimensions, hideInactiveScrollBar, shouldScrollBarAutoFade, true, frames, children)
-	{ }
-
-	scroll_pane(dimensions scrollDimensions,
-		bool hideInactiveScrollBar,
-		const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(scrollDimensions, hideInactiveScrollBar, true, true, frames, children)
-	{ }
-
-	explicit scroll_pane(bool hideInactiveScrollBar,
-		bool shouldScrollBarAutoFade = true,
-		bool dragAndFlickScrolling = true,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, frames, children)
-	{ }
-
-	scroll_pane(bool hideInactiveScrollBar,
-		bool shouldScrollBarAutoFade,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, true, frames, children)
-	{ }
-
-	scroll_pane(bool hideInactiveScrollBar,
-		const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(dimensions::both, hideInactiveScrollBar, true, true, frames, children)
-	{ }
-
-	scroll_pane(dimensions scrollDimensions,
-		const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(scrollDimensions, true, true, true, frames, children)
-	{ }
-
-	scroll_pane(dimensions scrollDimensions,
-		bool hideInactiveScrollBar,
-		bool shouldScrollBarAutoFade,
-		bool dragAndFlickScrolling,
-		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(scrollDimensions, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
-	{ }
-
-
-	explicit scroll_pane(const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {})
-		: scroll_pane(dimensions::both, true, true, true, frames, children)
-	{ }
-
-	scroll_pane(bool hideInactiveScrollBar,
-		bool shouldScrollBarAutoFade,
-		bool dragAndFlickScrolling,
-		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(dimensions::both, hideInactiveScrollBar, shouldScrollBarAutoFade, dragAndFlickScrolling, {}, children)
-	{ }
-
-	scroll_pane(dimensions scrollDimensions,
-		const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(scrollDimensions, true, true, true, {}, children)
-	{ }
-
-
-	explicit scroll_pane(const std::initializer_list<rcref<pane> >& children)
-		: scroll_pane(dimensions::both, true, true, true, {}, children)
-	{ }
-
 
 	~scroll_pane()
 	{
@@ -291,14 +234,14 @@ public:
 		m_contentPane->nest_first(child);
 	}
 
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child)
 	{
-		m_contentPane->nest_before(child, beforeThis);
+		m_contentPane->nest_before(beforeThis, child);
 	}
 
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis)
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child)
 	{
-		m_contentPane->nest_after(child, afterThis);
+		m_contentPane->nest_after(afterThis, child);
 	}
 
 	// Nests a pane to be rendered at the intersection of 2 visible scroll bars.
@@ -318,14 +261,14 @@ public:
 		m_cornerPane->nest_first(child);
 	}
 
-	void nest_corner_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
+	void nest_corner_before(const rcref<pane>& beforeThis, const rcref<pane>& child)
 	{
-		m_cornerPane->nest_before(child, beforeThis);
+		m_cornerPane->nest_before(beforeThis, child);
 	}
 
-	void nest_corner_after(const rcref<pane>& child, const rcref<pane>& afterThis)
+	void nest_corner_after(const rcref<pane>& afterThis, const rcref<pane>& child)
 	{
-		m_cornerPane->nest_after(child, afterThis);
+		m_cornerPane->nest_after(afterThis, child);
 	}
 
 	virtual void calculate_range()

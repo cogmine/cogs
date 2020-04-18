@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Good
@@ -231,7 +231,8 @@ private:
 
 		virtual block_base* copy() const
 		{
-			return new (default_allocator::get()) block<F>(m_func);
+			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			return new (blk) block<F>(m_func);
 		}
 
 		virtual void copy(void* p) const
@@ -241,7 +242,8 @@ private:
 
 		virtual block_base* move()
 		{
-			return new (default_allocator::get()) block<F>(std::move(m_func));
+			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			return new (blk) block<F>(std::move(m_func));
 		}
 
 		virtual void move(void* p)
@@ -278,7 +280,10 @@ private:
 		if constexpr (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
-			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));
+		{
+			block<F_t>* blk = default_allocator::allocate_type<block<F_t> >();
+			*(block<F_t>**)& m_buffer = new (blk) block<F_t>(std::forward<F>(f));
+		}
 	}
 
 	void move(this_t&& src)
@@ -571,7 +576,8 @@ private:
 
 		virtual block_base* copy() const
 		{
-			return new (default_allocator::get()) block<F>(m_func);
+			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			return new (blk) block<F>(m_func);
 		}
 
 		virtual void copy(void* p) const
@@ -581,7 +587,8 @@ private:
 
 		virtual block_base* move()
 		{
-			return new (default_allocator::get()) block<F>(std::move(m_func));
+			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			return new (blk) block<F>(std::move(m_func));
 		}
 
 		virtual void move(void* p)
@@ -615,7 +622,10 @@ private:
 		if constexpr (blockSize <= n)
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
-			*(block<F_t>**)&m_buffer = new (default_allocator::get()) block<F_t>(std::forward<F>(f));
+		{
+			block<F>* blk = default_allocator::allocate_type<block<F_t> >();
+			*(block<F_t>**)&m_buffer = new (blk) block<F_t>(std::forward<F>(f));
+		}
 	}
 
 	void move(this_t&& src)

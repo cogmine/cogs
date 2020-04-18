@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -15,22 +15,43 @@
 
 namespace cogs {
 
-void dispatch_parallel(size_t n, const function<void(size_t)>& d, const function<void()>& doneDelegate = function<void()>(), int priority = 0)
+template <typename F, typename D>
+inline std::enable_if_t<
+	(std::is_invocable_v<F, size_t> || std::is_invocable_v<F>)
+	&& std::is_invocable_v<D>,
+	void>
+dispatch_parallel(size_t n, F&& f, D&& doneFunc, int priority = 0)
 {
 	{
 		rcptr<thread_pool> pool = thread_pool::get_default();
 		if (!!pool)
 		{
-			pool->dispatch_parallel(n, d, doneDelegate, priority);
+			pool->dispatch_parallel(n, std::forward<F>(f), std::forward<D>(doneFunc), priority);
 			return;
 		}
 
 		for (size_t i = 0; i < n; i++)
-			d(i);
+		{
+			if constexpr (std::is_invocable_v<F, size_t>)
+				f(i);
+			else
+				f();
+		}
 	}
 
 	// Recursion might be an issue.  Since the call is at the end of the function, it might jump with no stack overhead.
-	doneDelegate();
+	doneFunc();
+}
+
+
+template <typename F>
+inline std::enable_if_t<
+	std::is_invocable_v<F, size_t>
+	|| std::is_invocable_v<F>,
+	void>
+dispatch_parallel(size_t n, F&& f, int priority = 0)
+{
+	dispatch_parallel(n, std::forward<F>(f), []() {}, priority);
 }
 
 

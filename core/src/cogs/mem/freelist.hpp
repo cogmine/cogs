@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -64,7 +64,7 @@ public:
 		: m_curPos(0)
 	{ }
 
-	freelist(volatile allocator_type& al)
+	explicit freelist(volatile allocator_type& al)
 		: m_allocator(al),
 		m_curPos(0)
 	{ }
@@ -188,7 +188,7 @@ private:
 public:
 	freelist() { }
 
-	freelist(volatile allocator_type& al)
+	explicit freelist(volatile allocator_type& al)
 		: m_allocator(al)
 	{ }
 

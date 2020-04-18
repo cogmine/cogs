@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -12,6 +12,7 @@
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/rcref.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/placement_header.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -91,7 +92,7 @@ public:
 		: m_curPos(0)
 	{ }
 
-	rcref_freelist(volatile allocator_type& al)
+	explicit rcref_freelist(volatile allocator_type& al)
 		: m_allocator(al),
 		m_curPos(0)
 	{ }
@@ -213,7 +214,7 @@ public:
 	rcref_freelist()
 	{ }
 
-	rcref_freelist(volatile allocator_type& al)
+	explicit rcref_freelist(volatile allocator_type& al)
 		: m_allocator(al)
 	{ }
 

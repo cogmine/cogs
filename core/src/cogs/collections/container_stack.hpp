@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -29,10 +29,18 @@ public:
 	typedef container_stack<type, false, allocator_type> this_t;
 
 private:
-	container_deque<type, false, allocator_type> m_deque;
+	typedef container_deque<type, false, allocator_type> deque_t;
+	deque_t m_deque;
 
-	container_stack(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
+	container_stack(const container_stack& src) = delete;
+	container_stack(const volatile container_stack& src) = delete;
+
+	this_t& operator=(const container_stack& src) = delete;
+	this_t& operator=(const volatile container_stack& src) = delete;
+
+	volatile this_t& operator=(container_stack&& src) volatile = delete;
+	volatile this_t& operator=(const container_stack& src) volatile = delete;
+	volatile this_t& operator=(const volatile container_stack& src) volatile = delete;
 
 public:
 	container_stack() { }
@@ -41,46 +49,171 @@ public:
 		: m_deque(std::move(src.m_deque))
 	{ }
 
+	explicit container_stack(volatile allocator_type& al)
+		: m_deque(al)
+	{ }
+
+	container_stack(const std::initializer_list<type>& src)
+	{
+		for (auto& entry : src)
+			push(entry);
+	}
+
+	container_stack(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_deque(al)
+	{
+		for (auto& entry : src)
+			push(entry);
+	}
+
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
 	}
 
-	explicit container_stack(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
+	this_t& operator=(const std::initializer_list<type>& src)
+	{
+		this_t tmp(src);
+		*this = std::move(tmp);
+		return *this;
+	}
+
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.push(std::forward<args_t>(args)), ...);
+		return result;
+	}
 
 	void clear() { m_deque.clear(); }
 	void clear() volatile { m_deque.clear(); }
 
+	// lamba is used passed referenced to unconstructed object,
+	// and is required to construct it.
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_via(F&& f) { return m_deque.prepend_via(std::forward<F>(f)); }
+	template <typename F> bool push_via(F&& f) volatile { return m_deque.prepend_via(std::forward<F>(f)); }
+
+	bool push(const type& src) { return m_deque.prepend(src); }
+	bool push(type&& src) { return m_deque.prepend(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push(F&& f) { return m_deque.prepend(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace(args_t&&... args) { return m_deque.prepend_emplace(std::forward<args_t>(args)...); }
+
+	bool push(const type& src) volatile { return m_deque.prepend(src); }
+	bool push(type&& src) volatile { return m_deque.prepend(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push(F&& f) volatile { return m_deque.prepend(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace(args_t&&... args) volatile { return m_deque.prepend_emplace(std::forward<args_t>(args)...); }
+
+	// Returns true if added, false if not added
+	template <typename F> bool push_via_if_not_empty(F&& f) { return m_deque.prepend_via_if_not_empty(std::forward<F>(f)); }
+	template <typename F> bool push_via_if_not_empty(F&& f) volatile { return m_deque.prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	bool push_if_not_empty(const type& src) { return m_deque.prepend_if_not_empty(src); }
+	bool push_if_not_empty(type&& src) { return m_deque.prepend_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_not_empty(F&& f) { return m_deque.prepend_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_not_empty(args_t&&... args) { return m_deque.prepend_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+	bool push_if_not_empty(const type& src) volatile { return m_deque.prepend_if_not_empty(src); }
+	bool push_if_not_empty(type&& src) volatile { return m_deque.prepend_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_not_empty(F&& f) volatile { return m_deque.prepend_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_not_empty(args_t&&... args) volatile { return m_deque.prepend_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_via_if_empty(F&& f) { return m_deque.insert_via_if_empty(std::forward<F>(f)); }
+	template <typename F> bool push_via_if_empty(F&& f) volatile { return m_deque.insert_via_if_empty(std::forward<F>(f)); }
+
+	bool push_if_empty(const type& src) { return m_deque.insert_if_empty(src); }
+	bool push_if_empty(type&& src) { return m_deque.insert_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_empty(F&& f) { return m_deque.insert_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_empty(args_t&&... args) { return m_deque.insert_emplace_if_empty(std::forward<args_t>(args)...); }
+
+	bool push_if_empty(const type& src) volatile { return m_deque.insert_if_empty(src); }
+	bool push_if_empty(type&& src) volatile { return m_deque.insert_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_empty(F&& f) volatile { return m_deque.insert_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_empty(args_t&&... args) volatile { return m_deque.insert_emplace_if_empty(std::forward<args_t>(args)...); }
+
+	// It is only valid to peek at a volatile element if you know it wont
+	// be removed by another thread.  Doing so is caller error.  Only
+	// call from a thread or context that is the only remover of elements.
+
+	bool peek(type& t) const { return m_deque.peek_front(t); }
+	bool peek(type& t) const volatile { return m_deque.peek_front(t); }
+
+	bool is_empty() const { return m_deque.is_empty(); }
+	bool is_empty() const volatile { return m_deque.is_empty(); }
+
 	bool operator!() const { return !m_deque; }
 	bool operator!() const volatile { return !m_deque; }
-
-	bool is_empty() const { return !m_deque; }
-	bool is_empty() const volatile { return !m_deque; }
 
 	bool contains_one() const { return m_deque.contains_one(); }
 	bool contains_one() const volatile { return m_deque.contains_one(); }
 
-	bool peek(type& t) const { return m_deque.peek_first(t); }
-	bool peek(type& t) const volatile { return m_deque.peek_first(t); }
+	bool pop(type& t) { return m_deque.pop_front(t); }
+	bool remove() { return m_deque.remove_front(); }
 
-	// Return true if list was empty, false if it was not
-	bool push(const type& t) { return m_deque.prepend(t); }
-	bool push(const type& t) volatile { return m_deque.prepend(t); }
+	// first bool indicates whether an element was removed.  If any removed, the second bool indicates if it was the only element
+	typedef typename deque_t::volatile_pop_result volatile_pop_result;
 
-	// Returns true if added, false if not added
-	bool push_if_not_empty(const type& t) { return m_deque.prepend_if_not_empty(t); }
-	bool push_if_not_empty(const type& t) volatile { return m_deque.prepend_if_not_empty(t); }
-	bool push_if_empty(const type& t) { return m_deque.insert_if_empty(t); }
-	bool push_if_empty(const type& t) volatile { return m_deque.insert_if_empty(t); }
+	volatile_pop_result pop(type& t) volatile { return m_deque.pop_front(t); }
 
-	bool pop(type& t) { return m_deque.pop_first(t); }
-	bool pop(type& t) volatile { return m_deque.pop_first(t); }
+	typedef typename deque_t::volatile_remove_result volatile_remove_result;
 
-	bool pop(type& t, bool& wasLast) { return m_deque.pop_first(t, wasLast); }
-	bool pop(type& t, bool& wasLast) volatile { return m_deque.pop_first(t, wasLast); }
+	volatile_remove_result remove() volatile { return m_deque.remove_front(); }
+
+	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
+	this_t exchange(this_t&& src) { return m_deque.exchange(std::move(src.m_deque)); }
+	void exchange(this_t&& src, this_t& rtn) { return m_deque.exchange(std::move(src.m_deque), rtn.m_deque); }
 };
 
 
@@ -92,10 +225,18 @@ public:
 	typedef container_stack<type, true, allocator_type> this_t;
 
 private:
-	container_deque<type, true, allocator_type> m_deque;
+	typedef container_deque<type, true, allocator_type> deque_t;
+	deque_t m_deque;
 
-	container_stack(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
+	container_stack(const container_stack& src) = delete;
+	container_stack(const volatile container_stack& src) = delete;
+
+	this_t& operator=(const container_stack& src) = delete;
+	this_t& operator=(const volatile container_stack& src) = delete;
+
+	volatile this_t& operator=(container_stack&& src) volatile = delete;
+	volatile this_t& operator=(const container_stack& src) volatile = delete;
+	volatile this_t& operator=(const volatile container_stack& src) volatile = delete;
 
 public:
 	container_stack() { }
@@ -104,46 +245,266 @@ public:
 		: m_deque(std::move(src.m_deque))
 	{ }
 
+	explicit container_stack(volatile allocator_type& al)
+		: m_deque(al)
+	{ }
+
+	container_stack(const std::initializer_list<type>& src)
+	{
+		for (auto& entry : src)
+			push(entry);
+	}
+
+	container_stack(volatile allocator_type& al, const std::initializer_list<type>& src)
+		: m_deque(al)
+	{
+		for (auto& entry : src)
+			push(entry);
+	}
+
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
 	}
 
-	explicit container_stack(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
+	this_t& operator=(const std::initializer_list<type>& src)
+	{
+		this_t tmp(src);
+		*this = std::move(tmp);
+		return *this;
+	}
+
+	template <typename... args_t>
+	static this_t create(args_t&&... args)
+	{
+		this_t result;
+		(result.push(std::forward<args_t>(args)), ...);
+		return result;
+	}
 
 	void clear() { m_deque.clear(); }
 	void clear() volatile { m_deque.clear(); }
 
+
+	// lamba is used passed referenced to unconstructed object,
+	// and is required to construct it.
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_via(F&& f) { return m_deque.prepend_via(std::forward<F>(f)); }
+	template <typename F> bool push_via(F&& f) volatile { return m_deque.prepend_via(std::forward<F>(f)); }
+
+	bool push(const type& src) { return m_deque.prepend(src); }
+	bool push(type&& src) { return m_deque.prepend(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push(F&& f) { return m_deque.prepend(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace(args_t&&... args) { return m_deque.prepend_emplace(std::forward<args_t>(args)...); }
+
+	bool push(const type& src) volatile { return m_deque.prepend(src); }
+	bool push(type&& src) volatile { return m_deque.prepend(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push(F&& f) volatile { return m_deque.prepend(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace(args_t&&... args) volatile { return m_deque.prepend_emplace(std::forward<args_t>(args)...); }
+
+	// Returns true if added, false if not added
+	template <typename F> bool push_via_if_not_empty(F&& f) { return m_deque.prepend_via_if_not_empty(std::forward<F>(f)); }
+	template <typename F> bool push_via_if_not_empty(F&& f) volatile { return m_deque.prepend_via_if_not_empty(std::forward<F>(f)); }
+
+	bool push_if_not_empty(const type& src) { return m_deque.prepend_if_not_empty(src); }
+	bool push_if_not_empty(type&& src) { return m_deque.prepend_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_not_empty(F&& f) { return m_deque.prepend_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_not_empty(args_t&&... args) { return m_deque.prepend_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+	bool push_if_not_empty(const type& src) volatile { return m_deque.prepend_if_not_empty(src); }
+	bool push_if_not_empty(type&& src) volatile { return m_deque.prepend_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_not_empty(F&& f) volatile { return m_deque.prepend_if_not_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_not_empty(args_t&&... args) volatile { return m_deque.prepend_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_via_if_empty(F&& f) { return m_deque.insert_via_if_empty(std::forward<F>(f)); }
+	template <typename F> bool push_via_if_empty(F&& f) volatile { return m_deque.insert_via_if_empty(std::forward<F>(f)); }
+
+	bool push_if_empty(const type& src) { return m_deque.insert_if_empty(src); }
+	bool push_if_empty(type&& src) { return m_deque.insert_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_empty(F&& f) { return m_deque.insert_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_empty(args_t&&... args) { return m_deque.insert_emplace_if_empty(std::forward<args_t>(args)...); }
+
+	bool push_if_empty(const type& src) volatile { return m_deque.insert_if_empty(src); }
+	bool push_if_empty(type&& src) volatile { return m_deque.insert_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_if_empty(F&& f) volatile { return m_deque.insert_if_empty(std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_if_empty(args_t&&... args) volatile { return m_deque.insert_emplace_if_empty(std::forward<args_t>(args)...); }
+
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_multiple_via(size_t n, F&& f) { return m_deque.prepend_multiple_via(n, std::forward<F>(f)); }
+	template <typename F> bool push_multiple_via(size_t n, F&& f) volatile { return m_deque.prepend_multiple_via(n, std::forward<F>(f)); }
+
+	bool push_multiple(size_t n, const type& src) { return m_deque.prepend_multiple(n, src); }
+	bool push_multiple(size_t n, type&& src) { return m_deque.prepend_multiple(n, src); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple(size_t n, F&& f) { return m_deque.prepend_multiple(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_multiple(size_t n, args_t&&... args) { return m_deque.prepend_emplace_multiple(n, std::forward<args_t>(args)...); }
+
+
+	bool push_multiple(size_t n, const type& src) volatile { return prepend_multiple(n, src); }
+	bool push_multiple(size_t n, type&& src) volatile { return m_deque.prepend_multiple(n, src); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple(size_t n, F&& f) volatile { return m_deque.prepend_multiple(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_emplace_multiple(size_t n, args_t&&... args) volatile { return m_deque.prepend_emplace_multiple(n, std::forward<args_t>(args)...); }
+
+
+	// Returns true if added, false if not added
+	template <typename F> bool push_multiple_via_if_not_empty(F&& f) { return m_deque.prepend_multiple_via_if_not_empty(std::forward<F>(f)); }
+	template <typename F> bool push_multiple_via_if_not_empty(F&& f) volatile { return m_deque.prepend_multiple_via_if_not_empty(std::forward<F>(f)); }
+
+	bool push_multiple_if_not_empty(const type& src) { return m_deque.prepend_multiple_if_not_empty(src); }
+	bool push_multiple_if_not_empty(type&& src) { return m_deque.prepend_multiple_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple_if_not_empty(size_t n, F&& f) { return m_deque.prepend_multiple_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_multiple_emplace_if_not_empty(args_t&&... args) { return m_deque.prepend_multiple_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+	bool push_multiple_if_not_empty(const type& src) volatile { return m_deque.prepend_multiple_if_not_empty(src); }
+	bool push_multiple_if_not_empty(type&& src) volatile { return m_deque.prepend_multiple_if_not_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple_if_not_empty(size_t n, F&& f) volatile { return m_deque.prepend_multiple_if_not_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_multiple_emplace_if_not_empty(args_t&&... args) volatile { return m_deque.prepend_multiple_emplace_if_not_empty(std::forward<args_t>(args)...); }
+
+	// Return true if list was empty, false if it was not
+	template <typename F> bool push_multiple_via_if_empty(F&& f) { return m_deque.insert_multiple_via_if_empty(std::forward<F>(f)); }
+	template <typename F> bool push_multiple_via_if_empty(F&& f) volatile { return m_deque.insert_multiple_via_if_empty(std::forward<F>(f)); }
+
+	bool push_multiple_if_empty(const type& src) { return m_deque.insert_multiple_if_empty(src); }
+	bool push_multiple_if_empty(type&& src) { return m_deque.insert_multiple_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple_if_empty(size_t n, F&& f) { return m_deque.insert_multiple_if_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_multiple_emplace_if_empty(args_t&&... args) { return m_deque.insert_multiple_emplace_if_empty(std::forward<args_t>(args)...); }
+
+	bool push_multiple_if_empty(const type& src) volatile { return m_deque.insert_multiple_if_empty(src); }
+	bool push_multiple_if_empty(type&& src) volatile { return m_deque.insert_multiple_if_empty(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	push_multiple_if_empty(size_t n, F&& f) volatile { return m_deque.insert_multiple_if_empty(n, std::forward<F>(f)); }
+
+	template <typename... args_t> bool push_multiple_emplace_if_empty(args_t&&... args) volatile { return m_deque.insert_multiple_emplace_if_empty(std::forward<args_t>(args)...); }
+
+	// It is only valid to peek at a volatile element if you know it wont
+	// be removed by another thread.  Doing so is caller error.  Only
+	// call from a thread or context that is the only remover of elements.
+
+	bool peek(type& t) const { return m_deque.peek(t); }
+	bool peek(type& t) const volatile { return m_deque.peek(t); }
+
+	bool is_empty() const { return m_deque.is_empty(); }
+	bool is_empty() const volatile { return m_deque.is_empty(); }
+
 	bool operator!() const { return !m_deque; }
 	bool operator!() const volatile { return !m_deque; }
-
-	bool is_empty() const { return !m_deque; }
-	bool is_empty() const volatile { return !m_deque; }
 
 	bool contains_one() const { return m_deque.contains_one(); }
 	bool contains_one() const volatile { return m_deque.contains_one(); }
 
-	bool peek(type& t) const { return m_deque.peek_first(t); }
-	bool peek(type& t) const volatile { return m_deque.peek_first(t); }
+	bool pop(type& t) { return m_deque.pop_front(t); }
+	bool remove() { return m_deque.remove_front(); }
 
-	// Return true if list was empty, false if it was not
-	bool push(const type& t, size_t n = 1) { return m_deque.prepend(t, n); }
-	bool push(const type& t, size_t n = 1) volatile { return m_deque.prepend(t, n); }
+	// first bool indicates whether an element was removed.  If any removed, the second bool indicates if it was the only element
+	typedef typename deque_t::volatile_pop_result volatile_pop_result;
 
-	// Returns true if added, false if not added
-	bool push_if_not_empty(const type& t, size_t n = 1) { return m_deque.prepend_if_not_empty(t, n); }
-	bool push_if_not_empty(const type& t, size_t n = 1) volatile { return m_deque.prepend_if_not_empty(t, n); }
-	bool push_if_empty(const type& t, size_t n = 1) { return m_deque.insert_if_empty(t, n); }
-	bool push_if_empty(const type& t, size_t n = 1) volatile { return m_deque.insert_if_empty(t, n); }
+	volatile_pop_result pop(type& t) volatile { return m_deque.pop_front(t); }
 
-	bool pop(type& t) { return m_deque.pop_first(t); }
-	bool pop(type& t) volatile { return m_deque.pop_first(t); }
+	typedef typename deque_t::volatile_remove_result volatile_remove_result;
 
-	bool pop(type& t, bool& wasLast) { return m_deque.pop_first(t, wasLast); }
-	bool pop(type& t, bool& wasLast) volatile { return m_deque.pop_first(t, wasLast); }
+	volatile_remove_result remove() volatile { return m_deque.remove_front(); }
+
+	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
+	this_t exchange(this_t&& src) { m_deque.exchange(std::move(src.m_deque)); }
+	void exchange(this_t&& src, this_t& rtn) { return m_deque.exchange(std::move(src.m_deque), rtn.m_deque); }
 };
 
 

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -113,7 +113,7 @@ public:
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_range.get_min();
 				++itor;
 			}
@@ -124,7 +124,7 @@ public:
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_default;
 				++itor;
 			}
@@ -139,7 +139,7 @@ public:
 				typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_minProportions.get_last();
 				while (!!itor)
 				{
-					cell& c = (**itor);
+					cell& c = *itor->value;
 					double targetProportion = remaining / remainingDefault;
 					double newSize;
 					if (targetProportion < itor.get_key())
@@ -161,7 +161,7 @@ public:
 					if (!remainingDefault)
 						break; // All remaining elements have 0 default size, so have no proportional size
 
-					cell& c = (**itor);
+					cell& c = *itor->value;
 					double targetProportion = remaining / remainingDefault;
 					double newSize;
 					if (c.m_range.has_max() && (targetProportion > itor.get_key()))
@@ -270,7 +270,7 @@ public:
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_default; // use pre-calculated default clipped to range
 				++itor;
 			}
@@ -281,7 +281,7 @@ public:
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_range.get_min();
 				++itor;
 			}
@@ -292,7 +292,7 @@ public:
 			typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_range.get_max();
 				++itor;
 			}
@@ -307,7 +307,7 @@ public:
 				typename nonvolatile_multimap<linear::range, rcref<cell>, false>::iterator itor = m_sortedByDefaultMaxRange.get_first();
 				while (!!itor)
 				{
-					cell* c = (*itor).get_ptr();
+					cell* c = itor->value.get_ptr();
 					double targetGrowBy = growBy;
 					targetGrowBy /= numCells;
 					--numCells;
@@ -327,7 +327,7 @@ public:
 							growBy -= targetGrowBy;
 							if (!++itor)
 								break;
-							c = (*itor).get_ptr();
+							c = itor->value.get_ptr();
 							targetGrowBy = growBy;
 							targetGrowBy /= numCells;
 							--numCells;
@@ -346,7 +346,7 @@ public:
 				typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
 				while (!!itor)
 				{
-					cell* c = (*itor).get_ptr();
+					cell* c = itor->value.get_ptr();
 					double targetShrinkBy = shrinkBy;
 					targetShrinkBy /= numCells;
 					--numCells;
@@ -365,7 +365,7 @@ public:
 							shrinkBy -= targetShrinkBy;
 							if (!++itor)
 								break;
-							c = (*itor).get_ptr();
+							c = itor->value.get_ptr();
 							targetShrinkBy = shrinkBy;
 							targetShrinkBy /= numCells;
 							--numCells;
@@ -483,7 +483,7 @@ public:
 			itor = m_sortedByDefaultSize.get_first(); // doesn't matter which map we use to iterate through all cells
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = itor.get_key(); // use pre-calculated default clipped to range
 				++itor;
 			}
@@ -494,7 +494,7 @@ public:
 			itor = m_sortedByDefaultSize.get_first();
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_range.get_min();
 				++itor;
 			}
@@ -506,7 +506,7 @@ public:
 			itor = m_sortedByDefaultSize.get_first();
 			while (!!itor)
 			{
-				cell& c = (**itor);
+				cell& c = *itor->value;
 				c.m_length = c.m_range.get_max(); // use pre-calculated default clipped to range
 				++itor;
 			}
@@ -524,7 +524,7 @@ public:
 				itor = m_sortedByDefaultSize.get_first();
 				while (!!itor)
 				{
-					cell& c = (**itor);
+					cell& c = *itor->value;
 					double additionalSpace = 0;
 					if (numElementsBefore > 0)
 					{
@@ -532,9 +532,9 @@ public:
 						additionalSpace -= prevSize;
 						additionalSpace *= numElementsBefore;
 						do {
-							if (!((*maxItor)->m_range.has_max()))
+							if (!maxItor->value->m_range.has_max())
 								break;
-							double max = (*maxItor)->m_range.get_max();
+							double max = maxItor->value->m_range.get_max();
 							if (c.m_default < max)
 								break;
 							double gap = c.m_default;
@@ -550,7 +550,7 @@ public:
 					c.m_cellPosition = ++cellPosition;
 					prevHighWaterTotal += additionalSpace;
 					c.m_highWaterTotal = prevHighWaterTotal;
-					m_sortedByHighWaterTotal.insert(prevHighWaterTotal, *itor);
+					m_sortedByHighWaterTotal.insert(prevHighWaterTotal, itor->value);
 					prevSize = c.m_default;
 					prevHighWaterTotal = c.m_highWaterTotal;
 					++numElementsBefore;
@@ -565,7 +565,7 @@ public:
 				itor = m_sortedByDefaultSize.get_last();
 				while (!!itor)
 				{
-					cell& c = (**itor);
+					cell& c = *itor->value;
 
 					double additionalSpace = 0;
 					if (numElementsBefore > 0)
@@ -574,7 +574,7 @@ public:
 						additionalSpace -= c.m_default;
 						additionalSpace *= numElementsBefore;
 						do {
-							double min = (*minItor)->m_range.get_min();
+							double min = minItor->value->m_range.get_min();
 							if (c.m_default > min)
 								break;
 							double gap = min;
@@ -591,7 +591,7 @@ public:
 					c.m_cellReversePosition = ++cellPosition;
 					prevLowWaterTotal += additionalSpace;
 					c.m_lowWaterTotal = prevLowWaterTotal;
-					m_sortedByLowWaterTotal.insert(prevLowWaterTotal, *itor);
+					m_sortedByLowWaterTotal.insert(prevLowWaterTotal, itor->value);
 
 					prevSize = c.m_default;
 					prevLowWaterTotal = c.m_lowWaterTotal;
@@ -614,7 +614,7 @@ public:
 				{
 					typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor2 = itor;
 					do {
-						cell& c = (**itor2);
+						cell& c = *itor2->value;
 						c.m_length = c.m_default;
 						remaining -= c.m_default;
 					} while (!!++itor2);
@@ -623,7 +623,7 @@ public:
 				else
 					itor = m_sortedByHighWaterTotal.get_last();
 
-				size_t numLeft = (*itor)->m_cellPosition;
+				size_t numLeft = itor->value->m_cellPosition;
 				typename nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::maximum_comparator>::iterator maxItor = m_sortedByMaximumSize.get_first();
 				do {
 					const linear::range& cellRange = maxItor.get_key();
@@ -632,13 +632,13 @@ public:
 					auto targetSize = (remaining / numLeft);
 					if (targetSize <= cellRange.get_max())
 						break;
-					(*maxItor)->m_length = cellRange.get_max();
+					maxItor->value->m_length = cellRange.get_max();
 					remaining -= cellRange.get_max();
 					--numLeft;
 				} while (!!++maxItor);
 
 				do {
-					cell& c = (**itor);
+					cell& c = *itor->value;
 					double targetSize = remaining;
 					targetSize /= numLeft;
 					if (!c.m_range.has_max() || (c.m_range.get_max() > targetSize))
@@ -660,7 +660,7 @@ public:
 				{
 					typename nonvolatile_multimap<double, rcref<cell>, false>::iterator itor2 = itor;
 					do {
-						cell& c = (**itor2);
+						cell& c = *itor2->value;
 						c.m_length = c.m_default;
 						remaining -= c.m_default;
 					} while (!!++itor2);
@@ -669,7 +669,7 @@ public:
 				else
 					itor = m_sortedByLowWaterTotal.get_last();
 
-				size_t numLeft = (*itor)->m_cellReversePosition;
+				size_t numLeft = itor->value->m_cellReversePosition;
 				typename nonvolatile_multimap<linear::range, rcref<cell>, false, typename linear::range::minimum_comparator>::iterator minItor = m_sortedByMinimumSize.get_last();
 				do {
 					const linear::range& cellRange = minItor.get_key();
@@ -678,13 +678,13 @@ public:
 					auto targetSize = (remaining / numLeft);
 					if (targetSize >= cellRange.get_min())
 						break;
-					(*minItor)->m_length = cellRange.get_min();
+					minItor->value->m_length = cellRange.get_min();
 					remaining -= cellRange.get_min();
 					--numLeft;
 				} while (!!--minItor);
 
 				do {
-					cell& c = (**itor);
+					cell& c = *itor->value;
 					double targetSize;
 					targetSize = remaining;
 					targetSize /= numLeft;

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -254,11 +254,11 @@ private:
 		}
 	}
 
-	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode)
+	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode, const ref_t& hint)
 	{
 		typename ref_t::locked_t lockedRef = n;
 		bool wasEmpty = is_empty();
-		ref_t existing = base_t::insert(n, insertMode);
+		ref_t existing = base_t::insert(n, insertMode, hint);
 		if (!!existing)
 		{
 			if (insertMode == sorted_btree_insert_mode::replace)
@@ -295,12 +295,6 @@ public:
 	}
 
 	/// @{
-	/// @brief Swaps the contents of this tree with another.
-	/// @param srcDst The tree to swap with.
-	void swap(this_t& srcDst) { base_t::swap(srcDst); }
-	/// @}
-
-	/// @{
 	/// @brief Tests if the tree is empty
 	/// @return True if the tree is empty
 	bool is_empty() const { return base_t::is_empty(); }
@@ -326,22 +320,31 @@ public:
 	/// @{
 	/// @brief Insert a node, allowing duplicates
 	/// @param n Node to insert
+	/// @param hint If set, must be the result of a prior call to one of the 'last_equal' or
+	/// 'nearest_greater' find() functions passed the value being inserted.  This is useful
+	/// if additional work is needed before insert, only if an existing match is or is not found.
 	/// @return A reference to an equal node in the case of collision, or an empty node if no collision.
-	ref_t insert_multi(const ref_t& n) { return insert(n, sorted_btree_insert_mode::multi); }
+	ref_t insert_multi(const ref_t& n, const ref_t& hint = ref_t()) { return insert(n, sorted_btree_insert_mode::multi, hint); }
 	/// @}
 
 	/// @{
 	/// @brief Insert a node, replacing a duplicate
 	/// @param n Node to insert
+	/// @param hint If set, must be the result of a prior call to one of the 'last_equal' or
+	/// 'nearest_greater' find() functions passed the value being inserted.  This is useful
+	/// if additional work is needed before insert, only if an existing match is or is not found.
 	/// @return A reference to the replaced node, or an empty node if no collision.
-	ref_t insert_replace(const ref_t& n) { return insert(n, sorted_btree_insert_mode::replace); }
+	ref_t insert_replace(const ref_t& n, const ref_t& hint = ref_t()) { return insert(n, sorted_btree_insert_mode::replace, hint); }
 	/// @}
 
 	/// @{
 	/// @brief Insert a node, if an equal node is not already present
 	/// @param n Node to insert
+	/// @param hint If set, must be the result of a prior call to one of the 'last_equal' or
+	/// 'nearest_greater' find() functions passed the value being inserted.  This is useful
+	/// if additional work is needed before insert, only if an existing match is or is not found.
 	/// @return A reference to an equal node in the case of collision, or an empty node if no collision.
-	ref_t insert_unique(const ref_t& n) { return insert(n, sorted_btree_insert_mode::unique); }
+	ref_t insert_unique(const ref_t& n, const ref_t& hint = ref_t()) { return insert(n, sorted_btree_insert_mode::unique, hint); }
 	/// @}
 
 	/// @{
@@ -472,6 +475,26 @@ public:
 		}
 	}
 	/// @}
+
+
+	/// @{
+	/// @brief Swaps the contents of this tree with another.
+	/// @param wth The tree to swap with.
+	void swap(this_t& wth) { base_t::swap(wth); }
+	/// @}
+
+	this_t exchange(this_t&& src)
+	{
+		this_t tmp(std::move(src));
+		swap(tmp);
+		return tmp;
+	}
+
+	void exchange(this_t&& src, this_t& rtn)
+	{
+		rtn = std::move(src);
+		swap(rtn);
+	}
 };
 
 

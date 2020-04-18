@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -44,7 +44,7 @@ private:
 	// destruct) to ensure graceful application shutdown.  (READ: NO GLOBAL rcptr<>'s
 	// unless cleared to 0 at cleanup time, BEFORE global/static destruct time.)
 
-	// s_threadWaiters is used to wait on all threads to terminate before quitting.
+	// A singleton<thread_waiters_t> is used to join_all() when terminating.
 	class thread_waiters_t : public container_dlist<rcref<thread> > { };
 
 	container_dlist<rcref<thread> >::volatile_remove_token m_removeToken;

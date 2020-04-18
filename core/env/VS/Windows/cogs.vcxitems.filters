@@ -1302,9 +1302,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\is_rc_type.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\Code\Cogs\core\src\cogs\mem\unowned.hpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\is_integral.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
@@ -1328,6 +1325,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\serial_dispatcher.hpp">
       <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp">
+      <Filter>core\mem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -432,6 +432,7 @@ public:
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		m_contents->m_obj = src.m_contents->m_obj;
 		m_contents->m_desc = src.m_contents->m_desc;
+		src.m_contents->m_obj = nullptr;
 		src.m_contents->m_desc = nullptr;
 	}
 
@@ -1241,7 +1242,6 @@ public:
 	template <typename T2>
 	this_t exchange(T2&& src)
 	{
-			return *this;
 		this_t tmp(std::forward<T2>(src));
 		m_contents.swap(tmp.m_contents);
 		return tmp;
@@ -1250,7 +1250,6 @@ public:
 	template <typename T2>
 	this_t exchange(T2&& src) volatile
 	{
-			return *this;
 		this_t tmp(std::forward<T2>(src));
 		m_contents.swap(tmp.m_contents);
 		return tmp;

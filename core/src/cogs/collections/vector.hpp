@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -25,8 +25,7 @@ namespace cogs {
 
 
 // Forward declare
-namespace io
-{
+namespace io {
 	class buffer;
 	class composite_buffer_content;
 }
@@ -1651,18 +1650,11 @@ public:
 	// contains specified buffer (allocates if ptr is NULL)
 	static this_t contain(const type* ptr, size_t sz) { return this_t(sz, ptr); }
 
+	vector() { }
+
 	vector(this_t&& src)
 		: m_contents(std::move(src.m_contents))
 	{ }
-
-	this_t& operator=(this_t&& src)
-	{
-		m_contents = std::move(src.m_contents);
-		return *this;
-	}
-
-
-	vector() { }
 
 	explicit vector(size_t n) { if (n) m_contents->allocate(n); }
 
@@ -1747,6 +1739,45 @@ public:
 	}
 
 	~vector() { m_contents->release(); }
+
+	this_t& operator=(this_t&& src)
+	{
+		m_contents = std::move(src.m_contents);
+		return *this;
+	}
+
+	this_t& operator=(const this_t& src)
+	{
+		assign(src);
+		return *this;
+	}
+
+	template <typename type2>
+	this_t& operator=(const vector<type2>& src)
+	{
+		assign(src);
+		return *this;
+	}
+
+	volatile this_t& operator=(const this_t& src) volatile
+	{
+		assign(src);
+		return *this;
+	}
+
+	template <typename type2>
+	volatile this_t& operator=(const vector<type2>& src) volatile
+	{
+		assign(src);
+		return *this;
+	}
+
+	template <typename type2>
+	this_t& operator=(const volatile vector<type2>& src)
+	{
+		assign(src);
+		return *this;
+	}
 
 	bool is_unowned() const { return !!m_contents->m_length && !m_contents->m_desc; }
 	bool is_unowned() const volatile { read_token rt; m_contents.begin_read(rt); return !!rt->m_length && !rt->m_desc; }
@@ -2209,39 +2240,6 @@ public:
 	{
 		vector<std::remove_const_t<type2> > tmp(src);
 		assign(tmp);
-	}
-
-	this_t& operator=(const this_t& src)
-	{
-		assign(src);
-		return *this;
-	}
-
-	template <typename type2>
-	this_t& operator=(const vector<type2>& src)
-	{
-		assign(src);
-		return *this;
-	}
-
-	volatile this_t& operator=(const this_t& src) volatile
-	{
-		assign(src);
-		return *this;
-	}
-
-	template <typename type2>
-	volatile this_t& operator=(const vector<type2>& src) volatile
-	{
-		assign(src);
-		return *this;
-	}
-
-	template <typename type2>
-	this_t& operator=(const volatile vector<type2>& src)
-	{
-		assign(src);
-		return *this;
 	}
 
 	void append(size_t n = 1)
@@ -2865,6 +2863,18 @@ protected:
 		}
 		return result;
 	}
+
+	iterator begin() { return get_first_iterator(); }
+	const_iterator begin() const { return get_first_const_iterator(); }
+
+	iterator rbegin() { return get_last_iterator(); }
+	const_iterator rbegin() const { return get_last_const_iterator(); }
+
+	iterator end() { iterator i; return i; }
+	const_iterator end() const { const_iterator i; return i; }
+
+	iterator rend() { iterator i; return i; }
+	const_iterator rend() const { const_iterator i; return i; }
 };
 
 

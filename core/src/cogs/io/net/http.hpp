@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -674,8 +674,8 @@ private:
 				header_map_t::iterator itor = headers->get_first();
 				while (!!itor)
 				{
-					const composite_cstring& fieldName = itor.get_key();
-					const composite_cstring& fieldValue = *itor;
+					const composite_cstring& fieldName = itor->key;
+					const composite_cstring& fieldValue = itor->value;
 					m_sink->write(composite_buffer::from_composite_cstring(fieldName));
 					m_sink->write(colonBuf);
 					m_sink->write(composite_buffer::from_composite_cstring(fieldValue));
@@ -922,14 +922,14 @@ private:
 							bool abort = false;
 							if (!!itor)
 							{
-								if (*itor == cstring::literal("chunked"))
+								if (itor->value == cstring::literal("chunked"))
 									useIncomingChunking = true;
 								else
 									abort = true;
 							}
 
 							if (abort)
-								error_reply(response::status::not_implemented, cstring::literal("Transfer-Encoding \"") + *itor + cstring::literal("\" not implemented"))->complete();
+								error_reply(response::status::not_implemented, cstring::literal("Transfer-Encoding \"") + itor->value + cstring::literal("\" not implemented"))->complete();
 							else
 							{
 								rcptr<connection> c = m_connection.template static_cast_to<connection>();
@@ -945,11 +945,11 @@ private:
 								itor = m_requestHeaders->find(cstring::literal("Connection"));
 								if (!!itor)
 								{
-									if (itor->starts_with(cstring::literal("close"), case_sensitive::no))
+									if (itor->value.starts_with(cstring::literal("close"), case_sensitive::no))
 										c->set_connection_reuse(false);
 
 									// Repeat Keep-Alive back to the client.
-									if (itor->starts_with(cstring::literal("Keep-Alive"), case_sensitive::no))
+									if (itor->value.starts_with(cstring::literal("Keep-Alive"), case_sensitive::no))
 										m_responseHeaders->insert_replace(cstring::literal("Connection"), cstring::literal("Keep-Alive"));
 								}
 
@@ -964,7 +964,7 @@ private:
 									itor = m_requestHeaders->find(cstring::literal("Content-Length"));
 									if (!!itor) // if known content length, add a limiter.
 									{
-										m_contentLength = itor->to_int<size_t>();
+										m_contentLength = itor->value.to_int<size_t>();
 										m_sourceContentLengthLimiter = rcnew(limiter)(m_contentLength);
 
 										couple(m_source.dereference(), m_sourceContentLengthLimiter.dereference(), true);
@@ -983,7 +983,7 @@ private:
 
 								verb_handler_map_t::iterator verbItor = srvr->m_verbHandlerMap->find(m_method);
 								if (!!verbItor)
-									(*verbItor)(this_rcref);
+									verbItor->value(this_rcref);
 								else
 								{
 									m_responseHeaders->insert_replace(cstring::literal("Allow"), get_allow_string());
@@ -1133,7 +1133,7 @@ private:
 					{
 						if (!allVerbs.is_empty())
 							allVerbs.append(cstring::literal(", "));
-						allVerbs.append(verbItor.get_key());
+						allVerbs.append(verbItor->key);
 						++verbItor;
 					}
 				}
@@ -1144,7 +1144,7 @@ private:
 		bool expects_continue() const
 		{
 			header_map_t::iterator itor = m_requestHeaders->find(cstring::literal("Expect"));
-			return !!itor && itor->equals(cstring::literal("100-continue"), case_sensitive::no);
+			return !!itor && itor->value.equals(cstring::literal("100-continue"), case_sensitive::no);
 		}
 	};
 
@@ -1223,15 +1223,15 @@ private:
 	static rcref<verb_handler_map_t> get_default_verb_handlers()
 	{
 		rcref<verb_handler_map_t> mapRef = rcnew(verb_handler_map_t);
-		mapRef->try_insert(cstring::literal("CONNECT"), &default_connect_handler);
-		mapRef->try_insert(cstring::literal("DELETE"), &default_delete_handler);
-		mapRef->try_insert(cstring::literal("GET"), &default_get_handler);
-		mapRef->try_insert(cstring::literal("HEAD"), &default_head_handler);
-		mapRef->try_insert(cstring::literal("OPTIONS"), &default_options_handler);
-		mapRef->try_insert(cstring::literal("PATCH"), &default_patch_handler);
-		mapRef->try_insert(cstring::literal("POST"), &default_post_handler);
-		mapRef->try_insert(cstring::literal("PUT"), &default_put_handler);
-		mapRef->try_insert(cstring::literal("TRACE"), &default_trace_handler);
+		mapRef->insert_unique(cstring::literal("CONNECT"), &default_connect_handler);
+		mapRef->insert_unique(cstring::literal("DELETE"), &default_delete_handler);
+		mapRef->insert_unique(cstring::literal("GET"), &default_get_handler);
+		mapRef->insert_unique(cstring::literal("HEAD"), &default_head_handler);
+		mapRef->insert_unique(cstring::literal("OPTIONS"), &default_options_handler);
+		mapRef->insert_unique(cstring::literal("PATCH"), &default_patch_handler);
+		mapRef->insert_unique(cstring::literal("POST"), &default_post_handler);
+		mapRef->insert_unique(cstring::literal("PUT"), &default_put_handler);
+		mapRef->insert_unique(cstring::literal("TRACE"), &default_trace_handler);
 		return mapRef;
 	}
 

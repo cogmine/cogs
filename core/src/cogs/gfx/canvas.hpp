@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -96,9 +96,9 @@ public:
 	public:
 		struct metrics
 		{
-			double m_ascent;
-			double m_descent;
-			double m_spacing;
+			double ascent;
+			double descent;
+			double spacing;
 		};
 
 		virtual font::metrics get_metrics() const = 0;

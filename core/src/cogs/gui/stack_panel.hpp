@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -22,12 +22,25 @@
 //	container_dlist<std::pair<rcref<frame>, rcref<pane> > > m_panes;
 //
 //public:
-//	explicit stack_panel(dimension orientation = dimension::vertical,
-//		const std::initializer_list<rcref<frame> >& frames = {},
-//		const std::initializer_list<rcref<pane> >& children = {})
-//		: pane(frames, children)
+//	struct options
 //	{
-//	}
+//		dimension orientation = dimension::vertical;
+//		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
+//		frame_list frames;
+//		pane_list children;
+//	};
+//
+//	stack_panel()
+//		: stack_panel(options())
+//	{ }
+//
+//	explicit stack_panel(options&& o)
+//		: pane({
+//			.compositingBehavior = o.compositingBehavior,
+//			.frames = std::move(o.frames),
+//			.children = std::move(o.children)
+//		})
+//	{ }
 //
 //	virtual range get_range() const { return m_calculatedRange; }
 //
@@ -40,22 +53,22 @@
 //	using pane_container::nest;
 //
 //	virtual void nest_last(const rcref<pane>& child) { nest_last(child, 0); }
-//	void nest_last(const rcref<pane>& child, int resizeWeight = 0)
+//	void nest_last(const rcref<pane>& child, int resizeWeight)
 //	{
 //	}
 //
 //	virtual void nest_first(const rcref<pane>& child) { nest_first(child, 0); }
-//	void nest_first(const rcref<pane>& child, int resizeWeight = 0)
+//	void nest_first(const rcref<pane>& child, int resizeWeight)
 //	{
 //	}
 //
-//	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { nest_before(child, beforeThis, 0); }
-//	void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis, int resizeWidth = 0)
+//	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { nest_before(beforeThis, child, 0); }
+//	void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child, int resizeWidth)
 //	{
 //	}
 //
-//	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { nest_after(child, afterThis, 0); }
-//	void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis, int resizeWidth = 0)
+//	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { nest_after(afterThis, child. 0); }
+//	void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child, int resizeWidth)
 //	{
 //	}
 //
@@ -74,7 +87,6 @@
 //		else
 //		{
 //			size newSize = r2.limit(sz);
-//			
 //
 //
 //			result.set(newSize);

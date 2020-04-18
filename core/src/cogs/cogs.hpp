@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -127,9 +127,9 @@
 ///
 /// Noteworthy lock-free algorithms:
 ///
-/// @ref cogs::hazard (Hazard pointers) - Based loosely on a <a href="https://www.research.ibm.com/people/m/michael/ieeetpds-2004.pdf">paper</a> by Maged M. Michael
+/// @ref cogs::hazard (Hazard pointers) - Inspired by a paper by Maged M. Michael titled, "Hazard Pointers: Safe Memory Reclamation for Lock-Free Objects".
 ///
-/// @ref cogs::container_deque - A container (non-intrusive) deque/queue/stack.  Allows coalescing of equal nodes.  Based loosely on a <a href="http://www.research.ibm.com/people/m/michael/europar-2003.pdf">paper</a> by Maged M. Michael
+/// @ref cogs::container_deque - A container (non-intrusive) deque/queue/stack.  Allows coalescing of equal nodes.  Inspired by a paper by Maged M. Michael titled, "CAS-Based Lock-Free Algorithm for Shared Deques"
 ///
 /// @ref cogs::container_dlist - A container (non-intrusive) double-link list.  Supports lock-free traversal.
 ///

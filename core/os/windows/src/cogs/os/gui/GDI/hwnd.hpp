@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -862,7 +862,7 @@ public:
 		{
 			rcptr<volatile visible_windows_list_t> visibleWindows = m_visibleWindows;
 			if (!!visibleWindows)
-				return visibleWindows->prepend(windowBridge);
+				return visibleWindows->prepend(windowBridge).iterator;
 			return visible_windows_list_t::volatile_remove_token();
 		}
 
@@ -993,8 +993,9 @@ public:
 #else
 		if (isUnownedClass)
 		{
-			m_hWndMapRemoveToken = get_hwnd_map().try_insert(hWnd, this);
-			COGS_ASSERT(!!m_hWndMapRemoveToken);
+			auto p = get_hwnd_map().insert_unique(hWnd, this);
+			m_hWndMapRemoveToken = std::move(p.iterator);
+			COGS_ASSERT(!p.hadCollision);
 			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)UnownedClassWndProc);
 		}
 		else
@@ -1976,7 +1977,7 @@ public:
 								auto itor = hwnd::get_hwnd_map().find(childHWND);
 								if (!!itor)
 								{
-									hwnd* childPtr = *itor;
+									hwnd* childPtr = itor->value;
 									rcptr<hwnd_pane> child = childPtr->get_owner();
 									return child->process_message(msg, wParam, 0);
 								}
@@ -2006,7 +2007,7 @@ public:
 						auto itor = hwnd::get_hwnd_map().find(childHWND);
 						if (!!itor)
 						{
-							hwnd* childPtr = *itor;
+							hwnd* childPtr = itor->value;
 							rcptr<hwnd_pane> child = childPtr->get_owner();
 							return child->process_message(msg, wParam, 0);
 						}
@@ -2150,7 +2151,7 @@ inline LRESULT CALLBACK hwnd::UnownedClassWndProc(HWND hWnd, UINT msg, WPARAM wP
 	if (!itor)
 		return 0;
 
-	hwnd* hwndPtr = *itor;
+	hwnd* hwndPtr = itor->value;
 	if (hwndPtr->m_hWnd == NULL) // Actually in the process of being deleted
 		return hwndPtr->call_default_window_proc(msg, wParam, lParam);
 

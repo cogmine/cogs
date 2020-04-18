@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -43,25 +43,25 @@ private:
 	class serial_dispatched : public dispatched
 	{
 	public:
-		priority_queue<int, ptr<serial_dispatched> >::remove_token m_removeToken;
+		priority_queue<int, serial_dispatched>::remove_token m_removeToken;
 
 		// m_removeToken is accessed in a thread-safe way.  Cast away volatility
-		priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() volatile { return ((serial_dispatched*)this)->m_removeToken; }
-		const priority_queue<int, ptr<serial_dispatched> >::remove_token& get_remove_token() const volatile { return ((const serial_dispatched*)this)->m_removeToken; }
+		priority_queue<int, serial_dispatched>::remove_token& get_remove_token() volatile { return ((serial_dispatched*)this)->m_removeToken; }
+		const priority_queue<int, serial_dispatched>::remove_token& get_remove_token() const volatile { return ((const serial_dispatched*)this)->m_removeToken; }
 
-		serial_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt)
+		serial_dispatched(const rcref<volatile dispatcher>& parentDispatcher, const rcref<task_base>& t, const priority_queue<int, serial_dispatched>::remove_token& rt)
 			: dispatched(parentDispatcher, t),
 			m_removeToken(rt)
 		{ }
 	};
 
-	priority_queue<int, ptr<serial_dispatched> > m_priorityQueue;
+	priority_queue<int, serial_dispatched> m_priorityQueue;
 
 	virtual rcref<task<bool> > cancel_inner(volatile dispatched& d) volatile
 	{
 		volatile serial_dispatched& d2 = *(volatile serial_dispatched*)&d;
-		const priority_queue<int, ptr<serial_dispatched> >::remove_token& rt = d2.get_remove_token();
-		bool b = m_priorityQueue.remove(rt);
+		const priority_queue<int, serial_dispatched>::remove_token& rt = d2.get_remove_token();
+		bool b = m_priorityQueue.remove(rt).wasRemoved;
 		if (b)
 			serial_dispatch();
 		return signaled(b);
@@ -70,22 +70,19 @@ private:
 	virtual void change_priority_inner(volatile dispatched& d, int newPriority) volatile
 	{
 		volatile serial_dispatched& d2 = *(volatile serial_dispatched*)&d;
-		priority_queue<int, ptr<serial_dispatched> >::remove_token& rt = d2.get_remove_token();
+		priority_queue<int, serial_dispatched>::remove_token& rt = d2.get_remove_token();
 		m_priorityQueue.change_priority(rt, newPriority);
 		serial_dispatch();
 	}
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		priority_queue<int, ptr<serial_dispatched> >::preallocated i;
-		auto r = m_priorityQueue.preallocate_key_with_aux<delayed_construction<serial_dispatched> >(priority, i);
-		serial_dispatched* d = &(r->get());
-		i.get_value() = d;
-		placement_rcnew(d, *r.get_desc())(this_rcref, t, i);
-		m_priorityQueue.insert_preallocated(i);
-		rcref<dispatched> d2(d, i.get_desc());
-		t->set_dispatched(d2);
-		i.disown();
+		m_priorityQueue.insert_via([&](priority_queue<int, serial_dispatched>::value_token& vt)
+		{
+			*const_cast<int*>(&vt.get_priority()) = priority;
+			placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+			t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
+		});
 		serial_dispatch();
 	}
 
@@ -161,7 +158,7 @@ private:
 	{
 		serial_dispatch_state oldState;
 		serial_dispatch_state newState;
-		priority_queue<int, ptr<serial_dispatched> >::value_token vt;
+		priority_queue<int, serial_dispatched>::value_token vt;
 		atomic::load(m_serialDispatchState, oldState);
 		for (;;)
 		{
@@ -193,7 +190,7 @@ private:
 			}
 			else
 			{
-				priority = vt.get_key();
+				priority = vt.get_priority();
 				if ((oldState.m_flags & serial_dispatch_scheduled_flag) != 0)
 				{
 					if (priority == oldState.m_scheduledPriority) // Something the same priority is already scheduled, done if we can transition out
@@ -246,11 +243,10 @@ private:
 				if (priority <= oldState.m_scheduledPriority)
 				{
 					COGS_ASSERT(!!vt);
-					if (!m_priorityQueue.remove(vt))
+					if (!m_priorityQueue.remove(vt).wasRemoved)
 						continue;
 
-					const ptr<serial_dispatched>& d = *vt;
-					const rcref<task_base>& taskBase = d->get_task_base();
+					const rcref<task_base>& taskBase = vt->get_task_base();
 					if (!taskBase->signal())
 						continue;
 
@@ -347,10 +343,10 @@ public:
 	{
 		for (;;)
 		{
-			priority_queue<int, ptr<serial_dispatched> >::value_token vt = m_priorityQueue.get();
+			priority_queue<int, serial_dispatched>::value_token vt = m_priorityQueue.get();
 			if (!vt)
 				break;
-			(*vt)->get_task_base()->cancel();
+			vt->get_task_base()->cancel();
 		}
 	}
 };

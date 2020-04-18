@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Good
@@ -25,31 +25,21 @@ protected:
 	}
 
 public:
-	explicit native_container_pane(const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane_bridge(frames, children, cb)
+	typedef pane_bridge::options options;
+
+	native_container_pane()
+		: native_container_pane(options())
 	{ }
 
-	explicit native_container_pane(const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: native_container_pane({}, children, cb)
-	{ }
-
-	native_container_pane(const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: native_container_pane(frames, {}, cb)
-	{ }
-
-	explicit native_container_pane(compositing_behavior cb)
-		: native_container_pane({}, {}, cb)
+	explicit native_container_pane(options&& o)
+		: pane_bridge(std::move(o))
 	{ }
 
 	using pane_container::nest;
-	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
-	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_last(const rcref<pane>& child) { pane_bridge::nest_last(child); }
+	virtual void nest_first(const rcref<pane>& child) { pane_bridge::nest_first(child); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane_bridge::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane_bridge::nest_after(afterThis, child); }
 };
 
 

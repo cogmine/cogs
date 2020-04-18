@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -81,7 +81,7 @@ private:
 					map_t::volatile_iterator itor = m_tasks.find(fd);
 					if (!!itor)
 					{
-						if (m_tasks.remove(itor))
+						if (m_tasks.remove(itor).wasRemoved)
 						{
 							rcptr<epoll_pool> epp = m_epollPool;
 							COGS_ASSERT(!!epp);
@@ -180,7 +180,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
-		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
@@ -194,7 +194,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
-		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
@@ -204,7 +204,7 @@ public:
 
 	void abort_waiter(const remove_token& rt)
 	{
-		if (m_func->m_tasks.remove(rt.m_removeToken))
+		if (m_func->m_tasks.remove(rt.m_removeToken).wasRemoved)
 		{
 			self_release();
 			struct epoll_event ev;
@@ -220,7 +220,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd; // mark lsb to clue other thread in that this is a listener FD
-		map_t::volatile_iterator itor = m_func->m_tasks.try_insert(fd, d);
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
@@ -230,7 +230,7 @@ public:
 
 	void deregister_listener(const remove_token& rt)
 	{
-		if (m_func->m_tasks.remove(rt.m_removeToken))
+		if (m_func->m_tasks.remove(rt.m_removeToken).wasRemoved)
 			self_release();
 	}
 };

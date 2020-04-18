@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -86,8 +86,8 @@ public:
 
 	virtual void nest_last(const rcref<pane>& child) = 0;
 	virtual void nest_first(const rcref<pane>& child) = 0;
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) = 0;
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) = 0;
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) = 0;
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) = 0;
 };
 
 
@@ -97,6 +97,8 @@ public:
 
 class bridgeable_pane;
 
+class pane;
+typedef container_dlist<rcref<pane> > pane_list;
 
 /// @ingroup GUI
 /// @brief Base class for 2D visual UI elements
@@ -110,8 +112,8 @@ public:
 
 private:
 	weak_rcptr<pane> m_parent;
-	container_dlist<rcref<pane> > m_children;
-	container_dlist<rcref<pane> >::remove_token m_siblingIterator; // our element in our parent's list of children panes
+	pane_list m_children;
+	pane_list::remove_token m_siblingIterator; // our element in our parent's list of children panes
 
 	// Changes to the UI subsystem are serialized using the pane's dispatcher.
 
@@ -144,7 +146,7 @@ private:
 	range m_currentRange;
 	size m_currentDefaultSize = { 0, 0 };
 
-	container_dlist<rcref<pane> >::iterator m_childInstallItor;
+	pane_list::iterator m_childInstallItor;
 	rcptr<pane> m_parentInstalling;
 	bool m_topmostUninstall = false;
 
@@ -192,29 +194,33 @@ private:
 	rcptr<signallable_task<void> > m_installTask;
 
 protected:
-	explicit pane(const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: frameable(frames),
-		m_compositingBehavior(cb),
+	struct options
+	{
+		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
+		frame_list frames;
+		pane_list children;
+	};
+
+	pane()
+		: pane(options())
+	{ }
+
+	explicit pane(options&& o)
+		: frameable(std::move(o.frames)),
+		m_children(std::move(o.children)),
+		m_compositingBehavior(o.compositingBehavior),
 		m_dispatcherProxy(*this),
 		m_serialDispatcher(m_dispatcherProxy)
 	{
-		for (auto& child : children)
-			nest(child);
+		pane_list::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			COGS_ASSERT(!(*itor)->m_siblingIterator);
+			(*itor)->m_siblingIterator = itor;
+			(*itor)->m_parent = this_rcref;
+			++itor;
+		}
 	}
-
-	explicit pane(const std::initializer_list<rcref<pane> >& children, compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane({}, children, cb)
-	{ }
-
-	pane(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
-		: pane(frames, {}, cb)
-	{ }
-
-	explicit pane(compositing_behavior cb)
-		: pane({}, {}, cb)
-	{ }
 
 	void set_externally_drawn(const rcref<gfx::canvas>& externalCanvas)
 	{
@@ -415,22 +421,22 @@ protected:
 			child->install(get_subsystem());
 	}
 
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis)
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child)
 	{
 		child->m_parent = this_rcref;
 
-		child->m_siblingIterator = m_children.insert_before(child, beforeThis->m_siblingIterator);
+		child->m_siblingIterator = m_children.insert_before(beforeThis->m_siblingIterator, child);
 
 		COGS_ASSERT(!child->m_installed && !child->m_installing);
 		if (m_installed)
 			child->install(get_subsystem());
 	}
 
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis)
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child)
 	{
 		child->m_parent = this_rcref;
 
-		child->m_siblingIterator = m_children.insert_after(child, afterThis->m_siblingIterator);
+		child->m_siblingIterator = m_children.insert_after(afterThis->m_siblingIterator, child);
 
 		COGS_ASSERT(!child->m_installed && !child->m_installing);
 		if (m_installed)
@@ -439,7 +445,7 @@ protected:
 
 	void detach_children()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		if (!!itor)
 		{
 			do {
@@ -696,7 +702,7 @@ protected:
 			rcptr<pane> parent = child->get_parent();
 			if (!parent)
 				return child;
-			container_dlist<rcref<pane> >::iterator itor = child->m_siblingIterator;
+			pane_list::iterator itor = child->m_siblingIterator;
 			for (;;)
 			{
 				if (direction)
@@ -765,7 +771,7 @@ protected:
 
 	virtual void closing()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (!(*itor)->m_closeEvent.is_signaled())
@@ -790,12 +796,12 @@ protected:
 	template <typename F>
 	request_close_handler_token register_request_close_handler(F&& f, int priority = 0)
 	{
-		return m_requestCloseHandlers.insert(priority, std::forward<F>(f));
+		return m_requestCloseHandlers.insert(priority, std::forward<F>(f)).valueToken;
 	}
 
 	bool deregister_request_close_handler(request_close_handler_token& t)
 	{
-		return m_requestCloseHandlers.remove(t);
+		return m_requestCloseHandlers.remove(t).wasRemoved;
 	}
 
 	bool requesting_close()
@@ -846,7 +852,7 @@ protected:
 		m_currentDefaultSize.set(0, 0);
 		m_currentRange.clear();
 
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (m_recomposeDescendants)
@@ -1218,7 +1224,7 @@ protected:
 
 	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			(*itor)->modifier_keys_changing(modifiers);
@@ -1228,7 +1234,7 @@ protected:
 
 	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1245,7 +1251,7 @@ protected:
 
 	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1262,7 +1268,7 @@ protected:
 
 	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1279,7 +1285,7 @@ protected:
 
 	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1297,7 +1303,7 @@ protected:
 	virtual void cursor_entering(const point& pt)
 	{
 		m_cursorWasWithin = true;
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1310,7 +1316,7 @@ protected:
 
 	virtual void cursor_moving(const point& pt)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			point newPt = pt;
@@ -1333,7 +1339,7 @@ protected:
 
 	virtual void cursor_leaving()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if ((*itor)->m_cursorWasWithin)
@@ -1345,7 +1351,7 @@ protected:
 
 	virtual void hiding()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (!(*itor)->is_hidden())
@@ -1356,7 +1362,7 @@ protected:
 
 	virtual void showing()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (!(*itor)->is_hidden())
@@ -1436,7 +1442,7 @@ protected:
 		m_lastVisibleBounds = newVisibleBounds;
 		m_lastRenderOffset = renderOffset;
 
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			(*itor)->reshape_frame(b.get_size(), oldOrigin);
@@ -1491,7 +1497,7 @@ private:
 				rcptr<pane> parentInstalling = m_parentInstalling;
 				m_parentInstalling.release();
 
-				container_dlist<rcref<pane> >::iterator itor = ++(parentInstalling->m_childInstallItor);
+				pane_list::iterator itor = ++(parentInstalling->m_childInstallItor);
 				if (!!itor)
 				{
 					(*itor)->m_parentInstalling = parentInstalling;
@@ -1561,7 +1567,7 @@ private:
 	{
 		for (;;)
 		{
-			container_dlist<rcref<pane> >::iterator itor;
+			pane_list::iterator itor;
 			rcptr<pane> parentInstalling = m_parentInstalling;
 			bool hasUninstallingParent = !!parentInstalling;
 			if (!!hasUninstallingParent)
@@ -1645,7 +1651,7 @@ private:
 
 	void invalidating_children(const bounds& b) // b is in own coords
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		if (!!itor)
 			do {
 				rcref<pane>& child = (*itor);
@@ -1666,7 +1672,7 @@ private:
 
 	void draw_children()
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (!(*itor)->is_externally_drawn())
@@ -1677,7 +1683,7 @@ private:
 
 	void clip_opaque_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds, bool onlyIfExternal = false)
 	{
-		container_dlist<rcref<pane> >::iterator itor = fromPane.m_children.get_first();
+		pane_list::iterator itor = fromPane.m_children.get_first();
 		while (!!itor)
 		{
 			pane& p = **itor;
@@ -1701,7 +1707,7 @@ private:
 		point parentOffset = offset;
 		for (;;)
 		{
-			container_dlist<rcref<pane> >::iterator itor = curPane->m_siblingIterator;
+			pane_list::iterator itor = curPane->m_siblingIterator;
 			parentOffset += -curPane->get_position();
 			while (!!++itor)
 			{
@@ -1730,7 +1736,7 @@ private:
 		if (m_isFocusable)
 			return true;
 
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		while (!!itor)
 		{
@@ -1748,7 +1754,7 @@ private:
 		else
 		{
 			bool iterateDirection = (direction >= 0);
-			container_dlist<rcref<pane> >::iterator itor;
+			pane_list::iterator itor;
 			if (iterateDirection)
 				itor = m_children.get_first();
 			else
@@ -1806,7 +1812,7 @@ private:
 	template <typename F>
 	void for_each_child(F&& f)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
+		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (!f(*itor)) // return false to stop processing
@@ -1818,7 +1824,7 @@ private:
 	template <typename F>
 	void reverse_for_each_child(F&& f)
 	{
-		container_dlist<rcref<pane> >::iterator itor = m_children.get_last();
+		pane_list::iterator itor = m_children.get_last();
 		while (!!itor)
 		{
 			if (!f(*itor)) // return false to stop processing
@@ -2013,29 +2019,29 @@ public:
 		{
 			struct sizing_state_per_index
 			{
-				bool m_isNeeded;
-				bool m_isAsProposed;
+				bool isNeeded;
+				bool isAsProposed;
 			};
 
 			struct sizing_state
 			{
-				size m_size;
-				sizing_state_per_index m_perIndex[4];
-				int m_indexCount;
+				size size;
+				sizing_state_per_index perIndex[4];
+				int indexCount;
 			};
 
 			sizing_state sizingStates[4];
 			int numSizingStates = 1;
-			sizingStates[0].m_size = sz;
-			sizingStates[0].m_perIndex[0].m_isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::greater;
-			sizingStates[0].m_perIndex[1].m_isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::lesser;
-			sizingStates[0].m_perIndex[2].m_isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::greater;
-			sizingStates[0].m_perIndex[3].m_isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::lesser;
-			sizingStates[0].m_indexCount = 0;
+			sizingStates[0].size = sz;
+			sizingStates[0].perIndex[0].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::greater;
+			sizingStates[0].perIndex[1].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::lesser;
+			sizingStates[0].perIndex[2].isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::greater;
+			sizingStates[0].perIndex[3].isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::lesser;
+			sizingStates[0].indexCount = 0;
 			for (int i = 0; i < 4; i++)
 			{
-				if (sizingStates[0].m_perIndex[i].m_isNeeded)
-					sizingStates[0].m_indexCount++;
+				if (sizingStates[0].perIndex[i].isNeeded)
+					sizingStates[0].indexCount++;
 			}
 
 			int sizesIndex = 0;
@@ -2043,24 +2049,24 @@ public:
 			{
 				propose_size_result childResult;
 				sizing_state& sizingState = sizingStates[sizesIndex];
-				size currentProposed = sizingState.m_size;
+				size currentProposed = sizingState.size;
 
 				horizontalMode =
-					(!sizingState.m_perIndex[0].m_isNeeded && !sizingState.m_perIndex[1].m_isNeeded)
+					(!sizingState.perIndex[0].isNeeded && !sizingState.perIndex[1].isNeeded)
 					? size_mode::greater
-					: ((!sizingState.m_perIndex[2].m_isNeeded && !sizingState.m_perIndex[3].m_isNeeded)
+					: ((!sizingState.perIndex[2].isNeeded && !sizingState.perIndex[3].isNeeded)
 						? size_mode::lesser
 						: size_mode::both);
 
 				verticalMode =
-					(!sizingState.m_perIndex[0].m_isNeeded && !sizingState.m_perIndex[2].m_isNeeded)
+					(!sizingState.perIndex[0].isNeeded && !sizingState.perIndex[2].isNeeded)
 					? size_mode::greater
-					: ((!sizingState.m_perIndex[1].m_isNeeded && !sizingState.m_perIndex[3].m_isNeeded)
+					: ((!sizingState.perIndex[1].isNeeded && !sizingState.perIndex[3].isNeeded)
 						? size_mode::lesser
 						: size_mode::both);
 
-				container_dlist<rcref<pane> >::iterator itor = m_children.get_first();
-				container_dlist<rcref<pane> >::iterator itorToSkip;
+				pane_list::iterator itor = m_children.get_first();
+				pane_list::iterator itorToSkip;
 				while (!!itor)
 				{
 					if (itor != itorToSkip)
@@ -2073,37 +2079,37 @@ public:
 						bool isAllSame = true;
 						for (int i = 0; i < 4; i++)
 						{
-							sizing_state_per_index& indexInfo = sizingState.m_perIndex[i];
-							if (indexInfo.m_isNeeded)
+							sizing_state_per_index& indexInfo = sizingState.perIndex[i];
+							if (indexInfo.isNeeded)
 							{
-								proposed_size& proposedSize = childResult.m_sizes[i];
-								if (!proposedSize.m_isValid)
+								std::optional<size>& proposedSize = childResult.sizes[i];
+								if (!proposedSize.has_value())
 								{
-									if (!--sizingState.m_indexCount)
+									if (!--sizingState.indexCount)
 										break;
 									continue;
 								}
-								bool b = proposedSize.m_size == currentProposed;
+								bool b = proposedSize.value() == currentProposed;
 								if (b)
 									asProposedIndex = i;
-								indexInfo.m_isAsProposed = b;
+								indexInfo.isAsProposed = b;
 								isAnyAsProposed |= b;
 								if (foundIndex == -1)
 									foundIndex = i;
 								else
-									isAllSame &= proposedSize.m_size == childResult.m_sizes[foundIndex].m_size;
+									isAllSame &= proposedSize.value() == childResult.sizes[foundIndex].value();
 							}
 						}
-						if (sizingState.m_indexCount == 0)
+						if (sizingState.indexCount == 0)
 							break;
 						if (isAllSame)
-							resetScan = !sizingState.m_perIndex[foundIndex].m_isAsProposed;
+							resetScan = !sizingState.perIndex[foundIndex].isAsProposed;
 						else
 						{
 							for (int i = 0; i < 4; i++)
 							{
-								sizing_state_per_index& indexInfo = sizingState.m_perIndex[i];
-								if (indexInfo.m_isNeeded && !indexInfo.m_isAsProposed)
+								sizing_state_per_index& indexInfo = sizingState.perIndex[i];
+								if (indexInfo.isNeeded && !indexInfo.isAsProposed)
 								{
 									if (!isAnyAsProposed)
 									{
@@ -2116,20 +2122,20 @@ public:
 										// Create a new context for this
 										sizing_state& sizingState2 = sizingStates[numSizingStates];
 										++numSizingStates;
-										sizingState2.m_indexCount = 1;
-										sizingState2.m_size = childResult.m_sizes[i].m_size;
-										sizingState2.m_perIndex[3].m_isNeeded = sizingState2.m_perIndex[2].m_isNeeded = sizingState2.m_perIndex[1].m_isNeeded = sizingState2.m_perIndex[0].m_isNeeded = false;
-										sizingState2.m_perIndex[i].m_isNeeded = true;
+										sizingState2.indexCount = 1;
+										sizingState2.size = childResult.sizes[i].value();
+										sizingState2.perIndex[3].isNeeded = sizingState2.perIndex[2].isNeeded = sizingState2.perIndex[1].isNeeded = sizingState2.perIndex[0].isNeeded = false;
+										sizingState2.perIndex[i].isNeeded = true;
 										// If any indexes ahead have the same value, move them also
 										for (int j = i + 1; j < 4; j++)
 										{
-											bool& isNeeded = sizingState.m_perIndex[j].m_isNeeded;
-											if (isNeeded && sizingState2.m_size == childResult.m_sizes[j].m_size)
+											bool& isNeeded = sizingState.perIndex[j].isNeeded;
+											if (isNeeded && sizingState2.size == childResult.sizes[j].value())
 											{
 												isNeeded = false;
-												sizingState.m_indexCount--; // Will not hit 0 here, due to isAnyAsProposed
-												sizingState2.m_perIndex[j].m_isNeeded = true;
-												sizingState2.m_indexCount++;
+												sizingState.indexCount--; // Will not hit 0 here, due to isAnyAsProposed
+												sizingState2.perIndex[j].isNeeded = true;
+												sizingState2.indexCount++;
 											}
 										}
 									}
@@ -2138,7 +2144,7 @@ public:
 						}
 						if (resetScan)
 						{
-							currentProposed = childResult.m_sizes[foundIndex].m_size;
+							currentProposed = childResult.sizes[foundIndex].value();
 							itorToSkip = itor;
 							itor = m_children.get_first();
 							continue;
@@ -2148,16 +2154,16 @@ public:
 					//continue;
 				}
 
-				if (sizingState.m_indexCount != 0)
+				if (sizingState.indexCount != 0)
 				{
-					if (sizingState.m_perIndex[0].m_isNeeded)
-						result.m_sizes[0].set(currentProposed);
-					if (sizingState.m_perIndex[1].m_isNeeded)
-						result.m_sizes[1].set(currentProposed);
-					if (sizingState.m_perIndex[2].m_isNeeded)
-						result.m_sizes[2].set(currentProposed);
-					if (sizingState.m_perIndex[3].m_isNeeded)
-						result.m_sizes[3].set(currentProposed);
+					if (sizingState.perIndex[0].isNeeded)
+						result.sizes[0] = currentProposed;
+					if (sizingState.perIndex[1].isNeeded)
+						result.sizes[1] = currentProposed;
+					if (sizingState.perIndex[2].isNeeded)
+						result.sizes[2] = currentProposed;
+					if (sizingState.perIndex[3].isNeeded)
+						result.sizes[3] = currentProposed;
 				}
 
 				sizesIndex++;
@@ -2168,8 +2174,8 @@ public:
 	}
 
 	const weak_rcptr<pane>& get_parent() const { return m_parent; }
-	const container_dlist<rcref<pane> >& get_children() const { return m_children; }
-	const container_dlist<rcref<pane> >::remove_token& get_sibling_iterator() const { return m_siblingIterator; }
+	const pane_list& get_children() const { return m_children; }
+	const pane_list::remove_token& get_sibling_iterator() const { return m_siblingIterator; }
 
 	virtual bool is_opaque() const { return false; }
 
@@ -2198,29 +2204,21 @@ public:
 class container_pane : public pane, public virtual pane_container
 {
 public:
-	explicit container_pane(const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(frames, children, cb)
+	typedef pane::options options;
+
+	container_pane()
+		: container_pane(options())
 	{ }
 
-	explicit container_pane(const std::initializer_list<rcref<pane> >& children, compositing_behavior cb = compositing_behavior::no_buffer)
-		: container_pane({}, children, cb)
-	{ }
-
-	container_pane(const std::initializer_list<rcref<frame> >& frames, compositing_behavior cb)
-		: container_pane(frames, {}, cb)
-	{ }
-
-	explicit container_pane(compositing_behavior cb)
-		: container_pane({}, {}, cb)
+	explicit container_pane(options&& o)
+		: pane(std::move(o))
 	{ }
 
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
 };
 
 
@@ -2248,101 +2246,27 @@ protected:
 	}
 
 public:
-	explicit canvas_pane(const draw_delegate_t& d = draw_delegate_t(),
-		bool invalidateOnReshape = true,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: pane(frames, children, cb),
-		m_drawDelegate(d),
-		m_invalidateOnReshape(invalidateOnReshape)
+	struct options
+	{
+		draw_delegate_t drawDelegate;
+		bool invalidateOnReshape = true;
+		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
+		frame_list frames;
+		pane_list children;
+	};
+
+	canvas_pane()
+		: canvas_pane(options())
 	{ }
 
-
-	explicit canvas_pane(bool invalidateOnReshape,
-		const std::initializer_list<rcref<frame> >& frames = {},
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(draw_delegate_t(), invalidateOnReshape, frames, children, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(d, true, frames, children, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		bool invalidateOnReshape,
-		const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(d, invalidateOnReshape, {}, children, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		bool invalidateOnReshape,
-		const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: canvas_pane(d, invalidateOnReshape, frames, {}, cb)
-	{ }
-
-
-	explicit canvas_pane(const std::initializer_list<rcref<frame> >& frames,
-		const std::initializer_list<rcref<pane> >& children = {},
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(draw_delegate_t(), true, frames, children, cb)
-	{ }
-
-	canvas_pane(bool invalidateOnReshape,
-		const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(draw_delegate_t(), invalidateOnReshape, {}, children, cb)
-	{ }
-
-	canvas_pane(bool invalidateOnReshape,
-		const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: canvas_pane(draw_delegate_t(), invalidateOnReshape, frames, {}, cb)
-	{ }
-
-
-	canvas_pane(const draw_delegate_t& d,
-		const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(d, true, {}, children, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: canvas_pane(d, true, frames, {}, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		bool invalidateOnReshape,
-		compositing_behavior cb)
-		: canvas_pane(d, invalidateOnReshape, {}, {}, cb)
-	{ }
-
-	explicit canvas_pane(const std::initializer_list<rcref<pane> >& children,
-		compositing_behavior cb = compositing_behavior::no_buffer)
-		: canvas_pane(draw_delegate_t(), true, {}, children, cb)
-	{ }
-
-	canvas_pane(const std::initializer_list<rcref<frame> >& frames,
-		compositing_behavior cb)
-		: canvas_pane(draw_delegate_t(), true, frames, {}, cb)
-	{ }
-
-	canvas_pane(bool invalidateOnReshape,
-		compositing_behavior cb)
-		: canvas_pane(draw_delegate_t(), invalidateOnReshape, {}, {}, cb)
-	{ }
-
-	canvas_pane(const draw_delegate_t& d,
-		compositing_behavior cb)
-		: canvas_pane(d, true, {}, {}, cb)
+	explicit canvas_pane(options&& o)
+		: pane({
+			.compositingBehavior = o.compositingBehavior,
+			.frames = std::move(o.frames),
+			.children = std::move(o.children)
+		}),
+		m_drawDelegate(std::move(o.drawDelegate)),
+		m_invalidateOnReshape(o.invalidateOnReshape)
 	{ }
 
 	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
@@ -2382,8 +2306,8 @@ public:
 	using pane_container::nest;
 	virtual void nest_last(const rcref<pane>& child) { pane::nest_last(child); }
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
-	virtual void nest_before(const rcref<pane>& child, const rcref<pane>& beforeThis) { pane::nest_before(child, beforeThis); }
-	virtual void nest_after(const rcref<pane>& child, const rcref<pane>& afterThis) { pane::nest_after(child, afterThis); }
+	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
+	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
 };
 
 

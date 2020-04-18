@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -97,9 +97,9 @@ private:
 					for (;;)
 					{
 						itor = myTimerGlobals->m_timers.get_first();
-						if (!itor || !!(itor.get_key().get_pending())) // Only bother with stuff that expired.
+						if (!itor || !!(itor->key.get_pending())) // Only bother with stuff that expired.
 							break;
-						rcref<inner_timer> t = *itor;
+						rcref<inner_timer> t = itor->value;
 						myTimerGlobals->m_timers.remove(itor);
 						read_token rt;
 						for (;;) // Loop until transactable write succeeds
@@ -125,7 +125,7 @@ private:
 					if (!itor)
 						timeout = timeout_t::infinite();
 					else
-						timeout = itor.get_key();
+						timeout = itor->key;
 				} while (!myTimerGlobals->m_terminating);
 			}
 		}
@@ -214,7 +214,7 @@ private:
 						}
 						else
 						{
-							multimap<timeout_t, rcref<inner_timer> >::volatile_iterator itor = timerGlobals->m_timers.insert(t, this_rcref);
+							multimap<timeout_t, rcref<inner_timer> >::volatile_iterator itor = timerGlobals->m_timers.insert(t, this_rcref).iterator;
 							if (itor == timerGlobals->m_timers.get_first())
 								timerGlobals->m_timerThreadSemaphore.release();
 						}
@@ -429,7 +429,6 @@ public:
 
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
 };
-
 
 
 }

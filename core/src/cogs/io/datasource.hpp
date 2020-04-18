@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2019 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -865,11 +865,9 @@ private:
 			{
 				if ((this->*t)())
 					++releaseCount;
-				bool wasLast;
-				m_completionSerializer.remove_first(wasLast);
-				if (wasLast)
+				if (m_completionSerializer.remove().wasEmptied)
 					break;
-				m_completionSerializer.peek_first(t);
+				m_completionSerializer.peek(t);
 			}
 			get_desc()->release(reference_strength::strong, releaseCount);
 		}
@@ -1135,3 +1133,4 @@ inline rcref<task<void> > datasource::create_coupler(
 
 
 #endif
+
