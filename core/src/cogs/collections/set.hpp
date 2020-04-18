@@ -658,8 +658,8 @@ public:
 
 	struct insert_replace_result
 	{
-		iterator replaced;
 		iterator inserted;
+		iterator replaced;
 	};
 
 	// The first iterator is the newly created element.  The second is the element that was replaced, if any.
@@ -669,14 +669,14 @@ public:
 		insert_replace_result>
 	insert_replace_via(F&& f)
 	{
-		iterator i;
-		auto p = m_contents.insert_replace_via([&](typename container_skiplist_t::iterator& i2)
+		iterator inserted;
+		auto p = m_contents.insert_replace_via([&](typename container_skiplist_t::iterator& i)
 		{
-			new (i2.get()) payload;	// should be no-op, but for completeness.
-			i = std::move(i2);
-			f(i);
+			new (i.get()) payload;	// should be no-op, but for completeness.
+			inserted = std::move(i);
+			f(inserted);
 		});
-		return { std::move(p.replaced), std::move(i) };
+		return { std::move(inserted), std::move(p.replaced) };
 	}
 
 	template <typename F>
@@ -684,7 +684,7 @@ public:
 		!std::is_invocable_v<F, iterator&>
 		&& std::is_invocable_v<F, const rcref<type>&>,
 		insert_replace_result>
-	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
+	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(i.get_obj().dereference().template const_cast_to<type>()); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -723,8 +723,8 @@ public:
 
 	struct insert_unique_result
 	{
-		iterator iterator;
-		bool hadCollision;
+		iterator inserted;
+		iterator existing;
 	};
 
 	// The returned iterator is the new element, or the element collided with.
@@ -735,14 +735,14 @@ public:
 		insert_unique_result>
 	insert_unique_via(F&& f)
 	{
-		iterator i;
-		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i2)
+		iterator inserted;
+		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i)
 		{
-			new (i2.get()) payload;	// should be no-op, but for completeness.
-			i = std::move(i2);
-			f(i);
+			new (i.get()) payload;	// should be no-op, but for completeness.
+			inserted = std::move(i);
+			f(inserted);
 		});
-		return { std::move(i), p.hadCollision };
+		return { std::move(inserted), std::move(p.existing) };
 	}
 
 	template <typename F>
@@ -750,7 +750,7 @@ public:
 		!std::is_invocable_v<F, iterator&>
 		&& std::is_invocable_v<F, const rcref<type>&>,
 		insert_unique_result>
-	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
+	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().template const_cast_to<type>()); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -763,8 +763,8 @@ public:
 
 	struct volatile_insert_unique_result
 	{
-		volatile_iterator iterator;
-		bool hadCollision;
+		volatile_iterator inserted;
+		volatile_iterator existing;
 		bool wasEmpty;
 	};
 
@@ -774,14 +774,14 @@ public:
 		volatile_insert_unique_result>
 	insert_unique_via(F&& f) volatile
 	{
-		iterator i;
-		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i2)
+		iterator inserted;
+		auto p = m_contents.insert_unique_via([&](typename container_skiplist_t::iterator& i)
 		{
-			new (i2.get()) payload;	// should be no-op, but for completeness.
-			i = std::move(i2);
-			f(i);
+			new (i.get()) payload;	// should be no-op, but for completeness.
+			inserted = std::move(i);
+			f(inserted);
 		});
-		return { std::move(i), p.hadCollision, p.wasEmpty };
+		return { std::move(inserted), std::move(p.existing), p.wasEmpty };
 	}
 
 	template <typename F>
@@ -789,7 +789,7 @@ public:
 		!std::is_invocable_v<F, iterator&>
 		&& std::is_invocable_v<F, const rcref<type>&>,
 		volatile_insert_unique_result>
-	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().const_cast_to<type>()); }); }
+	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(i.get_obj().dereference().template const_cast_to<type>()); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -1180,7 +1180,7 @@ public:
 
 	struct insert_replace_result
 	{
-		iterator iterator;
+		iterator inserted;
 		bool wasReplacement;
 	};
 
@@ -1193,9 +1193,9 @@ public:
 		insert_replace_result result;
 		ref_t r = m_allocator.template allocate_type<node>();
 		new (r.get_ptr()) node();
-		result.iterator = iterator(r, m_tree);
-		f(result.iterator);
-		ref_t existing = m_tree.insert_replace(r);
+		result.inserted = iterator(std::move(r), m_tree);
+		f(result.inserted);
+		ref_t existing = m_tree.insert_replace(result.inserted.m_payload);
 		result.wasReplacement = !!existing;
 		if (result.wasReplacement)
 			m_allocator.template destruct_deallocate_type<node>(existing);
@@ -1223,8 +1223,8 @@ public:
 
 	struct insert_unique_result
 	{
-		iterator iterator;
-		bool hadCollision;
+		iterator inserted;
+		iterator existing;
 	};
 
 	// The returned iterator is the new element, or the element collided with.
@@ -1238,16 +1238,16 @@ public:
 		insert_unique_result result;
 		ref_t r = m_allocator.template allocate_type<node>();
 		new (r.get_ptr()) node();
-		result.iterator = iterator(r, m_tree);
-		f(result.iterator);
-		ref_t existing = m_tree.insert_unique(r);
-		result.hadCollision = !!existing;
-		if (!result.hadCollision)
+		result.inserted = iterator(std::move(r), m_tree);
+		f(result.inserted);
+		ref_t existing = m_tree.insert_unique(result.inserted.m_payload);
+		if (!existing)
 			m_count++;
 		else
 		{
+			result.inserted.release();
 			m_allocator.template destruct_deallocate_type<node>(r);
-			result.iterator.m_node = std::move(existing);
+			result.existing = iterator(std::move(existing), m_tree);
 		}
 		return result;
 	}

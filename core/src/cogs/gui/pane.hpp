@@ -2025,14 +2025,14 @@ public:
 
 			struct sizing_state
 			{
-				size size;
+				size cellSize;
 				sizing_state_per_index perIndex[4];
 				int indexCount;
 			};
 
 			sizing_state sizingStates[4];
 			int numSizingStates = 1;
-			sizingStates[0].size = sz;
+			sizingStates[0].cellSize = sz;
 			sizingStates[0].perIndex[0].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::greater;
 			sizingStates[0].perIndex[1].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::lesser;
 			sizingStates[0].perIndex[2].isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::greater;
@@ -2049,7 +2049,7 @@ public:
 			{
 				propose_size_result childResult;
 				sizing_state& sizingState = sizingStates[sizesIndex];
-				size currentProposed = sizingState.size;
+				size currentProposed = sizingState.cellSize;
 
 				horizontalMode =
 					(!sizingState.perIndex[0].isNeeded && !sizingState.perIndex[1].isNeeded)
@@ -2123,14 +2123,14 @@ public:
 										sizing_state& sizingState2 = sizingStates[numSizingStates];
 										++numSizingStates;
 										sizingState2.indexCount = 1;
-										sizingState2.size = childResult.sizes[i].value();
+										sizingState2.cellSize = childResult.sizes[i].value();
 										sizingState2.perIndex[3].isNeeded = sizingState2.perIndex[2].isNeeded = sizingState2.perIndex[1].isNeeded = sizingState2.perIndex[0].isNeeded = false;
 										sizingState2.perIndex[i].isNeeded = true;
 										// If any indexes ahead have the same value, move them also
 										for (int j = i + 1; j < 4; j++)
 										{
 											bool& isNeeded = sizingState.perIndex[j].isNeeded;
-											if (isNeeded && sizingState2.size == childResult.sizes[j].value())
+											if (isNeeded && sizingState2.cellSize == childResult.sizes[j].value())
 											{
 												isNeeded = false;
 												sizingState.indexCount--; // Will not hit 0 here, due to isAnyAsProposed

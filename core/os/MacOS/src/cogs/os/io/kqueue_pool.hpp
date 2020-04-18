@@ -176,7 +176,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
-		map_t::volatile_iterator itor = m_func->m_writeTasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_writeTasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
@@ -190,7 +190,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_LOWAT, minBytes, 0);
-		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);
@@ -228,7 +228,7 @@ public:
 		self_acquire();
 		struct kevent kevt;
 		EV_SET(&kevt, fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, 0);
-		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_readOrListenTasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = kevent(m_fd->get(), &kevt, 1, 0, 0, 0);
 		COGS_ASSERT(i != -1);

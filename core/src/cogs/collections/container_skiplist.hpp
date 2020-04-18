@@ -4085,8 +4085,8 @@ public:
 
 	struct insert_replace_result
 	{
-		iterator replaced;
 		iterator inserted;
+		iterator replaced;
 	};
 
 	// The first iterator is the newly created element.  The second is the element that was replaced, if any.
@@ -4096,15 +4096,15 @@ public:
 		insert_replace_result>
 	insert_replace_via(F&& f)
 	{
-		iterator collidedWith;
-		iterator i = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
+		iterator replaced;
+		iterator inserted = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
 		{
 			link_t* l = i.m_link.get_ptr();
 			f(i);
-			collidedWith.m_link = l->insert_replace(currentHeight, sentinel);
+			replaced.m_link = l->insert_replace(currentHeight, sentinel);
 			return true;
 		});
-		return { std::move(collidedWith), std::move(i) };
+		return { std::move(inserted), std::move(replaced) };
 	}
 
 	template <typename F>
@@ -4138,8 +4138,8 @@ public:
 
 	struct insert_unique_result
 	{
-		iterator iterator;
-		bool hadCollision;
+		iterator inserted;
+		iterator existing;
 	};
 
 	template <typename F>
@@ -4148,21 +4148,20 @@ public:
 		insert_unique_result>
 	insert_unique_via(F&& f)
 	{
-		bool collided;
-		iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
+		iterator existing;
+		iterator inserted = insert_inner([&](iterator& i, height_t currentHeight, const rcref<sentinel_link_t>& sentinel)
 		{
 			link_t* l = i.m_link.get_ptr();
 			f(i);
-			rcptr<link_t> collidedWith = l->insert_unique(currentHeight, sentinel);
-			collided = !!collidedWith;
-			if (collided)
+			existing = l->insert_unique(currentHeight, sentinel);
+			if (!!existing)
 			{
-				i.m_link = std::move(collidedWith);
+				i.release();
 				return false;
 			}
 			return true;
 		});
-		return { std::move(i2), collided };
+		return { std::move(inserted), std::move(existing) };
 	}
 
 	template <typename F>
@@ -4195,8 +4194,8 @@ public:
 
 	struct volatile_insert_unique_result
 	{
-		volatile_iterator iterator;
-		bool hadCollision;
+		volatile_iterator inserted;
+		volatile_iterator existing;
 		bool wasEmpty;
 	};
 
@@ -4207,21 +4206,20 @@ public:
 	insert_unique_via(F&& f) volatile
 	{
 		bool wasEmpty = false;
-		bool collided;
-		volatile_iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
+		volatile_iterator existing;
+		volatile_iterator inserted = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
 		{
 			link_t* l = i.m_link.template const_cast_to<link_t>().get_ptr();
 			f(i);
-			rcptr<volatile link_t> collidedWith = l->insert_unique(wasEmpty, currentHeight, sentinel);
-			collided = !!collidedWith;
-			if (collided)
+			existing = l->insert_unique(wasEmpty, currentHeight, sentinel);
+			if (!!existing)
 			{
-				i.m_link = std::move(collidedWith).template const_cast_to<link_t>();
+				i.release();
 				return false;
 			}
 			return true;
 		});
-		return { std::move(i2), collided, wasEmpty };
+		return { std::move(inserted), std::move(existing), wasEmpty };
 	}
 
 	template <typename F>
@@ -4383,7 +4381,7 @@ public:
 
 	struct volatile_insert_multi_result
 	{
-		volatile_iterator iterator;
+		volatile_iterator inserted;
 		bool wasEmpty;
 	};
 
@@ -4394,14 +4392,14 @@ public:
 	insert_multi_via(F&& f) volatile
 	{
 		bool wasEmpty = false;
-		volatile_iterator i2 = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
+		volatile_iterator inserted = insert_inner([&](iterator& i, height_t currentHeight, const rcref<volatile sentinel_link_t>& sentinel)
 		{
 			link_t* l = i.m_link.template const_cast_to<link_t>().get_ptr();
 			f(i);
 			l->insert_multi(wasEmpty, currentHeight, sentinel);
 			return true;
 		});
-		return { std::move(i2), wasEmpty };
+		return { std::move(inserted), wasEmpty };
 	}
 
 	template <typename F>

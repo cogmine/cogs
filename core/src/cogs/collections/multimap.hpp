@@ -672,7 +672,7 @@ public:
 		!std::is_invocable_v<F, iterator&>
 		&& std::is_invocable_v<F, const rcref<key_t>&, const rcref<value_t>&>,
 		iterator>
-	insert_via(F&& f) { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().const_cast_to<key_t>(), i.get_value_obj().dereference()); }); }
+	insert_via(F&& f) { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().template const_cast_to<key_t>(), i.get_value_obj().dereference()); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -689,7 +689,7 @@ public:
 		&& !std::is_invocable_v<F, key_t&, const rcref<value_t>&>
 		&& std::is_invocable_v<F, const rcref<key_t>&, value_t&>,
 		iterator>
-	insert_via(F&& f) { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().const_cast_to<key_t>(), i->value); }); }
+	insert_via(F&& f) { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().template const_cast_to<key_t>(), i->value); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -703,7 +703,7 @@ public:
 
 	struct volatile_insert_result
 	{
-		volatile_iterator iterator;
+		volatile_iterator inserted;
 		bool wasEmpty;
 	};
 
@@ -713,14 +713,14 @@ public:
 		volatile_insert_result>
 	insert_via(F&& f) volatile
 	{
-		iterator i;
-		auto p = m_contents.insert_multi_via([&](typename container_skiplist_t::iterator& i2)
+		iterator inserted;
+		auto p = m_contents.insert_multi_via([&](typename container_skiplist_t::iterator& i)
 		{
-			new (i2.get()) payload;	// should be no-op, but for completeness.
-			i = std::move(i2);
-			f(i);
+			new (i.get()) payload;	// should be no-op, but for completeness.
+			inserted = std::move(i);
+			f(inserted);
 		});
-		return { std::move(i), p.wasEmpty };
+		return { std::move(inserted), p.wasEmpty };
 	}
 
 	template <typename F>
@@ -728,7 +728,7 @@ public:
 		!std::is_invocable_v<F, iterator&>
 		&& std::is_invocable_v<F, const rcref<key_t>&, const rcref<value_t>&>,
 		volatile_insert_result>
-	insert_via(F&& f) volatile { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().const_cast_to<key_t>(), i.get_value_obj().dereference()); }); }
+	insert_via(F&& f) volatile { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().template const_cast_to<key_t>(), i.get_value_obj().dereference()); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -745,7 +745,7 @@ public:
 		&& !std::is_invocable_v<F, key_t&, const rcref<value_t>&>
 		&& std::is_invocable_v<F, const rcref<key_t>&, value_t&>,
 		volatile_insert_result>
-	insert_via(F&& f) volatile { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().const_cast_to<key_t>(), i->value); }); }
+	insert_via(F&& f) volatile { return insert_via([&](iterator& i) { f(i.get_key_obj().dereference().template const_cast_to<key_t>(), i->value); }); }
 
 	template <typename F>
 	std::enable_if_t<

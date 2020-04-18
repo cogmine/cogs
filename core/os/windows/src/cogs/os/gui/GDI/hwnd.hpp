@@ -862,7 +862,7 @@ public:
 		{
 			rcptr<volatile visible_windows_list_t> visibleWindows = m_visibleWindows;
 			if (!!visibleWindows)
-				return visibleWindows->prepend(windowBridge).iterator;
+				return visibleWindows->prepend(windowBridge).inserted;
 			return visible_windows_list_t::volatile_remove_token();
 		}
 
@@ -994,8 +994,8 @@ public:
 		if (isUnownedClass)
 		{
 			auto p = get_hwnd_map().insert_unique(hWnd, this);
-			m_hWndMapRemoveToken = std::move(p.iterator);
-			COGS_ASSERT(!p.hadCollision);
+			m_hWndMapRemoveToken = std::move(p.inserted);
+			COGS_ASSERT(!!p.inserted);
 			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)UnownedClassWndProc);
 		}
 		else

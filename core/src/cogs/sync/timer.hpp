@@ -214,7 +214,7 @@ private:
 						}
 						else
 						{
-							multimap<timeout_t, rcref<inner_timer> >::volatile_iterator itor = timerGlobals->m_timers.insert(t, this_rcref).iterator;
+							multimap<timeout_t, rcref<inner_timer> >::volatile_iterator itor = timerGlobals->m_timers.insert(t, this_rcref).inserted;
 							if (itor == timerGlobals->m_timers.get_first())
 								timerGlobals->m_timerThreadSemaphore.release();
 						}

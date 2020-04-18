@@ -87,7 +87,7 @@ private:
 							COGS_ASSERT(!!epp);
 							epp->self_release();
 						}
-						(*itor)();
+						itor->value();
 					}
 				}
 			}
@@ -180,7 +180,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
-		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
@@ -194,7 +194,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd;
-		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);
@@ -220,7 +220,7 @@ public:
 		struct epoll_event ev;
 		ev.events = EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ev.data.fd = fd; // mark lsb to clue other thread in that this is a listener FD
-		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).iterator;
+		map_t::volatile_iterator itor = m_func->m_tasks.insert_unique(fd, d).inserted;
 		COGS_ASSERT(!!itor); // shouldn't fail
 		int i = epoll_ctl(m_fd->get(), EPOLL_CTL_MOD, fd, &ev);
 		COGS_ASSERT(i != -1);

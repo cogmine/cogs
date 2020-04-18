@@ -429,7 +429,7 @@ public:
 					{
 						new (const_cast<key_t*>(&i->key)) key_t(newPriority);
 						new (&i->value) payload(std::move(oldRemoved));
-					}).iterator;
+					}).inserted;
 
 					// Link old to new element
 					vt.m_contents->value.m_rescheduledTo = itor;

@@ -195,7 +195,7 @@ public:
 		type& operator*() const { return *get(); }
 		type* operator->() const { return get(); }
 
-		size_t get_position() const { m_contents.get_position(); }
+		size_t get_position() const { return m_contents.get_position(); }
 
 		iterator next() const { iterator result(*this); ++result; return result; }
 		iterator prev() const { iterator result(*this); --result; return result; }
@@ -240,7 +240,7 @@ public:
 		const type& operator*() const { return *get(); }
 		const type* operator->() const { return get(); }
 
-		size_t get_position() const { m_contents.get_position(); }
+		size_t get_position() const { return m_contents.get_position(); }
 
 		const_iterator next() const { const_iterator result(*this); ++result; return result; }
 		const_iterator prev() const { const_iterator result(*this); --result; return result; }
@@ -1445,13 +1445,13 @@ public:
 };
 
 
-// U+0009–U+000D (control characters, containing Tab, CR and LF)
+// U+0009-U+000D (control characters, containing Tab, CR and LF)
 // U+0020 SPACE
 // U+0085 NEL (control character next line)
 // U+00A0 NBSP (NO-BREAK SPACE)
 // U+1680 OGHAM SPACE MARK
 // U+180E MONGOLIAN VOWEL SEPARATOR
-// U+2000–U+200A (different sorts of spaces)
+// U+2000-U+200A (different sorts of spaces)
 // U+2028 LS (LINE SEPARATOR)
 // U+2029 PS (PARAGRAPH SEPARATOR)
 // U+202F NNBSP (NARROW NO-BREAK SPACE)

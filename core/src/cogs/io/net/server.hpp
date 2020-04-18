@@ -89,7 +89,7 @@ public:
 			m_inactivityTimer(rcnew(single_fire_timer)(timeout_t::infinite())),
 			m_inactivityTimeoutPeriod(inactivityTimeoutPeriod)
 		{
-			m_removeToken = srvr->m_connections.append(this_rcref).iterator;
+			m_removeToken = srvr->m_connections.append(this_rcref).inserted;
 			m_inactivityTimer->dispatch([c{ this_weak_rcptr }]()
 			{
 				rcptr<connection> c2 = c;

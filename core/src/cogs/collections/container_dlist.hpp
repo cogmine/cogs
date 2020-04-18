@@ -2046,7 +2046,7 @@ public:
 
 	struct volatile_insert_result
 	{
-		volatile_iterator iterator;
+		volatile_iterator inserted;
 		bool wasEmpty;
 	};
 
@@ -2057,13 +2057,13 @@ public:
 	prepend_via(F&& f) volatile
 	{
 		bool wasEmpty = false;
-		volatile_iterator i = insert_inner([&](iterator& i, const rcref<volatile sentinel_link_t>& sentinel)
+		volatile_iterator inserted = insert_inner([&](iterator& i, const rcref<volatile sentinel_link_t>& sentinel)
 		{
 			link_t* l = i.m_link.get_ptr();
 			f(i);
 			return l->insert_after(sentinel, wasEmpty);
 		});
-		return { std::move(i), wasEmpty };
+		return { std::move(inserted), wasEmpty };
 	}
 
 	template <typename F>
@@ -2977,7 +2977,7 @@ inline rc_obj_base::released_handler_remove_token rc_obj_base::on_released(F&& f
 {
 	volatile released_handlers* releasedHandlers = initialize_released_handlers();
 	volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
-	released_handler_remove_token result(handler.append(f).iterator);
+	released_handler_remove_token result(handler.append(f).inserted);
 	return result;
 }
 

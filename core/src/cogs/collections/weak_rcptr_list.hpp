@@ -476,13 +476,13 @@ public:
 
 	struct insert_result
 	{
-		iterator iterator;
+		iterator inserted;
 		bool wasEmpty;
 	};
 
 	insert_result prepend(const rcref<T>& t) volatile
 	{
-		iterator i2;
+		iterator inserted;
 		auto p = m_list.prepend_via([&](typename list_t::iterator& i)
 		{
 			rc_obj_base* desc = t.get_desc();
@@ -497,9 +497,9 @@ public:
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
-			i2 = std::move(i);
+			inserted = std::move(i);
 		});
-		return { std::move(i2), p.wasEmpty };
+		return { std::move(inserted), p.wasEmpty };
 	}
 
 	insert_result prepend_if_not_empty(const rcref<T>& t) volatile

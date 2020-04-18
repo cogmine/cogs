@@ -326,7 +326,7 @@ public:
 					i = m_mainLoop->m_parallelTaskLevelMap.find(priority);
 				if (!!i)
 				{
-					if (!i->value->m_parallelTasks.prepend_emplace_if_not_empty(t).iterator)
+					if (!i->value->m_parallelTasks.prepend_emplace_if_not_empty(t).inserted)
 					{
 						COGS_ASSERT(i->value->m_parallelTasks.is_empty());
 						m_mainLoop->m_parallelTaskLevelMap.remove(i);
@@ -338,7 +338,7 @@ public:
 				}
 				if (!level)
 					level = rcnew(parallel_task_level)(t);
-				if (m_mainLoop->m_parallelTaskLevelMap.insert_unique_emplace(priority, level.dereference()).hadCollision)
+				if (!m_mainLoop->m_parallelTaskLevelMap.insert_unique_emplace(priority, level.dereference()).inserted)
 					continue;
 				m_mainLoop->m_semaphore.release(n);
 				break;
@@ -393,7 +393,7 @@ inline void thread::register_waiter(const rcref<thread>& t)
 	typedef singleton<thread_waiters_t, singleton_posthumous_behavior::create_new_singleton, singleton_cleanup_behavior::must_call_shutdown>
 		thread_waiters_singleton_t;
 	rcref<volatile container_dlist<rcref<thread> > > threadWaiters = thread_waiters_singleton_t::get();
-	t->m_removeToken = threadWaiters->prepend(t).iterator;
+	t->m_removeToken = threadWaiters->prepend(t).inserted;
 }
 
 inline void thread::deregister_waiter() const
