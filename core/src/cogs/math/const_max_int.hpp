@@ -9,6 +9,9 @@
 #define COGS_HEADER_MATH_CONST_MAX_INT
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 
 

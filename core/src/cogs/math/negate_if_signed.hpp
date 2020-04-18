@@ -9,6 +9,9 @@
 #define COGS_HEADER_MATH_NEGATE_IF_SIGNED
 
 
+#include <type_traits>
+
+
 namespace cogs {
 
 

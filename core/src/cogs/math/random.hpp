@@ -10,6 +10,7 @@
 
 
 #include "cogs/env.hpp"
+#include "cogs/env/mem/bit_scan.hpp"
 #include "cogs/math/const_max_int.hpp"
 #include "cogs/math/bits_to_int.hpp"
 #include "cogs/mem/const_bit_scan.hpp"

@@ -9,6 +9,7 @@
 #define COGS_HEADER_MEM_IS_SAME_INSTANCE
 
 
+#include <memory>
 #include <type_traits>
 
 

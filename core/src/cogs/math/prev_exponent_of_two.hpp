@@ -9,6 +9,9 @@
 #define COGS_HEADER_MATH_PREV_EXPONENT_OF_TWO
 
 
+#include <stdio.h>
+
+
 namespace cogs {
 
 

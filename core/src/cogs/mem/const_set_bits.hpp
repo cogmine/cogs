@@ -9,6 +9,9 @@
 #define COGS_HEADER_MEM_CONST_SET_BITS
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 
 

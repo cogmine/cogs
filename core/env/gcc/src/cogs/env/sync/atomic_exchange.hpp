@@ -10,13 +10,14 @@
 
 #include <type_traits>
 
+#include "cogs/arch/sync/atomic.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/math/bytes_to_int.hpp"
-#include "cogs/arch/sync/atomic.hpp"
+#include "cogs/mem/bypass_strict_aliasing.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/sync/atomic_alignment.hpp"
-#include "cogs/mem/bypass_strict_aliasing.hpp"
+#include "cogs/sync/atomic_load.hpp"
 
 namespace cogs {
 namespace atomic {

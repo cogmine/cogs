@@ -15,6 +15,7 @@ target_sources(${EXECUTABLE_NAME} PUBLIC
   scratch.cpp
 )
 
+if (${COGS_HEADER_TEST})
 set(HEADERS
   ../../core/src/cogs/assert.hpp
   ../../core/src/cogs/compatible.hpp
@@ -266,6 +267,7 @@ target_sources(${EXECUTABLE_NAME} PUBLIC
   ${HEADERS}
 )
 set_source_files_properties(${HEADERS} PROPERTIES LANGUAGE CXX)
+endif()
 
 if (WIN32)
 

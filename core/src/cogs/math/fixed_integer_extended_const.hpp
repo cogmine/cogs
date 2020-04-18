@@ -2035,7 +2035,7 @@ public:
 	}
 
 	template <endian_t e>
-	io::buffer to_buffer() const volatile
+	auto to_buffer() const volatile
 	{
 		non_const_t tmp(*this);
 		return tmp.to_buffer();

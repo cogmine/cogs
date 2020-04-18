@@ -9,6 +9,9 @@
 #define COGS_HEADER_MATH_LEAST_MULTIPLE_OF
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 
 

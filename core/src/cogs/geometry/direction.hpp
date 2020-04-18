@@ -10,6 +10,9 @@
 #define COGS_HEADER_GEOMETRY_DIRECTION
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 namespace geometry {
 

@@ -9,6 +9,9 @@
 #define COGS_HEADER_MATH_NEXT_MULTIPLE_OF
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 
 

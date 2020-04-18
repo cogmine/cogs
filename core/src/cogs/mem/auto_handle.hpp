@@ -10,6 +10,7 @@
 
 
 #include <utility>
+#include "cogs/operators.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/sync/atomic_alignment.hpp"
 #include "cogs/sync/atomic_load.hpp"
