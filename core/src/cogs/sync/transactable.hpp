@@ -14,8 +14,7 @@
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
+#include "cogs/mem/object.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/atomic_exchange.hpp"
 
@@ -2596,6 +2595,9 @@ public:
 
 
 }
+
+
+#include "cogs/mem/rc_container.hpp"
 
 
 #endif

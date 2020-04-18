@@ -17,10 +17,6 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
-#include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/immediate_task.hpp"
-#include "cogs/sync/priority_dispatcher.hpp"
-#include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
@@ -296,10 +292,10 @@ inline void force_quit()
 }
 
 
-#include "cogs/sync/thread_pool.hpp"
-
-
 }
+
+
+#include "cogs/sync/thread_pool.hpp"
 
 
 #endif

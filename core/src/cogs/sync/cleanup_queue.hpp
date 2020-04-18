@@ -15,9 +15,6 @@
 #include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/thread.hpp"
-#include "cogs/sync/singleton.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
 
 
@@ -143,7 +140,7 @@ inline rcptr<T> singleton_base<T>::get(bool& isNew)
 }
 
 
-#include "cogs/sync/thread_pool.hpp"
+#include "cogs/sync/quit_dispatcher.hpp"
 
 
 #endif

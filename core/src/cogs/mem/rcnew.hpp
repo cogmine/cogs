@@ -15,10 +15,7 @@
 #include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
-#include "cogs/mem/rc_container.hpp"
-#include "cogs/mem/object.hpp"
+#include "cogs/mem/rcptr.hpp"
 #include "cogs/operators.hpp"
 
 
@@ -160,8 +157,6 @@ struct rcnew_glue_t
 
 
 #include "cogs/collections/container_dlist.hpp"
-#include "cogs/mem/rcptr.hpp"
-#include "cogs/mem/rcref.hpp"
 
 
 #endif

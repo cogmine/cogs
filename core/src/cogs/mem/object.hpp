@@ -250,7 +250,7 @@ public:
 }
 
 
-#include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/transactable.hpp"
 
 
 #endif

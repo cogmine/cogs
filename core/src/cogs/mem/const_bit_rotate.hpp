@@ -7,6 +7,9 @@
 #define COGS_HEADER_MEM_CONST_BIT_ROTATE
 
 
+#include "cogs/env.hpp"
+
+
 namespace cogs {
 
 

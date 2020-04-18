@@ -877,4 +877,7 @@ inline void default_allocator::shutdown()
 }
 
 
+#include "cogs/mem/rc_obj.hpp"
+
+
 #endif

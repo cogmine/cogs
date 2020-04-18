@@ -10,13 +10,13 @@
 #define COGS_HEADER_GEOMETRY_SIZE
 
 
+#include "cogs/collections/composite_string.hpp"
 #include "cogs/geometry/proportion.hpp"
 #include "cogs/geometry/alignment.hpp"
 
 
 namespace cogs {
 namespace geometry {
-
 
 namespace planar {
 

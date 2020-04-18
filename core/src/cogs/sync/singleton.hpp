@@ -11,6 +11,7 @@
 #include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
+#include "cogs/sync/dispatcher.hpp"
 
 
 namespace cogs {
@@ -212,7 +213,7 @@ public:
 }
 
 
-#include "cogs/sync/cleanup_queue.hpp"
+#include "cogs/sync/immediate_task.hpp"
 
 
 #endif

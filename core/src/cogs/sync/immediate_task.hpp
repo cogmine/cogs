@@ -9,7 +9,6 @@
 #define COGS_HEADER_SYNC_IMMEDIATE_TASK
 
 
-#include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/singleton.hpp"
 
 
@@ -162,6 +161,9 @@ inline rcref<task<void> > signaled()
 
 
 }
+
+
+#include "cogs/sync/single_fire_event.hpp"
 
 
 #endif

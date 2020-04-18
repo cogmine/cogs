@@ -1932,8 +1932,7 @@ task<result_t>::dispatch(F1&& onComplete, F2&& onCancel, int priority) const vol
 }
 
 
-#include "cogs/sync/single_fire_event.hpp"
-#include "cogs/sync/immediate_task.hpp"
+#include "cogs/sync/singleton.hpp"
 
 
 #endif

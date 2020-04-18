@@ -10,6 +10,7 @@
 
 
 #include "cogs/os.hpp"
+#include "cogs/mem/ptr.hpp"
 
 
 namespace cogs {

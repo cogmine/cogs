@@ -459,4 +459,7 @@ public:
 }
 
 
+#include "cogs/mem/object.hpp"
+
+
 #endif

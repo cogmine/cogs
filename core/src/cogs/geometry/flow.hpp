@@ -10,6 +10,9 @@
 #define COGS_HEADER_GEOMETRY_FLOW
 
 
+#include "cogs/geometry/dimension.hpp"
+
+
 namespace cogs {
 namespace geometry {
 

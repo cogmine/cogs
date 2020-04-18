@@ -13,7 +13,7 @@
 #include "cogs/operators.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/math/umul.hpp"
-#include "cogs/math/extumul.hpp"
+#include "cogs/math/const_extumul.hpp"
 #include "cogs/math/bits_to_int.hpp"
 #include "cogs/math/range_to_bits.hpp"
 #include "cogs/math/is_integer_type.hpp"

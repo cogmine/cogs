@@ -9,7 +9,7 @@
 #define COGS_HEADER_MATH_CONST_UPOW
 
 
-#include "cogs/math/extumul.hpp"
+#include "cogs/math/const_extumul.hpp"
 
 
 namespace cogs {

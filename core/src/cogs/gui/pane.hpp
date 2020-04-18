@@ -2400,7 +2400,7 @@ inline void gui::subsystem::install(pane& p, const rcptr<volatile gui::subsystem
 }
 
 
-#include "cogs/gui/window.hpp"
+#include "cogs/gui/pane_bridge.hpp"
 
 
 #endif

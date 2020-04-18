@@ -9,7 +9,7 @@
 #define COGS_HEADER_SYNC_SINGLE_FIRE_EVENT
 
 
-#include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/immediate_task.hpp"
 
 
 namespace cogs {

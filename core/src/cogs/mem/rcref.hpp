@@ -14,11 +14,7 @@
 #include "cogs/mem/is_pointer_type.hpp"
 #include "cogs/mem/is_reference_type.hpp"
 #include "cogs/mem/is_rc_type.hpp"
-#include "cogs/mem/rc_container.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/mem/weak_rcptr.hpp"
-#include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {

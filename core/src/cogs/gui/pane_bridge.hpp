@@ -627,4 +627,7 @@ inline rcref<bridgeable_pane> subsystem::create_native_pane() volatile
 }
 
 
+#include "cogs/gui/window.hpp"
+
+
 #endif

@@ -14,10 +14,7 @@
 #include "cogs/mem/is_reference_type.hpp"
 #include "cogs/mem/is_rc_type.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/mem/rc_container.hpp"
-#include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
@@ -3281,7 +3278,7 @@ public:
 }
 
 
-//#include "cogs/mem/rcnew.hpp"
+#include "cogs/mem/rcref.hpp"
 
 
 #endif

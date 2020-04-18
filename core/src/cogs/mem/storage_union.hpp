@@ -10,6 +10,7 @@
 
 
 #include "cogs/env/mem/alignment.hpp"
+#include "cogs/math/const_lcm.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 

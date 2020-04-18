@@ -9,6 +9,8 @@
 
 #include <type_traits>
 
+#include "cogs/env.hpp"
+
 
 namespace cogs {
 

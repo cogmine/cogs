@@ -16,13 +16,7 @@
 #include "cogs/math/const_max_int.hpp"
 #include "cogs/math/measure.hpp"
 #include "cogs/mem/rcnew.hpp"
-#include "cogs/sync/cleanup_queue.hpp"
-#include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/immediate_task.hpp"
-#include "cogs/sync/priority_dispatcher.hpp"
 #include "cogs/sync/quit_dispatcher.hpp"
-#include "cogs/sync/thread.hpp"
-#include "cogs/sync/singleton.hpp"
 
 
 namespace cogs {

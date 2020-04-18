@@ -13,12 +13,9 @@
 
 #include "cogs/env.hpp"
 #include "cogs/function.hpp"
-#include "cogs/mem/object.hpp"
 #include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
-#include "cogs/mem/rcptr.hpp"
-#include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {

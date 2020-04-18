@@ -14,8 +14,6 @@
 #include "cogs/function.hpp"
 #include "cogs/mem/is_same_instance.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/mem/unowned.hpp"
 #include "cogs/sync/hazard.hpp"
 #include "cogs/sync/transactable.hpp"
@@ -1396,6 +1394,9 @@ public:
 
 
 }
+
+
+#include "cogs/mem/weak_rcptr.hpp"
 
 
 #endif

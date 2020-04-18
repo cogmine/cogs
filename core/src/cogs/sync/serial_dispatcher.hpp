@@ -17,6 +17,7 @@
 #include "cogs/sync/priority_queue.hpp"
 #include "cogs/sync/wait_priority_queue.hpp"
 #include "cogs/sync/semaphore.hpp"
+#include "cogs/sync/thread_pool.hpp"
 
 
 namespace cogs {

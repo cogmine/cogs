@@ -10,6 +10,7 @@
 
 
 #include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/single_fire_event.hpp"
 
 
 namespace cogs {

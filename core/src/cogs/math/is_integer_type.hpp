@@ -11,6 +11,8 @@
 
 #include <type_traits>
 
+#include "cogs/math/is_const_type.hpp"
+
 
 namespace cogs {
 

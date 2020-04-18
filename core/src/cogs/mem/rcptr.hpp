@@ -11,11 +11,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/mem/ptr.hpp"
-#include "cogs/mem/rc_obj.hpp"
-#include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/mem/rcref.hpp"
-#include "cogs/mem/weak_rcptr.hpp"
-#include "cogs/sync/transactable.hpp"
 
 
 namespace cogs {
@@ -3395,7 +3391,7 @@ public:
 }
 
 
-#include "cogs/mem/rcref.hpp"
+#include "cogs/mem/rcnew.hpp"
 
 
 #endif

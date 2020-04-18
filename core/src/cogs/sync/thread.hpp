@@ -15,15 +15,10 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/sync/thread.hpp"
-#include "cogs/sync/dispatcher.hpp"
+#include "cogs/sync/single_fire_event.hpp"
 
 
 namespace cogs {
-
-
-class thread_pool;
-class cleanup_queue;
-class quit_dispatcher;
 
 
 /// @ingroup Synchronization
@@ -113,6 +108,9 @@ public:
 
 
 }
+
+
+#include "cogs/sync/priority_dispatcher.hpp"
 
 
 #endif

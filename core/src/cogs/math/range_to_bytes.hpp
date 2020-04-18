@@ -10,6 +10,7 @@
 
 
 #include "cogs/math/bits_to_bytes.hpp"
+#include "cogs/math/range_to_bits.hpp"
 
 
 namespace cogs {

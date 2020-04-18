@@ -13,10 +13,7 @@
 #include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
-#include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/priority_queue.hpp"
-#include "cogs/sync/wait_priority_queue.hpp"
-#include "cogs/sync/semaphore.hpp"
+#include "cogs/sync/thread.hpp"
 
 
 namespace cogs {
@@ -152,6 +149,9 @@ public:
 
 
 }
+
+
+#include "cogs/sync/cleanup_queue.hpp"
 
 
 #endif
