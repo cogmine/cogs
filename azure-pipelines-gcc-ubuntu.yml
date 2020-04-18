@@ -11,7 +11,7 @@ pool:
 
 steps:
 - script: |
-    cmake CC=gcc-9 CXX=g++-9 .
+    cmake -D CMAKE_C_COMPILER=gcc-9 -D CMAKE_CXX_COMPILER=g++-9 .
   displayName: 'CMake Configure'
 
 - script: |
