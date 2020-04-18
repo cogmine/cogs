@@ -16,6 +16,7 @@ steps:
     solution: 'cogs.sln'
     configuration: 'Release'
     msbuildArgs: ''
+    msbuildArchitecture: 'x64'
 
 - task: VSBuild@1
   inputs:
@@ -23,6 +24,7 @@ steps:
     solution: 'cogs.sln'
     configuration: 'Debug'
     msbuildArgs: ''
+    msbuildArchitecture: 'x64'
 
 - task: VSBuild@1
   inputs:
@@ -30,6 +32,7 @@ steps:
     solution: 'cogs.sln'
     configuration: 'Release'
     msbuildArgs: ''
+    msbuildArchitecture: 'x64'
 
 - task: VSBuild@1
   inputs:
@@ -37,3 +40,4 @@ steps:
     solution: 'cogs.sln'
     configuration: 'Debug'
     msbuildArgs: ''
+    msbuildArchitecture: 'x64'
