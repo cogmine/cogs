@@ -93,7 +93,7 @@ private:
 						COGS_ASSERT(!!kq);
 						kq->self_release();
 					}
-					(*itor)();
+					itor->value();
 				}
 			}
 		}

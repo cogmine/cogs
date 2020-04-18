@@ -225,7 +225,7 @@ public:
 	{
 		rcptr<volatile visible_windows_list_t> visibleWindows = m_visibleWindows;
 		if (!!visibleWindows)
-			return visibleWindows->prepend(windowBridge);
+			return visibleWindows->prepend(windowBridge).inserted;
 		return visible_windows_list_t::volatile_remove_token();
 	}
 

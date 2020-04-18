@@ -1195,7 +1195,7 @@ public:
 		new (r.get_ptr()) node();
 		result.inserted = iterator(std::move(r), m_tree);
 		f(result.inserted);
-		ref_t existing = m_tree.insert_replace(result.inserted.m_payload);
+		ref_t existing = m_tree.insert_replace(result.inserted.m_node);
 		result.wasReplacement = !!existing;
 		if (result.wasReplacement)
 			m_allocator.template destruct_deallocate_type<node>(existing);
@@ -1240,7 +1240,7 @@ public:
 		new (r.get_ptr()) node();
 		result.inserted = iterator(std::move(r), m_tree);
 		f(result.inserted);
-		ref_t existing = m_tree.insert_unique(result.inserted.m_payload);
+		ref_t existing = m_tree.insert_unique(result.inserted.m_node);
 		if (!existing)
 			m_count++;
 		else

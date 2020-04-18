@@ -1122,7 +1122,7 @@ protected:
 			{
 				if (!!(*pos)->m_next)
 					break;
-				(*pos)->m_prev = (*pos)->m_next = m_sentinel;
+				(*pos)->m_prev = (*pos)->m_next = this_rcref;
 				COGS_ASSERT(!!(*pos)->m_prev.get_desc());
 				COGS_ASSERT(!!(*pos)->m_next.get_desc());
 				if (--pos == end)
