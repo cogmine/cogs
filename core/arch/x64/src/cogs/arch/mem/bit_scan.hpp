@@ -23,18 +23,20 @@ namespace arch {
 // This file is a placeholder, should they become necessary.
 // bit_scan_forward and bit_scan_reverse should be available at the env level.
 
-// bits must not be zero
-template <typename int_t>
-inline std::enable_if_t<
-	std::is_integral_v<int_t>,
-	size_t
->
-bit_scan_reverse(const int_t& bits);
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>,
+	is_integral_v<int_t>,
+	size_t
+>
+bit_scan_reverse(const int_t& bits);
+
+
+// bits must not be zero
+template <typename int_t>
+inline std::enable_if_t<
+	is_integral_v<int_t>,
 	size_t
 >
 bit_scan_forward(const int_t& bits);

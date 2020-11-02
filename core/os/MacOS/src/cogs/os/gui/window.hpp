@@ -20,7 +20,6 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -29,13 +28,12 @@ class window;
 
 };
 };
-};
 
 
 @interface objc_window : NSWindow <NSWindowDelegate>
 {
 @public
-	cogs::weak_rcptr<cogs::gui::os::window> m_cppWindow;
+	cogs::weak_rcptr<cogs::os::window> m_cppWindow;
 }
 
 -(void)keyDown:(NSEvent*)theEvent;
@@ -59,29 +57,26 @@ class window;
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class window : public nsview_pane, public window_interface
+class window : public nsview_pane, public gui::window_interface
 {
 public:
 	__strong objc_window* m_nsWindow;
-	bounds m_preSizingBounds;
+	gfx::bounds m_preSizingFrameBounds;
 	bool m_initialReshapeDone = false;
 	nsview_subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
-	NSSize m_nativeSize;
 	__strong NSTrackingArea* m_trackingArea;
 	ui::modifier_keys_state m_lastModifierKeysState = {};
 	bool m_inResize = false;
 	bool m_widthChanged;
 	bool m_heightChanged;
-	range m_calculatedRange;
+	gfx::range m_calculatedRange;
 
 	explicit window(const rcref<volatile nsview_subsystem>& uiSubsystem)
 		: nsview_pane(uiSubsystem)
-	{
-	}
+	{ }
 
 	virtual void installing()
 	{
@@ -241,11 +236,11 @@ public:
 		minRect.origin.x = minRect.origin.y = 0;
 		minRect.size = [m_nsWindow minSize];
 		minRect = [m_nsWindow contentRectForFrameRect: minRect];
-		range minRange1(size(minRect.size.width, minRect.size.height), size(0, 0), false, false);
+		gfx::range minRange1(gfx::size(minRect.size.width, minRect.size.height), gfx::size(0, 0), false, false);
 		minRect.origin.x = minRect.origin.y = minRect.size.height = 0;
 		minRect.size.width = [NSWindow minFrameWidthWithTitle: @" " styleMask: [m_nsWindow styleMask]];
 		minRect.size.width += 3; // Fudge factor due to minFrameWidthWithTitle not correct detecting min width (as passed to windowWillResize)
-		range minRange2(size(minRect.size.width, minRect.size.height), size(0, 0), false, false);
+		gfx::range minRange2(gfx::size(minRect.size.width, minRect.size.height), gfx::size(0, 0), false, false);
 		minRange1 &= minRange2;
 		m_calculatedRange = nsview_pane::get_range() & minRange1;
 		bool resizable = !m_calculatedRange.is_empty() && !m_calculatedRange.is_fixed();
@@ -255,11 +250,11 @@ public:
 			[m_nsWindow setShowsResizeIndicator : NO];
 	}
 
-	virtual range get_range() const { return m_calculatedRange; }
+	virtual gfx::range get_range() const { return m_calculatedRange; }
 
-	NSSize proposing_size(NSSize newNSSize)
+	NSSize resize(NSSize newNSSize)
 	{
-		rcptr<pane> owner = get_bridge();
+		rcptr<gui::pane> owner = get_bridge();
 		NSRect frameRect = [m_nsWindow frame];
 
 		if (!m_widthChanged)
@@ -271,130 +266,206 @@ public:
 		if (!m_widthChanged && !m_heightChanged)
 			return newNSSize;
 
-		NSRect contentRect = [m_nsWindow contentRectForFrameRect: frameRect];
-		m_preSizingBounds.set(point(contentRect.origin.x, contentRect.origin.y), size(contentRect.size.width, contentRect.size.height));
+		m_preSizingFrameBounds = make_bounds(frameRect);
 
 		NSRect r;
 		r.origin.x = 0;
 		r.origin.y = 0;
 		r.size = newNSSize;
 		NSRect newContentRect = [m_nsWindow contentRectForFrameRect: r];
-		size newSize = graphics_context::make_size(newContentRect);
-		for (;;)
+		gfx::size newSize = make_size(newContentRect);
+
+		std::optional<gfx::dimension> resizeDimension;
+		if (m_widthChanged)
 		{
-			if (m_widthChanged)
-			{
-				if (!m_heightChanged)
-				{
-					newSize = owner->propose_size(newSize, dimension::horizontal, m_calculatedRange).find_first_valid_size(dimension::horizontal);
-					break;
-				}
-			}
-			else if (m_heightChanged)
-			{
-				newSize = owner->propose_size(newSize, dimension::vertical, m_calculatedRange).find_first_valid_size(dimension::vertical);
-				break;
-			}
-			newSize = owner->propose_size(newSize, std::nullopt, m_calculatedRange).find_first_valid_size(get_primary_flow_dimension());
-			break;
+			if (!m_heightChanged)
+				resizeDimension = gfx::dimension::horizontal;
 		}
+		else if (m_heightChanged)
+			resizeDimension = gfx::dimension::vertical;
+		std::optional<gfx::size> newSizeOpt = owner->propose_size_best(newSize, gfx::range::make_unbounded(), resizeDimension);
+		newSize = newSizeOpt.has_value() ? *newSizeOpt : gfx::size(0, 0);
 
 		// Always round up the next whole pixel, to avoid the wandering window problem
 		newSize.assign_ceil();
 
-		r.size = graphics_context::make_NSSize(newSize);
+		r.size = make_NSSize(newSize);
 		r = [m_nsWindow frameRectForContentRect: r];
 		return r.size;
 	}
 
-	virtual void set_initial_shape(const point* initialPosition, const size* initialFrameSize, bool centerPosition)
+	// Incoming contentSize is in DIPs
+	// Incoming position and frameSize are in screen coordinates.
+	virtual void set_initial_shape(
+		const std::optional<gfx::point> position,
+		const std::optional<gfx::size> contentSize,
+		const std::optional<gfx::size> frameSize,
+		bool center)
 	{
 		NSRect r;
 		r.origin.x = 0;
 		r.origin.y = 0;
-		if (initialFrameSize)
-			r.size = graphics_context::make_NSSize(*initialFrameSize);
+		gfx::size contentSizeInDips;
+		gfx::size adjustedContentSizeInDips = { 0, 0 };
+		bool proposeNewSize = true;
+		//NSSize frameBorderNSSize = [m_nsWindow contentRectForFrameRect: r].size;
+		//gfx::size frameBorderSizeInDips = make_size(frameBorderNSSize);
+		if (contentSize.has_value())
+			contentSizeInDips = *contentSize;
+		else if (frameSize.has_value())
+		{
+			NSRect frameBorderNSRect = make_NSRect(*frameSize);
+			NSSize contentNSSize = [m_nsWindow contentRectForFrameRect: frameBorderNSRect].size;
+			contentSizeInDips = make_size(contentNSSize);
+		}
 		else
 		{
-			size defaultSize = get_default_size();
-			r.size = graphics_context::make_NSSize(defaultSize);
-			r.size = [m_nsWindow frameRectForContentRect: r].size;
+			// Use the default size
+			std::optional<gfx::size> defaultSize = get_default_size();
+			if (defaultSize.has_value())
+			{
+				adjustedContentSizeInDips = *defaultSize;
+				proposeNewSize = false; // Default is safe.  No need to propose it.
+			}
+			// TODO: Add fallback content size if 0x0 ?
+			//gfx::size defaultSize = get_default_size();
+			//r.size = make_NSSize(defaultSize);
+			//r.size = [m_nsWindow frameRectForContentRect: r].size;
+		}
+		if (proposeNewSize)
+		{
+			std::optional<gfx::size> opt = propose_size_best(contentSizeInDips);
+			adjustedContentSizeInDips = opt.has_value() ? *opt : gfx::size(0, 0);
 		}
 
-		if (initialPosition)
-			r.origin = graphics_context::make_NSPoint(*initialPosition);
+		// Convert back to frame size
+		NSSize contentNSSize = make_NSSize(adjustedContentSizeInDips);
+		r.size = [m_nsWindow frameRectForContentRect: r].size;
+
+		//gfx::size frameSizeInDips = adjustedContentSizeInDips + frameBorderSizeInDips;
+		//SIZE frameSize = get_device_context().make_SIZE(frameSizeInDips);
+
+		if (position.has_value())
+			r.origin = make_NSPoint(*position);
 
 		[m_nsWindow setFrame:r display:FALSE];
+		NSRect newNSRect = [m_nsWindow frame];
+		if (newNSRect.size.width != r.size.width || newNSRect.size.height != r.size.height)
+		{
+			bool wasMinimimWidthImposed = newNSRect.size.width > r.size.width;
+			bool wasMinimimHeightImposed = newNSRect.size.height > r.size.height;
+			NSSize newContentNSSize = [m_nsWindow contentRectForFrameRect: newNSRect].size;
+			gfx::size newContentSizeInDips = make_size(newContentNSSize);
+			std::optional<gfx::size> sz = propose_size(newContentSizeInDips).find_first_valid_size(get_primary_flow_dimension(), wasMinimimWidthImposed, wasMinimimHeightImposed);
+			if (sz.has_value() && *sz != newContentSizeInDips)
+			{
+				newNSRect.size = make_NSSize(*sz);
+				r.size = [m_nsWindow frameRectForContentRect: newNSRect].size;
+				[m_nsWindow setFrame:r display:FALSE];
+			}
+		}
 
-		if (!initialPosition) //&& centerPosition) // MacOS doesn't seem to have OS default for initial position
+		if (!position.has_value()) //&& centerPosition) // MacOS doesn't seem to have OS default for initial position
 			[m_nsWindow center];
 	}
 
-	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
-	{
-		NSRect r = graphics_context::make_NSRect(newBounds);
-
-		[m_nsWindow setFrame:r display:FALSE];
-	}
-
-	virtual bounds get_frame_bounds() const
+	virtual gfx::bounds get_frame_bounds() const
 	{
 		NSRect r = [m_nsWindow frame];
-		return graphics_context::make_bounds(r);
+		return make_bounds(r);
 	}
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void resize(const gfx::size& newSize)
 	{
-		NSSize newSize = graphics_context::make_NSSize(b.get_size());
-		[m_nsWindow setContentSize : newSize];
+		NSRect oldFrameRect = [m_nsWindow frame];
+		m_preSizingFrameBounds = make_bounds(oldFrameRect);
+
+		NSSize newNSSize = make_NSSize(newSize);
+		[m_nsWindow setContentSize: newNSSize];
 
 		// We don't want to call reshape() on children, as that will happen in
 		// response to the windowDidResize message setContentSize will generate.  However, if the
 		// size is unchanged, windowDidResize will not occur, and we need to propagate
+		// the reshape request.
 
-		// On Mac, it's not sufficient to check m_nativeSize, as it does not equal real pixels.
-		// It's possible for the sizes to NOT machine, but still not result in a windowDidResize if pixel size is unchanged.
-
-		objc_window_view* objcView = (objc_window_view*)get_NSView();
-		NSSize newNativeSize = [objcView convertSizeToBacking: newSize];
-
-		if (newNativeSize.width == m_nativeSize.width && newNativeSize.height == m_nativeSize.height)
-			nsview_pane::reshape(b.get_size(), point(0, 0));
+		NSRect newFrameRect = [m_nsWindow frame];
+		if (newFrameRect.size.width == oldFrameRect.size.width && newFrameRect.size.height == oldFrameRect.size.height)
+			reshaped();
 	}
 
-	void reshaping()
+	virtual void reshape_frame(const gfx::bounds& newBounds)
 	{
-		NSRect r = [m_nsWindow frame];
-		NSRect r2 = [m_nsWindow contentRectForFrameRect: r];
+		NSRect oldFrameRect = [m_nsWindow frame];
+		m_preSizingFrameBounds = make_bounds(oldFrameRect);
 
-		bounds newBounds;
-		newBounds.get_position().get_x() = r2.origin.x;
-		newBounds.get_position().get_y() = r2.origin.y;
-		newBounds.get_size().get_width() = r2.size.width;
-		newBounds.get_size().get_height() = r2.size.height;
+		NSRect r = make_NSRect(newBounds);
+		[m_nsWindow setFrame: r display: TRUE];
 
-		objc_window_view* objcView = (objc_window_view*)get_NSView();
-		m_nativeSize = [objcView convertSizeToBacking: r2.size];
+		// We don't want to call reshape() on children, as that will happen in
+		// response to the windowDidResize message setContentSize will generate.  However, if the
+		// size is unchanged, windowDidResize will not occur, and we need to propagate
+		// the reshape request.
 
-		point oldOrigin(0, 0);
+		NSRect newFrameRect = [m_nsWindow frame];
+		if (newFrameRect.size.width == oldFrameRect.size.width && newFrameRect.size.height == oldFrameRect.size.height)
+			reshaped();
+	}
+
+	void reshaped()
+	{
+		NSRect newFrameRect = [m_nsWindow frame];
+		gfx::bounds newFrameBounds = make_bounds(newFrameRect);
+
+		gfx::point oldOrigin(0, 0);
 		if (!m_initialReshapeDone)
 			m_initialReshapeDone = true;
 		else
 		{
-			bounds oldBounds = m_preSizingBounds;
+			gfx::bounds oldFrameBounds = m_preSizingFrameBounds;
 
 			// Flip Y, since screen coords are Cartesian.
-			oldBounds.get_position().get_y() += oldBounds.get_size().get_height();
-			newBounds.get_position().get_y() += newBounds.get_size().get_height();
+			oldFrameBounds.get_position().get_y() += oldFrameBounds.get_size().get_height();
+			newFrameBounds.get_position().get_y() += newFrameBounds.get_size().get_height();
 
-			oldOrigin.get_x() = oldBounds.get_position().get_x();
-			oldOrigin.get_x() -= newBounds.get_position().get_x();
-
-			oldOrigin.get_y() = newBounds.get_position().get_y();
-			oldOrigin.get_y() -= oldBounds.get_position().get_y();
+			oldOrigin.get_x() = oldFrameBounds.get_position().get_x() - newFrameBounds.get_position().get_x();
+			oldOrigin.get_y() = oldFrameBounds.get_position().get_y() - newFrameBounds.get_position().get_y();
 		}
 
-		nsview_pane::reshape(newBounds, oldOrigin);
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		w->frame_reshaped(newFrameBounds, oldOrigin);
+	}
+
+	virtual void frame_reshaped()
+	{
+		// Convert to context rect
+		NSSize sz = [m_nsWindow contentRectForFrameRect: [m_nsWindow frame]].size;
+		gfx::size sz2 = make_size(sz);
+		nsview_pane::reshape(sz2, gfx::point(0, 0));
+	}
+
+	virtual gfx::cell::propose_size_result propose_frame_size(
+		const gfx::size& sz,
+		const gfx::range& r = gfx::range::make_unbounded(),
+		const std::optional<gfx::dimension>& resizeDimension = std::nullopt,
+		gfx::cell::sizing_mask sizingMask = gfx::cell::all_sizing_types) const
+	{
+		gfx::bounds frameBounds = get_frame_bounds();
+		gfx::size sz2;
+		gfx::range r2;
+		if (sz.get_width() <= frameBounds.get_width() || sz.get_height() <= frameBounds.get_height())
+		{
+			sz2 = gfx::size(0, 0);
+			r2 = gfx::range::make_empty();
+		}
+		else
+		{
+			sz2 = sz - frameBounds.get_size();
+			r2 = r - sz;
+		}
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		gfx::cell::propose_size_result result = w.static_cast_to<gui::pane>()->propose_size(sz2, r2, resizeDimension, sizingMask);
+		result += frameBounds.get_size();
+		return result;
 	}
 
 	void update_tracking_areas()
@@ -420,7 +491,7 @@ public:
 		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		objc_window_view* objcView = (objc_window_view*)get_NSView();
 		NSPoint pt = [objcView convertPoint: positionInWindow fromView: nil];
-		pane_orchestrator::cursor_move(*w, graphics_context::make_point(pt));
+		pane_orchestrator::cursor_move(*w, make_point(pt));
 	}
 
 	void cursor_leave()
@@ -428,17 +499,24 @@ public:
 		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		pane_orchestrator::cursor_leave(*w);
 	}
+
+	virtual gfx::font_parameters get_default_text_font() const { return os::graphics_context::get_default_font(); }
+	virtual color get_default_text_foreground_color() const { return from_NSColor(NSColor.textColor); }
+	virtual color get_default_text_background_color() const { return from_NSColor(NSColor.textBackgroundColor); }
+	virtual color get_default_selected_text_foreground_color() const { return from_NSColor(NSColor.selectedTextColor); }
+	virtual color get_default_selected_text_background_color() const { return from_NSColor(NSColor.selectedTextBackgroundColor); }
+	virtual color get_default_label_foreground_color() const { return from_NSColor(NSColor.labelColor); }
+	virtual color get_default_background_color() const { return from_NSColor(NSColor.windowBackgroundColor); }
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsystem::create_window() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::window_interface> > nsview_subsystem::create_window() volatile
 {
 	rcref<window> w = rcnew(window)(this_rcref);
 	return std::make_pair(w, w);
 }
 
 
-}
 }
 }
 
@@ -451,7 +529,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 - (void)updateTrackingAreas
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppView.static_cast_to<cogs::gui::os::window>();
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppView.static_cast_to<cogs::os::window>();
 	if (!!cppWindow)
 		cppWindow->update_tracking_areas();
 }
@@ -464,21 +542,21 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 - (void)mouseEntered:(NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->cursor_move([theEvent locationInWindow]);
 }
 
 -(void)mouseMoved : (NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->cursor_move([theEvent locationInWindow]);
 }
 
 -(void)mouseExited: (NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->cursor_leave();
 }
@@ -486,7 +564,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)keyDown:(NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->key_down(theEvent);
 }
@@ -494,7 +572,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)keyUp:(NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->key_up(theEvent);
 }
@@ -502,7 +580,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)flagsChanged:(NSEvent*)theEvent
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->flags_changed(theEvent);
 }
@@ -510,7 +588,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)close
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!cppWindow)
 		[super close];
 	else
@@ -522,7 +600,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 {
 	[super becomeKeyWindow];
 
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->focus(0);
 }
@@ -530,7 +608,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)resignKeyWindow
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->defocus();
 	[super resignKeyWindow];
@@ -538,7 +616,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)windowWillStartLiveResize:(NSNotification*)notification
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 	{
 		cppWindow->m_inResize = true;
@@ -549,30 +627,30 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)windowWillEndLiveResize:(NSNotification*)notification
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 		cppWindow->m_inResize = false;
 }
 
 -(NSSize)windowWillResize:(NSWindow *) window toSize:(NSSize)newSize
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
-		return cppWindow->proposing_size(newSize);
+		return cppWindow->resize(newSize);
 	return newSize;
 }
 
 
 -(void)windowDidResize:(NSNotification *)notification;
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
-		return cppWindow->reshaping();
+		return cppWindow->reshaped();
 }
 
 -(BOOL)windowShouldClose:(id)sender
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 	{
 		cogs::rcptr<cogs::gui::window> w = cppWindow->get_bridge().template static_cast_to<cogs::gui::window>();
@@ -584,7 +662,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > nsview_subsys
 
 -(void)windowWillClose:(NSNotification *)notification;
 {
-	cogs::rcptr<cogs::gui::os::window> cppWindow = m_cppWindow;
+	cogs::rcptr<cogs::os::window> cppWindow = m_cppWindow;
 	if (!!cppWindow)
 	{
 		cogs::rcptr<cogs::gui::window> w = cppWindow->get_bridge().template static_cast_to<cogs::gui::window>();

@@ -115,8 +115,8 @@ public:
 	//virtual rcref<task<void> > message(const composite_string& msg) volatile;
 
 	virtual rcref<task<void> > open(
-		const composite_string& title,
-		const rcref<pane>& p) volatile = 0;
+		const rcref<pane>& p,
+		const composite_string& title = composite_string{}) volatile = 0;
 
 	//virtual rcptr<canvas3D_pane_interface> create_canvas3D() volatile { return rcptr<canvas3D_pane_interface>(); } // 3D unsupported by default
 
@@ -143,30 +143,33 @@ protected:
 public:
 	// Returns BOUNDS of all active display devices, in actual pixels.
 	// Primary screen is first.  Might be empty list, if server without monitor.
-	virtual vector<gfx::canvas::bounds> get_screens() volatile = 0;
+	virtual vector<gfx::bounds> get_screens() volatile = 0;
 
 	virtual rcref<task<void> > open(
-		const composite_string& title,
-		const rcref<pane>& p) volatile;
+		const rcref<pane>& p,
+		const composite_string& title = composite_string{}) volatile;
 
-	// If provided, screenPosition is in screen coordinates (get_screens()).
-	// The platform will apply a window frame (title bar, etc.) to the window, so the screen position and
-	// content size do not map to a bounds in screen coordinates.
-	// If screenPosition is not proveded, and positionCentered is true, the window will be centered
-	// If screenPosition is not provided, and positionCentered is false, a platform default position may be used (or will be centered).
-	// If contentSize is not provided, the default size of the content will be used.
-	// If contentSize is provided, it will be proposed and the adjusted size will be used.
-	// If position would result in window not overlapping with the desktop, default positioning will be used.
+	// If provided, position is in screen coordinates (get_screens()) and center is ignored.
+	// If position is not provided, and center is true, the window will be centered.
+	// If position is not provided, and center is false, a platform default position may be used. If no default, it will be centered.
+	// Either contentSize or frameSize may be provided, not both.  If both are provided, contentSize is used and frameSize ignored.
+	// If neither contentSize or frameSize are provided, the default size of the content will be used.
+	// Otherwise, a size will be proposed based on contentSize or frameSize, and the adjusted size will be used.
+	struct window_options
+	{
+		composite_string title;
+		std::optional<color> backgroundColor;
+		std::optional<gfx::point> position;
+		std::optional<gfx::size> contentSize;
+		std::optional<gfx::size> frameSize;
+		bool center = false;
+		rcref<pane> content;
+	};
 
-	virtual rcref<gui::window> open_window(
-		const gfx::canvas::point* screenPosition,
-		const gfx::canvas::size* contentSize,
-		bool positionCentered,
-		const composite_string& title,
-		const rcref<pane>& p) volatile;
+	virtual rcref<gui::window> open_window(window_options&& options) volatile;
 
 	//virtual rcref<task<void> > open_full_screen(
-	//	const gfx::canvas::point& screenAtPosition, // Main display is 0,0
+	//	const gfx::point& screenAtPosition, // Main display is 0,0
 	//	const composite_string& title,
 	//	const rcref<pane>& p) volatile = 0;
 

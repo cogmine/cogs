@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1" MenuName="Add to Image Watch"/>
+	<Type Name="cogs::rcptr&lt;*&gt;">
+		<DisplayString Condition="m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
+		<DisplayString Condition="m_ref.m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_ref.m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<Expand>
+			<ExpandedItem>m_ref.m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::rcref&lt;*&gt;">
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<Expand>
+			<ExpandedItem>m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::weak_rcptr&lt;*&gt;">
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<Expand>
+			<ExpandedItem>m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::transactable&lt;*&gt;">
+		<Expand>
+			<Item Name="[obj]" Condition="can_atomic">m_contents.m_contents</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::transactable&lt;*&gt;">
+		<DisplayString Condition="is_thread_safe_transactable &amp;&amp; m_contents.m_desc.m_ref.m_value == 0">{*(($T1*)&amp;m_contents.m_embedded)}</DisplayString>
+		<DisplayString Condition="is_thread_safe_transactable &amp;&amp; m_contents.m_desc.m_ref.m_value != 0">{*(($T1*)&amp;m_contents.m_desc.m_ref.m_value->m_contents)}</DisplayString>
+		<Expand>
+			<ExpandedItem Condition="is_thread_safe_transactable &amp;&amp; m_contents.m_desc.m_ref.m_value == 0">
+				*(($T1*)&amp;m_contents.m_embedded)
+			</ExpandedItem>
+			<ExpandedItem Condition="is_thread_safe_transactable &amp;&amp; m_contents.m_desc.m_ref.m_value != 0">
+				*(($T1*)&amp;m_contents.m_desc.m_ref.m_value->m_contents)
+			</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::placement&lt;*, *&gt;">
+		<Expand>
+			<Item Name="[obj]">*($T1 *)m_bytes</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::ptr&lt;*&gt;">
+		<DisplayString Condition="m_ref.m_value == 0">nullptr</DisplayString>
+		<DisplayString>{m_ref.m_value}</DisplayString>
+		<Expand>
+			<ExpandedItem>*m_ref.m_value</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::ref&lt;*&gt;">
+		<DisplayString Condition="m_value == 0">nullptr</DisplayString>
+		<DisplayString>{*m_value}</DisplayString>
+		<Expand>
+			<ExpandedItem>*m_value</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::vector&lt;*&gt;">
+		<Expand>
+			<Item Name="[length]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length
+			</Item>
+			<Item Name="[length]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length
+			</Item>
+			<Item Name="[is shared]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] > 1
+			</Item>
+			<Item Name="[is shared]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc == 0" ExcludeView="simple">
+				false
+			</Item>
+			<Item Name="[is shared]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] > 1
+			</Item>
+			<Item Name="[is shared]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc == 0" ExcludeView="simple">
+				false
+			</Item>
+			<Item Name="[total capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_capacity
+			</Item>
+			<Item Name="[total capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_capacity
+			</Item>
+			<Item Name="[forward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				(((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_capacity - ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length) - (((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr - ($T1*)((const unsigned char*)((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance))
+			</Item>
+			<Item Name="[forward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				(((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_capacity - ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length) - (((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr - ($T1*)((const unsigned char*)((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance))
+			</Item>
+			<Item Name="[backward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr - ($T1*)((const unsigned char*)((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance)
+			</Item>
+			<Item Name="[backward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr - ($T1*)((const unsigned char*)((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance)
+			</Item>
+			<ArrayItems>
+				<Size Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length
+				</Size>
+				<Size Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length
+				</Size>
+				<ValuePointer Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr
+				</ValuePointer>
+				<ValuePointer Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr
+				</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	<Type Name="cogs::vector_content&lt;*&gt;">
+		<Expand>
+			<Item Name="[length]" ExcludeView="simple">m_length</Item>
+			<Item Name="[is shared]" Condition="m_desc != 0" ExcludeView="simple">m_desc->m_counts.m_references[1] > 1</Item>
+			<Item Name="[is shared]" Condition="m_desc == 0" ExcludeView="simple">false</Item>
+			<Item Name="[total capacity]" Condition="m_desc != 0 &amp;&amp; m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				m_desc->m_capacity
+			</Item>
+			<Item Name="[forward reserved]" Condition="m_desc != 0 &amp;&amp; m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				(m_desc->m_capacity - m_length) - (m_ptr - ($T1*)((const unsigned char*)m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance))
+			</Item>
+			<Item Name="[backward reserved]" Condition="m_desc != 0 &amp;&amp; m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+				m_ptr - ($T1*)((const unsigned char*)m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance)
+			</Item>
+			<ArrayItems>
+				<Size>m_length</Size>
+				<ValuePointer>m_ptr</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	<Type Name="cogs::os::gdi::bitmap::gdi_bitmap">
+		<UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1" />
+	</Type>
+	<Type Name="cogs::os::gdi::bitmap::gdi_bitmap">
+		<Expand>
+		<Synthetic Name="[type]">
+			<DisplayString Condition="m_imageType==24">UINT8</DisplayString>
+			<DisplayString Condition="m_imageType==32">UINT8</DisplayString>
+			<DisplayString Condition="m_imageType==48">UINT16</DisplayString>
+		</Synthetic>
+		<Synthetic Name="[channels]">
+			<DisplayString Condition="m_imageType==32">4</DisplayString>
+			<DisplayString Condition="m_imageType==24">3</DisplayString>
+			<DisplayString Condition="m_imageType==48">3</DisplayString>
+		</Synthetic>
+			<Item Name="[width]">m_size.cx</Item>
+			<Item Name="[height]">m_size.cy</Item>
+			<Item Name="[data]">m_bits</Item>
+			<Item Name="[stride]">m_widthBytes</Item>
+			<Item Name="[planes]">1</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::os::gdi::bitmap">
+		<UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1" />
+	</Type>
+	<Type Name="cogs::os::gdi::bitmap">
+		<Expand>
+		<Synthetic Name="[type]">
+			<DisplayString Condition="m_gdiBitmap.m_imageType==24">UINT8</DisplayString>
+			<DisplayString Condition="m_gdiBitmap.m_imageType==32">UINT8</DisplayString>
+			<DisplayString Condition="m_gdiBitmap.m_imageType==48">UINT16</DisplayString>
+		</Synthetic>
+		<Synthetic Name="[channels]">
+			<DisplayString Condition="m_gdiBitmap.m_imageType==32">4</DisplayString>
+			<DisplayString Condition="m_gdiBitmap.m_imageType==24">3</DisplayString>
+			<DisplayString Condition="m_gdiBitmap.m_imageType==48">3</DisplayString>
+		</Synthetic>
+			<Item Name="[width]">m_logicalSize.cx</Item>
+			<Item Name="[height]">m_logicalSize.cy</Item>
+			<Item Name="[data]">m_gdiBitmap.m_bits</Item>
+			<Item Name="[stride]">m_gdiBitmap.m_widthBytes</Item>
+			<Item Name="[planes]">1</Item>
+			<Item Name="[is opaque]">m_isOpaque</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

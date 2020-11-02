@@ -18,9 +18,7 @@
 
 
 namespace cogs {
-namespace gfx {
 namespace os {
-
 
 class bitmap_graphics_context
 {
@@ -122,7 +120,7 @@ public:
 		CGColorSpaceRelease(m_colorSpace);
 	}
 
-	canvas::size get_size() const { return canvas::size(m_logicalWidth, m_logicalHeight); }
+	gfx::size get_size() const { return gfx::size(m_logicalWidth, m_logicalHeight); }
 
 	virtual void clear_cached() const
 	{
@@ -133,7 +131,7 @@ public:
 		}
 	}
 
-	void set_size(const canvas::size& newSize, const canvas::size& growPadding = canvas::size(100, 100), bool trimIfShrinking = false)
+	void set_size(const gfx::size& newSize, const gfx::size& growPadding = gfx::size(100, 100), bool trimIfShrinking = false)
 	{
 		size_t newWidth = std::lround(newSize.get_width());
 		size_t newHeight = std::lround(newSize.get_height());
@@ -180,12 +178,12 @@ public:
 	}
 };
 
-class bitmap : public canvas::bitmap, public bitmap_graphics_context
+class bitmap : public gfx::bitmap, public bitmap_graphics_context
 {
 private:
 	bool m_isOpaque;
 
-	void update_opacity(const canvas::bounds& dstBounds, bool isSourceOpaque, bool blendAlpha)
+	void update_opacity(const gfx::bounds& dstBounds, bool isSourceOpaque, bool blendAlpha)
 	{
 		if (m_isOpaque != isSourceOpaque)
 		{
@@ -205,7 +203,7 @@ public:
 	{
 	}
 
-	bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 		: bitmap_graphics_context(std::lround(sz.get_width()), std::lround(sz.get_height()), CGColorSpaceCreateDeviceRGB(), kCGImageAlphaPremultipliedFirst)
 	{
 		if (!fillColor.has_value() || !fillColor->is_fully_transparent())
@@ -213,43 +211,43 @@ public:
 		else
 		{
 			m_isOpaque = fillColor->is_opaque();
-			fill(size(m_logicalWidth, m_logicalHeight), *fillColor, false);
+			fill(gfx::size(m_logicalWidth, m_logicalHeight), *fillColor, false);
 		}
 	}
 
-	virtual size get_size() const { return size(m_logicalWidth, m_logicalHeight); }
+	virtual gfx::size get_size() const { return gfx::size(m_logicalWidth, m_logicalHeight); }
 
 	virtual bool is_opaque() const { return m_isOpaque; }
 
-	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void fill(const gfx::bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		clear_cached();
 		graphics_context::fill(b, c, blendAlpha, m_context);
 	}
 
-	virtual void invert(const bounds& b)
+	virtual void invert(const gfx::bounds& b)
 	{
 		clear_cached();
 		graphics_context::invert(b, m_context);
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		clear_cached();
 		graphics_context::draw_line(startPt, endPt, width, c, blendAlpha, m_context);
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& f) { return graphics_context::load_font(f, m_context); }
+	virtual rcref<gfx::font> load_font(const gfx::font_parameters_list& f) { return graphics_context::load_font(f, m_context); }
 
-	virtual gfx::font get_default_font() const { return graphics_context::get_default_font(); }
+	virtual string get_default_font_name() const { return graphics_context::get_default_font_name(); }
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::constant::black)
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, const color& c = color::constant::black)
 	{
 		clear_cached();
 		graphics_context::draw_text(s, b, f, c, m_context);
 	}
 
-	virtual void draw_bitmap(const canvas::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
+	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true)
 	{
 		if (!!srcBounds && !!dstBounds)
 		{
@@ -260,24 +258,24 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
 
-	virtual rcref<canvas::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		return graphics_context::create_bitmap(sz, fillColor);
 	}
 
-	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location)
+	virtual rcref<gfx::bitmap> load_bitmap(const composite_string& location)
 	{
 		return graphics_context::load_bitmap(location);
 	}
 
-	virtual rcref<canvas::bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt)
+	virtual rcref<gfx::bitmask> create_bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt)
 	{
 		return graphics_context::create_bitmask(sz, value);
 	}
 
-	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location)
+	virtual rcref<gfx::bitmask> load_bitmask(const composite_string& location)
 	{
 		return graphics_context::load_bitmask(location);
 	}
@@ -292,22 +290,22 @@ public:
 		graphics_context::restore_clip(m_context);
 	}
 
-	virtual void clip_out(const bounds& b)
+	virtual void clip_out(const gfx::bounds& b)
 	{
-		graphics_context::clip_out(b, size(m_logicalWidth, m_logicalHeight), m_context);
+		graphics_context::clip_out(b, gfx::size(m_logicalWidth, m_logicalHeight), m_context);
 	}
 
-	virtual void clip_to(const bounds& b)
+	virtual void clip_to(const gfx::bounds& b)
 	{
 		graphics_context::clip_to(b, m_context);
 	}
 
-	virtual bool is_unclipped(const bounds& b) const
+	virtual bool is_unclipped(const gfx::bounds& b) const
 	{
 		return graphics_context::is_unclipped(b, m_context);
 	}
 
-	virtual void set_size(const size& newSize, const size& growPadding = size(100, 100), bool trimIfShrinking = false)
+	virtual void set_size(const gfx::size& newSize, const gfx::size& growPadding = gfx::size(100, 100), bool trimIfShrinking = false)
 	{
 		size_t oldWidth = m_logicalWidth;
 		size_t oldHeight = m_logicalHeight;
@@ -338,12 +336,12 @@ public:
 		}
 	}
 
-	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
+	virtual void draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
 
-	virtual void mask_out(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false);
+	virtual void mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted = false);
 };
 
-inline void graphics_context::draw_image(const bitmap_graphics_context& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, CGBlendMode blendMode, const state_token& token)
+inline void graphics_context::draw_image(const bitmap_graphics_context& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, CGBlendMode blendMode, const state_token& token)
 {
 	src.cache_image();
 	CGImageRef sourceImage = src.m_image;
@@ -364,7 +362,7 @@ inline void graphics_context::draw_image(const bitmap_graphics_context& src, con
 		CGImageRelease(croppedSourceImage);
 }
 
-inline void graphics_context::draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha, const state_token& token)
+inline void graphics_context::draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha, const state_token& token)
 {
 	if (!!srcBounds && !!dstBounds)
 	{
@@ -376,18 +374,17 @@ inline void graphics_context::draw_bitmap(const canvas::bitmap& src, const canva
 	}
 }
 
-inline rcref<canvas::bitmap> graphics_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor)
+inline rcref<gfx::bitmap> graphics_context::create_bitmap(const gfx::size& sz, std::optional<color> fillColor)
 {
 	return rcnew(bitmap)(sz, fillColor);
 }
 
-inline rcref<canvas::bitmap> graphics_context::load_bitmap(const composite_string& location)
+inline rcref<gfx::bitmap> graphics_context::load_bitmap(const composite_string& location)
 {
 	return rcnew(bitmap)(location);
 }
 
 
-}
 }
 }
 

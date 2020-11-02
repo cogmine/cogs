@@ -18,7 +18,6 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -27,13 +26,12 @@ class scroll_bar;
 
 };
 };
-};
 
 
 @interface objc_scroll_bar : NSScroller
 {
 @public
-	cogs::weak_rcptr<cogs::gui::os::scroll_bar> m_cppScrollBar;
+	cogs::weak_rcptr<cogs::os::scroll_bar> m_cppScrollBar;
 }
 
 -(BOOL)isFlipped;
@@ -51,20 +49,19 @@ class scroll_bar;
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class scroll_bar : public nsview_pane, public scroll_bar_interface
+class scroll_bar : public nsview_pane, public gui::scroll_bar_interface
 {
 private:
-	volatile transactable<scroll_bar_state> m_state;
+	volatile transactable<gui::scroll_bar_state> m_state;
 	volatile double m_pos = 0;
 	volatile boolean m_canAutoFade;
 	volatile boolean m_shouldAutoFade;
-	dimension m_dimension;
-	range m_currentRange;
-	size m_currentDefaultSize;
+	gfx::dimension m_dimension;
+	gfx::range m_currentRange;
+	gfx::size m_currentDefaultSize;
 	bool m_isHiddenWhenInactive;
 	bool m_isHidden = false;
 	CGFloat m_knobAlpha;
@@ -75,12 +72,12 @@ private:
 	__strong NSTimer* m_fadeTimer = nullptr;
 	rcptr<task<void> > m_fadeDelayTask;
 
-	delegated_dependency_property<scroll_bar_state> m_stateProperty;
+	delegated_dependency_property<gui::scroll_bar_state> m_stateProperty;
 	delegated_dependency_property<double> m_positionProperty;
 	delegated_dependency_property<bool> m_canAutoFadeProperty;
 	delegated_dependency_property<bool> m_shouldAutoFadeProperty;
 
-	void set_scroll_bar_state(const scroll_bar_state& newState, double newPos)
+	void set_scroll_bar_state(const gui::scroll_bar_state& newState, double newPos)
 	{
 		start_fade_delay();
 		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
@@ -215,14 +212,14 @@ public:
 		m_stateProperty(uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());
-		}, [this](const scroll_bar_state& state)
+		}, [this](const gui::scroll_bar_state& state)
 		{
-			scroll_bar_state newState = state;
-			scroll_bar_state oldState = newState;
+			gui::scroll_bar_state newState = state;
+			gui::scroll_bar_state oldState = newState;
 			m_state.swap_contents(oldState);
 			if (newState != oldState)
 			{
-				double curPos = atomic::load(m_pos);
+				double curPos = cogs::atomic::load(m_pos);
 				set_scroll_bar_state(newState, curPos);
 				m_stateProperty.changed();
 			}
@@ -230,11 +227,11 @@ public:
 		}),
 		m_positionProperty(uiSubsystem, [this]()
 		{
-			return atomic::load(m_pos);
+			return cogs::atomic::load(m_pos);
 		}, [this](double d)
 		{
 			double newPos = d;
-			double oldPos = atomic::exchange(m_pos, newPos);
+			double oldPos = cogs::atomic::exchange(m_pos, newPos);
 			if (newPos != oldPos)
 			{
 				set_scroll_bar_state(*(m_state.begin_read()), newPos);
@@ -316,7 +313,7 @@ public:
 		// use bogus frame just for the purpose of detecting dimension.
 		NSRect bogusBounds;
 		bogusBounds.origin.x = bogusBounds.origin.y = 0;
-		if (m_dimension == dimension::horizontal)
+		if (m_dimension == gfx::dimension::horizontal)
 		{
 			bogusBounds.size.width = 100;
 			bogusBounds.size.height = 10;
@@ -366,11 +363,11 @@ public:
 
 	void scrolled()
 	{
-		transactable<scroll_bar_state>::read_token rt;
+		transactable<gui::scroll_bar_state>::read_token rt;
 		m_state.begin_read(rt);
 		bool setPosition = true;
 
-		double oldPos = atomic::load(m_pos);
+		double oldPos = cogs::atomic::load(m_pos);
 		double pos = oldPos;
 		double max = rt->m_max;
 		double thumbSize = rt->m_thumbSize;
@@ -432,8 +429,8 @@ public:
 		m_currentDefaultSize.set(scrollBarWidth, scrollBarWidth);
 	}
 
-	virtual range get_range() const { return m_currentRange; }
-	virtual size get_default_size() const { return m_currentDefaultSize; }
+	virtual gfx::range get_range() const { return m_currentRange; }
+	virtual std::optional<gfx::size> get_default_size() const { return m_currentDefaultSize; }
 
 	virtual bool is_focusable() const { return false; }
 
@@ -483,7 +480,7 @@ public:
 		}
 	}
 
-	virtual void cursor_entering(const point& pt)
+	virtual void cursor_entering(const gfx::point& pt)
 	{
 		suppress_fade();
 		nsview_pane::cursor_entering(pt);
@@ -497,14 +494,13 @@ public:
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_subsystem::create_scroll_bar() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::scroll_bar_interface> > nsview_subsystem::create_scroll_bar() volatile
 {
 	rcref<scroll_bar> sb = rcnew(scroll_bar)(this_rcref);
 	return std::make_pair(sb, sb);
 }
 
 
-}
 }
 }
 
@@ -522,14 +518,14 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 
 -(void)scrolled:(id)sender
 {
-	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	cogs::rcptr<cogs::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 		cppScrollBar->scrolled();
 }
 
 -(void)preferredScrollerStyleChanged:(NSNotification*)notification
 {
-	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	cogs::rcptr<cogs::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 	{
 		NSScrollerStyle scrollerStyle = [NSScroller preferredScrollerStyle];
@@ -544,7 +540,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 
 -(void)drawKnob
 {
-	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	cogs::rcptr<cogs::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 		cppScrollBar->drawKnob();
 	else
@@ -558,7 +554,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 
 -(void)drawKnobSlotInRect:(NSRect)slotRect highlight:(BOOL)flag
 {
-	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	cogs::rcptr<cogs::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 		cppScrollBar->drawKnobSlotInRect(slotRect, flag);
 	else
@@ -577,7 +573,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > nsview_su
 
 -(void)fade:(NSTimer*)timer
 {
-	cogs::rcptr<cogs::gui::os::scroll_bar> cppScrollBar = m_cppScrollBar;
+	cogs::rcptr<cogs::os::scroll_bar> cppScrollBar = m_cppScrollBar;
 	if (!!cppScrollBar)
 		cppScrollBar->fade();
 }

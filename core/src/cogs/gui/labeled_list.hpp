@@ -66,14 +66,14 @@
 //
 //		weak_rcptr<labeled_list> m_labeledList;
 //		rcref<label_cell_t> m_label;
-//		rcref<content_cell_t> m_content;
+//		rcref<content_cell_t> m_contents;
 //		range m_range;
 //		size m_defaultSize;
 //
 //		cell_t(const rcref<labeled_list>& labaledList, const rcref<label_cell_t>& lbl, const rcref<content_cell_t>& cntnt)
 //			: m_labeledList(labaledList),
 //			m_label(lbl),
-//			m_content(cntnt)
+//			m_contents(cntnt)
 //		{ }
 //
 //		virtual range get_current_range() const { return m_range; }
@@ -103,7 +103,7 @@
 //
 //				// get the greater mins and sum maxes.
 //				range labelRange = m_label->get_current_parent_range();
-//				range contentRange = m_content->get_current_parent_range();
+//				range contentRange = m_contents->get_current_parent_range();
 //
 //				if (labelRange.get_min_height() > contentRange.get_min_height())
 //					m_range.set_min_height(labelRange.get_min_height());
@@ -141,7 +141,7 @@
 //			if (d == dimension::horizontal)
 //			{
 //				range labelRange = m_label->get_current_parent_range();
-//				range contentRange = m_content->get_current_parent_range();
+//				range contentRange = m_contents->get_current_parent_range();
 //
 //				double minWidth = labelRange.get_min_width();
 //				minWidth += contentRange.get_min_width();
@@ -160,7 +160,7 @@
 //					range::linear_t otherLabelRange;
 //					range::linear_t otherContentRange;
 //					m_label->propose_dimension(dimension::horizontal, rtn, otherLabelRange); // return value is ignored
-//					m_content->propose_dimension(dimension::horizontal, rtn, otherContentRange); // return value is ignored
+//					m_contents->propose_dimension(dimension::horizontal, rtn, otherContentRange); // return value is ignored
 //
 //					if (!otherLabelRange.has_max() || !otherContentRange.has_max())
 //						rtnOtherRange.clear_max();
@@ -188,7 +188,7 @@
 //						double labelWidthUsed = m_label->propose_dimension(dimension::horizontal, newLabelWidth, otherLabelRange);
 //						double newContentWidth = rtn;
 //						newContentWidth -= labelWidthUsed;
-//						double contentWidthUsed = m_content->propose_dimension(dimension::horizontal, newContentWidth, otherContentRange);
+//						double contentWidthUsed = m_contents->propose_dimension(dimension::horizontal, newContentWidth, otherContentRange);
 //
 //						if (!otherLabelRange.has_max() || !otherContentRange.has_max())
 //							rtnOtherRange.clear_max();
@@ -224,10 +224,10 @@
 //		{
 //			dimension d = dimension::horizontal; // Compute aligned locations of label and content
 //			range labelRange = m_label->get_current_parent_range();
-//			range contentRange = m_content->get_current_parent_range();
+//			range contentRange = m_contents->get_current_parent_range();
 //
 //			m_label->m_bounds.set_position(point(0, 0));
-//			m_content->m_bounds.set_position(point(0, 0));
+//			m_contents->m_bounds.set_position(point(0, 0));
 //
 //			double minWidth = labelRange.get_min_width();
 //			minWidth += contentRange.get_min_width();
@@ -236,17 +236,17 @@
 //				range::linear_t labelHeightRange; // size header first, width first
 //				range::linear_t contentHeightRange;
 //				double newLabelWidth = m_label->propose_dimension(d, b.get_size(d), labelHeightRange);
-//				double newContentWidth = m_content->propose_dimension(d, b.get_size(d), contentHeightRange);
+//				double newContentWidth = m_contents->propose_dimension(d, b.get_size(d), contentHeightRange);
 //
 //				m_label->m_bounds.get_size().get_width() = newLabelWidth;
-//				m_content->m_bounds.get_size().get_width() = newContentWidth;
+//				m_contents->m_bounds.get_size().get_width() = newContentWidth;
 //
 //				if (!scriptFlowsToTheRight) // Align to right on left-right script languages.
 //				{
 //					m_label->m_bounds.get_position().get_x() = b.get_size().get_width();
-//					m_content->m_bounds.get_position().get_x() = b.get_size().get_width();
+//					m_contents->m_bounds.get_position().get_x() = b.get_size().get_width();
 //					m_label->m_bounds.get_position().get_x() -= newLabelWidth;
-//					m_content->m_bounds.get_position().get_x() -= newContentWidth;
+//					m_contents->m_bounds.get_position().get_x() -= newContentWidth;
 //				}
 //
 //				double newLabelHeight = m_label->get_current_parent_default_size()[!d];
@@ -255,7 +255,7 @@
 //				else if (labelHeightRange.has_max() && (newLabelHeight > labelHeightRange.get_max()))
 //					newLabelHeight = labelHeightRange.get_max();
 //
-//				double newContentHeight = m_content->get_current_parent_default_size()[!d];
+//				double newContentHeight = m_contents->get_current_parent_default_size()[!d];
 //				if (newContentHeight < labelContentRange.get_min())
 //					newContentHeight = labelContentRange.get_min();
 //				else if (labelContentRange.has_max() && (newContentHeight > labelContentRange.get_max()))
@@ -292,8 +292,8 @@
 //						newContentHeight = contentHeightRange.get_max();
 //
 //				m_label->m_bounds.get_size().get_height() = newLabelHeight;
-//				m_content->m_bounds.get_position().get_y() += newLabelHeight;
-//				m_content->m_bounds.get_size().get_height() = newContentHeight;
+//				m_contents->m_bounds.get_position().get_y() += newLabelHeight;
+//				m_contents->m_bounds.get_size().get_height() = newContentHeight;
 //			}
 //			else	// both fit on 1 line
 //			{
@@ -301,7 +301,7 @@
 //				if (!!labeledList)
 //				{
 //					m_label->m_bounds.get_size().get_height() = b.get_height();
-//					m_content->m_bounds.get_size().get_height() = b.get_height();
+//					m_contents->m_bounds.get_size().get_height() = b.get_height();
 //
 //					double maxLabelWidth = labeledList->m_sortedByLabelWidth.get_last().get_key();
 //					double columnWidth;
@@ -315,9 +315,9 @@
 //					range::linear_t labelHeightRange; // size header first, width first
 //					range::linear_t contentHeightRange;
 //					double newLabelWidth = m_label->propose_dimension(d, columnWidth, labelHeightRange);
-//					double newContentWidth = m_content->propose_dimension(d, boundsMinusColumnWidth, contentHeightRange);
+//					double newContentWidth = m_contents->propose_dimension(d, boundsMinusColumnWidth, contentHeightRange);
 //					double newLabelHeight = m_label->get_current_parent_default_size()[!d];
-//					double newContentHeight = m_content->get_current_parent_default_size()[!d];
+//					double newContentHeight = m_contents->get_current_parent_default_size()[!d];
 //
 //					if (newLabelHeight < labelHeightRange.get_min())
 //						newLabelHeight = labelHeightRange.get_min();
@@ -331,12 +331,12 @@
 //
 //					m_label->m_bounds.get_size().get_width() = newLabelWidth;
 //					m_label->m_bounds.get_size().get_height() = newLabelHeight;
-//					m_content->m_bounds.get_size().get_width() = newContentWidth;
-//					m_content->m_bounds.get_size().get_height() = newContentHeight;
+//					m_contents->m_bounds.get_size().get_width() = newContentWidth;
+//					m_contents->m_bounds.get_size().get_height() = newContentHeight;
 //
 //					if (!!scriptFlowsToTheRight)
 //					{
-//						m_content->m_bounds.get_position().get_x() = columnWidth;
+//						m_contents->m_bounds.get_position().get_x() = columnWidth;
 //						double labelStart = columnWidth;
 //						labelStart -= newLabelWidth;
 //						m_label->get_position().get_x() = labelStart;

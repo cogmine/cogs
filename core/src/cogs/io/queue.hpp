@@ -17,7 +17,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/count_down_event.hpp"
+#include "cogs/sync/count_down_condition.hpp"
 #include "cogs/sync/thread_pool.hpp"
 
 
@@ -54,11 +54,11 @@ private:
 	queue(const queue&) = delete;
 	queue& operator=(const queue&) = delete;
 
-	rcptr<count_down_event> m_closeEvent;
+	rcptr<count_down_condition> m_closeCondition;
 
 public:
 	/// @brief Base class for I/O tasks
-	class task_base : public object
+	class task_base : public virtual object
 	{
 	private:
 		enum class state
@@ -125,7 +125,7 @@ public:
 			COGS_ASSERT(((int)oldState & (int)state::done_bit) == 0);
 			if (((int)oldState & (int)state::canceled_bit) != 0)
 			{
-				get_queue()->m_closeEvent->signal();
+				get_queue()->m_closeCondition->signal();
 				canceling();
 				m_state = state::abort_complete;
 				get_queue()->execute_next();
@@ -168,7 +168,7 @@ public:
 				}
 				if (!atomic::compare_exchange(m_state, state::executing, oldState, oldState))
 					continue;
-				get_queue()->m_closeEvent->count_up();
+				get_queue()->m_closeCondition->count_up();
 
 				thread_pool::get_default_or_immediate()->dispatch([r{ this_rcref }]()
 				{
@@ -182,7 +182,7 @@ public:
 		friend class queue;
 
 		rcptr<queue> m_ioQueue;
-		alignas (atomic::get_alignment_v<state>) state m_state;
+		alignas(atomic::get_alignment_v<state>) state m_state;
 		bool m_wasClosed;
 
 		// Use is thread safe, so don't need volatility
@@ -212,7 +212,7 @@ public:
 
 		void complete(bool closeQueue = false)
 		{
-			get_queue()->m_closeEvent->signal(); // Releases a ref we used to hold it temporarily open
+			get_queue()->m_closeCondition->signal(); // Releases a ref we used to hold it temporarily open
 			get_was_closed() = closeQueue;
 			state oldState;
 			atomic::load(m_state, oldState);
@@ -265,8 +265,6 @@ public:
 		virtual void finish() { signal(); }
 
 	public:
-		COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(io_task<result_t>, task_base, signallable_task_base<result_t>);
-
 		virtual rcref<task<bool> > cancel() volatile
 		{
 			abort();
@@ -303,7 +301,7 @@ protected:
 
 		volatile container_queue<rcref<task_base> > m_queue;
 
-		rcref<count_down_event> m_closeEvent;
+		rcref<count_down_condition> m_closeCondition;
 
 		friend class queue;
 
@@ -335,7 +333,7 @@ protected:
 
 	public:
 		content_t()
-			: m_closeEvent(rcnew(count_down_event)(1))
+			: m_closeCondition(rcnew(count_down_condition)(1))
 		{ }
 
 		~content_t()
@@ -350,7 +348,7 @@ protected:
 
 				t.release();
 			}
-			m_closeEvent->signal();
+			m_closeCondition->signal();
 		}
 	};
 
@@ -367,7 +365,7 @@ public:
 	queue()
 		: m_contents(rcnew(content_t))
 	{
-		m_closeEvent = m_contents->m_closeEvent;
+		m_closeCondition = m_contents->m_closeCondition;
 	}
 
 	~queue() { close(); }
@@ -381,7 +379,7 @@ public:
 		}
 	}
 
-	const waitable& get_close_event() const { return *m_closeEvent.dereference().template static_cast_to<waitable>(); }
+	const waitable& get_close_condition() const { return *m_closeCondition.dereference().template static_cast_to<waitable>(); }
 
 	bool is_closed() const { return !m_contents; }
 	bool operator!() const { return is_closed(); }

@@ -78,7 +78,7 @@ inline void placement_construct_init(size_t*) { }
 /// @tparam n Size of type
 /// @tparam alignment Alignment of type
 template <size_t n, size_t alignment>
-class alignas (alignment) placement_storage
+class alignas(alignment) placement_storage
 {
 public:
 	unsigned char m_bytes[n];
@@ -90,14 +90,24 @@ public:
 };
 
 
-template <typename T, size_t alignment = std::alignment_of_v<T> >
-struct alignas (alignment) placement : public placement_storage<sizeof(T), alignment>
+template <typename T, size_t alignment = alignof(T)>
+struct alignas(alignment) placement : public placement_storage<sizeof(T), alignment>
 {
 public:
 	T& get() { return *reinterpret_cast<T*>(this); }
 	const T& get() const { return *reinterpret_cast<const T*>(this); }
 	volatile T& get() volatile { return *reinterpret_cast<volatile T*>(this); }
 	const volatile T& get() const volatile { return *reinterpret_cast<const volatile T*>(this); }
+
+	T& operator*() { return get(); }
+	const T& operator*() const { return get(); }
+	volatile T& operator*() volatile { return get(); }
+	const volatile T& operator*() const volatile { return get(); }
+
+	T* operator->() { return &get(); }
+	const T* operator->() const { return &get(); }
+	volatile T* operator->() volatile { return &get(); }
+	const volatile T* operator->() const volatile { return &get(); }
 
 	template <typename... args_t>
 	std::enable_if_t<
@@ -314,7 +324,7 @@ placement_copy_reconstruct_array(T* t, T2* src, size_t n)
 }
 
 
-// placement_move() will move n elements from src to dst, and destructing vacated elements and constructing new elements.
+// placement_move() will move n elements from src to dst, destruct vacated elements and construct new elements.
 // Intended to be used at the start or end of an array, if elements need to be pushed backwards or forwards due to an insert.
 // When moving forward, constructed elements are assumed to end at src+n.
 // When moving backwards, elements before src are considered non-constructed.

@@ -56,7 +56,7 @@ private:
 
 	// Normally we require const-correctness, so we don't need volatility just for read access to memory.
 	// But it's OK to make an exception for something that is always volatile.
-	alignas (atomic::get_alignment_v<size_t>) mutable size_t m_embeddedRefCount;
+	alignas(atomic::get_alignment_v<size_t>) mutable size_t m_embeddedRefCount;
 
 	type& get_embedded() { return m_embedded.get(); }
 	const type& get_embedded() const { return m_embedded.get(); }
@@ -70,8 +70,9 @@ private:
 	template <typename... args_t>
 	static descriptor_t* allocate(args_t&&... src)
 	{
-		ref<descriptor_t> desc = descriptor_t::allocate();
-		type* ptr = desc->get_obj();
+		ptr<descriptor_t> desc = default_allocator<descriptor_t>::allocate();
+		new (desc.get_ptr()) descriptor_t;
+		type* ptr = desc->get_object();
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 		desc->set_type_name(typeid(type).name());
@@ -90,8 +91,9 @@ private:
 
 	static descriptor_t* allocate_unconstructed()
 	{
-		ref<descriptor_t> desc = descriptor_t::allocate();
-		type* ptr = desc->get_obj();
+		ptr<descriptor_t> desc = default_allocator<descriptor_t>::allocate();
+		new (desc.get_ptr()) descriptor_t;
+		type* ptr = desc->get_object();
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 		desc->set_type_name(typeid(type).name());
@@ -165,7 +167,7 @@ private:
 	}
 
 	template <typename... args_t>
-	thread_safe_transactable(const construct_embedded_volatile_t&, args_t&&... src) // Allocates block, does not initialize embedded
+	thread_safe_transactable(const construct_embedded_volatile_t&, args_t&&... src)
 	{
 		m_desc = allocate(std::forward<args_t>(src)...);
 #if COGS_DEBUG_TRANSACTABLE
@@ -207,7 +209,7 @@ private:
 #if COGS_DEBUG_TRANSACTABLE
 			m_embeddedPtrDebug =
 #endif
-				new (&get_embedded()) type(std::forward<args_t>(src)...);
+			new (&get_embedded()) type(std::forward<args_t>(src)...);
 			m_embeddedRefCount = 0;
 		}
 	}
@@ -288,7 +290,7 @@ public:
 
 		bool operator!() const { return !m_read; }
 
-		const type* get() const { return m_read->get_obj(); }
+		const type* get() const { return m_read->get_object(); }
 		const type& operator*() const { return *get(); }
 		const type* operator->() const { return get(); }
 	};
@@ -385,8 +387,8 @@ public:
 
 		bool operator!() const { return !m_write; }
 
-		type* get() { return m_write->get_obj(); }
-		const type* get() const { return m_write->get_obj(); }
+		type* get() { return m_write->get_object(); }
+		const type* get() const { return m_write->get_object(); }
 		type& operator*() { return *get(); }
 		const type& operator*() const { return *get(); }
 		type* operator->() { return get(); }
@@ -411,7 +413,7 @@ public:
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
 #endif
-			new (&get_embedded()) type(*src.get());
+		new (&get_embedded()) type(*src.get());
 	}
 
 	thread_safe_transactable(const this_t& src)
@@ -420,14 +422,14 @@ public:
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
 #endif
-			new (&get_embedded()) type(*src.get());
+		new (&get_embedded()) type(*src.get());
 	}
 
 	thread_safe_transactable(volatile this_t& src)
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
@@ -444,12 +446,12 @@ public:
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 #if COGS_DEBUG_TRANSACTABLE
 		m_embeddedPtrDebug =
 #endif
-			new (&get_embedded()) type(*srcPtr);
+		new (&get_embedded()) type(*srcPtr);
 
 		src.release_embedded();
 		if (!!srcDesc)
@@ -459,9 +461,11 @@ public:
 	thread_safe_transactable(this_t&& src)
 		: m_desc(0), m_embeddedRefCount(0)
 	{
+#if COGS_DEBUG_TRANSACTABLE
+		m_embeddedPtrDebug =
+#endif
 		new (&get_embedded()) type(std::move(*src.get()));
 	}
-
 
 	~thread_safe_transactable()
 	{
@@ -481,7 +485,7 @@ public:
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 		cogs::assign(*get(), *srcPtr);
 
@@ -507,7 +511,7 @@ public:
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 		descriptor_t* newDesc = allocate(*srcPtr);
 		descriptor_t* oldDesc = m_desc.exchange(newDesc);
@@ -538,7 +542,7 @@ public:
 	{
 		acquire_embedded();
 		descriptor_t* d = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
-		type* p = !d ? get_embedded() : d->get_obj();
+		type* p = !d ? get_embedded() : d->get_object();
 
 		bool b = cogs::equals(*p, *cmp.get());
 
@@ -553,11 +557,11 @@ public:
 	{
 		acquire_embedded();
 		descriptor_t* d = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
-		type* p = !d ? get_embedded() : d->get_obj();
+		type* p = !d ? get_embedded() : d->get_object();
 
 		cmp.acquire_embedded();
 		descriptor_t* cmpDesc = (descriptor_t*)rc_obj_base::guarded_acquire(cmp.m_desc.get_ptr_ref());
-		type* cmpPtr = !cmpDesc ? cmp.get_embedded() : cmpDesc->get_obj();
+		type* cmpPtr = !cmpDesc ? cmp.get_embedded() : cmpDesc->get_object();
 
 		bool b = cogs::equals(*p, *cmpPtr);
 
@@ -576,8 +580,8 @@ public:
 	bool operator!=(const volatile this_t& cmp) const { return !operator==(cmp); }
 	bool operator!=(const volatile this_t& cmp) const volatile { return !operator==(cmp); }
 
-	type* get() { return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
-	const type* get() const { return !!m_desc ? m_desc->get_obj() : &(get_embedded()); }
+	type* get() { return !!m_desc ? m_desc->get_object() : &(get_embedded()); }
+	const type* get() const { return !!m_desc ? m_desc->get_object() : &(get_embedded()); }
 
 	type& operator*() { return *get(); }
 	const type& operator*() const { return *get(); }
@@ -624,7 +628,7 @@ public:
 		}
 		else
 		{
-			cogs::assign(rtn, *(oldDesc->get_obj()));
+			cogs::assign(rtn, *(oldDesc->get_object()));
 			oldDesc->release();
 		}
 	}
@@ -638,7 +642,7 @@ public:
 				if (!!wth.m_desc)
 					m_desc.swap(wth.m_desc); // both have descriptors, so swapping those is preferred
 				else
-					cogs::swap(wth.get_embedded(), *(m_desc->get_obj()));
+					cogs::swap(wth.get_embedded(), *(m_desc->get_object()));
 			}
 			else
 				cogs::swap(get_embedded(), *(wth.get()));
@@ -686,7 +690,7 @@ public:
 		}
 		else
 		{
-			wth = *(oldDesc->get_obj());
+			wth = *(oldDesc->get_object());
 			oldDesc->release();
 		}
 		release_embedded();
@@ -721,7 +725,7 @@ public:
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 		// Better to assign embedded contents of rtn than to try to preserve m_desc,
 		// because if we did, we would need to allocate a new buffer for this value.
@@ -741,7 +745,7 @@ public:
 
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+		type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 		descriptor_t* oldDesc;
 		descriptor_t* newDesc = allocate(*srcPtr);
@@ -771,12 +775,12 @@ public:
 			}
 
 			srcPtr = &src.get_embedded();
-			p = m_desc->get_obj();
+			p = m_desc->get_object();
 		}
 		else
 		{
 			if (!!src.m_desc)
-				srcPtr = src.m_desc->get_obj();
+				srcPtr = src.m_desc->get_object();
 			else
 				srcPtr = &src.get_embedded();
 			p = &get_embedded();
@@ -831,7 +835,7 @@ public:
 				if (!!rtn.m_desc)
 					m_desc.swap(rtn.m_desc); // both have descriptors, so swapping those is preferred
 				else
-					cogs::swap(*(m_desc->get_obj()), rtn.get_embedded());
+					cogs::swap(*(m_desc->get_object()), rtn.get_embedded());
 			}
 			else
 				cogs::swap(get_embedded(), *(rtn.get()));
@@ -863,7 +867,7 @@ public:
 		{
 			src.acquire_embedded();
 			descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 			cogs::exchange(*get(), *srcPtr, *(rtn.get()));
 			src.release_embedded();
 			if (!!srcDesc)
@@ -881,7 +885,7 @@ public:
 		{
 			src.acquire_embedded();
 			descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 			descriptor_t* newDesc = allocate(std::move(cogs::exchange(*get(), *srcPtr)));
 			descriptor_t* oldRtnDesc = rtn.m_desc.exchange(newDesc);
 			if (!!oldRtnDesc)
@@ -923,7 +927,7 @@ public:
 		{
 			src.acquire_embedded();
 			descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 			descriptor_t* oldDesc;
 			descriptor_t* newDesc = allocate(*srcPtr);
 			acquire_embedded();
@@ -976,7 +980,7 @@ public:
 		{
 			src.acquire_embedded();
 			descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
-			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_obj();
+			type* srcPtr = !srcDesc ? src.get_embedded() : srcDesc->get_object();
 
 			descriptor_t* oldDesc;
 			descriptor_t* newDesc = allocate(*srcPtr);
@@ -1024,12 +1028,12 @@ public:
 				}
 
 				srcPtr = &src.get_embedded();
-				p = m_desc->get_obj();
+				p = m_desc->get_object();
 			}
 			else
 			{
 				if (!!src.m_desc())
-					srcPtr = src.m_desc->get_obj();
+					srcPtr = src.m_desc->get_object();
 				else
 					srcPtr = &src.get_embedded();
 				p = &get_embedded();
@@ -1061,7 +1065,7 @@ public:
 		}
 		else // If we gave m_desc to rtn, we would need to create another anyway.  So, copy to rtn.
 		{
-			type* p = !!m_desc ? m_desc->get_obj() : &get_embedded();
+			type* p = !!m_desc ? m_desc->get_object() : &get_embedded();
 			newRtnDesc = allocate(*p);
 			*p = src.get_embedded();
 			src.release_embedded();
@@ -1167,7 +1171,7 @@ public:
 		}
 		else
 		{
-			cogs::assign(rtn, std::move(*(oldDesc->get_obj())));
+			cogs::assign(rtn, std::move(*(oldDesc->get_object())));
 			oldDesc->release();
 		}
 	}
@@ -1186,7 +1190,7 @@ public:
 		for (;;)
 		{
 			oldDesc = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
-			type* objPtr = (!!oldDesc) ? (oldDesc->get_obj()) : &get_embedded();
+			type* objPtr = (!!oldDesc) ? (oldDesc->get_object()) : &get_embedded();
 			if (cogs::equals(*objPtr, cmp))
 			{
 				if (!newDesc)
@@ -1235,7 +1239,7 @@ public:
 		for (;;)
 		{
 			oldDesc = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
-			type* objPtr = (!!oldDesc) ? (oldDesc->get_obj()) : &get_embedded();
+			type* objPtr = (!!oldDesc) ? (oldDesc->get_object()) : &get_embedded();
 			if (cogs::equals(*objPtr, cmp))
 			{
 				if (!newDesc)
@@ -1320,7 +1324,7 @@ public:
 	{
 		acquire_embedded();
 		ptr<descriptor_t> compareDesc = (descriptor_t*)rc_obj_base::guarded_acquire(m_desc.get_ptr_ref());
-		ptr<descriptor_t> writeDesc = allocate((!compareDesc) ? get_embedded() : *(compareDesc->get_obj()));
+		ptr<descriptor_t> writeDesc = allocate((!compareDesc) ? get_embedded() : *(compareDesc->get_object()));
 		release_embedded();
 		wt.set(compareDesc, writeDesc);
 	}
@@ -1351,7 +1355,7 @@ public:
 					}
 					if (!desc->is_owned()) // Read token would be the same as compare, and read token was acquired...
 					{ // Take ownership from the read token, and allocate a new writeable copy
-						wt.set(desc, allocate(*(desc->get_obj())));
+						wt.set(desc, allocate(*(desc->get_object())));
 						break;
 					}
 					COGS_ASSERT(m_desc != desc);
@@ -1649,7 +1653,7 @@ public:
 private:
 	static_assert(can_atomic_v<T>);
 
-	alignas (atomic::get_alignment_v<type>) type m_contents;
+	alignas(atomic::get_alignment_v<type>) type m_contents;
 
 	template <typename>
 	friend class transactable;
@@ -2030,8 +2034,12 @@ public:
 	typedef transactable<T> this_t;
 
 private:
-	typedef std::conditional_t<std::is_empty_v<T>, empty_transactable<type>,
-		std::conditional_t<can_atomic_v<T>, cas_transactable<type>, thread_safe_transactable<type> > > content_t;
+	static constexpr bool is_empty = std::is_empty_v<T>;
+	static constexpr bool can_atomic = !is_empty && can_atomic_v<T>;
+	static constexpr bool is_thread_safe_transactable = !is_empty && !can_atomic;
+
+	typedef std::conditional_t<is_empty, empty_transactable<type>,
+		std::conditional_t<can_atomic, cas_transactable<type>, thread_safe_transactable<type> > > content_t;
 
 	content_t m_contents;
 

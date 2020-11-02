@@ -1,5 +1,5 @@
 //
-//  main.m
+//  main.mm
 //
 
 #import <Cocoa/Cocoa.h>
@@ -32,7 +32,7 @@
 	(void)cogs::alt_main();
 
 	auto dq = cogs::quit_dispatcher::get();
-	dq->get_event().dispatch([]()
+	dq->get_condition().dispatch([]()
 	{
 		NSApplication* app = [NSApplication sharedApplication];
 		[app performSelectorOnMainThread : @selector(terminate : ) withObject:app waitUntilDone : NO] ;

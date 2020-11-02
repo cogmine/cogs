@@ -59,7 +59,7 @@ namespace io {
 /// object, it should use a weak reference, to avoid a circular reference
 /// that would prevent the IO object from being released.  (reader and writer
 /// contain a weak reference to their associated datasource/datasink.)
-class datasource : public object
+class datasource : public virtual object
 {
 public:
 	class transaction;
@@ -429,7 +429,7 @@ public:
 
 	/// @brief Gets the close event associated with the datasource.
 	/// @return A rcref to a waitable that will become signaled when the datasource is closed.
-	const waitable& get_source_close_event() const { return m_ioQueue->get_close_event(); }
+	const waitable& get_source_close_condition() const { return m_ioQueue->get_close_condition(); }
 
 	bool is_source_closed() const
 	{
@@ -1102,11 +1102,11 @@ protected:
 		});
 
 		// Since we have transactions, so the source or sink will not close under us, only abort.
-		m_onSourceAbortTask = m_coupledRead->get_source_close_event().dispatch([this]()
+		m_onSourceAbortTask = m_coupledRead->get_source_close_condition().dispatch([this]()
 		{
 			process(&default_coupler::process_source_aborted);
 		});
-		m_onSinkAbortTask = m_coupledWrite->get_sink_close_event().dispatch([this]()
+		m_onSinkAbortTask = m_coupledWrite->get_sink_close_condition().dispatch([this]()
 		{
 			process(&default_coupler::process_sink_aborted);
 		});

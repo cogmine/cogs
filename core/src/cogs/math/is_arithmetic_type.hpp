@@ -17,7 +17,7 @@
 namespace cogs {
 
 
-template <typename T> struct is_arithmetic_type : public std::is_arithmetic<T> { };
+template <typename T> struct is_arithmetic_type : public is_arithmetic<T> { };
 template <typename T> static constexpr bool is_arithmetic_type_v = is_arithmetic_type<T>::value;
 
 // By default, map const and/or volatile to the version with no CV qualifier

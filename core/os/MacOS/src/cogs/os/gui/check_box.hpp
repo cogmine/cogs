@@ -14,7 +14,6 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -23,13 +22,12 @@ class check_box;
 
 };
 };
-};
 
 
 @interface objc_check_box : NSButton
 {
 @public
-	cogs::weak_rcptr< cogs::gui::os::check_box> m_cppCheckBox;
+	cogs::weak_rcptr<cogs::os::check_box> m_cppCheckBox;
 	bool m_state;
 }
 
@@ -37,15 +35,14 @@ class check_box;
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class check_box : public nsview_pane, public check_box_interface
+class check_box : public nsview_pane, public gui::check_box_interface
 {
 private:
-	rcptr<gfx::os::graphics_context::font> m_cachedFont;
-	size m_defaultSize;
+	rcptr<graphics_context::font> m_cachedFont;
+	gfx::size m_defaultSize;
 
 public:
 	explicit check_box(const rcref<volatile nsview_subsystem>& uiSubsystem)
@@ -78,9 +75,9 @@ public:
 	{
 	}
 
-	virtual void set_font(const gfx::font& fnt)
+	virtual void set_font(const gfx::font_parameters_list& fnt)
 	{
-		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
+		m_cachedFont = load_font(fnt).template static_cast_to<graphics_context::font>();
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSFont* nsFont = m_cachedFont->get_NSFont();
@@ -113,21 +110,20 @@ public:
 		m_defaultSize.set(w, h);
 	}
 
-	virtual range get_range() const { return range(m_defaultSize); }
-	virtual size get_default_size() const { return m_defaultSize; }
+	virtual gfx::range get_range() const { return gfx::range(m_defaultSize); }
+	virtual std::optional<gfx::size> get_default_size() const { return m_defaultSize; }
 
 	virtual bool is_focusable() const { return true; }
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > nsview_subsystem::create_check_box() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::check_box_interface> > nsview_subsystem::create_check_box() volatile
 {
 	rcref<check_box> cb = rcnew(check_box)(this_rcref);
 	return std::make_pair(cb, cb);
 }
 
 
-}
 }
 }
 

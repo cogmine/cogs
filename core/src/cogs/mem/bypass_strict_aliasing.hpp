@@ -22,8 +22,8 @@ namespace cogs {
 
 template <typename S, typename T>
 inline std::enable_if_t<
-	std::is_scalar_v<T>
-	&& std::is_scalar_v<S>,
+	is_scalar_v<T>
+	&& is_scalar_v<S>,
 	void>
 bypass_strict_aliasing(const S& src, T& dst)
 {
@@ -42,7 +42,7 @@ template <typename S, typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& !std::is_empty_v<S>
-	&& (!std::is_scalar_v<T> || !std::is_scalar_v<S>),
+	&& (!is_scalar_v<T> || !is_scalar_v<S>),
 	void>
 bypass_strict_aliasing(const S& src, T& dst)
 {

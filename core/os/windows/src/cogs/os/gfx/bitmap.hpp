@@ -18,7 +18,6 @@
 
 
 namespace cogs {
-namespace gfx {
 namespace os {
 namespace gdi {
 
@@ -30,7 +29,7 @@ namespace gdi {
 //     TransparentBlt
 // These are accelerated even for DIBs, as DIB contents are stored in aparture memory (video memory mapped to system memory).
 
-class bitmap : public device_context, public canvas::bitmap, public canvas::bitmask
+class bitmap : public device_context, public gfx::bitmap, public gfx::bitmask
 {
 public:
 	enum class image_type : short
@@ -223,7 +222,7 @@ private:
 				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
 			else
 				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
-			gfx.FillRectangle(&solidBrush, b.pt.x, b.pt.y, b.sz.cx, b.sz.cy);
+			gfx.FillRectangle(&solidBrush, (INT)b.pt.x, (INT)b.pt.y, (INT)b.sz.cx, (INT)b.sz.cy);
 		}
 
 		static DWORD create_rop(composite_mode compositeMode)
@@ -393,7 +392,7 @@ private:
 	};
 
 	gdi_bitmap m_gdiBitmap;
-	size m_logicalDipSize;
+	gfx::size m_logicalDipSize;
 	SIZE m_logicalSize;
 	bool m_isOpaque;
 
@@ -437,7 +436,7 @@ private:
 	}
 
 public:
-	bitmap(const size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
+	bitmap(const gfx::size& sz, image_type imageType, std::optional<color> fillColor = std::nullopt, double dpi = dip_dpi)
 		: device_context(dpi),
 		m_gdiBitmap(make_SIZE(sz), imageType)
 	{
@@ -449,7 +448,7 @@ public:
 		else
 		{
 			// A newly allocated GDI bitmap is zero-initialized (transparent)
-			if (!fillColor.has_value() || !fillColor->is_fully_transparent())
+			if (!fillColor.has_value() || fillColor->is_fully_transparent())
 				m_isOpaque = false;
 			else
 			{
@@ -471,7 +470,7 @@ public:
 		COGS_ASSERT(get_HDC());
 	}
 
-	virtual size get_size() const { return m_logicalDipSize; }
+	virtual gfx::size get_size() const { return m_logicalDipSize; }
 
 	SIZE get_pixel_size() const { return m_logicalSize; }
 
@@ -481,7 +480,7 @@ public:
 
 	// canvas interface functions
 
-	virtual void fill(const bounds& b, const color& c, bool blendAlpha = true)
+	virtual void fill(const gfx::bounds& b, const color& c, bool blendAlpha = true)
 	{
 		if (!blendAlpha || !c.is_fully_transparent())
 		{
@@ -491,10 +490,10 @@ public:
 		}
 	}
 
-	virtual void fill(const bounds& b, fill_mode fillMode = fill_mode::set_mode)
+	virtual void fill(const gfx::bounds& b, fill_mode fillMode = fill_mode::set_mode)
 	{
 		// masks don't vary in DPI
-		bounds b2 = b.normalized();
+		gfx::bounds b2 = b.normalized();
 		BOUNDS b3;
 		b3.pt.x = (LONG)std::lround(b2.get_x());
 		b3.pt.y = (LONG)std::lround(b2.get_y());
@@ -504,7 +503,7 @@ public:
 		m_gdiBitmap.bit_fill(b3, fillMode);
 	}
 
-	virtual void invert(const bounds& b)
+	virtual void invert(const gfx::bounds& b)
 	{
 		if (m_gdiBitmap.get_image_type() != image_type::rgba)
 			device_context::invert(b);
@@ -518,14 +517,14 @@ public:
 		}
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width , const color& c, bool blendAlpha = true)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width , const color& c, bool blendAlpha = true)
 	{
 		device_context::draw_line(startPt, endPt, width, c, blendAlpha);
 		if (!blendAlpha && !c.is_opaque())
 			m_isOpaque = false;
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode)
 	{
 		// masks don't vary in DPI
 		POINT startPt2;
@@ -541,28 +540,25 @@ public:
 		m_gdiBitmap.draw_line(startPt2, endPt2, width2, fillMode);
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& f)
+	virtual rcref<gfx::font> load_font(const gfx::font_parameters_list& f)
 	{
 		return device_context::load_font(f);
 	}
 
-	virtual gfx::font get_default_font() const
-	{
-		return device_context::get_default_font();
-	}
+	virtual string get_default_font_name() const { return device_context::get_default_font_name(); }
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, const color& c = color::constant::black)
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, const color& c = color::constant::black)
 	{
 		device_context::draw_text(s, b, f, c);
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f = 0, bool value = true)
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, bool value = true)
 	{
 		color c = value ? color::constant::white : color::constant::black;
 		device_context::draw_text(s, b, f, c);
 	}
 
-	virtual void draw_bitmap(const canvas::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
+	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true)
 	{
 		if (!!srcBounds && !!dstBounds)
 		{
@@ -574,7 +570,7 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
 		const bitmap* msk2 = static_cast<const bitmap*>(&msk);
 
@@ -593,7 +589,7 @@ public:
 			// masks don't vary in DPI
 			//BOUNDS mskBounds2 = make_BOUNDS(mskBounds);
 			BOUNDS mskBounds2;
-			canvas::bounds b = mskBounds.normalized();
+			gfx::bounds b = mskBounds.normalized();
 			mskBounds2.pt.x = (LONG)std::lround(b.get_x());
 			mskBounds2.pt.y = (LONG)std::lround(b.get_y());
 			mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
@@ -607,13 +603,13 @@ public:
 		}
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
 	{
 		const bitmap* msk2 = static_cast<const bitmap*>(&msk);
 
 		// masks don't vary in DPI
 		BOUNDS mskBounds2;
-		bounds b = mskBounds.normalized();
+		gfx::bounds b = mskBounds.normalized();
 		mskBounds2.pt.x = (LONG)std::lround(b.get_x());
 		mskBounds2.pt.y = (LONG)std::lround(b.get_y());
 		mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
@@ -635,34 +631,34 @@ public:
 		}
 	}
 
-	virtual void mask_out(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false)
+	virtual void mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted = false)
 	{
 		device_context::mask_out(msk, mskBounds, dstBounds, inverted);
 		m_isOpaque = false;
 	}
 
-	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false)
+	virtual void draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha = true, bool inverted = false)
 	{
 		device_context::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
 		m_isOpaque = m_isOpaque && src.is_opaque();
 	}
 
-	virtual rcref<canvas::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		return device_context::create_bitmap(sz, fillColor, dip_dpi);
 	}
 
-	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location)
+	virtual rcref<gfx::bitmap> load_bitmap(const composite_string& location)
 	{
 		return device_context::load_bitmap(location);
 	}
 
-	virtual rcref<canvas::bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt)
+	virtual rcref<gfx::bitmask> create_bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt)
 	{
 		return device_context::create_bitmask(sz, value);
 	}
 
-	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location)
+	virtual rcref<gfx::bitmask> load_bitmask(const composite_string& location)
 	{
 		return device_context::load_bitmask(location);
 	}
@@ -677,17 +673,17 @@ public:
 		return device_context::restore_clip();
 	}
 
-	virtual void clip_out(const bounds& b)
+	virtual void clip_out(const gfx::bounds& b)
 	{
 		return device_context::clip_out(b);
 	}
 
-	virtual void clip_to(const bounds& b)
+	virtual void clip_to(const gfx::bounds& b)
 	{
 		return device_context::clip_to(b);
 	}
 
-	virtual bool is_unclipped(const bounds& b) const
+	virtual bool is_unclipped(const gfx::bounds& b) const
 	{
 		return device_context::is_unclipped(b);
 	}
@@ -703,13 +699,13 @@ public:
 		m_logicalDipSize = make_size(m_logicalSize);
 	}
 
-	virtual void set_size(const size& newSize, const size& growPadding = size(100, 100), bool trimIfShrinking = false)
+	virtual void set_size(const gfx::size& newSize, const gfx::size& growPadding = gfx::size(100, 100), bool trimIfShrinking = false)
 	{
 		SIZE newLogicalPixelSize = make_SIZE(newSize);
 		if (newLogicalPixelSize != m_logicalSize)
 		{
 			SIZE actualSize = m_gdiBitmap.get_size();
-			size newActualSize = newSize + growPadding;
+			gfx::size newActualSize = newSize + growPadding;
 			SIZE newActualPixelSize = make_SIZE(newActualSize);
 			bool widthOverflow = newLogicalPixelSize.cx > actualSize.cx;
 			bool heightOverflow = newLogicalPixelSize.cy > actualSize.cy;
@@ -755,27 +751,27 @@ public:
 	}
 };
 
-inline rcref<canvas::bitmap> device_context::create_bitmap(const canvas::size& sz, std::optional<color> fillColor, double dpi)
+inline rcref<gfx::bitmap> device_context::create_bitmap(const gfx::size& sz, std::optional<color> fillColor, double dpi)
 {
 	return rcnew(gdi::bitmap)(sz, gdi::bitmap::image_type::rgba, fillColor, dpi);
 }
 
-inline rcref<canvas::bitmask> device_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
+inline rcref<gfx::bitmask> device_context::create_bitmask(const gfx::size& sz, std::optional<bool> value)
 {
 	return rcnew(gdi::bitmap)(sz, gdi::bitmap::image_type::monochrome, value ? color::constant::white : color::constant::transparent);
 }
 
-inline rcref<canvas::bitmap> device_context::load_bitmap(const composite_string& location)
+inline rcref<gfx::bitmap> device_context::load_bitmap(const composite_string& location)
 {
 	return rcnew(gdi::bitmap)(location, gdi::bitmap::image_type::rgba);
 }
 
-inline rcref<canvas::bitmask> device_context::load_bitmask(const composite_string& location)
+inline rcref<gfx::bitmask> device_context::load_bitmask(const composite_string& location)
 {
 	return rcnew(gdi::bitmap)(location, gdi::bitmap::image_type::monochrome);
 }
 
-inline void device_context::draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha)
+inline void device_context::draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha)
 {
 	if (!!srcBounds && !!dstBounds)
 	{
@@ -811,7 +807,7 @@ inline void device_context::draw_bitmap_inner(gdi::bitmap* bmp, const gdi::bitma
 	}
 }
 
-inline void device_context::draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
+inline void device_context::draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
 {
 	const gdi::bitmap* msk2 = static_cast<const gdi::bitmap*>(&msk);
 
@@ -830,7 +826,7 @@ inline void device_context::draw_bitmask(const canvas::bitmask& msk, const canva
 		// masks don't vary in DPI
 		//BOUNDS mskBounds2 = make_BOUNDS(mskBounds);
 		BOUNDS mskBounds2;
-		canvas::bounds b = mskBounds.normalized();
+		gfx::bounds b = mskBounds.normalized();
 		mskBounds2.pt.x = (LONG)std::lround(b.get_x());
 		mskBounds2.pt.y = (LONG)std::lround(b.get_y());
 		mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
@@ -922,7 +918,7 @@ inline void device_context::draw_bitmask_inner(const gdi::bitmap& src, const BOU
 }
 
 
-inline void device_context::mask_out(const canvas::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted)
+inline void device_context::mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted)
 {
 	const gdi::bitmap* srcMask = static_cast<const gdi::bitmap*>(&msk);
 
@@ -930,7 +926,7 @@ inline void device_context::mask_out(const canvas::bitmask& msk, const bounds& m
 
 	// masks don't vary in DPI
 	BOUNDS mskBounds2;
-	canvas::bounds b = mskBounds.normalized();
+	gfx::bounds b = mskBounds.normalized();
 	mskBounds2.pt.x = (LONG)std::lround(b.get_x());
 	mskBounds2.pt.y = (LONG)std::lround(b.get_y());
 	mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
@@ -940,7 +936,7 @@ inline void device_context::mask_out(const canvas::bitmask& msk, const bounds& m
 }
 
 
-inline void device_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha, bool inverted)
+inline void device_context::draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha, bool inverted)
 {
 	const gdi::bitmap* srcImage = static_cast<const gdi::bitmap*>(&src);
 	const gdi::bitmap* srcMask = static_cast<const gdi::bitmap*>(&msk);
@@ -950,7 +946,7 @@ inline void device_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, 
 
 	// masks don't vary in DPI
 	BOUNDS mskBounds2;
-	canvas::bounds b = mskBounds.normalized();
+	gfx::bounds b = mskBounds.normalized();
 	mskBounds2.pt.x = (LONG)std::lround(b.get_x());
 	mskBounds2.pt.y = (LONG)std::lround(b.get_y());
 	mskBounds2.sz.cx = (LONG)std::lround((b.get_x() + b.get_width())) - mskBounds2.pt.x;
@@ -979,7 +975,6 @@ inline void device_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, 
 }
 
 
-}
 }
 }
 }

@@ -652,11 +652,10 @@ public:
 		return result;
 	}
 
-	remove_result remove(const remove_token& rt) volatile
-	{
-		iterator i(rt);
-		return remove(i);
-	}
+	remove_result remove(const remove_token& rt) volatile { return remove(iterator(rt)); }
+
+	remove_result operator-=(const iterator& i) volatile { return remove(i); }
+	remove_result operator-=(const remove_token& rt) volatile { return remove(rt); }
 
 	iterator begin() const volatile { return get_first(); }
 	iterator rbegin() const volatile { return get_last(); }

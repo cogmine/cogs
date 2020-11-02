@@ -21,7 +21,6 @@ namespace cogs {
 // guard have been released.  Once the last lock is released, all deferrables are returned
 // to the caller to be processed.  If the lock must remain acquired until all deferrables
 // are processed, use a serial_defer_guard instead.
-//class defer_guard;
 
 
 template <class link_t, class link_accessor = default_slink_accessor<link_t> >
@@ -33,12 +32,12 @@ private:
 	public:
 		ptr<link_t> m_head;
 
-		alignas (atomic::get_alignment_v<size_t>) size_t m_guardCount;
+		alignas(atomic::get_alignment_v<size_t>) size_t m_guardCount;
 
 		content_t() { m_guardCount = 0; }
 	};
 
-	alignas (atomic::get_alignment_v<content_t>) content_t m_contents;
+	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
 
 	void prepend(link_t& e)
 	{

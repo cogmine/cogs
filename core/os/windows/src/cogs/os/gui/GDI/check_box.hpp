@@ -18,15 +18,14 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class check_box : public hwnd_pane, public check_box_interface
+class check_box : public hwnd_pane, public gui::check_box_interface
 {
 public:
-	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
-	size m_defaultSize;
+	rcptr<gdi::device_context::font> m_cachedFont;
+	gfx::size m_defaultSize;
 	bool m_isChecked;
 	HBRUSH m_backgroundBrush = NULL;
 
@@ -88,9 +87,9 @@ public:
 		return m_isChecked;
 	}
 
-	virtual void set_font(const gfx::font& fnt)
+	virtual void set_font(const gfx::font_parameters_list& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 
@@ -158,7 +157,7 @@ public:
 		DeleteObject(hBitMap);
 		if (!!m_caption)
 		{
-			size textBounds = m_cachedFont->calc_text_bounds(m_caption);
+			gfx::size textBounds = m_cachedFont->calc_text_bounds(m_caption);
 			m_defaultSize.get_width() += textBounds.get_width();
 			if (m_defaultSize.get_height() < textBounds.get_height())
 				m_defaultSize.get_height() = textBounds.get_height();
@@ -172,12 +171,12 @@ public:
 		set_font(cb->get_font());
 	}
 
-	virtual range get_range() const { return range(m_defaultSize); }
-	virtual size get_default_size() const { return m_defaultSize; }
+	virtual gfx::range get_range() const { return gfx::range(m_defaultSize); }
+	virtual std::optional<gfx::size> get_default_size() const { return m_defaultSize; }
 
 	virtual bool is_focusable() const { return true; }
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
 		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
@@ -185,14 +184,13 @@ public:
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > hwnd::subsystem::create_check_box() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::check_box_interface> > hwnd::subsystem::create_check_box() volatile
 {
 	rcref<check_box> cb = rcnew(check_box)(this_rcref);
 	return std::make_pair(cb, cb);
 }
 
 
-}
 }
 }
 

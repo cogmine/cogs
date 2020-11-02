@@ -45,7 +45,7 @@ template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	&& !std::is_scalar_v<T>
+	&& !is_scalar_v<T>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	void
 >

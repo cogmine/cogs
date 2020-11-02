@@ -16,19 +16,18 @@ COGS_MAIN
 			return EXIT_SUCCESS;
 		}
 
-		rcref<count_down_event> quitCountDown = rcnew(count_down_event)(0, []() { cogs::request_quit(); });
+		rcref<count_down_condition> quitCountDown = rcnew(count_down_condition)(0, []() { cogs::request_quit(); });
 
-		*quitCountDown += guiSubsystem->open(string::literal(L"Template App"),
+		*quitCountDown += guiSubsystem->open(
 			rcnew(background)({
 				.backgroundColor = color::constant::white,
-				.children = pane_list::create(
-					rcnew(label)({
-						.text = string::literal(L"Hello World!"),
-						.font = gfx::font(38),
-						.textColor = color::constant::black
-					})
-				)
-			})
+				.children =  rcnew(label)({
+					.text = string::literal(L"Hello World!"),
+					.font = gfx::font_parameters{ .pointSize = 38 },
+					.textColor = color::constant::black
+				})
+			}),
+			string::literal(L"Template App")
 		);
 
 		return EXIT_SUCCESS;

@@ -44,7 +44,7 @@ inline int main(F&& mainFunc, T&& uiSubsystem)
 	int result = mainFunc(std::forward<T>(uiSubsystem));
 	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
 	if (!!qd)
-		qd->get_event().wait();
+		qd->get_condition().wait();
 	return result;
 }
 

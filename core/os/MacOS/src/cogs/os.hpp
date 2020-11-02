@@ -18,10 +18,8 @@
 
 
 namespace cogs {
-namespace ui {
 namespace os {
 	inline void beep() { NSBeep(); }
-}
 }
 }
 

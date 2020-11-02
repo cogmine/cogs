@@ -24,7 +24,6 @@
 //
 //
 //namespace cogs {
-//namespace gui {
 //namespace os {
 //
 //
@@ -101,7 +100,7 @@
 //		hwnd_pane::installing();
 //	}
 //
-//	virtual void invalidate(const canvas::bounds& b)
+//	virtual void invalidate(const gfx::bounds& b)
 //	{
 //		// Add bounds to stencil
 //	}
@@ -119,7 +118,7 @@
 //		wglMakeCurrent(hOldDC, hOldRC);
 //	}
 //
-//	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+//	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 //	{
 //		hwnd_pane::reshape(b, oldOrigin);
 //
@@ -138,10 +137,10 @@
 //	}
 //
 //	// 2D
-//	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
+//	virtual void fill(const gfx::bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 //	{
-//		point topRight = b.calc_top_right();
-//		point bottomLeft = b.calc_bottom_left();
+//		gfx::point topRight = b.calc_top_right();
+//		gfx::point bottomLeft = b.calc_bottom_left();
 //
 //		//glClear(GL_COLOR_BUFFER_BIT);
 //
@@ -158,11 +157,11 @@
 //		glEnd();
 //	}
 //
-//	virtual void invert(const bounds& b)
+//	virtual void invert(const gfx::bounds& b)
 //	{
 //	}
 //
-//	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
+//	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 //	{
 //		glBegin(GL_LINES);
 //		glColor4f((GLfloat)c.get_red() / 255, (GLfloat)c.get_green() / 255, (GLfloat)c.get_blue() / 255, (GLfloat)c.get_alpha() / 255);
@@ -173,19 +172,19 @@
 //		glEnd();
 //	}
 //
-//	virtual void draw_text(const composite_string& s, const bounds& b, const color& c = color::constant::black)
+//	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const color& c = color::constant::black)
 //	{
 //	}
 //
-//	virtual void draw_bitmap(const gfx::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true )
+//	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true )
 //	{
 //	}
 //
-//	virtual void draw_bitmap(const gfx::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
+//	virtual void draw_bitmap(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
 //	{
 //	}
 //
-//	virtual rcptr<gfx::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+//	virtual rcptr<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 //	{
 //		return rcptr<gfx::bitmap>();
 //	}
@@ -224,25 +223,25 @@
 //	}
 //
 //	// planar
-//	virtual rcref<button_interface> create_button() volatile
+//	virtual rcref<gui::button_interface> create_button() volatile
 //	{
 //		rcptr<view> a;
 //		return a.dereference();
 //	}
 //
-//	virtual rcref<check_box_interface> create_check_box() volatile
+//	virtual rcref<gui::check_box_interface> create_check_box() volatile
 //	{
 //		rcptr<view> a;
 //		return a.dereference();
 //	}
 //
-//	virtual rcref<text_editor_interface> create_text_editor() volatile
+//	virtual rcref<gui::text_editor_interface> create_text_editor() volatile
 //	{
 //		rcptr<view> a;
 //		return a.dereference();
 //	}
 //
-//	virtual rcref<scroll_bar_interface> create_scroll_bar() volatile
+//	virtual rcref<gui::scroll_bar_interface> create_scroll_bar() volatile
 //	{
 //		rcptr<view> a;
 //		return a.dereference();
@@ -255,7 +254,6 @@
 ////	virtual rcptr<view> create_canvas3D(const rcref<canvas3D_frame>& cf) volatile { return rcptr<view>(); }
 //};
 //
-//}
 //}
 //}
 //

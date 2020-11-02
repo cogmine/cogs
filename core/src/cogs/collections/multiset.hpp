@@ -28,30 +28,30 @@ namespace cogs {
 /// @brief A sorted O(log n) collection.  Duplicate values are allowed.
 /// @tparam T The type to contain
 /// @tparam comparator_t A static comparator class used to compare keys.  Default: default_comparator
-template <typename T, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename T, class comparator_t = default_comparator, class memory_manager_t = default_memory_manager>
 class multiset
 {
 public:
 	typedef T type;
+	typedef memory_manager_t memory_manager_type;
 
 private:
-	typedef multiset<type, comparator_t, allocator_type> this_t;
+	typedef multiset<type, comparator_t, memory_manager_type> this_t;
 
 	class payload
 	{
 	private:
-		delayed_construction<type> m_value;
+		placement<type> m_value;
 
 	public:
+		~payload() { m_value.destruct(); }
+
 		type& get_key() { return m_value.get(); }
 		const type& get_key() const { return m_value.get(); }
 	};
 
-	typedef container_skiplist<true, type, payload, comparator_t, allocator_type> container_skiplist_t;
+	typedef container_skiplist<true, type, payload, comparator_t, memory_manager_type> container_skiplist_t;
 	container_skiplist_t m_contents;
-
-	multiset(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
 
 public:
 	class iterator;
@@ -552,28 +552,12 @@ public:
 
 	};
 
-	multiset() { }
-
-	multiset(this_t&& src)
-		: m_contents(std::move(src.m_contents))
+	template <typename... args_t>
+	multiset(args_t&&... args)
+		: m_contents(std::forward<args_t>(args)...)
 	{ }
 
-	explicit multiset(volatile allocator_type& al)
-		: m_contents(al)
-	{ }
-
-	multiset(const std::initializer_list<type>& src)
-	{
-		for (auto& entry : src)
-			insert(entry);
-	}
-
-	multiset(volatile allocator_type& al, const std::initializer_list<type>& src)
-		: m_contents(al)
-	{
-		for (auto& entry : src)
-			insert(entry);
-	}
+	multiset(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -581,33 +565,16 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const this_t& src)
 	{
-		m_contents = std::move(src.m_contents);
+		m_contents = src.m_contents;
 		return *this;
 	}
 
-	this_t& operator=(const std::initializer_list<type>& src)
-	{
-		this_t tmp(src);
-		*this = std::move(tmp);
-		return *this;
-	}
-
-	volatile this_t& operator=(const std::initializer_list<type>& src) volatile
-	{
-		this_t tmp(src);
-		*this = std::move(tmp);
-		return *this;
-	}
-
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.insert(std::forward<args_t>(args)), ...);
-		return result;
-	}
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
 	/// @{
 	/// @brief Removes all elements.
@@ -732,12 +699,11 @@ public:
 		volatile_insert_result>
 	insert_via(F&& f) volatile { return insert_via([&](iterator& i) { f(*const_cast<type*>(&i.get_key())); }); }
 
-
 	iterator insert(const type& k)
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
 		});
 	}
 
@@ -745,7 +711,7 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
 		});
 	}
 
@@ -753,7 +719,7 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
 		});
 	}
 
@@ -761,17 +727,48 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
 		});
 	}
 
+	iterator operator+=(const type& k)
+	{
+		return insert_via([&](iterator& i)
+		{
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+		});
+	}
+
+	iterator operator+=(type&& k)
+	{
+		return insert_via([&](iterator& i)
+		{
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+		});
+	}
+
+	volatile_insert_result operator+=(const type& k) volatile
+	{
+		return insert_via([&](iterator& i)
+		{
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(k);
+		});
+	}
+
+	volatile_insert_result operator+=(type&& k) volatile
+	{
+		return insert_via([&](iterator& i)
+		{
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::move(k));
+		});
+	}
 
 	template <typename... args_t>
 	iterator insert_emplace(args_t&&... args)
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -780,7 +777,7 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(&i.m_contents->get_key(), *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -792,10 +789,16 @@ public:
 	bool remove(const iterator& e) { return m_contents.remove(e.m_contents); }
 	/// @}
 
+	bool operator-=(const iterator& i) { return remove(i); }
+	bool operator-=(const remove_token& rt) { return remove(rt); }
+
 	typedef typename container_skiplist_t::volatile_remove_result volatile_remove_result;
 
 	volatile_remove_result remove(const volatile_remove_token& e) volatile { return m_contents.remove(e.m_contents); }
 	volatile_remove_result remove(const volatile_iterator& e) volatile { return m_contents.remove(e.m_contents); }
+
+	volatile_remove_result operator-=(const volatile_iterator& i) volatile { return remove(i); }
+	volatile_remove_result operator-=(const volatile_remove_token& rt) volatile { return remove(rt); }
 
 	iterator pop_first() { return iterator(m_contents.pop_first()); }
 	iterator pop_last() { return iterator(m_contents.pop_last()); }
@@ -922,11 +925,11 @@ public:
 
 	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
 
 	this_t exchange(this_t&& src)
 	{
@@ -935,13 +938,13 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	this_t exchange(this_t&& src) volatile
-	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		return tmp;
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//this_t exchange(this_t&& src) volatile
+	//{
+	//	this_t tmp(std::move(src));
+	//	swap(tmp);
+	//	return tmp;
+	//}
 
 	void exchange(this_t&& src, this_t& rtn)
 	{
@@ -949,12 +952,12 @@ public:
 		swap(rtn);
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void exchange(this_t&& src, this_t& rtn) volatile
-	{
-		rtn = std::move(src);
-		swap(rtn);
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void exchange(this_t&& src, this_t& rtn) volatile
+	//{
+	//	rtn = std::move(src);
+	//	swap(rtn);
+	//}
 
 	iterator begin() const { return get_first(); }
 	volatile_iterator begin() const volatile { return get_first(); }
@@ -970,46 +973,53 @@ public:
 };
 
 
-template <typename T, bool favor_lookup = false, class comparator_t = default_comparator, class allocator_type = default_allocator>
-class nonvolatile_multiset
+template <typename T, bool favor_lookup = false>
+class nonvolatile_multiset_node : public std::conditional_t<favor_lookup, avltree_node_t<nonvolatile_multiset_node<T, favor_lookup>>, rbtree_node_t<nonvolatile_multiset_node<T, favor_lookup>> >
 {
 public:
 	typedef T type;
 
 private:
+	placement<type> m_value;
+
+public:
+	~nonvolatile_multiset_node() { m_value.destruct(); }
+
+	type& get_key() { return m_value.get(); }
+	const type& get_key() const { return m_value.get(); }
+};
+
+
+template <typename T, bool favor_lookup = false, class comparator_t = default_comparator, class allocator_t = batch_allocator<nonvolatile_multiset_node<T, favor_lookup>>>
+class nonvolatile_multiset
+{
+public:
+	typedef T type;
+	typedef allocator_t allocator_type;
+
+private:
 	typedef nonvolatile_multiset<type, favor_lookup, comparator_t, allocator_type> this_t;
 
-	class node : public std::conditional_t<favor_lookup, avltree_node_t<node>, rbtree_node_t<node> >
-	{
-	private:
-		delayed_construction<type> m_value;
-
-	public:
-		type& get_key() { return m_value.get(); }
-		const type& get_key() const { return m_value.get(); }
-	};
+	typedef nonvolatile_multiset_node<type, favor_lookup> node;
 
 	typedef std::conditional_t<favor_lookup, avltree<type, node, comparator_t>, rbtree<type, node, comparator_t> > tree_t;
 
-	typedef typename tree_t::ref_t ref_t;
-
-	nonvolatile_multiset(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
-
 	tree_t m_tree;
 	size_t m_count;
-	allocator_container<default_allocator> m_allocator;
+	allocator_type m_allocator;
 
 	void clear_inner()
 	{
-		ref_t n = m_tree.get_first_postorder();
+		ptr<node> n = m_tree.get_first_postorder();
 		while (!!n)
 		{
-			ref_t n2 = m_tree.get_next_postorder(n);
-			m_allocator.template destruct_deallocate_type<node>(n);
+			ptr<node> n2 = m_tree.get_next_postorder(n);
+			m_allocator.destruct_deallocate(n.get_ptr());
 			n = n2;
 		}
 	}
+
+	class internal_t {};
 
 public:
 	class iterator
@@ -1018,9 +1028,9 @@ public:
 		friend class nonvolatile_multiset;
 
 		const tree_t* m_tree;
-		ref_t m_node;
+		ptr<node> m_node;
 
-		iterator(const ref_t& n, const tree_t& t)
+		iterator(const ptr<node>& n, const tree_t& t)
 			: m_tree(&t),
 			m_node(n)
 		{ }
@@ -1090,9 +1100,25 @@ public:
 		}
 	};
 
+	typedef iterator remove_token;
+
 	nonvolatile_multiset()
 		: m_count(0)
 	{ }
+
+	template <typename arg1_t>
+	nonvolatile_multiset(arg1_t&& arg1, std::enable_if_t<!std::is_convertible_v<std::remove_cv_t<arg1_t>, this_t>, internal_t> = {})
+	{
+		insert(std::forward<arg1_t>(arg1));
+	}
+
+	template <typename arg1_t, typename arg2_t, typename... args_t>
+	nonvolatile_multiset(arg1_t&& arg1, arg2_t&& arg2, args_t&&... args)
+	{
+		insert(std::forward<arg1_t>(arg1));
+		insert(std::forward<arg2_t>(arg2));
+		(insert(std::forward<args_t>(args)), ...);
+	}
 
 	nonvolatile_multiset(this_t&& src)
 		: m_allocator(std::move(src.m_allocator)),
@@ -1100,23 +1126,15 @@ public:
 		m_count(src.m_count)
 	{ }
 
-	explicit nonvolatile_multiset(volatile allocator_type& al)
-		: m_count(0),
-		m_allocator(al)
-	{ }
-
-	nonvolatile_multiset(const std::initializer_list<type>& src)
-		: m_count(0)
+	nonvolatile_multiset(this_t& src)
 	{
-		for (auto& entry : src)
+		for (const auto& entry : src)
 			insert(entry);
 	}
 
-	nonvolatile_multiset(volatile allocator_type& al, const std::initializer_list<type>& src)
-		: m_count(0),
-		m_allocator(al)
+	nonvolatile_multiset(const this_t& src)
 	{
-		for (auto& entry : src)
+		for (const auto& entry : src)
 			insert(entry);
 	}
 
@@ -1124,6 +1142,8 @@ public:
 	{
 		clear_inner();
 	}
+
+	nonvolatile_multiset(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -1133,20 +1153,16 @@ public:
 		return *this;
 	}
 
-	this_t& operator=(const std::initializer_list<type>& src)
+	this_t& operator=(const this_t& src)
 	{
-		this_t tmp(src);
-		*this = std::move(tmp);
-		return *this;
+		clear();
+		for (const auto& entry : src)
+			insert(entry);
 	}
 
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.insert(std::forward<args_t>(args)), ...);
-		return result;
-	}
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
 
 	void clear()
 	{
@@ -1170,7 +1186,7 @@ public:
 		iterator>
 	insert_via(F&& f)
 	{
-		ref_t r = m_allocator.template allocate_type<node>();
+		node* r = m_allocator.allocate();
 		new (r.get_ptr()) node();
 		iterator i(r, m_tree);
 		f(i);
@@ -1199,7 +1215,7 @@ public:
 	void remove(const iterator& i)
 	{
 		m_tree.remove(i.m_node);
-		m_allocator.template destruct_deallocate_type<node>(i.m_node);
+		m_allocator.destruct_deallocate(i.m_node);
 		m_count--;
 	}
 

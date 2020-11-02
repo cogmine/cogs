@@ -12,7 +12,6 @@
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/function.hpp"
 #include "cogs/mem/bypass_constructor_permission.hpp"
-#include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"

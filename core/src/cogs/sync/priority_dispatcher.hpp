@@ -10,7 +10,6 @@
 
 
 #include "cogs/function.hpp"
-#include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/thread.hpp"
@@ -60,7 +59,7 @@ private:
 		m_priorityQueue.insert_via([&](priority_queue<int, priority_dispatched>::value_token& vt)
 		{
 			*const_cast<int*>(&vt.get_priority()) = priority;
-			placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+			nested_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
 			t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
 		});
 	}

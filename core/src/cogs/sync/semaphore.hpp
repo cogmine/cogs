@@ -14,6 +14,7 @@
 #include "cogs/os/sync/thread.hpp"
 #include "cogs/mem/rcref_freelist.hpp"
 #include "cogs/mem/rcptr.hpp"
+#include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
@@ -79,7 +80,7 @@ private:
 	semaphore(const semaphore&);
 	semaphore& operator=(const semaphore&);
 
-	typedef rcref_freelist<os::semaphore, default_allocator, 10> os_semaphore_freelist_t;
+	typedef rcref_freelist<os::semaphore, 10> os_semaphore_freelist_t;
 
 	inline static placement<rcptr<os_semaphore_freelist_t> > s_osSemaphoreFreeList;
 

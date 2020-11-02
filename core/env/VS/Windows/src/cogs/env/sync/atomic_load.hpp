@@ -27,7 +27,7 @@ template <typename T>
 inline std::enable_if_t<
 	!std::is_empty_v<T>
 	&& can_atomic_v<T>
-	&& std::is_scalar_v<T>,
+	&& is_scalar_v<T>,
 	void
 >
 load(const volatile T& src, T& rtn)
@@ -44,7 +44,7 @@ load(const volatile T& src, T& rtn)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 
 template <typename T>

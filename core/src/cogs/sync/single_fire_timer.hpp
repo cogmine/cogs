@@ -30,7 +30,7 @@ private:
 	virtual void triggered()
 	{
 		// const at construction, so no need to reference as volatile
-		m_event.signal();
+		m_condition.signal();
 	}
 
 public:

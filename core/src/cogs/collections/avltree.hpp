@@ -135,6 +135,8 @@ template <typename key_t, class derived_node_t, class comparator_t = default_com
 class avltree : public sorted_btree<key_t, derived_node_t, comparator_t, ref_type>
 {
 public:
+	typedef key_t key_type;
+
 	/// @brief Alias to this type.
 	typedef avltree<key_t, derived_node_t, comparator_t, ref_type> this_t;
 

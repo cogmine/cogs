@@ -31,7 +31,7 @@ namespace defaults {
 #define COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, condition)\
 template <typename T>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -41,7 +41,7 @@ assign_ ## fname(T& t)\
 { atomic::compare_exchange_retry_loop(t, [](const std::remove_volatile_t<T>& t2) { const std::remove_volatile_t<T> tmp(t2); assign_ ## fname(tmp); return tmp; }); }\
 template <typename T>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -51,7 +51,7 @@ pre_assign_ ## fname(T& t)\
 { return atomic::compare_exchange_retry_loop_pre(t, [](const std::remove_volatile_t<T>& t2) { const std::remove_volatile_t<T> tmp(t2); assign_ ## fname(tmp); return tmp; }); }\
 template <typename T>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -62,10 +62,10 @@ post_assign_ ## fname(T& t)\
 
 
 #define COGS_DEFINE_VOLATILE_ARITHMETIC_DEFAULT_UNARY_ASSIGN_OPERATORS(fname)\
-COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, std::is_arithmetic_v<T>)
+COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, is_arithmetic_v<T>)
 
 #define COGS_DEFINE_VOLATILE_INTEGRAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname)\
-COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, std::is_integral_v<T>)
+COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, is_integral_v<T>)
 
 #define COGS_DEFINE_VOLATILE_POINTER_DEFAULT_UNARY_ASSIGN_OPERATORS(fname)\
 COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, std::is_pointer_v<T>)
@@ -76,7 +76,7 @@ COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_UNARY_ASSIGN_OPERATORS(fname, st
 #define COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, condition)\
 template <typename T, typename A1>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -86,7 +86,7 @@ assign_ ## fname(T& t, const A1& a)\
 { atomic::compare_exchange_retry_loop(t, [](const std::remove_volatile_t<T>& t2, const A1& a) { const std::remove_volatile_t<T> tmp(t2); assign_ ## fname(tmp, a); return tmp; }); }\
 template <typename T, typename A1>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -96,7 +96,7 @@ pre_assign_ ## fname(T& t, const A1& a)\
 { return atomic::compare_exchange_retry_loop_pre(t, [](const std::remove_volatile_t<T>& t2, const A1& a) { const std::remove_volatile_t<T> tmp(t2); assign_ ## fname(tmp, a); return tmp; }); }\
 template <typename T, typename A1>\
 inline std::enable_if_t<\
-	std::is_scalar_v<T>\
+	is_scalar_v<T>\
 	&& can_atomic_v<T>\
 	&& (condition)\
 	&& std::is_volatile_v<T>\
@@ -106,10 +106,10 @@ post_assign_ ## fname(T& t, const A1& a)\
 { return atomic::compare_exchange_retry_loop_post(t, [](const std::remove_volatile_t<T>& t2, const A1& a) { const std::remove_volatile_t<T> tmp(t2); assign_ ## fname(tmp, a); return tmp; }); }\
 
 #define COGS_DEFINE_VOLATILE_ARITHMETIC_DEFAULT_BINARY_ASSIGN_OPERATORS(fname)\
-COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, std::is_arithmetic_v<T>)
+COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, is_arithmetic_v<T>)
 
 #define COGS_DEFINE_VOLATILE_INTEGRAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname)\
-COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, std::is_integral_v<T>)
+COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, is_integral_v<T>)
 
 #define COGS_DEFINE_VOLATILE_POINTER_DEFAULT_BINARY_ASSIGN_OPERATORS(fname)\
 COGS_DEFINE_VOLATILE_SCALAR_CONDITIONAL_DEFAULT_BINARY_ASSIGN_OPERATORS(fname, std::is_pointer_v<T>)

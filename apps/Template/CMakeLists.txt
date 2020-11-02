@@ -17,9 +17,11 @@ target_sources(${EXECUTABLE_NAME} PUBLIC
 
 if (WIN32)
 
-  target_sources(${EXECUTABLE_NAME} PUBLIC
-    VS/Template.manifest
-  )
+  if (MSVC)
+    target_sources(${EXECUTABLE_NAME} PUBLIC VS/Template.manifest)
+  else()
+    target_sources(${EXECUTABLE_NAME} PUBLIC VS/Template.manifest.rc)
+  endif()
 
 elseif (APPLE)
 

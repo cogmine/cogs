@@ -32,16 +32,16 @@ static constexpr size_t largest = 16;
 
 
 template <size_t n>
-class size_to_alignment
+struct size_to_alignment
 {
-public:
 	static constexpr size_t value =
 		(n == 1) ?  1 :
 		(n == 2) ?  2 :
-		(n == 4) ?  4 :
-		(n == 8) ?  8 :
-		(n == 16) ? 16 : 0;
+		(n <= 4) ?  4 :
+		(n <= 8) ?  8 :
+		largest;
 };
+template <size_t n> constexpr size_t size_to_alignment_v = size_to_alignment<n>::value;
 
 
 }

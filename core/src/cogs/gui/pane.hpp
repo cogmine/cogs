@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+// Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -12,6 +12,7 @@
 #include "cogs/env.hpp"
 #include "cogs/collections/container_dlist.hpp"
 #include "cogs/collections/composite_string.hpp"
+#include "cogs/collections/backed_vector.hpp"
 #include "cogs/function.hpp"
 #include "cogs/gfx/color.hpp"
 #include "cogs/gui/frame.hpp"
@@ -21,15 +22,14 @@
 #include "cogs/math/const_min_int.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/resettable_event.hpp"
+#include "cogs/sync/event.hpp"
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/resettable_condition.hpp"
 #include "cogs/sync/serial_dispatcher.hpp"
 #include "cogs/sync/thread_pool.hpp"
 #include "cogs/ui/keyboard.hpp"
 
-
 namespace cogs {
-
 
 /// @defgroup GUI Graphical User Interface
 /// @{
@@ -44,39 +44,7 @@ namespace gui {
 
 
 class subsystem;
-
-
-/// @ingroup GUI
-/// @brief The compositing behavior of a pane
-///
-/// A pane's compositing_behavior indicates whether or not it should use a backing buffer, and under
-/// what conditions that backing buffer needs to be re-rendered.
-///
-/// The top-most pane implicitly buffers the drawing of itself and all children, to avoid flicker.
-/// This is either supported automatically by the platform, rendering engine, or use of a compositing
-/// buffer in the top-most pane.
-enum class compositing_behavior
-{
-	/// Does not buffer drawing.  draw() may be called frequently, as parent, child, or overlapping
-	/// sibling panes are invalidated and redrawn to a common backing buffer.  This is useful for
-	/// panes that change every time drawn, or are very simple to draw, as the overhead (and additional
-	/// blit) of a backing buffer would be unnecessary.
-	no_buffer = 0,
-
-	/// Uses a backing buffer for this pane's draw operation, but it is not shared with child panes.
-	/// Overlapping invalidates from child or sibling panes would not trigger calls to draw().
-	/// This is useful to allow parent/children/sibling panes to render completely independently.
-	/// Only the layer that is invalidated is redrawn, then composited with the existing backing
-	/// buffers of the other layers.
-	buffer_self = 1,
-
-	/// Uses a backing buffer for the drawing operation of this pane as well as its child panes.
-	/// Overlapping invalidates from child panes would cause redraws of the parent, so the parent and
-	/// then children can re-render themselves to a common backing buffer.  But, overlapping invalidates
-	/// from sibling panes would not trigger calls to draw().  This is useful to allow one hierachy
-	/// of panes to render independently of another.
-	buffer_self_and_children = 2,
-};
+class pane;
 
 
 class pane_container
@@ -97,7 +65,7 @@ public:
 
 class bridgeable_pane;
 
-class pane;
+
 typedef container_dlist<rcref<pane> > pane_list;
 
 /// @ingroup GUI
@@ -105,15 +73,98 @@ typedef container_dlist<rcref<pane> > pane_list;
 class pane : public dispatcher, public frameable, protected virtual gfx::canvas, protected virtual pane_container
 {
 public:
+	/// @ingroup GUI
+	/// @brief The compositing behavior of a pane
+	///
+	/// A pane's compositing_behavior indicates whether or not it should use a backing buffer, and under
+	/// what conditions that backing buffer needs to be re-rendered.
+	///
+	/// The top-most pane implicitly buffers the drawing of itself and all children, to avoid flicker.
+	/// This is either supported automatically by the platform, rendering engine, or use of a compositing
+	/// buffer in the top-most pane.
+	enum class compositing_behavior
+	{
+		/// Does not buffer drawing.  draw() may be called frequently, as parent, child, or overlapping
+		/// sibling panes are invalidated and redrawn to a common backing buffer.  This is useful for
+		/// panes that change every time drawn, or are very simple to draw, as the overhead (and additional
+		/// blit) of a backing buffer would be unnecessary.
+		no_buffer = 0,
+
+		/// Uses a backing buffer for this pane's draw operation, but it is not shared with child panes.
+		/// Overlapping invalidates from child or sibling panes would not trigger calls to draw().
+		/// This is useful to allow parent/children/sibling panes to render completely independently.
+		/// Only the layer that is invalidated is redrawn, then composited with the existing backing
+		/// buffers of the other layers.
+		buffer_self = 1,
+
+		/// Uses a backing buffer for the drawing operation of this pane as well as its child panes.
+		/// Overlapping invalidates from child panes would cause redraws of the parent, so the parent and
+		/// then children can re-render themselves to a common backing buffer.  But, overlapping invalidates
+		/// from sibling panes would not trigger calls to draw().  This is useful to allow one hierachy
+		/// of panes to render independently of another.
+		buffer_self_and_children = 2,
+	};
+
 	friend class bridgeable_pane;
 	friend class gui::subsystem;
 
-	using cell = gfx::canvas::cell;
+	typedef handler_list<const rcref<pane>&, wchar_t, const ui::modifier_keys_state&> character_type_handler_list_t;
+	typedef handler_list<const rcref<pane>&, wchar_t, const ui::modifier_keys_state&> key_press_handler_list_t;
+	typedef handler_list<const rcref<pane>&, wchar_t, const ui::modifier_keys_state&> key_release_handler_list_t;
+	typedef handler_list<const rcref<pane>&, mouse_button, const point&, const ui::modifier_keys_state&> button_press_handler_list_t;
+	typedef handler_list<const rcref<pane>&, mouse_button, const point&, const ui::modifier_keys_state&> button_release_handler_list_t;
+	typedef handler_list<const rcref<pane>&, mouse_button, const point&, const ui::modifier_keys_state&> button_double_click_handler_list_t;
+	typedef handler_list<const rcref<pane>&, double, const point&, const ui::modifier_keys_state&> wheel_move_handler_list_t;
+
+	// The request_close_handler returns true to incidate close should be prevented/blocked, false to continue
+	// executing other handlers.  If a function is returned, it will be called when handlers are complete and
+	// indicate true if close was allowed, false if another handler prevented the close.
+	typedef handler_list<const rcref<pane>&, const rcref<pane>&, function<void(bool)>&> request_close_handler_list_t;
+
+	typedef event<const rcref<pane>&> hide_event_t;
+	typedef event<const rcref<pane>&> show_event_t;
+	typedef event<const rcref<pane>&, int> focus_event_t;
+	typedef event<const rcref<pane>&> defocus_event_t;
+	typedef event<const rcref<pane>&, const ui::modifier_keys_state&> modifier_keys_change_event_t;
+	typedef event<const rcref<pane>&, const point&> cursor_enter_event_t;
+	typedef event<const rcref<pane>&, const point&> cursor_move_event_t;
+	typedef event<const rcref<pane>&> cursor_leave_event_t;
+	typedef event<const rcref<pane>&> detach_event_t;
+
+	request_close_handler_list_t& get_request_close_handlers() { return m_requestCloseHandlers; }
+	hide_event_t& get_hide_event() { return m_hideEvent; }
+	show_event_t& get_show_event() { return m_showEvent; }
+	focus_event_t& get_focus_event() { return m_focusEvent; }
+	defocus_event_t& get_defocus_event() { return m_defocusEvent; }
+	modifier_keys_change_event_t& get_modifier_keys_change_event() { return m_modifierKeysChangeEvent; }
+	cursor_enter_event_t& get_cursor_enterEvent() { return m_cursorEnterEvent; }
+	cursor_move_event_t& get_cursor_move_event() { return m_cursorMoveEvent; }
+	cursor_leave_event_t& get_cursor_leave_event() { return m_cursorLeaveEvent; }
+	detach_event_t& get_detach_event() { return m_detachEvent; }
 
 private:
 	weak_rcptr<pane> m_parent;
 	pane_list m_children;
 	pane_list::remove_token m_siblingIterator; // our element in our parent's list of children panes
+
+	character_type_handler_list_t m_characterTypeHandlers;
+	key_press_handler_list_t m_keyPressHandlers;
+	key_release_handler_list_t m_keyReleaseHandlers;
+	button_press_handler_list_t m_buttonPressHandlers;
+	button_release_handler_list_t m_buttonReleaseHandlers;
+	button_double_click_handler_list_t m_buttonDoubleClickHandlers;
+	wheel_move_handler_list_t m_wheelMoveHandlers;
+	request_close_handler_list_t m_requestCloseHandlers;
+
+	hide_event_t m_hideEvent;
+	show_event_t m_showEvent;
+	focus_event_t m_focusEvent;
+	defocus_event_t m_defocusEvent;
+	modifier_keys_change_event_t m_modifierKeysChangeEvent;
+	cursor_enter_event_t m_cursorEnterEvent;
+	cursor_move_event_t m_cursorMoveEvent;
+	cursor_leave_event_t m_cursorLeaveEvent;
+	detach_event_t m_detachEvent;
 
 	// Changes to the UI subsystem are serialized using the pane's dispatcher.
 
@@ -128,7 +179,7 @@ private:
 	compositing_behavior m_compositingBehavior;
 
 	rcptr<gfx::canvas> m_bridgedCanvas;
-	resettable_event m_closeEvent;
+	resettable_condition m_closeCondition;
 
 	bool m_hasFocus = false;
 	bool m_isFocusable = true;
@@ -139,12 +190,12 @@ private:
 	bool m_cursorWasWithin = false;
 	bool m_needsDraw = false;
 	bool m_recomposeDescendants = true;
+	bool m_invalidateOnReshape = false;
 
 	bounds m_lastVisibleBounds;
-	point m_lastRenderOffset;
 
 	range m_currentRange;
-	size m_currentDefaultSize = { 0, 0 };
+	std::optional<size> m_currentDefaultSize;
 
 	pane_list::iterator m_childInstallItor;
 	rcptr<pane> m_parentInstalling;
@@ -180,7 +231,7 @@ private:
 		}
 	};
 
-	// The purpose of this proxy is to selective defer tasks to either the UI subsystem the,
+	// The purpose of this proxy is to selectively defer tasks to either the UI subsystem the
 	// pane is currently installed into, or the global thread pool if not installed.
 	dispatcher_proxy m_dispatcherProxy;
 
@@ -196,6 +247,24 @@ private:
 protected:
 	struct options
 	{
+		bool invalidateOnReshape = false;
+		character_type_handler_list_t characterTypeHandlers;
+		key_press_handler_list_t keyPressHandlers;
+		key_release_handler_list_t keyReleaseHandlers;
+		button_press_handler_list_t buttonPressHandlers;
+		button_release_handler_list_t buttonReleaseHandlers;
+		button_double_click_handler_list_t buttonDoubleClickHandlers;
+		wheel_move_handler_list_t wheelMoveHandlers;
+		request_close_handler_list_t requestCloseHandlers;
+		hide_event_t hideEvent;
+		show_event_t showEvent;
+		focus_event_t focusEvent;
+		defocus_event_t defocusEvent;
+		modifier_keys_change_event_t modifierKeysChangeEvent;
+		cursor_enter_event_t cursorEnterEvent;
+		cursor_move_event_t cursorMoveEvent;
+		cursor_leave_event_t cursorLeaveEvent;
+		detach_event_t detachEvent;
 		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
 		frame_list frames;
 		pane_list children;
@@ -208,7 +277,25 @@ protected:
 	explicit pane(options&& o)
 		: frameable(std::move(o.frames)),
 		m_children(std::move(o.children)),
+		m_characterTypeHandlers(std::move(o.characterTypeHandlers)),
+		m_keyPressHandlers(std::move(o.keyPressHandlers)),
+		m_keyReleaseHandlers(std::move(o.keyReleaseHandlers)),
+		m_buttonPressHandlers(std::move(o.buttonPressHandlers)),
+		m_buttonReleaseHandlers(std::move(o.buttonReleaseHandlers)),
+		m_buttonDoubleClickHandlers(std::move(o.buttonDoubleClickHandlers)),
+		m_wheelMoveHandlers(std::move(o.wheelMoveHandlers)),
+		m_requestCloseHandlers(std::move(o.requestCloseHandlers)),
+		m_hideEvent(std::move(o.hideEvent)),
+		m_showEvent(std::move(o.showEvent)),
+		m_focusEvent(std::move(o.focusEvent)),
+		m_defocusEvent(std::move(o.defocusEvent)),
+		m_modifierKeysChangeEvent(std::move(o.modifierKeysChangeEvent)),
+		m_cursorEnterEvent(std::move(o.cursorEnterEvent)),
+		m_cursorMoveEvent(std::move(o.cursorMoveEvent)),
+		m_cursorLeaveEvent(std::move(o.cursorLeaveEvent)),
+		m_detachEvent(std::move(o.detachEvent)),
 		m_compositingBehavior(o.compositingBehavior),
+		m_invalidateOnReshape(o.invalidateOnReshape),
 		m_dispatcherProxy(*this),
 		m_serialDispatcher(m_dispatcherProxy)
 	{
@@ -222,9 +309,17 @@ protected:
 		}
 	}
 
+	character_type_handler_list_t& get_character_type_handlers() { return m_characterTypeHandlers; }
+	key_press_handler_list_t& get_key_press_handlers() { return m_keyPressHandlers; }
+	key_release_handler_list_t& get_key_release_handlers() { return m_keyReleaseHandlers; }
+	button_press_handler_list_t& get_button_press_handlers() { return m_buttonPressHandlers; }
+	button_release_handler_list_t& get_button_release_handlers() { return m_buttonReleaseHandlers; }
+	button_double_click_handler_list_t& get_button_double_click_handlers() { return m_buttonDoubleClickHandlers; }
+	wheel_move_handler_list_t& get_wheel_move_handlers() { return m_wheelMoveHandlers; }
+
 	void set_externally_drawn(const rcref<gfx::canvas>& externalCanvas)
 	{
-		COGS_ASSERT(m_installing); // This function should also be called when installing
+		COGS_ASSERT(m_installing); // This function should only be called when installing
 		COGS_ASSERT(!m_bridgedCanvas);
 		m_bridgedCanvas = externalCanvas;
 	}
@@ -309,28 +404,32 @@ protected:
 		return this_rcptr;
 	}
 
-	rcptr<pane> get_render_pane(point& offset, bounds& visibleBounds)
+	rcptr<pane> get_render_pane(bounds& b)
+	{
+		b &= bounds(get_size());
+		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
+			return get_ancestor_render_pane(b);
+		return this_rcptr;
+	}
+
+	rcptr<pane> get_render_pane(point& offset, bounds& b)
 	{
 		if ((m_compositingBehavior == compositing_behavior::no_buffer) && (!is_externally_drawn()))
-			return get_ancestor_render_pane(offset, visibleBounds);
-		visibleBounds = get_size();
+			return get_ancestor_render_pane(offset, b);
+		b &= bounds(get_size());
 		return this_rcptr;
 	}
 
 	rcptr<pane> get_ancestor_render_pane() const
 	{
-		rcptr<pane> p = m_parent;
-		if (!!p)
+		rcptr<pane> parent = m_parent;
+		while (!!parent)
 		{
-			while ((p->m_compositingBehavior != compositing_behavior::buffer_self_and_children) && (!p->is_externally_drawn()))
-			{
-				rcptr<pane> p2 = p->get_parent();
-				if (!p2)
-					break;
-				p = p2;
-			}
+			if (parent->is_externally_drawn() || parent->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
+				break;
+			parent = parent->m_parent;
 		}
-		return p;
+		return parent;
 	}
 
 	rcptr<pane> get_ancestor_render_pane(point& offset) const
@@ -345,27 +444,41 @@ protected:
 			child = parent.get_ptr();
 			parent = child->m_parent;
 		}
-
 		return parent;
 	}
 
-	rcptr<pane> get_ancestor_render_pane(point& offset, bounds& visibleBounds) const
+	rcptr<pane> get_ancestor_render_pane(bounds& b) const
 	{
-		visibleBounds = get_size();
+		const pane* child = this;
+		rcptr<pane> parent = m_parent;
+		while (!!parent)
+		{
+			point childPosition = child->get_position();
+			b += childPosition;
+			b &= bounds(parent->get_size());
+			if (parent->is_externally_drawn() || parent->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
+				break;
+			child = parent.get_ptr();
+			parent = child->m_parent;
+		}
+		return parent;
+	}
+
+	rcptr<pane> get_ancestor_render_pane(point& offset, bounds& b) const
+	{
 		const pane* child = this;
 		rcptr<pane> parent = m_parent;
 		while (!!parent)
 		{
 			point childPosition = child->get_position();
 			offset += childPosition;
-			visibleBounds += childPosition;
-			visibleBounds &= bounds(parent->get_size());
+			b += childPosition;
+			b &= bounds(parent->get_size());
 			if (parent->is_externally_drawn() || parent->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
 				break;
 			child = parent.get_ptr();
 			parent = child->m_parent;
 		}
-
 		return parent;
 	}
 
@@ -492,13 +605,13 @@ protected:
 				{
 					COGS_ASSERT(!!m_offScreenBuffer);
 					point offset(0, 0);
-					bounds visibleBounds;
+					bounds visibleBounds = get_size();
 					rcptr<pane> p = get_ancestor_render_pane(offset, visibleBounds);
 					COGS_ASSERT(!!p);
 					p->save_clip();
 					p->clip_to(visibleBounds);
-					p->clip_opaque_after(*this, offset, visibleBounds);
-					p->clip_opaque_descendants(*this, offset, visibleBounds, true);
+					p->clip_opaque_externals_after(*this, offset, visibleBounds);
+					p->clip_opaque_external_descendants(*this, offset, visibleBounds);
 					bounds b = get_bounds();
 					p->draw_bitmap(*m_offScreenBuffer, b, b.get_size());
 					p->restore_clip();
@@ -518,7 +631,7 @@ protected:
 				if (m_compositingBehavior == compositing_behavior::no_buffer) // --- Not buffering:
 				{                                                             // Fully clip
 					point offset(0, 0);
-					bounds visibleBounds;
+					bounds visibleBounds = get_size();
 					rcptr<pane> p = get_render_pane(offset, visibleBounds);
 					COGS_ASSERT(!!p);
 					p->save_clip();
@@ -547,10 +660,13 @@ protected:
 					size sz = get_size();
 					bounds b = sz;
 					save_clip();
-					clip_to(b);                                // Clip to bounds
 					point offset(0, 0);
 					clip_opaque_descendants(*this, offset, b); // Clip descendants
-					fill(sz, color::constant::transparent, false);
+					if (!!m_parent)
+					{
+						clip_to(b);                                // Clip to bounds
+						fill(sz, color::constant::transparent, false);
+					}
 					drawing();                                 // Draw this pane
 					restore_clip();                            // Unclip
 					draw_children();                           // Draw children (they clip themselves)
@@ -663,19 +779,26 @@ protected:
 				else
 				{
 					range oldParentRange = get_frame_range();
-					size oldDefaultSize = get_frame_default_size();
+					std::optional<size> oldDefaultSize = get_frame_default_size();
 					m_recomposeDescendants = recomposeDescendants;
 					calculate_frame_range();
 					m_recomposeDescendants = true;
 					range newParentRange = get_frame_range();
-					size newDefaultSize = get_frame_default_size();
-					if (newParentRange != oldParentRange || newDefaultSize != oldDefaultSize) // if parent would be unaffected
+					std::optional<size> newDefaultSize = get_frame_default_size();
+					bool defaultSizeChanged = newDefaultSize.has_value() != oldDefaultSize.has_value() || (newDefaultSize.has_value() && *newDefaultSize != *oldDefaultSize);
+					if (defaultSizeChanged || newParentRange != oldParentRange) // if parent would be unaffected
 					{
 						parent->recompose();
 						break;
 					}
 				}
-				reshape_frame(propose_frame_size(get_size()).find_first_valid_size(get_frame_primary_flow_dimension()));
+				std::optional<size> sz = propose_frame_size(get_size()).find_first_valid_size(get_primary_flow_dimension());
+				size sz2;
+				if (sz.has_value())
+					sz2 = *sz;
+				else
+					sz2.clear();
+				reshape_frame(sz2);
 				break;
 			}
 		}
@@ -683,14 +806,13 @@ protected:
 
 	void invalidate(const bounds& b) // b in local coords
 	{
-		bounds b2 = b & bounds(get_size()); // clip
-		if (!!b2.get_height() && !!b2.get_width())
+		bounds b2 = b;
+		rcptr<pane> renderPane = get_render_pane(b2);
+		if (!!b)
 		{
-			m_needsDraw = true;
-			invalidating(b2);
-			invalidating_up(b2);
-			if (m_compositingBehavior != compositing_behavior::buffer_self) // no need to invalidate children if we're buffering only ourselves.
-				invalidating_children(b2);
+			renderPane->m_needsDraw = true;
+			renderPane->invalidating(b2);
+			renderPane->invalidating_up(b2);
 		}
 	}
 
@@ -726,13 +848,13 @@ protected:
 	template <bool topToButton, typename F>
 	bool for_each_subtree(F&& f)
 	{
-		rcptr<pane> top = this_rcref;
-		rcptr<pane> p = top;
+		rcref<pane> top = this_rcref;
+		rcref<pane> p = top;
 		for (;;)
 		{
 			if (topToButton)
 			{
-				if (!f(*p))
+				if (!f(p))
 					break;
 			}
 			auto itor = p->get_children().get_first();
@@ -743,7 +865,7 @@ protected:
 			}
 			if (!topToButton)
 			{
-				if (!f(*p))
+				if (!f(p))
 					break;
 			}
 			for (;;)
@@ -757,16 +879,17 @@ protected:
 					p = *itor;
 					break;
 				}
-				p = p->get_parent();
-				COGS_ASSERT(!!p);
+				rcptr<pane> p2 = p->get_parent();
+				COGS_ASSERT(!!p2);
+				p = std::move(p2).dereference();
 			}
 		}
 		return false;
 	}
 
-	const waitable& get_close_event() const
+	const waitable& get_close_condition() const
 	{
-		return m_closeEvent;
+		return m_closeCondition;
 	}
 
 	virtual void closing()
@@ -774,64 +897,43 @@ protected:
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			if (!(*itor)->m_closeEvent.is_signaled())
+			if (!(*itor)->m_closeCondition.is_signaled())
 				(*itor)->closing();
 			++itor;
 		}
-		m_closeEvent.signal();
+		m_closeCondition.signal();
 	}
 
 	virtual void close()
 	{
-		if (!m_closeEvent.is_signaled())
+		if (!m_closeCondition.is_signaled())
 		{
 			hide();
 			closing();
 		}
 	}
 
-	priority_queue<int, function<bool(pane&, pane&, function<void(bool)>&)> > m_requestCloseHandlers;
-	typedef priority_queue<int, function<bool(pane&, pane&, function<void(bool)>&)> >::remove_token request_close_handler_token;
-
-	template <typename F>
-	request_close_handler_token register_request_close_handler(F&& f, int priority = 0)
-	{
-		return m_requestCloseHandlers.insert(priority, std::forward<F>(f)).valueToken;
-	}
-
-	bool deregister_request_close_handler(request_close_handler_token& t)
-	{
-		return m_requestCloseHandlers.remove(t).wasRemoved;
-	}
-
 	bool requesting_close()
 	{
-		if (!!m_closeEvent.is_signaled())
+		if (!!m_closeCondition.is_signaled())
 			return true;
 
-		container_dlist<function<void(bool)> > cb;
-		bool b = for_each_subtree<true>([&cb, closingPane{ this }](pane& p)
+		function_list<void(bool)> cb;
+		bool allowClose = for_each_subtree<true>([&cb, closingPane{ this_rcref }](const rcref<pane>& p)
 		{
-			for (;;)
+			for (auto& h : p->m_requestCloseHandlers)
 			{
-				auto vt = p.m_requestCloseHandlers.get();
-				if (!vt)
-					return true;
 				function<void(bool)> f;
-				bool allowClose = (*vt)(*closingPane, p, f);
+				bool preventClose = h(p, closingPane, f);
 				if (!!f)
 					cb.append(std::move(f));
-				if (!allowClose)
+				if (preventClose)
 					return false;
 			}
+			return true;
 		});
-		auto itor = cb.get_first();
-		while (!!itor)
-		{
-			(*itor)(b);
-			++itor;
-		}
-		if (!!b)
+		cb(allowClose);
+		if (allowClose)
 		{
 			hide();
 			closing();
@@ -849,7 +951,7 @@ protected:
 
 	virtual void calculate_range()
 	{
-		m_currentDefaultSize.set(0, 0);
+		m_currentDefaultSize.reset();
 		m_currentRange.clear();
 
 		pane_list::iterator itor = m_children.get_first();
@@ -857,12 +959,20 @@ protected:
 		{
 			if (m_recomposeDescendants)
 				(*itor)->calculate_frame_range();
-			m_currentDefaultSize |= (*itor)->get_frame_default_size();
+			std::optional<size> childDefaultSize = (*itor)->get_frame_default_size();
+			if (childDefaultSize.has_value())
+			{
+				if (m_currentDefaultSize.has_value())
+					*m_currentDefaultSize |= *childDefaultSize;
+				else
+					m_currentDefaultSize = *childDefaultSize;
+			}
 			m_currentRange &= (*itor)->get_frame_range();
 			++itor;
 		}
 
-		m_currentDefaultSize = m_currentRange.limit(m_currentDefaultSize);
+		if (m_currentDefaultSize.has_value())
+			*m_currentDefaultSize = m_currentRange.limit(*m_currentDefaultSize);
 	}
 
 	// canvas interface
@@ -926,7 +1036,7 @@ protected:
 		}
 	}
 
-	virtual rcref<font> load_font(const gfx::font& fnt)
+	virtual rcref<font> load_font(const gfx::font_parameters_list& fnt)
 	{
 		if (!!m_offScreenBuffer)
 			return m_offScreenBuffer->load_font(fnt);
@@ -939,17 +1049,17 @@ protected:
 		return parent->load_font(fnt);
 	}
 
-	virtual gfx::font get_default_font() const
+	virtual string get_default_font_name() const
 	{
 		if (!!m_offScreenBuffer)
-			return m_offScreenBuffer->get_default_font();
+			return m_offScreenBuffer->get_default_font_name();
 
 		if (!!m_bridgedCanvas)
-			return m_bridgedCanvas->get_default_font();
+			return m_bridgedCanvas->get_default_font_name();
 
 		rcptr<pane> parent = get_ancestor_render_pane();
 		COGS_ASSERT(!!parent); // Top level should have bridged canvas.  Should not be called if not installed.
-		return parent->get_default_font();
+		return parent->get_default_font_name();
 	}
 
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& fnt = 0, const color& c = color::constant::black)
@@ -1218,12 +1328,30 @@ protected:
 		uninstall_done();
 	}
 
-	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->character_typing(c, modifiers); }
-	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->key_pressing(c, modifiers); }
-	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers) { return (!!m_subFocus) && m_subFocus->key_releasing(c, modifiers); }
+	virtual bool character_typing(wchar_t c, const ui::modifier_keys_state& modifiers)
+	{
+		if (m_characterTypeHandlers(*this, c, modifiers))
+			return true;
+		return (!!m_subFocus) && m_subFocus->character_typing(c, modifiers);
+	}
+
+	virtual bool key_pressing(wchar_t c, const ui::modifier_keys_state& modifiers)
+	{
+		if (m_keyPressHandlers(*this, c, modifiers))
+			return true;
+		return (!!m_subFocus) && m_subFocus->key_pressing(c, modifiers);
+	}
+
+	virtual bool key_releasing(wchar_t c, const ui::modifier_keys_state& modifiers)
+	{
+		if (m_keyReleaseHandlers(*this, c, modifiers))
+			return true;
+		return (!!m_subFocus) && m_subFocus->key_releasing(c, modifiers);
+	}
 
 	virtual void modifier_keys_changing(const ui::modifier_keys_state& modifiers)
 	{
+		m_modifierKeysChangeEvent(this_rcref, modifiers);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1234,6 +1362,8 @@ protected:
 
 	virtual bool button_pressing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
+		if (m_buttonPressHandlers(*this, btn, pt, modifiers))
+			return true;
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1251,6 +1381,8 @@ protected:
 
 	virtual bool button_releasing(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
+		if (m_buttonReleaseHandlers(*this, btn, pt, modifiers))
+			return true;
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1268,6 +1400,8 @@ protected:
 
 	virtual bool button_double_clicking(mouse_button btn, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
+		if (m_buttonDoubleClickHandlers(*this, btn, pt, modifiers))
+			return true;
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1285,6 +1419,8 @@ protected:
 
 	virtual bool wheel_moving(double distance, const point& pt, const ui::modifier_keys_state& modifiers)
 	{
+		if (m_wheelMoveHandlers(*this, distance, pt, modifiers))
+			return true;
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1303,6 +1439,7 @@ protected:
 	virtual void cursor_entering(const point& pt)
 	{
 		m_cursorWasWithin = true;
+		m_cursorEnterEvent(this_rcref, pt);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1316,6 +1453,7 @@ protected:
 
 	virtual void cursor_moving(const point& pt)
 	{
+		m_cursorMoveEvent(this_rcref, pt);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1339,6 +1477,7 @@ protected:
 
 	virtual void cursor_leaving()
 	{
+		m_cursorLeaveEvent(this_rcref);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1351,6 +1490,7 @@ protected:
 
 	virtual void hiding()
 	{
+		m_hideEvent(this_rcref);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1362,6 +1502,7 @@ protected:
 
 	virtual void showing()
 	{
+		m_showEvent(this_rcref);
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
@@ -1378,18 +1519,27 @@ protected:
 	// Override focusing()/defocusing() to customize on-focus behavior.
 	// Calling the base pane::focusing() or pane::defocusing() will cause
 	// focus propogation to continue.
-	virtual void focusing(int direction) { focus_children(direction); }
+	virtual void focusing(int direction)
+	{
+		m_focusEvent(this_rcref, direction);
+		focus_children(direction);
+	}
 
-	virtual void defocusing() { }
+	virtual void defocusing()
+	{
+		m_defocusEvent(this_rcref);
+	}
 
 	// pane interface - notifications
 
+	// This is invoked only for externally drawn panes, to trigger their own invalidation.
 	virtual void invalidating(const bounds&) { }
 
 	// A parent pane that keeps additional information about nested panes may need to override detaching_child(),
 	// to refresh that data when a pane is removed.
 	virtual void detaching_child(const rcref<pane>& child)
 	{
+		rcptr<pane> parent = get_ancestor_render_pane();
 		if (child->m_installed)
 		{
 			child->m_detaching = true;
@@ -1397,55 +1547,68 @@ protected:
 		}
 	}
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
-		size oldSize = get_size();
-		cell::reshape(b, oldOrigin);
-		size newSize = get_size();
-		bool sizeChanged = oldSize != newSize;
-
-		point renderOffset(0, 0);
-		bounds newVisibleBounds;
-		rcptr<pane> p = get_ancestor_render_pane(renderOffset, newVisibleBounds);
+		cell::reshape(newBounds, oldOrigin);
+		bounds newVisibleBounds = get_size();
+		rcptr<pane> p = get_ancestor_render_pane(newVisibleBounds);
 		if (!m_initialReshapeDone)
 			m_initialReshapeDone = true;
 		else
 		{
-			//bool positionChanged = renderOffset != m_lastRenderOffset;
-			bool isBuffered = m_compositingBehavior != compositing_behavior::no_buffer;
-
-			// Maybe an assumption here that any externally drawn pane that is only repositioned, will have own invalidate/redraw.
-			if (!!p)
+			// trim m_lastVisibleBounds to new rander pane bounds
+			if (!p)
 			{
-				// Invalidate visibly vacated portions of this pane, in the rendering anscestor pane
+				p = this;
+				m_lastVisibleBounds &= get_size();
+			}
+			else
+			{
+				m_lastVisibleBounds &= p->get_size();
+				// Invalidate visibly vacated portions of this pane, in the rendering anscestor pane.
+				p->m_needsDraw = true;
 				auto invalidBounds = m_lastVisibleBounds - newVisibleBounds;
 				for (size_t i = 0; i < invalidBounds.second; i++)
-					p->invalidate(invalidBounds.first[i]);
-
-				if (!is_externally_drawn())
 				{
-					invalidBounds = newVisibleBounds - m_lastVisibleBounds;
-					for (size_t i = 0; i < invalidBounds.second; i++)
-						p->invalidate(invalidBounds.first[i]);
+					bounds& b = invalidBounds.first[i];
+					if (!!b)
+					{
+						p->invalidating(b);
+						p->invalidating_up(b);
+					}
 				}
 			}
-
-			if (sizeChanged && (!p || isBuffered || is_externally_drawn()))
+			if (!!newVisibleBounds)
 			{
-				if (oldSize.get_width() < newSize.get_width())
-					invalidate(bounds(point(oldSize.get_width(), 0), size(newSize.get_width() - oldSize.get_width(), newSize.get_height())));
-
-				if (oldSize.get_height() < newSize.get_height())
-					invalidate(bounds(point(0, oldSize.get_height()), size(newSize.get_width(), newSize.get_height() - oldSize.get_height())));
+				if (m_invalidateOnReshape)
+				{
+					// Invalidate entire pane.
+					p->invalidating(newVisibleBounds);
+					p->invalidating_up(newVisibleBounds);
+				}
+				else
+				{
+					// Invalidate visibly added portions of this pane.
+					p->m_needsDraw = true;
+					auto invalidBounds = newVisibleBounds - m_lastVisibleBounds;
+					for (size_t i = 0; i < invalidBounds.second; i++)
+					{
+						bounds& b = invalidBounds.first[i];
+						if (!!b)
+						{
+							p->invalidating(b);
+							p->invalidating_up(b);
+						}
+					}
+				}
 			}
 		}
 		m_lastVisibleBounds = newVisibleBounds;
-		m_lastRenderOffset = renderOffset;
 
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
-			(*itor)->reshape_frame(b.get_size(), oldOrigin);
+			(*itor)->reshape_frame(newBounds.get_size(), oldOrigin);
 			++itor;
 		}
 	}
@@ -1460,7 +1623,58 @@ protected:
 
 	virtual void set_initial_shape()
 	{
-		reshape_frame(get_frame_default_size());
+		std::optional<size> defaultSizeOpt = get_frame_default_size();
+		size defaultSize = defaultSizeOpt.has_value() ? *defaultSizeOpt : size(0, 0);
+		reshape_frame(defaultSize);
+	}
+
+	virtual gfx::font_parameters get_default_text_font() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_text_font();
+	}
+
+	virtual color get_default_text_foreground_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_text_foreground_color();
+	}
+
+	virtual color get_default_text_background_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_text_background_color();
+	}
+
+	virtual color get_default_selected_text_foreground_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_selected_text_foreground_color();
+	}
+
+	virtual color get_default_selected_text_background_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_selected_text_background_color();
+	}
+
+	virtual color get_default_label_foreground_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_label_foreground_color();
+	}
+
+	virtual color get_default_background_color() const
+	{
+		rcptr<pane> parent = get_ancestor_render_pane();
+		COGS_ASSERT(!!parent); // Window should be installed.  Should not be called if not installed.
+		return parent->get_default_background_color();
 	}
 
 private:
@@ -1623,51 +1837,16 @@ private:
 	{
 		if (!is_externally_drawn())
 		{
-			bounds parentRect = b;
-			rcptr<pane> child = this_rcptr;
-			rcptr<pane> parent = m_parent;
-			for (;;)
+			bounds b2 = b;
+			rcptr<pane> p = get_ancestor_render_pane(b2);
+			COGS_ASSERT(!!p); // Topmost pane should be an externally drawn window.
+			if (!!b2)
 			{
-				if (!parent)
-					break;
-				parentRect += child->get_position();
-				parentRect &= bounds(point(0, 0), parent->get_size());
-				if (!!parentRect.get_width() && !!parentRect.get_height())
-				{
-					if ((parent->m_compositingBehavior != compositing_behavior::buffer_self_and_children) && (!parent->is_externally_drawn()))
-					{
-						child = parent;
-						parent = parent->m_parent;
-						continue;
-					}
-					parent->m_needsDraw = true;
-					parent->invalidating(parentRect);
-					parent->invalidating_up(parentRect);
-				}
-				break;
+				p->m_needsDraw = true;
+				p->invalidating(b2);
+				p->invalidating_up(b2);
 			}
 		}
-	}
-
-	void invalidating_children(const bounds& b) // b is in own coords
-	{
-		pane_list::iterator itor = m_children.get_first();
-		if (!!itor)
-			do {
-				rcref<pane>& child = (*itor);
-				if (!child->is_opaque()) // Only invalidate along with parent if child is self-drawn and not opaque
-				{
-					bounds r2 = b;
-					r2 -= child->get_position(); // convert to child coords
-					r2 &= bounds(child->get_size()); // intersections of child and invalid
-					if (!!r2.get_height() && !!r2.get_width())
-					{
-						if (child->is_externally_drawn())
-							child->invalidating(r2);
-						child->invalidating_children(r2);
-					}
-				}
-			} while (!!++itor);
 	}
 
 	void draw_children()
@@ -1681,7 +1860,7 @@ private:
 		}
 	}
 
-	void clip_opaque_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds, bool onlyIfExternal = false)
+	void clip_opaque_external_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds)
 	{
 		pane_list::iterator itor = fromPane.m_children.get_first();
 		while (!!itor)
@@ -1691,7 +1870,26 @@ private:
 			bounds newVisibleBounds = visibleBounds & b;
 			if (!!newVisibleBounds)
 			{
-				if (p.is_opaque() && (!onlyIfExternal || p.is_externally_drawn()))
+				if (p.is_externally_drawn())
+					clip_out(newVisibleBounds);
+				else
+					clip_opaque_descendants(**itor, b.get_position(), newVisibleBounds);
+			}
+			++itor;
+		}
+	}
+
+	void clip_opaque_descendants(pane& fromPane, const point& offset, const bounds& visibleBounds)
+	{
+		pane_list::iterator itor = fromPane.m_children.get_first();
+		while (!!itor)
+		{
+			pane& p = **itor;
+			bounds b = p.get_bounds() + offset;
+			bounds newVisibleBounds = visibleBounds & b;
+			if (!!newVisibleBounds)
+			{
+				if (p.is_opaque())
 					clip_out(newVisibleBounds);
 				else
 					clip_opaque_descendants(**itor, b.get_position(), newVisibleBounds);
@@ -1717,6 +1915,34 @@ private:
 				if (!!newVisibleBounds)
 				{
 					if (p.is_opaque())
+						clip_out(newVisibleBounds);
+					else
+						clip_opaque_descendants(**itor, b.get_position(), newVisibleBounds);
+				}
+			}
+			curPane = curPane->m_parent;
+			if (!curPane || curPane->is_externally_drawn() || curPane->m_compositingBehavior == compositing_behavior::buffer_self_and_children)
+				break;
+		}
+	}
+
+	void clip_opaque_externals_after(pane& fromPane, const point& offset, const bounds& visibleBounds)
+	{
+		COGS_ASSERT(!fromPane.is_externally_drawn());
+		rcptr<pane> curPane = &fromPane;
+		point parentOffset = offset;
+		for (;;)
+		{
+			pane_list::iterator itor = curPane->m_siblingIterator;
+			parentOffset += -curPane->get_position();
+			while (!!++itor)
+			{
+				pane& p = **itor;
+				bounds b = p.get_bounds() + parentOffset;
+				bounds newVisibleBounds = visibleBounds & b;
+				if (!!newVisibleBounds)
+				{
+					if (p.is_externally_drawn())
 						clip_out(newVisibleBounds);
 					else
 						clip_opaque_descendants(**itor, b.get_position(), newVisibleBounds);
@@ -1919,6 +2145,7 @@ public:
 
 	void detach()
 	{
+		m_detachEvent(this_rcref);
 		rcptr<pane> p = get_parent();
 		if (!!p)
 		{
@@ -1974,7 +2201,7 @@ public:
 		COGS_ASSERT(m_hideShowState != 0); // It's an error to show something already visible.  Counting is only for hiding.
 		if (++m_hideShowState == 0) // if it is becoming visible
 		{
-			m_closeEvent.reset();
+			m_closeCondition.reset();
 			rcptr<pane> parent = get_parent();
 			if (!parent)
 				showing();
@@ -2003,172 +2230,124 @@ public:
 	}
 
 	virtual range get_range() const { return m_currentRange; }
-	virtual size get_default_size() const { return m_currentDefaultSize; }
+	virtual std::optional<size> get_default_size() const { return m_currentDefaultSize; }
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual dimension get_primary_flow_dimension() const
 	{
+		rcptr<pane> parent = m_parent;
+		if (!!parent)
+			return parent->get_primary_flow_dimension();
+		return cell::get_primary_flow_dimension();
+	}
+
+	virtual propose_size_result propose_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		sizing_mask sizingMask = all_sizing_types) const
+	{
+		propose_size_result result;
+		if (sizingMask == sizing_mask::no_flags)
+			return result;
+
+		range r2 = get_range() & r;
+
 		// Since the default behavior is to constrain the parent,
 		// we need to give children a chance to consider the proposed size.
-		if (!m_children.get_first())
-			return cell::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		if (m_children.is_empty())
+			return cell::propose_size(sz, r2, resizeDimension, sizingMask);
+		if (m_children.size() == 1)
+			return (*m_children.get_first())->propose_frame_size(sz, r2, resizeDimension, sizingMask);
 
-		propose_size_result result;
-		result.set_empty();
-		range r2 = get_range() & r;
 		if (!r2.is_empty())
 		{
-			struct sizing_state_per_index
+			size sz2 = r2.limit(sz);
+
+			struct state
 			{
-				bool isNeeded;
-				bool isAsProposed;
+				sizing_mask mode;
+				size sz;
+				pane* paneToSkip;
 			};
 
-			struct sizing_state
+			backed_vector<state, 4> states(1, { sizingMask, sz2, nullptr });
+			for (size_t stateIndex = 0; stateIndex < states.get_length(); stateIndex++)
 			{
-				size cellSize;
-				sizing_state_per_index perIndex[4];
-				int indexCount;
-			};
-
-			sizing_state sizingStates[4];
-			int numSizingStates = 1;
-			sizingStates[0].cellSize = sz;
-			sizingStates[0].perIndex[0].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::greater;
-			sizingStates[0].perIndex[1].isNeeded = horizontalMode != size_mode::greater && verticalMode != size_mode::lesser;
-			sizingStates[0].perIndex[2].isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::greater;
-			sizingStates[0].perIndex[3].isNeeded = horizontalMode != size_mode::lesser && verticalMode != size_mode::lesser;
-			sizingStates[0].indexCount = 0;
-			for (int i = 0; i < 4; i++)
-			{
-				if (sizingStates[0].perIndex[i].isNeeded)
-					sizingStates[0].indexCount++;
-			}
-
-			int sizesIndex = 0;
-			while (sizesIndex < numSizingStates)
-			{
-				propose_size_result childResult;
-				sizing_state& sizingState = sizingStates[sizesIndex];
-				size currentProposed = sizingState.cellSize;
-
-				horizontalMode =
-					(!sizingState.perIndex[0].isNeeded && !sizingState.perIndex[1].isNeeded)
-					? size_mode::greater
-					: ((!sizingState.perIndex[2].isNeeded && !sizingState.perIndex[3].isNeeded)
-						? size_mode::lesser
-						: size_mode::both);
-
-				verticalMode =
-					(!sizingState.perIndex[0].isNeeded && !sizingState.perIndex[2].isNeeded)
-					? size_mode::greater
-					: ((!sizingState.perIndex[1].isNeeded && !sizingState.perIndex[3].isNeeded)
-						? size_mode::lesser
-						: size_mode::both);
-
+				state& currentState = states.get_ptr()[stateIndex];
 				pane_list::iterator itor = m_children.get_first();
-				pane_list::iterator itorToSkip;
+				propose_size_result result2;
 				while (!!itor)
 				{
-					if (itor != itorToSkip)
+					pane* p = itor->get_ptr();
+					if (p == currentState.paneToSkip)
 					{
-						childResult = (*itor)->propose_frame_size(currentProposed, resizeDimension, r2, horizontalMode, verticalMode);
-						int asProposedIndex;
-						int foundIndex = -1;
-						bool resetScan = false;
-						bool isAnyAsProposed = false;
-						bool isAllSame = true;
-						for (int i = 0; i < 4; i++)
+						++itor;
+						continue;
+					}
+					result2 = (*itor)->propose_frame_size(currentState.sz, r2, resizeDimension, currentState.mode);
+					sizing_mask differentSizeMask = sizing_mask::no_flags;
+					for (int i = 0; i < 4; i++)
+					{
+						sizing_type sizingType = static_cast<sizing_type>(1 << i);
+						if (!(currentState.mode & sizingType))	// Skip if not requested.
+							continue;
+						if (!result2.indexed_sizes[i].has_value()) // null is a dead end, remove.
 						{
-							sizing_state_per_index& indexInfo = sizingState.perIndex[i];
-							if (indexInfo.isNeeded)
-							{
-								std::optional<size>& proposedSize = childResult.sizes[i];
-								if (!proposedSize.has_value())
-								{
-									if (!--sizingState.indexCount)
-										break;
-									continue;
-								}
-								bool b = proposedSize.value() == currentProposed;
-								if (b)
-									asProposedIndex = i;
-								indexInfo.isAsProposed = b;
-								isAnyAsProposed |= b;
-								if (foundIndex == -1)
-									foundIndex = i;
-								else
-									isAllSame &= proposedSize.value() == childResult.sizes[foundIndex].value();
-							}
-						}
-						if (sizingState.indexCount == 0)
-							break;
-						if (isAllSame)
-							resetScan = !sizingState.perIndex[foundIndex].isAsProposed;
-						else
-						{
-							for (int i = 0; i < 4; i++)
-							{
-								sizing_state_per_index& indexInfo = sizingState.perIndex[i];
-								if (indexInfo.isNeeded && !indexInfo.isAsProposed)
-								{
-									if (!isAnyAsProposed)
-									{
-										resetScan = true;
-										foundIndex = i;
-										isAnyAsProposed = true;
-									}
-									else
-									{
-										// Create a new context for this
-										sizing_state& sizingState2 = sizingStates[numSizingStates];
-										++numSizingStates;
-										sizingState2.indexCount = 1;
-										sizingState2.cellSize = childResult.sizes[i].value();
-										sizingState2.perIndex[3].isNeeded = sizingState2.perIndex[2].isNeeded = sizingState2.perIndex[1].isNeeded = sizingState2.perIndex[0].isNeeded = false;
-										sizingState2.perIndex[i].isNeeded = true;
-										// If any indexes ahead have the same value, move them also
-										for (int j = i + 1; j < 4; j++)
-										{
-											bool& isNeeded = sizingState.perIndex[j].isNeeded;
-											if (isNeeded && sizingState2.cellSize == childResult.sizes[j].value())
-											{
-												isNeeded = false;
-												sizingState.indexCount--; // Will not hit 0 here, due to isAnyAsProposed
-												sizingState2.perIndex[j].isNeeded = true;
-												sizingState2.indexCount++;
-											}
-										}
-									}
-								}
-							}
-						}
-						if (resetScan)
-						{
-							currentProposed = childResult.sizes[foundIndex].value();
-							itorToSkip = itor;
-							itor = m_children.get_first();
+							currentState.mode -= sizingType;
 							continue;
 						}
+						if (*result2.indexed_sizes[i] == currentState.sz)
+							continue;
+						differentSizeMask += sizingType;
 					}
-					++itor;
+					if (currentState.mode == sizing_mask::no_flags)
+						break;
+					if (differentSizeMask == sizing_mask::no_flags) // If all were accepted
+					{
+						++itor;
+						continue;
+					}
+					size_t startScanStateIndex = stateIndex;
+					if (differentSizeMask == currentState.mode) // None were accepted
+					{
+						states.truncate(1);
+						itor = m_children.get_first();
+					}
+					else // If at least one was accepted
+					{
+						currentState.paneToSkip = p;
+						startScanStateIndex++;
+						++itor;
+					}
+					for (auto differentSizeType : differentSizeMask)
+					{
+						auto bit_index = get_flag_index(differentSizeType);
+						size& differentSize = *result2.indexed_sizes[bit_index];
+						// Check if already present in the vector.
+						bool found = false;
+						for (size_t i = startScanStateIndex; i < states.get_length(); i++)
+						{
+							state& cmpState = states.get_ptr()[i];
+							if (cmpState.sz == differentSize)
+							{
+								cmpState.mode += differentSizeType;
+								found = true;
+								break;
+							}
+						}
+						if (!found)
+							states.append(1, { sizing_mask::no_flags | differentSizeType, differentSize, p });
+					}
 					//continue;
 				}
-
-				if (sizingState.indexCount != 0)
+				// Add to result.
+				for (auto sizingType : currentState.mode)
 				{
-					if (sizingState.perIndex[0].isNeeded)
-						result.sizes[0] = currentProposed;
-					if (sizingState.perIndex[1].isNeeded)
-						result.sizes[1] = currentProposed;
-					if (sizingState.perIndex[2].isNeeded)
-						result.sizes[2] = currentProposed;
-					if (sizingState.perIndex[3].isNeeded)
-						result.sizes[3] = currentProposed;
+					auto bit_index = get_flag_index(sizingType);
+					result.indexed_sizes[bit_index] = *result2.indexed_sizes[bit_index];
 				}
-
-				sizesIndex++;
 			}
-			result.make_relative(sz);
+			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
@@ -2183,6 +2362,8 @@ public:
 	bool is_installing() const { return m_installing; }
 	bool is_uninstalling() const { return m_uninstalling; }
 
+	// is_drawing_needed() is only valid for a pane with a backing buffer.
+	// Calls to invalidate() will set this to true.  When false, the backing buffer can be used and drawing() will not be called.
 	bool is_drawing_needed() const { return m_needsDraw; }
 
 	// If a pane is 'externally' drawn, that implies it's rendered by something
@@ -2194,7 +2375,6 @@ public:
 	}
 
 	friend class pane_orchestrator;
-
 };
 
 
@@ -2225,31 +2405,22 @@ public:
 class canvas_pane : public pane, public virtual pane_container, public virtual gfx::canvas
 {
 public:
-	typedef function<void(const rcref<canvas_pane>&)> draw_delegate_t;
+	typedef event<const rcref<canvas_pane>&> draw_event_t;
 
 private:
-	draw_delegate_t m_drawDelegate;
-	bool m_invalidateOnReshape;
+	draw_event_t m_drawEvent;
 
 protected:
 	virtual void drawing()
 	{
-		if (!!m_drawDelegate)
-			m_drawDelegate(this_rcref);
-	}
-
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
-	{
-		pane::reshape(b, oldOrigin);
-		if (m_invalidateOnReshape)
-			invalidate(get_size());
+		m_drawEvent(this_rcref);
 	}
 
 public:
 	struct options
 	{
-		draw_delegate_t drawDelegate;
 		bool invalidateOnReshape = true;
+		draw_event_t drawEvent;
 		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
 		frame_list frames;
 		pane_list children;
@@ -2261,19 +2432,19 @@ public:
 
 	explicit canvas_pane(options&& o)
 		: pane({
+			.invalidateOnReshape = o.invalidateOnReshape,
 			.compositingBehavior = o.compositingBehavior,
 			.frames = std::move(o.frames),
-			.children = std::move(o.children)
+			.children = std::move(o.children),
 		}),
-		m_drawDelegate(std::move(o.drawDelegate)),
-		m_invalidateOnReshape(o.invalidateOnReshape)
+		m_drawEvent(std::move(o.drawEvent))
 	{ }
 
 	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) { pane::fill(b, c, blendAlpha); }
 	virtual void invert(const bounds& b) { pane::invert(b); }
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true) { pane::draw_line(startPt, endPt, width, c, blendAlpha); }
-	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) { return pane::load_font(f); }
-	virtual gfx::font get_default_font() const { return pane::get_default_font(); }
+	virtual rcref<font> load_font(const gfx::font_parameters_list& f = gfx::font_parameters_list()) { return pane::load_font(f); }
+	virtual string get_default_font_name() const { return pane::get_default_font_name(); }
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::constant::black) { pane::draw_text(s, b, f, c); }
 	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true) { return pane::draw_bitmap(src, srcBounds, dstBounds, blendAlpha); }
 	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true) { pane::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha); }
@@ -2308,6 +2479,14 @@ public:
 	virtual void nest_first(const rcref<pane>& child) { pane::nest_first(child); }
 	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { pane::nest_before(beforeThis, child); }
 	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { pane::nest_after(afterThis, child); }
+
+	virtual gfx::font_parameters get_default_text_font() const { return pane::get_default_text_font(); }
+	virtual color get_default_text_foreground_color() const { return pane::get_default_text_foreground_color(); }
+	virtual color get_default_text_background_color() const { return pane::get_default_text_background_color(); }
+	virtual color get_default_selected_text_foreground_color() const { return pane::get_default_selected_text_foreground_color(); }
+	virtual color get_default_selected_text_background_color() const { return pane::get_default_selected_text_background_color(); }
+	virtual color get_default_label_foreground_color() const { return pane::get_default_label_foreground_color(); }
+	virtual color get_default_background_color() const { return pane::get_default_background_color(); }
 };
 
 

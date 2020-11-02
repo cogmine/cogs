@@ -109,7 +109,7 @@ class auto_handle<value_t, invalidValue, dispose_func, std::enable_if_t<can_atom
 private:
 	typedef auto_handle<value_t, invalidValue, dispose_func> this_t;
 
-	alignas (cogs::atomic::get_alignment_v<value_t>) value_t m_value;
+	alignas(atomic::get_alignment_v<value_t>) value_t m_value;
 
 public:
 	auto_handle()

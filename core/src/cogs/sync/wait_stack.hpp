@@ -17,16 +17,20 @@
 
 namespace cogs {
 
+template <typename T, bool coalesc_equal = true>
+using wait_container_stack_node = container_stack_node<T, coalesc_equal>;
+
 /// @ingroup LockFreeCollections
 /// @brief A container_stack that can perform a blocking wait.
 /// @tparam T type to contain
 /// @tparam coalesc_equal If true, contiguous equal elements may be coalesced.  Default: true
 /// @tparam allocator_type Type of allocator to use to allocate elements.  Default: default_allocator
-template <typename T, bool coalesc_equal = true, class allocator_type = default_allocator>
+template <typename T, bool coalesc_equal = true, class allocator_t = batch_allocator<wait_container_stack_node<T, coalesc_equal>>>
 class wait_container_stack
 {
 public:
 	typedef T type;
+	typedef allocator_t allocator_type;
 	typedef wait_container_stack<type, coalesc_equal, allocator_type> this_t;
 
 private:
@@ -38,10 +42,6 @@ private:
 
 public:
 	wait_container_stack()
-	{ }
-
-	explicit wait_container_stack(volatile allocator_type& al)
-		: m_stack(al)
 	{ }
 
 	void insert(const type& t, unsigned int n = 1) volatile
@@ -79,10 +79,6 @@ private:
 
 public:
 	wait_container_stack()
-	{ }
-
-	explicit wait_container_stack(volatile allocator_type& al)
-		: m_stack(al)
 	{ }
 
 	void insert(const type& t) volatile

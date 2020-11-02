@@ -213,8 +213,6 @@ public:
 	{
 		if (m_infinite)
 			return false;
-		//if (!m_period)
-		//	return true;
 		return expired_inner(now(), m_expireTime);
 	}
 

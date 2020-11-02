@@ -802,7 +802,7 @@
 //		while (!!n)
 //		{
 //			ptr<node> n2 = node::get_next_postorder(n);
-//			default_allocator::destruct_deallocate_type(n.get());
+//			default_memory_manager::destruct_deallocate_type(n.get());
 //			n = n2;
 //		}
 //	}
@@ -846,7 +846,7 @@
 //	};
 //
 //	segment_map() : m_count(0) { }
-//	segment_map(const segment<file_size_t>& s) : m_count(1) { m_list.insert(new (default_allocator::get()) node(s)); }
+//	segment_map(const segment<file_size_t>& s) : m_count(1) { m_list.insert(new (default_memory_manager::get()) node(s)); }
 //
 //	~segment_map() { clear_inner(); }
 //
@@ -907,7 +907,7 @@
 //		}
 //		if (!overlapping)
 //		{
-//			ptr<node> newNode = new (default_allocator::get()) node(s);
+//			ptr<node> newNode = new (default_memory_manager::get()) node(s);
 //			itor.m_node = newNode;
 //			m_list.insert(newNode);
 //			++m_count;
@@ -933,7 +933,7 @@
 //				{
 //					ptr<node> next = node::get_next(leadingNode);
 //					m_list.remove(leadingNode);
-//					default_allocator::destruct_deallocate_type(leadingNode);
+//					default_memory_manager::destruct_deallocate_type(leadingNode);
 //					--m_count;
 //					leadingNode = next;
 //				}
@@ -958,7 +958,7 @@
 //	void remove(iterator& itor)
 //	{
 //		m_list.remove(itor.m_node);
-//		default_allocator::destruct_deallocate_type(itor.m_node.get());
+//		default_memory_manager::destruct_deallocate_type(itor.m_node.get());
 //		itor.m_node.clear();
 //		--m_count;
 //	}
@@ -975,7 +975,7 @@
 //				if (n->get_start() < s->get_start()) // Surrounds it.  Need to poke a hole.
 //				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
-//					m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
+//					m_list.insert(new (default_memory_manager::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
 //					break;
 //				}
 //				n->advance(segmentEnd - n->get_start()); // include only the trailing region
@@ -1083,7 +1083,7 @@
 //		while (!!n)
 //		{
 //			ptr<node> n2 = node::get_next_postorder(n);
-//			default_allocator::destruct_deallocate_type(n.get());
+//			default_memory_manager::destruct_deallocate_type(n.get());
 //			n = n2;
 //		}
 //	}
@@ -1133,7 +1133,7 @@
 //
 //	segment_buffer_map(const segment_buffer<file_size_t>& sb)
 //		: m_count(1)
-//	{ m_list.insert(new (default_allocator::get()) node(sb)); }
+//	{ m_list.insert(new (default_memory_manager::get()) node(sb)); }
 //
 //	~segment_buffer_map() { clear_inner(); }
 //
@@ -1170,7 +1170,7 @@
 //					trailingNode->truncate_to(startGap); // Just need to split off the front.
 //				else // if (sbEnd < trailingEnd) // need to break it into 3 parts, to split off the end also
 //				{
-//					m_list.insert(new (default_allocator::get()) node(trailingNode->m_segmentBuffer.split_off_after(startGap).split_off_before(sb.get_length())));
+//					m_list.insert(new (default_memory_manager::get()) node(trailingNode->m_segmentBuffer.split_off_after(startGap).split_off_before(sb.get_length())));
 //					++m_count;
 //				}
 //				trailingNode = 0;
@@ -1195,7 +1195,7 @@
 //						ptr<node> next = node::get_next(leadingNode);
 //						m_list.remove(leadingNode);
 //						--m_count;
-//						default_allocator::destruct_deallocate_type(leadingNode);
+//						default_memory_manager::destruct_deallocate_type(leadingNode);
 //						leadingNode = next;
 //					}
 //				}
@@ -1210,7 +1210,7 @@
 //		}
 //		if (!trailingNode)
 //		{
-//			trailingNode = new (default_allocator::get()) node(sb);
+//			trailingNode = new (default_memory_manager::get()) node(sb);
 //			m_list.insert(trailingNode);
 //			++m_count;
 //		}
@@ -1235,7 +1235,7 @@
 //	void remove(iterator& itor)
 //	{
 //		m_list.remove(itor.m_node);
-//		default_allocator::destruct_deallocate_type(itor.m_node.get());
+//		default_memory_manager::destruct_deallocate_type(itor.m_node.get());
 //		itor.m_node.clear();
 //		--m_count;
 //	}
@@ -1252,7 +1252,7 @@
 //				if (n->get_start() < s->get_start()) // Surrounds it.  Need to poke a hole.
 //				{
 //					n->m_segment.truncate_to(s->get_start() - n->get_start());
-//					m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
+//					m_list.insert(new (default_memory_manager::get()) node(segment<file_size_t>(segmentEnd, nodeEnd - segmentEnd)));
 //					break;
 //				}
 //				n->advance(segmentEnd - n->get_start()); // include only the trailing region
@@ -1687,14 +1687,14 @@
 //		while (!!n)
 //		{
 //			ptr<node> n2 = node::get_next_postorder(n);
-//			default_allocator::destruct_deallocate_type(n.get());
+//			default_memory_manager::destruct_deallocate_type(n.get());
 //			n = n2;
 //		}
 //	}
 //
 //	node* split_off_after(node& n, file_size_t i)
 //	{
-//		node* newNode = new (default_allocator::get()) node(n, i);
+//		node* newNode = new (default_memory_manager::get()) node(n, i);
 //		m_list.insert(newNode);
 //		return newNode;
 //	}
@@ -1763,13 +1763,13 @@
 //			nodeEnd = n->get_end();
 //		if ((!n) || (nodeEnd <= s.get_start()))
 //		{
-//			n = new (default_allocator::get()) node(s);
+//			n = new (default_memory_manager::get()) node(s);
 //			m_list.insert(n);
 //		}
 //		else // Node ends after the segment starts
 //		{
 //			if (nodeEnd < segmentEnd) // If extending past the new range, create a new block to bridge the gap
-//				m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(nodeEnd, segmentEnd - nodeEnd)));
+//				m_list.insert(new (default_memory_manager::get()) node(segment<file_size_t>(nodeEnd, segmentEnd - nodeEnd)));
 //			else if (segmentEnd < nodeEnd) // If splitting the block at the end
 //				split_off_after(*n, segmentEnd - n->get_start());
 //
@@ -1782,13 +1782,13 @@
 //					node* prev = node::get_prev(n);
 //					if ((!prev) || (prev->get_end() <= s.get_start())) // Nothing prior within this segment, create 1 new segment
 //					{
-//						n = new (default_allocator::get()) node(segment<file_size_t>(s.get_start(), n->get_start()));
+//						n = new (default_memory_manager::get()) node(segment<file_size_t>(s.get_start(), n->get_start()));
 //						m_list.insert(n);
 //						break;
 //					}
 //					//else // (s.get_start() < prev->m_end) // If prev ends within our block
 //					if (prev->get_end() < n->get_start()) // If prev ends before subsequent block starts, fill the gap
-//						m_list.insert(new (default_allocator::get()) node(segment<file_size_t>(prev->get_end(), n->get_start())));
+//						m_list.insert(new (default_memory_manager::get()) node(segment<file_size_t>(prev->get_end(), n->get_start())));
 //					n = prev;
 //					//continue;
 //				}
@@ -1800,7 +1800,7 @@
 //	void remove(iterator& itor)
 //	{
 //		m_list.remove(itor.m_node);
-//		default_allocator::destruct_deallocate_type(itor.m_node.get());
+//		default_memory_manager::destruct_deallocate_type(itor.m_node.get());
 //		itor.m_node.clear();
 //	}
 //};
@@ -1818,7 +1818,7 @@
 //		reader(const reader&);
 //		reader& operator=(const reader&);
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		rcref<segment_map<file_size_t> > m_unreadSegments; // Takes ownership of map passed in.
 //		rcref<segment_buffer_map<file_size_t> > m_readSegmentBuffers; // Starts out empty
 //
@@ -1830,7 +1830,7 @@
 //			self_acquire();
 //		}
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //
 //	public:
 //		const rcref<segment_map<file_size_t> >& get_unread_segments() const { return m_unreadSegments; }
@@ -1838,9 +1838,9 @@
 //
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref)); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref)); }
 //	};
 //
 //	rcref<reader> read(file_size_t offset, buffer_size_t n) { return begin_read(rcnew(segment_map<file_size_t>)(segment<file_size_t>(offset, n))); }
@@ -1853,7 +1853,7 @@
 //		size_reader(const size_reader&);
 //		size_reader& operator=(const size_reader&);
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		file_size_t m_size;
 //
 //	protected:
@@ -1863,7 +1863,7 @@
 //			self_acquire();
 //		}
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //
 //		void set_size(const file_size_t& sz) { m_size = sz; }
 //
@@ -1872,9 +1872,9 @@
 //
 //		typedef delegate_t<void, const rcref<const size_reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	virtual rcref<size_reader> get_size() = 0;
@@ -1893,7 +1893,7 @@
 //		writer(const writer&);
 //		writer& operator=(const writer&);
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		rcref<segment_buffer_map<file_size_t> > m_unwrittenBuffers; // Takes ownership of map passed in.
 //
 //	protected:
@@ -1903,16 +1903,16 @@
 //			self_acquire();
 //		}
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //
 //	public:
 //		const rcref<segment_buffer_map<file_size_t> >& get_unwritten_buffers() const { return m_unwrittenBuffers; }
 //
 //		typedef delegate_t<void, const rcref<const writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1 const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1 const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	rcref<writer> write(file_size_t offset, void* b, size_t n) { return begin_write(rcnew(segment_buffer_map)(offset, const_buffer::contain(b, n))); }
@@ -1926,7 +1926,7 @@
 //		size_writer(const size_writer&);
 //		size_writer& operator=(const size_writer&);
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		file_size_t m_size;
 //
 //	protected:
@@ -1936,16 +1936,16 @@
 //			self_acquire();
 //		}
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //
 //	public:
 //		const file_size_t& get_size() const { return m_size; }
 //
 //		typedef delegate_t<void, const rcref<const size_writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	// May fail if the underlying file implementation does not support resizing.
@@ -2655,7 +2655,7 @@
 //					{
 //						if (!--r.m_numWaitingReads)
 //							r.complete(); // Might have been the last thing that reader was waiting for.
-//						default_allocator::destruct_deallocate_type(waitingReadSegment);
+//						default_memory_manager::destruct_deallocate_type(waitingReadSegment);
 //					}
 //				}
 //				waitingReadSegment = nextWaitingReadSegment;
@@ -3258,7 +3258,7 @@
 //				}
 //				else if (!!curNode->m_initialized) // Read in progress.  Wait for it to complete.
 //				{
-//					waiting_read_segment* waitingSegment = new (default_allocator::get()) waiting_read_segment(*r);
+//					waiting_read_segment* waitingSegment = new (default_memory_manager::get()) waiting_read_segment(*r);
 //
 //					++(r->m_numWaitingReads);
 //
@@ -3334,7 +3334,7 @@
 //
 //				if (!!curNode->m_initialized) // if existing read or write.
 //				{ // If read or write in progress.  Queue ours up for later.  (TBD: What about caching?)
-//					waiting_write_segment* waitingSegment = new (default_allocator::get()) waiting_write_segment(*w);
+//					waiting_write_segment* waitingSegment = new (default_memory_manager::get()) waiting_write_segment(*w);
 //
 //					++(w->m_numWaitingWrites);
 //
@@ -4002,7 +4002,7 @@
 //*/
 //
 ///*
-//	class cursor : public datasource, public object
+//	class cursor : public datasource
 //	{
 //	protected:
 //		const weak_rcptr<file<read_access, file_size_t> > m_source;
@@ -4589,7 +4589,7 @@
 //			while (!!n)
 //			{
 //				node* n2 = node::get_next_postorder(n);
-//				default_allocator::destruct_deallocate_type(n.get());
+//				default_memory_manager::destruct_deallocate_type(n.get());
 //				n = n2;
 //			}
 //		}
@@ -4600,7 +4600,7 @@
 //
 //		segment_map_base(const segment_buffer& sb)
 //		{
-//			m_list.insert(new (default_allocator::get()) node(sb));
+//			m_list.insert(new (default_memory_manager::get()) node(sb));
 //		}
 //
 //		~segment_list_base() { clear_inner(); }
@@ -4664,7 +4664,7 @@
 //			if (!overlapping)
 //			{
 ////				++m_count;
-//				m_list.insert(new (default_allocator::get()) node(s));
+//				m_list.insert(new (default_memory_manager::get()) node(s));
 //			}
 //			else // trailingEnd will be set
 //			{
@@ -4687,7 +4687,7 @@
 //					{
 //						node* next = node::get_next(*leadingNode);
 //						m_list.remove(leadingNode);
-//						default_allocator::destruct_deallocate_type(leadingNode);
+//						default_memory_manager::destruct_deallocate_type(leadingNode);
 ////						--m_count;
 //						leadingNode = next;
 //					}
@@ -4714,7 +4714,7 @@
 //		void remove(const iterator& itor)
 //		{
 //			m_list.remove(itor.m_node);
-//			default_allocator::destruct_deallocate_type(itor.m_node.get());
+//			default_memory_manager::destruct_deallocate_type(itor.m_node.get());
 //			itor.m_node = 0;
 //			//--m_count;
 //		}
@@ -5080,7 +5080,7 @@
 //			while (!!n)
 //			{
 //				node* n2 = node::get_next_postorder(n);
-//				default_allocator::destruct_deallocate_type(n.get());
+//				default_memory_manager::destruct_deallocate_type(n.get());
 //				n = n2;
 //			}
 //		}
@@ -5121,7 +5121,7 @@
 //		};
 //
 //		segment_list_base() : m_count(0) { }
-//		segment_list_base(const segment_t& s) : m_count(1) { m_list.insert(new (default_allocator::get()) node(s)); }
+//		segment_list_base(const segment_t& s) : m_count(1) { m_list.insert(new (default_memory_manager::get()) node(s)); }
 //
 //		~segment_list_base() { clear_inner(); }
 //
@@ -5176,7 +5176,7 @@
 //			if (!overlapping)
 //			{
 //				++m_count;
-//				m_list.insert(new (default_allocator::get()) node(s));
+//				m_list.insert(new (default_memory_manager::get()) node(s));
 //			}
 //			else // trailingEnd will be set
 //			{
@@ -5199,7 +5199,7 @@
 //					{
 //						node* next = node::get_next(*leadingNode);
 //						m_list.remove(leadingNode);
-//						default_allocator::destruct_deallocate_type(leadingNode);
+//						default_memory_manager::destruct_deallocate_type(leadingNode);
 //						--m_count;
 //						leadingNode = next;
 //					}
@@ -5212,7 +5212,7 @@
 //		void remove(const iterator& itor)
 //		{
 //			m_list.remove(itor.m_node);
-//			default_allocator::destruct_deallocate_type(itor.m_node.get());
+//			default_memory_manager::destruct_deallocate_type(itor.m_node.get());
 //			itor.m_node = 0;
 //			--m_count;
 //		}
@@ -5259,7 +5259,7 @@
 //
 //		map_segment* split_off_after_at(map_segment& ss, file_size_t p)
 //		{
-//			map_segment* result = new (default_allocator::get()) map_segment(segment(ss.m_end, p), ss.m_contents.split_off_after(p - ss.m_start));
+//			map_segment* result = new (default_memory_manager::get()) map_segment(segment(ss.m_end, p), ss.m_contents.split_off_after(p - ss.m_start));
 //			ss.m_end = p;
 //			m_list.insert(result);
 //			return result;
@@ -5267,7 +5267,7 @@
 //
 //		map_segment* split_off_before_at(map_segment& ss, file_size_t p)
 //		{
-//			map_segment* result = new (default_allocator::get()) map_segment(segment(ss.m_start, p), ss.m_contents.split_off_before(p - ss.m_start));
+//			map_segment* result = new (default_memory_manager::get()) map_segment(segment(ss.m_start, p), ss.m_contents.split_off_before(p - ss.m_start));
 //			ss.m_start = p;
 //			m_list.insert(result);
 //			return result;
@@ -5306,13 +5306,13 @@
 //			map_segment* ss = m_list.find_nearest_less_than(s.m_end);
 //			if ((!ss) || (ss->m_end <= s.m_start))
 //			{
-//				ss = new (default_allocator::get()) map_segment(s);
+//				ss = new (default_memory_manager::get()) map_segment(s);
 //				m_list.insert(ss);
 //			}
 //			else
 //			{
 //				if (ss->m_end < s.m_end) // If extending past the new range, create a new block to bridge the gap
-//					m_list.insert(new (default_allocator::get()) map_segment(segment(ss->m_end, s.m_end)));
+//					m_list.insert(new (default_memory_manager::get()) map_segment(segment(ss->m_end, s.m_end)));
 //				else if (s.m_end < ss->m_end) // If splitting the block at the end
 //					split_off_after_at(ss, s.m_end);
 //				for (;;) // just to use break/continue as goto labels
@@ -5324,13 +5324,13 @@
 //						map_segment* prev = map_segment::get_prev(ss);
 //						if ((!prev) || (prev->m_end <= s.m_start)) // Nothing prior within this segment, create 1 new segment
 //						{
-//							ss = new (default_allocator::get()) map_segment(segment(s.m_start, ss->m_start));
+//							ss = new (default_memory_manager::get()) map_segment(segment(s.m_start, ss->m_start));
 //							m_list.insert(ss);
 //						}
 //						else // (s.m_start < prev->m_end) // If prev ends within our block
 //						{
 //							if (prev->m_end < ss->m_start) // If prev ends before subsequent block starts, fill the gap
-//								m_list.insert(new (default_allocator::get()) map_segment(segment(prev->m_end, ss->m_start)));
+//								m_list.insert(new (default_memory_manager::get()) map_segment(segment(prev->m_end, ss->m_start)));
 //							ss = prev;
 //							continue;
 //						}
@@ -5344,7 +5344,7 @@
 //		void remove_segment(map_segment& s)
 //		{
 //			m_list.remove(s);
-//			default_allocator::destruct_deallocate_type(&s);
+//			default_memory_manager::destruct_deallocate_type(&s);
 //		}
 //	};
 //
@@ -5387,7 +5387,7 @@
 //	protected:
 //		friend class file<read_access>;
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		segment_list m_requestedSegments;
 //		vector_buffer m_vectorBuffer;
 //		rcptr<reader> m_nextReader;
@@ -5396,7 +5396,7 @@
 //
 //		reader() : m_numInnerReaders(0) { self_acquire(); }
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //		virtual void reading() { complete(); }
 //
 //	public:
@@ -5405,12 +5405,12 @@
 //
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
-//	class read_only_cursor : public datasource, public object
+//	class read_only_cursor : public datasource
 //	{
 //	protected:
 //		friend class file<read_access>;
@@ -5647,7 +5647,7 @@
 //		friend class file<read_access>;
 //		friend class file<read_write_access>;
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		vector_buffer m_unwrittenBuffers;
 //		rcptr<writer> m_nextWriter;
 //		size_t m_numInnerWriters;
@@ -5655,7 +5655,7 @@
 //
 //		writer() : m_numInnerWriters(0) { self_acquire(); }
 //
-//		void complete() { m_event.set(); self_release(); }
+//		void complete() { m_condition.set(); self_release(); }
 //		virtual void writing() { complete(); }
 //
 //	public:
@@ -5663,9 +5663,9 @@
 //
 //		typedef delegate_t<void, const rcref<const writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //	class inner_reader : public reader
@@ -5712,7 +5712,7 @@
 //
 //		state_segment* split_off_after_at(state_segment& ss, file_size_t p)
 //		{
-//			state_segment* result = new (default_allocator::get()) state_segment(ss, segment(ss.m_end, p), ss.m_buffer.split_back(p - ss.m_start));
+//			state_segment* result = new (default_memory_manager::get()) state_segment(ss, segment(ss.m_end, p), ss.m_buffer.split_back(p - ss.m_start));
 //			ss.m_end = p;
 //			m_subrangeList.insert(result);
 //			return result;
@@ -5720,7 +5720,7 @@
 //
 //		state_segment* split_off_before_at(state_segment& ss, file_size_t p)
 //		{
-//			state_segment* result = new (default_allocator::get()) state_segment(ss, segment(ss.m_start, p), ss.m_buffer.split_front(p - ss.m_start));
+//			state_segment* result = new (default_memory_manager::get()) state_segment(ss, segment(ss.m_start, p), ss.m_buffer.split_front(p - ss.m_start));
 //			ss.m_start = p;
 //			m_subrangeList.insert(result);
 //			return result;
@@ -5759,13 +5759,13 @@
 //			state_segment* ss = m_subrangeList.find_nearest_less_than(s.m_end);
 //			if ((!ss) || (ss->m_end <= s.m_start))
 //			{
-//				ss = new (default_allocator::get()) state_segment(s);
+//				ss = new (default_memory_manager::get()) state_segment(s);
 //				m_subrangeList.insert(ss);
 //			}
 //			else
 //			{
 //				if (ss->m_end < s.m_end) // If extending past the new range, create a new block to bridge the gap
-//					m_subrangeList.insert(new (default_allocator::get()) state_segment(segment(ss->m_end, s.m_end)));
+//					m_subrangeList.insert(new (default_memory_manager::get()) state_segment(segment(ss->m_end, s.m_end)));
 //				else if (s.m_end < ss->m_end) // If splitting the block at the end
 //					split_off_after_at(ss, s.m_end);
 //				for (;;) // just to use break/continue as goto labels
@@ -5777,13 +5777,13 @@
 //						state_segment* prev = state_segment::get_prev(ss);
 //						if ((!prev) || (prev->m_end <= s.m_start)) // Nothing prior within this segment, create 1 new segment
 //						{
-//							ss = new (default_allocator::get()) state_segment(segment(s.m_start, ss->m_start));
+//							ss = new (default_memory_manager::get()) state_segment(segment(s.m_start, ss->m_start));
 //							m_subrangeList.insert(ss);
 //						}
 //						else // (s.m_start < prev->m_end) // If prev ends within our block
 //						{
 //							if (prev->m_end < ss->m_start) // If prev ends before subsequent block starts, fill the gap
-//								m_subrangeList.insert(new (default_allocator::get()) state_segment(segment(prev->m_end, ss->m_start)));
+//								m_subrangeList.insert(new (default_memory_manager::get()) state_segment(segment(prev->m_end, ss->m_start)));
 //							ss = prev;
 //							continue;
 //						}
@@ -5797,7 +5797,7 @@
 //		void remove_segment(state_segment& s)
 //		{
 //			m_stateList.remove(s);
-//			default_allocator::destruct_deallocate_type(&s);
+//			default_memory_manager::destruct_deallocate_type(&s);
 //		}
 //	};
 //
@@ -6583,7 +6583,7 @@
 //		while (!!n)
 //		{
 //			ptr<block_t> n2 = block_t::get_next_postorder(n);
-//			default_allocator::destruct_deallocate_type(n.get());
+//			default_memory_manager::destruct_deallocate_type(n.get());
 //			n = n2;
 //		}
 //	}
@@ -6619,7 +6619,7 @@
 //							{
 //								block_t* next = block_t::get_next(leadingBlock);
 //								m_blockList.remove(leadingBlock);
-//								default_allocator::destruct_deallocate_type(leadingBlock);
+//								default_memory_manager::destruct_deallocate_type(leadingBlock);
 //								leadingBlock = next;
 //							}
 //						}
@@ -6628,7 +6628,7 @@
 //					break;
 //				}
 //			}
-//			m_blockList.insert(new (default_allocator::get()) block_t(s));
+//			m_blockList.insert(new (default_memory_manager::get()) block_t(s));
 //			break;
 //		}
 //	}
@@ -6652,7 +6652,7 @@
 //		friend class transaction_operation;
 //
 //		rcptr<transaction_operation> m_transactionOperation;
-//		event m_event;
+//		single_fire_condition m_condition;
 //		uint64_t m_offset;
 //		size_t m_requestedSize; // Just to remind caller how much their original request was for.
 //		composite_buffer m_unwrittenBufferList; // On Entry: Buffer to write.  On Exit: whatever couldn't be written
@@ -6665,7 +6665,7 @@
 //		void complete()
 //		{
 //			m_transactionOperation->release();
-//			m_event.set();
+//			m_condition.set();
 //			self_release();
 //		}
 //
@@ -6683,9 +6683,9 @@
 //
 //		typedef delegate_t<void, const rcref<const file_writer>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //public:
@@ -6700,7 +6700,7 @@
 //		friend class transaction_operation;
 //
 //		rcptr<transaction_operation> m_transactionOperation;
-//		event m_event;
+//		single_fire_condition m_condition;
 //		uint64_t m_offset;
 //		size_t m_requestedSize;
 //		composite_buffer m_bufferList; // all read results.
@@ -6713,7 +6713,7 @@
 //		void complete()
 //		{
 //			m_transactionOperation->release();
-//			m_event.set();
+//			m_condition.set();
 //			self_release();
 //		}
 //
@@ -6730,9 +6730,9 @@
 //
 //		typedef delegate_t<void, const rcref<const file_reader>&> dispatch_t;
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_event.dispatch(d, n); }
-//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_event.dispatch(delegate(d, this_rcref), n); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d, size_t n = 1) const volatile { m_condition.dispatch(d, n); }
+//		void dispatch(const dispatch_t& d, size_t n = 1) const { m_condition.dispatch(delegate(d, this_rcref), n); }
 //	};
 //
 //private:
@@ -6971,19 +6971,19 @@
 //
 //	subrange_t* insert_new_subrange(uint64_t startPos, uint64_t endPos, bool writeMode, const rcref<transaction_operation>& t)
 //	{
-//		subrange_t* result = new (default_allocator::get()) subrange_t(startPos, endPos, writeMode, t);
+//		subrange_t* result = new (default_memory_manager::get()) subrange_t(startPos, endPos, writeMode, t);
 //		m_subrangeList.insert(result);
 //		return result;
 //	}
 //
 //	void split_off_after_at(subrange_t* from, uint64_t midpoint)
 //	{
-//		m_subrangeList.insert(new (default_allocator::get()) subrange_t(from->split_off_after_at(midpoint), *from));
+//		m_subrangeList.insert(new (default_memory_manager::get()) subrange_t(from->split_off_after_at(midpoint), *from));
 //	}
 //
 //	void split_off_before_at(subrange_t* from, uint64_t midpoint)
 //	{
-//		m_subrangeList.insert(new (default_allocator::get()) subrange_t(from->split_off_before_at(midpoint), *from));
+//		m_subrangeList.insert(new (default_memory_manager::get()) subrange_t(from->split_off_before_at(midpoint), *from));
 //	}
 //
 //	void add_transaction(const rcref<transaction_operation>& t)
@@ -7119,7 +7119,7 @@
 //						if (!sr->m_lastWaitingWriter) // If no waiting writers, remove the block
 //						{
 //							m_subrangeList.remove(sr);
-//							default_allocator::destruct_deallocate_type(sr);
+//							default_memory_manager::destruct_deallocate_type(sr);
 //						}
 //					}
 //					if (blockEnd == curEnd)
@@ -7138,7 +7138,7 @@
 //						if (!sr->m_waitingReaders)
 //						{
 //							m_subrangeList.remove(sr);
-//							default_allocator::destruct_deallocate_type(sr);
+//							default_memory_manager::destruct_deallocate_type(sr);
 //						}
 //						else
 //						{
@@ -7173,7 +7173,7 @@
 //	}
 //
 //public:
-//	class read_only_cursor : public datasource, public object
+//	class read_only_cursor : public datasource
 //	{
 //	protected:
 //		friend class file<read_access>;

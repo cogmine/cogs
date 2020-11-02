@@ -24,14 +24,14 @@ namespace cogs {
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>,
+	is_integral_v<T>,
 	std::remove_volatile_t<T>
 >
 bit_rotate_right(const T& t, const A1& n)
 {
 	if (!n)
 		return t;
-	typedef std::make_unsigned_t<T> uint_t;
+	typedef make_unsigned_t<T> uint_t;
 	uint_t bits2 = (uint_t)t;
 	return (T)((bits2 >> (int)reduce_integer_type(n)) | (bits2 << ((sizeof(T) * 8) - (int)reduce_integer_type(n))));
 }
@@ -39,14 +39,14 @@ bit_rotate_right(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>,
+	is_integral_v<T>,
 	std::remove_volatile_t<T>
 >
 bit_rotate_left(const T& t, const A1& n)
 {
 	if (!n)
 		return t;
-	typedef std::make_unsigned_t<T> uint_t;
+	typedef make_unsigned_t<T> uint_t;
 	uint_t bits2 = (uint_t)t;
 	return (T)((bits2 << (int)reduce_integer_type(n)) | (bits2 >> ((sizeof(T) * 8) - (int)reduce_integer_type(n))));
 }

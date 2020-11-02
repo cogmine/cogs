@@ -18,15 +18,14 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class button : public hwnd_pane, public button_interface
+class button : public hwnd_pane, public gui::button_interface
 {
 public:
-	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
-	size m_defaultSize;
+	rcptr<gdi::device_context::font> m_cachedFont;
+	gfx::size m_defaultSize;
 	HBRUSH m_backgroundBrush = NULL;
 
 	explicit button(const rcref<volatile hwnd::subsystem>& uiSubsystem)
@@ -92,9 +91,9 @@ public:
 		Button_SetStyle(get_HWND(), style, FALSE);
 	}
 
-	virtual void set_font(const gfx::font& fnt)
+	virtual void set_font(const gfx::font_parameters_list& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 
@@ -109,7 +108,7 @@ public:
 		case WM_CTLCOLORBTN:
 			{
 				HDC hDC = (HDC)wParam;
-				rcptr<pane> owner = get_bridge();
+				rcptr<gui::pane> owner = get_bridge();
 				if (!!owner)
 				{
 					SetBkMode(hDC, TRANSPARENT);
@@ -175,27 +174,26 @@ public:
 		set_font(btn->get_font());
 	}
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
 		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
 	}
 
-	virtual range get_range() const { return range(m_defaultSize); }
-	virtual size get_default_size() const { return m_defaultSize; }
+	virtual gfx::range get_range() const { return gfx::range(m_defaultSize); }
+	virtual std::optional<gfx::size> get_default_size() const { return m_defaultSize; }
 
 	virtual bool is_focusable() const { return true; }
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<button_interface> > hwnd::subsystem::create_button() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::button_interface> > hwnd::subsystem::create_button() volatile
 {
 	rcref<button> b = rcnew(button)(this_rcref);
 	return std::make_pair(b, b);
 }
 
 
-}
 }
 }
 

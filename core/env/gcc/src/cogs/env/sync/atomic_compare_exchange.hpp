@@ -25,7 +25,7 @@ namespace atomic {
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& sizeof(T) <= 8,
 	bool
@@ -46,7 +46,7 @@ compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& sizeof(T) <= 8,
 	bool
@@ -62,7 +62,7 @@ compare_exchange(volatile T& t, const T& src, const T& cmp)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& sizeof(T) == 16,
 	bool
@@ -84,7 +84,7 @@ compare_exchange(volatile T& t, const T& src, const T& cmp, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& sizeof(T) == 16,
 	bool

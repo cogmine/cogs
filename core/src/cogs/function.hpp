@@ -9,7 +9,7 @@
 
 #include "cogs/env.hpp"
 #include "cogs/debug.hpp"
-#include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/sync/hazard.hpp"
 
@@ -231,7 +231,7 @@ private:
 
 		virtual block_base* copy() const
 		{
-			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			block<F>* blk = default_memory_manager::allocate_type<block<F> >();
 			return new (blk) block<F>(m_func);
 		}
 
@@ -242,7 +242,7 @@ private:
 
 		virtual block_base* move()
 		{
-			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			block<F>* blk = default_memory_manager::allocate_type<block<F> >();
 			return new (blk) block<F>(std::move(m_func));
 		}
 
@@ -267,7 +267,7 @@ private:
 			if (m_size <= n)
 				((block_base*)&m_buffer)->~block_base();
 			else
-				default_allocator::destruct_deallocate_type(*(block_base**)&m_buffer);
+				default_memory_manager::destruct_deallocate_type(*(block_base**)&m_buffer);
 		}
 	}
 
@@ -281,7 +281,7 @@ private:
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
 		{
-			block<F_t>* blk = default_allocator::allocate_type<block<F_t> >();
+			block<F_t>* blk = default_memory_manager::allocate_type<block<F_t> >();
 			*(block<F_t>**)& m_buffer = new (blk) block<F_t>(std::forward<F>(f));
 		}
 	}
@@ -367,8 +367,12 @@ public:
 
 	bool operator!() const { return m_size == 0; }
 
+
 	template <typename F, std::enable_if_t<!is_same_function_class_v<std::remove_reference_t<F>, return_t(args_t...)> >...>
-	function(F&& f) { set_func(std::forward<F>(f)); }
+	function(F&& f)
+	{
+		set_func(std::forward<F>(f));
+	}
 
 	function(this_t&& src) { move(std::move(src)); }
 	function(this_t& src) { set(src); }
@@ -576,7 +580,7 @@ private:
 
 		virtual block_base* copy() const
 		{
-			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			block<F>* blk = default_memory_manager::allocate_type<block<F> >();
 			return new (blk) block<F>(m_func);
 		}
 
@@ -587,7 +591,7 @@ private:
 
 		virtual block_base* move()
 		{
-			block<F>* blk = default_allocator::allocate_type<block<F> >();
+			block<F>* blk = default_memory_manager::allocate_type<block<F> >();
 			return new (blk) block<F>(std::move(m_func));
 		}
 
@@ -609,7 +613,7 @@ private:
 			if (m_size <= n)
 				((block_base*)&m_buffer)->~block_base();
 			else
-				default_allocator::destruct_deallocate_type(*(block_base**)&m_buffer);
+				default_memory_manager::destruct_deallocate_type(*(block_base**)&m_buffer);
 		}
 	}
 
@@ -623,7 +627,7 @@ private:
 			new ((block<F_t>*)&m_buffer) block<F_t>(std::forward<F>(f));
 		else
 		{
-			block<F>* blk = default_allocator::allocate_type<block<F_t> >();
+			block<F>* blk = default_memory_manager::allocate_type<block<F_t> >();
 			*(block<F_t>**)&m_buffer = new (blk) block<F_t>(std::forward<F>(f));
 		}
 	}

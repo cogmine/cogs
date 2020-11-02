@@ -48,7 +48,7 @@ private:
 	// Use thread_safe_transactable directly, as it provides an ABA solution.  cas_transactable does not.
 	typedef thread_safe_transactable<content_t> transactable_t;
 	transactable_t m_contents;
-	single_fire_event m_event;
+	single_fire_condition m_condition;
 	rcref<volatile priority_dispatcher> m_priorityDispatcher;
 	container_queue<function<void()> > m_abortCallbacks;
 
@@ -97,7 +97,7 @@ private:
 				if (done)
 				{
 					m_abortCallbacks.clear();
-					m_event.signal();
+					m_condition.signal();
 				}
 				break;
 			}
@@ -192,7 +192,7 @@ public:
 
 			m_priorityDispatcher->drain();
 			m_abortCallbacks.clear();
-			m_event.signal();
+			m_condition.signal();
 			break;
 		}
 	}
@@ -267,7 +267,7 @@ public:
 
 	// Called by outer main() glue to wait for all things blocking quit to complete.
 	// Really not intended to be called from anywhere else.  So, probably a bug if you are calling it.
-	const waitable& get_event() const { return m_event; }
+	const waitable& get_condition() const { return m_condition; }
 };
 
 

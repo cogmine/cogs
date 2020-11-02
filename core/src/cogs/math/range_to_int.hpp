@@ -23,8 +23,11 @@ namespace cogs {
 template <ulongest min_value, ulongest max_value>
 class range_to_int
 {
+private:
+	static constexpr size_t x = range_to_int_bytes_v<min_value, max_value>;
+	static constexpr bool b = min_value < 0;
 public:
-	typedef bytes_to_int_t<range_to_int_bytes_v<min_value, max_value>, (min_value < 0)> type;
+	typedef bytes_to_int_t<x, b> type;
 };
 template <ulongest min_value, ulongest max_value> using range_to_int_t = typename range_to_int<min_value, max_value>::type;
 

@@ -28,9 +28,9 @@ public:
 	virtual void set_text(const composite_string&) = 0;
 	virtual void set_max_length(size_t) = 0;
 	virtual void set_enabled(bool) = 0;
-	virtual void set_font(const gfx::font&) = 0;
+	virtual void set_font(const gfx::font_parameters_list&) = 0;
 
-	virtual void set_text_color(const color& c) = 0;
+	virtual void set_text_color(const std::optional<color>& c) = 0;
 };
 
 
@@ -42,8 +42,8 @@ private:
 	composite_string m_text;
 	size_t m_maxLength;
 	bool m_isEnabled;
-	gfx::font m_font;
-	color m_textColor;
+	gfx::font_parameters_list m_font;
+	std::optional<color> m_textColor;
 	bool m_isMultiLine;
 	rcptr<text_editor_interface> m_nativeTextEditor;
 
@@ -53,8 +53,8 @@ public:
 		composite_string text;
 		size_t maxLength = 0;
 		bool isEnabled = true;
-		gfx::font font;
-		color textColor = color::constant::black;
+		gfx::font_parameters_list font;
+		std::optional<color> textColor = std::nullopt;
 		bool isMultiLine = false;
 		frame_list frames;
 	};
@@ -120,23 +120,34 @@ public:
 
 	bool is_multi_line() const { return m_isMultiLine; }
 
-	const gfx::font& get_font() const { return m_font; }
-	void set_font(const gfx::font& fnt)
+	const gfx::font_parameters_list& get_font() const { return m_font; }
+	void set_font(const gfx::font_parameters_list& fnt)
 	{
+		m_font.clear();
 		m_font = fnt;
 		if (!!m_nativeTextEditor)
 		{
-			m_nativeTextEditor->set_font(fnt);
+			m_nativeTextEditor->set_font(m_font);
 			recompose();
 		}
 	}
 
-	color get_text_color() const
+	void set_font(gfx::font_parameters_list&& fnt)
+	{
+		m_font = std::move(fnt);
+		if (!!m_nativeTextEditor)
+		{
+			m_nativeTextEditor->set_font(m_font);
+			recompose();
+		}
+	}
+
+	std::optional<color> get_text_color() const
 	{
 		return m_textColor;
 	}
 
-	void set_text_color(const color& c)
+	void set_text_color(const std::optional<color>& c)
 	{
 		m_textColor = c;
 		if (!!m_nativeTextEditor)

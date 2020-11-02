@@ -13,35 +13,36 @@
 
 
 namespace cogs {
+
+#ifndef COGS_DEFAULT_GUI_SUBSYSTEM
+#define COGS_DEFAULT_GUI_SUBSYSTEM COGS_GDI
+#endif
+
+#if COGS_DEFAULT_GUI_SUBSYSTEM == COGS_GDI
+inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
+{
+	return rcnew(os::hwnd::subsystem);
+}
+
+inline rcptr<gui::subsystem> gui::subsystem::get_default()
+{
+	return gui::windowing::subsystem::get_default();
+}
+
+inline rcref<ui::subsystem> ui::subsystem::get_default()
+{
+	return gui::subsystem::get_default().dereference();
+}
+#endif
+
 namespace os {
 
 
 inline int initialize()
 {
-	int cpuInfo[4];
-	__cpuid(cpuInfo, 1);
-
-#ifdef _M_X64
-	if (!(cpuInfo[2] & (1 << 13))) // if 64-bit and no support for CMPXCHG16B instruction
-	{
-		MessageBox(NULL, L"Unsupported 64-bit processor detected.", L"Instruction not found: CMPXCHG16B", MB_OK);
-		return EXIT_FAILURE;
-	}
-#else
-	if (!(cpuInfo[3] & (1 << 8))) // if 32-bit and no support for CMPXCHG8B instruction
-	{
-		MessageBox(NULL, L"Processor not supported.", L"Instruction not found: CMPXCHG8B", MB_OK);
-		return EXIT_FAILURE;
-	}
-	if (!(cpuInfo[2] & (1 << 23)))
-	{
-		MessageBox(NULL, L"Processor not supported.", L"Instruction not found: POPCNT", MB_OK);
-		return EXIT_FAILURE;
-	}
-#endif
-
 	return EXIT_SUCCESS;
 }
+
 
 inline void terminate()
 {
@@ -54,7 +55,7 @@ inline int main(F&& mainFunc, T&& uiSubsystem)
 	int result = mainFunc(std::forward<T>(uiSubsystem));
 	rcptr<quit_dispatcher> qd = quit_dispatcher::get();
 	if (!!qd)
-		qd->get_event().wait();
+		qd->get_condition().wait();
 	return result;
 }
 

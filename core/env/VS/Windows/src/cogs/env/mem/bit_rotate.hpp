@@ -24,7 +24,7 @@ namespace cogs {
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(unsigned char)),
 	std::remove_volatile_t<T>
 >
@@ -35,7 +35,7 @@ bit_rotate_right(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned char))
 	&& (sizeof(T) <= sizeof(unsigned short)),
 	std::remove_volatile_t<T>
@@ -48,7 +48,7 @@ bit_rotate_right(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned short))
 	&& (sizeof(T) <= sizeof(unsigned long)),
 	std::remove_volatile_t<T>
@@ -60,7 +60,7 @@ bit_rotate_right(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long))
 	&& (sizeof(T) <= sizeof(unsigned __int64)),
 	std::remove_volatile_t<T>
@@ -73,7 +73,7 @@ bit_rotate_right(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(unsigned char)),
 	std::remove_volatile_t<T>
 >
@@ -84,7 +84,7 @@ bit_rotate_left(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned char))
 	&& (sizeof(T) <= sizeof(unsigned short)),
 	std::remove_volatile_t<T>
@@ -97,7 +97,7 @@ bit_rotate_left(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned short))
 	&& (sizeof(T) <= sizeof(unsigned long)),
 	std::remove_volatile_t<T>
@@ -110,7 +110,7 @@ bit_rotate_left(const T& t, const A1& n)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long))
 	&& (sizeof(T) <= sizeof(unsigned __int64)),
 	std::remove_volatile_t<T>

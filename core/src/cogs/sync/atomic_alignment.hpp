@@ -21,16 +21,20 @@ namespace cogs {
 namespace atomic {
 
 
-template <typename T>
-class get_alignment
+template <size_t n>
+struct size_to_alignment
 {
-public:
-	static constexpr size_t value = arch::atomic::size_to_alignment<sizeof(T)>::value;
+	static constexpr size_t value = arch::atomic::size_to_alignment_v<n>;
 };
+template <size_t n> constexpr size_t size_to_alignment_v = size_to_alignment<n>::value;
+
 
 template <typename T>
-constexpr size_t get_alignment_v = get_alignment<T>::value;
-
+struct get_alignment
+{
+	static constexpr size_t value = size_to_alignment_v<sizeof(T)>;
+};
+template <typename T> constexpr size_t get_alignment_v = get_alignment<T>::value;
 
 }
 }

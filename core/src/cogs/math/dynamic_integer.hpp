@@ -14,18 +14,20 @@
 #include "cogs/operators.hpp"
 #include "cogs/collections/vector.hpp"
 #include "cogs/collections/string.hpp"
+#include "cogs/env/math/umul.hpp"
 #include "cogs/math/fixed_integer.hpp"
 #include "cogs/math/fixed_integer_extended.hpp"
 #include "cogs/math/fixed_integer_extended_const.hpp"
 #include "cogs/math/fixed_integer_native.hpp"
 #include "cogs/math/fixed_integer_native_const.hpp"
-#include "cogs/env/math/umul.hpp"
 #include "cogs/math/fraction.hpp"
 #include "cogs/math/is_const_type.hpp"
 #include "cogs/math/is_signed_type.hpp"
 #include "cogs/math/is_arithmetic_type.hpp"
 #include "cogs/mem/const_bit_scan.hpp"
 #include "cogs/sync/hazard.hpp"
+
+
 
 
 namespace cogs {
@@ -395,8 +397,8 @@ public:
 
 	template <typename int_t2>
 	std::enable_if_t<
-		std::is_integral_v<int_t2>
-		&& !std::is_signed_v<int_t2>,
+		is_integral_v<int_t2>
+		&& !is_signed_v<int_t2>,
 		int
 	>
 	compare(const int_t2& cmp) const
@@ -419,8 +421,8 @@ public:
 
 	template <typename int_t2>
 	std::enable_if_t<
-		std::is_integral_v<int_t2>
-		&& std::is_signed_v<int_t2>,
+		is_integral_v<int_t2>
+		&& is_signed_v<int_t2>,
 		int
 	>
 	compare(const int_t2& cmp) const
@@ -501,7 +503,7 @@ public:
 		}
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool equals(const int_t2& cmp) const // int version needed by compare_exchange
 	{
 		int_to_fixed_integer_t<int_t2> tmp(cmp);
@@ -2414,7 +2416,7 @@ public:
 		char tempBufferStorage[512];
 		ptr<char> tempBuffer = tempBufferStorage;
 		if (maxLength > 512)
-			tempBuffer = default_allocator::allocate_type<char>(maxLength);
+			tempBuffer = default_memory_manager::allocate_type<char>(maxLength);
 
 		size_t i = 0;
 		bool isNeg = is_negative();
@@ -2470,7 +2472,7 @@ public:
 			p[i2++] = (char_t)tempBuffer[--i];
 
 		if (maxLength > 512)
-			default_allocator::destruct_deallocate_type<char>(tempBuffer, maxLength);
+			default_memory_manager::destruct_deallocate_type(tempBuffer.get_ptr(), maxLength);
 
 		return str;
 	}
@@ -2561,7 +2563,7 @@ private:
 			desc = rt->m_digits.m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(rt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();
@@ -2591,7 +2593,7 @@ private:
 			desc = wt->m_digits.m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(wt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();
@@ -3105,13 +3107,13 @@ public:
 		operator=(src);
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer(const int_t2& src)
 	{
 		operator=(src);
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer(const volatile int_t2& src)
 	{
 		operator=(src);
@@ -3329,7 +3331,7 @@ public:
 		return *this;
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer& operator=(const int_t2& src)
 	{
 		int_to_fixed_integer_t<int_t2> tmp(src);
@@ -3337,7 +3339,7 @@ public:
 		return *this;
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer& operator=(const volatile int_t2& src)
 	{
 		int_to_fixed_integer_t<int_t2> tmp(src);
@@ -3345,7 +3347,7 @@ public:
 		return *this;
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	volatile dynamic_integer& operator=(const int_t2& src) volatile
 	{
 		int_to_fixed_integer_t<int_t2> tmp(src);
@@ -3353,7 +3355,7 @@ public:
 		return *this;
 	}
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	volatile dynamic_integer& operator=(const volatile int_t2& src) volatile
 	{
 		int_to_fixed_integer_t<int_t2> tmp(src);
@@ -3562,13 +3564,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator+(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this + tmp; }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator+(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this + tmp; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer& operator+=(const fixed_integer_native<has_sign2, bits2>& src) { m_contents->add(src); return *this; }
@@ -3597,10 +3599,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator+=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator+=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator+=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator+=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator+=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator+=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator+=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator+=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator+=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator+=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator+=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator+=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator+=(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_add(const fixed_integer_native<has_sign2, bits2>& src) { *this += src; return *this; }
 	template <bool has_sign2, size_t bits2> dynamic_integer pre_assign_add(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.add(src); }); }
@@ -3628,10 +3630,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_add(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_add(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_add(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_add(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_add(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_add(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_add(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_add(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_add(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_add(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_add(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_add(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_add(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); *this += src; return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_add(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.add(src); }); }
@@ -3659,10 +3661,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_add(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_add(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_add(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_add(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_add(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_add(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_add(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_add(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_add(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_add(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_add(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_add(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_add(tmp); }
 
 	// subtract
 	template <bool has_sign2, size_t bits2> auto operator-(const fixed_integer_native<has_sign2, bits2>& src) const { dynamic_integer result; result.m_contents->subtract(*m_contents, src); return result; }
@@ -3691,13 +3693,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator-(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this - tmp; }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator-(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this - tmp; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer& operator-=(const fixed_integer_native<has_sign2, bits2>& src) { m_contents->subtract(src); return *this; }
@@ -3726,10 +3728,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator-=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator-=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator-=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator-=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator-=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator-=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator-=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator-=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator-=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator-=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator-=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator-=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator-=(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_subtract(const fixed_integer_native<has_sign2, bits2>& src) { *this -= src; return *this; }
 	template <bool has_sign2, size_t bits2> dynamic_integer pre_assign_subtract(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.subtract(src); }); }
@@ -3757,10 +3759,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_subtract(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_subtract(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); *this -= src; return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_subtract(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.subtract(src); }); }
@@ -3788,10 +3790,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_subtract(tmp); }
 
 	// inverse_subtract
 	template <bool has_sign2, size_t bits2> auto inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) const { return -*this + src; }
@@ -3820,13 +3822,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) { assign_negative(); *this += src; }
@@ -3855,10 +3857,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return assign_inverse_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return assign_inverse_subtract(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) { assign_negative(); *this += src; return *this; }
 	template <bool has_sign2, size_t bits2> dynamic_integer pre_assign_inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.negate(); c.add(src); }); }
@@ -3886,10 +3888,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_subtract(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_negative(); *this += src; return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_subtract(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_post([&](content_t& c) { c.negate(); c.add(src); }); }
@@ -3917,10 +3919,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_subtract(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_subtract(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_subtract(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_subtract(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_subtract(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_subtract(tmp); }
 
 	// multiply
 	template <bool has_sign2, size_t bits2> auto operator*(const fixed_integer_native<has_sign2, bits2>& src) const { dynamic_integer result; result.m_contents->multiply(*m_contents, src); return result; }
@@ -3957,13 +3959,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator*(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this * tmp; }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator*(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this * tmp; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer& operator*=(const fixed_integer_native<has_sign2, bits2>& src) { m_contents->multiply(src); return *this; }
@@ -4000,10 +4002,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator*=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator*=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator*=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator*=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator*=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator*=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator*=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator*=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator*=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator*=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator*=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator*=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator*=(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_multiply(const fixed_integer_native<has_sign2, bits2>& src) { *this *= src; return *this; }
 	template <bool has_sign2, size_t bits2> dynamic_integer pre_assign_multiply(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.multiply(src); }); }
@@ -4039,10 +4041,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_multiply(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_multiply(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_multiply(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_multiply(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_multiply(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_multiply(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_multiply(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_multiply(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_multiply(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_multiply(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_multiply(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_multiply(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_multiply(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_multiply(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); *this *= src; return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_multiply(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c.multiply(src); }); }
@@ -4078,10 +4080,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_multiply(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_multiply(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_multiply(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_multiply(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_multiply(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_multiply(tmp); }
 
 	// modulo
 	template <bool has_sign2, size_t bits2> auto operator%(const fixed_integer_native<has_sign2, bits2>& src) const { dynamic_integer result(*this); result.m_contents->divide_whole_and_assign_modulo(src); return result;  }
@@ -4118,13 +4120,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator%(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this % tmp; }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator%(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this % tmp; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer& operator%=(const fixed_integer_native<has_sign2, bits2>& src) { m_contents->divide_whole_and_assign_modulo(src); return *this; }
@@ -4159,10 +4161,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator%=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator%=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator%=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator%=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator%=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator%=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer& operator%=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > volatile dynamic_integer& operator%=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator%=(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator%=(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer& operator%=(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > volatile dynamic_integer& operator%=(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return operator%=(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src) { m_contents->divide_whole_and_assign_modulo(src); return *this; }
 	template <bool has_sign2, size_t bits2> dynamic_integer pre_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src) volatile { return write_retry_loop_pre([&](content_t& c) { c.divide_whole_and_assign_modulo(src); }); }
@@ -4198,10 +4200,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); m_contents->divide_whole_and_assign_modulo(src); return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_modulo(const fixed_integer_native<has_sign2, bits2>& src) volatile { return write_retry_loop_post([&](content_t& c) { c.divide_whole_and_assign_modulo(src); }); }
@@ -4237,10 +4239,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_modulo(tmp); }
 
 	// inverse_modulo
 	template <bool has_sign2, size_t bits2> auto inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) const { return src % *this; }
@@ -4269,13 +4271,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) { *this = src % *this; }
@@ -4318,10 +4320,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_inverse_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > void assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > void assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); assign_inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) { assign_inverse_modulo(src); return *this; }
 	template <bool has_sign2, size_t bits2>  dynamic_integer pre_assign_inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_pre([&](content_t& c) { c = src % c; }); }
@@ -4364,10 +4366,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > const dynamic_integer& pre_assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer pre_assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return pre_assign_inverse_modulo(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_inverse_modulo(src); return tmp; }
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_modulo(const fixed_integer_native<has_sign2, bits2>& src) volatile { return guarded_write_retry_loop_post([&](content_t& c) { c = src % c; }); }
@@ -4410,10 +4412,10 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const volatile int_t2& src) { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > > dynamic_integer post_assign_inverse_modulo(const volatile int_t2& src) volatile { int_to_fixed_integer_t<int_t2> tmp(src); return post_assign_inverse_modulo(tmp); }
 
 	// divide
 	template <bool has_sign2, size_t bits2> auto operator/(const fixed_integer_native<has_sign2, bits2>& src) const { return fraction<dynamic_integer, fixed_integer_native<has_sign2, bits2> >(*this, src); }
@@ -4450,13 +4452,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<dynamic_integer, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto operator/(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<dynamic_integer, fixed_integer_extended_const<has_sign2, bits2, values2...> >(*this, src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const { return fraction<dynamic_integer, int_t2>(*this, i); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const volatile { return fraction<dynamic_integer, int_t2>(*this, i); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const volatile int_t2& i) const { return fraction<dynamic_integer, int_t2>(*this, i); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const volatile int_t2& i) const volatile { return fraction<dynamic_integer, int_t2>(*this, i); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer& operator/=(const fixed_integer_native<has_sign2, bits2>& src) { assign_divide_whole(src); return *this; }
@@ -4493,13 +4495,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator/=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this /= tmp; }
 	template <bool has_sign2, size_t bits2, ulongest... values2> volatile dynamic_integer& operator/=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return *this /= tmp; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer& operator/=(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return operator/=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	volatile dynamic_integer& operator/=(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator/=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer& operator/=(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return operator/=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	volatile dynamic_integer& operator/=(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator/=(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_divide(const fixed_integer_native<has_sign2, bits2>& src) { return pre_assign_divide_whole(src); }
@@ -4536,13 +4538,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_divide(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_divide(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_divide(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_divide(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_divide(const fixed_integer_native<has_sign2, bits2>& src) { return post_assign_divide_whole(src); }
@@ -4579,13 +4581,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide(tmp); }
 
 	// reciprocal
@@ -4625,13 +4627,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, dynamic_integer>(src, *this); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { return fraction<fixed_integer_extended_const<has_sign2, bits2, values2...>, dynamic_integer>(src, *this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const int_t2& i) const { return fraction<int_t2, dynamic_integer>(i, *this); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const int_t2& i) const volatile { return fraction<int_t2, dynamic_integer>(i, *this); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const volatile int_t2& i) const { return fraction<int_t2, dynamic_integer>(i, *this); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const volatile int_t2& i) const volatile { return fraction<int_t2, dynamic_integer>(i, *this); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide(const fixed_integer_native<has_sign2, bits2>& src) { assign_inverse_divide_whole(src); }
@@ -4660,13 +4662,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); inverse_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_inverse_divide(const fixed_integer_native<has_sign2, bits2>& src) { return pre_assign_inverse_divide_whole(src); }
@@ -4695,13 +4697,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_inverse_divide(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_inverse_divide(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_inverse_divide(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_inverse_divide(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_divide(const fixed_integer_native<has_sign2, bits2>& src) { return post_assign_inverse_divide_whole(src); }
@@ -4730,13 +4732,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_divide(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_divide(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide(tmp); }
 
 	// floor
@@ -4895,13 +4897,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer remainder(*this); remainder.m_contents->divide_whole_and_assign_modulo(src, *m_contents); }
@@ -4938,13 +4940,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { assign_divide_whole(src); return *this; }
@@ -4981,13 +4983,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_divide_whole(src); return tmp; }
@@ -5024,13 +5026,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_divide_whole(tmp); }
 
 	// inverse_divide_whole
@@ -5060,13 +5062,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_inverse_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { *this = src.divide_whole(*this); }
@@ -5140,13 +5142,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_inverse_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_inverse_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_inverse_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_inverse_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_inverse_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { assign_inverse_divide(src); return *this; }
@@ -5204,13 +5206,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_inverse_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_inverse_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_inverse_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_inverse_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_inverse_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_inverse_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_inverse_divide_whole(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_inverse_divide_whole(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_inverse_divide(src); return tmp; }
@@ -5266,13 +5268,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_divide(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_inverse_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_inverse_divide(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_inverse_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_inverse_divide_whole(tmp); }
 
 	// divide_whole_and_modulo
@@ -5373,13 +5375,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole_and_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole_and_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole_and_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole_and_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
 
 	// inverse_divide_whole_and_inverse_modulo
@@ -5409,13 +5411,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide_whole_and_inverse_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide_whole_and_inverse_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto inverse_divide_whole_and_inverse_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return inverse_divide_whole_and_inverse_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole_and_inverse_modulo(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole_and_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole_and_inverse_modulo(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole_and_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole_and_inverse_modulo(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole_and_inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole_and_inverse_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole_and_inverse_modulo(tmp); }
 
 	// divide_whole_and_assign_modulo
@@ -5555,13 +5557,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole_and_assign_modulo(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole_and_assign_modulo(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto divide_whole_and_assign_modulo(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return divide_whole_and_assign_modulo(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_assign_modulo(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_assign_modulo(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_assign_modulo(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_assign_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_assign_modulo(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_assign_modulo(tmp); }
 
 	// modulo_and_assign_divide_whole
@@ -5732,13 +5734,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto modulo_and_assign_divide_whole(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return modulo_and_assign_divide_whole(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto modulo_and_assign_divide_whole(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return modulo_and_assign_divide_whole(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto modulo_and_assign_divide_whole(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return modulo_and_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto modulo_and_assign_divide_whole(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return modulo_and_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto modulo_and_assign_divide_whole(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return modulo_and_assign_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto modulo_and_assign_divide_whole(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return modulo_and_assign_divide_whole(tmp); }
 
 	// gcd
@@ -5776,13 +5778,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return gcd(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return gcd(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_gcd(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); m_contents->set_to_gcd(*(tmp.m_contents), src); }
@@ -5819,13 +5821,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_gcd(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_gcd(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_gcd(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_gcd(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_gcd(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_gcd(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_gcd(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_gcd(const fixed_integer_native<has_sign2, bits2>& src) { assign_gcd(src); return *this; }
@@ -5862,13 +5864,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_gcd(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_gcd(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_gcd(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_gcd(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_gcd(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_gcd(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_gcd(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_gcd(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_gcd(src); return tmp; }
@@ -5905,13 +5907,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_gcd(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_gcd(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_gcd(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_gcd(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_gcd(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_gcd(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_gcd(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_gcd(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_gcd(tmp); }
 
 	// lcm
@@ -5949,13 +5951,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto lcm(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return lcm(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto lcm(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return lcm(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_lcm(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); m_contents->set_to_lcm(*(tmp.m_contents), src); }
@@ -5992,13 +5994,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_lcm(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_lcm(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_lcm(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_lcm(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lcm(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lcm(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lcm(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lcm(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_lcm(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_lcm(const fixed_integer_native<has_sign2, bits2>& src) { assign_lcm(src); return *this; }
@@ -6035,13 +6037,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_lcm(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_lcm(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_lcm(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_lcm(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_lcm(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_lcm(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_lcm(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_lcm(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lcm(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_lcm(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_lcm(src); return tmp; }
@@ -6078,13 +6080,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_lcm(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_lcm(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_lcm(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_lcm(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lcm(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lcm(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lcm(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lcm(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lcm(tmp); }
 
 	// greater
@@ -6110,13 +6112,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return greater(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return greater(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_greater(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); m_contents->set_to_greater(*(tmp.m_contents), src); }
@@ -6141,13 +6143,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_greater(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_greater(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_greater(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_greater(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_greater(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_greater(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_greater(const fixed_integer_native<has_sign2, bits2>& src) { assign_greater(src); return *this; }
@@ -6172,13 +6174,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_greater(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_greater(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_greater(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_greater(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_greater(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_greater(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_greater(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_greater(src); return tmp; }
@@ -6203,13 +6205,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_greater(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_greater(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_greater(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_greater(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_greater(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_greater(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_greater(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_greater(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_greater(tmp); }
 
 
@@ -6236,13 +6238,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return lesser(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> auto lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return lesser(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
 
 	template <bool has_sign2, size_t bits2> void assign_lesser(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); m_contents->set_to_lesser(*(tmp.m_contents), src); }
@@ -6267,13 +6269,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> void assign_lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); assign_lesser(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lesser(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lesser(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lesser(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	void assign_lesser(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); assign_lesser(tmp); }
 
 	template <bool has_sign2, size_t bits2> const dynamic_integer& pre_assign_lesser(const fixed_integer_native<has_sign2, bits2>& src) { assign_lesser(src); return *this; }
@@ -6298,13 +6300,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer pre_assign_lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return pre_assign_lesser(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_lesser(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_lesser(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	const dynamic_integer& pre_assign_lesser(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer pre_assign_lesser(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return pre_assign_lesser(tmp); }
 
 	template <bool has_sign2, size_t bits2> dynamic_integer post_assign_lesser(const fixed_integer_native<has_sign2, bits2>& src) { dynamic_integer tmp(*this); assign_lesser(src); return tmp; }
@@ -6329,13 +6331,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_lesser(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_lesser(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> dynamic_integer post_assign_lesser(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return post_assign_lesser(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lesser(const int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lesser(const int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lesser(const volatile int_t2& i) { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	dynamic_integer post_assign_lesser(const volatile int_t2& i) volatile { int_to_fixed_integer_t<int_t2> tmp(i); return post_assign_lesser(tmp); }
 
 
@@ -6362,13 +6364,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator==(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator==(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator==(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator==(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator==(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator==(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator==(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator==(tmp); }
 
 	// not_equals
@@ -6394,13 +6396,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator!=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator!=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator!=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator!=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator!=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator!=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator!=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator!=(tmp); }
 
 	// is_less_than
@@ -6426,13 +6428,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator<(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator<(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator<(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator<(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator<(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator<(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<(tmp); }
 
 	// is_greater_than
@@ -6458,13 +6460,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator>(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator>(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator>(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator>(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator>(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator>(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>(tmp); }
 
 	// is_less_than_or_equal
@@ -6490,13 +6492,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator<=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator<=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator<=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator<=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator<=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator<=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<=(tmp); }
 
 	// is_greater_than_or_equal
@@ -6522,13 +6524,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator>=(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator>=(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> bool operator>=(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return operator>=(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator>=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return operator>=(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>=(tmp); }
 
 	// compare
@@ -6554,13 +6556,13 @@ public:
 	template <bool has_sign2, size_t bits2, ulongest... values2> int compare(const fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return compare(tmp); }
 	template <bool has_sign2, size_t bits2, ulongest... values2> int compare(const volatile fixed_integer_extended_const<has_sign2, bits2, values2...>& src) const volatile { typename fixed_integer_extended_const<has_sign2, bits2, values2...>::non_const_t tmp(src); return compare(tmp); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const volatile int_t2& i) const { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
 
 
@@ -7171,13 +7173,13 @@ struct compatible<dynamic_integer, fixed_integer_extended<has_sign2, bits2> >
 };
 
 template <typename int_t2>
-struct compatible<dynamic_integer, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<dynamic_integer, int_t2, std::enable_if_t<is_integral_v<int_t2> > >
 {
 	typedef dynamic_integer type;
 };
 
 template <typename int_t2>
-struct compatible<int_t2, dynamic_integer, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<int_t2, dynamic_integer, std::enable_if_t<is_integral_v<int_t2> > >
 {
 	typedef dynamic_integer type;
 };

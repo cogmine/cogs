@@ -1420,8 +1420,8 @@ public:
 	size_t find_segment_inner(size_t i, position_t& pos, size_t lengthAdjusted, const composite_buffer_content& cmp, const position_t& cmpPos, size_t cmpLengthAdjusted) const
 	{
 		const vector<char>& firstCmpVector = cmp.m_vectorVector.get_const_ptr()[cmpPos.m_outerIndex];
-		size_t remaingCmpVectorLength = firstCmpVector.get_length() - cmpPos.m_innerIndex;
-		size_t remainingCmpLength = cmpLengthAdjusted - remaingCmpVectorLength;
+		size_t remainingCmpVectorLength = firstCmpVector.get_length() - cmpPos.m_innerIndex;
+		size_t remainingCmpLength = cmpLengthAdjusted - remainingCmpVectorLength;
 		size_t remainingLength = lengthAdjusted - remainingCmpLength;
 		position_t newCmpPos;
 		newCmpPos.m_outerIndex = cmpPos.m_outerIndex + 1;
@@ -1430,7 +1430,7 @@ public:
 		position_t endPos;
 		for (;;)
 		{
-			i = find_segment_inner(i, pos, remainingLength, buffer::from_vector(firstCmpVector.subrange(cmpPos.m_innerIndex, remaingCmpVectorLength)), endPos);
+			i = find_segment_inner(i, pos, remainingLength, buffer::from_vector(firstCmpVector.subrange(cmpPos.m_innerIndex, remainingCmpVectorLength)), endPos);
 			if ((i == const_max_int_v<size_t>) || isLastVector)
 				return i;
 

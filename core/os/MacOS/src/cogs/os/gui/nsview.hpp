@@ -33,7 +33,6 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -44,13 +43,12 @@ class nsview_pane;
 
 }
 }
-}
 
 
 @interface objc_view : NSView
 {
 @public
-	cogs::weak_rcptr<cogs::gui::os::nsview_pane> m_cppView;
+	cogs::weak_rcptr<cogs::os::nsview_pane> m_cppView;
 }
 -(BOOL)isFlipped;
 -(void)drawRect:(NSRect)r;
@@ -59,7 +57,6 @@ class nsview_pane;
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -88,25 +85,25 @@ private:
 		return const_cast<const ui_thread*>(this)->m_controlQueue;
 	}
 
-	alignas (atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
+	alignas(cogs::atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
 
 	void run_in_main_queue() volatile
 	{
 		bool ranAny = false;
 		for (;;)
 		{
-			atomic::compare_exchange(m_dispatchMode, 1, 2);
+			cogs::atomic::compare_exchange(m_dispatchMode, 1, 2);
 			int priority;
 			rcptr<task<void> > t = get_control_queue()->peek(priority);
 			if (!t)
 			{
-				if (atomic::compare_exchange(m_dispatchMode, 0, 1))
+				if (cogs::atomic::compare_exchange(m_dispatchMode, 0, 1))
 					break;
 				//continue;
 			}
 			else if (ranAny && (priority > 0x00010000))
 			{
-				atomic::store(m_dispatchMode, 2);
+				cogs::atomic::store(m_dispatchMode, 2);
 				rcref<volatile ui_thread> thisRef = this_rcref;
 				dispatch_async(dispatch_get_main_queue(), ^{
 					thisRef->run_in_main_queue();
@@ -123,7 +120,7 @@ private:
 	void update() volatile
 	{
 		int oldMode = 2;
-		atomic::exchange(m_dispatchMode, oldMode, oldMode);
+		cogs::atomic::exchange(m_dispatchMode, oldMode, oldMode);
 		if (!oldMode)
 		{
 			rcref<volatile ui_thread> thisRef = this_rcref;
@@ -230,12 +227,12 @@ public:
 	}
 
 	// ui::subsystem interface
-	virtual std::pair<rcref<bridgeable_pane>, rcref<button_interface> > create_button() volatile;
-	virtual std::pair<rcref<bridgeable_pane>, rcref<check_box_interface> > create_check_box() volatile;
-	virtual std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > create_text_editor() volatile;
-	virtual std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > create_scroll_bar() volatile;
-	virtual rcref<bridgeable_pane> create_native_pane() volatile;
-	virtual std::pair<rcref<bridgeable_pane>, rcref<window_interface> > create_window() volatile;
+	virtual std::pair<rcref<gui::bridgeable_pane>, rcref<gui::button_interface> > create_button() volatile;
+	virtual std::pair<rcref<gui::bridgeable_pane>, rcref<gui::check_box_interface> > create_check_box() volatile;
+	virtual std::pair<rcref<gui::bridgeable_pane>, rcref<gui::text_editor_interface> > create_text_editor() volatile;
+	virtual std::pair<rcref<gui::bridgeable_pane>, rcref<gui::scroll_bar_interface> > create_scroll_bar() volatile;
+	virtual rcref<gui::bridgeable_pane> create_native_pane() volatile;
+	virtual std::pair<rcref<gui::bridgeable_pane>, rcref<gui::window_interface> > create_window() volatile;
 
 	virtual rcref<task<void> > message(const composite_string& s) volatile
 	{
@@ -248,9 +245,9 @@ public:
 		return signaled();
 	}
 
-	virtual vector<gfx::canvas::bounds> get_screens() volatile
+	virtual vector<gfx::bounds> get_screens() volatile
 	{
-		vector<gfx::canvas::bounds> screens;
+		vector<gfx::bounds> screens;
 		CGDirectDisplayID displayIDs[50]; // 50 monitors is enough
 		uint32_t numDisplays = 0;
 		CGGetActiveDisplayList(std::extent_v<decltype(displayIDs)>, displayIDs, &numDisplays);
@@ -268,7 +265,7 @@ public:
 };
 
 
-class nsview_pane : public object, public bridgeable_pane, public pane_orchestrator, public gfx::canvas, public gfx::os::graphics_context
+class nsview_pane : public object, public gui::bridgeable_pane, public gui::pane_orchestrator, public gfx::canvas, public graphics_context
 {
 private:
 	rcref<volatile nsview_subsystem> m_uiSubsystem;
@@ -326,10 +323,10 @@ public:
 	{
 		m_nsView = v;
 
-		rcptr<pane> p = get_parent();
+		rcptr<gui::pane> p = get_parent();
 		while (!!p)
 		{
-			pane_bridge* bridge = p.template dynamic_cast_to<pane_bridge>().get_ptr();
+			gui::pane_bridge* bridge = p.template dynamic_cast_to<gui::pane_bridge>().get_ptr();
 			if (!bridge)
 			{
 				p = p->get_parent();
@@ -346,13 +343,13 @@ public:
 			// Whenever another NSView is covered, do not traverse its descendants.
 			// Once we find this object, insert it after the last NSView seen.
 
-			container_dlist<rcref<pane> >::iterator itor;
+			container_dlist<rcref<gui::pane> >::iterator itor;
 			rcptr<nsview_pane> lastFoundView;
 			if (m_parentView->m_childCount++ > 0) // if was 0
 			{
 				itor = get_bridge(*m_parentView)->get_children().get_first();
 				COGS_ASSERT(!!itor); // should at least find this obj
-				container_dlist<rcref<pane> >::iterator nextItor;
+				container_dlist<rcref<gui::pane> >::iterator nextItor;
 				// start at furthest last
 				for (;;)
 				{
@@ -365,7 +362,7 @@ public:
 						}
 
 						rcptr<nsview_pane> foundView;
-						bridge = itor->dynamic_cast_to<pane_bridge>().get_ptr();
+						bridge = itor->dynamic_cast_to<gui::pane_bridge>().get_ptr();
 						if (!!bridge)
 							foundView = get_bridged(*bridge).template dynamic_cast_to<nsview_pane>();
 
@@ -448,14 +445,14 @@ public:
 		set_externally_drawn(this_rcref);
 	}
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
 		if (!!get_bridge())
 		{
 			if (!!m_parentView) // if not a window
 			{
-				canvas::point positionInParentView = b.get_position();
-				rcptr<pane> p = get_bridge()->get_parent(); // find new coords in parent nsview
+				gfx::point positionInParentView = b.get_position();
+				rcptr<gui::pane> p = get_bridge()->get_parent(); // find new coords in parent nsview
 				for (;;)
 				{
 					if (!p || (p == m_parentView->get_bridge()))
@@ -464,7 +461,7 @@ public:
 					p = p->get_parent();
 				}
 
-				NSRect newRect = gfx::os::graphics_context::make_NSRect(positionInParentView, b.get_size());
+				NSRect newRect = make_NSRect(positionInParentView, b.get_size());
 				[m_nsView setFrame:newRect];
 			}
 		}
@@ -491,108 +488,115 @@ public:
 		bridgeable_pane::focusing(direction);
 	}
 
-	virtual void invalidating(const bounds& b)
+	virtual void invalidating(const gfx::bounds& b)
 	{
-		NSRect r = gfx::os::graphics_context::make_NSRect(b);
+		NSRect r = make_NSRect(b);
 		[m_nsView setNeedsDisplayInRect:r];
 	}
 
-	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void fill(const gfx::bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
-		gfx::os::graphics_context::fill(b, c, blendAlpha);
+		graphics_context::fill(b, c, blendAlpha);
 	}
 
-	virtual void invert(const bounds& b)
+	virtual void invert(const gfx::bounds& b)
 	{
-		gfx::os::graphics_context::invert(b);
+		graphics_context::invert(b);
 	}
 
-	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
-		gfx::os::graphics_context::draw_line(startPt, endPt, width, c, blendAlpha);
+		graphics_context::draw_line(startPt, endPt, width, c, blendAlpha);
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& f)
+	virtual rcref<gfx::font> load_font(const gfx::font_parameters_list& f)
 	{
-		return gfx::os::graphics_context::load_font(f);
+		return graphics_context::load_font(f);
 	}
 
-	virtual gfx::font get_default_font() const
+	virtual string get_default_font_name() const
 	{
-		return gfx::os::graphics_context::get_default_font();
+		return graphics_context::get_default_font_name();
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<canvas::font>& f, const color& c = color::constant::black)
+	using gui::bridgeable_pane::get_default_text_foreground_color;
+	using gui::bridgeable_pane::get_default_text_background_color;
+	using gui::bridgeable_pane::get_default_selected_text_foreground_color;
+	using gui::bridgeable_pane::get_default_selected_text_background_color;
+	using gui::bridgeable_pane::get_default_label_foreground_color;
+	using gui::bridgeable_pane::get_default_background_color;
+	
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f, const color& c = color::constant::black)
 	{
-		gfx::os::graphics_context::draw_text(s, b, f, c);
+		graphics_context::draw_text(s, b, f, c);
 	}
 
-	virtual void draw_bitmap(const bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true)
+	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true)
 	{
-		gfx::os::graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
+		graphics_context::draw_bitmap(src, srcBounds, dstBounds, blendAlpha);
 	}
 
-	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true)
 	{
-		gfx::os::graphics_context::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
+		graphics_context::draw_bitmask(msk, mskBounds, dstBounds, fore, back, blendForeAlpha, blendBackAlpha);
 	}
 
-	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false)
+	virtual void mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted = false)
 	{
-		gfx::os::graphics_context::mask_out(msk, mskBounds, dstBounds, inverted);
+		graphics_context::mask_out(msk, mskBounds, dstBounds, inverted);
 	}
 
-	virtual void draw_bitmap_with_bitmask(const bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false)
+	virtual void draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha = true, bool inverted = false)
 	{
-		gfx::os::graphics_context::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
+		graphics_context::draw_bitmap_with_bitmask(src, srcBounds, msk, mskBounds, dstBounds, blendAlpha, inverted);
 	}
 
-	virtual rcref<canvas::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
-		return gfx::os::graphics_context::create_bitmap(sz, fillColor);
+		return graphics_context::create_bitmap(sz, fillColor);
 	}
 
-	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location)
+	virtual rcref<gfx::bitmap> load_bitmap(const composite_string& location)
 	{
-		return gfx::os::graphics_context::load_bitmap(location);
+		return graphics_context::load_bitmap(location);
 	}
 
-	virtual rcref<canvas::bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt)
+	virtual rcref<gfx::bitmask> create_bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt)
 	{
-		return gfx::os::graphics_context::create_bitmask(sz, value);
+		return graphics_context::create_bitmask(sz, value);
 	}
 
-	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location)
+	virtual rcref<gfx::bitmask> load_bitmask(const composite_string& location)
 	{
-		return gfx::os::graphics_context::load_bitmask(location);
+		return graphics_context::load_bitmask(location);
 	}
 
 	virtual void save_clip()
 	{
-		gfx::os::graphics_context::save_clip();
+		graphics_context::save_clip();
 	}
 
 	virtual void restore_clip()
 	{
-		gfx::os::graphics_context::restore_clip();
+		graphics_context::restore_clip();
 	}
 
-	virtual void clip_out(const bounds& b)
+	virtual void clip_out(const gfx::bounds& b)
 	{
-		gfx::os::graphics_context::clip_out(b, get_size());
+		graphics_context::clip_out(b, get_size());
 	}
 
-	virtual void clip_to(const bounds& b)
+	virtual void clip_to(const gfx::bounds& b)
 	{
-		gfx::os::graphics_context::clip_to(b);
+		graphics_context::clip_to(b);
 	}
 
-	virtual bool is_unclipped(const bounds& b) const
+	virtual bool is_unclipped(const gfx::bounds& b) const
 	{
 		if (!b.get_height() || !b.get_width())
 			return false;
 
-		NSRect r = gfx::os::graphics_context::make_NSRect(b);
+		NSRect r = make_NSRect(b);
 		return [m_nsView needsToDrawRect: r];
 	}
 
@@ -603,7 +607,7 @@ public:
 };
 
 
-inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
+inline rcref<gui::bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 {
 	class native_pane : public nsview_pane
 	{
@@ -630,8 +634,6 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 
 
 }
-}
-
 
 }
 
@@ -651,7 +653,7 @@ inline rcref<bridgeable_pane> nsview_subsystem::create_native_pane() volatile
 -(void)drawRect:(NSRect)r
 {
 	[super drawRect: r];
-	cogs::rcptr<cogs::gui::os::nsview_pane> cppView = m_cppView;
+	cogs::rcptr<cogs::os::nsview_pane> cppView = m_cppView;
 	if (!!cppView)
 		cppView->draw();
 }

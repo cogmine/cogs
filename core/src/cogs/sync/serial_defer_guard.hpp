@@ -44,7 +44,7 @@ class serial_defer_guard_t
 {
 private:
 	versioned_ptr<link_t> m_head;
-	alignas (atomic::get_alignment_v<size_t>) size_t m_count;
+	alignas(atomic::get_alignment_v<size_t>) size_t m_count;
 
 	typedef typename versioned_ptr<link_t>::version_t version_t;
 

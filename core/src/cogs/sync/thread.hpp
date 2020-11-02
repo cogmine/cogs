@@ -15,7 +15,7 @@
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/sync/thread.hpp"
-#include "cogs/sync/single_fire_event.hpp"
+#include "cogs/sync/single_fire_condition.hpp"
 
 
 namespace cogs {
@@ -27,7 +27,7 @@ class thread : public object
 {
 private:
 	rcptr<os::thread> m_osThread;
-	mutable single_fire_event m_joinSync;
+	mutable single_fire_condition m_joinSync;
 
 	// Some OSes will kill other threads when the main thread exits.
 	// In order to allow cleanup, such as graceful thread exit, we provide

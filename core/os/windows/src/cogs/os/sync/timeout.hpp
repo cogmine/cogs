@@ -174,8 +174,6 @@ public:
 	{
 		if (m_period == const_max_int_v<ULONGLONG>)
 			return false;
-		//if (!m_period)
-		//	return true;
 		return expired_inner(now(), m_expireTime);
 	}
 

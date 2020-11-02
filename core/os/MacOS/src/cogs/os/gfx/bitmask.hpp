@@ -19,11 +19,10 @@
 
 
 namespace cogs {
-namespace gfx {
 namespace os {
 
 
-class bitmask : public canvas::bitmask, public bitmap_graphics_context
+class bitmask : public gfx::bitmask, public bitmap_graphics_context
 {
 private:
 	mutable CGImageRef m_invertedMask = NULL;
@@ -56,11 +55,11 @@ public:
 		: bitmap_graphics_context(name, resource)
 	{ }
 
-	bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt)
+	bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt)
 		: bitmap_graphics_context(std::lround(sz.get_width()), std::lround(sz.get_height()), CGColorSpaceCreateDeviceGray(), kCGImageAlphaNone)
 	{
 		if (value.has_value())
-			fill(canvas::size(m_logicalWidth, m_logicalHeight), *value ? fill_mode::set_mode : fill_mode::clear_mode);
+			fill(gfx::size(m_logicalWidth, m_logicalHeight), *value ? fill_mode::set_mode : fill_mode::clear_mode);
 	}
 
 	~bitmask()
@@ -69,9 +68,9 @@ public:
 			CGImageRelease(m_invertedMask);
 	}
 
-	virtual canvas::size get_size() const { return canvas::size(m_logicalWidth, m_logicalHeight); }
+	virtual gfx::size get_size() const { return gfx::size(m_logicalWidth, m_logicalHeight); }
 
-	virtual void fill(const canvas::bounds& b, fill_mode fillMode = fill_mode::set_mode)
+	virtual void fill(const gfx::bounds& b, fill_mode fillMode = fill_mode::set_mode)
 	{
 		clear_cached();
 		CGBlendMode blendMode;
@@ -93,7 +92,7 @@ public:
 		graphics_context::fill(b, blendMode, token);
 	}
 
-	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode)
 	{
 		clear_cached();
 		CGBlendMode blendMode;
@@ -115,11 +114,11 @@ public:
 		graphics_context::draw_line(startPt, endPt, width, blendMode, token);
 	}
 
-	virtual rcref<canvas::font> load_font(const gfx::font& f) { return graphics_context::load_font(f, m_context); }
+	virtual rcref<gfx::font> load_font(const gfx::font_parameters_list& f) { return graphics_context::load_font(f, m_context); }
 
-	virtual gfx::font get_default_font() const { return graphics_context::get_default_font(); }
+	virtual string get_default_font_name() const { return graphics_context::get_default_font_name(); }
 
-	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f = 0, bool value = true)
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, bool value = true)
 	{
 		clear_cached();
 		CGColorRef colorRef = CGColorCreateGenericGray(value ? 1.0 : 0.0, 1.0);
@@ -127,7 +126,7 @@ public:
 		CGColorRelease(colorRef);
 	}
 
-	virtual void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode)
 	{
 		if (!!mskBounds && !!mskBounds)
 		{
@@ -160,22 +159,22 @@ public:
 		}
 	}
 
-	virtual rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		return graphics_context::create_bitmap(sz, fillColor);
 	}
 
-	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location)
+	virtual rcref<gfx::bitmap> load_bitmap(const composite_string& location)
 	{
 		return graphics_context::load_bitmap(location);
 	}
 
-	virtual rcref<canvas::bitmask> create_bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt)
+	virtual rcref<gfx::bitmask> create_bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt)
 	{
 		return graphics_context::create_bitmask(sz, value);
 	}
 
-	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location)
+	virtual rcref<gfx::bitmask> load_bitmask(const composite_string& location)
 	{
 		return graphics_context::load_bitmask(location);
 	}
@@ -190,28 +189,28 @@ public:
 		graphics_context::restore_clip(m_context);
 	}
 
-	virtual void clip_out(const canvas::bounds& b)
+	virtual void clip_out(const gfx::bounds& b)
 	{
-		graphics_context::clip_out(b, canvas::size(m_logicalWidth, m_logicalHeight), m_context);
+		graphics_context::clip_out(b, gfx::size(m_logicalWidth, m_logicalHeight), m_context);
 	}
 
-	virtual void clip_to(const canvas::bounds& b)
+	virtual void clip_to(const gfx::bounds& b)
 	{
 		graphics_context::clip_to(b, m_context);
 	}
 
-	virtual bool is_unclipped(const canvas::bounds& b) const
+	virtual bool is_unclipped(const gfx::bounds& b) const
 	{
 		return graphics_context::is_unclipped(b, m_context);
 	}
 
-	virtual void set_size(const canvas::size& newSize, const canvas::size& growPadding = canvas::size(100, 100), bool trimIfShrinking = false)
+	virtual void set_size(const gfx::size& newSize, const gfx::size& growPadding = gfx::size(100, 100), bool trimIfShrinking = false)
 	{
 		bitmap_graphics_context::set_size(newSize, growPadding, trimIfShrinking);
 	}
 };
 
-inline void bitmap::draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
+inline void bitmap::draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha)
 {
 	if (!!mskBounds && !!dstBounds)
 	{
@@ -235,7 +234,7 @@ inline void bitmap::draw_bitmask(const canvas::bitmask& msk, const canvas::bound
 	}
 }
 
-inline void bitmap::draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha, bool inverted)
+inline void bitmap::draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha, bool inverted)
 {
 	if (!!srcBounds && !!mskBounds)
 	{
@@ -247,14 +246,14 @@ inline void bitmap::draw_bitmap_with_bitmask(const canvas::bitmap& src, const ca
 	}
 }
 
-inline void bitmap::mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted)
+inline void bitmap::mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted)
 {
 	clear_cached();
 	const os::bitmask& msk2 = *static_cast<const os::bitmask*>(&msk);
 	graphics_context::mask_out(msk2, mskBounds, dstBounds, inverted, m_context);
 }
 
-inline void graphics_context::mask_out(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool inverted, const state_token& token)
+inline void graphics_context::mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted, const state_token& token)
 {
 	const os::bitmask& msk2 = *static_cast<const os::bitmask*>(&msk);
 	CGImageRef originalMaskImage;
@@ -289,7 +288,7 @@ inline void graphics_context::mask_out(const canvas::bitmask& msk, const canvas:
 		CGImageRelease(croppedMaskImage);
 }
 
-inline void graphics_context::draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha, const state_token& token)
+inline void graphics_context::draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha, const state_token& token)
 {
 	if (!!mskBounds && !!dstBounds)
 	{
@@ -344,7 +343,7 @@ inline void graphics_context::draw_bitmask(const canvas::bitmask& msk, const can
 	}
 }
 
-inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, bool blendAlpha, bool inverted, const state_token& token)
+inline void graphics_context::draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha, bool inverted, const state_token& token)
 {
 	if (!!srcBounds && !!dstBounds)
 	{
@@ -381,18 +380,17 @@ inline void graphics_context::draw_bitmap_with_bitmask(const canvas::bitmap& src
 	}
 }
 
-inline rcref<canvas::bitmask> graphics_context::create_bitmask(const canvas::size& sz, std::optional<bool> value)
+inline rcref<gfx::bitmask> graphics_context::create_bitmask(const gfx::size& sz, std::optional<bool> value)
 {
 	return rcnew(bitmask)(sz, value);
 }
 
-inline rcref<canvas::bitmask> graphics_context::load_bitmask(const composite_string& location)
+inline rcref<gfx::bitmask> graphics_context::load_bitmask(const composite_string& location)
 {
 	return rcnew(bitmask)(location);
 }
 
 
-}
 }
 }
 

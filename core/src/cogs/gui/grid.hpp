@@ -109,7 +109,7 @@
 //	size m_currentDefaultSize;
 //
 //	virtual range get_range() const { return m_currentRange; }
-//	virtual size get_default_size() const { return m_currentDefaultSize; }
+//	virtual std::optional<size> get_default_size() const { return m_currentDefaultSize; }
 //
 //	virtual void calculate_range()
 //	{
@@ -207,7 +207,7 @@
 //		{
 //			m_cachedLength = proposed;
 //
-//			//size defaultSize = get_default_size();
+//			//std::optional<size> defaultSize = get_default_size();
 //
 //			typename secondary_map_t::iterator itor = m_secondaryRows.get_first(); //m_rowsAndColumns[!d].get_first();
 //			while (!!itor)

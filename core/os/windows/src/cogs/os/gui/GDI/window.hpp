@@ -18,11 +18,10 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class window : public hwnd_pane, public window_interface
+class window : public hwnd_pane, public gui::window_interface
 {
 private:
 	volatile boolean m_isInModalSizingLoop;
@@ -30,12 +29,14 @@ private:
 	int m_sizingMode = 0; // 0 = none, 1 = WM_SIZING with WM_SIZE pending, 2 = WM_WINDOWPOSCHANGING with WM_WINDOWPOSCHANGED pending
 	POINT m_position; // Always in native pixels for the DPI.
 	POINT m_pendingPosition;
-	size m_pendingSize; // without border
+	gfx::size m_pendingSize; // without border
 	bool m_sizing = false;
 	hwnd::subsystem::visible_windows_list_t::volatile_remove_token m_visibleRemoveToken;
 	bool m_processingZoomRequest = false;
 	bool m_mouseTracking = false;
-	range m_calculatedRange;
+	gfx::range m_calculatedRange;
+	color m_defaultTextColor;
+	color m_defaultBackgroundColor;
 
 	bool is_zoomed() const
 	{
@@ -52,10 +53,8 @@ private:
 		{
 			RECT clientRect;
 			GetClientRect(get_HWND(), &clientRect);
-
 			RECT frameRect;
 			GetWindowRect(get_HWND(), &frameRect);
-
 			sz.cx = (frameRect.right - frameRect.left) - (clientRect.right - clientRect.left);
 			sz.cy = (frameRect.bottom - frameRect.top) - (clientRect.bottom - clientRect.top);
 		}
@@ -72,12 +71,9 @@ private:
 
 	SIZE get_unmaximized_border_SIZE(double dpi)
 	{
-		SIZE sz;
 		RECT borderRect = { 0, 0, 0, 0 };
 		AdjustWindowRectExForDpi(&borderRect, m_style, FALSE, m_extendedStyle, (int)dpi);
-		sz.cx = borderRect.right - borderRect.left;
-		sz.cy = borderRect.bottom - borderRect.top;
-		return sz;
+		return SIZE{ borderRect.right - borderRect.left, borderRect.bottom - borderRect.top };
 	}
 
 	SIZE get_unmaximized_border_SIZE()
@@ -94,14 +90,14 @@ public:
 	{
 		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
 		string title = w->get_title().composite();
-
 		m_style |= WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_OVERLAPPED;
 		if (!title.is_empty())
 			m_style |= WS_CAPTION;
-
 		install_HWND();
+		m_defaultTextColor = from_COLORREF(GetTextColor(get_HDC()));
+		m_defaultBackgroundColor = from_COLORREF(GetBkColor(get_HDC()));
+		get_device_context().fill(get_size(), m_defaultBackgroundColor, false);
 		SetWindowText(get_HWND(), title.cstr());
-
 		hwnd_pane::installing();
 	}
 
@@ -128,54 +124,85 @@ public:
 		SetWindowText(get_HWND(), title.composite().cstr());
 	}
 
-	// Incoming position are in screen coordinates.  On Windows, we use real pixels for screen coordinates.
-	// Incoming size is in DIPs
-	virtual void set_initial_shape(const point* initialPosition, const size* initialFrameSize, bool centerPosition)
+	// Incoming contentSize is in DIPs
+	// Incoming position and frameSize are in screen coordinates.
+	// On Windows, we use real pixels for screen coordinates.
+	virtual void set_initial_shape(
+		const std::optional<gfx::point> position,
+		const std::optional<gfx::size> contentSize,
+		const std::optional<gfx::size> frameSize,
+		bool center)
 	{
-		SIZE sz;
-		if (initialFrameSize)
+		// Get current size, in case set due to CW_USEDEFAULT
+		RECT r;
+		GetWindowRect(get_HWND(), &r);
+		POINT pt;
+		pt.x = r.left;
+		pt.y = r.top;
+
+		// Figure out the size
+		gfx::size contentSizeInDips;
+		gfx::size adjustedContentSizeInDips = { 0, 0 };
+		bool proposeNewSize = true;
+		SIZE contentSIZE;
+		SIZE frameBorderSIZE = get_unmaximized_border_SIZE();
+		gfx::size frameBorderSizeInDips = get_device_context().make_size(frameBorderSIZE);
+		if (contentSize.has_value())
+			contentSizeInDips = *contentSize;
+		else if (frameSize.has_value())
 		{
-			sz.cx = (LONG)std::lround(initialFrameSize->get_width());
-			sz.cy = (LONG)std::lround(initialFrameSize->get_height());
+			contentSizeInDips.get_height() = (frameSize->get_height() > frameBorderSizeInDips.get_height())
+				? (frameSize->get_height() - frameBorderSizeInDips.get_height())
+				: 0;
+			contentSizeInDips.get_width() = (frameSize->get_width() > frameBorderSizeInDips.get_width())
+				? (frameSize->get_width() - frameBorderSizeInDips.get_width())
+				: 0;
 		}
 		else
 		{
-			size defaultSize = get_default_size();
-			SIZE defaultSIZE = get_device_context().make_SIZE(defaultSize);
-			SIZE borderSIZE = get_unmaximized_border_SIZE();
-			sz.cx = defaultSIZE.cx + borderSIZE.cx;
-			sz.cy = defaultSIZE.cy + borderSIZE.cy;
+			// Use the default size
+			std::optional<gfx::size> defaultSize = get_default_size();
+			if (defaultSize.has_value())
+			{
+				adjustedContentSizeInDips = *defaultSize;
+				proposeNewSize = false; // Default is safe.  No need to propose it.
+			}
+			else
+			{
+				// If no default size, propose the size set due to CW_USEDEFAULT
+				contentSIZE.cx = (r.right - r.left) - frameBorderSIZE.cx;
+				contentSIZE.cy = (r.bottom - r.top) - frameBorderSIZE.cy;
+				contentSizeInDips = get_device_context().make_size(contentSIZE);
+			}
+		}
+		if (proposeNewSize)
+		{
+			std::optional<gfx::size> opt = propose_size_best(contentSizeInDips);
+			adjustedContentSizeInDips = opt.has_value() ? *opt : gfx::size(0, 0);
 		}
 
-		POINT pt;
-		if (initialPosition)
+		SIZE frameSIZE = get_device_context().make_SIZE(adjustedContentSizeInDips);
+		frameSIZE += frameBorderSIZE;
+
+		// Figure out the position
+		if (position.has_value())
 		{
-			pt.x = (LONG)std::lround(initialPosition->get_x());
-			pt.y = (LONG)std::lround(initialPosition->get_y());
+			pt.x = (LONG)std::lround(position->get_x());
+			pt.y = (LONG)std::lround(position->get_y());
 		}
-		else if (!centerPosition)
+		else if (center)
 		{
-			// Uses OS-selected position for new window (current position, as a result of using CW_USEDEFAULT)
-			RECT r;
-			GetWindowRect(get_HWND(), &r);
-			pt.x = r.left;
-			pt.y = r.top;
-		}
-		else
-		{
+			// Calculate center position on main screen
 			pt.x = 0;
 			pt.y = 0;
-
-			// Calculate center position on main screen
-			DWORD i = 0;
-			for (;;)
+			for (DWORD i = 0; ; i++)
 			{
 				DISPLAY_DEVICE dd;
 				dd.cb = sizeof(DISPLAY_DEVICE);
 				BOOL b = EnumDisplayDevicesW(NULL, i, &dd, 0);
 				if (!b)
 					break;
-				if (dd.StateFlags & DISPLAY_DEVICE_ACTIVE)
+				if (dd.StateFlags & (DISPLAY_DEVICE_ACTIVE | DISPLAY_DEVICE_ATTACHED_TO_DESKTOP | DISPLAY_DEVICE_PRIMARY_DEVICE))
 				{
 					DEVMODE dm;
 					dm.dmSize = sizeof(DEVMODE);
@@ -185,10 +212,10 @@ public:
 						break;
 					pt.x = dm.dmPosition.x;
 					pt.y = dm.dmPosition.y;
-					if (dm.dmPelsWidth > (DWORD)sz.cx)
-						pt.x += (dm.dmPelsWidth - (DWORD)sz.cx) / 2;
-					if (dm.dmPelsHeight > (DWORD)sz.cy)
-						pt.y += (dm.dmPelsHeight - (DWORD)sz.cy) / 2;
+					if (dm.dmPelsWidth > (DWORD)frameSIZE.cx)
+						pt.x += (dm.dmPelsWidth - (DWORD)frameSIZE.cx) / 2;
+					if (dm.dmPelsHeight > (DWORD)frameSIZE.cy)
+						pt.y += (dm.dmPelsHeight - (DWORD)frameSIZE.cy) / 2;
 					break;
 				}
 			}
@@ -197,60 +224,118 @@ public:
 		m_pendingPosition = pt;
 		m_position = pt;
 		m_sizing = true;
-		MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
-		m_sizing = false;
 
-		RECT r;
+		MoveWindow(get_HWND(), pt.x, pt.y, frameSIZE.cx, frameSIZE.cy, FALSE);
+
+		RECT rx;
+		GetWindowRect(get_HWND(), &rx);
+
+		SIZE newSize{ rx.right - rx.left, rx.bottom - rx.top };
+		if (newSize != frameSIZE)
+		{
+			bool wasMinimimWidthImposed = newSize.cx > frameSIZE.cx;
+			bool wasMinimimHeightImposed = newSize.cy > frameSIZE.cy;
+			SIZE newContentSize = newSize - frameBorderSIZE;
+			gfx::size newContentSizeInDips = get_device_context().make_size(newContentSize);
+			std::optional<gfx::size> sz = propose_size(newContentSizeInDips).find_first_valid_size(get_primary_flow_dimension(), wasMinimimWidthImposed, wasMinimimHeightImposed);
+			if (sz.has_value() && *sz != newContentSizeInDips)
+			{
+				gfx::size newFrameSizeInDips = *sz + frameBorderSizeInDips;
+				SIZE newFrameSize = get_device_context().make_SIZE(newFrameSizeInDips);
+				frameSIZE = newFrameSize;
+				MoveWindow(get_HWND(), pt.x, pt.y, frameSIZE.cx, frameSIZE.cy, FALSE);
+			}
+		}
+
+		m_sizing = false;
 		GetClientRect(get_HWND(), &r);
-		SIZE contentSize = { r.right - r.left, r.bottom - r.top };
-		hwnd_pane::reshape(get_device_context().make_size(contentSize));
+		contentSIZE = { r.right - r.left, r.bottom - r.top };
+		gfx::size actualSize = get_device_context().make_size(contentSIZE);
+		hwnd_pane::reshape(actualSize);
 	}
 
-	// window::reshape() reshapes the content area, not the window.
-	// Coordinates are in DIPs.  The position in newBounds will be 0,0.
-	// To reposition a window and/or resize it in screen coordinates, use reshape_frame.
-	virtual void reshape(const bounds& newBounds, const point& = point(0, 0))
+	virtual void resize(const gfx::size& newSize)
 	{
 		// Get current bounds
-		gfx::os::gdi::BOUNDS oldBounds = get_frame_BOUNDS();
-
+		BOUNDS oldFrameBounds = get_frame_BOUNDS();
 		// Convert size to screen coordinates, then to frame size
-		SIZE sz = get_device_context().make_SIZE(newBounds.get_size());
+		SIZE sz = get_device_context().make_SIZE(newSize);
 		SIZE borderSize = get_unmaximized_border_SIZE();
-		sz.cx += borderSize.cx;
-		sz.cy += borderSize.cy;
-
-		m_pendingPosition = oldBounds.pt;
+		sz += borderSize;
+		m_pendingPosition = oldFrameBounds.pt;
 		m_sizing = true;
-		MoveWindow(get_HWND(), oldBounds.pt.x, oldBounds.pt.y, sz.cx, sz.cy, FALSE);
+		MoveWindow(get_HWND(), oldFrameBounds.pt.x, oldFrameBounds.pt.y, sz.cx, sz.cy, FALSE);
 		m_sizing = false;
-
 		// We don't want to call reshape() on children, as that will happen in
 		// response to the WM_SIZE message MoveWindow will generate.  However, if the
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
-		if (sz == oldBounds.sz)
-			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
+		if (sz == oldFrameBounds.sz)
+			reshaped(oldFrameBounds);
 	}
 
-	virtual void reshape_frame(const bounds& newBounds, const point& = point(0, 0))
+	virtual void reshape_frame(const gfx::bounds& newBounds)
 	{
-		POINT pt = { (LONG)newBounds.get_x(), (LONG)newBounds.get_y() };
-		SIZE sz = { (LONG)std::lround(newBounds.get_width()), (LONG)std::lround(newBounds.get_height()) };
-
-		SIZE oldSIZE = get_frame_SIZE();
-
-		m_pendingPosition = pt;
+		// Get current size
+		BOUNDS oldFrameBounds = get_frame_BOUNDS();
+		BOUNDS newFrameBounds = {
+			.pt = POINT{ (LONG)std::lround(newBounds.get_x()), (LONG)std::lround(newBounds.get_y()) },
+			.sz = SIZE{ (LONG)std::lround(newBounds.get_width()), (LONG)std::lround(newBounds.get_height()) }
+		};
+		m_pendingPosition = newFrameBounds.pt;;
 		m_sizing = true;
-		MoveWindow(get_HWND(), pt.x, pt.y, sz.cx, sz.cy, FALSE);
+		MoveWindow(get_HWND(), newFrameBounds.pt.x, newFrameBounds.pt.y, newFrameBounds.sz.cx, newFrameBounds.sz.cy, FALSE);
 		m_sizing = false;
-
 		// We don't want to call reshape() on children, as that will happen in
 		// response to the WM_SIZE message this will generate.  However, if the
 		// size is unchanged, WM_SIZE will not occur, and we need to propagate
 		// the reshape request.
-		if (sz == oldSIZE)
-			hwnd_pane::reshape(newBounds.get_size(), point(0, 0));
+		if (newFrameBounds.sz == oldFrameBounds.sz)
+			reshaped(oldFrameBounds);
+	}
+
+	void reshaped(const BOUNDS& oldFrameBounds)
+	{
+		BOUNDS newFrameBOUNDS = get_frame_BOUNDS();
+		gfx::bounds newFrameBounds(newFrameBOUNDS.pt.x, newFrameBOUNDS.pt.y, newFrameBOUNDS.sz.cx, newFrameBOUNDS.sz.cy);
+		gfx::point oldOrigin(oldFrameBounds.pt.x - newFrameBOUNDS.pt.x, oldFrameBounds.pt.y - newFrameBOUNDS.pt.y);
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		w->frame_reshaped(newFrameBounds, oldOrigin);
+	}
+
+	virtual void frame_reshaped()
+	{
+		RECT r;
+		GetClientRect(get_HWND(), &r);
+		SIZE contentSIZE = { r.right - r.left, r.bottom - r.top };
+		gfx::size contentSize = get_device_context().make_size(contentSIZE);
+		hwnd_pane::reshape(contentSize, gfx::point(0, 0));
+	}
+
+	virtual gfx::cell::propose_size_result propose_frame_size(
+		const gfx::size& sz,
+		const gfx::range& r = gfx::range::make_unbounded(),
+		const std::optional<gfx::dimension>& resizeDimension = std::nullopt,
+		gfx::cell::sizing_mask sizingMask = gfx::cell::all_sizing_types) const
+	{
+		BOUNDS frameBOUNDS = get_frame_BOUNDS();
+		gfx::bounds frameBounds(frameBOUNDS.pt.x, frameBOUNDS.pt.y, frameBOUNDS.sz.cx, frameBOUNDS.sz.cy);
+		gfx::size sz2;
+		gfx::range r2;
+		if (sz.get_width() <= frameBounds.get_width() || sz.get_height() <= frameBounds.get_height())
+		{
+			sz2 = gfx::size(0, 0);
+			r2 = gfx::range::make_empty();
+		}
+		else
+		{
+			sz2 = sz - frameBounds.get_size();
+			r2 = r - sz;
+		}
+		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+		gfx::cell::propose_size_result result = w.static_cast_to<gui::pane>()->propose_size(sz2, r2, resizeDimension, sizingMask);
+		result += frameBounds.get_size();
+		return result;
 	}
 
 	RECT get_frame_RECT() const
@@ -260,13 +345,13 @@ public:
 		return r;
 	}
 
-	gfx::os::gdi::BOUNDS get_frame_BOUNDS() const
+	BOUNDS get_frame_BOUNDS() const
 	{
 		RECT r = get_frame_RECT();
 		return { { r.left, r.top }, { r.right - r.left, r.bottom - r.top } };
 	}
 
-	virtual bounds get_frame_bounds() const
+	virtual gfx::bounds get_frame_bounds() const
 	{
 		RECT r = get_frame_RECT();
 		return { { (double)r.left, (double)r.top }, { (double)(r.right - r.left), (double)(r.bottom - r.top) } };
@@ -283,9 +368,10 @@ public:
 	{
 		hwnd_pane::calculate_range();
 
-		// Fudge for the actual minimum with on (passed to WM_SIZING)
-		range windowRange(size(156, 0), size(0, 0), false, false);
-		m_calculatedRange = hwnd_pane::get_range() & windowRange;
+		gfx::range windowRange;
+		gfx::size minimumSize = get_minimum_window_size();
+		m_calculatedRange.set_min(minimumSize);
+		m_calculatedRange &= hwnd_pane::get_range() & windowRange;
 		DWORD newStyle = m_style;
 		if (get_range().is_fixed())
 			newStyle &= ~(WS_MAXIMIZEBOX | WS_THICKFRAME); // Disable maximize button and resizable frame
@@ -298,7 +384,7 @@ public:
 		}
 	}
 
-	virtual range get_range() const { return m_calculatedRange; }
+	virtual gfx::range get_range() const { return m_calculatedRange; }
 
 	virtual LRESULT process_message(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
@@ -311,7 +397,7 @@ public:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 					ScreenToClient(get_HWND(), &pt);
-					point pt2 = get_device_context().make_point(pt);
+					gfx::point pt2 = get_device_context().make_point(pt);
 					//WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
 					short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 					ui::modifier_keys_state modifiers = get_modifier_keys();
@@ -322,7 +408,7 @@ public:
 			case WM_MOUSEMOVE:
 				{
 					POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-					point pt2 = get_device_context().make_point(pt);
+					gfx::point pt2 = get_device_context().make_point(pt);
 					if (m_mouseTracking)
 						cursor_move(*w, pt2);
 					else
@@ -332,7 +418,6 @@ public:
 						tme.cbSize = sizeof(TRACKMOUSEEVENT);
 						tme.dwFlags = TME_LEAVE;
 						tme.hwndTrack = get_HWND();
-
 						if (TrackMouseEvent(&tme))
 							m_mouseTracking = true;
 					}
@@ -360,24 +445,22 @@ public:
 			case WM_GETDPISCALEDSIZE:
 			{
 				hwnd_pane::process_message(WM_GETDPISCALEDSIZE, wParam, lParam);
-
 				DWORD dpi = (DWORD)wParam;
 				LPSIZE sz = (LPSIZE)lParam;
-
 				double oldDpi = get_device_context().get_dpi();
-
-				size currentSize = get_size();
+				gfx::size currentSize = get_size();
 				dpi_changing(oldDpi, dpi);
-
 				calculate_range();
-
-				size newSize = propose_size(currentSize).find_first_valid_size(get_primary_flow_dimension());
-				SIZE borderSize = get_unmaximized_border_SIZE(dpi);
-				SIZE newSIZE = get_device_context().make_SIZE(newSize);
-				newSIZE.cx += borderSize.cx;
-				newSIZE.cy += borderSize.cy;
-				*sz = newSIZE;
-
+				std::optional<gfx::size> newSize = propose_size(currentSize).find_first_valid_size(get_primary_flow_dimension());
+				if (!newSize.has_value())
+					sz->cx = sz->cy = 0;
+				else
+				{
+					SIZE borderSize = get_unmaximized_border_SIZE(dpi);
+					SIZE newSIZE = get_device_context().make_SIZE(*newSize);
+					newSIZE += borderSize;
+					*sz = newSIZE;
+				}
 				return 1;
 			}
 			case WM_ACTIVATE:
@@ -401,22 +484,17 @@ public:
 				{
 					// We do our own double-buffering on Win32, so prevent default buffering on size/move
 					NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*)lParam;
-					//RECT& newClient = params->rgrc[0];
 					RECT& dst = params->rgrc[1];
 					RECT& src = params->rgrc[2];
-
 					hwnd_pane::process_message(WM_NCCALCSIZE, wParam, lParam);
-
 					src.top = 0;
 					src.bottom = 0;
 					src.left = 0;
 					src.right = 0;
-
 					dst.top = 0;
 					dst.bottom = 0;
 					dst.left = 0;
 					dst.right = 0;
-
 					return WVR_VALIDRECTS;
 				}
 				break;
@@ -426,31 +504,22 @@ public:
 				// Indicate we have started sizing, so its position changes are detected.
 				// Position should not be reset until WM_SIZE, to ensure top/left resizing works correctly(skew offset).
 				m_sizingMode = 1;
-
 				LPRECT resizeRect = (LPRECT)lParam;
-				SIZE newSizeWithBorder;
-				newSizeWithBorder.cx = resizeRect->right - resizeRect->left;
-				newSizeWithBorder.cy = resizeRect->bottom - resizeRect->top;
-
+				SIZE newSizeWithBorder{ resizeRect->right - resizeRect->left, resizeRect->bottom - resizeRect->top };
 				SIZE borderSize = get_unmaximized_border_SIZE();
-				SIZE newSizeWithoutBorder;
-				newSizeWithoutBorder.cx = newSizeWithBorder.cx - borderSize.cx;
-				newSizeWithoutBorder.cy = newSizeWithBorder.cy - borderSize.cy;
-
+				SIZE newSizeWithoutBorder = SIZE{ newSizeWithBorder.cx - borderSize.cx, newSizeWithBorder.cy - borderSize.cy };
 				bool changedWidth = (wParam == WMSZ_BOTTOMLEFT)
 					|| (wParam == WMSZ_BOTTOMRIGHT)
 					|| (wParam == WMSZ_TOPLEFT)
 					|| (wParam == WMSZ_TOPRIGHT)
 					|| (wParam == WMSZ_LEFT)
 					|| (wParam == WMSZ_RIGHT);
-
 				bool changedHeight = (wParam == WMSZ_BOTTOM)
 					|| (wParam == WMSZ_BOTTOMLEFT)
 					|| (wParam == WMSZ_BOTTOMRIGHT)
 					|| (wParam == WMSZ_TOP)
 					|| (wParam == WMSZ_TOPLEFT)
 					|| (wParam == WMSZ_TOPRIGHT);
-
 				m_pendingSize = get_device_context().make_size(newSizeWithoutBorder);
 
 				RECT r;
@@ -458,27 +527,17 @@ public:
 				SIZE sz = { r.right - r.left, r.bottom - r.top };
 				if (newSizeWithBorder != sz)
 				{
-					for (;;)
+					std::optional<gfx::dimension> resizeDimension;
+					if (changedWidth)
 					{
-						if (changedWidth)
-						{
-							if (!changedHeight)
-							{
-								m_pendingSize = propose_size(m_pendingSize, dimension::horizontal).find_first_valid_size(dimension::horizontal);
-								break;
-							}
-						}
-						else if (changedHeight)
-						{
-							m_pendingSize = propose_size(m_pendingSize, dimension::vertical).find_first_valid_size(dimension::vertical);
-							break;
-						}
-
-						m_pendingSize = propose_size(m_pendingSize).find_first_valid_size(get_primary_flow_dimension());
-						break;
+						if (!changedHeight)
+							resizeDimension = gfx::dimension::horizontal;
 					}
+					else if (changedHeight)
+						resizeDimension = gfx::dimension::vertical;
+					std::optional<gfx::size> opt = propose_size_best(m_pendingSize, gfx::range::make_unbounded(), resizeDimension);
+					m_pendingSize = opt.has_value() ? *opt : gfx::size(0, 0);
 				}
-
 				bool trimTop = false;
 				bool trimLeft = false;
 				switch (wParam)
@@ -499,9 +558,7 @@ public:
 				default:
 					break;
 				}
-
 				SIZE newSize = get_device_context().make_SIZE(m_pendingSize);
-
 				if (trimLeft)
 					resizeRect->left += newSizeWithoutBorder.cx - newSize.cx;
 				else
@@ -511,7 +568,6 @@ public:
 					resizeRect->top += newSizeWithoutBorder.cy - newSize.cy;
 				else
 					resizeRect->bottom -= newSizeWithoutBorder.cy - newSize.cy;
-
 				return 1;
 			}
 			case WM_NCLBUTTONDBLCLK:
@@ -531,8 +587,8 @@ public:
 				{
 					case SC_MAXIMIZE:
 					{
-						// If we maximizing the window, we need to propose the maximum size in WM_GETMINMAXINFO,
-						// as the actual maximum may be a subset in 1 dimension.  i.e. If maintaining aspect ratio.
+						// When we maximize a window, we need to propose the maximum size in WM_GETMINMAXINFO,
+						// as the actual maximum may be lesser in 1 dimension.  i.e. If maintaining aspect ratio.
 						m_processingZoomRequest = true;
 						LRESULT result = hwnd_pane::process_message(msg, wParam, lParam);
 						m_processingZoomRequest = false;
@@ -544,12 +600,12 @@ public:
 			case WM_SIZE:
 			{
 				SIZE requestedClientSIZE = { LOWORD(lParam), HIWORD(lParam) };
-				size proposedSize;
+				gfx::size proposedSize;
 				for (;;)
 				{
 					if (m_sizingMode > 0)
 					{
-						// m_pendingSize may be slightly different converting, proposing, and converting back.
+						// m_pendingSize may be slightly different due to converting, proposing, and converting back.
 						// If m_pendingSize reduces to the currently proposed size, use it instead of the params.
 						SIZE pendingSIZE = get_device_context().make_SIZE(m_pendingSize);
 						if (pendingSIZE == requestedClientSIZE)
@@ -558,30 +614,22 @@ public:
 							break;
 						}
 					}
-					size requestedClientSize = get_device_context().make_size(requestedClientSIZE);
-					proposedSize = propose_size(requestedClientSize).find_first_valid_size(get_primary_flow_dimension());
+					gfx::size requestedClientSize = get_device_context().make_size(requestedClientSIZE);
+					std::optional<gfx::size> opt = propose_size_best(requestedClientSize);
+					proposedSize = opt.has_value() ? *opt : gfx::size(0, 0);
 					break;
 				}
-
-				point originSkew(0, 0);
+				gfx::point originSkew(0, 0);
 				if (m_sizing || m_sizingMode > 1)
 				{
-					POINT originSkewPOINT = { m_position.x - m_pendingPosition.x, m_position.y - m_pendingPosition.y };
+					POINT originSkewPOINT = m_position - m_pendingPosition;
 					m_position = m_pendingPosition;
 					originSkew = get_device_context().make_point(originSkewPOINT);
 				}
 				m_sizingMode = 0;
-
-				if ((originSkew != point(0, 0)) || (m_boundsInParentHwnd.sz != get_device_context().make_SIZE(proposedSize)))
+				if (!!originSkew || m_boundsInParentHwnd.sz != requestedClientSIZE)
 					hwnd_pane::reshape(proposedSize, originSkew);
-
-				// Because some versions of Windows will move the existing content when resizing from left or top,
-				// invalidate the entire window each time.
-				if ((originSkew.get_x() != 0) || (originSkew.get_y() != 0))
-					invalidate(get_size());
-
-				get_subsystem()->run_high_priority_tasks(false);
-
+				get_subsystem()->run_high_priority_tasks(true);
 				return 0;
 			}
 			case WM_WINDOWPOSCHANGING:
@@ -614,25 +662,21 @@ public:
 			case WM_GETMINMAXINFO:
 			{
 				MINMAXINFO* minMaxInfo = (MINMAXINFO*)lParam;
-
 				double dpi = get_device_context().get_dpi();
 				SIZE borderSize = get_unmaximized_border_SIZE(dpi);
-
-				range r = get_range();
+				gfx::range r = get_range();
 				SIZE minSize = get_device_context().make_SIZE(r.get_min());
-
 				// Min size is easy
-				SIZE minTrackSize = { minSize.cx + borderSize.cx, minSize.cy + borderSize.cy };
+				SIZE minTrackSize = minSize + borderSize;
 				if (minTrackSize.cx > minMaxInfo->ptMinTrackSize.x)
 					minMaxInfo->ptMinTrackSize.x = minTrackSize.cx;
 				if (minTrackSize.cy > minMaxInfo->ptMinTrackSize.y)
 					minMaxInfo->ptMinTrackSize.y = minTrackSize.cy;
-
 				if (r.has_max_width() || r.has_max_height())
 				{
-					// Due to a Windows bug with DPI awareness bug,
-					// We never touch ptMaxSize, only ptMaxTrackSize.
-					// If being called in response to an event that might result in maximizing,
+					// To work around a Windows DPI awareness bug,
+					// we never touch ptMaxSize, only ptMaxTrackSize.
+					// If called in response to an event that might result in maximizing,
 					// we set ptMaxTrackSize to the maximized size.  Otherwise, we set ptMaxTrackSize
 					// to represent separate X and Y maximimum.
 					POINT maxTrackSize = minMaxInfo->ptMaxTrackSize;
@@ -641,8 +685,9 @@ public:
 						MONITORINFO mi;
 						mi.cbSize = sizeof(mi);
 						GetMonitorInfo(MonitorFromWindow(get_HWND(), MONITOR_DEFAULTTONEAREST), &mi);
-						size proposedSize = get_device_context().make_size(mi.rcWork);
-						proposedSize = propose_size(proposedSize).find_first_valid_size(get_primary_flow_dimension());
+						gfx::size proposedSize = get_device_context().make_size(mi.rcWork);
+						std::optional<gfx::size> opt = propose_size_best(proposedSize, gfx::range::make_unbounded(), std::nullopt, true, true, true);
+						proposedSize = opt.has_value() ? *opt : gfx::size(0, 0);
 						SIZE proposedSIZE = get_device_context().make_SIZE(proposedSize);
 						maxTrackSize.x = proposedSIZE.cx + borderSize.cx;
 						maxTrackSize.y = proposedSIZE.cy + borderSize.cy;
@@ -660,14 +705,11 @@ public:
 							maxTrackSize.y = maxY + borderSize.cy;
 						}
 					}
-
 					if (maxTrackSize.x < minMaxInfo->ptMaxTrackSize.x)
 						minMaxInfo->ptMaxTrackSize.x = maxTrackSize.x;
-
 					if (maxTrackSize.y < minMaxInfo->ptMaxTrackSize.y)
 						minMaxInfo->ptMaxTrackSize.y = maxTrackSize.y;
 				}
-
 				return 0;
 			}
 			case WM_CLOSE:
@@ -697,31 +739,37 @@ public:
 		}
 		return hwnd_pane::process_message(msg, wParam, lParam);
 	}
+
+	virtual bool is_opaque() const
+	{
+		return true;
+	}
+
+	virtual gfx::font_parameters get_default_text_font() const { return gdi::device_context::get_default_font(); }
+	virtual color get_default_text_foreground_color() const { return from_COLORREF(GetSysColor(COLOR_WINDOWTEXT)); }
+	virtual color get_default_text_background_color() const { return from_COLORREF(GetSysColor(COLOR_WINDOW)); }
+	virtual color get_default_selected_text_foreground_color() const { return from_COLORREF(GetSysColor(COLOR_HIGHLIGHTTEXT)); }
+	virtual color get_default_selected_text_background_color() const { return from_COLORREF(GetSysColor(COLOR_HIGHLIGHT)); }
+	virtual color get_default_label_foreground_color() const { return from_COLORREF(GetSysColor(COLOR_WINDOWTEXT)); }
+	virtual color get_default_background_color() const { return from_COLORREF(GetSysColor(COLOR_WINDOW)); }
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<window_interface> > hwnd::subsystem::create_window() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::window_interface> > hwnd::subsystem::create_window() volatile
 {
 	rcref<window> w = rcnew(window)(this_rcref);
 	return std::make_pair(w, w);
 }
 
 
-inline rcref<gui::window> hwnd::subsystem::open_window(
-	const gfx::canvas::point* screenPosition,
-	const gfx::canvas::size* frameSize,
-	bool positionCentered,
-	const composite_string& title,
-	const rcref<pane>& p) volatile
+inline rcref<gui::window> hwnd::subsystem::open_window(window_options&& options) volatile
 {
-	rcref<gui::window> w = rcnew(gui::window)(screenPosition, frameSize, positionCentered, title);
-	w->nest(p);
+	rcref<gui::window> w = rcnew(gui::window)(std::move(options));
 	install(*w, rcnew(hwnd::subsystem)); // Give each window it's own subsystem instance, so it's own UI thread.
 	return w;
 }
 
 
-}
 }
 }
 

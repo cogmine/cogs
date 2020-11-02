@@ -45,7 +45,7 @@ private:
 		uint32_t m_denom;
 	};
 
-	alignas (atomic::get_alignment_v<ratio_t>) inline static placement<ratio_t> s_ratio;
+	alignas(atomic::get_alignment_v<ratio_t>) inline static placement<ratio_t> s_ratio;
 
 public:
 	// We're going to squeeze a mach_timespec into an fixed_integer<> to calculate timespans.

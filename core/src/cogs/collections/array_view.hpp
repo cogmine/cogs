@@ -65,8 +65,8 @@
 //
 //struct array_view_content_t
 //{
-//	alignas (atomic::get_alignment_v<unsigned char*>) unsigned char* m_base;
-//	alignas (atomic::get_alignment_v<size_t>) size_t m_stride;
+//	alignas(atomic::get_alignment_v<unsigned char*>) unsigned char* m_base;
+//	alignas(atomic::get_alignment_v<size_t>) size_t m_stride;
 //};
 //
 //template <size_t n, typename T>
@@ -80,7 +80,7 @@
 //	static_assert(n > 0);
 //
 //	typedef array_view_content_t content_t;
-//	alignas (atomic::get_alignment_v<content_t>) content_t m_contents;
+//	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
 //
 //	template <size_t, typename>
 //	friend class array_view;

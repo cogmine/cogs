@@ -154,7 +154,7 @@ private:
 	rcptr<notification_context> m_lastBoundSet;
 
 	// 0 = not dispatching, 1 = processing dispatch, 2 = pending dispatch
-	alignas (atomic::get_alignment_v<int>) volatile int m_pumpSerializer = 0;
+	alignas(atomic::get_alignment_v<int>) volatile int m_pumpSerializer = 0;
 
 	void set_changed_pump()
 	{

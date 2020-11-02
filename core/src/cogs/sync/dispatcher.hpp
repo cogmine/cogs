@@ -13,7 +13,6 @@
 #include "cogs/function.hpp"
 #include "cogs/math/boolean.hpp"
 #include "cogs/math/const_min_int.hpp"
-#include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcptr.hpp"
 #include "cogs/mem/rcref.hpp"
@@ -29,9 +28,6 @@ class dispatcher;
 
 // waitable is a base class for objects that can be waited on for a signal.
 class waitable;
-
-// event is a base class for waitable objects with a public method to signal.
-class event;
 
 class task_base;
 
@@ -207,7 +203,7 @@ public:
 };
 
 
-class dispatched : public object
+class dispatched : public virtual object
 {
 private:
 	weak_rcptr<volatile dispatcher> m_parentDispatcher;
@@ -259,7 +255,7 @@ inline void dispatcher::dispatch_inner(const volatile waitable& w, const rcref<t
 }
 
 
-class event_base : public waitable
+class condition_base : public waitable
 {
 public:
 	// Returns true if transitioned from unsignaled to signaled state.
@@ -286,7 +282,7 @@ public:
 
 
 template <>
-class task<void> : public waitable, public object
+class task<void> : public waitable, public virtual object
 {
 protected:
 	friend class dispatcher;
@@ -338,7 +334,7 @@ protected:
 				priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.insert_via([&](priority_queue<int, continuation_dispatched>::value_token& vt)
 				{
 					*const_cast<int*>(&vt.get_priority()) = priority;
-					placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+					nested_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
 					t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
 				}).valueToken;
 				if (!m_continuationSubTaskDrainDone || !m_continuationSubTasks.remove(vt).wasRemoved)
@@ -352,10 +348,10 @@ protected:
 		}
 	}
 
-	virtual void signal_continuation(task_base& t) volatile
+	virtual bool signal_continuation(task_base& t) volatile
 	{
 		task_arg_base<void>* t2 = (task_arg_base<void>*) & t;
-		t2->signal(this_rcref.template const_cast_to<task<void> >());
+		return t2->signal(this_rcref.template const_cast_to<task<void> >());
 	}
 
 	void signal_continuations() volatile
@@ -374,6 +370,21 @@ protected:
 			}
 			signal_continuation(*vt->get_task_base());
 		}
+	}
+
+	friend class resettable_condition;
+
+	bool signal_one_continuation() volatile
+	{
+		for (;;)
+		{
+			priority_queue<int, continuation_dispatched>::value_token vt = m_continuationSubTasks.get();
+			if (!vt)
+				break;
+			if (signal_continuation(*vt->get_task_base()))
+				return true;
+		}
+		return false;
 	}
 
 	explicit task(bool signaled = false)
@@ -409,17 +420,17 @@ protected:
 
 	static_assert(!std::is_reference_v<result_t>); // task result must be a concrete type
 
-	virtual void signal_continuation(task_base& t) volatile
+	virtual bool signal_continuation(task_base& t) volatile
 	{
 		if (!t.needs_arg())
 		{
 			task_arg_base<void>* t2 = (task_arg_base<void>*)&t;
-			t2->signal(this_rcref.template const_cast_to<task<result_t> >().template static_cast_to<task<void> >());
+			return t2->signal(this_rcref.template const_cast_to<task<result_t> >().template static_cast_to<task<void> >());
 		}
 		else
 		{
 			task_arg_base<result_t>* t2 = (task_arg_base<result_t>*)&t;
-			t2->signal(this_rcref.template const_cast_to<task<result_t> >());
+			return t2->signal(this_rcref.template const_cast_to<task<result_t> >());
 		}
 	}
 
@@ -551,10 +562,10 @@ class signallable_task_base : public task<result_t>
 protected:
 	using task<result_t>::signal_continuations;
 
-	struct TaskState
+	struct task_state
 	{
-		alignas (atomic::get_alignment_v<size_t>) size_t m_waitingCount;
-		alignas (atomic::get_alignment_v<os::semaphore*>) os::semaphore* m_osSemaphore;
+		alignas(atomic::get_alignment_v<size_t>) size_t m_waitingCount;
+		alignas(atomic::get_alignment_v<os::semaphore*>) os::semaphore* m_osSemaphore;
 
 		// 0 = initial state, 1 = nextTask deployed, 2 = cancelled, 3 = invoked
 		// Piggy back 2 bits of state data in the unused 2 bits of m_os_semaphore
@@ -585,9 +596,9 @@ protected:
 		}
 	};
 
-	static_assert(can_atomic_v<TaskState>);
+	static_assert(can_atomic_v<task_state>);
 
-	mutable TaskState m_taskState alignas (atomic::get_alignment_v<TaskState>);
+	alignas(atomic::get_alignment_v<task_state>) mutable task_state m_taskState;
 
 	signallable_task_base()
 		: m_taskState{ 0, nullptr }
@@ -606,7 +617,7 @@ protected:
 		return (int)p.get_mark();
 	}
 
-	void release_waiting(const TaskState& oldTaskState) volatile
+	void release_waiting(const task_state& oldTaskState) volatile
 	{
 		ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
 		if (!!osSemaphore)
@@ -616,7 +627,7 @@ protected:
 		}
 	}
 
-	bool try_set_state(TaskState& oldTaskState, int newState) volatile
+	bool try_set_state(task_state& oldTaskState, int newState) volatile
 	{
 		atomic::load(m_taskState, oldTaskState);
 		for (;;)
@@ -624,14 +635,14 @@ protected:
 			if (oldTaskState.get_state() >= 2)
 				return false;
 			ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
-			TaskState newTaskState{ oldTaskState.m_waitingCount, osSemaphore.get_marked(newState) };
+			task_state newTaskState{ oldTaskState.m_waitingCount, osSemaphore.get_marked(newState) };
 			if (atomic::compare_exchange(m_taskState, newTaskState, oldTaskState, oldTaskState))
 				return true;
 			//continue;
 		}
 	}
 
-	virtual bool try_cancel(TaskState& oldTaskState) volatile
+	virtual bool try_cancel(task_state& oldTaskState) volatile
 	{
 		if (!try_set_state(oldTaskState, 2))
 			return false;
@@ -642,14 +653,14 @@ protected:
 
 	virtual rcref<task<bool> > cancel() volatile
 	{
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		bool b = try_cancel(oldTaskState);
 		return signaled(b);
 	}
 
 	virtual bool signal() volatile
 	{
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
 		post_signal(oldTaskState);
@@ -662,7 +673,7 @@ public:
 	{
 		int result = 0;
 		unsigned int spinsLeft = spinCount;
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		rcptr<os::semaphore> osSemaphoreRc;
 		for (;;)
 		{
@@ -691,7 +702,7 @@ public:
 				continue;
 			}
 			bool useCachedOsSemaphore = false;
-			TaskState newTaskState;
+			task_state newTaskState;
 			newTaskState.m_waitingCount = oldTaskState.m_waitingCount + 1;
 			ptr<os::semaphore> osSemaphore = oldTaskState.get_semaphore();
 			if (!!osSemaphore)
@@ -746,7 +757,7 @@ public:
 	}
 
 protected:
-	void post_signal(const TaskState& oldTaskState) volatile
+	void post_signal(const task_state& oldTaskState) volatile
 	{
 		release_waiting(oldTaskState);
 		signal_continuations();
@@ -763,7 +774,7 @@ private:
 	result_t* get_result_ptr() volatile { return &const_cast<signallable_task<result_t>*>(this)->m_result.get(); }
 
 protected:
-	using typename signallable_task_base<result_t>::TaskState;
+	using typename signallable_task_base<result_t>::task_state;
 	using signallable_task_base<result_t>::m_taskState;
 	using signallable_task_base<result_t>::try_set_state;
 	using signallable_task_base<result_t>::post_signal;
@@ -780,7 +791,7 @@ public:
 	template <typename... args_t>
 	bool signal(args_t&&... a) volatile
 	{
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
 		placement_construct(get_result_ptr(), std::forward<args_t>(a)...);
@@ -811,7 +822,7 @@ class function_task_base : public signallable_task<result_t>, public task_arg_ba
 {
 public:
 	using signallable_task<result_t>::get;
-	using typename signallable_task<result_t>::TaskState;
+	using typename signallable_task<result_t>::task_state;
 	using signallable_task<result_t>::try_set_state;
 	using signallable_task<result_t>::post_signal;
 
@@ -823,7 +834,7 @@ public:
 		return const_cast<function_task_base<result_t, arg_t>*>(this)->m_cancelFunc;
 	}
 
-	alignas (atomic::get_alignment_v<int>) int m_priority;
+	alignas(atomic::get_alignment_v<int>) int m_priority;
 
 	virtual int get_priority() const volatile
 	{
@@ -846,7 +857,7 @@ public:
 	{
 	}
 
-	virtual bool try_cancel(TaskState& oldTaskState) volatile
+	virtual bool try_cancel(task_state& oldTaskState) volatile
 	{
 		if (!signallable_task<result_t>::try_cancel(oldTaskState))
 			return false;
@@ -867,7 +878,7 @@ public:
 
 	virtual bool signal() volatile
 	{
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
 		invoke_completion();
@@ -877,7 +888,7 @@ public:
 
 	virtual bool signal(const rcref<task<arg_t> >& parentTask) volatile
 	{
-		TaskState oldTaskState;
+		task_state oldTaskState;
 		if (!try_set_state(oldTaskState, 3))
 			return false;
 		invoke_completion(parentTask);
@@ -1415,7 +1426,7 @@ public:
 	volatile rcptr<task<result_t> > m_innerTask2;
 	volatile rcptr<task<void> > m_innerTask3;
 	signallable_task<bool> m_cancelTask;
-	alignas (atomic::get_alignment_v<int>) int m_priority;
+	alignas(atomic::get_alignment_v<int>) int m_priority;
 
 	virtual int get_priority() const volatile
 	{
@@ -1507,7 +1518,7 @@ public:
 	volatile rcptr<task<void> > m_innerTask2;
 	volatile rcptr<task<void> > m_innerTask3;
 	signallable_task<bool> m_cancelTask;
-	alignas (atomic::get_alignment_v<int>) int m_priority;
+	alignas(atomic::get_alignment_v<int>) int m_priority;
 
 	virtual int get_priority() const volatile
 	{

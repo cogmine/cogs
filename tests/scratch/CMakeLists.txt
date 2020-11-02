@@ -22,7 +22,6 @@ set(HEADERS
   ../../core/src/cogs/debug.hpp
   ../../core/src/cogs/dependency_property.hpp
   ../../core/src/cogs/function.hpp
-  ../../core/src/cogs/function_list.hpp
   ../../core/src/cogs/load.hpp
   ../../core/src/cogs/macro_concat.hpp
   ../../core/src/cogs/macro_stringify.hpp
@@ -30,6 +29,7 @@ set(HEADERS
   ../../core/src/cogs/operators.hpp
   ../../core/src/cogs/collections/array_view.hpp
   ../../core/src/cogs/collections/avltree.hpp
+  ../../core/src/cogs/collections/backed_vector.hpp
   ../../core/src/cogs/collections/btree.hpp
   ../../core/src/cogs/collections/composite_string.hpp
   ../../core/src/cogs/collections/composite_vector.hpp
@@ -40,6 +40,7 @@ set(HEADERS
   ../../core/src/cogs/collections/container_stack.hpp
   ../../core/src/cogs/collections/dlink.hpp
   ../../core/src/cogs/collections/dlist.hpp
+  ../../core/src/cogs/collections/function_list.hpp
   ../../core/src/cogs/collections/map.hpp
   ../../core/src/cogs/collections/multimap.hpp
   ../../core/src/cogs/collections/multiset.hpp
@@ -91,7 +92,6 @@ set(HEADERS
   ../../core/src/cogs/geometry/sizing_groups.hpp
   ../../core/src/cogs/gfx/canvas.hpp
   ../../core/src/cogs/gfx/color.hpp
-  ../../core/src/cogs/gfx/font.hpp
   ../../core/src/cogs/gui/ansiterm.hpp
   ../../core/src/cogs/gui/background.hpp
   ../../core/src/cogs/gui/button.hpp
@@ -180,21 +180,20 @@ set(HEADERS
   ../../core/src/cogs/math/time.hpp
   ../../core/src/cogs/math/value_to_bits.hpp
   ../../core/src/cogs/math/vec.hpp
-  ../../core/src/cogs/mem/allocator.hpp
-  ../../core/src/cogs/mem/allocator_container.hpp
+  ../../core/src/cogs/mem/memory_manager_base.hpp
   ../../core/src/cogs/mem/auto_handle.hpp
+  ../../core/src/cogs/mem/batch_allocator.hpp
   ../../core/src/cogs/mem/bballoc.hpp
   ../../core/src/cogs/mem/bypass_constructor_permission.hpp
   ../../core/src/cogs/mem/bypass_strict_aliasing.hpp
   ../../core/src/cogs/mem/const_bit_rotate.hpp
   ../../core/src/cogs/mem/const_bit_scan.hpp
   ../../core/src/cogs/mem/const_set_bits.hpp
-  ../../core/src/cogs/mem/count_args.hpp
   ../../core/src/cogs/mem/default_allocator.hpp
-  ../../core/src/cogs/mem/delayed_construction.hpp
+  ../../core/src/cogs/mem/default_memory_manager.hpp
   ../../core/src/cogs/mem/endian.hpp
+  ../../core/src/cogs/mem/flag_enum.hpp
   ../../core/src/cogs/mem/freelist.hpp
-  ../../core/src/cogs/mem/freelist_allocator.hpp
   ../../core/src/cogs/mem/int_parts.hpp
   ../../core/src/cogs/mem/is_pointer_type.hpp
   ../../core/src/cogs/mem/is_raw_pointer_type.hpp
@@ -226,27 +225,27 @@ set(HEADERS
   ../../core/src/cogs/sync/atomic_exchange.hpp
   ../../core/src/cogs/sync/atomic_load.hpp
   ../../core/src/cogs/sync/atomic_store.hpp
-  ../../core/src/cogs/sync/auto_reset_event.hpp
   ../../core/src/cogs/sync/can_atomic.hpp
   ../../core/src/cogs/sync/cleanup_queue.hpp
-  ../../core/src/cogs/sync/count_down_event.hpp
+  ../../core/src/cogs/sync/count_down_condition.hpp
   ../../core/src/cogs/sync/default_atomic_operators.hpp
   ../../core/src/cogs/sync/defer_guard.hpp
   ../../core/src/cogs/sync/dispatcher.hpp
   ../../core/src/cogs/sync/dispatch_parallel.hpp
+  ../../core/src/cogs/sync/event.hpp
   ../../core/src/cogs/sync/hazard.hpp
   ../../core/src/cogs/sync/priority_dispatcher.hpp
   ../../core/src/cogs/sync/priority_queue.hpp
   ../../core/src/cogs/sync/pulse_timer.hpp
   ../../core/src/cogs/sync/quit_dispatcher.hpp
   ../../core/src/cogs/sync/refireable_timer.hpp
-  ../../core/src/cogs/sync/resettable_event.hpp
+  ../../core/src/cogs/sync/resettable_condition.hpp
   ../../core/src/cogs/sync/resettable_timer.hpp
   ../../core/src/cogs/sync/rwlock.hpp
   ../../core/src/cogs/sync/semaphore.hpp
   ../../core/src/cogs/sync/serial_defer_guard.hpp
   ../../core/src/cogs/sync/serial_dispatcher.hpp
-  ../../core/src/cogs/sync/single_fire_event.hpp
+  ../../core/src/cogs/sync/single_fire_condition.hpp
   ../../core/src/cogs/sync/single_fire_timer.hpp
   ../../core/src/cogs/sync/thread.hpp
   ../../core/src/cogs/sync/thread_pool.hpp
@@ -270,11 +269,13 @@ set_source_files_properties(${HEADERS} PROPERTIES LANGUAGE CXX)
 endif()
 
 if (WIN32)
+  target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.rc)
 
-  target_sources(${EXECUTABLE_NAME} PUBLIC
-    VS/scratch.manifest
-    VS/scratch.rc
-  )
+  if (MSVC)
+    target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.manifest)
+  else()
+    target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.manifest.rc)
+  endif()
 
 elseif (APPLE)
 

@@ -30,9 +30,9 @@ private:
 	{
 		// const at construction, so no need to reference as volatile
 		if (const_cast<refireable_timer*>(this)->m_wakeAll)
-			m_event.pulse_all();
+			m_condition.pulse_all();
 		else
-			m_event.pulse_one();
+			m_condition.pulse_one();
 	}
 
 public:

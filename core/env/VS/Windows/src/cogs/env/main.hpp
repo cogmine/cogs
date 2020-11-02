@@ -15,30 +15,6 @@
 
 
 namespace cogs {
-
-
-#ifndef COGS_DEFAULT_GUI_SUBSYSTEM
-#define COGS_DEFAULT_GUI_SUBSYSTEM COGS_GDI
-#endif
-
-#if COGS_DEFAULT_GUI_SUBSYSTEM == COGS_GDI
-inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
-{
-	return rcnew(gui::os::hwnd::subsystem);
-}
-
-inline rcptr<gui::subsystem> gui::subsystem::get_default()
-{
-	return gui::windowing::subsystem::get_default();
-}
-
-inline rcref<ui::subsystem> ui::subsystem::get_default()
-{
-	return gui::subsystem::get_default().dereference();
-}
-#endif
-
-
 namespace env {
 
 inline int initialize() { return os::initialize(); }

@@ -17,20 +17,17 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class text_editor : public hwnd_pane, public text_editor_interface
+class text_editor : public hwnd_pane, public gui::text_editor_interface
 {
 private:
-	//color m_defaultTextColor;
-	//color m_defaultBackgroundColor;
-	rcptr<gfx::os::gdi::device_context::font> m_cachedFont;
+	rcptr<gdi::device_context::font> m_cachedFont;
 
 public:
 	explicit text_editor(const rcref<volatile hwnd::subsystem>& uiSubsystem)
-		: hwnd_pane(composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem, hwnd_draw_mode::system_direct)
+		: hwnd_pane(composite_string::literal(MSFTEDIT_CLASS), WS_TABSTOP | ES_LEFT | ES_SAVESEL, WS_EX_TRANSPARENT, uiSubsystem, hwnd_draw_mode::system_offscreen)
 	{ }
 
 	virtual void installing()
@@ -47,15 +44,7 @@ public:
 		set_text(te->get_text());
 		set_font(te->get_font());
 		set_max_length(te->get_max_length());
-
-		HDC hDC = GetDC(get_HWND());
-		COLORREF colorRef = GetBkColor(hDC);
-		//m_defaultBackgroundColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
-		colorRef = GetTextColor(hDC);
-		//m_defaultTextColor = color(GetRValue(colorRef), GetGValue(colorRef), GetBValue(colorRef));
-		ReleaseDC(get_HWND(), hDC);
-
-		set_text_color(color::constant::black);
+		set_text_color(te->get_text_color());
 
 		hwnd_pane::installing();
 	}
@@ -94,17 +83,18 @@ public:
 		Edit_Enable(get_HWND(), isEnabled ? TRUE : FALSE);
 	}
 
-	virtual void set_font(const gfx::font& fnt)
+	virtual void set_font(const gfx::font_parameters_list& fnt)
 	{
-		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gfx::os::gdi::device_context::font>();
+		m_cachedFont = get_device_context().load_font(fnt).template static_cast_to<gdi::device_context::font>();
 		SendMessage(get_HWND(), WM_SETFONT, (WPARAM)(m_cachedFont->get_HFONT()), MAKELPARAM(FALSE, 0));
 	}
 
-	virtual void set_text_color(const color& c)
+	virtual void set_text_color(const std::optional<color>& c)
 	{
+		color c2 = c.has_value() ? *c : get_default_text_foreground_color();;
 		CHARFORMAT2 cf = {};
 		cf.dwMask = CFM_COLOR;
-		cf.crTextColor = gfx::os::gdi::device_context::make_COLORREF(c);
+		cf.crTextColor = make_COLORREF(c2);
 		cf.cbSize = sizeof(CHARFORMAT2);
 		SendMessageA(get_HWND(), EM_SETCHARFORMAT, SCF_DEFAULT, (LPARAM)&cf);
 	}
@@ -124,8 +114,6 @@ public:
 	}
 
 	virtual bool is_focusable() const { return true; }
-
-	virtual size get_default_size() const { return size(100, 100); }
 
 	virtual LRESULT render_native_control(HDC dc)
 	{
@@ -166,7 +154,7 @@ public:
 		return result;
 	}
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
 		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
@@ -175,14 +163,13 @@ public:
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > hwnd::subsystem::create_text_editor() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::text_editor_interface> > hwnd::subsystem::create_text_editor() volatile
 {
 	rcref<text_editor> te = rcnew(text_editor)(this_rcref);
 	return std::make_pair(te, te);
 }
 
 
-}
 }
 }
 

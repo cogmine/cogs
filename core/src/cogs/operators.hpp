@@ -315,26 +315,26 @@ post_assign_not(T& t) { T tmp(t); t = lnot(t); return tmp; }
 
 COGS_DEFINE_UNARY_OPERATOR(bit_not, ~)
 
-template <typename T> inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && std::is_signed_v<T>, bool>
+template <typename T> inline constexpr std::enable_if_t<is_arithmetic_v<T> && is_signed_v<T>, bool>
 is_negative(const T& t) { return load(t) < (std::remove_volatile_t<T>)0; }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && !std::is_signed_v<T>, bool>
+template <typename T> inline constexpr std::enable_if_t<is_arithmetic_v<T> && !is_signed_v<T>, bool>
 is_negative(const T&) { return false; }
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_negative)
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T> && !std::is_signed_v<T> && !std::is_volatile_v<T>, bool>
-is_exponent_of_two(const T& t) { decltype(auto) tmp(load(t)); return (tmp != 0) && ((tmp & (T)-(std::make_signed_t<T>)tmp) == tmp); }
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T> && !is_signed_v<T> && !std::is_volatile_v<T>, bool>
+is_exponent_of_two(const T& t) { decltype(auto) tmp(load(t)); return (tmp != 0) && ((tmp & (T)-(make_signed_t<T>)tmp) == tmp); }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T> && !std::is_signed_v<T> && std::is_volatile_v<T>, bool>
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T> && !is_signed_v<T> && std::is_volatile_v<T>, bool>
 is_exponent_of_two(const T& t) { return is_exponent_of_two(load(t)); }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T> && is_signed_v<T>, bool>
 is_exponent_of_two(const T& t) { return is_exponent_of_two(abs(t)); }
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(is_exponent_of_two)
 
-template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, bool>
+template <typename T> constexpr std::enable_if_t<is_integral_v<T>, bool>
 has_fractional_part(const T&) { return false; }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), nullptr))>
@@ -342,13 +342,13 @@ has_fractional_part(const T& t) { return std::modf(load(t), nullptr) != 0.0; }
 
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(has_fractional_part)
 
-template <typename T> inline constexpr std::enable_if_t<std::is_arithmetic_v<T> && !std::is_signed_v<T>, std::remove_volatile_t<T> >
+template <typename T> inline constexpr std::enable_if_t<is_arithmetic_v<T> && !is_signed_v<T>, std::remove_volatile_t<T> >
 abs(const T& t) { return load(t); }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, std::make_unsigned_t<std::conditional_t<std::is_integral_v<T>, T, int> > >
-abs(const T& t) { return (std::make_unsigned_t<T>)(is_negative(t) ? -t : t); }
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T> && is_signed_v<T>, make_unsigned_t<std::conditional_t<is_integral_v<T>, T, int> > >
+abs(const T& t) { return (make_unsigned_t<T>)(is_negative(t) ? -t : t); }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, std::make_unsigned_t<std::conditional_t<std::is_integral_v<T>, T, int> > >
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T> && is_signed_v<T>, make_unsigned_t<std::conditional_t<is_integral_v<T>, T, int> > >
 abs(const volatile T& t) { return abs(load(t)); }
 
 template <typename T> inline constexpr std::enable_if_t< std::is_floating_point_v<T>, T>
@@ -378,7 +378,7 @@ COGS_DEFINE_UNARY_OPERATOR_FROM_PRE_AND_POST(prev, --)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	std::remove_volatile_t<T> >
 endian_swap(const T& t)
@@ -388,7 +388,7 @@ endian_swap(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
 	std::remove_volatile_t<T> >
@@ -400,7 +400,7 @@ endian_swap(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
 	std::remove_volatile_t<T> >
@@ -417,7 +417,7 @@ endian_swap(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(long long)),
 	std::remove_volatile_t<T> >
@@ -438,7 +438,7 @@ endian_swap(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(long long))
 	&& (sizeof(T) <= sizeof(bits_to_uint_t<128>)),
 	std::remove_volatile_t<T> >
@@ -512,8 +512,8 @@ add(const T& t, const A1& a) { return a + t; }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-		|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-		|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+		|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+		|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 		),
 	decltype(std::declval<std::remove_volatile_t<T> >() + std::declval<std::remove_volatile_t<A1> >())>
 add(const T& t, const A1& a)
@@ -523,7 +523,7 @@ add(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	(std::is_pointer_v<T> && std::is_integral_v<A1>) || (std::is_pointer_v<A1> && std::is_integral_v<T>),
+	(std::is_pointer_v<T> && is_integral_v<A1>) || (std::is_pointer_v<A1> && is_integral_v<T>),
 	decltype(std::declval<const std::remove_volatile_t<T>&>() + std::declval<const std::remove_volatile_t<A1>&>())>
 add(const T& t, const A1& a)
 {
@@ -532,27 +532,25 @@ add(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& ((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) < sizeof(longest),
-	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, std::is_signed_v<T> || std::is_signed_v<A1> > >
+	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, is_signed_v<T> || is_signed_v<A1> > >
 add(const T& t, const A1& a)
 {
-	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, std::is_signed_v<T> || std::is_signed_v<A1> > result(load(t));
+	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, is_signed_v<T> || is_signed_v<A1> > result(load(t));
 	result += load(a);
 	return result;
 }
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& ((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest),
-	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > >
+	fixed_integer<is_signed_v<T> || is_signed_v<A1>, (sizeof(longest) * 8) + 1 > >
 add(const T& t, const A1& a);
 //{
-//	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, (sizeof(longest) * 8) + 1 > result;
-//	result.add(
-//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a))); // fixed_integer_extended, 2-arg version of add
+//	fixed_integer<is_signed_v<T> || is_signed_v<A1>, (sizeof(longest) * 8) + 1> result;
+//	result.add(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
 //	return result;
 //}
 
@@ -566,8 +564,8 @@ subtract(const T& t, const A1& a) { return a.inverse_subtract(t); }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-		|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-		|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+		|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+		|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 		),
 	decltype(std::declval<std::remove_volatile_t<T> >() - std::declval<std::remove_volatile_t<A1> >())>
 subtract(const T& t, const A1& a)
@@ -578,7 +576,7 @@ subtract(const T& t, const A1& a)
 template <typename T, typename A1>
 inline std::enable_if_t<
 	std::is_pointer_v<T>
-	&& (std::is_integral_v<A1> || std::is_pointer_v<A1>),
+	&& (is_integral_v<A1> || std::is_pointer_v<A1>),
 	decltype(std::declval<const std::remove_volatile_t<T>&>() - std::declval<const std::remove_volatile_t<A1>&>())>
 subtract(const T& t, const A1& a)
 {
@@ -587,7 +585,7 @@ subtract(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) < sizeof(longest)),
 	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, true> >
 subtract(const T& t, const A1& a)
@@ -599,7 +597,7 @@ subtract(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
 	fixed_integer<true, (sizeof(longest) * 8) + 1> >
 subtract(const T& t, const A1& a);
@@ -620,8 +618,8 @@ inverse_subtract(const T& t, const A1& a) { return a - t; }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 ((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-	|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-	|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+	|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+	|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 	),
 	decltype(std::declval<std::remove_volatile_t<A1> >() - std::declval<std::remove_volatile_t<T> >())>
 inverse_subtract(const T& t, const A1& a)
@@ -632,7 +630,7 @@ inverse_subtract(const T& t, const A1& a)
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	std::is_pointer_v<A1>
-	&& (std::is_integral_v<T> || std::is_pointer_v<T>),
+	&& (is_integral_v<T> || std::is_pointer_v<T>),
 	decltype(std::declval<const std::remove_volatile_t<A1>&>() - std::declval<const std::remove_volatile_t<T>&>())>
 inverse_subtract(const T& t, const A1& a)
 {
@@ -641,7 +639,7 @@ inverse_subtract(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) < sizeof(longest)),
 	bits_to_int_t<(((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) * 8) + 1, true> >
 inverse_subtract(const T& t, const A1& a)
@@ -653,7 +651,7 @@ inverse_subtract(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& (((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)) == sizeof(longest)),
 	fixed_integer<true, (sizeof(longest) * 8) + 1> >
 inverse_subtract(const T& t, const A1& a);
@@ -674,36 +672,34 @@ multiply(const T& t, const A1& a) { return a * t; }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& ((sizeof(T) + sizeof(A1)) <= sizeof(longest)),
-	bytes_to_int_t<(sizeof(T) + sizeof(A1)), std::is_signed_v<T> || std::is_signed_v<A1> > >
+	bytes_to_int_t<(sizeof(T) + sizeof(A1)), is_signed_v<T> || is_signed_v<A1> > >
 multiply(const T& t, const A1& a)
 {
-	bytes_to_int_t<(sizeof(T) + sizeof(A1)), std::is_signed_v<T> || std::is_signed_v<A1> > result(load(t));
+	bytes_to_int_t<(sizeof(T) + sizeof(A1)), is_signed_v<T> || is_signed_v<A1> > result(load(t));
 	result *= load(a);
 	return result;
 }
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& ((sizeof(T) + sizeof(A1)) > sizeof(longest)),
-	fixed_integer<(std::is_signed_v<T> || std::is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8>
+	fixed_integer<(is_signed_v<T> || is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8>
 >
 multiply(const T& t, const A1& a);
 //{
-//	fixed_integer<std::is_signed_v<T> || std::is_signed_v<A1>, sizeof(T) + sizeof(A1)> result;
-//	result.multiply(
-//		int_to_fixed_integer_t<std::remove_volatile_t<T> >(load(t)),
-//		int_to_fixed_integer_t<std::remove_volatile_t<A1> >(load(a))); // fixed_integer_extended, 2-arg version of multiply
+//	fixed_integer<(is_signed_v<T> || is_signed_v<A1>), (sizeof(T) + sizeof(A1)) * 8> result;
+//	result.multiply(int_to_fixed_integer_t<T>(load(t)), int_to_fixed_integer_t<A1>(load(a)));
 //	return result;
 //}
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 ((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-	|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-	|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+	|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+	|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 	),
 	decltype(std::declval<std::remove_volatile_t<T> >() * std::declval<std::remove_volatile_t<A1> >())>
 multiply(const T& t, const A1& a)
@@ -720,8 +716,8 @@ modulo(const T& t, const A1& a) { return a.inverse_modulo(t); }
 template <typename T, typename A1>
 inline std::enable_if_t<
 	((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-		|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-		|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+		|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+		|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 		),
 	decltype(std::fmod(std::declval<std::remove_volatile_t<T>&>(), std::declval<std::remove_volatile_t<A1>&>()))>
 modulo(const T& t, const A1& a)
@@ -733,26 +729,26 @@ modulo(const T& t, const A1& a)
 // ((long)-1 % (unsigned long)-1) == 0 instead of -1
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>)-1 % (std::remove_volatile_t<A1>)-1) == 0),
-	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<T> >
+	is_integral_v<T>
+	&& is_integral_v<A1>
+	&& is_signed_v<T> && !is_signed_v<A1> && (((std::remove_volatile_t<T>)-1 % (std::remove_volatile_t<A1>)-1) == 0),
+	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<T> >
 >
 modulo(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
-		return -(bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<T> >)
-			((std::make_unsigned_t<std::remove_volatile_t<T> >) - t2 % a);
+		return -(bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<T> >)
+			((make_unsigned_t<std::remove_volatile_t<T> >) - t2 % a);
 	return t2 % load(a);
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& (!std::is_signed_v<T> || std::is_signed_v<A1> || (std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>) - 1 % (std::remove_volatile_t<A1>)-1) != 0))),
-	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<T> >
+	is_integral_v<T>
+	&& is_integral_v<A1>
+	&& (!is_signed_v<T> || is_signed_v<A1> || (is_signed_v<T> && !is_signed_v<A1> && (((std::remove_volatile_t<T>) - 1 % (std::remove_volatile_t<A1>)-1) != 0))),
+	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<T> >
 >
 modulo(const T& t, const A1& a)
 {
@@ -768,8 +764,8 @@ inverse_modulo(const T& t, const A1& a) { return a % t; }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-		|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-		|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+		|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+		|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 		),
 	decltype(std::fmod(std::declval<std::remove_volatile_t<A1> >(), std::declval<std::remove_volatile_t<T> >()))>
 inverse_modulo(const T& t, const A1& a)
@@ -781,26 +777,26 @@ inverse_modulo(const T& t, const A1& a)
 // ((long)-1 % (unsigned long)-1) == 0 instead of -1
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& std::is_signed_v<A1> && !std::is_signed_v<T> && (((std::remove_volatile_t<A1>)-1 % (std::remove_volatile_t<T>)-1) == 0),
-	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<A1> >
+	is_integral_v<T>
+	&& is_integral_v<A1>
+	&& is_signed_v<A1> && !is_signed_v<T> && (((std::remove_volatile_t<A1>)-1 % (std::remove_volatile_t<T>)-1) == 0),
+	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<A1> >
 >
 inverse_modulo(const T& t, const A1& a)
 {
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
-		return -(bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<A1> >)
-			((std::make_unsigned_t<std::remove_volatile_t<A1> >) - a2 % t);
+		return -(bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<A1> >)
+			((make_unsigned_t<std::remove_volatile_t<A1> >) - a2 % t);
 	return a2 % load(t);
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
-	&& (!std::is_signed_v<A1> || std::is_signed_v<T> || (std::is_signed_v<A1> && !std::is_signed_v<T> && (((std::remove_volatile_t<A1>) - 1 % (std::remove_volatile_t<T>)-1) != 0))),
-	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<A1> >
+	is_integral_v<T>
+	&& is_integral_v<A1>
+	&& (!is_signed_v<A1> || is_signed_v<T> || (is_signed_v<A1> && !is_signed_v<T> && (((std::remove_volatile_t<A1>) - 1 % (std::remove_volatile_t<T>)-1) != 0))),
+	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<A1> >
 >
 inverse_modulo(const T& t, const A1& a)
 {
@@ -845,7 +841,7 @@ COGS_DEFINE_BINARY_OPERATOR_FOR_FUNCTION(inverse_divide)
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(reciprocal)
 
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T>, std::remove_volatile_t<T> >
 floor(const T& t) { return load(t); }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::floor(std::declval<std::remove_cv_t<T> >()))>
@@ -854,7 +850,7 @@ floor(const T& t) { return std::floor(load(t)); }
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(floor)
 
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T>, std::remove_volatile_t<T> >
 ceil(const T& t) { return load(t); }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::ceil(std::declval<std::remove_cv_t<T> >()))>
@@ -863,7 +859,7 @@ ceil(const T& t) { return std::ceil(load(t)); }
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(ceil)
 
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, std::remove_volatile_t<T> >
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T>, std::remove_volatile_t<T> >
 round(const T& t) { return load(t); }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::round(std::declval<std::remove_cv_t<T> >()))>
@@ -872,7 +868,7 @@ round(const T& t) { return std::round(load(t)); }
 COGS_DEFINE_UNARY_OPERATOR_FOR_FUNCTION(round)
 
 
-template <typename T> constexpr std::enable_if_t<std::is_integral_v<T>, int>
+template <typename T> constexpr std::enable_if_t<is_integral_v<T>, int>
 fractional_part(const T&) { return 0; }
 
 template <typename T> inline constexpr std::enable_if_t<std::is_floating_point_v<T>, decltype(std::modf(std::declval<std::remove_cv_t<T> >(), std::declval<std::nullptr_t>()))>
@@ -888,8 +884,8 @@ divide_whole(const T& t, const A1& a) { return a.inverse_divide_whole(t); }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 	((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-		|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-		|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+		|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+		|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 		),
 	decltype(std::floor(std::declval<const std::remove_volatile_t<T>&>() / std::declval<const std::remove_volatile_t<A1>&>()))>
 divide_whole(const T& t, const A1& a)
@@ -904,14 +900,14 @@ class can_accurately_divide_whole_int : public std::false_type
 };
 
 template <typename T, typename A1>
-class can_accurately_divide_whole_int<T, A1, std::enable_if_t<std::is_integral_v<T>&& std::is_integral_v<A1> > >
+class can_accurately_divide_whole_int<T, A1, std::enable_if_t<is_integral_v<T>&& is_integral_v<A1> > >
 {
 public:
 	static constexpr bool value =
-		(std::is_signed_v<T> && !std::is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3))
-		|| (!std::is_signed_v<T> && std::is_signed_v<A1> && (((std::remove_volatile_t<T>)-10 / (std::remove_volatile_t<A1>)3) == -3))
-		|| (std::is_signed_v<T> && std::is_signed_v<A1>)
-		|| (!std::is_signed_v<T> && !std::is_signed_v<A1>);
+		(is_signed_v<T> && !is_signed_v<A1> && (((std::remove_volatile_t<T>)10 / (std::remove_volatile_t<A1>) - 3) == -3))
+		|| (!is_signed_v<T> && is_signed_v<A1> && (((std::remove_volatile_t<T>)-10 / (std::remove_volatile_t<A1>)3) == -3))
+		|| (is_signed_v<T> && is_signed_v<A1>)
+		|| (!is_signed_v<T> && !is_signed_v<A1>);
 };
 template <typename T, typename A1>
 constexpr bool can_accurately_divide_whole_int_v = can_accurately_divide_whole_int<T, A1>::value;
@@ -923,16 +919,16 @@ constexpr bool can_accurately_divide_whole_int_v = can_accurately_divide_whole_i
 // But the compiler will promote the signed type to unsigned, and perform the operation on the wrong value.
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& !can_accurately_divide_whole_int_v<T, A1>
-	&& !std::is_signed_v<A1>,
+	&& !is_signed_v<A1>,
 	std::remove_volatile_t<T>
 >
 divide_whole(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
-		return (std::remove_volatile_t<T>)-((std::make_unsigned_t<std::remove_volatile_t<T> >)-t2 / load(a));
+		return (std::remove_volatile_t<T>)-((make_unsigned_t<std::remove_volatile_t<T> >)-t2 / load(a));
 	return (std::remove_volatile_t<T>)(t2 / load(a));
 }
 
@@ -941,9 +937,9 @@ divide_whole(const T& t, const A1& a)
 // Result should be signed, and may grow to the next larger type
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& !can_accurately_divide_whole_int_v<T, A1>
-	&& std::is_signed_v<A1>
+	&& is_signed_v<A1>
 	&& (sizeof(T) < sizeof(longest)),
 	bits_to_int_t<(8 * sizeof(T)) + 1, true>
 >
@@ -957,9 +953,9 @@ divide_whole(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& !can_accurately_divide_whole_int_v<T, A1>
-	&& std::is_signed_v<A1>
+	&& is_signed_v<A1>
 	&& (sizeof(T) == sizeof(longest)),
 	fixed_integer<true, (8 * sizeof(T)) + 1>
 >
@@ -974,9 +970,9 @@ divide_whole(const T& t, const A1& a);
 // Result of (signed / unsigned) or (unsigned / unsigned) will not exceed first type
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& can_accurately_divide_whole_int_v<T, A1>
-	&& !std::is_signed_v<A1>,
+	&& !is_signed_v<A1>,
 	std::remove_volatile_t<T>
 >
 divide_whole(const T& t, const A1& a)
@@ -988,9 +984,9 @@ divide_whole(const T& t, const A1& a)
 // if (unsigned / signed), (or signed / signed), it may grow a bit
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& can_accurately_divide_whole_int_v<T, A1>
-	&& std::is_signed_v<A1>
+	&& is_signed_v<A1>
 	&& (sizeof(T) < sizeof(longest)),
 	bits_to_int_t<(8 * sizeof(T)) + 1, true>
 >
@@ -1002,9 +998,9 @@ divide_whole(const T& t, const A1& a)
 // if (unsigned / signed), or (signed / signed), it may grow a bit
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>
+	is_integral_v<T> && is_integral_v<A1>
 	&& can_accurately_divide_whole_int_v<T, A1>
-	&& std::is_signed_v<A1>
+	&& is_signed_v<A1>
 	&& (sizeof(T) == sizeof(longest)),
 	fixed_integer<true, (8 * sizeof(longest)) + 1>
 >
@@ -1025,8 +1021,8 @@ inverse_divide_whole(const T& t, const A1& a) { return a.divide_whole(t); }
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
 ((std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-	|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-	|| (std::is_integral_v<T> && std::is_floating_point_v<A1>)
+	|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+	|| (is_integral_v<T> && std::is_floating_point_v<A1>)
 	),
 	decltype(std::declval<const std::remove_volatile_t<A1>&>() / std::declval<const std::remove_volatile_t<T>&>())>
 inverse_divide_whole(const T& t, const A1& a)
@@ -1037,7 +1033,7 @@ inverse_divide_whole(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T> && std::is_integral_v<A1>,
+	is_integral_v<T> && is_integral_v<A1>,
 	decltype(divide_whole(std::declval<const std::remove_volatile_t<A1>&>(), std::declval<const std::remove_volatile_t<T>&>()))
 >
 inverse_divide_whole(const T& t, const A1& a)
@@ -1055,8 +1051,8 @@ divide_whole_and_modulo(const T& t, const A1& a) { return a.inverse_divide_whole
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>,
+	is_integral_v<T>
+	&& is_integral_v<A1>,
 	std::pair<
 	decltype(divide_whole(
 		std::declval<const std::remove_volatile_t<T>&>(),
@@ -1076,8 +1072,8 @@ divide_whole_and_modulo(const T& t, const A1& a)
 template <typename T, typename A1>
 inline std::enable_if_t<
 	(std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-	|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-	|| (std::is_integral_v<T> && std::is_floating_point_v<A1>),
+	|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+	|| (is_integral_v<T> && std::is_floating_point_v<A1>),
 	std::pair<
 	decltype(divide_whole(
 		std::declval<const std::remove_volatile_t<T>&>(),
@@ -1102,8 +1098,8 @@ inverse_divide_whole_and_modulo(const T& t, const A1& a) { return a.divide_whole
 
 template <typename T, typename A1>
 inline std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>,
+	is_integral_v<T>
+	&& is_integral_v<A1>,
 	std::pair<
 	decltype(divide_whole(
 		std::declval<const std::remove_volatile_t<A1>&>(),
@@ -1122,8 +1118,8 @@ inverse_divide_whole_and_inverse_modulo(const T& t, const A1& a)
 template <typename T, typename A1>
 inline std::enable_if_t<
 	(std::is_floating_point_v<T> && std::is_floating_point_v<A1>)
-	|| (std::is_floating_point_v<T> && std::is_integral_v<A1>)
-	|| (std::is_integral_v<T> && std::is_floating_point_v<A1>),
+	|| (std::is_floating_point_v<T> && is_integral_v<A1>)
+	|| (is_integral_v<T> && std::is_floating_point_v<A1>),
 	std::pair<
 	decltype(divide_whole(
 		std::declval<const std::remove_volatile_t<A1>&>(),
@@ -1205,32 +1201,32 @@ equals(T& t, const A1& a) { return a == t; }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 equals(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return false;
-	return (std::make_unsigned_t<T>)t2 == load(a);
+	return (make_unsigned_t<T>)t2 == load(a);
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 equals(const T& t, const A1& a)
 {
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
 		return false;
-	return load(t) == (std::make_unsigned_t<A1>)a2;
+	return load(t) == (make_unsigned_t<A1>)a2;
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	!(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
-	&& !(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	!(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	&& !(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
 	&& !std::is_class_v<T>
 	&& !std::is_class_v<A1>,
 	bool>
@@ -1255,32 +1251,32 @@ is_less_than(const T& t, const A1& a) { return a > t; }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 is_less_than(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return true;
-	return (std::make_unsigned_t<T>)t2 < load(a);
+	return (make_unsigned_t<T>)t2 < load(a);
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 is_less_than(const T& t, const A1& a)
 {
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
 		return false;
-	return load(t) < (std::make_unsigned_t<T>)a2;
+	return load(t) < (make_unsigned_t<T>)a2;
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	!(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
-	&& !(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	!(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	&& !(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
 	&& !std::is_class_v<T>
 	&& !std::is_class_v<A1>,
 	bool>
@@ -1298,32 +1294,32 @@ is_greater_than(const T& t, const A1& a) { return a < t; }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 is_greater_than(const T& t, const A1& a)
 {
 	decltype(auto) t2(load(t));
 	if (is_negative(t2))
 		return false;
-	return (std::make_unsigned_t<T>)t2 > load(a);
+	return (make_unsigned_t<T>)t2 > load(a);
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
+	(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1)),
 	bool>
 is_greater_than(const T& t, const A1& a)
 {
 	decltype(auto) a2(load(a));
 	if (is_negative(a2))
 		return true;
-	return load(t) > (std::make_unsigned_t<T>)a2;
+	return load(t) > (make_unsigned_t<T>)a2;
 }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t <
-	!(std::is_integral_v<T> && std::is_integral_v<A1> && (std::is_signed_v<T> && !std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
-	&& !(std::is_integral_v<T> && std::is_integral_v<A1> && (!std::is_signed_v<T> && std::is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	!(is_integral_v<T> && is_integral_v<A1> && (is_signed_v<T> && !is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
+	&& !(is_integral_v<T> && is_integral_v<A1> && (!is_signed_v<T> && is_signed_v<A1>) && ((std::remove_volatile_t<T>)-1 == (std::remove_volatile_t<A1>)-1))
 	&& !std::is_class_v<T>
 	&& !std::is_class_v<A1>,
 	bool>
@@ -1504,9 +1500,9 @@ greater(const T& t, const A1& a) { return a.greater(t); }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>,
-	bytes_to_int_t<((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)), std::is_signed_v<T> && std::is_signed_v<A1> >
+	is_integral_v<T>
+	&& is_integral_v<A1>,
+	bytes_to_int_t<((sizeof(T) > sizeof(A1)) ? sizeof(T) : sizeof(A1)), is_signed_v<T> && is_signed_v<A1> >
 >
 greater(const T& t, const A1& a)
 {
@@ -1536,17 +1532,17 @@ lesser(const T& t, const A1& a) { return a.lesser(t); }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>,
+	is_integral_v<T>
+	&& is_integral_v<A1>,
 	bytes_to_int_t<
 		((sizeof(T) >= sizeof(A1))
-			? (std::is_signed_v<T>
+			? (is_signed_v<T>
 				? sizeof(T)
 				: sizeof(A1))
-			: (std::is_signed_v<A1>
+			: (is_signed_v<A1>
 				? sizeof(A1)
 				: sizeof(T)))
-	, (std::is_signed_v<T> || std::is_signed_v<A1>)>
+	, (is_signed_v<T> || is_signed_v<A1>)>
 >
 lesser(const T& t, const A1& a)
 {
@@ -1578,7 +1574,7 @@ gcd(const T& t, const A1& a) { return a.gcd(t); }
 
 
 template <typename T, typename A1>
-inline constexpr std::enable_if_t<std::is_integral_v<T> && std::is_integral_v<A1>,
+inline constexpr std::enable_if_t<is_integral_v<T> && is_integral_v<A1>,
 	bytes_to_int_t<((sizeof(T) < sizeof(A1)) ? sizeof(T) : sizeof(A1)), false> >
 gcd(const T& t, const A1& a)
 {
@@ -1617,8 +1613,8 @@ lcm(const T& t, const A1& a) { return a.lcm(t); }
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
+	is_integral_v<T>
+	&& is_integral_v<A1>
 	&& (sizeof(T) + sizeof(A1) <= sizeof(longest)),
 	bytes_to_int_t<(sizeof(T) + sizeof(A1)), false>
 >
@@ -1631,8 +1627,8 @@ lcm(const T& t, const A1& a)
 
 template <typename T, typename A1>
 inline constexpr std::enable_if_t<
-	std::is_integral_v<T>
-	&& std::is_integral_v<A1>
+	is_integral_v<T>
+	&& is_integral_v<A1>
 	&& (sizeof(T) + sizeof(A1) > sizeof(longest)),
 	fixed_integer<false, (sizeof(T) + sizeof(A1)) * 8>
 >
@@ -1807,13 +1803,13 @@ inline cstring string_to_cstring(const composite_string& s);
 inline string cstring_to_string(const composite_cstring& s);
 
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_string>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, composite_string>
 to_string(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_string>
 to_string(const T& t);
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_cstring>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, composite_cstring>
 to_cstring(const T& t);
 
 template <typename T> inline std::enable_if_t<std::is_floating_point_v<T>, composite_cstring>
@@ -1821,11 +1817,11 @@ to_cstring(const T& t);
 
 
 template <typename char_t, typename T>
-inline std::enable_if_t<std::is_same_v<char_t, char> && (std::is_integral_v<T> || std::is_floating_point_v<T>), composite_string_t<char_t> >
+inline std::enable_if_t<std::is_same_v<char_t, char> && (is_integral_v<T> || std::is_floating_point_v<T>), composite_string_t<char_t> >
 to_string_t(const T& t) { return to_cstring(t); }
 
 template <typename char_t, typename T>
-inline std::enable_if_t<std::is_same_v<char_t, wchar_t> && (std::is_integral_v<T> || std::is_floating_point_v<T>), composite_string_t<char_t> >
+inline std::enable_if_t<std::is_same_v<char_t, wchar_t> && (is_integral_v<T> || std::is_floating_point_v<T>), composite_string_t<char_t> >
 to_string_t(const T& t) { return to_string(t); }
 
 COGS_DEFINE_OPERATOR_FOR_MEMBER_FUNCTION(to_string)

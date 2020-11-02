@@ -7,8 +7,7 @@
 
 
 #include "cogs/function.hpp"
-#include "cogs/mem/allocator.hpp"
-#include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/os.hpp"
 #include "cogs/os/sync/timeout.hpp"
 
@@ -30,7 +29,7 @@ private:
 	{
 		function<void()>* taskPtr = (function<void()>*)param;
 		(*taskPtr)();
-		default_allocator::destruct_deallocate_type(taskPtr);
+		default_memory_manager::destruct_deallocate_type(taskPtr);
 		return 0;
 	}
 
@@ -39,7 +38,7 @@ private:
 public:
 	explicit thread(const function<void()>& d)
 	{
-		function<void()>* taskPtr = default_allocator::allocate_type<function<void()> >();
+		function<void()>* taskPtr = default_memory_manager::allocate_type<function<void()> >();
 		new (taskPtr) function<void()>(d);
 		m_hThread = (HANDLE)_beginthreadex(0, 0, thread_main, (void*)taskPtr, 0, (unsigned int*)&m_threadId);
 	}
@@ -69,7 +68,15 @@ public:
 		if (get_processor_count() == 1)
 			return false;
 
+#ifdef YieldProcessor
+		YieldProcessor();
+#elif defined(_M_X64) || defined(_M_AMD64)
 		_mm_pause();
+#elif defined(_M_ARM64) || defined(_M_ARM)
+		__yield();
+#else
+		__asm__ __volatile__ ("yield");
+#endif
 		return true;
 	}
 

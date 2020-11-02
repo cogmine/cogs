@@ -10,7 +10,6 @@
 
 
 #include "cogs/env/mem/alignment.hpp"
-#include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/rcref.hpp"
 #include "cogs/mem/placement.hpp"
@@ -23,6 +22,50 @@
 namespace cogs {
 
 
+template <typename T>
+class rcref_freelist_node : public placement<T>, public rc_obj_base
+{
+public:
+	rcref_freelist_node<T>* m_next;
+	volatile versioned_ptr<rcref_freelist_node<T>>* m_freelist;
+
+	rcref_freelist_node()
+	{
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+		set_type_name(typeid(T).name());
+		set_obj_ptr(&placement<T>::get());
+#endif
+	}
+
+	virtual void released()
+	{
+		// We don't destruct
+	}
+
+	virtual bool contains(void* obj) const
+	{
+		const T* start = &placement<T>::get();
+		const unsigned char* p = (const unsigned char*)obj;
+		return (p >= (const unsigned char*)start) && (p < (const unsigned char*)(start + 1));
+	}
+
+	virtual void dispose()
+	{
+		// Return to freelist
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+		set_debug_str("rcref_freelist-free");
+#endif
+		ptr<rcref_freelist_node<T>> oldHead;
+		typename versioned_ptr<rcref_freelist_node<T>>::version_t oldVersion;
+		m_freelist->get(oldHead, oldVersion);
+		do {
+			m_next = oldHead.get_ptr();
+		} while (!m_freelist->versioned_exchange(this, oldVersion, oldHead));
+
+	}
+};
+
+
 /// @brief A freelist that returns rcref's.
 ///
 /// As an rcref<> goes out of scope, the object is returned to the freelist.
@@ -30,98 +73,69 @@ namespace cogs {
 /// @tparam T Type to contain
 /// @tparam allocator_type Type of allocator to use to allocate from if the free-list is empty.  Default: default_allocator
 /// @tparam preallocated_count Number of objects to prepopulate the free-list with.  Default: 0
-template <typename T, class allocator_type = default_allocator, size_t preallocated_count = 0>
+template <typename T, size_t preallocated_count = 0, class allocator_t = default_allocator<rcref_freelist_node<T>>>
 class rcref_freelist
 {
-private:
-	typedef rcref_freelist<T, allocator_type, preallocated_count> this_t;
-
-	allocator_container<allocator_type> m_allocator;
-
-	class descriptor_t : public rc_obj_base
-	{
-	public:
-		volatile this_t* m_freelist;
-		descriptor_t* m_next;
-
-		virtual void released()
-		{
-			// We don't destruct
-		}
-
-		virtual bool contains(void* obj) const
-		{
-			T* start = get_obj();
-			unsigned char* p = (unsigned char*)obj;
-			return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
-		}
-
-		virtual void dispose()
-		{
-			// Return to freelist
-			m_freelist->release(this);
-		}
-
-		T* get_obj() const { return placement_with_header<descriptor_t, T>::get_obj_from_header(this); }
-
-		static descriptor_t* from_obj(T* obj) { return placement_with_header<descriptor_t, T>::get_header_from_obj(obj); }
-	};
-
-	typedef placement_with_header<descriptor_t, T>  placement_t;
-
-	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
-
-	volatile versioned_ptr<descriptor_t> m_head;
-	placement_t m_preallocated[preallocated_count];
-	alignas (atomic::get_alignment_v<size_t>) volatile size_t m_curPos;
-
-	void release(descriptor_t* n) volatile
-	{
-		ptr<descriptor_t> oldHead;
-		version_t oldVersion;
-		m_head.get(oldHead, oldVersion);
-		do {
-			n->m_next = oldHead.get_ptr();
-		} while (!m_head.versioned_exchange(n, oldVersion, oldHead));
-	}
-
 public:
 	typedef T type;
+	typedef allocator_t allocator_type;
 
+private:
+	typedef rcref_freelist<T, preallocated_count, allocator_type> this_t;
+
+	allocator_type m_allocator;
+
+	typedef rcref_freelist_node<T> node_t;
+
+	typedef typename versioned_ptr<node_t>::version_t version_t;
+
+	versioned_ptr<node_t> m_head;
+	node_t m_preallocated[preallocated_count];
+	alignas(atomic::get_alignment_v<size_t>) size_t m_curPos;
+
+public:
 	rcref_freelist()
 		: m_curPos(0)
-	{ }
-
-	explicit rcref_freelist(volatile allocator_type& al)
-		: m_allocator(al),
-		m_curPos(0)
-	{ }
+	{
+		// Preallocated means preconstructed
+		for (size_t i = 0; i < preallocated_count; i++)
+			new (&m_preallocated[i].get()) type;
+	}
 
 	~rcref_freelist()
 	{
-		ptr<descriptor_t> n = m_head.get_ptr();
+		size_t i = 0;
+		ptr<node_t> n = m_head.get_ptr();
 		while (!!n)
 		{
-			ptr<descriptor_t> next = n->m_next;
-			n->get_obj()->~type();
-			n->descriptor_t::~descriptor_t();
-			if ((n < (descriptor_t*)&(m_preallocated[0])) || (n >= (descriptor_t*)&(m_preallocated[preallocated_count])))
-				m_allocator.deallocate(n);
+			ptr<node_t> next = n->m_next;
+			n->get().type::~type();
+			n->node_t::~node_t();
+			if ((n < (node_t*)&(m_preallocated[0])) || (n >= (node_t*)&(m_preallocated[preallocated_count])))
+				m_allocator.deallocate(n.get_ptr());
+			else
+				++i;
 			n = next;
+		}
+		COGS_ASSERT(i == m_curPos);
+		while (m_curPos < preallocated_count)
+		{
+			m_preallocated[m_curPos].get().type::~type();
+			m_preallocated[m_curPos++].node_t::~node_t();
 		}
 	}
 
 	rcref<type> get() volatile
 	{
-		ptr<descriptor_t> desc;
-		ptr<descriptor_t> oldHead;
+		ptr<node_t> desc;
+		ptr<node_t> oldHead;
 		version_t v;
 		m_head.get(oldHead, v);
 		for (;;)
 		{
 			if (!!oldHead)
 			{
-				ptr<descriptor_t> newHead = oldHead->m_next;
+				ptr<node_t> newHead = oldHead->m_next;
 				if (!m_head.versioned_exchange(newHead, v, oldHead))
 					continue;
 				desc = oldHead;
@@ -131,7 +145,10 @@ public:
 
 			size_t oldPos = atomic::load(m_curPos);
 			if (oldPos >= preallocated_count)
-				desc = m_allocator.template allocate_type<placement_t>()->get_header();
+			{
+				desc = m_allocator.allocate();
+				new (desc) node_t;
+			}
 			else
 			{
 				if (!atomic::compare_exchange(m_curPos, oldPos + 1, oldPos, oldPos))
@@ -139,16 +156,19 @@ public:
 					m_head.get(oldHead, v);
 					continue;
 				}
-				desc = m_preallocated[oldPos].get_header();
+				desc = const_cast<node_t*>(&m_preallocated[oldPos]);
 			}
 
-			new (desc) descriptor_t;
-			desc->m_freelist = this;
-			placement_rcnew(desc->get_obj(), *desc);
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+			desc->set_debug_str("rcref_freelist");
+#endif
+
+			desc->m_freelist = &m_head;
+			nested_rcnew(&desc->get(), *desc);
 			break;
 		}
 
-		type* obj = desc->get_obj();
+		type* obj = &desc->get();
 		rcref<type> result(obj, desc);
 		return result;
 	}
@@ -156,57 +176,18 @@ public:
 
 
 template <typename T, class allocator_type>
-class rcref_freelist<T, allocator_type, 0>
+class rcref_freelist<T, 0, allocator_type>
 {
 private:
-	typedef rcref_freelist<T, allocator_type, 0> this_t;
+	typedef rcref_freelist<T, 0, allocator_type> this_t;
 
-	allocator_container<allocator_type> m_allocator;
+	allocator_type m_allocator;
 
-	class descriptor_t : public rc_obj_base
-	{
-	public:
-		volatile this_t* m_freelist;
-		descriptor_t* m_next;
+	typedef rcref_freelist_node<T> node_t;
 
-		virtual void released()
-		{
-			// We don't destruct
-		}
+	typedef typename versioned_ptr<node_t>::version_t version_t;
 
-		virtual bool contains(void* obj) const
-		{
-			T* start = get_obj();
-			unsigned char* p = (unsigned char*)obj;
-			return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + 1));
-		}
-
-		virtual void dispose()
-		{
-			// Return to freelist
-			m_freelist->release(this);
-		}
-
-		T* get_obj() const { return placement_with_header<descriptor_t, T>::get_obj_from_header(this); }
-
-		static descriptor_t* from_obj(T* obj) { return placement_with_header<descriptor_t, T>::get_header_from_obj(obj); }
-	};
-
-	typedef placement_with_header<descriptor_t, T>  placement_t;
-
-	typedef typename versioned_ptr<descriptor_t>::version_t version_t;
-
-	volatile versioned_ptr<descriptor_t> m_head;
-
-	void release(descriptor_t* n) volatile
-	{
-		ptr<descriptor_t> oldHead;
-		version_t oldVersion;
-		m_head.get(oldHead, oldVersion);
-		do {
-			n->m_next = oldHead.get_ptr();
-		} while (!m_head.versioned_exchange(n, oldVersion, oldHead));
-	}
+	versioned_ptr<node_t> m_head;
 
 public:
 	typedef T type;
@@ -214,34 +195,29 @@ public:
 	rcref_freelist()
 	{ }
 
-	explicit rcref_freelist(volatile allocator_type& al)
-		: m_allocator(al)
-	{ }
-
 	~rcref_freelist()
 	{
-		ptr<descriptor_t> n = m_head.get_ptr();
+		ptr<node_t> n = m_head.get_ptr();
 		while (!!n)
 		{
-			ptr<descriptor_t> next = n->m_next;
-			n->get_obj()->~type();
-			n->descriptor_t::~descriptor_t();
-			m_allocator.deallocate(n);
+			ptr<node_t> next = n->m_next;
+			n->get().~type();
+			m_allocator.destruct_deallocate(n.get_ptr());
 			n = next;
 		}
 	}
 
 	rcref<type> get() volatile
 	{
-		ptr<descriptor_t> desc;
-		ptr<descriptor_t> oldHead;
+		ptr<node_t> desc;
+		ptr<node_t> oldHead;
 		version_t v;
 		m_head.get(oldHead, v);
 		for (;;)
 		{
 			if (!!oldHead)
 			{
-				ptr<descriptor_t> newHead = oldHead->m_next;
+				ptr<node_t> newHead = oldHead->m_next;
 				if (!m_head.versioned_exchange(newHead, v, oldHead))
 					continue;
 				desc = oldHead;
@@ -249,14 +225,19 @@ public:
 				break;
 			}
 
-			desc = m_allocator.template allocate_type<placement_t>();
-			new (desc) descriptor_t;
-			desc->m_freelist = this;
-			placement_rcnew(desc->get_obj(), *desc);
+			desc = m_allocator.allocate();
+			new (desc) node_t;
+
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+			desc->set_debug_str("rcref_freelist");
+#endif
+
+			desc->m_freelist = &m_head;
+			nested_rcnew(&desc->get(), *desc);
 			break;
 		}
 
-		type* obj = desc->get_obj();
+		type* obj = &desc->get();
 		rcref<type> result(obj, desc);
 		return result;
 	}

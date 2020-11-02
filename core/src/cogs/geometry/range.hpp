@@ -97,7 +97,7 @@ private:
 public:
 	static range make_unbounded() { range r; return r; }
 
-	static range make_fixed(double d) { range r(d, d, true); return r; }
+	static range make_fixed(double d = 0) { range r(d, d, true); return r; }
 
 	static range make_empty()
 	{
@@ -141,7 +141,7 @@ public:
 		m_hasMax = true;
 	}
 
-	void set_fixed(double x)
+	void set_fixed(double x = 0)
 	{
 		m_hasMax = true;
 		m_min = x;
@@ -150,7 +150,7 @@ public:
 
 	void set_min(double x) { m_min = x; }
 
-	void set_max(double x) { m_max = x; m_hasMax = true; }
+	void set_max(double x, bool hasMax = true) { m_max = x; m_hasMax = hasMax; }
 
 	// get
 	bool& has_max() { return m_hasMax; }
@@ -789,19 +789,19 @@ public:
 			set_min_height(n);
 	}
 
-	void set_max_width(double w) { m_hasMaxWidth = true; m_maxSize.set_width(w); }
-	void set_max_height(double h) { m_hasMaxHeight = true; m_maxSize.set_height(h); }
+	void set_max_width(double w, bool hasMax = true) { m_hasMaxWidth = hasMax; m_maxSize.set_width(w); }
+	void set_max_height(double h, bool hasMax = true) { m_hasMaxHeight = hasMax; m_maxSize.set_height(h); }
 
 	void set_max(const size& maxSize) { m_hasMaxWidth = true; m_hasMaxHeight = true; m_maxSize = maxSize; }
 
 	void set_max(double x, double y) { m_hasMaxWidth = true; m_hasMaxHeight = true; m_maxSize.set(x, y); }
 
-	void set_max(dimension d, double n)
+	void set_max(dimension d, double n, bool hasMax = true)
 	{
 		if (d == dimension::horizontal)
-			set_max_width(n);
+			set_max_width(n, hasMax);
 		else
-			set_max_height(n);
+			set_max_height(n, hasMax);
 	}
 
 	void clear_max_width() { m_hasMaxWidth = false; }
@@ -904,6 +904,16 @@ public:
 		m_hasMaxHeight = true;
 		m_minSize = sz;
 		m_maxSize = sz;
+	}
+
+	void set_fixed(double w, double h)
+	{
+		m_hasMaxWidth = true;
+		m_hasMaxHeight = true;
+		m_minSize.set_width(w);
+		m_maxSize.set_width(w);
+		m_minSize.set_height(h);
+		m_maxSize.set_height(h);
 	}
 
 	bool& has_max_width() { return m_hasMaxWidth; }

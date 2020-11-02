@@ -23,27 +23,26 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class scroll_bar : public hwnd_pane, public scroll_bar_interface
+class scroll_bar : public hwnd_pane, public gui::scroll_bar_interface
 {
 private:
-	volatile transactable<scroll_bar_state> m_state;
+	volatile transactable<gui::scroll_bar_state> m_state;
 	volatile double m_pos = 0.0;
 
-	delegated_dependency_property<scroll_bar_state> m_stateProperty;
+	delegated_dependency_property<gui::scroll_bar_state> m_stateProperty;
 	delegated_dependency_property<double> m_positionProperty;
 	delegated_dependency_property<bool, io::permission::read> m_canAutoFadeProperty;
 
-	dimension m_dimension;
+	gfx::dimension m_dimension;
 	bool m_isHiddenWhenInactive;
 	bool m_isHidden = false;
-	range m_currentRange;
-	size m_currentDefaultSize;
+	gfx::range m_currentRange;
+	gfx::size m_currentDefaultSize;
 
-	void set_scroll_bar_state(const scroll_bar_state& newState, double newPos)
+	void set_scroll_bar_state(const gui::scroll_bar_state& newState, double newPos)
 	{
 		rcptr<gui::scroll_bar> sb = get_bridge().template static_cast_to<gui::scroll_bar>();
 		int fnBar = SB_CTL;
@@ -92,13 +91,13 @@ private:
 				// No up or left arrow
 				// We already know pos != max
 				if (!pos)
-					wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
+					wArrows = (m_dimension == gfx::dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
 				else
 				{
 					double maxPos = newState.m_max;
 					maxPos -= newState.m_thumbSize;
 					if (pos == maxPos) // No down or right arrow
-						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
+						wArrows = (m_dimension == gfx::dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
 				}
 
 				SetScrollInfo(get_HWND(), fnBar, &si, TRUE);
@@ -121,14 +120,14 @@ public:
 		m_stateProperty(uiSubsystem, [this]()
 		{
 			return *(m_state.begin_read());
-		}, [this](const scroll_bar_state& state)
+		}, [this](const gui::scroll_bar_state& state)
 		{
-			scroll_bar_state newState = state;
-			scroll_bar_state oldState = newState;
+			gui::scroll_bar_state newState = state;
+			gui::scroll_bar_state oldState = newState;
 			m_state.swap_contents(oldState);
 			if (newState != oldState)
 			{
-				double curPos = atomic::load(m_pos);
+				double curPos = cogs::atomic::load(m_pos);
 				set_scroll_bar_state(newState, curPos);
 				m_stateProperty.changed();
 			}
@@ -136,11 +135,11 @@ public:
 		}),
 		m_positionProperty(uiSubsystem, [this]()
 		{
-			return atomic::load(m_pos);
+			return cogs::atomic::load(m_pos);
 		}, [this](double d)
 		{
 			double newPos = d;
-			double oldPos = atomic::exchange(m_pos, newPos);
+			double oldPos = cogs::atomic::exchange(m_pos, newPos);
 			if (newPos != oldPos)
 			{
 				set_scroll_bar_state(*(m_state.begin_read()), newPos);
@@ -159,7 +158,7 @@ public:
 		m_dimension = sb->get_dimension();
 		m_isHiddenWhenInactive = sb->is_hidden_when_inactive();
 
-		if (m_dimension == dimension::horizontal)
+		if (m_dimension == gfx::dimension::horizontal)
 			m_style |= SBS_HORZ | SBS_TOPALIGN;
 		else
 			m_style |= SBS_VERT | SBS_LEFTALIGN;
@@ -198,9 +197,9 @@ public:
 					// No up or left arrow
 					// We already know pos != max
 					if (!pos)
-						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
+						wArrows = (m_dimension == gfx::dimension::horizontal) ? ESB_DISABLE_LEFT : ESB_DISABLE_UP;
 					else if (pos == maxPos) // No down or right arrow
-						wArrows = (m_dimension == dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
+						wArrows = (m_dimension == gfx::dimension::horizontal) ? ESB_DISABLE_RIGHT : ESB_DISABLE_DOWN;
 					EnableScrollBar(get_HWND(), fnBar, wArrows);
 				}
 				else
@@ -239,7 +238,7 @@ public:
 						break;
 					}
 
-					double oldPos = atomic::load(m_pos);
+					double oldPos = cogs::atomic::load(m_pos);
 					if (oldPos != pos)
 					{
 						si.fMask = SIF_POS;
@@ -274,7 +273,7 @@ public:
 	virtual void calculate_range()
 	{
 		m_currentRange.clear();
-		int scrollBarWidth = GetSystemMetricsForDpi((m_dimension == dimension::horizontal) ? SM_CYHSCROLL : SM_CXVSCROLL, (int)get_device_context().get_dpi());
+		int scrollBarWidth = GetSystemMetricsForDpi((m_dimension == gfx::dimension::horizontal) ? SM_CYHSCROLL : SM_CXVSCROLL, (int)get_device_context().get_dpi());
 		double sz = get_device_context().make_size(scrollBarWidth);
 
 		m_currentRange.get_max(!m_dimension) = sz;
@@ -282,12 +281,12 @@ public:
 		m_currentDefaultSize.set(sz, sz);
 	}
 
-	virtual range get_range() const { return m_currentRange; }
-	virtual size get_default_size() const { return m_currentDefaultSize; }
+	virtual gfx::range get_range() const { return m_currentRange; }
+	virtual std::optional<gfx::size> get_default_size() const { return m_currentDefaultSize; }
 
 	virtual bool is_focusable() const { return false; }
 
-	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
+	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
 		hwnd_pane::reshape(b, oldOrigin);
 		invalidate(get_size());
@@ -295,14 +294,13 @@ public:
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<scroll_bar_interface> > hwnd::subsystem::create_scroll_bar() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::scroll_bar_interface> > hwnd::subsystem::create_scroll_bar() volatile
 {
 	rcref<scroll_bar> sb = rcnew(scroll_bar)(this_rcref);
 	return std::make_pair(sb, sb);
 }
 
 
-}
 }
 }
 

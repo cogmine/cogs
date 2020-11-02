@@ -150,6 +150,8 @@ public:
 		return !l;
 	}
 
+	bool operator+=(const ref_t& e) { return push(e); }
+
 	/// @brief Thread-safe implementation of push().
 	bool push(const ref_t& e) volatile
 	{
@@ -164,6 +166,8 @@ public:
 		} while (!m_head.compare_exchange(e, oldHead, oldHead));
 		return wasEmpty;
 	}
+
+	bool operator+=(const ref_t& e) volatile { return push(e); }
 	/// @}
 
 	/// @{

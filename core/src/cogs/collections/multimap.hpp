@@ -30,10 +30,14 @@ namespace cogs {
 /// @tparam key_t The type used to compare elements.
 /// @tparam value_t The value associated with the element.
 /// @tparam comparator_t A static comparator class used to compare keys.  Default: default_comparator
-template <typename key_t, typename value_t, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename key_t, typename value_t, class comparator_t = default_comparator, class memory_manager_t = default_memory_manager>
 class multimap
 {
 public:
+	typedef key_t key_type;
+	typedef value_t value_type;
+	typedef memory_manager_t memory_manager_type;
+
 	struct node
 	{
 		const key_t key;
@@ -41,19 +45,17 @@ public:
 	};
 
 private:
-	typedef multimap<key_t, value_t, comparator_t, allocator_type> this_t;
+	typedef multimap<key_t, value_t, comparator_t, memory_manager_type> this_t;
 
 	struct payload
 	{
-		delayed_construction<node> m_node;
+		placement<node> m_node;
+		~payload() { m_node.destruct(); }
 		const key_t& get_key() const { return m_node->key; }
 	};
 
-	typedef container_skiplist<true, key_t, payload, comparator_t, allocator_type> container_skiplist_t;
+	typedef container_skiplist<true, key_t, payload, comparator_t, memory_manager_type> container_skiplist_t;
 	container_skiplist_t m_contents;
-
-	multimap(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
 
 public:
 	class iterator;
@@ -585,7 +587,11 @@ public:
 		: m_contents(std::move(src.m_contents))
 	{ }
 
-	explicit multimap(volatile allocator_type& al) : m_contents(al) { }
+	multimap(const this_t& src)
+		: m_contents(src.m_contents)
+	{ }
+
+	multimap(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -593,11 +599,16 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const this_t& src)
 	{
-		m_contents = std::move(src.m_contents);
+		m_contents = src.m_contents;
 		return *this;
 	}
+
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
 	/// @{
 	/// @brief Removes all elements.
@@ -767,8 +778,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(v);
 		});
 	}
 
@@ -776,8 +787,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(v);
 		});
 	}
 
@@ -785,8 +796,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(std::move(v));
 		});
 	}
 
@@ -794,8 +805,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(std::move(v));
 		});
 	}
 
@@ -804,8 +815,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(v);
 		});
 	}
 
@@ -813,8 +824,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(v);
 		});
 	}
 
@@ -822,8 +833,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(std::move(v));
 		});
 	}
 
@@ -831,8 +842,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(std::move(v));
 		});
 	}
 
@@ -842,8 +853,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -852,8 +863,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
-			placement_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(k);
+			nested_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -862,8 +873,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -872,8 +883,8 @@ public:
 	{
 		return insert_via([&](iterator& i)
 		{
-			placement_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
-			placement_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
+			nested_rcnew(const_cast<key_t*>(&i->key), *i.get_desc())(std::move(k));
+			nested_rcnew(&i->value, *i.get_desc())(std::forward<args_t>(args)...);
 		});
 	}
 
@@ -885,10 +896,16 @@ public:
 	bool remove(const iterator& e) { return m_contents.remove(e.m_contents); }
 	/// @}
 
+	bool operator-=(const iterator& i) { return remove(i); }
+	bool operator-=(const remove_token& rt) { return remove(rt); }
+
 	typedef typename container_skiplist_t::volatile_remove_result volatile_remove_result;
 
 	volatile_remove_result remove(const volatile_remove_token& e) volatile { return m_contents.remove(e.m_contents); }
 	volatile_remove_result remove(const volatile_iterator& e) volatile { return m_contents.remove(e.m_contents); }
+
+	volatile_remove_result operator-=(const volatile_iterator& i) volatile { return remove(i); }
+	volatile_remove_result operator-=(const volatile_remove_token& rt) volatile { return remove(rt); }
 
 	iterator pop_first() { return iterator(m_contents.pop_first()); }
 	iterator pop_last() { return iterator(m_contents.pop_last()); }
@@ -1014,11 +1031,11 @@ public:
 
 	void swap(this_t& wth) { m_contents.swap(wth.m_contents); }
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(this_t& wth) volatile { m_contents.swap(wth.m_contents); }
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(volatile this_t& wth) { m_contents.swap(wth.m_contents); }
 
 	this_t exchange(this_t&& src)
 	{
@@ -1027,13 +1044,13 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	this_t exchange(this_t&& src) volatile
-	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		return tmp;
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//this_t exchange(this_t&& src) volatile
+	//{
+	//	this_t tmp(std::move(src));
+	//	swap(tmp);
+	//	return tmp;
+	//}
 
 	void exchange(this_t&& src, this_t& rtn)
 	{
@@ -1041,12 +1058,12 @@ public:
 		swap(rtn);
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void exchange(this_t&& src, this_t& rtn) volatile
-	{
-		rtn = std::move(src);
-		swap(rtn);
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void exchange(this_t&& src, this_t& rtn) volatile
+	//{
+	//	rtn = std::move(src);
+	//	swap(rtn);
+	//}
 
 	iterator begin() const { return get_first(); }
 	volatile_iterator begin() const volatile { return get_first(); }
@@ -1062,44 +1079,57 @@ public:
 };
 
 
-template <typename key_t, typename value_t, bool favor_lookup = false, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename key_t, typename value_t, bool favor_lookup = false>
+class nonvolatile_multimap_node
+{
+private:
+	typedef nonvolatile_multimap_node<key_t, value_t, favor_lookup> this_t;
+
+public:
+	const key_t key;
+	value_t value;
+
+	class storage;
+};
+
+template <typename key_t, typename value_t, bool favor_lookup>
+class nonvolatile_multimap_node<key_t, value_t, favor_lookup>::storage : public std::conditional_t<favor_lookup, avltree_node_t<storage>, rbtree_node_t<storage> >
+{
+public:
+	placement<nonvolatile_multimap_node<key_t, value_t, favor_lookup>> m_node;
+	~storage() { m_node.destruct(); }
+	const key_t& get_key() const { return m_node->key; }
+};
+
+
+template <typename key_t, typename value_t, bool favor_lookup = false, class comparator_t = default_comparator, class allocator_t = batch_allocator<typename nonvolatile_multimap_node<key_t, value_t, favor_lookup>::storage>>
 class nonvolatile_multimap
 {
 public:
-	struct node
-	{
-		const key_t key;
-		value_t value;
-	};
+	typedef key_t key_type;
+	typedef value_t value_type;
+	typedef allocator_t allocator_type;
+
+	typedef nonvolatile_multimap_node<key_t, value_t, favor_lookup> node;
 
 private:
 	typedef nonvolatile_multimap<key_t, value_t, favor_lookup, comparator_t, allocator_type> this_t;
 
-	class payload : public std::conditional_t<favor_lookup, avltree_node_t<payload>, rbtree_node_t<payload> >
-	{
-	public:
-		delayed_construction<node> m_node;
-		const key_t& get_key() const { return m_node->key; }
-	};
+	typedef typename nonvolatile_multimap_node<key_t, value_t, favor_lookup>::storage payload;
 
 	typedef std::conditional_t<favor_lookup, avltree<key_t, payload, comparator_t>, rbtree<key_t, payload, comparator_t> > tree_t;
 
-	typedef typename tree_t::ref_t ref_t;
-
-	nonvolatile_multimap(const this_t&) = delete;
-	this_t& operator=(const this_t&) = delete;
-
 	tree_t m_tree;
 	size_t m_count;
-	allocator_container<allocator_type> m_allocator;
+	allocator_type m_allocator;
 
 	void clear_inner()
 	{
-		ref_t n = m_tree.get_first_postorder();
+		ptr<payload> n = m_tree.get_first_postorder();
 		while (!!n)
 		{
-			ref_t n2 = m_tree.get_next_postorder(n);
-			m_allocator.template destruct_deallocate_type<payload>(n);
+			ptr<payload> n2 = m_tree.get_next_postorder(n);
+			m_allocator.destruct_deallocate(n.get_ptr());
 			n = n2;
 		}
 	}
@@ -1111,9 +1141,9 @@ public:
 		friend class nonvolatile_multimap;
 
 		const tree_t* m_tree;
-		ref_t m_payload;
+		ptr<payload> m_payload;
 
-		iterator(const ref_t& n, const tree_t& t)
+		iterator(const ptr<payload>& n, const tree_t& t)
 			: m_tree(&t),
 			m_payload(n)
 		{ }
@@ -1186,6 +1216,8 @@ public:
 		}
 	};
 
+	typedef iterator remove_token;
+
 	nonvolatile_multimap()
 		: m_count(0)
 	{ }
@@ -1196,15 +1228,18 @@ public:
 		m_count(src.m_count)
 	{ }
 
-	explicit nonvolatile_multimap(volatile allocator_type& al)
-		: m_count(0),
-		m_allocator(al)
-	{ }
+	nonvolatile_multimap(const this_t& src)
+	{
+		for (const auto& entry : src)
+			insert(entry.m_key, entry.m_value);
+	}
 
 	~nonvolatile_multimap()
 	{
 		clear_inner();
 	}
+
+	nonvolatile_multimap(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -1213,6 +1248,17 @@ public:
 		m_count = src.m_count;
 		return *this;
 	}
+
+	this_t& operator=(const this_t& src)
+	{
+		clear();
+		for (const auto& entry : src)
+			insert(entry.m_key, entry.m_value);
+	}
+
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
 
 	void clear()
 	{
@@ -1237,7 +1283,7 @@ public:
 		iterator>
 	insert_via(F&& f)
 	{
-		ref_t r = m_allocator.template allocate_type<payload>();
+		ptr<payload> r = m_allocator.allocate();
 		new (r.get_ptr()) payload;
 		iterator i(r, m_tree);
 		f(i);
@@ -1274,7 +1320,7 @@ public:
 	void remove(const iterator& i)
 	{
 		m_tree.remove(i.m_payload);
-		m_allocator.template destruct_deallocate_type<payload>(i.m_payload);
+		m_allocator.destruct_deallocate(i.m_payload);
 		m_count--;
 	}
 

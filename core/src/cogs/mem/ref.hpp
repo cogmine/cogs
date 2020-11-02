@@ -72,7 +72,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas (atomic::get_alignment_v<type*>) type* m_value;
+	alignas(atomic::get_alignment_v<type*>) type* m_value;
 
 	template <typename>
 	friend class ptr;
@@ -692,7 +692,7 @@ public:
 	/// - Alignment of 4 indicates there is 2.
 	/// - Alignment of 8 indicates there is 3.
 	/// @return The number of bits available to be marked on the pointer.
-	static size_t mark_bits() { return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
+	static size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
 
 	/// @brief Gets a mask with all available mark bits sets.
 	/// @return A mask containing all available mark bits set.
@@ -734,10 +734,31 @@ public:
 	{
 		ref<type> oldValue = *this;
 		ref<type> newValue = oldValue;
-		do {
-			newValue = oldValue;
+		for (;;)
+		{
 			newValue.clear_mark();
-		} while ((oldValue != newValue) && !compare_exchange(newValue, oldValue, oldValue));
+			if ((oldValue == newValue) || compare_exchange(newValue, oldValue, oldValue))
+				break;
+			newValue = oldValue;
+		}
+	}
+	/// @}
+
+	/// @{
+	/// @brief Clears the pointer value, but keeps marked bits.
+	void clear_to_mark() { set((type*)(get_mark())); }
+	/// @brief Thread-safe versions of clear_to_mark()
+	void clear_to_mark() volatile
+	{
+		ref<type> oldValue = *this;
+		ref<type> newValue = oldValue;
+		for (;;)
+		{
+			newValue.clear_to_mark();
+			if ((oldValue == newValue) || compare_exchange(newValue, oldValue, oldValue))
+				break;
+			newValue = oldValue;
+		}
 	}
 	/// @}
 
@@ -750,15 +771,18 @@ public:
 	{
 		ref<type> oldValue = *this;
 		ref<type> newValue = oldValue;
-		do {
-			newValue = oldValue;
+		for (;;)
+		{
 			newValue.set_mark(mark);
-		} while ((oldValue != newValue) && !compare_exchange(newValue, oldValue, oldValue));
+			if ((oldValue == newValue) || compare_exchange(newValue, oldValue, oldValue))
+				break;
+			newValue = oldValue;
+		}
 	}
 	/// @}
 
 	/// @{
-	/// @brief Set to the pointer value specified, and applied the speficied marked bits.
+	/// @brief Set to the pointer value specified, and apply the speficied marked bits.
 	/// @param p Value to set.
 	/// @param mark Bitmask of bits to set.
 	void set_marked(type* p, size_t mark) { set((type*)((size_t)p | (mark & mark_mask()))); }
@@ -824,7 +848,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas (atomic::get_alignment_v<type*>) type* m_value;
+	alignas(atomic::get_alignment_v<type*>) type* m_value;
 
 	template <typename>
 	friend class ptr;
@@ -1267,7 +1291,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas (atomic::get_alignment_v<type*>) type* m_value;
+	alignas(atomic::get_alignment_v<type*>) type* m_value;
 
 	template <typename>
 	friend class ptr;
@@ -1710,7 +1734,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas (atomic::get_alignment_v<type*>) type* m_value;
+	alignas(atomic::get_alignment_v<type*>) type* m_value;
 
 	template <typename>
 	friend class ptr;
@@ -2156,7 +2180,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas (atomic::get_alignment_v<type*>) type* m_value;
+	alignas(atomic::get_alignment_v<type*>) type* m_value;
 
 	template <typename>
 	friend class ptr;

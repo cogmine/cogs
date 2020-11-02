@@ -9,6 +9,7 @@
 #define COGS_HEADER_SYNC_WAIT_PRIORITY_QUEUE
 
 
+#include "cogs/mem/default_allocator.hpp"
 #include "cogs/sync/priority_queue.hpp"
 #include "cogs/sync/semaphore.hpp"
 
@@ -18,12 +19,15 @@ namespace cogs {
 
 /// @ingroup Synchronization
 /// @brief A priority queue that can perform a blocking wait.
-template <typename key_t, typename type = void, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename key_t, typename type = void, class comparator_t = default_comparator, class memory_manager_t = default_memory_manager>
 class wait_priority_queue
 {
+public:
+	typedef memory_manager_t memory_manager_type;
+
 private:
-	typedef wait_priority_queue<key_t, type, comparator_t, allocator_type> this_t;
-	typedef priority_queue<key_t, type, comparator_t, allocator_type> priority_queue_t;
+	typedef wait_priority_queue<key_t, type, comparator_t, memory_manager_type> this_t;
+	typedef priority_queue<key_t, type, comparator_t, memory_manager_type> priority_queue_t;
 
 	mutable semaphore m_semaphore;
 	priority_queue_t m_priorityQueue;
@@ -196,7 +200,14 @@ public:
 
 	wait_priority_queue() { }
 
-	explicit wait_priority_queue(volatile allocator_type& al) : m_priorityQueue(al) { }
+	wait_priority_queue(this_t&& src)
+		: m_priorityQueue(std::move(src.m_priorityQueue))
+	{ }
+
+	this_t& operator=(this_t&& src)
+	{
+		m_priorityQueue = std::move(src.m_priorityQueue);
+	}
 
 	void clear() { m_priorityQueue.clear(); }
 	bool drain() { return m_priorityQueue.drain(); }
@@ -228,8 +239,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
-			placement_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
+			nested_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(v);
 		});
 	}
 
@@ -237,8 +248,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
-			placement_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
+			nested_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(v);
 		});
 	}
 
@@ -246,8 +257,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
-			placement_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
+			nested_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(std::move(v));
 		});
 	}
 
@@ -255,8 +266,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
-			placement_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
+			nested_rcnew(&vt.m_contents->get_value(), *vt.get_desc())(std::move(v));
 		});
 	}
 
@@ -306,14 +317,17 @@ public:
 
 	remove_result remove(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_contents); }
 	remove_result remove(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_contents); }
+
+	remove_result operator-=(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_contents); }
+	remove_result operator-=(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_contents); }
 };
 
-template <typename key_t, class comparator_t, class allocator_type>
-class wait_priority_queue<key_t, void, comparator_t, allocator_type>
+template <typename key_t, class comparator_t, class memory_manager_t>
+class wait_priority_queue<key_t, void, comparator_t, memory_manager_t>
 {
 private:
-	typedef wait_priority_queue<key_t, void, comparator_t, allocator_type> this_t;
-	typedef priority_queue<key_t, void, comparator_t, allocator_type> priority_queue_t;
+	typedef wait_priority_queue<key_t, void, comparator_t, memory_manager_t> this_t;
+	typedef priority_queue<key_t, void, comparator_t, memory_manager_t> priority_queue_t;
 
 	mutable semaphore m_semaphore;
 	priority_queue_t m_priorityQueue;
@@ -479,7 +493,14 @@ public:
 
 	wait_priority_queue() { }
 
-	explicit wait_priority_queue(volatile allocator_type& al) : m_priorityQueue(al) { }
+	wait_priority_queue(this_t&& src)
+		: m_priorityQueue(std::move(src.m_priorityQueue))
+	{ }
+
+	this_t& operator=(this_t&& src)
+	{
+		m_priorityQueue = std::move(src.m_priorityQueue);
+	}
 
 	void clear() { m_priorityQueue.clear(); }
 	bool drain() { return m_priorityQueue.drain(); }
@@ -511,7 +532,7 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
 		});
 	}
 
@@ -519,7 +540,23 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
+		});
+	}
+
+	insert_result operator+=(const key_t& k) volatile
+	{
+		return insert_via([&](value_token& vt)
+		{
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(k);
+		});
+	}
+
+	insert_result operator+=(key_t&& k) volatile
+	{
+		return insert_via([&](value_token& vt)
+		{
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->get_key()), *vt.get_desc())(std::move(k));
 		});
 	}
 
@@ -569,6 +606,9 @@ public:
 
 	remove_result remove(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_contents); }
 	remove_result remove(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_contents); }
+
+	remove_result operator-=(const value_token& vt) volatile { return m_priorityQueue.remove(vt.m_contents); }
+	remove_result operator-=(const remove_token& rt) volatile { return m_priorityQueue.remove(rt.m_contents); }
 };
 
 

@@ -12,8 +12,7 @@
 #include <type_traits>
 
 #include "cogs/env.hpp"
-#include "cogs/mem/allocator_container.hpp"
-#include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcptr.hpp"
 #include "cogs/operators.hpp"
@@ -22,19 +21,22 @@
 namespace cogs {
 
 
+template <class T, class = void> struct has_allocate : public std::false_type {};
+template <class T> struct has_allocate<T, std::void_t<decltype(std::declval<T>().allocate())>> : public std::true_type {};
+template <class T> static constexpr bool has_allocate_v = has_allocate<T>::value;
+
+
 template <typename type, typename allocator_t>
-std::enable_if_t<allocator_t::is_static, type*>
-rcnew_glue(
+type* rcnew_glue(
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	const char* debugStr,
 #endif
-	type*,
-	volatile allocator_t*,
+	std::enable_if_t<has_allocate_v<allocator_t>, allocator_t&&> al,
 	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
-	typedef rc_obj<type, allocator_t> rc_obj_t;
-	rc_obj_t* desc = rc_obj_t::allocate().get_ptr();
-	type* obj = desc->get_obj();
+	rc_obj<type>* desc = al.allocate();
+	new (desc) rc_obj<type>;
+	type* obj = desc->get_object();
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	desc->set_type_name(typeid(type).name());
@@ -54,19 +56,17 @@ rcnew_glue(
 	return obj;
 }
 
-template <typename type, typename allocator_t>
-std::enable_if_t<!allocator_t::is_static, type*>
-rcnew_glue(
+template <typename type, typename memory_manager_t>
+type* rcnew_glue(
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	const char* debugStr,
 #endif
-	type*,
-	volatile allocator_t* al,
+	std::enable_if_t<!has_allocate_v<memory_manager_t>, memory_manager_t&&> mm,
 	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
-	typedef rc_obj<type, allocator_t> rc_obj_t;
-	rc_obj_t* desc = rc_obj_t::allocate(*al).get_ptr();
-	type* obj = desc->get_obj();
+	rc_obj<type>* desc = mm.template allocate_type<rc_obj<type> >();
+	new (desc) rc_obj<type>;
+	type* obj = desc->get_object();
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 	desc->set_type_name(typeid(type).name());
@@ -90,7 +90,36 @@ rcnew_glue(
 template <typename type>
 type* rcnew_glue(
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
-	const char*
+	const char* debugStr,
+#endif
+	rc_obj<type>* desc,
+	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
+{
+	type* obj = desc->get_object();
+
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+	desc->set_type_name(typeid(type).name());
+	desc->set_debug_str(debugStr);
+	desc->set_obj_ptr(obj);
+#endif
+
+#if COGS_DEBUG_RC_LOGGING
+	unsigned long rcCount = pre_assign_next(g_rcLogCount);
+	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
+#endif
+
+	temp.m_obj = obj;
+	temp.m_desc = desc;
+	temp.m_saved = object::rcnew_glue_obj;
+	object::rcnew_glue_obj = &temp;
+	return obj;
+}
+
+
+template <typename type>
+type* rcnew_glue(
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+	const char* debugStr
 #if COGS_DEBUG_RC_LOGGING
 	debugStr
 #endif
@@ -99,6 +128,12 @@ type* rcnew_glue(
 	const rc_container_content_t<type>& content,
 	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
+#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
+	content.m_desc->set_type_name(typeid(type).name());
+	content.m_desc->set_debug_str(debugStr);
+	content.m_desc->set_obj_ptr(content.m_obj);
+#endif
+
 #if COGS_DEBUG_RC_LOGGING
 	unsigned long rcCount = pre_assign_next(g_rcLogCount);
 	printf("(%lu) RC_NEW (placement): %p (desc) %p (ptr) %s @ %s\n", rcCount, &desc, obj, typeid(type).name(), debugStr);
@@ -110,6 +145,7 @@ type* rcnew_glue(
 	object::rcnew_glue_obj = &temp;
 	return content.m_obj;
 }
+
 
 template <typename type>
 struct rcnew_glue_t
@@ -133,21 +169,17 @@ struct rcnew_glue_t
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
 
 
-#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (::cogs::default_allocator*)0)) type
-#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al*)0)) type
-#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, &(al))) type
-#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue(COGS_DEBUG_AT, (type*)0, (al).get_allocator().get_ptr())) type
-#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new (::cogs::rcnew_glue(COGS_DEBUG_AT, rc_container_content_t<std::remove_pointer_t<decltype(objPtr)> >({ (objPtr), &(descRef) }))) std::remove_pointer_t<decltype(objPtr)>
+#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue<type, decltype(::cogs::default_memory_manager())>(COGS_DEBUG_AT, ::cogs::default_memory_manager())) type
+#define placement_rcnew(rcObjPtr) (::cogs::rcref<typename std::remove_pointer_t<decltype(rcObjPtr)>::type>)(::cogs::rcnew_glue_t<typename std::remove_pointer_t<decltype(rcObjPtr)>::type>)new (::cogs::rcnew_glue(COGS_DEBUG_AT, (rcObjPtr))) typename std::remove_pointer_t<decltype(rcObjPtr)>::type
+#define nested_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new (::cogs::rcnew_glue(COGS_DEBUG_AT, rc_container_content_t<std::remove_pointer_t<decltype(objPtr)> >({ (objPtr), &(descRef) }))) std::remove_pointer_t<decltype(objPtr)>
 
 
 #else
 
 
-#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue((type*)0, (::cogs::default_allocator*)0)) type
-#define static_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue((type*)0, (al*)0)) type
-#define instance_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue((type*)0, &(al))) type
-#define container_rcnew(al, type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue((type*)0, (al).get_allocator().get_ptr())) type
-#define placement_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new (::cogs::rcnew_glue(rc_container_content_t<std::remove_pointer_t<decltype(objPtr)> >({ (objPtr), &(descRef) }))) std::remove_pointer_t<decltype(objPtr)>
+#define rcnew(type) (::cogs::rcref<type>)(::cogs::rcnew_glue_t<type>)new (::cogs::rcnew_glue<type, decltype(::cogs::default_memory_manager())>(::cogs::default_memory_manager())) type
+#define placement_rcnew(rcObjPtr) (::cogs::rcref<typename std::remove_pointer_t<decltype(rcObjPtr)>::type>)(::cogs::rcnew_glue_t<typename std::remove_pointer_t<decltype(rcObjPtr)>::type>)new (::cogs::rcnew_glue((rcObjPtr))) typename std::remove_pointer_t<decltype(rcObjPtr)>::type
+#define nested_rcnew(objPtr, descRef) (void)!(::cogs::rcnew_glue_t<std::remove_pointer_t<decltype(objPtr)> >)new (::cogs::rcnew_glue(rc_container_content_t<std::remove_pointer_t<decltype(objPtr)> >({ (objPtr), &(descRef) }))) std::remove_pointer_t<decltype(objPtr)>
 
 
 #endif

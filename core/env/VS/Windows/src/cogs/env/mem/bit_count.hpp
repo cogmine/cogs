@@ -18,7 +18,7 @@ namespace cogs {
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(unsigned short)),
 	size_t
 >
@@ -30,7 +30,7 @@ bit_count(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned short))
 	&& (sizeof(T) <= sizeof(unsigned int)),
 	size_t
@@ -41,11 +41,11 @@ bit_count(const T& t)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned int))
 	&& (sizeof(T) <= sizeof(unsigned __int64)),
 	size_t
@@ -58,14 +58,14 @@ bit_count(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned __int64)),
 	size_t
 >
 bit_count(const T& t)
 {
 	size_t result = 0;
-	std::make_unsigned_t<std::remove_volatile_t<T> > tmp = (std::make_unsigned_t<std::remove_volatile_t<T> >)load(t);
+	make_unsigned_t<std::remove_volatile_t<T> > tmp = (make_unsigned_t<std::remove_volatile_t<T> >)load(t);
 	while (!!tmp)
 	{
 		unsigned __int64 ll = (unsigned __int64)tmp;
@@ -79,14 +79,14 @@ bit_count(const T& t)
 
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned int)),
 	size_t
 >
 bit_count(const T& t)
 {
 	size_t result = 0;
-	std::make_unsigned_t<std::remove_volatile_t<T> > tmp = (std::make_unsigned_t<std::remove_volatile_t<T> >)load(t);
+	make_unsigned_t<std::remove_volatile_t<T> > tmp = (make_unsigned_t<std::remove_volatile_t<T> >)load(t);
 	while (!!tmp)
 	{
 		unsigned int ll = (unsigned int)tmp;

@@ -18,7 +18,7 @@ namespace cogs {
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& !std::is_volatile_v<int_t>
 	&& (sizeof(int_t) <= sizeof(unsigned int)),
 	size_t
@@ -31,7 +31,7 @@ bit_count(const int_t& bits)
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& !std::is_volatile_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned int))
 	&& (sizeof(int_t) <= sizeof(unsigned long)),
@@ -45,7 +45,7 @@ bit_count(const int_t& bits)
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& !std::is_volatile_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long))
 	&& (sizeof(int_t) <= sizeof(unsigned long long)),
@@ -59,7 +59,7 @@ bit_count(const int_t& bits)
 
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& !std::is_volatile_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long long)),
 	size_t
@@ -67,7 +67,7 @@ inline std::enable_if_t<
 bit_count(const int_t& bits)
 {
 	size_t result = 0;
-	std::make_unsigned_t<int_t> bits2 = bits;
+	make_unsigned_t<int_t> bits2 = bits;
 	while (!!bits2)
 	{
 		unsigned long long ll = (unsigned long long)bits2;

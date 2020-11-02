@@ -5,8 +5,8 @@
 
 // Status: Good
 
-#ifndef COGS
-#define COGS
+#ifndef COGS_HEADER
+#define COGS_HEADER
 
 /// @mainpage Cogs Documentation
 ///
@@ -94,14 +94,6 @@
 ///
 /// Included is a library of atomic operations that leverage compiler intrisics.  See: @ref cogs::atomic
 ///
-///
-/// @subsection MainPageMemoryAllocation Memory Allocation
-///
-/// Cogs supports an allocator type. A @ref cogs::allocator may be static or
-/// instance-based.  The default allocator (@ref cogs::buddy_block_allocator , aka bballoc) is lock-free.
-/// bballoc is a general purpose allocator that uses a cascading set of free-lists.
-///
-///
 /// @subsection MainPageRefCountedObjects Lock-Free RAII Reference-Counted Objects
 ///
 /// Cogs uses it's own reference-counted pointer type, and new-like operator.
@@ -146,7 +138,7 @@
 ///
 /// @ref cogs::freelist - A simple lock-free <a href="https://en.wikipedia.org/wiki/Free_list">free-list</a>.
 ///
-/// @ref cogs::buddy_block_allocator - An allocator that uses a set of cascading free-lists.  If a block of a required
+/// @ref cogs::buddy_block_memory_manager - A memory manager that uses a set of cascading free-lists.  If a block of a required
 /// size is not available, a block twice the size is allocated, split in half, and the other half is added to the smaller block's free-list.
 /// When a block is freed, and it's associated (buddy) block is also freed, they are coalesced and released to the free-list for the coalesced block.
 ///
@@ -161,7 +153,7 @@
 /// Cogs synchronization objects avoid locks internally, and leverage only a simple OS-specific semaphore when
 /// blocking is necessary.
 ///
-/// @ref Events - Similar to Win32 Events and pthreads condition objects - cogs::event, @ref cogs::auto_reset_event, @ref cogs::count_down_event, @ref cogs::resettable_event, @ref cogs::single_fire_event
+/// @ref Events - Similar to Win32 Events and pthreads condition objects - @ref cogs::event, @ref cogs::count_down_condition, @ref cogs::resettable_condition, @ref cogs::single_fire_condition
 ///
 /// @ref Timers - cogs::timer, @ref cogs::resettable_timer, @ref cogs::pulse_timer, @ref cogs::refireable_timer, @ref cogs::single_fire_timer
 ///
@@ -244,7 +236,6 @@
 #include "cogs/debug.hpp"
 #include "cogs/dependency_property.hpp"
 #include "cogs/function.hpp"
-#include "cogs/function_list.hpp"
 #include "cogs/load.hpp"
 #include "cogs/macro_concat.hpp"
 #include "cogs/macro_stringify.hpp"
@@ -262,6 +253,8 @@
 #include "cogs/collections/container_stack.hpp"
 #include "cogs/collections/dlink.hpp"
 #include "cogs/collections/dlist.hpp"
+#include "cogs/collections/backed_vector.hpp"
+#include "cogs/collections/function_list.hpp"
 #include "cogs/collections/map.hpp"
 #include "cogs/collections/multimap.hpp"
 #include "cogs/collections/multiset.hpp"
@@ -313,7 +306,6 @@
 #include "cogs/geometry/sizing_groups.hpp"
 #include "cogs/gfx/canvas.hpp"
 #include "cogs/gfx/color.hpp"
-#include "cogs/gfx/font.hpp"
 #include "cogs/gui/ansiterm.hpp"
 #include "cogs/gui/background.hpp"
 #include "cogs/gui/button.hpp"
@@ -402,21 +394,21 @@
 #include "cogs/math/time.hpp"
 #include "cogs/math/value_to_bits.hpp"
 #include "cogs/math/vec.hpp"
-#include "cogs/mem/allocator.hpp"
-#include "cogs/mem/allocator_container.hpp"
+#include "cogs/mem/allocator_base.hpp"
+#include "cogs/mem/memory_manager_base.hpp"
 #include "cogs/mem/auto_handle.hpp"
+#include "cogs/mem/batch_allocator.hpp"
 #include "cogs/mem/bballoc.hpp"
 #include "cogs/mem/bypass_constructor_permission.hpp"
 #include "cogs/mem/bypass_strict_aliasing.hpp"
 #include "cogs/mem/const_bit_rotate.hpp"
 #include "cogs/mem/const_bit_scan.hpp"
 #include "cogs/mem/const_set_bits.hpp"
-#include "cogs/mem/count_args.hpp"
 #include "cogs/mem/default_allocator.hpp"
-#include "cogs/mem/delayed_construction.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/endian.hpp"
+#include "cogs/mem/flag_enum.hpp"
 #include "cogs/mem/freelist.hpp"
-#include "cogs/mem/freelist_allocator.hpp"
 #include "cogs/mem/int_parts.hpp"
 #include "cogs/mem/is_pointer_type.hpp"
 #include "cogs/mem/is_raw_pointer_type.hpp"
@@ -449,27 +441,27 @@
 #include "cogs/sync/atomic_exchange.hpp"
 #include "cogs/sync/atomic_load.hpp"
 #include "cogs/sync/atomic_store.hpp"
-#include "cogs/sync/auto_reset_event.hpp"
 #include "cogs/sync/can_atomic.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
-#include "cogs/sync/count_down_event.hpp"
+#include "cogs/sync/count_down_condition.hpp"
 #include "cogs/sync/default_atomic_operators.hpp"
 #include "cogs/sync/defer_guard.hpp"
 #include "cogs/sync/dispatcher.hpp"
 #include "cogs/sync/dispatch_parallel.hpp"
+#include "cogs/sync/event.hpp"
 #include "cogs/sync/hazard.hpp"
 #include "cogs/sync/priority_dispatcher.hpp"
 #include "cogs/sync/priority_queue.hpp"
 #include "cogs/sync/pulse_timer.hpp"
 #include "cogs/sync/quit_dispatcher.hpp"
 #include "cogs/sync/refireable_timer.hpp"
-#include "cogs/sync/resettable_event.hpp"
+#include "cogs/sync/resettable_condition.hpp"
 #include "cogs/sync/resettable_timer.hpp"
 #include "cogs/sync/rwlock.hpp"
 #include "cogs/sync/semaphore.hpp"
 #include "cogs/sync/serial_defer_guard.hpp"
 #include "cogs/sync/serial_dispatcher.hpp"
-#include "cogs/sync/single_fire_event.hpp"
+#include "cogs/sync/single_fire_condition.hpp"
 #include "cogs/sync/single_fire_timer.hpp"
 #include "cogs/sync/thread.hpp"
 #include "cogs/sync/thread_pool.hpp"

@@ -48,7 +48,7 @@
 //		row_t()
 //			: m_bounds(point(0, 0), size(0, 0))
 //		{
-//			m_range.set_fixed(0);
+//			m_range.set_fixed();
 //		}
 //	};
 //
@@ -83,7 +83,7 @@
 //	size m_currentDefaultSize;
 //
 //	virtual range get_range() const { return m_currentRange; }
-//	virtual size get_default_size() const { return m_currentDefaultSize; }
+//	virtual std::optional<size> get_default_size() const { return m_currentDefaultSize; }
 //
 //	virtual void calculate_range()
 //	{

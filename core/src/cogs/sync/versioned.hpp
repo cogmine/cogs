@@ -30,11 +30,11 @@ public:
 protected:
 	struct content_t
 	{
-		alignas (atomic::get_alignment_v<type>) type m_data;
-		alignas (atomic::get_alignment_v<version_t>) version_t m_version;
+		alignas(atomic::get_alignment_v<type>) type m_data;
+		alignas(atomic::get_alignment_v<version_t>) version_t m_version;
 	};
 
-	alignas (atomic::get_alignment_v<content_t>) content_t m_contents;
+	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
 
 public:
 	versioned_t()

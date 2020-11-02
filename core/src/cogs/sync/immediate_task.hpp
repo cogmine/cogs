@@ -163,7 +163,7 @@ inline rcref<task<void> > signaled()
 }
 
 
-#include "cogs/sync/single_fire_event.hpp"
+#include "cogs/sync/single_fire_condition.hpp"
 
 
 #endif

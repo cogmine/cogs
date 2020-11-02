@@ -35,7 +35,7 @@
 //{
 //private:
 //	volatile transactable<scroll_bar_state> m_vScrollBarState;
-//	alignas (atomic::get_alignment_v<double>) volatile double m_vScrollBarPosition;
+//	alignas(atomic::get_alignment_v<double>) volatile double m_vScrollBarPosition;
 //
 //	delayed_construction<delegated_dependency_property<scroll_bar_state, io::permission::read> > m_vScrollBarStateProperty;
 //	delayed_construction<delegated_dependency_property<double> > m_vScrollBarPositionProperty;
@@ -1720,7 +1720,7 @@
 //			return *(m_vScrollBarState.begin_read());
 //		};
 //
-//		placement_rcnew(&m_vScrollBarStateProperty.get(), this_desc)(*this, std::move(vStateGetter));
+//		nested_rcnew(&m_vScrollBarStateProperty.get(), *get_desc())(*this, std::move(vStateGetter));
 //
 //		auto vPositionGetter = [this]()
 //		{
@@ -1739,7 +1739,7 @@
 //			m_vScrollBarPositionProperty->set_complete();
 //		};
 //
-//		placement_rcnew(&m_vScrollBarPositionProperty.get(), this_desc)(*this, std::move(vPositionGetter), std::move(vPositionSetter));
+//		nested_rcnew(&m_vScrollBarPositionProperty.get(), *get_desc())(*this, std::move(vPositionGetter), std::move(vPositionSetter));
 //
 //
 //		// TODO TO DO, fix
@@ -1779,10 +1779,10 @@
 //		m_savedBrush78.value = 0;
 //		m_bufSize = (size_t)bufHeight * bufWidth;
 //
-//		m_charBuffer = default_allocator::allocate_type<uint8_t>(m_bufSize);
+//		m_charBuffer = default_memory_manager::allocate_type<uint8_t>(m_bufSize);
 //		memset((void*)(m_charBuffer), 0, m_bufSize); // * sizeof(uint8_t)
 //
-//		m_brushBuffer = default_allocator::allocate_type<brush>(m_bufSize);
+//		m_brushBuffer = default_memory_manager::allocate_type<brush>(m_bufSize);
 //		memset((void*)(m_brushBuffer), 0, m_bufSize * sizeof(brush));
 //
 ////		size_t screenChars = m_screenWidthInChars * m_screenHeightInChars;
@@ -1843,8 +1843,8 @@
 //		//if (!!m_datastream)
 //		//	m_datastream->close();
 //
-//		default_allocator::destruct_deallocate_type(m_charBuffer, m_bufSize);
-//		default_allocator::destruct_deallocate_type(m_brushBuffer, m_bufSize);
+//		default_memory_manager::destruct_deallocate_type(m_charBuffer, m_bufSize);
+//		default_memory_manager::destruct_deallocate_type(m_brushBuffer, m_bufSize);
 //	}
 //
 //
@@ -2353,7 +2353,7 @@
 //	bool m_wrapMode;
 //	bool m_addCRonLF;
 //
-//	rcptr<gfx::canvas::bitmask> m_fontBitMap;
+//	rcptr<gfx::bitmask> m_fontBitMap;
 //
 //	size_t m_bufPos; // Position in buffer of current cursor pos
 //
@@ -4014,10 +4014,10 @@
 //		m_savedBrush78.value = 0;
 //		m_bufSize = bufHeight * bufWidth;
 //
-//		m_charBuffer = default_allocator::allocate_type<uint8_t>(m_bufSize);
+//		m_charBuffer = default_memory_manager::allocate_type<uint8_t>(m_bufSize);
 //		memset((void*)(m_charBuffer), 0, m_bufSize); // * sizeof(uint8_t)
 //
-//		m_brushBuffer = default_allocator::allocate_type<brush>(m_bufSize);
+//		m_brushBuffer = default_memory_manager::allocate_type<brush>(m_bufSize);
 //		memset((void*)(m_brushBuffer), 0, m_bufSize * sizeof(brush));
 //
 ////		size_t screenChars = m_screenWidthInChars * m_screenHeightInChars;
@@ -4072,8 +4072,8 @@
 //		if (!!m_datastream)
 //			m_datastream->close();
 //
-//		default_allocator::destruct_deallocate_type(m_charBuffer, m_bufSize);
-//		default_allocator::destruct_deallocate_type(m_brushBuffer, m_bufSize);
+//		default_memory_manager::destruct_deallocate_type(m_charBuffer, m_bufSize);
+//		default_memory_manager::destruct_deallocate_type(m_brushBuffer, m_bufSize);
 //	}
 //
 //	virtual void drawing()

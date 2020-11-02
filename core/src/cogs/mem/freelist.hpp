@@ -10,17 +10,27 @@
 
 
 #include "cogs/env/mem/alignment.hpp"
-#include "cogs/mem/allocator_container.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/placement_header.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/operators.hpp"
 #include "cogs/sync/versioned_ptr.hpp"
+#include "cogs/mem/default_allocator.hpp"
 
 
 namespace cogs {
 
-class default_allocator;
+
+//template <typename T>
+//class default_allocator;
+
+
+template <typename T>
+class freelist_node : public placement<T>
+{
+public:
+	freelist_node<T>* m_next;
+};
 
 
 /// @ingroup Mem
@@ -34,39 +44,32 @@ class default_allocator;
 /// @tparam T Type allocated by the freelist
 /// @tparam allocator_type Type of allocator to use to allocate from if the freelist is empty.  Default: default_allocator
 /// @tparam preallocated_count Number of objects to prepopulate the freelist with.  Default: 0
-template <typename T, class allocator_type = default_allocator, size_t preallocated_count = 0>
+template <typename T, size_t preallocated_count = 0, class allocator_t = default_allocator<freelist_node<T>>>
 class freelist
 {
 public:
 	typedef T type;
+	typedef allocator_t allocator_type;
 
 private:
-	allocator_container<allocator_type> m_allocator;
+	allocator_type m_allocator;
 
-	class node_t
-	{
-	public:
-		node_t* m_next;
-		type* get_contents() const { return placement_with_header<node_t, type>::get_obj_from_header(this); }
-		static node_t* from_obj(type& t) { return placement_with_header<node_t, type>::get_header_from_obj(&t); }
-	};
-
-	typedef placement_with_header<node_t, type> node_placement_t;
+	typedef freelist_node<type> node_t;
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
 	versioned_ptr<node_t> m_head;
-	alignas (atomic::get_alignment_v<size_t>) size_t m_curPos;
-	node_placement_t m_preallocated[preallocated_count];
+	alignas(atomic::get_alignment_v<size_t>) size_t m_curPos;
+	node_t m_preallocated[preallocated_count];
+
+	freelist(freelist&&) = delete;
+	freelist(const freelist&) = delete;
+	freelist& operator=(freelist&&) = delete;
+	freelist& operator=(const freelist&) = delete;
 
 public:
 	freelist()
 		: m_curPos(0)
-	{ }
-
-	explicit freelist(volatile allocator_type& al)
-		: m_allocator(al),
-		m_curPos(0)
 	{ }
 
 	~freelist()
@@ -75,7 +78,8 @@ public:
 		while (!!n)
 		{
 			ptr<node_t> next = n->m_next;
-			n->get_contents()->~type();
+			n->get()->~type();
+			n->node_t::~node_t();
 			if ((n < &(m_preallocated[0])) || (n >= &(m_preallocated[preallocated_count])))
 				m_allocator.deallocate(n);
 			n = next;
@@ -93,17 +97,17 @@ public:
 		else
 		{
 			if (m_curPos >= preallocated_count)
-				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
+				result = m_allocator.allocate();
 			else
 			{
-				result = &(m_preallocated[m_curPos].get_type());
+				result = &m_preallocated[m_curPos];
 				++m_curPos;
 			}
 
-			placement_construct(result->get_contents());
+			placement_construct(&result->get());
 		}
 
-		return result->get_contents();
+		return &result->get();
 	}
 
 	type* get() volatile
@@ -125,7 +129,7 @@ public:
 
 			size_t oldPos = atomic::load(m_curPos);
 			if (oldPos >= preallocated_count)
-				result = m_allocator.template allocate_type<node_placement_t>()->get_header();
+				result = m_allocator.allocate();
 			else
 			{
 				if (!atomic::compare_exchange(m_curPos, oldPos + 1, oldPos, oldPos))
@@ -133,27 +137,26 @@ public:
 					m_head.get(oldHead, v);
 					continue;
 				}
-				result = m_preallocated[oldPos].get_header();
+				result = const_cast<node_t*>(&m_preallocated[oldPos]);
 			}
 
-			placement_construct(result->get_contents());
+			placement_construct(&result->get());
 			break;
 		}
 
-		return result->get_contents();
+		return &result->get();
 	}
 
 	void release(type& t)
 	{
-		node_t* n = node_t::from_obj(t);
+		node_t* n = reinterpret_cast<node_t*>(&t);
 		n->m_next = m_head.get_ptr();
 		m_head = n;
 	}
 
 	void release(type& t) volatile
 	{
-		node_t* n = node_t::from_obj(t);
-
+		node_t* n = reinterpret_cast<node_t*>(&t);
 		ptr<node_t> oldHead;
 		version_t oldVersion;
 		m_head.get(oldHead, oldVersion);
@@ -161,36 +164,32 @@ public:
 			n->m_next = oldHead.get_ptr();
 		} while (!m_head.versioned_exchange(n, oldVersion, oldHead));
 	}
-
 };
 
-template <typename type, class allocator_type>
-class freelist<type, allocator_type, 0>
+
+template <typename T, class allocator_t>
+class freelist<T, 0, allocator_t>
 {
+public:
+	typedef T type;
+	typedef allocator_t allocator_type;
+
 private:
-	allocator_container<allocator_type> m_allocator;
+	allocator_type m_allocator;
 
-	class node_t
-	{
-	public:
-		node_t* m_next;
-
-		type* get_contents() const { return placement_with_header<node_t, type>::get_obj_from_header(this); }
-		static node_t* from_obj(type& t) { return placement_with_header<node_t, type>::get_header_from_obj(&t); }
-	};
-
-	typedef placement_with_header<node_t, type> node_placement_t;
+	typedef freelist_node<type> node_t;
 
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
 	versioned_ptr<node_t> m_head;
 
+	freelist(freelist&&) = delete;
+	freelist(const freelist&) = delete;
+	freelist& operator=(freelist&&) = delete;
+	freelist& operator=(const freelist&) = delete;
+
 public:
 	freelist() { }
-
-	explicit freelist(volatile allocator_type& al)
-		: m_allocator(al)
-	{ }
 
 	~freelist()
 	{
@@ -198,8 +197,8 @@ public:
 		while (!!n)
 		{
 			ptr<node_t> next = n->m_next;
-			n->get_contents()->~type();
-			m_allocator.deallocate(n);
+			n->get().~type();
+			m_allocator.destruct_deallocate(n);
 			n = next;
 		}
 	}
@@ -214,11 +213,11 @@ public:
 		}
 		else
 		{
-			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
-			placement_construct(result->get_contents());
+			result = m_allocator.allocate();
+			placement_construct(&result->get());
 		}
 
-		return result->get_contents();
+		return &result->get();
 	}
 
 	type* get() volatile
@@ -238,24 +237,24 @@ public:
 				break;
 			}
 
-			result = m_allocator.template allocate_type<node_placement_t>()->get_header();
-			placement_construct(result->get_contents());
+			result = m_allocator.allocate();
+			placement_construct(&result->get());
 			break;
 		}
 
-		return result->get_contents();
+		return &result->get();
 	}
 
 	void release(type& t)
 	{
-		node_t* n = node_t::from_obj(t);
+		node_t* n = reinterpret_cast<node_t*>(&t);
 		n->m_next = m_head.get_ptr();
 		m_head = n;
 	}
 
 	void release(type& t) volatile
 	{
-		node_t* n = node_t::from_obj(t);
+		node_t* n = reinterpret_cast<node_t*>(&t);
 		ptr<node_t> oldHead;
 		m_head.get(oldHead);
 		do {

@@ -63,11 +63,11 @@ public:
 		return false;
 	}
 
-	virtual size get_default_size() const
+	virtual std::optional<size> get_default_size() const
 	{
 		if (!!m_image)
 			return m_image->get_size();
-		return size(0, 0);
+		return std::nullopt;
 	}
 
 	virtual range get_range() const

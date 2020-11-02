@@ -14,7 +14,6 @@
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
@@ -23,13 +22,12 @@ class text_editor;
 
 };
 };
-};
 
 
 @interface objc_text_editor : NSTextField <NSTextFieldDelegate>
 {
 @public
-	cogs::weak_rcptr< cogs::gui::os::text_editor> m_cppTextEditor;
+	cogs::weak_rcptr<cogs::os::text_editor> m_cppTextEditor;
 	NSString* m_text;
 }
 
@@ -40,14 +38,13 @@ class text_editor;
 
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 
-class text_editor : public nsview_pane, public text_editor_interface
+class text_editor : public nsview_pane, public gui::text_editor_interface
 {
 private:
-	rcptr<gfx::os::graphics_context::font> m_cachedFont;
+	rcptr<graphics_context::font> m_cachedFont;
 
 public:
 	explicit text_editor(const rcref<volatile nsview_subsystem>& uiSubsystem)
@@ -67,18 +64,20 @@ public:
 
 		install_NSView(objcTextEditor);
 
-		color c = te->get_text_color();
-		__strong NSColor* c2 = make_NSColor(c);
-		[objcTextEditor setTextColor: c2];
+		set_text(te->get_text());
+		set_font(te->get_font());
+		set_max_length(te->get_max_length());
+		set_text_color(te->get_text_color());
 
 		nsview_pane::installing();
 	}
 
-	virtual void set_text_color(const color& c)
+	virtual void set_text_color(const std::optional<color>& c)
 	{
+		color c2 = c.has_value() ? *c : get_default_text_foreground_color();
 		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
-		__strong NSColor* c2 = cogs::gfx::os::graphics_context::make_NSColor(c);
-		[objcTextEditor setTextColor:c2];
+		__strong NSColor* c3 = make_NSColor(c2);
+		[objcTextEditor setTextColor : c3] ;
 	}
 
 	virtual void set_text(const composite_string& text)
@@ -90,6 +89,7 @@ public:
 
 	virtual void set_max_length(size_t numChars)
 	{
+		// TBD
 	}
 
 	virtual composite_string get_text() const
@@ -100,14 +100,14 @@ public:
 
 	virtual void set_enabled(bool isEnabled = true)
 	{
+		// TBD
 	}
 
-	virtual void set_font(const gfx::font& fnt)
+	virtual void set_font(const gfx::font_parameters_list& fnt)
 	{
-		m_cachedFont = load_font(fnt).template static_cast_to<gfx::os::graphics_context::font>();
+		m_cachedFont = load_font(fnt).template static_cast_to<graphics_context::font>();
+		// TBD
 	}
-
-	virtual size get_default_size() const { return size(100, 100); }
 
 	virtual bool is_focusable() const { return true; }
 
@@ -120,14 +120,13 @@ public:
 };
 
 
-inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > nsview_subsystem::create_text_editor() volatile
+inline std::pair<rcref<gui::bridgeable_pane>, rcref<gui::text_editor_interface> > nsview_subsystem::create_text_editor() volatile
 {
 	rcref<text_editor> te = rcnew(text_editor)(this_rcref);
 	return std::make_pair(te, te);
 }
 
 
-}
 }
 }
 
@@ -145,7 +144,7 @@ inline std::pair<rcref<bridgeable_pane>, rcref<text_editor_interface> > nsview_s
 
 -(BOOL)becomeFirstResponder
 {
-	cogs::rcptr<cogs::gui::os::text_editor> cppTextEditor = m_cppTextEditor;
+	cogs::rcptr<cogs::os::text_editor> cppTextEditor = m_cppTextEditor;
 	if (!!cppTextEditor)
 		cppTextEditor->focus();
 	return [super becomeFirstResponder];

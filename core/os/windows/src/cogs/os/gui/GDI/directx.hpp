@@ -24,7 +24,6 @@
 #include "cogs/hwnd.hpp"
 
 namespace cogs {
-namespace gui {
 namespace os {
 
 	/*
@@ -186,26 +185,26 @@ public:
 		}
 	}
 
-	virtual void invalidate(const canvas::bounds& b
+	virtual void invalidate(const gfx::bounds& b
 	{
 		// Add bounds to stencil
 	}
 
 
-	virtual void reshape(const bounds& b)
+	virtual void reshape(const gfx::bounds& b)
 	{
 		hwnd_pane::reshape(b);
 	}
 
 	// 2D
-	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void fill(const gfx::bounds& b, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		point topRight = b.calc_top_right();
 		point bottomLeft = b.calc_bottom_left();
 
 	}
 
-	virtual void invert(const bounds& b)
+	virtual void invert(const gfx::bounds& b)
 	{
 	}
 
@@ -213,19 +212,19 @@ public:
 	{
 	}
 
-	virtual void draw_text(const composite_string& s, const bounds& b, const color& c = color::constant::black)
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const color& c = color::constant::black)
 	{
 	}
 
-	virtual void draw_bitmap(const gfx::bitmap& src, const bounds& srcBounds, const bounds& dstBounds, bool blendAlpha = true )
+	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true )
 	{
 	}
 
-	virtual void draw_bitmap(const gfx::bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
+	virtual void draw_bitmap(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true )
 	{
 	}
 
-	virtual rcptr<gfx::bitmap> create_bitmap(const size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcptr<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		return rcptr<gfx::bitmap>();
 	}
@@ -295,7 +294,7 @@ public:
 //	virtual rcptr<view> create_canvas3D(const rcref<canvas3D_frame>& cf) { return rcptr<view>(); }
 };
 */
-}
+
 }
 }
 

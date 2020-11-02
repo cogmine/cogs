@@ -99,9 +99,6 @@ public:
 	template <typename type2> ref<type> operator=(const versioned_ref<type2>& vp) volatile { set(vp.get_ptr()); return ref<type>(*vp.get_ptr()); }
 	template <typename type2> ref<type> operator=(const ref<type2>& p) volatile { set(p.get_ptr()); return p; }
 
-	type* get_ptr() const { type* tmp; m_versioned.get(tmp); return tmp; }
-	type* get_ptr() const volatile { type* tmp; m_versioned.get(tmp); return tmp; }
-
 	type* operator->() const
 	{
 		type* result = get_ptr();
@@ -129,6 +126,11 @@ public:
 		COGS_ASSERT(!!result);
 		return *result;
 	}
+
+	type* get_ptr() const { type* tmp; m_versioned.get(tmp); return tmp; }
+	type* get_ptr() const volatile { type* tmp; m_versioned.get(tmp); return tmp; }
+	type* get_ptr(version_t& v) const { type* t; m_versioned.get(t, v); return t; }
+	type* get_ptr(version_t& v) const volatile { type* t; m_versioned.get(t, v); return t; }
 
 	void get(type*& t, version_t& v) const { m_versioned.get(t, v); }
 	void get(type*& t, version_t& v) const volatile { m_versioned.get(t, v); }
@@ -361,7 +363,7 @@ public:
 	bool unversioned_compare_exchange(const ref<type>& src, const ref<type>& cmp, type2*& rtn) { type* tmp; bool result = m_versioned.unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
 
 
-	static size_t mark_bits() { return range_to_bits_v<0, std::alignment_of_v<type> - 1>; }
+	static size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
 	static size_t mark_mask() { return (1 << mark_bits()) - 1; }
 
 	size_t get_mark() const { return ((size_t)(get_ptr()) & mark_mask()); }
@@ -381,6 +383,20 @@ public:
 		ptr<type> oldValue;
 		version_t v = get(oldValue, v);
 		while ((oldValue.get_mark() != 0) && (!versioned_exchange(oldValue.get_unmarked(), v, oldValue)))
+		{
+		}
+
+		return v;
+	}
+
+	version_t clear_to_mark() { return set((type*)(get_mark())); }
+	void unversioned_clear_to_mark() { unversioned_set((type*)(get_mark())); }
+
+	version_t clear_to_mark() volatile
+	{
+		ptr<type> oldValue;
+		version_t v = get(oldValue, v);
+		while ((oldValue.get_unmarked() != 0) && (!versioned_exchange((type*)oldValue.get_mark(), v, oldValue)))
 		{
 		}
 

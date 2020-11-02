@@ -10,7 +10,7 @@
 
 
 #include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/single_fire_event.hpp"
+#include "cogs/sync/single_fire_condition.hpp"
 
 
 namespace cogs {
@@ -18,31 +18,31 @@ namespace cogs {
 
 /// @ingroup Events
 /// @brief A count-down event
-class count_down_event : public event_base, public object
+class count_down_condition : public condition_base, public object
 {
 private:
 	static constexpr size_t doneValue = (size_t)-1;
 
-	volatile single_fire_event m_event;
+	volatile single_fire_condition m_condition;
 	volatile size_type m_count;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		dispatcher::dispatch_inner(m_event, t, priority);
+		dispatcher::dispatch_inner(m_condition, t, priority);
 	}
 
 public:
-	explicit count_down_event(size_t n)
+	explicit count_down_condition(size_t n)
 		: m_count(n)
 	{
 		COGS_ASSERT(n != doneValue); // max value is not supported (used internally to indicate fired, to allow init from 0)
 	}
 
-	count_down_event(size_t n, const function<void()>& d)
+	count_down_condition(size_t n, const function<void()>& d)
 		: m_count(n)
 	{
 		COGS_ASSERT(n != doneValue); // max value is not supported (used internally to indicate fired, to allow init from 0)
-		m_event.dispatch(d);
+		m_condition.dispatch(d);
 	}
 
 	bool count_up(size_t n = 1) volatile // Return false if already released/set, and did not count up.
@@ -75,7 +75,7 @@ public:
 		} while (!m_count.compare_exchange(newValue, oldValue, oldValue));
 		if (newValue == doneValue)
 		{
-			m_event.signal();
+			m_condition.signal();
 			return true;
 		}
 		return false;
@@ -106,23 +106,23 @@ public:
 	class reference
 	{
 	private:
-		rcptr<count_down_event> m_countDownEvent;
+		rcptr<count_down_condition> m_countDownCondition;
 
 	public:
-		explicit reference(const rcref<count_down_event>& e)
-			: m_countDownEvent(++*e ? rcptr<count_down_event>(e) : rcptr<count_down_event>())
+		explicit reference(const rcref<count_down_condition>& e)
+			: m_countDownCondition(++*e ? rcptr<count_down_condition>(e) : rcptr<count_down_condition>())
 		{ }
 
-		bool operator!() const { return !!m_countDownEvent; }
+		bool operator!() const { return !!m_countDownCondition; }
 
 		~reference()
 		{
-			if (!!m_countDownEvent)
-				--*m_countDownEvent;
+			if (!!m_countDownCondition)
+				--*m_countDownCondition;
 		}
 	};
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
 
 	virtual bool signal() volatile { return count_down(); }
 };

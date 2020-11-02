@@ -45,7 +45,7 @@ namespace io {
 /// object, it should use a weak reference, to avoid a circular reference
 /// that would prevent the IO object from being released.  (reader and writer
 /// contain a weak reference to their associated datasource/datasink.)
-class datasink : public object
+class datasink : public virtual object
 {
 private:
 	datasink(datasink&&) = delete;
@@ -284,7 +284,7 @@ public:
 
 	/// @brief Gets the close event associated with the datasink.
 	/// @return A rcref to a waitable that will become signaled when the datasink is closed.
-	const waitable& get_sink_close_event() const { return m_ioQueue->get_close_event(); }
+	const waitable& get_sink_close_condition() const { return m_ioQueue->get_close_condition(); }
 
 	bool is_sink_closed() const
 	{

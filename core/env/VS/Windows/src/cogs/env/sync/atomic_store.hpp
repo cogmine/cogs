@@ -28,7 +28,7 @@ template <typename T, typename T2 = T>
 inline std::enable_if_t<
 	can_atomic_v<T>
 	&& !std::is_empty_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& !std::is_volatile_v<T2>
 	&& std::is_constructible_v<T, const T2&>,
@@ -48,7 +48,7 @@ store(volatile T& dst, const T2& src)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 
 template <typename T>

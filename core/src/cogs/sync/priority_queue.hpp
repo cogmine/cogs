@@ -23,11 +23,14 @@ namespace cogs {
 
 /// @ingroup Synchronization
 /// @brief A priority queue.
-template <typename key_t, typename type = void, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename key_t, typename type = void, class comparator_t = default_comparator, class memory_manager_t = default_memory_manager>
 class priority_queue
 {
+public:
+	typedef memory_manager_t memory_manager_type;
+
 private:
-	typedef priority_queue<key_t, type, comparator_t, allocator_type> this_t;
+	typedef priority_queue<key_t, type, comparator_t, memory_manager_type> this_t;
 
 	class payload
 	{
@@ -42,7 +45,7 @@ private:
 		// If pointing to an payload, it will always be the original element, not a link in a reschedule chain.
 		volatile rcptr<payload> m_removed;
 
-		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
+		volatile typename multimap<key_t, payload, comparator_t, memory_manager_type>::volatile_remove_token m_rescheduledTo;
 
 		void construct(const type& t) { m_value.construct(t); }
 
@@ -74,7 +77,7 @@ private:
 		}
 	};
 
-	typedef multimap<key_t, payload, comparator_t, allocator_type> map_t;
+	typedef multimap<key_t, payload, comparator_t, memory_manager_type> map_t;
 	map_t m_contents;
 
 	priority_queue(const this_t&) = delete;
@@ -296,7 +299,10 @@ public:
 		: m_contents(std::move(src.m_contents))
 	{ }
 
-	explicit priority_queue(volatile allocator_type& al) : m_contents(al) { }
+	this_t& operator=(this_t&& src)
+	{
+		m_contents = std::move(src.m_contents);
+	}
 
 	void clear() { m_contents.clear(); }
 	bool drain() { return m_contents.drain(); }
@@ -328,8 +334,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
-			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+			nested_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
 		});
 	}
 
@@ -337,8 +343,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
-			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+			nested_rcnew(&vt.m_contents->value, *vt.get_desc())(v);
 		});
 	}
 
@@ -346,8 +352,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
-			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+			nested_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
 		});
 	}
 
@@ -355,8 +361,8 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
-			placement_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+			nested_rcnew(&vt.m_contents->value, *vt.get_desc())(std::move(v));
 		});
 	}
 
@@ -487,13 +493,19 @@ public:
 
 	remove_result remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
 	remove_result remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
+
+	remove_result operator-=(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	remove_result operator-=(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
-template <typename key_t, class comparator_t, class allocator_type>
-class priority_queue<key_t, void, comparator_t, allocator_type>
+template <typename key_t, class comparator_t, class memory_manager_t>
+class priority_queue<key_t, void, comparator_t, memory_manager_t>
 {
+public:
+	typedef memory_manager_t memory_manager_type;
+
 private:
-	typedef priority_queue<key_t, void, comparator_t, allocator_type> this_t;
+	typedef priority_queue<key_t, void, comparator_t, memory_manager_type> this_t;
 
 	class payload
 	{
@@ -506,7 +518,7 @@ private:
 		// If pointing to an payload, it will always be the original element, not a link in a reschedule chain.
 		volatile rcptr<payload> m_removed;
 
-		volatile typename multimap<key_t, payload, comparator_t, allocator_type>::volatile_remove_token m_rescheduledTo;
+		volatile typename multimap<key_t, payload, comparator_t, memory_manager_type>::volatile_remove_token m_rescheduledTo;
 
 		payload() {}
 
@@ -519,7 +531,7 @@ private:
 		{ }
 	};
 
-	typedef multimap<key_t, payload, comparator_t, allocator_type> map_t;
+	typedef multimap<key_t, payload, comparator_t, memory_manager_t> map_t;
 	map_t m_contents;
 
 	priority_queue(const this_t&) = delete;
@@ -726,6 +738,8 @@ public:
 		bool operator!=(const volatile value_token& vt) const { return m_contents != vt.m_contents; }
 	};
 
+	priority_queue() { }
+
 	priority_queue(this_t&& src)
 		: m_contents(std::move(src.m_contents))
 	{ }
@@ -736,9 +750,6 @@ public:
 		return *this;
 	}
 
-	priority_queue() { }
-
-	explicit priority_queue(volatile allocator_type& al) : m_contents(al) { }
 
 	void clear() { m_contents.clear(); }
 	bool drain() { return m_contents.drain(); }
@@ -769,7 +780,7 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
 		});
 	}
 
@@ -777,7 +788,23 @@ public:
 	{
 		return insert_via([&](value_token& vt)
 		{
-			placement_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
+		});
+	}
+
+	insert_result operator+=(const key_t& k) volatile
+	{
+		return insert_via([&](value_token& vt)
+		{
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(k);
+		});
+	}
+
+	insert_result operator+=(key_t&& k) volatile
+	{
+		return insert_via([&](value_token& vt)
+		{
+			nested_rcnew(const_cast<key_t*>(&vt.m_contents->key), *vt.get_desc())(std::move(k));
 		});
 	}
 
@@ -903,6 +930,9 @@ public:
 
 	remove_result remove(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
 	remove_result remove(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
+
+	remove_result operator-=(const value_token& vt) volatile { return m_contents.remove(vt.m_contents); }
+	remove_result operator-=(const remove_token& rt) volatile { return m_contents.remove(rt.m_contents); }
 };
 
 

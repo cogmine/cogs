@@ -17,7 +17,7 @@
 namespace cogs {
 
 
-template <typename T> struct is_integer_type : public std::is_integral<T> { };
+template <typename T> struct is_integer_type : public is_integral<T> { };
 template <typename T> constexpr bool is_integer_type_v = is_integer_type<T>::value;
 
 // By default, map const and/or volatile to the version with no CV qualifier

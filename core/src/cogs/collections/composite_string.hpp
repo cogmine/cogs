@@ -1427,6 +1427,13 @@ public:
 	bool operator>=(const this_t& cmp) const volatile { return !operator<(cmp); }
 	bool operator>=(const volatile this_t& cmp) const { return !operator<(cmp); }
 
+	std::strong_ordering operator<=>(const string_t<type>& cmp) const { return m_contents <=> cmp.get_vector(); }
+	std::strong_ordering operator<=>(const string_t<type>& cmp) const volatile { return m_contents <=> cmp.get_vector(); }
+	std::strong_ordering operator<=>(const volatile string_t<type>& cmp) const { return m_contents <=> cmp.get_vector(); }
+	std::strong_ordering operator<=>(const this_t& cmp) const { return m_contents <=> cmp.m_contents; }
+	std::strong_ordering operator<=>(const this_t& cmp) const volatile { return m_contents <=> cmp.m_contents; }
+	std::strong_ordering operator<=>(const volatile this_t& cmp) const { return m_contents <=> cmp.m_contents; }
+
 	bool starts_with(const type* cmp, size_t cmpLength, case_sensitive caseSensitive = case_sensitive::yes) const
 	{
 		if (caseSensitive == case_sensitive::yes)
@@ -3622,7 +3629,7 @@ inline string cstring_to_string(const composite_cstring& s)
 }
 
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_string>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, composite_string>
 to_string(const T& t)
 {
 	int_to_fixed_integer_t<T> tmp(t);
@@ -3639,7 +3646,7 @@ to_string(const T& t)
 	//return cstring_to_string(to_cstring(t));
 }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, composite_cstring>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, composite_cstring>
 to_cstring(const T& t)
 {
 	int_to_fixed_integer_t<T> tmp(t);

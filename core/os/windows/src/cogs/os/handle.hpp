@@ -28,7 +28,7 @@ namespace os {
 class auto_HANDLE
 {
 private:
-	alignas (cogs::atomic::get_alignment_v<HANDLE>) HANDLE m_value;
+	alignas(cogs::atomic::get_alignment_v<HANDLE>) HANDLE m_value;
 
 public:
 	auto_HANDLE()

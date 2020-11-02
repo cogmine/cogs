@@ -25,7 +25,7 @@ public:
 	virtual void set_text(const composite_string&) = 0;
 	virtual void set_enabled(bool) = 0;
 	virtual void set_default(bool) = 0;
-	virtual void set_font(const gfx::font&) = 0;
+	virtual void set_font(const gfx::font_parameters_list&) = 0;
 };
 
 /// @ingroup GUI
@@ -38,7 +38,7 @@ public:
 private:
 	action_delegate_t m_action;
 	composite_string m_text;
-	gfx::font m_font;
+	gfx::font_parameters_list m_font;
 	bool m_isEnabled;
 	bool m_isDefault;
 	rcptr<button_interface> m_nativeButton;
@@ -50,7 +50,7 @@ public:
 		composite_string text;
 		bool isEnabled = true;
 		bool isDefault = false;
-		gfx::font font;
+		gfx::font_parameters_list font;
 		frame_list frames;
 	};
 
@@ -126,17 +126,26 @@ public:
 		}
 	}
 
-	const gfx::font& get_font() const { return m_font; }
-	void set_font(const gfx::font& fnt)
+	const gfx::font_parameters_list& get_font() const { return m_font; }
+	void set_font(const gfx::font_parameters_list& fnt)
 	{
 		m_font = fnt;
 		if (!!m_nativeButton)
 		{
-			m_nativeButton->set_font(fnt);
+			m_nativeButton->set_font(m_font);
 			recompose();
 		}
 	}
 
+	void set_font(gfx::font_parameters_list&& fnt)
+	{
+		m_font = std::move(fnt);
+		if (!!m_nativeButton)
+		{
+			m_nativeButton->set_font(m_font);
+			recompose();
+		}
+	}
 };
 
 

@@ -29,7 +29,7 @@ public:
 	virtual void set_text(const composite_string&) = 0;
 	virtual void set_checked(bool) = 0;
 	virtual void set_enabled(bool) = 0;
-	virtual void set_font(const gfx::font&) = 0;
+	virtual void set_font(const gfx::font_parameters_list&) = 0;
 };
 
 /// @ingroup GUI
@@ -43,7 +43,7 @@ private:
 	composite_string m_text;
 	bool m_isEnabled;
 	bool m_isChecked;
-	gfx::font m_font;
+	gfx::font_parameters_list m_font;
 	action_delegate_t m_action;
 	rcptr<check_box_interface> m_nativeCheckBox;
 
@@ -53,7 +53,7 @@ public:
 		composite_string text;
 		bool isEnabled = true;
 		bool isChecked = false;
-		gfx::font font;
+		gfx::font_parameters_list font;
 		action_delegate_t action;
 		frame_list frames;
 	};
@@ -138,13 +138,24 @@ public:
 		return m_isChecked;
 	}
 
-	const gfx::font& get_font() const { return m_font; }
-	void set_font(const gfx::font& fnt)
+	const gfx::font_parameters_list& get_font() const { return m_font; }
+	void set_font(const gfx::font_parameters_list& fnt)
 	{
+		m_font.clear();
 		m_font = fnt;
 		if (!!m_nativeCheckBox)
 		{
-			m_nativeCheckBox->set_font(fnt);
+			m_nativeCheckBox->set_font(m_font);
+			recompose();
+		}
+	}
+
+	void set_font(gfx::font_parameters_list&& fnt)
+	{
+		m_font = std::move(fnt);
+		if (!!m_nativeCheckBox)
+		{
+			m_nativeCheckBox->set_font(m_font);
 			recompose();
 		}
 	}

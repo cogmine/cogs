@@ -67,7 +67,7 @@ protected:
 			desc = rt->m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(rt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();
@@ -97,7 +97,7 @@ protected:
 			desc = wt->m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(wt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();

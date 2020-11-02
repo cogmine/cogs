@@ -12,7 +12,7 @@
 #include "cogs/debug.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
-#include "cogs/env/mem/allocator.hpp"
+#include "cogs/env/mem/memory_manager.hpp"
 #include "cogs/mem/freelist.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -34,8 +34,8 @@ class function;
 /// <a href='https://en.wikipedia.org/wiki/Hazard_pointer'>Hazard pointers</a> ensure
 /// data structures are not disposed out from under lock-free algorithms.
 ///
-/// cogs::hazard is inspired by a paper published by Maged M Michael titled, ""Based loosely on a paper by Maged M. Michael
-/// titled, "Hazard Pointers: Safe Memory Reclamation for Lock-Free Objects", but diverges significantly.
+/// cogs::hazard is inspired by a paper published by Maged M Michael titled,
+/// "Hazard Pointers: Safe Memory Reclamation for Lock-Free Objects", but diverges significantly.
 /// This implementation is independent of the deallocation mechanism, releases resources immediately when
 /// no longer referenced, and is contextual (opt-in).
 ///
@@ -46,20 +46,19 @@ class function;
 /// while it's being dereferenced, by temporarily placing it on a "do not delete" list.
 ///
 /// 'Acquiring' a hazard pointer requires some atomic double-checking.  After a pointer is
-/// added to the "do not delete" list, it's necessary to double-check that the pointer has not
-/// already been released.
+/// added to the "do not delete" list, it's necessary to double-check that the pointer is still in use.
 ///
 /// In the simple use case in which the pointer to acquire is a volatile
 /// pointer variable, hazard::pointer::acquire() can be used and does the lock-free double-checking internally.
 ///
 /// In more complex scenarios, the pointer may be a member of a data structure, computed, or otherwise not
 /// accessible directly using a volatile pointer variable.
-/// If the process of double-checking the pointer value can be accomplished with a delegate,
-/// the delegate version of hazard::pointer::acquire() can be used.  Otherwise, the caller must perform the double-checking logic:
+/// If the process of double-checking the pointer value can be accomplished with a lambda,
+/// the lambda version of hazard::pointer::acquire() can be used.  Otherwise, the caller must perform the double-checking logic:
 ///
-/// - Call hazard::bind() with the pointer value.
+/// - Call hazard::bind_unacquired() with the pointer value.
 /// - Re-reading the original pointer value.
-/// - If the value has changed, call hazard::bind() with the new value, and re-read again.
+/// - If the value has changed, call hazard::bind_unacquired() with the new value, and re-read again.
 ///   Repeat until the original value is unchanged.
 /// - Call hazard::pointer::validate().  If false is returned, start over.
 ///
@@ -68,21 +67,20 @@ class function;
 /// point to the data type we expect.  validate() may fail if release of the pointer has already
 /// been detected.
 ///
-/// To release a resource that may be referred to by the hazard, call hazard::release().
+/// To release a resource that may be tracked by a hazard, call hazard::release().
 /// If there are no associated hazard pointers, hazard::release() will return true,
-/// and the resource can actually be released by the caller.  If there are associated hazard pointers,
-/// hazard::release() will return false, and actual release is deferred until there are no longer associated
-/// hazard pointers.
+/// and the resource can be released by the caller.  If there are associated hazard::pointer's,
+/// hazard::release() will return false and release of the resource is deferred.
 ///
-/// When done using a hazard::pointer, it must be released by calling hazard::pointer::release().  If true is returned,
-/// it's the responsibility of the caller to actually release the resource.
+/// When done using a hazard::pointer, it must be released by calling hazard::pointer::release().
+/// If true is returned, it's the responsibility of the caller to release the resource.
 class hazard
 {
 private:
 	class token
 	{
 	public:
-		enum class state
+		enum class state : bytes_to_uint_t<sizeof(void*)>
 		{
 			empty = 0,    // 00 - Either null, or a pointer that has been bound and not yet confirmed
 			disposed = 1, // 01 - A pointer that has been bound, and disposed before confirmed
@@ -94,15 +92,16 @@ private:
 		{
 		public:
 			void* m_value;
-			alignas (atomic::get_alignment_v<state>) state m_state;
+			alignas(atomic::get_alignment_v<state>) state m_state;
 		};
 
-		alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
+		alignas(atomic::get_alignment_v<content_t>) volatile content_t m_contents;
 
 		ptr<token> m_next;
 		ptr<token> m_nextFreeToken;
 
-		void bind(void* value) volatile { atomic::store(m_contents, { value, state::empty }); }
+		void bind_unacquired(void* value) volatile { atomic::store(m_contents, { value, state::empty }); }
+		void bind_acquired(void* value) volatile { atomic::store(m_contents, { value, state::acquired }); }
 
 		bool is_acquired() volatile
 		{
@@ -261,8 +260,8 @@ private:
 		}
 	};
 
-	typedef freelist<list, env::allocator, 10> list_freelist_t;
-	typedef freelist<token, env::allocator, 10> token_freelist_t;
+	typedef freelist<list, 10, default_allocator<freelist_node<list>, env::memory_manager>> list_freelist_t;
+	typedef freelist<token, 10, default_allocator<freelist_node<token>, env::memory_manager>> token_freelist_t;
 
 	inline static placement<list_freelist_t> s_listFreeList; // zero-initialize as bss, leaked
 	inline static placement<token_freelist_t> s_tokenFreeList; // zero-initialize as bss, leaked
@@ -274,7 +273,7 @@ private:
 		list* m_list;
 	};
 
-	alignas (atomic::get_alignment_v<content_t>) volatile content_t m_contents;
+	alignas(atomic::get_alignment_v<content_t>) volatile content_t m_contents;
 
 	token* get_token() volatile
 	{
@@ -387,7 +386,7 @@ public:
 		volatile hazard* m_hazard;
 		token* m_token;
 
-		void bind_inner(volatile hazard& h, void* value)
+		void set_token(volatile hazard& h)
 		{
 			for (;;)
 			{
@@ -401,8 +400,6 @@ public:
 				m_hazard = &h;
 				break;
 			}
-
-			m_token->bind(value);
 		}
 
 	public:
@@ -419,14 +416,15 @@ public:
 		///
 		/// Ownership of an acquired hazard::pointer is transfered on assignment/copy-construct
 		/// @param p hazard::pointer to copy
-		pointer(pointer& p)
+		pointer(pointer&& p)
 			: m_hazard(p.m_hazard),
 			m_token(p.m_token)
 		{
-			p.m_token = 0;
+			p.m_hazard = nullptr;
+			p.m_token = nullptr;
 		}
 
-		/// @brief Initializes a hazard::pointer and binds it to the specified hazard and pointer value
+		/// @brief Initializes a hazard::pointer and binds it to the specified hazard and pointer value without fully acquiring it.
 		/// @param h hazard pool to bind value within
 		/// @param value value to bind in hazard pool
 		/// @tparam type type pointed to
@@ -435,9 +433,23 @@ public:
 			: m_hazard(&h),
 			m_token(h.get_token())
 		{
-			m_token->bind((void*)value);
+			m_token->bind_unacquired((void*)value);
 		}
 		/// @}
+
+		template <typename F>
+		pointer(std::enable_if_t<std::is_invocable_v<F> && std::is_pointer_v<std::remove_reference_t<std::invoke_result_t<F>>>, volatile hazard&> h, F&& getter)
+			: m_token(0)
+		{
+			acquire(h, std::forward<F>(getter));
+		}
+
+		template <typename type, typename F>
+		pointer(std::enable_if_t<std::is_invocable_v<F> && std::is_pointer_v<std::remove_reference_t<std::invoke_result_t<F>>>, volatile hazard&> h, type* value, F&& getter)
+			: m_token(0)
+		{
+			acquire(h, value, std::forward<F>(getter));
+		}
 
 		~pointer()
 		{
@@ -448,16 +460,25 @@ public:
 			}
 		}
 
+		bool empty() const { return !m_token; }
+		bool operator!() const { return !m_token; }
+
 		/// @{
 		/// @brief Move-assignment
 		///
 		/// Ownership of an acquired hazard::pointer is transfered on assignment/copy-construct
 		/// @param p hazard::pointer to copy
 		/// @return A reference to this object
-		pointer& operator=(pointer& p)
+		pointer& operator=(pointer&& p)
 		{
+			if (!!m_token)
+			{
+				COGS_ASSERT(m_token->is_acquired() == false);
+				m_hazard->release_token(*m_token);
+			}
 			m_hazard = p.m_hazard;
 			m_token = p.m_token;
+			p.m_hazard = 0;
 			p.m_token = 0;
 			return *this;
 		}
@@ -471,8 +492,19 @@ public:
 		/// @param h hazard pool to bind value within
 		/// @param value value to bind
 		template <typename type>
-		void bind(volatile hazard& h, type* value) { bind_inner(h, (void*)value); }
+		void bind_unacquired(volatile hazard& h, type* value)
+		{
+			set_token(h);
+			m_token->bind_unacquired((void*)value);
+		}
 		/// @}
+
+		template <typename type>
+		void bind_acquired(volatile hazard& h, type* value)
+		{
+			set_token(h);
+			m_token->bind_acquired((void*)value);
+		}
 
 		/// @{
 		/// @brief Called to confirm that the pointer value bound to the hazard pointer was not stale.
@@ -492,65 +524,59 @@ public:
 		type* acquire(volatile hazard& h, type* const volatile& src)
 		{
 			type* oldValue = atomic::load(src);
-			for (;;)
-			{
-				if (!oldValue)
-					break;
-				bind(h, oldValue);
-				type* oldValue2 = atomic::load(src);
-				if (oldValue != oldValue2)
-				{
-					oldValue = oldValue2;
-					continue;
-				}
+			return acquire(h, oldValue, src);
+		}
 
-				if (!validate())
-				{
-					oldValue = atomic::load(src);
-					continue;
-				}
-				break;
-			}
-			return oldValue;
+		template <typename type>
+		type* acquire(volatile hazard& h, type* value, type* const volatile& src)
+		{
+			return acquire(h, value, [src{ &src }]{ return atomic::load(*src); });
 		}
 
 		/// @brief Acquires a hazard pointer.
 		/// @param h hazard pool to bind pointer value in
-		/// @param src Volatile reference to pointer to acquire.
+		/// @param getter A lambda returning the pointer to acquire.
 		/// @return The value of the pointer acquired, or 0.
-		template <typename type>
-		type* acquire(volatile hazard& h, ptr<type> const volatile& src)
+		template <typename F>
+		std::enable_if_t<
+			std::is_invocable_v<F> && std::is_pointer_v<std::remove_reference_t<std::invoke_result_t<F>>>,
+			std::remove_reference_t<std::invoke_result_t<F>>>
+		acquire(volatile hazard& h, F&& getter)
 		{
-			return acquire(h, src.get_ptr_ref());
+			std::remove_reference_t<std::invoke_result_t<F>> oldValue = getter();
+			return acquire(h, oldValue, std::forward<F>(getter));
 		}
 
+		/// @}
 		/// @brief Acquires a hazard pointer.
 		/// @param h hazard pool to bind pointer value in
-		/// @param getter A delegate returning the pointer to acquire.
+		/// @param initial The initially read value of the pointer to bind
+		/// @param getter A lambda returning the pointer to acquire.
 		/// @return The value of the pointer acquired, or 0.
-		template <typename type>
-		type* acquire(volatile hazard& h, const function<type*()>& getter)
+		template <typename type, typename F>
+		std::enable_if_t<
+			std::is_invocable_v<F> && std::is_same_v<type*, std::remove_reference_t<std::invoke_result_t<F>>>,
+			type*>
+		acquire(volatile hazard& h, type* value, F&& getter)
 		{
-			type* oldValue = getter();
-			for (;;)
+			type* oldValue = value;
+			if (!!oldValue)
 			{
-				if (!oldValue)
-					break;
-				bind(h, oldValue);
-				type* oldValue2;
-				oldValue2 = getter();
-				if (oldValue != oldValue2)
-				{
-					oldValue = oldValue2;
-					continue;
-				}
-
-				if (!validate())
-				{
-					oldValue = getter();
-					continue;
-				}
-				break;
+				set_token(h);
+				do {
+					m_token->bind_unacquired(oldValue);
+					type* oldValue2 = getter();
+					if (oldValue != oldValue2)
+						oldValue = oldValue2;
+					else
+					{
+						if (validate())
+							break;
+						oldValue = getter();
+					}
+					if (!oldValue)
+						break;
+				} while (!!oldValue);
 			}
 			return oldValue;
 		}
@@ -561,43 +587,24 @@ public:
 		/// @return If true, the caller is responsible for releasing the resource associated with the pointer.
 		bool release()
 		{
-			return (!!m_token) && m_token->release();
+			if (!!m_token && m_token->release())
+			{
+				m_hazard->release_token(*m_token);
+				m_hazard = 0;
+				m_token = 0;
+				return true;
+			}
+			return false;
 		}
 		/// @}
 	};
 
-	/// @{
-	/// @brief Bind a pointer value to a new hazard::pointer
-	/// @param value value to bind
-	template <typename type>
-	pointer bind(type* value) volatile
+	bool is_empty() const volatile 
 	{
-		pointer p(*this, value);
-		return p;
+		content_t oldContents;
+		atomic::load(m_contents, oldContents);
+		return !oldContents.m_list;
 	}
-
-	/// @brief Binds a pointer value to a hazard::pointer
-	/// @param p hazard::pointer to bind pointer value to
-	/// @param value Value to bind
-	template <typename type>
-	void bind(pointer& p, type* value) volatile { p.bind(*this, value); }
-	/// @}
-
-	/// @{
-	/// @brief Acquire a hazard::pointer
-	/// @param p hazard::pointer to bind pointer value with
-	/// @param src Volatile reference to a pointer to acquire a hazard pointer to.
-	/// @return The value of the pointer acquired, or 0.
-	template <typename type>
-	void* acquire(pointer& p, ptr<type> const volatile& src) volatile { return p.acquire(*this, src.get_ptr_ref()); }
-
-	/// @brief Acquire a hazard::pointer
-	/// @param p hazard::pointer to bind pointer value with
-	/// @param src Volatile reference to a pointer to acquire a hazard pointer to.
-	/// @return The value of the pointer acquired, or 0.
-	template <typename type>
-	void* acquire(pointer& p, type* const volatile& src) volatile { return p.acquire(*this, src); }
-	/// @}
 
 	/// @{
 	/// @brief Gates release of resources protected by this hazard pool

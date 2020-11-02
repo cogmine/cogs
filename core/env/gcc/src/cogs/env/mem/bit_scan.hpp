@@ -26,38 +26,41 @@ namespace cogs {
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) <= sizeof(unsigned int)),
 	size_t
 >
 bit_scan_reverse(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return (sizeof(unsigned int) * 8) - __builtin_clz((unsigned int)load(bits));
 }
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned int))
 	&& (sizeof(int_t) <= sizeof(unsigned long)),
 	size_t
 >
 bit_scan_reverse(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return (sizeof(unsigned long) * 8) - __builtin_clzl((unsigned long)load(bits));
 }
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long))
 	&& (sizeof(int_t) <= sizeof(unsigned long long)),
 	size_t
 >
 bit_scan_reverse(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return (sizeof(unsigned long long) * 8) - __builtin_clzll((unsigned long long)load(bits));
 }
 
@@ -65,14 +68,15 @@ bit_scan_reverse(const int_t& bits)
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long long)),
 	size_t
 >
 bit_scan_reverse(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	size_t result = 0;
-	std::make_unsigned_t<int_t> bits2 = (std::make_unsigned_t<int_t>)load(bits);
+	make_unsigned_t<int_t> bits2 = (make_unsigned_t<int_t>)load(bits);
 	unsigned long long ll;
 	for (;;)
 	{
@@ -89,52 +93,56 @@ bit_scan_reverse(const int_t& bits)
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) <= sizeof(unsigned int)),
 	size_t
 >
 bit_scan_forward(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return __builtin_ctz((unsigned int)load(bits));
 }
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned int))
 	&& (sizeof(int_t) <= sizeof(unsigned long)),
 	size_t
 >
 bit_scan_forward(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return __builtin_ctzl((unsigned long)load(bits));
 }
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long))
 	&& (sizeof(int_t) <= sizeof(unsigned long long)),
 	size_t
 >
 bit_scan_forward(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	return __builtin_ctzll((unsigned long long)load(bits));
 }
 
 // bits must not be zero
 template <typename int_t>
 inline std::enable_if_t<
-	std::is_integral_v<int_t>
+	is_integral_v<int_t>
 	&& (sizeof(int_t) > sizeof(unsigned long long)),
 	size_t
 >
 bit_scan_forward(const int_t& bits)
 {
+	COGS_ASSERT(!!bits);
 	size_t result = 0;
-	std::make_unsigned_t<int_t> bits2 = (std::make_unsigned_t<int_t>)load(bits);
+	make_unsigned_t<int_t> bits2 = (make_unsigned_t<int_t>)load(bits);
 	unsigned long long ll;
 	for (;;)
 	{

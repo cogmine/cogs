@@ -30,7 +30,9 @@
 #include <gdiplus.h>
 #pragma warning(pop)
 
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' " "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#undef min
+#undef max
+
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "comdlg32.lib")
@@ -76,12 +78,7 @@ public:
 	static constexpr size_t size_bits = 64;
 };
 
-}
-
-namespace gui {
-namespace os {
-	inline void beep() { MessageBeep((UINT)-1); }
-}
+inline void beep() { MessageBeep((UINT)-1); }
 }
 
 }

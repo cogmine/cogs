@@ -133,12 +133,6 @@
     <Filter Include="env\VS">
       <UniqueIdentifier>{d71c2ed8-232d-4c1b-aa79-8bcffaba1355}</UniqueIdentifier>
     </Filter>
-    <Filter Include="env\XCode">
-      <UniqueIdentifier>{ee8e1a96-f73c-47ba-a2e0-d13ffb2429ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="env\XCode\MacOS">
-      <UniqueIdentifier>{6e856743-3457-4cea-e930-060d83245a32}</UniqueIdentifier>
-    </Filter>
     <Filter Include="env\default\math">
       <UniqueIdentifier>{cc1be5f3-df6e-4288-ab74-e64c4e516d9e}</UniqueIdentifier>
     </Filter>
@@ -150,15 +144,6 @@
     </Filter>
     <Filter Include="env\gcc\mem">
       <UniqueIdentifier>{71c78ba9-1c37-4095-a970-38f807407384}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="env\XCode\MacOS\math">
-      <UniqueIdentifier>{b1efdc30-ed90-414e-a193-2a0b16896597}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="env\XCode\MacOS\mem">
-      <UniqueIdentifier>{f972c424-1ca7-4561-841e-f1646d6b6bea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="env\XCode\MacOS\sync">
-      <UniqueIdentifier>{2c27ad16-ccbd-4cd0-90a0-40f7de1ca1da}</UniqueIdentifier>
     </Filter>
     <Filter Include="env\VS\math">
       <UniqueIdentifier>{8b31638a-2f72-45bd-a552-c1de8c2d6f2c}</UniqueIdentifier>
@@ -282,7 +267,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\io\net\ip\tcp.hpp">
       <Filter>os\linux\io\net\ip</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\linux\src\cogs\os\mem\memory_manager.hpp">
       <Filter>os\linux\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os.hpp">
@@ -336,7 +321,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os.hpp">
       <Filter>os\std</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\std\src\cogs\os\mem\memory_manager.hpp">
       <Filter>os\std\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os.hpp">
@@ -399,7 +384,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\io\net\ip\tcp.hpp">
       <Filter>os\windows\io\net\ip</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\mem\memory_manager.hpp">
       <Filter>os\windows\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\windows\src\cogs\os\sync\atomic_operators.hpp">
@@ -420,7 +405,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\math\umul.hpp">
       <Filter>env\default\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\memory_manager.hpp">
       <Filter>env\default\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_rotate.hpp">
@@ -438,7 +423,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\alignment.hpp">
       <Filter>env\gcc\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\memory_manager.hpp">
       <Filter>env\gcc\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\mem\bit_count.hpp">
@@ -465,24 +450,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_compare_exchange.hpp">
       <Filter>env\gcc\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\math\umul.hpp">
-      <Filter>env\XCode\MacOS\math</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\alignment.hpp">
-      <Filter>env\XCode\MacOS\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\allocator.hpp">
-      <Filter>env\XCode\MacOS\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_count.hpp">
-      <Filter>env\XCode\MacOS\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_rotate.hpp">
-      <Filter>env\XCode\MacOS\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\mem\bit_scan.hpp">
-      <Filter>env\XCode\MacOS\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env.hpp">
       <Filter>env\VS</Filter>
     </ClInclude>
@@ -492,7 +459,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\alignment.hpp">
       <Filter>env\VS\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\memory_manager.hpp">
       <Filter>env\VS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\mem\bit_count.hpp">
@@ -723,9 +690,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\color.hpp">
       <Filter>core\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gfx\font.hpp">
-      <Filter>core\gfx</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\ansiterm.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
@@ -951,10 +915,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\vec.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\memory_manager_base.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator_container.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\batch_allocator.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bballoc.hpp">
@@ -969,16 +933,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\default_allocator.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\delayed_construction.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\default_memory_manager.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\endian.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist.hpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\freelist_allocator.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\int_parts.hpp">
@@ -1044,16 +1005,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\atomic_store.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\auto_reset_event.hpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\can_atomic.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\cleanup_queue.hpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\count_down_event.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\default_atomic_operators.hpp">
@@ -1081,9 +1036,6 @@
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\refireable_timer.hpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_event.hpp">
       <Filter>core\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\rwlock.hpp">
@@ -1134,7 +1086,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\ui\keyboard.hpp">
       <Filter>core\ui</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\mem\allocator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\mem\memory_manager.hpp">
       <Filter>os\MacOS\mem</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\semaphore.hpp">
@@ -1200,26 +1152,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\math\const_extudiv.hpp">
       <Filter>core\math</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_event.hpp">
-      <Filter>core\sync</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\dispatch_parallel.hpp">
       <Filter>core\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_compare_exchange.hpp">
-      <Filter>env\XCode\MacOS\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_exchange.hpp">
-      <Filter>env\XCode\MacOS\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_load.hpp">
-      <Filter>env\XCode\MacOS\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_operators.hpp">
-      <Filter>env\XCode\MacOS\sync</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\sync\atomic_store.hpp">
-      <Filter>env\XCode\MacOS\sync</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\sync\atomic_operators.hpp">
       <Filter>os\MacOS\sync</Filter>
@@ -1244,18 +1178,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\main.hpp">
       <Filter>env\default</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env\main.hpp">
-      <Filter>env\XCode\MacOS</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\main.hpp">
-      <Filter>os\MacOS</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\XCode\MacOS\src\cogs\env.hpp">
-      <Filter>env\XCode\MacOS</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\function_list.hpp">
-      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\dependency_property.hpp">
       <Filter>core</Filter>
@@ -1317,9 +1239,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\bypass_constructor_permission.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\count_args.hpp">
-      <Filter>core\mem</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\gui\stack_panel.hpp">
       <Filter>core\gui</Filter>
     </ClInclude>
@@ -1329,6 +1248,34 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\unowned.hpp">
       <Filter>core\mem</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\function_list.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\flag_enum.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\count_down_condition.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\event.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\resettable_condition.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\single_fire_condition.hpp">
+      <Filter>core\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\allocator_base.hpp">
+      <Filter>core\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\backed_vector.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\main.hpp">
+      <Filter>os\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\mem\delayed_construction.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">
@@ -1342,5 +1289,8 @@
     <None Include="$(MSBuildThisFileDirectory)..\..\gcc\sources">
       <Filter>env\gcc</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\..\..\cogs.natvis" />
   </ItemGroup>
 </Project>

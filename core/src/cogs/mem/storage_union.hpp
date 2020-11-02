@@ -30,7 +30,7 @@ template <typename T1, typename T2>
 class storage_union
 {
 public:
-	static constexpr size_t common_alignment = const_lcm_v<std::alignment_of_v<T1>, std::alignment_of_v<T2> >;
+	static constexpr size_t common_alignment = const_lcm_v<alignof(T1), alignof(T2) >;
 	static constexpr size_t greater_size = (sizeof(T1) > sizeof(T2)) ? sizeof(T1) : sizeof(T2);
 
 	placement_storage<greater_size, common_alignment> m_contents;

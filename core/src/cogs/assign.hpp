@@ -50,7 +50,7 @@ assign(T& t, S&& src)
 
 
 // pre_assign
-// (exchange is the equivilent of post_assign)
+// (exchange is the equivalent of post_assign)
 
 template <typename T, typename... args_t>
 inline std::enable_if_t<

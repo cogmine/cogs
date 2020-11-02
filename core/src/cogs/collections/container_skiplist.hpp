@@ -8,14 +8,14 @@
 #ifndef COGS_HEADER_COLLECTION_CONTAINER_SKIPLIST
 #define COGS_HEADER_COLLECTION_CONTAINER_SKIPLIST
 
-#include <initializer_list>
+
 #include <type_traits>
 
 #include "cogs/operators.hpp"
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/mem/object.hpp"
-#include "cogs/mem/delayed_construction.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
@@ -59,7 +59,7 @@ public:
 };
 
 
-template <bool allow_multiple, typename key_t, class payload_t = default_container_skiplist_payload<key_t>, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <bool allow_multiple, typename key_t, class payload_t = default_container_skiplist_payload<key_t>, class comparator_t = default_comparator, class memory_manager_t = default_memory_manager>
 class container_skiplist;
 
 
@@ -67,7 +67,7 @@ class container_skiplist;
 /// @brief A skip-list container collection.
 /// @tparam key_t The type used to compare elements.
 /// @tparam payload_t Type to contain, if different from key_t.  default_container_skiplist_payload<key_t>
-template <typename key_t, class payload_t = default_container_skiplist_payload<key_t>, class comparator_t = default_comparator, class allocator_type = default_allocator>
+template <typename key_t, class payload_t, class comparator_t, class memory_manager_t>
 class container_skiplist_base
 {
 public:
@@ -75,6 +75,9 @@ public:
 	class volatile_iterator;
 	class remove_token;
 	class volatile_remove_token;
+
+	typedef key_t key_type;
+	typedef memory_manager_t memory_manager_type;
 
 protected:
 	enum class link_mode
@@ -88,7 +91,7 @@ protected:
 	static constexpr size_t max_height = (sizeof(size_t) * 8) - 1;
 	typedef range_to_int_t<0, max_height> height_t;
 
-	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t> this_t;
 
 	class sentinel_link_t;
 
@@ -107,42 +110,27 @@ protected:
 		typedef typename transactable_t::read_token read_token;
 		typedef typename transactable_t::write_token write_token;
 
-	private:
-		link_t(link_t&) = delete;
-		link_t& operator=(const link_t&) = delete;
-
-	public:
 		ptr<transactable_t> m_links;
 		const height_t m_height;
-		const bool m_isSentinel;
+		volatile link_t* m_sentinel;
 
 		// Primary mode starts as link_mode::inserting at the start of a volatile insert.
 		// As the last insert is completed for this link, the primary mode is changed to link_mode::normal.
 		// A remove will change the primary mode to link_mode::removing.
 		// If an insert finds the mode has been changed to link_mode::removing, the insert owns the removal.
-		alignas (atomic::get_alignment_v<link_mode>) link_mode m_primaryMode;
+		alignas(atomic::get_alignment_v<link_mode>) link_mode m_primaryMode;
 
-		explicit link_t(height_t height, link_mode linkMode, bool isSentinel = false)
+		link_t(link_t&) = delete;
+		link_t& operator=(const link_t&) = delete;
+
+		explicit link_t(volatile link_t* sentinel, height_t height, link_mode linkMode)
 			: m_height(height),
-			m_isSentinel(isSentinel),
+			m_sentinel(sentinel),
 			m_primaryMode(linkMode)
-		{
-			height_t heightPlusOne = height + 1;
-			m_links = allocator_container<default_allocator>::template allocate_type<transactable_t>(heightPlusOne);
-			for (size_t i = 0; i <= height; i++)
-				new (m_links.get_ptr() + i) transactable_t;
-			for (height_t i = 0; i <= height; i++)
-				m_links[i]->m_mode = linkMode;
-		}
+		{ }
 
-		~link_t()
-		{
-			if (!!m_links)
-				default_allocator::destruct_deallocate_type<transactable_t>(m_links, m_height + 1);
-		}
-
-		bool is_sentinel() const { return m_isSentinel; }
-		bool is_sentinel() const volatile { return const_cast<const link_t*>(this)->m_isSentinel; }
+		bool is_sentinel() const { return this == m_sentinel; }
+		bool is_sentinel() const volatile { return const_cast<const link_t*>(this)->is_sentinel(); }
 
 		bool is_removed() { return m_primaryMode == link_mode::removing; }
 		bool is_removed() volatile { link_mode primaryMode; atomic::load(m_primaryMode, primaryMode); return primaryMode == link_mode::removing; }
@@ -1041,8 +1029,8 @@ protected:
 	class height_and_count_t
 	{
 	public:
-		alignas (atomic::get_alignment_v<height_t>) height_t m_currentHeight;
-		alignas (atomic::get_alignment_v<ptrdiff_t>) ptrdiff_t m_count;
+		alignas(atomic::get_alignment_v<height_t>) height_t m_currentHeight;
+		alignas(atomic::get_alignment_v<ptrdiff_t>) ptrdiff_t m_count;
 	};
 
 	class sentinel_link_t : public link_t
@@ -1050,11 +1038,21 @@ protected:
 	public:
 		using link_t::m_links;
 
-		alignas (atomic::get_alignment_v<height_and_count_t>) height_and_count_t m_heightAndCount;
+		alignas(atomic::get_alignment_v<height_and_count_t>) height_and_count_t m_heightAndCount;
 
-		sentinel_link_t()
-			: link_t(max_height, link_mode::normal, true)
+		memory_manager_t m_memoryManager;
+
+		explicit sentinel_link_t(memory_manager_t&& mm)
+			: link_t(this, max_height, link_mode::normal),
+			m_memoryManager(std::move(mm))
 		{
+			height_t heightPlusOne = max_height + 1;
+			m_links = mm.template allocate_type<transactable_t>(heightPlusOne);
+			for (size_t i = 0; i <= max_height; i++)
+				new (m_links.get_ptr() + i) transactable_t;
+			for (height_t i = 0; i <= max_height; i++)
+				m_links[i]->m_mode = link_mode::normal;
+
 			link_t::m_links[0]->m_prev = link_t::m_links[0]->m_next = this_rcptr;
 			COGS_ASSERT(!!link_t::m_links[0]->m_prev.get_desc());
 			COGS_ASSERT(!!link_t::m_links[0]->m_next.get_desc());
@@ -1175,7 +1173,7 @@ protected:
 		void dec_count()
 		{
 			if (--m_heightAndCount.m_count < m_heightAndCount.m_currentHeight)
-				m_heightAndCount.m_currentHeight = m_heightAndCount.m_count;
+				m_heightAndCount.m_currentHeight = (height_t)m_heightAndCount.m_count;
 		}
 
 		void dec_count() volatile
@@ -1196,40 +1194,59 @@ protected:
 		}
 	};
 
+	class sentinel_rc_obj : public rc_obj<sentinel_link_t>
+	{
+	public:
+		virtual void released() { }
+
+		virtual void dispose()
+		{
+			sentinel_link_t* p = rc_obj<sentinel_link_t>::get_object();
+			memory_manager_t mm(std::move(p->m_memoryManager));
+			mm.destruct_deallocate_type(p->m_links.get_ptr(), p->m_height + 1);
+			p->sentinel_link_t::~sentinel_link_t();
+			mm.destruct_deallocate_type(this);
+		}
+	};
+
 	class payload_link_t : public link_t
 	{
 	private:
-		delayed_construction<payload_t> m_value;
-		weak_rcptr<sentinel_link_t> m_sentinel; // Set once before inserted, so OK to read without atomicity
+		placement<payload_t> m_value;
 
 	public:
+		using link_t::m_links;
+
 		payload_t* get_payload() const { return &(const_cast<payload_link_t*>(this)->m_value.get()); }
 		payload_t* get_payload() const volatile { return &(const_cast<payload_link_t*>(this)->m_value.get()); }
 
-		payload_link_t(const rcref<sentinel_link_t>& sentinel, height_t height)
-			: link_t(height, link_mode::normal),
-			m_sentinel(sentinel)
-		{ }
+		payload_link_t(volatile link_t* sentinel, height_t height, link_mode mode)
+			: link_t(sentinel, height, mode)
+		{
+			height_t heightPlusOne = height + 1;
+			m_links = static_cast<volatile sentinel_link_t*>(sentinel)->m_memoryManager.template allocate_type<transactable_t>(heightPlusOne);
+			for (size_t i = 0; i <= height; i++)
+				new (m_links.get_ptr() + i) transactable_t;
+			for (height_t i = 0; i <= height; i++)
+				m_links[i]->m_mode = mode;
 
-		payload_link_t(const rcref<volatile sentinel_link_t>& sentinel, height_t height)
-			: link_t(height, link_mode::inserting),
-			m_sentinel(sentinel.template const_cast_to<sentinel_link_t>())
-		{ }
+			sentinel->get_desc()->acquire();
+		}
 
 		const rcref<payload_t>& get_obj(unowned_t<rcptr<payload_t> >& storage = unowned_t<rcptr<payload_t> >().get_unowned())
 		{
-			storage.set(&m_value.get(), &this_desc);
+			storage.set(&m_value.get(), object::get_desc());
 			return storage.dereference();
 		}
-
-		void set_sentinel(const rcref<sentinel_link_t>& sentinel) { m_sentinel = sentinel; }
-		void set_sentinel(const rcref<volatile sentinel_link_t>& sentinel) volatile { m_sentinel = sentinel.template const_cast_to<sentinel_link_t>(); }
-
-		const weak_rcptr<sentinel_link_t>& get_sentinel() const { return m_sentinel; }
-		rcptr<volatile sentinel_link_t> get_sentinel() const volatile { return const_cast<const payload_link_t*>(this)->m_sentinel; }
 	};
 
-	allocator_container<allocator_type> m_allocator;
+	class payload_rc_obj : public rc_obj<payload_link_t>
+	{
+	public:
+		virtual void released();
+		virtual void dispose();
+	};
+
 	rcptr<sentinel_link_t> m_sentinel;
 
 	void clear_inner()
@@ -1255,11 +1272,18 @@ protected:
 		}
 	}
 
-	// To support use of zero-initialized buffer placement, lazy-initialize the sentinel
+	static rcref<sentinel_link_t> create_sentinel()
+	{
+		memory_manager_t mm;
+		sentinel_rc_obj* sentinel = mm.template allocate_type<sentinel_rc_obj>();
+		new (sentinel) sentinel_rc_obj;
+		return placement_rcnew(sentinel)(std::move(mm));
+	}
+
 	const rcref<sentinel_link_t>& lazy_init_sentinel()
 	{
 		if (!m_sentinel)
-			m_sentinel = container_rcnew(m_allocator, sentinel_link_t);
+			m_sentinel = create_sentinel();
 		return m_sentinel.dereference();
 	}
 
@@ -1268,7 +1292,7 @@ protected:
 		rcptr<volatile sentinel_link_t> sentinel = m_sentinel;
 		if (!sentinel)
 		{
-			rcptr<sentinel_link_t> newSentinel = container_rcnew(m_allocator, sentinel_link_t);
+			rcptr<sentinel_link_t> newSentinel = create_sentinel();
 			if (m_sentinel.compare_exchange(newSentinel, sentinel, sentinel))
 				sentinel = newSentinel;
 			else
@@ -1277,22 +1301,15 @@ protected:
 		return std::move(sentinel.dereference());
 	}
 
-	container_skiplist_base(const this_t&) = delete;
-	container_skiplist_base(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) = delete;
-	this_t& operator=(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) volatile = delete;
-	this_t& operator=(const volatile this_t&) volatile = delete;
-
 	template <typename F>
 	iterator insert_inner(F&& f)
 	{
-		iterator i;
 		const rcref<sentinel_link_t>& sentinel = lazy_init_sentinel();
 		height_t height = sentinel->generate_height();
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(sentinel, height);
+		volatile memory_manager_t& memoryManager = sentinel->m_memoryManager;
+		payload_rc_obj* payloadBuffer = new (memoryManager.template allocate_type<payload_rc_obj>()) payload_rc_obj;
+		rcref<link_t> lnk = placement_rcnew(payloadBuffer)(sentinel.get_ptr(), height, link_mode::normal);
+		iterator i(std::move(lnk));
 		height_t currentHeight = sentinel->accommodate_height(height);
 		if (f(i, currentHeight, sentinel))
 			++(sentinel->m_heightAndCount.m_count);
@@ -1302,10 +1319,11 @@ protected:
 	template <typename F>
 	volatile_iterator insert_inner(F&& f) volatile
 	{
-		iterator i;
 		rcref<volatile sentinel_link_t> sentinel = lazy_init_sentinel();
 		height_t height = sentinel->generate_height();
-		i.m_link = container_rcnew(m_allocator, payload_link_t)(sentinel, height);
+		payload_rc_obj* payloadBuffer = new (sentinel->m_memoryManager.template allocate_type<payload_rc_obj>()) payload_rc_obj;
+		rcref<link_t> lnk = placement_rcnew(payloadBuffer)(sentinel.get_ptr(), height, link_mode::inserting);
+		iterator i(std::move(lnk));
 		height_t currentHeight = sentinel->accommodate_height(height);
 		if (f(i, currentHeight, sentinel))
 			assign_next(sentinel->m_heightAndCount.m_count);
@@ -1546,13 +1564,13 @@ public:
 			if (!!m_link)
 			{
 				do {
-					m_link = m_link->m_links->m_next;
+					m_link = m_link->m_links[0]->m_next;
 					if (!!m_link->is_sentinel())
 					{
 						m_link.release();
 						break;
 					}
-				} while (m_link->m_links->m_mode == link_mode::removing);
+				} while (m_link->m_links[0]->m_mode == link_mode::removing);
 			}
 		}
 
@@ -1594,13 +1612,13 @@ public:
 			if (!!m_link)
 			{
 				do {
-					m_link = m_link->m_links->m_prev;
+					m_link = m_link->m_links[0]->m_prev;
 					if (!!m_link->is_sentinel())
 					{
 						m_link.release();
 						break;
 					}
-				} while (m_link->m_links->m_mode == link_mode::removing);
+				} while (m_link->m_links[0]->m_mode == link_mode::removing);
 			}
 		}
 
@@ -2537,9 +2555,8 @@ public:
 		: m_sentinel(std::move(m_sentinel))
 	{ }
 
-	explicit container_skiplist_base(volatile allocator_type& al)
-		: m_allocator(al)
-	{ }
+	container_skiplist_base(const this_t& src) = delete;
+	container_skiplist_base(const volatile this_t&) = delete;
 
 	~container_skiplist_base()
 	{
@@ -2547,7 +2564,6 @@ public:
 		{
 			clear_inner();
 			m_sentinel->clear();
-			COGS_ASSERT(m_sentinel.get_desc()->is_owned());
 		}
 	}
 
@@ -2555,18 +2571,58 @@ public:
 	{
 		if (!!m_sentinel)
 			clear_inner();
-		m_allocator = std::move(src.m_allocator);
 		m_sentinel = std::move(src.m_sentinel);
 		return *this;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const this_t& src) = delete;
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t&) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+
+	bool operator==(const this_t& cmp) const
 	{
-		m_sentinel.exchange(src.m_sentinel);
-		src.m_sentinel.release();
-		return *this;
+		if (this == &cmp)
+			return true;
+		if (size() != cmp.size())
+			return false;
+		iterator i1 = get_first();
+		iterator i2 = cmp.get_first();
+		for (;;)
+		{
+			if (*i1 != *i2)
+				return false;
+			if (!++i1)
+				break;
+			++i2;
+		}
+		return true;
 	}
+
+	bool operator==(const volatile this_t& cmp) const
+	{
+		this_t tmp(cmp);
+		return *this == tmp;
+	}
+
+	bool operator==(const this_t& cmp) const volatile
+	{
+		this_t tmp(*this);
+		return cmp == tmp;
+	}
+
+	bool operator==(const volatile this_t& cmp) const volatile
+	{
+		this_t tmp1(*this);
+		this_t tmp2(cmp);
+		return tmp1 == tmp2;
+	}
+
+	bool operator!=(const this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const this_t& cmp) const volatile { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const volatile { return !(*this == cmp); }
 
 	void clear()
 	{
@@ -2706,8 +2762,11 @@ public:
 		if (!!i.m_link)
 		{
 			b = i.m_link->remove();
-			if (b && !!m_sentinel)
+			if (b)
+			{
+				COGS_ASSERT(!!m_sentinel);
 				m_sentinel->dec_count();
+			}
 		}
 		return b;
 	}
@@ -2717,6 +2776,9 @@ public:
 		iterator i(rt);
 		return remove(i);
 	}
+
+	bool operator-=(const iterator& i) { return remove(i); }
+	bool operator-=(const remove_token& rt) { return remove(rt); }
 
 	struct volatile_remove_result
 	{
@@ -2728,18 +2790,17 @@ public:
 	{
 		bool wasLast = false;
 		rcptr<volatile link_t> lnk = i.m_link;
-		bool b = false;
+		bool result = false;
 		if (!!lnk)
 		{
-			b = lnk->remove(wasLast);
-			if (b)
+			result = lnk->remove(wasLast);
+			if (result)
 			{
-				rcptr<volatile sentinel_link_t> sentinel = i.m_link.template static_cast_to<volatile payload_link_t>()->get_sentinel();
-				if (!!sentinel)
-					sentinel->dec_count();
+				volatile link_t* sentinel = i.m_link.template static_cast_to<volatile payload_link_t>()->m_sentinel;
+				((volatile sentinel_link_t*)sentinel)->dec_count();
 			}
 		}
-		return { b, wasLast };
+		return { result, wasLast };
 	}
 
 	volatile_remove_result remove(const volatile_remove_token& rt) volatile
@@ -2747,6 +2808,9 @@ public:
 		volatile_iterator i(rt);
 		return remove(i);
 	}
+
+	volatile_remove_result operator-=(const volatile_iterator& i) volatile { return remove(i); }
+	volatile_remove_result operator-=(const volatile_remove_token& rt) volatile { return remove(rt); }
 
 	iterator pop_first()
 	{
@@ -3941,20 +4005,19 @@ public:
 	void swap(this_t& wth)
 	{
 		m_sentinel.swap(wth.m_sentinel);
-		m_allocator.swap(wth.m_allocator);
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(this_t& wth) volatile
-	{
-		m_sentinel.swap(wth.m_sentinel);
-	}
-
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void swap(volatile this_t& wth)
-	{
-		m_sentinel.swap(wth.m_sentinel);
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(this_t& wth) volatile
+	//{
+	//	m_sentinel.swap(wth.m_sentinel);
+	//}
+	//
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void swap(volatile this_t& wth)
+	//{
+	//	m_sentinel.swap(wth.m_sentinel);
+	//}
 
 	this_t exchange(this_t&& src)
 	{
@@ -3963,13 +4026,13 @@ public:
 		return tmp;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	this_t exchange(this_t&& src) volatile
-	{
-		this_t tmp(std::move(src));
-		swap(tmp);
-		return tmp;
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//this_t exchange(this_t&& src) volatile
+	//{
+	//	this_t tmp(std::move(src));
+	//	swap(tmp);
+	//	return tmp;
+	//}
 
 	void exchange(this_t&& src, this_t& rtn)
 	{
@@ -3977,12 +4040,12 @@ public:
 		swap(rtn);
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	void exchange(this_t&& src, this_t& rtn) volatile
-	{
-		rtn = std::move(src);
-		swap(rtn);
-	}
+	// Volatile swap/exchange/move are only thread safe with regard to other volatile swap/exchange/move operations.
+	//void exchange(this_t&& src, this_t& rtn) volatile
+	//{
+	//	rtn = std::move(src);
+	//	swap(rtn);
+	//}
 
 	iterator begin() const { return get_first(); }
 	volatile_iterator begin() const volatile { return get_first(); }
@@ -3997,22 +4060,32 @@ public:
 	volatile_iterator rend() const volatile { volatile_iterator i; return i; }
 };
 
+template <typename key_t, class payload_t, class comparator_t, class memory_manager_t>
+inline void container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t>::payload_rc_obj::released()
+{
+	payload_link_t* p = rc_obj<payload_link_t>::get_object();
+	payload_t* t = p->get_payload();
+	t->~payload_t();
+}
 
-template <typename key_t, class payload_t, class comparator_t, class allocator_type>
-class container_skiplist<false, key_t, payload_t, comparator_t, allocator_type> : public container_skiplist_base<key_t, payload_t, comparator_t, allocator_type>
+template <typename key_t, class payload_t, class comparator_t, class memory_manager_t>
+inline void container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t>::payload_rc_obj::dispose()
+{
+	payload_link_t* p = rc_obj<payload_link_t>::get_object();
+	volatile sentinel_link_t* sentinel = static_cast<volatile sentinel_link_t*>(p->m_sentinel);
+	sentinel->m_memoryManager.destruct_deallocate_type(p->m_links.get_ptr(), p->m_height + 1);
+	p->payload_link_t::~payload_link_t();
+	sentinel->m_memoryManager.destruct_deallocate_type(this);
+	sentinel->get_desc()->release();
+}
+
+
+template <typename key_t, class payload_t, class comparator_t, class memory_manager_t>
+class container_skiplist<false, key_t, payload_t, comparator_t, memory_manager_t> : public container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t>
 {
 private:
-	typedef container_skiplist<false, key_t, payload_t, comparator_t, allocator_type> this_t;
-	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> base_t;
-
-	container_skiplist(const this_t&) = delete;
-	container_skiplist(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) = delete;
-	this_t& operator=(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) volatile = delete;
-	this_t& operator=(const volatile this_t&) volatile = delete;
+	typedef container_skiplist<false, key_t, payload_t, comparator_t, memory_manager_t> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t> base_t;
 
 	using typename base_t::link_t;
 	using typename base_t::sentinel_link_t;
@@ -4020,32 +4093,45 @@ private:
 
 	using base_t::insert_inner;
 
+	class internal_t {};
+
 public:
 	using typename base_t::iterator;
 	using typename base_t::volatile_iterator;
 
 	container_skiplist() { }
 
+	template <typename arg1_t>
+	container_skiplist(arg1_t&& arg1, std::enable_if_t<!std::is_convertible_v<std::remove_cv_t<arg1_t>, this_t>, internal_t> = {})
+	{
+		insert_replace(std::forward<arg1_t>(arg1));
+	}
+
+	template <typename arg1_t, typename arg2_t, typename... args_t>
+	container_skiplist(arg1_t&& arg1, arg2_t&& arg2, args_t&&... args)
+	{
+		insert_replace(std::forward<arg1_t>(arg1));
+		insert_replace(std::forward<arg2_t>(arg2));
+		(insert_replace(std::forward<args_t>(args)), ...);
+	}
+
 	container_skiplist(this_t&& src)
 		: base_t(std::move(src))
 	{ }
 
-	explicit container_skiplist(volatile allocator_type& al)
-		: base_t(al)
-	{ }
-
-	container_skiplist(const std::initializer_list<payload_t>& src)
+	container_skiplist(this_t& src)
 	{
-		for (auto& entry : src)
+		for (const auto& entry : src)
 			insert_replace(entry);
 	}
 
-	container_skiplist(volatile allocator_type& al, const std::initializer_list<payload_t>& src)
-		: base_t(al)
+	container_skiplist(const this_t& src)
 	{
-		for (auto& entry : src)
+		for (const auto& entry : src)
 			insert_replace(entry);
 	}
+
+	container_skiplist(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -4053,35 +4139,28 @@ public:
 		return *this;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const this_t& src)
 	{
-		base_t::operator=(std::move(src));
+		base_t::clear();
+		for (const auto& entry : src)
+			insert_replace(entry);
 		return *this;
 	}
 
-	this_t& operator=(const std::initializer_list<payload_t>& src)
-	{
-		this_t tmp(src);
-		base_t::operator=(std::move(tmp));
-		return *this;
-	}
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
-	volatile this_t& operator=(const std::initializer_list<payload_t>& src) volatile
-	{
-		this_t tmp(src);
-		base_t::operator=(std::move(tmp));
-		return *this;
-	}
+	bool operator==(const this_t& cmp) const { return base_t::operator==(cmp); }
+	bool operator==(const volatile this_t& cmp) const { return base_t::operator==(cmp); }
+	bool operator==(const this_t& cmp) const volatile { return base_t::operator==(cmp); }
+	bool operator==(const volatile this_t& cmp) const volatile { return base_t::operator==(cmp); }
 
-
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.insert_replace(std::forward<args_t>(args)), ...);
-		return result;
-	}
+	bool operator!=(const this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const this_t& cmp) const volatile { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const volatile { return !(*this == cmp); }
 
 	struct insert_replace_result
 	{
@@ -4122,8 +4201,8 @@ public:
 		insert_replace_result>
 	insert_replace_via(F&& f) { return insert_replace_via([&](iterator& i) { f(*i.get()); }); }
 
-	insert_replace_result insert_replace(const payload_t& src) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
-	insert_replace_result insert_replace(payload_t&& src) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+	insert_replace_result insert_replace(const payload_t& src) { return insert_replace_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	insert_replace_result insert_replace(payload_t&& src) { return insert_replace_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4133,7 +4212,7 @@ public:
 		insert_replace_result>
 	insert_replace(F&& f) { return insert_replace_via(std::forward<F>(f)); }
 
-	template <typename... args_t> insert_replace_result insert_replace_emplace(args_t&&... args) { return insert_replace_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+	template <typename... args_t> insert_replace_result insert_replace_emplace(args_t&&... args) { return insert_replace_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 
 
 	struct insert_unique_result
@@ -4179,8 +4258,8 @@ public:
 		insert_unique_result>
 	insert_unique_via(F&& f) { return insert_unique_via([&](iterator& i) { f(*i.get()); }); }
 
-	insert_unique_result insert_unique(const payload_t& src) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
-	insert_unique_result insert_unique(payload_t&& src) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+	insert_unique_result insert_unique(const payload_t& src) { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	insert_unique_result insert_unique(payload_t&& src) { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4190,7 +4269,7 @@ public:
 		insert_unique_result>
 	insert_unique(F&& f) { return insert_unique_via(std::forward<F>(f)); }
 
-	template <typename... args_t> insert_unique_result insert_unique_emplace(args_t&&... args) { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+	template <typename... args_t> insert_unique_result insert_unique_emplace(args_t&&... args) { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 
 	struct volatile_insert_unique_result
 	{
@@ -4237,8 +4316,8 @@ public:
 		volatile_insert_unique_result>
 	insert_unique_via(F&& f) volatile { return insert_unique_via([&](iterator& i) { f(*i.get()); }); }
 
-	volatile_insert_unique_result insert_unique(const payload_t& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
-	volatile_insert_unique_result insert_unique(payload_t&& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+	volatile_insert_unique_result insert_unique(const payload_t& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	volatile_insert_unique_result insert_unique(payload_t&& src) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4248,25 +4327,16 @@ public:
 		volatile_insert_unique_result>
 	insert_unique(F&& f) volatile { return insert_unique_via(std::forward<F>(f)); }
 
-	template <typename... args_t> volatile_insert_unique_result insert_unique_emplace(args_t&&... args) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+	template <typename... args_t> volatile_insert_unique_result insert_unique_emplace(args_t&&... args) volatile { return insert_unique_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 };
 
 
-template <typename key_t, class payload_t, class comparator_t, class allocator_type>
-class container_skiplist<true, key_t, payload_t, comparator_t, allocator_type> : public container_skiplist_base<key_t, payload_t, comparator_t, allocator_type>
+template <typename key_t, class payload_t, class comparator_t, class memory_manager_t>
+class container_skiplist<true, key_t, payload_t, comparator_t, memory_manager_t> : public container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t>
 {
 private:
-	typedef container_skiplist<true, key_t, payload_t, comparator_t, allocator_type> this_t;
-	typedef container_skiplist_base<key_t, payload_t, comparator_t, allocator_type> base_t;
-
-	container_skiplist(const this_t&) = delete;
-	container_skiplist(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) = delete;
-	this_t& operator=(const volatile this_t&) = delete;
-
-	this_t& operator=(const this_t&) volatile = delete;
-	this_t& operator=(const volatile this_t&) volatile = delete;
+	typedef container_skiplist<true, key_t, payload_t, comparator_t, memory_manager_t> this_t;
+	typedef container_skiplist_base<key_t, payload_t, comparator_t, memory_manager_t> base_t;
 
 	using typename base_t::link_t;
 	using typename base_t::sentinel_link_t;
@@ -4274,32 +4344,45 @@ private:
 
 	using base_t::insert_inner;
 
+	class internal_t {};
+
 public:
 	using typename base_t::iterator;
 	using typename base_t::volatile_iterator;
 
 	container_skiplist() { }
 
+	template <typename arg1_t>
+	container_skiplist(arg1_t&& arg1, std::enable_if_t<!std::is_convertible_v<std::remove_cv_t<arg1_t>, this_t>, internal_t> = {})
+	{
+		insert_multi(std::forward<arg1_t>(arg1));
+	}
+
+	template <typename arg1_t, typename arg2_t, typename... args_t>
+	container_skiplist(arg1_t&& arg1, arg2_t&& arg2, args_t&&... args)
+	{
+		insert_multi(std::forward<arg1_t>(arg1));
+		insert_multi(std::forward<arg2_t>(arg2));
+		(insert_multi(std::forward<args_t>(args)), ...);
+	}
+
 	container_skiplist(this_t&& src)
 		: base_t(std::move(src))
 	{ }
 
-	explicit container_skiplist(volatile allocator_type& al)
-		: base_t(al)
-	{ }
-
-	container_skiplist(const std::initializer_list<payload_t>& src)
+	container_skiplist(this_t& src)
 	{
-		for (auto& entry : src)
+		for (const auto& entry : src)
 			insert_multi(entry);
 	}
 
-	container_skiplist(volatile allocator_type& al, const std::initializer_list<payload_t>& src)
-		: base_t(al)
+	container_skiplist(const this_t& src)
 	{
-		for (auto& entry : src)
-			insert_replace(entry);
+		for (const auto& entry : src)
+			insert_multi(entry);
 	}
+
+	container_skiplist(const volatile this_t&) = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -4307,34 +4390,28 @@ public:
 		return *this;
 	}
 
-	template <typename enable = std::enable_if_t<allocator_type::is_static> >
-	volatile this_t& operator=(this_t&& src) volatile
+	this_t& operator=(const this_t& src)
 	{
-		base_t::operator=(std::move(src));
+		base_t::clear();
+		for (const auto& entry : src)
+			insert_multi(entry);
 		return *this;
 	}
 
-	this_t& operator=(const std::initializer_list<payload_t>& src)
-	{
-		this_t tmp(src);
-		base_t::operator=(std::move(tmp));
-		return *this;
-	}
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(this_t&&) volatile = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
-	volatile this_t& operator=(const std::initializer_list<payload_t>& src) volatile
-	{
-		this_t tmp(src);
-		base_t::operator=(std::move(tmp));
-		return *this;
-	}
+	bool operator==(const this_t& cmp) const { return base_t::operator==(cmp); }
+	bool operator==(const volatile this_t& cmp) const { return base_t::operator==(cmp); }
+	bool operator==(const this_t& cmp) const volatile { return base_t::operator==(cmp); }
+	bool operator==(const volatile this_t& cmp) const volatile { return base_t::operator==(cmp); }
 
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.insert_multi(std::forward<args_t>(args)), ...);
-		return result;
-	}
+	bool operator!=(const this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const { return !(*this == cmp); }
+	bool operator!=(const this_t& cmp) const volatile { return !(*this == cmp); }
+	bool operator!=(const volatile this_t& cmp) const volatile { return !(*this == cmp); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4365,8 +4442,8 @@ public:
 		iterator>
 	insert_multi_via(F&& f) { return insert_multi_via([&](iterator& i) { f(*i.get()); }); }
 
-	iterator insert_multi(const payload_t& src) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
-	iterator insert_multi(payload_t&& src) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+	iterator insert_multi(const payload_t& src) { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	iterator insert_multi(payload_t&& src) { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4376,7 +4453,7 @@ public:
 		iterator>
 	insert_multi(F&& f) { return insert_multi_via(std::forward<F>(f)); }
 
-	template <typename... args_t> iterator insert_multi_emplace(args_t&&... args) { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+	template <typename... args_t> iterator insert_multi_emplace(args_t&&... args) { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 
 
 	struct volatile_insert_multi_result
@@ -4417,8 +4494,8 @@ public:
 		volatile_insert_multi_result>
 	insert_multi_via(F&& f) volatile { return insert_multi_via([&](iterator& i) { f(*i.get()); }); }
 
-	volatile_insert_multi_result insert_multi(const payload_t& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
-	volatile_insert_multi_result insert_multi(payload_t&& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
+	volatile_insert_multi_result insert_multi(const payload_t& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(src); }); }
+	volatile_insert_multi_result insert_multi(payload_t&& src) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::move(src)); }); }
 
 	template <typename F>
 	std::enable_if_t<
@@ -4428,7 +4505,7 @@ public:
 		volatile_insert_multi_result>
 	insert_multi(F&& f) volatile { return insert_multi_via(std::forward<F>(f)); }
 
-	template <typename... args_t> volatile_insert_multi_result insert_multi_emplace(args_t&&... args) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { placement_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
+	template <typename... args_t> volatile_insert_multi_result insert_multi_emplace(args_t&&... args) volatile { return insert_multi_via([&](const rcref<payload_t>& p) { nested_rcnew(p.get_ptr(), *p.get_desc())(std::forward<args_t>(args)...); }); }
 };
 
 

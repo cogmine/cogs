@@ -22,17 +22,40 @@
 #include "cogs/sync/cleanup_queue.hpp"
 
 
+namespace cogs {
+namespace os {
+
 inline bool operator!(const SIZE& sz) { return !sz.cx || !sz.cy; }
 inline bool operator==(const SIZE& sz1, const SIZE& sz2) { return (sz1.cx == sz2.cx) && (sz1.cy == sz2.cy); }
 inline bool operator!=(const SIZE& sz1, const SIZE& sz2) { return (sz1.cx != sz2.cx) || (sz1.cy != sz2.cy); }
+inline SIZE operator+(const SIZE& sz1, const SIZE& sz2) { return SIZE{ sz1.cx + sz2.cx, sz1.cy + sz2.cy }; }
+inline SIZE operator-(const SIZE& sz1, const SIZE& sz2) { return SIZE{ sz1.cx - sz2.cx, sz1.cy - sz2.cy }; }
+inline SIZE& operator+=(SIZE& sz1, const SIZE& sz2) { sz1.cx += sz2.cx; sz1.cy += sz2.cy; return sz1; }
+inline SIZE& operator-=(SIZE& sz1, const SIZE& sz2) { sz1.cx -= sz2.cx; sz1.cy -= sz2.cy; return sz1; }
 
 inline bool operator!(const POINT& pt) { return !pt.x && !pt.y; }
 inline bool operator==(const POINT& pt1, const POINT& pt2) { return (pt1.x == pt2.x) && (pt1.y == pt2.y); }
 inline bool operator!=(const POINT& pt1, const POINT& pt2) { return (pt1.x != pt2.x) || (pt1.y != pt2.y); }
+inline POINT operator+(const POINT& pt1, const POINT& pt2) { return POINT{ pt1.x + pt2.x, pt1.y + pt2.y }; }
+inline POINT operator-(const POINT& pt1, const POINT& pt2) { return POINT{ pt1.x - pt2.x, pt1.y - pt2.y }; }
+inline POINT& operator+=(POINT& pt1, const POINT& pt2) { pt1.x += pt2.x; pt1.y += pt2.y; return pt1; }
+inline POINT& operator-=(POINT& pt1, const POINT& pt2) { pt1.x -= pt2.x; pt1.y -= pt2.y; return pt1; }
 
-namespace cogs {
-namespace gfx {
-namespace os {
+inline POINT make_POINT(const RECT& r) { return POINT{ r.left, r.top }; }
+inline SIZE make_SIZE(const RECT& r) { return SIZE{ r.right - r.left, r.bottom - r.top }; }
+
+struct BOUNDS
+{
+	POINT pt;
+	SIZE sz;
+};
+
+inline BOUNDS make_BOUNDS(const RECT& r) { return BOUNDS{ make_POINT(r), make_SIZE(r) }; }
+
+inline COLORREF make_COLORREF(const color& c) { return RGB(c.get_red(), c.get_green(), c.get_blue()); }
+inline color from_COLORREF(COLORREF c) { return color(GetRValue(c), GetGValue(c), GetBValue(c)); }
+
+
 namespace gdi {
 
 
@@ -72,16 +95,11 @@ typedef auto_handle<HCOLORSPACE, (HCOLORSPACE)NULL, auto_handle_impl_DeleteColor
 // "GDI text rendering typically offers better performance and more accurate text measuring than GDI+."
 // - https://docs.microsoft.com/en-us/dotnet/framework/winforms/advanced/how-to-draw-text-with-gdi
 
-struct BOUNDS
-{
-	POINT pt;
-	SIZE sz;
-};
 
 
 // device contexts are assumed to be manipulated only with the same UI thread.  (Does not call GdiFlush())
 
-class device_context : public object, public canvas
+class device_context : public object, public gfx::canvas
 {
 public:
 	class gdi_plus_scope
@@ -120,9 +138,9 @@ protected:
 	void draw_bitmask_inner(const gdi::bitmap& src, const BOUNDS& srcBounds, const BOUNDS& dstBounds, const color& fore, const color& back, bool blendForeAlpha, bool blendBackAlpha);
 
 public:
-	class font : public canvas::font
+	class font : public gfx::font
 	{
-	public:
+	private:
 		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
 		{
 		private:
@@ -165,125 +183,152 @@ public:
 		};
 
 		rcref<device_context> m_deviceContext;
-		gfx::font m_gfxFont;
+		gfx::font_parameters_list m_fontParmsLists;
 		mutable std::unique_ptr<gdiplus_font> m_GdiplusFont;
 		mutable auto_HFONT m_HFONT;
 		mutable double m_savedDpi;
 
 		friend class device_context;
 
-		// Uses prioritized list of font names to find best match font.
-		// If no match is found, name of default font is returned.
-		static const composite_string& resolve(const vector<composite_string>& fontNames)
-		{
-			size_t numFontNames = fontNames.get_length();
-			composite_string fontName;
-			for (size_t i = 0; i < numFontNames; i++)
-			{
-				auto itor = singleton<fontlist>::get()->find_equal(fontNames[i]);
-				if (!!itor)
-					return *itor; // Use case from font list, just in case.  ha
-			}
-			return singleton<default_font>::get()->get_font_names()[0];
-		}
-
-		void create_gdi_fonts(double dpi) const
+		void update_font(double dpi) const
 		{
 			COGS_ASSERT(!!m_deviceContext->m_hDC);
+			gfx::font_parameters default_font_params = get_default_font();
 
-			int fontStyle = (int)Gdiplus::FontStyleRegular;
-			if (m_gfxFont.is_italic())
-				fontStyle |= (int)Gdiplus::FontStyleItalic;
-			if (m_gfxFont.is_underlined())
-				fontStyle |= (int)Gdiplus::FontStyleUnderline;
-			if (m_gfxFont.is_bold())
-				fontStyle |= (int)Gdiplus::FontStyleBold;
-			if (m_gfxFont.is_strike_out())
-				fontStyle |= (int)Gdiplus::FontStyleStrikeout;
+			auto update = [&](const gfx::font_parameters& fp)
+			{
+				int fontStyle = (int)Gdiplus::FontStyleRegular;
+				if (fp.isItalic)
+					fontStyle |= (int)Gdiplus::FontStyleItalic;
+				if (fp.isUnderlined)
+					fontStyle |= (int)Gdiplus::FontStyleUnderline;
+				if (fp.isBold)
+					fontStyle |= (int)Gdiplus::FontStyleBold;
+				if (fp.isStrikeOut)
+					fontStyle |= (int)Gdiplus::FontStyleStrikeout;
 
-			gfx::font defaultFont = m_deviceContext->get_default_font();
-			double pt = m_gfxFont.get_point_size();
-			if (pt == 0)
-				pt = defaultFont.get_point_size();
+				double pt = fp.pointSize;
+				if (pt == 0)
+					pt = default_font_params.pointSize;
 
-			// convert pt to pixels
-			if (!!dpi)
-				m_savedDpi = dpi;
+				// convert pt to pixels
+				if (!!dpi)
+					m_savedDpi = dpi;
+				else
+					m_savedDpi = dip_dpi;
+				double pixels = pixels = (dpi * pt) / 72;
+
+				m_GdiplusFont = std::make_unique<gdiplus_font>(
+					fp.fontName.composite().cstr(),
+					(Gdiplus::REAL)pixels,
+					fontStyle,
+					Gdiplus::UnitPixel);
+
+				Gdiplus::Graphics gfx(m_deviceContext->m_hDC);
+				LOGFONT logFont = {};
+				Gdiplus::Status status = m_GdiplusFont->m_font.GetLogFontW(&gfx, &logFont);
+				COGS_ASSERT(status == Gdiplus::Status::Ok);
+				(void)status;
+				m_HFONT = CreateFontIndirect(&logFont);
+			};
+
+			for (const auto& font_params : m_fontParmsLists)
+			{
+				if (font_params.fontName.is_empty())
+				{
+					// Blank font name implies default font, but override point size and merge style.
+					auto fp = default_font_params;
+					fp.pointSize = font_params.pointSize;
+					fp.isItalic |= font_params.isItalic;
+					fp.isBold |= font_params.isBold;
+					fp.isUnderlined |= font_params.isUnderlined;
+					fp.isStrikeOut |= font_params.isStrikeOut;
+					update(fp);
+					return;
+				}
+
+				auto itor = singleton<fontlist>::get()->find_equal(font_params.fontName);
+				if (!itor)
+					continue;
+				update(font_params);
+				return;
+			}
+			if (m_fontParmsLists.size() > 0)
+			{
+				// If failing to find the font, use the first entry, but with the default font name.
+				gfx::font_parameters params = *m_fontParmsLists.get_first();
+				params.fontName = default_font_params.fontName;
+				update(params);
+			}
 			else
-				m_savedDpi = dip_dpi;
-			double pixels = pixels = (dpi * pt) / 72;
-
-			composite_string fontName = resolve(m_gfxFont.get_font_names());
-			if (!fontName)
-				fontName = defaultFont.get_font_names()[0];
-
-			m_GdiplusFont = std::make_unique<gdiplus_font>(
-				fontName.composite().cstr(),
-				(Gdiplus::REAL)pixels,
-				fontStyle,
-				Gdiplus::UnitPixel);
-
-			Gdiplus::Graphics gfx(m_deviceContext->m_hDC);
-			LOGFONT logFont = {};
-			Gdiplus::Status status = m_GdiplusFont->m_font.GetLogFontW(&gfx, &logFont);
-			COGS_ASSERT(status == Gdiplus::Status::Ok);
-			m_HFONT = CreateFontIndirect(&logFont);
+				update(default_font_params);
 		}
 
 		void handle_dpi_change() const
 		{
 			double newDpi = m_deviceContext->get_dpi();
 			if (newDpi != m_savedDpi)
-				create_gdi_fonts(newDpi);
+				update_font(newDpi);
 		}
 
 	public:
-		font(const gfx::font& gfxFont, const rcref<device_context>& dc)
-			: m_deviceContext(dc),
-			m_gfxFont(gfxFont)
+		static gfx::font_parameters get_default_font()
 		{
-			create_gdi_fonts(m_deviceContext->get_dpi());
+			gfx::font_parameters fp;
+
+			// Load default font
+			NONCLIENTMETRICS ncm;
+			ncm.cbSize = sizeof(NONCLIENTMETRICS);
+			SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
+
+			string s = ncm.lfMessageFont.lfFaceName;
+			fp.fontName = s;
+			fp.pointSize = -ncm.lfMessageFont.lfHeight;
+			fp.isItalic = ncm.lfMessageFont.lfItalic != 0;
+			fp.isBold = ncm.lfMessageFont.lfWeight >= 700;
+			fp.isUnderlined = ncm.lfMessageFont.lfUnderline != 0;
+			fp.isStrikeOut = ncm.lfMessageFont.lfStrikeOut != 0;
+			return fp;
+		}
+
+		static string get_default_font_name()
+		{
+			// Load default font
+			NONCLIENTMETRICS ncm;
+			ncm.cbSize = sizeof(NONCLIENTMETRICS);
+			SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
+
+			return ncm.lfMessageFont.lfFaceName;
+		}
+
+
+		font(const gfx::font_parameters_list& fontParmsLists, const rcref<device_context>& dc)
+			: m_deviceContext(dc),
+			m_fontParmsLists(fontParmsLists)
+		{
+			update_font(m_deviceContext->get_dpi());
 		}
 
 		HFONT get_HFONT() const { return *m_HFONT; }
 
-		virtual font::metrics get_metrics() const
+		virtual gfx::font::metrics get_metrics() const
 		{
 			handle_dpi_change();
 			return m_deviceContext->get_font_metrics(*this);
 		}
 
-		virtual canvas::size calc_text_bounds(const composite_string& s) const
+		virtual gfx::size calc_text_bounds(const composite_string& s) const
 		{
 			handle_dpi_change();
 			return m_deviceContext->calc_text_bounds(s, *this);
 		}
 	};
 
-	class default_font : public gfx::font
-	{
-	public:
-		default_font()
-		{
-			// Load default font
-			NONCLIENTMETRICS ncm;
-			ncm.cbSize = sizeof(NONCLIENTMETRICS);// -sizeof(ncm.iPaddedBorderWidth);?
-			SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0, dip_dpi);
-
-			append_font_name(ncm.lfMessageFont.lfFaceName);
-			set_italic(ncm.lfMessageFont.lfItalic != 0);
-			set_bold(ncm.lfMessageFont.lfWeight >= 700);
-			set_underlined(ncm.lfMessageFont.lfUnderline != 0);
-			set_strike_out(ncm.lfMessageFont.lfStrikeOut != 0);
-			set_point_size(-ncm.lfMessageFont.lfHeight);
-		}
-	};
-
 private:
-	canvas::font::metrics get_font_metrics(const font& f) const
+	gfx::font::metrics get_font_metrics(const font& f) const
 	{
 		COGS_ASSERT(!!m_hDC);
-		canvas::font::metrics result = {};
+		gfx::font::metrics result = {};
 
 #if COGS_RENDER_GDIPLUS_FONTS
 		Gdiplus::FontFamily ff;
@@ -312,10 +357,10 @@ private:
 		return result;
 	}
 
-	canvas::size calc_text_bounds(const composite_string& s, const font& f) const
+	gfx::size calc_text_bounds(const composite_string& s, const font& f) const
 	{
 		COGS_ASSERT(!!m_hDC);
-		canvas::size result(0, 0);
+		gfx::size result(0, 0);
 		if (!!s)
 		{
 			string s2 = s.composite();
@@ -393,7 +438,7 @@ public:
 
 	double get_scale() const { return m_scale; }
 
-	virtual void fill(const canvas::bounds& b, const color& c, bool blendAlpha = true)
+	virtual void fill(const gfx::bounds& b, const color& c, bool blendAlpha = true)
 	{
 		if (!blendAlpha || !c.is_fully_transparent())
 		{
@@ -404,18 +449,18 @@ public:
 				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
 			else
 				gfx.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
-			gfx.FillRectangle(&solidBrush, b2.pt.x, b2.pt.y, b2.sz.cx, b2.sz.cy);
+			gfx.FillRectangle(&solidBrush, (INT)b2.pt.x, (INT)b2.pt.y, (INT)b2.sz.cx, (INT)b2.sz.cy);
 		}
 	}
 
-	virtual void invert(const canvas::bounds& b)
+	virtual void invert(const gfx::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
 		RECT r = make_RECT(b);
 		InvertRect(m_hDC, &r);
 	}
 
-	virtual void draw_line(const canvas::point& startPt, const canvas::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
+	virtual void draw_line(const gfx::point& startPt, const gfx::point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true)
 	{
 		COGS_ASSERT(!!m_hDC);
 
@@ -442,18 +487,23 @@ public:
 	}
 
 	// text and font primatives
-	virtual rcref<canvas::font> load_font(const gfx::font& f)
+	virtual rcref<gfx::font> load_font(const gfx::font_parameters_list& f)
 	{
 		COGS_ASSERT(!!m_hDC);
 		return rcnew(font)(f, this_rcref);
 	}
 
-	virtual gfx::font get_default_font() const
+	virtual string get_default_font_name() const
 	{
-		return *singleton<default_font>::get();
+		return font::get_default_font_name();
 	}
 
-	virtual void draw_text(const composite_string& s, const canvas::bounds& b, const rcptr<canvas::font>& f, const color& c = color::constant::black)
+	static gfx::font_parameters get_default_font()
+	{
+		return font::get_default_font();
+	}
+
+	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f, const color& c = color::constant::black)
 	{
 		COGS_ASSERT(!!m_hDC);
 		if (!!s)
@@ -507,7 +557,7 @@ public:
 			};
 
 			if (!f)
-				inner(*load_font(gfx::font()).template static_cast_to<font>());
+				inner(*load_font(gfx::font_parameters_list()).template static_cast_to<font>());
 			else
 			{
 				font* f4 = static_cast<font*>(f.get_ptr());
@@ -517,23 +567,23 @@ public:
 		}
 	}
 
-	virtual void draw_bitmap(const canvas::bitmap& src, const canvas::bounds& srcBounds, const canvas::bounds& dstBounds, bool blendAlpha = true);
-	virtual void draw_bitmask(const canvas::bitmask& msk, const canvas::bounds& mskBounds, const canvas::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
-	virtual void mask_out(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool inverted = false);
-	virtual void draw_bitmap_with_bitmask(const canvas::bitmap& src, const bounds& srcBounds, const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
+	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true);
+	virtual void draw_bitmask(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, const color& fore = color::constant::black, const color& back = color::constant::white, bool blendForeAlpha = true, bool blendBackAlpha = true);
+	virtual void mask_out(const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool inverted = false);
+	virtual void draw_bitmap_with_bitmask(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bitmask& msk, const gfx::bounds& mskBounds, const gfx::bounds& dstBounds, bool blendAlpha = true, bool inverted = false);
 
-	virtual rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor = std::nullopt)
+	virtual rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor = std::nullopt)
 	{
 		return create_bitmap(sz, fillColor, dip_dpi);
 	}
 
-	virtual rcref<canvas::bitmap> load_bitmap(const composite_string& location);
+	virtual rcref<gfx::bitmap> load_bitmap(const composite_string& location);
 
-	virtual rcref<bitmask> create_bitmask(const canvas::size& sz, std::optional<bool> value = std::nullopt);
+	virtual rcref<gfx::bitmask> create_bitmask(const gfx::size& sz, std::optional<bool> value = std::nullopt);
 
-	virtual rcref<canvas::bitmask> load_bitmask(const composite_string& location);
+	virtual rcref<gfx::bitmask> load_bitmask(const composite_string& location);
 
-	rcref<canvas::bitmap> create_bitmap(const canvas::size& sz, std::optional<color> fillColor, double dpi);
+	rcref<gfx::bitmap> create_bitmap(const gfx::size& sz, std::optional<color> fillColor, double dpi);
 
 	// DPI must not change while a clip is in effect.
 	// So, for UI drawing, clipping should only be used from a draw function (which is called within WM_PAINT)
@@ -561,7 +611,7 @@ public:
 			DeleteObject(savedClip);
 	}
 
-	canvas::bounds get_current_clip()
+	gfx::bounds get_current_clip()
 	{
 		COGS_ASSERT(!!m_hDC);
 		RECT r;
@@ -569,21 +619,21 @@ public:
 		return make_bounds(r);
 	}
 
-	virtual void clip_out(const canvas::bounds& b)
+	virtual void clip_out(const gfx::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
 		RECT r = make_RECT(b);
 		ExcludeClipRect(m_hDC, r.left, r.top, r.right, r.bottom);
 	}
 
-	virtual void clip_to(const canvas::bounds& b)
+	virtual void clip_to(const gfx::bounds& b)
 	{
 		COGS_ASSERT(!!m_hDC);
 		RECT r = make_RECT(b);
 		IntersectClipRect(m_hDC, r.left, r.top, r.right, r.bottom);
 	}
 
-	virtual bool is_unclipped(const canvas::bounds& b) const
+	virtual bool is_unclipped(const gfx::bounds& b) const
 	{
 		COGS_ASSERT(!!m_hDC);
 		if (!b.get_height() || !b.get_width())
@@ -610,12 +660,9 @@ public:
 	}
 
 	// Only use when position is known to be 0,0
-	SIZE make_SIZE(const canvas::size& sz) const
+	SIZE make_SIZE(const gfx::size& sz) const
 	{
-		SIZE sz2;
-		sz2.cx = (LONG)std::lround(m_scale * sz.get_width());
-		sz2.cy = (LONG)std::lround(m_scale * sz.get_height());
-		return sz2;
+		return SIZE{ (LONG)std::lround(m_scale * sz.get_width()), (LONG)std::lround(m_scale * sz.get_height()) };
 	}
 
 	LONG make_POINT(double i) const
@@ -623,43 +670,23 @@ public:
 		return (LONG)std::lround(m_scale * i);
 	}
 
-	POINT make_POINT(const canvas::point& pt) const
+	POINT make_POINT(const gfx::point& pt) const
 	{
-		POINT pt2;
-		pt2.x = (LONG)std::lround(m_scale * pt.get_x());
-		pt2.y = (LONG)std::lround(m_scale * pt.get_y());
-		return pt2;
+		return POINT{ (LONG)std::lround(m_scale * pt.get_x()), (LONG)std::lround(m_scale * pt.get_y()) };
 	}
 
-	POINT make_POINT(const canvas::bounds& b) const
+	POINT make_POINT(const gfx::bounds& b) const
 	{
 		return make_POINT(b.calc_position());
 	}
 
-	RECT make_RECT(const canvas::bounds& b) const
+	RECT make_RECT(const gfx::bounds& b) const
 	{
-		canvas::bounds b1 = b.normalized();
-		RECT r2;
-		r2.left = (LONG)std::lround(m_scale * b1.get_position().get_x());
-		r2.top = (LONG)std::lround(m_scale * b1.get_position().get_y());
-		r2.right = (LONG)std::lround(m_scale * (b1.get_position().get_x() + b1.get_size().get_width()));
-		r2.bottom = (LONG)std::lround(m_scale * (b1.get_position().get_y() + b1.get_size().get_height()));
-		return r2;
+		gfx::bounds b2 = b.normalized();
+		return make_RECT(b2.get_position(), b2.get_size());
 	}
 
-	// grows to include all pixels that could potentially overlap, so rounds position down and size up
-	RECT make_invalid_RECT(const canvas::bounds& b) const
-	{
-		canvas::bounds b1 = b.normalized();
-		RECT r2;
-		r2.left = (LONG)std::floor(m_scale * b1.get_position().get_x());
-		r2.top = (LONG)std::floor(m_scale * b1.get_position().get_y());
-		r2.right = (LONG)std::ceil(m_scale * (b1.get_position().get_x() + b1.get_size().get_width()));
-		r2.bottom = (LONG)std::ceil(m_scale * (b1.get_position().get_y() + b1.get_size().get_height()));
-		return r2;
-	}
-
-	RECT make_RECT(const canvas::point& pt, const canvas::size& sz) const
+	RECT make_RECT(const gfx::point& pt, const gfx::size& sz) const
 	{
 		RECT r2;
 		r2.left = (LONG)std::lround(m_scale * pt.get_x());
@@ -669,21 +696,31 @@ public:
 		return r2;
 	}
 
-	BOUNDS make_BOUNDS(const canvas::point& pt, const canvas::size& sz) const
+	// grows to include all pixels that could potentially overlap, so rounds position down and size up
+	RECT make_invalid_RECT(const gfx::bounds& b) const
 	{
-		RECT r = make_RECT(pt, sz);
-		BOUNDS b;
-		b.pt.x = r.left;
-		b.pt.y = r.top;
-		b.sz.cx = r.right - r.left;
-		b.sz.cy = r.bottom - r.top;
-		return b;
+		gfx::bounds b2 = b.normalized();
+		return make_invalid_RECT(b2.get_position(), b2.get_size());
 	}
 
-	BOUNDS make_BOUNDS(const canvas::bounds& b) const
+	RECT make_invalid_RECT(const gfx::point& pt, const gfx::size& sz) const
 	{
-		canvas::bounds b2 = b.normalized();
-		return make_BOUNDS(b2.get_position(), b2.get_size());
+		RECT r2;
+		r2.left = (LONG)std::floor(m_scale * pt.get_x());
+		r2.top = (LONG)std::floor(m_scale * pt.get_y());
+		r2.right = (LONG)std::ceil(m_scale * (pt.get_x() + sz.get_width()));
+		r2.bottom = (LONG)std::ceil(m_scale * (pt.get_y() + sz.get_height()));
+		return r2;
+	}
+
+	BOUNDS make_BOUNDS(const gfx::point& pt, const gfx::size& sz) const
+	{
+		return os::make_BOUNDS(make_RECT(pt, sz));
+	}
+
+	BOUNDS make_BOUNDS(const gfx::bounds& b) const
+	{
+		return os::make_BOUNDS(make_RECT(b));
 	}
 
 	double make_point(LONG i) const
@@ -691,75 +728,55 @@ public:
 		return i / m_scale;
 	}
 
-
-	canvas::point make_point(const POINT& pt) const
+	gfx::point make_point(const POINT& pt) const
 	{
-		return canvas::point(pt.x / m_scale, pt.y / m_scale);
+		return gfx::point(pt.x / m_scale, pt.y / m_scale);
 	}
 
-	canvas::point make_point(const RECT& r) const
+	gfx::point make_point(const RECT& r) const
 	{
-		return canvas::point(r.left / m_scale, r.top / m_scale);
+		return gfx::point(r.left / m_scale, r.top / m_scale);
 	}
-
 
 	double make_size(LONG i) const
 	{
 		return i / m_scale;
 	}
 
-	canvas::size make_size(const SIZE& sz) const
+	gfx::size make_size(const SIZE& sz) const
 	{
-		return canvas::size(sz.cx / m_scale, sz.cy / m_scale);
+		return gfx::size(sz.cx / m_scale, sz.cy / m_scale);
 	}
 
-	canvas::size make_size(const RECT& r) const
+	gfx::size make_size(const RECT& r) const
 	{
-		return canvas::size((r.right - r.left) / m_scale, (r.bottom - r.top) / m_scale);
-	}
-
-	canvas::size make_size(const Gdiplus::SizeF& sz) const
-	{
-		return canvas::size(sz.Width / m_scale, sz.Height / m_scale);
-	}
-
-
-	canvas::bounds make_bounds(const POINT& pt, const SIZE& sz) const
-	{
-		return canvas::bounds(make_point(pt), make_size(sz));
-	}
-
-	canvas::bounds make_bounds(const BOUNDS& b) const
-	{
-		return canvas::bounds(make_point(b.pt), make_size(b.sz));
-	}
-
-	canvas::bounds make_bounds(const RECT& r) const
-	{
-		POINT pt = { r.left, r.right };
 		SIZE sz = { r.right - r.left, r.bottom - r.top };
-		return make_bounds(pt, sz);
+		return make_size(sz);
+	}
+
+	gfx::size make_size(const Gdiplus::SizeF& sz) const
+	{
+		return gfx::size(sz.Width / m_scale, sz.Height / m_scale);
 	}
 
 
-	static BOUNDS make_BOUNDS(const RECT& r)
+	gfx::bounds make_bounds(const POINT& pt, const SIZE& sz) const
 	{
-		BOUNDS b;
-		b.pt.x = r.left;
-		b.pt.y = r.right;
-		b.sz.cx = r.right - r.left;
-		b.sz.cy = r.bottom - r.top;
-		return b;
+		return gfx::bounds(make_point(pt), make_size(sz));
 	}
 
-	static COLORREF make_COLORREF(const color& c)
+	gfx::bounds make_bounds(const BOUNDS& b) const
 	{
-		return RGB(c.get_red(), c.get_green(), c.get_blue());
+		return gfx::bounds(make_point(b.pt), make_size(b.sz));
+	}
+
+	gfx::bounds make_bounds(const RECT& r) const
+	{
+		return make_bounds(os::make_POINT(r), os::make_SIZE(r));
 	}
 };
 
 
-}
 }
 }
 }

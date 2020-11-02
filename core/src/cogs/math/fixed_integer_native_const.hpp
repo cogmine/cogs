@@ -99,7 +99,7 @@ public:
 
 	static constexpr bool is_const_negative = !has_sign ? false : (value < 0);
 	static constexpr bool is_const_exponent_of_two = is_const_negative
-		? ((-(std::make_signed_t<int_t>)value & ((longest)~(ulongest)-(std::make_signed_t<int_t>)value + 1)) == -(std::make_signed_t<int_t>)value)
+		? ((-(make_signed_t<int_t>)value & ((longest)~(ulongest)-(make_signed_t<int_t>)value + 1)) == -(make_signed_t<int_t>)value)
 		: ((value & ((longest)~value + 1)) == value);
 
 	typedef fixed_integer_extended_const<is_const_negative, bits, (ulongest)value> as_extended_t;
@@ -118,27 +118,7 @@ public:
 	typedef fixed_integer_native_const<is_const_negative, reduced_bits, reduced_value> reduced_t;
 
 private:
-	template <std::make_unsigned_t<int_t> scan_value, bool unused = true>
-	class bit_scan_forward_helper
-	{
-	public:
-		static constexpr size_t value = ((scan_value & 1) == 1) ? 0 : (1 + bit_scan_forward_helper<(scan_value >> 1)>::value);
-	};
-
-	template <bool unused> class bit_scan_forward_helper<0, unused> { public: static constexpr size_t value = 0; };
-	template <bool unused> class bit_scan_forward_helper<1, unused> { public: static constexpr size_t value = 0; };
-
-	template <std::make_unsigned_t<int_t> scan_value, bool unused = true>
-	class bit_scan_reverse_helper
-	{
-	public:
-		static constexpr size_t value = 1 + bit_scan_reverse_helper<(scan_value >> 1)>::value;
-	};
-
-	template <bool unused> class bit_scan_reverse_helper<0, unused> { public: static constexpr size_t value = 0; };
-	template <bool unused> class bit_scan_reverse_helper<1, unused> { public: static constexpr size_t value = 0; };
-
-	template <std::make_unsigned_t<int_t> count_value, bool unused = true>
+	template <make_unsigned_t<int_t> count_value, bool unused = true>
 	class bit_count_helper
 	{
 	public:
@@ -149,14 +129,33 @@ private:
 	class bit_count_helper<0, unused> { public: static constexpr size_t value = 0; };
 
 
+	template <make_unsigned_t<int_t> scan_value, bool unused = true>
+	class bit_scan_forward_helper
+	{
+	public:
+		static constexpr size_t value = ((scan_value & 1) == 1) ? 0 : (1 + bit_scan_forward_helper<(scan_value >> 1)>::value);
+	};
+
+	template <bool unused> class bit_scan_forward_helper<0, unused> { }; // error
+	template <bool unused> class bit_scan_forward_helper<1, unused> { public: static constexpr size_t value = 0; };
+
+	template <make_unsigned_t<int_t> scan_value, bool unused = true>
+	class bit_scan_reverse_helper
+	{
+	public:
+		static constexpr size_t value = 1 + bit_scan_reverse_helper<(scan_value >> 1)>::value;
+	};
+
+	template <bool unused> class bit_scan_reverse_helper<0, unused> { }; // error
+	template <bool unused> class bit_scan_reverse_helper<1, unused> { public: static constexpr size_t value = 0; };
+
+
 public:
 	static constexpr reduced_int_t int_value = (reduced_int_t)value;
 
 	typedef fixed_integer_native<is_const_negative, (reduced_bits == 0 ? 1 : reduced_bits)> non_const_t;
 
-	static constexpr size_t const_bit_scan_forward = bit_scan_forward_helper<(std::make_unsigned_t<int_t>)value>::value;
-	static constexpr size_t const_bit_scan_reverse = bit_scan_reverse_helper<(std::make_unsigned_t<int_t>)value>::value;
-	static constexpr size_t const_bit_count = bit_count_helper<(std::make_unsigned_t<int_t>)value>::value;
+	static constexpr size_t const_bit_count = bit_count_helper<(make_unsigned_t<int_t>)value>::value;
 
 	typedef std::conditional_t<
 		std::is_same_v<this_t, fixed_integer_native_const<false, (sizeof(ulongest) * 8), (ulongest)-1> >,
@@ -168,8 +167,6 @@ public:
 		>
 	> negative_t;
 
-	//fixed_integer_native_const<!is_const_negative, is_const_negative ? a : b, c> > negative_t;
-	//typedef typename as_extended_t::negative_t negative_t;
 	typedef std::conditional_t<is_const_negative, negative_t, reduced_t> abs_t;
 
 	fixed_integer_native_const() { }
@@ -216,9 +213,19 @@ public:
 
 	constexpr size_t bit_count() const volatile { return const_bit_count; }
 
-	constexpr size_t bit_scan_forward() const volatile { return const_bit_scan_forward; }
+	constexpr size_t bit_scan_forward() const volatile
+	{
+		static_assert(!is_const_zero);
+		return bit_scan_forward_helper<(make_unsigned_t<int_t>)value>::value;
+		//return const_bit_scan_forward;
+	}
 
-	constexpr size_t bit_scan_reverse() const volatile { return const_bit_scan_reverse; }
+	constexpr size_t bit_scan_reverse() const volatile
+	{
+		static_assert(!is_const_zero);
+		return bit_scan_reverse_helper<(make_unsigned_t<int_t>)value>::value;
+		//return const_bit_scan_reverse;
+	}
 
 	auto next() const volatile { return *this + one_t(); }
 	auto prev() const volatile { return *this - one_t(); }
@@ -259,9 +266,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto bit_rotate_right(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.bit_rotate_right(src); }
 	template <bool has_sign2, size_t bits2> auto bit_rotate_right(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.bit_rotate_right(src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto bit_rotate_right(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return bit_rotate_right(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto bit_rotate_right(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return bit_rotate_right(tmp); }
 
 
@@ -299,9 +306,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto bit_rotate_left(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.bit_rotate_left(src); }
 	template <bool has_sign2, size_t bits2> auto bit_rotate_left(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.bit_rotate_left(src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto bit_rotate_left(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return bit_rotate_left(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto bit_rotate_left(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return bit_rotate_left(tmp); }
 
 
@@ -331,9 +338,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator>>(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.operator>>(src); }
 	template <bool has_sign2, size_t bits2> auto operator>>(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.operator>>(src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator>>(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>>(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator>>(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator>>(tmp); }
 
 
@@ -365,9 +372,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator<<(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.operator<<(src); }
 	template <bool has_sign2, size_t bits2> auto operator<<(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { non_const_t tmp(*this); return tmp.operator<<(src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator<<(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<<(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator<<(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator<<(tmp); }
 
 
@@ -413,9 +420,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator|(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src | *this; }
 	template <bool has_sign2, size_t bits2> auto operator|(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src | *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator|(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator|(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator|(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator|(tmp); }
 
 	// bit_and
@@ -460,9 +467,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator&(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src & *this; }
 	template <bool has_sign2, size_t bits2> auto operator&(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src & *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator&(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator&(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator&(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator&(tmp); }
 
 	// bit_xor
@@ -507,9 +514,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto operator^(const fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src ^ *this; }
 	template <bool has_sign2, size_t bits2> auto operator^(const volatile fixed_integer_extended<has_sign2, bits2>& src) const volatile { return src ^ *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator^(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator^(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator^(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator^(tmp); }
 
 	// add
@@ -574,9 +581,9 @@ public:
 	auto operator+(const dynamic_integer& src) const volatile;// { return src.operator+(*this); }
 	auto operator+(const volatile dynamic_integer& src) const volatile;// { return src.operator+(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator+(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator+(tmp); }
 
 	// subtract
@@ -611,9 +618,9 @@ public:
 	auto operator-(const dynamic_integer& src) const volatile;// { return src.inverse_subtract(*this); }
 	auto operator-(const volatile dynamic_integer& src) const volatile;// { return src.inverse_subtract(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator-(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator-(tmp); }
 
 	// inverse_subtract
@@ -648,9 +655,9 @@ public:
 	auto inverse_subtract(const dynamic_integer& src) const volatile;// { return src - *this; }
 	auto inverse_subtract(const volatile dynamic_integer& src) const volatile;// { return src - *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_subtract(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_subtract(tmp); }
 
 	// multiply
@@ -714,9 +721,9 @@ public:
 	auto operator*(const dynamic_integer& src) const volatile;// { return src.operator*(*this); }
 	auto operator*(const volatile dynamic_integer& src) const volatile;// { return src.operator*(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator*(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator*(tmp); }
 
 	// modulo
@@ -751,9 +758,9 @@ public:
 	auto operator%(const dynamic_integer& src) const volatile;// { return src.inverse_modulo(*this); }
 	auto operator%(const volatile dynamic_integer& src) const volatile;// { return src.inverse_modulo(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator%(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return operator%(tmp); }
 
 	// inverse_modulo
@@ -788,9 +795,9 @@ public:
 	auto inverse_modulo(const dynamic_integer& src) const volatile;// { return src % *this; }
 	auto inverse_modulo(const volatile dynamic_integer& src) const volatile;// { return src % *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_modulo(tmp); }
 
 	// get_ratio
@@ -842,9 +849,9 @@ public:
 
 	auto operator/(const volatile dynamic_integer& src) const volatile;// { return fraction<reduced_t, dynamic_integer>(*this, src); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const int_t2& i) const volatile { return fraction<reduced_t, int_t2>(*this, i); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto operator/(const volatile int_t2& i) const volatile { return fraction<reduced_t, int_t2>(*this, i); }
 
 	// reciprocal
@@ -899,9 +906,9 @@ public:
 
 	auto inverse_divide(const volatile dynamic_integer& src) const volatile;//{ return fraction<dynamic_integer, reduced_t>(src, *this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const int_t2& i) const volatile { return fraction<reduced_t, int_t2>(*this, i); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide(const volatile int_t2& i) const volatile { return fraction<reduced_t, int_t2>(*this, i); }
 
 
@@ -950,9 +957,9 @@ public:
 	auto divide_whole(const dynamic_integer& src) const volatile;// { return src.inverse_divide_whole(*this); }
 	auto divide_whole(const volatile dynamic_integer& src) const volatile;// { return src.inverse_divide_whole(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole(tmp); }
 
 	// inverse_divide_whole
@@ -995,9 +1002,9 @@ public:
 	auto inverse_divide_whole(const dynamic_integer& src) const volatile;// { return src.divide_whole(*this); }
 	auto inverse_divide_whole(const volatile dynamic_integer& src) const volatile;// { return src.divide_whole(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto inverse_divide_whole(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return inverse_divide_whole(tmp); }
 
 	// divide_whole_and_modulo
@@ -1032,9 +1039,9 @@ public:
 	auto divide_whole_and_modulo(const dynamic_integer& src) const volatile;// { return src.inverse_divide_whole_and_inverse_modulo(*this); }
 	auto divide_whole_and_modulo(const volatile dynamic_integer& src) const volatile;// { return src.inverse_divide_whole_and_inverse_modulo(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto divide_whole_and_modulo(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return divide_whole_and_modulo(tmp); }
 
 	// gcd
@@ -1071,9 +1078,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto gcd(const dynamic_integer& t2) const volatile;// { return t2.gcd(*this); }
 	template <bool has_sign2, size_t bits2> auto gcd(const volatile dynamic_integer& t2) const volatile;// { return t2.gcd(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto gcd(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return gcd(tmp); }
 
 	// lcm
@@ -1110,9 +1117,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto lcm(const dynamic_integer& t2) const volatile;// { return t2.lcm(*this); }
 	template <bool has_sign2, size_t bits2> auto lcm(const volatile dynamic_integer& t2) const volatile;// { return t2.lcm(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lcm(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lcm(tmp); }
 
 	// greater
@@ -1151,9 +1158,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto greater(const dynamic_integer& t2) const volatile;// { return t2.greater(*this); }
 	template <bool has_sign2, size_t bits2> auto greater(const volatile dynamic_integer& t2) const volatile;// { return t2.greater(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto greater(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return greater(tmp); }
 
 
@@ -1193,9 +1200,9 @@ public:
 	template <bool has_sign2, size_t bits2> auto lesser(const dynamic_integer& t2) const volatile;// { return t2.lesser(*this); }
 	template <bool has_sign2, size_t bits2> auto lesser(const volatile dynamic_integer& t2) const volatile;// { return t2.lesser(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	auto lesser(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return lesser(tmp); }
 
 
@@ -1231,9 +1238,9 @@ public:
 	bool operator==(const dynamic_integer& cmp) const volatile;// { return cmp == *this; }
 	bool operator==(const volatile dynamic_integer& cmp) const volatile;// { return cmp == *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this == tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator==(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this == tmp; }
 
 	// not_equals
@@ -1268,9 +1275,9 @@ public:
 	bool operator!=(const dynamic_integer& cmp) const volatile;// { return cmp != *this; }
 	bool operator!=(const volatile dynamic_integer& cmp) const volatile;// { return cmp != *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this != tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator!=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this != tmp; }
 
 	// is_less_than
@@ -1305,9 +1312,9 @@ public:
 	bool operator<(const dynamic_integer& cmp) const volatile;// { return cmp > *this; }
 	bool operator<(const volatile dynamic_integer& cmp) const volatile;// { return cmp > *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this < tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this < tmp; }
 
 	// is_greater_than
@@ -1342,9 +1349,9 @@ public:
 	bool operator>(const dynamic_integer& cmp) const volatile;// { return cmp < *this; }
 	bool operator>(const volatile dynamic_integer& cmp) const volatile;// { return cmp < *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this > tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this > tmp; }
 
 	// is_less_than_or_equal
@@ -1379,9 +1386,9 @@ public:
 	bool operator<=(const dynamic_integer& cmp) const volatile;// { return cmp >= *this; }
 	bool operator<=(const volatile dynamic_integer& cmp) const volatile;// { return cmp >= *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this <= tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator<=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this <= tmp; }
 
 	// is_greater_than_or_equal
@@ -1416,9 +1423,9 @@ public:
 	bool operator>=(const dynamic_integer& cmp) const volatile;// { return cmp <= *this; }
 	bool operator>=(const volatile dynamic_integer& cmp) const volatile;// { return cmp <= *this; }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this >= tmp; }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	bool operator>=(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return *this >= tmp; }
 
 	// compare
@@ -1458,9 +1465,9 @@ public:
 	int compare(const dynamic_integer& cmp) const volatile;// { return -cmp.compare(*this); }
 	int compare(const volatile dynamic_integer& cmp) const volatile;// { return -cmp.compare(*this); }
 
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
-	template <typename int_t2, typename = std::enable_if_t<std::is_integral_v<int_t2> > >
+	template <typename int_t2, typename = std::enable_if_t<is_integral_v<int_t2> > >
 	int compare(const volatile int_t2& i) const volatile { int_to_fixed_integer_t<int_t2> tmp(i); return compare(tmp); }
 
 	bool test_bit(size_t i) const volatile { return (get_int() & ((int_t)((int_t)1 << i))) != 0; }
@@ -1530,13 +1537,13 @@ struct compatible<fixed_integer_native_const<has_sign1, bits1, value1>, fixed_in
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-struct compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_t2, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_t2, std::enable_if_t<is_integral_v<int_t2> > >
 	: public compatible<fixed_integer_native_const<has_sign2, bits2, value2>, int_to_fixed_integer_t<int_t2> >
 {
 };
 
 template <typename int_t2, bool has_sign2, size_t bits2, bits_to_int_t<bits2, has_sign2> value2>
-struct compatible<int_t2, fixed_integer_native_const<has_sign2, bits2, value2>, std::enable_if_t<std::is_integral_v<int_t2> > >
+struct compatible<int_t2, fixed_integer_native_const<has_sign2, bits2, value2>, std::enable_if_t<is_integral_v<int_t2> > >
 	: public compatible<int_to_fixed_integer_t<int_t2>, fixed_integer_native_const<has_sign2, bits2, value2> >
 {
 };

@@ -19,8 +19,10 @@
 #include "cogs/geometry/size.hpp"
 #include "cogs/geometry/point.hpp"
 #include "cogs/geometry/margin.hpp"
+#include "cogs/gfx/canvas.hpp"
 #include "cogs/math/dynamic_integer.hpp"
 #include "cogs/math/fraction.hpp"
+#include "cogs/mem/flag_enum.hpp"
 
 
 namespace cogs {
@@ -28,10 +30,30 @@ namespace geometry {
 namespace planar {
 
 
+enum class cell_sizing_type : unsigned int
+{
+	lesser_width_lesser_height    = (1 << 0), // [0][0]
+	lesser_width_greater_height   = (1 << 1), // [0][1]
+	greater_width_lesser_height   = (1 << 2), // [1][0]
+	greater_width_greater_height  = (1 << 3), // [1][1]
+};
+
+
+}
+}
+
+
+template <> struct is_flag_enum<geometry::planar::cell_sizing_type> : public std::true_type { };
+
+
+namespace geometry {
+namespace planar {
+
+
 class cell
 {
 private:
-	size m_currentSize = size(0, 0);
+	size m_currentSize;
 
 public:
 	cell()
@@ -40,169 +62,629 @@ public:
 
 	size get_size() const { return m_currentSize; };
 
-	virtual size get_default_size() const = 0;
+	virtual std::optional<size> get_default_size() const { return std::nullopt; }
 
-	virtual range get_range() const { range r; return r; }
+	virtual range get_range() const { return range::make_unbounded(); }
 
 	virtual dimension get_primary_flow_dimension() const { return dimension::horizontal; }
 
-	// Using a size_mode other than size_mode::both in calls to propose_size() allows
-	// implementions to avoid unnecessary work to determine values that will not be used by the caller.
-	// Because determining the size of a cell may require requesting all possible sizes to find a valid one,
-	// use of a size_mode other than size_mode::both is generally isolated to parent cell sizing of multiple child cells.
-	enum class size_mode
-	{
-		// Only the lesser value is needed.  A valid greater value may not be returned, even if possible.
-		lesser = -1,
+	// A sizing_mask is mask of sizing_type's indicating each potential variation of a sizing result requested by the caller.
+	// Using a sizing_mask other than all_sizing_types in calls to propose_size() allows implementions to avoid
+	// unnecessary work to determine values that will not be used by the caller.  Do not exclude a result if it's
+	// still needed if all other variations are not possible.  Use of a sizing_mask other than all_sizing_types
+	// is generally isolated to parent cells that need to probe sizes of mutliple interdependent child cells.
+	// (i.e. pane::propose_size())
+	typedef cell_sizing_type sizing_type;
+	typedef flag_mask_t<sizing_type> sizing_mask;
 
-		// Both lesser and greater values should be returned, if possible.
-		both = 0,
+	// all_sizing_types indicates that all candidate sizes should be returned.  The only reason to pass a value other than
+	// all_sizing_types would be if certain candidates would not be used, allowing the sizing algorithm to avoid
+	// calculating them, as an optimization.
+	static constexpr sizing_mask all_sizing_types =
+		sizing_type::lesser_width_lesser_height
+		| sizing_type::lesser_width_greater_height
+		| sizing_type::greater_width_lesser_height
+		| sizing_type::greater_width_greater_height;
 
-		// Only the greater value is needed.  A valid lesser value may not be returned, even if possible.
-		greater = 1
-	};
+	static constexpr sizing_mask all_lesser_width_sizing_types =
+		sizing_type::lesser_width_lesser_height
+		| sizing_type::lesser_width_greater_height; // [0][?]
 
-	// When proposing a size, 4 values are returned.
+	static constexpr sizing_mask all_greater_width_sizing_types =
+		sizing_type::greater_width_lesser_height
+		| sizing_type::greater_width_greater_height; // [1][?]
+
+	static constexpr sizing_mask all_lesser_height_sizing_types =
+		sizing_type::lesser_width_lesser_height
+		| sizing_type::greater_width_lesser_height; // [?][0]
+
+	static constexpr sizing_mask all_greater_height_sizing_types =
+		sizing_type::lesser_width_greater_height
+		| sizing_type::greater_width_greater_height; // [?][1]
+
+	// Up to 4 different sizes might be returned from propose_size()
 	//
-	// If a length cannot be satisfied as proposed, lesser and greater values are returned.
-	// If a lesser length is not possible, the lesser value will be omitted/invalid.
-	// If a greater length is not possible, the greater value will be omitted/invalid.
-	// If the value can be matched exactly, all lesser and greater values will be set/valid and equal to the proposed value.
-	// If the call is incapable of being successfully sized to any size, no values will be set/valid.
+	// Sizes are returned in the following order:
+	//
+	// [<= width][<= height] - lesser or equal width and lesser or equal height
+	// [<= width][>= height] - lesser or equal width and greater or equal height
+	// [>= width][<= height] - greater or equal width and lesser or equal height
+	// [>= width][>= height] - greater or equal width and greater or equal height
+	//
+	// When a size can be matched exactly, all entries will contain that size.
+	// When a length cannot be satisfied as proposed, lesser and/or greater values are returned at their associated indexes.
+	// When a lesser or equal length is not possible, the lesser length index will be empty (std::nullopt).
+	// When a greater or equal length is not possible, the greater length index will be empty (std::nullopt).
+	// If the call is incapable of being successfully sized to any size, all indexes will be empty (std::nullopt).
 
-	struct propose_size_result
+	union propose_size_result
 	{
-		// Sizes are in the following order:
-		//     [<=, <=] - lesser or equal width and lesser or equal height
-		//     [<=, >=] - lesser or equal width and greater or equal height
-		//     [>=, <=] - greater or equal width and lesser or equal height
-		//     [>=, >=] - greater or equal width and greater or equal height
-		//
-		// A size may not exist.  For example, if the requested size is below minimums for both height/width,
-		// only the greater/greater position will be valid, and set to minimum lengths.
-		std::optional<size> sizes[4];
+		std::optional<size> sizes[2][2];
+		std::optional<size> indexed_sizes[4];
 
-		static int get_index(bool greaterWidth, bool greaterHeight) { return greaterWidth ? (greaterHeight ? 3 : 2) : (greaterHeight ? 1 : 0); }
+		propose_size_result()
+			: sizes{}
+		{ }
 
-		size& get_size(bool greaterWidth, bool greaterHeight) { return sizes[get_index(greaterWidth, greaterHeight)].value(); }
-		const size& get_size(bool greaterWidth, bool greaterHeight) const { return sizes[get_index(greaterWidth, greaterHeight)].value(); }
+		propose_size_result(const propose_size_result& src)
+			: sizes{ { src.sizes[0][0], src.sizes[0][1] }, { src.sizes[1][0], src.sizes[1][1] } }
+		{ }
+
+		propose_size_result& operator=(const propose_size_result& src)
+		{
+			sizes[0][0] = src.sizes[0][0];
+			sizes[0][1] = src.sizes[0][1];
+			sizes[1][0] = src.sizes[1][0];
+			sizes[1][1] = src.sizes[1][1];
+			return *this;
+		}
+
+		bool operator==(const propose_size_result& src)
+		{
+			return sizes[0][0] == src.sizes[0][0]
+				&& sizes[0][1] == src.sizes[0][1]
+				&& sizes[1][0] == src.sizes[1][0]
+				&& sizes[1][1] == src.sizes[1][1];
+		}
+
+		bool operator==(const size& sz)
+		{
+			return sizes[0][0] == sz
+				&& sizes[0][1] == sz
+				&& sizes[1][0] == sz
+				&& sizes[1][1] == sz;
+		}
+
+		void assign_abs()
+		{
+			if (sizes[0][0].has_value())
+				sizes[0][0]->abs();
+			if (sizes[0][1].has_value())
+				sizes[0][1]->abs();
+			if (sizes[1][0].has_value())
+				sizes[1][0]->abs();
+			if (sizes[1][1].has_value())
+				sizes[1][1]->abs();
+		}
+
+		propose_size_result abs() const
+		{
+			propose_size_result result(*this);
+			result.assign_abs();
+			return result;
+		}
+
+		const propose_size_result& pre_assign_abs()
+		{
+			assign_abs();
+			return *this;
+		}
+
+		propose_size_result post_assign_abs()
+		{
+			propose_size_result result(*this);
+			assign_abs();
+			return result;
+		}
+
+		void assign_ceil()
+		{
+			if (sizes[0][0].has_value())
+				sizes[0][0]->ceil();
+			if (sizes[0][1].has_value())
+				sizes[0][1]->ceil();
+			if (sizes[1][0].has_value())
+				sizes[1][0]->ceil();
+			if (sizes[1][1].has_value())
+				sizes[1][1]->ceil();
+		}
+
+		propose_size_result ceil() const
+		{
+			propose_size_result result(*this);
+			result.assign_ceil();
+			return result;
+		}
+
+		const propose_size_result& pre_assign_ceil()
+		{
+			assign_ceil();
+			return *this;
+		}
+
+		propose_size_result post_assign_ceil()
+		{
+			propose_size_result result(*this);
+			assign_ceil();
+			return result;
+		}
+
+		void assign_floor()
+		{
+			if (sizes[0][0].has_value())
+				sizes[0][0]->floor();
+			if (sizes[0][1].has_value())
+				sizes[0][1]->floor();
+			if (sizes[1][0].has_value())
+				sizes[1][0]->floor();
+			if (sizes[1][1].has_value())
+				sizes[1][1]->floor();
+		}
+
+		propose_size_result floor() const
+		{
+			propose_size_result result(*this);
+			result.assign_floor();
+			return result;
+		}
+
+		const propose_size_result& pre_assign_floor()
+		{
+			assign_floor();
+			return *this;
+		}
+
+		propose_size_result post_assign_floor()
+		{
+			propose_size_result result(*this);
+			assign_floor();
+			return result;
+		}
+
+		void assign_round()
+		{
+			if (sizes[0][0].has_value())
+				sizes[0][0]->round();
+			if (sizes[0][1].has_value())
+				sizes[0][1]->round();
+			if (sizes[1][0].has_value())
+				sizes[1][0]->round();
+			if (sizes[1][1].has_value())
+				sizes[1][1]->round();
+		}
+
+		propose_size_result round() const
+		{
+			propose_size_result result(*this);
+			result.assign_round();
+			return result;
+		}
+
+		const propose_size_result& pre_assign_round()
+		{
+			assign_round();
+			return *this;
+		}
+
+		propose_size_result post_assign_round()
+		{
+			propose_size_result result(*this);
+			assign_floor();
+			return result;
+		}
+
+		propose_size_result& operator+=(const size& sz)
+		{
+			if (sizes[0][0].has_value())
+				*sizes[0][0] += sz;
+			if (sizes[0][1].has_value())
+				*sizes[0][1] += sz;
+			if (sizes[1][0].has_value())
+				*sizes[1][0] += sz;
+			if (sizes[1][1].has_value())
+				*sizes[1][1] += sz;
+			return *this;
+		}
+
+		propose_size_result operator+(const size& sz) const
+		{
+			propose_size_result result(*this);
+			result += sz;
+			return result;
+		}
+
+		propose_size_result& operator-=(const size& sz)
+		{
+			if (sizes[0][0].has_value())
+				*sizes[0][0] -= sz;
+			if (sizes[0][1].has_value())
+				*sizes[0][1] -= sz;
+			if (sizes[1][0].has_value())
+				*sizes[1][0] -= sz;
+			if (sizes[1][1].has_value())
+				*sizes[1][1] -= sz;
+			return *this;
+		}
+
+		propose_size_result operator-(const size& sz) const
+		{
+			propose_size_result result(*this);
+			result -= sz;
+			return result;
+		}
+
+		propose_size_result& operator|=(const size& sz)
+		{
+			if (sizes[0][0].has_value())
+				*sizes[0][0] |= sz;
+			if (sizes[0][1].has_value())
+				*sizes[0][1] |= sz;
+			if (sizes[1][0].has_value())
+				*sizes[1][0] |= sz;
+			if (sizes[1][1].has_value())
+				*sizes[1][1] |= sz;
+			return *this;
+		}
+
+		propose_size_result operator|(const size& sz) const
+		{
+			propose_size_result result(*this);
+			result |= sz;
+			return result;
+		}
+
+		propose_size_result& operator&=(const size& sz)
+		{
+			if (sizes[0][0].has_value())
+				*sizes[0][0] &= sz;
+			if (sizes[0][1].has_value())
+				*sizes[0][1] &= sz;
+			if (sizes[1][0].has_value())
+				*sizes[1][0] &= sz;
+			if (sizes[1][1].has_value())
+				*sizes[1][1] &= sz;
+			return *this;
+		}
+
+		propose_size_result operator&(const size& sz) const
+		{
+			propose_size_result result(*this);
+			result &= sz;
+			return result;
+		}
+
+		std::optional<size>(&operator[](size_t i))[2]{ return sizes[i]; }
+		const std::optional<size>(&operator[](size_t i) const)[2]{ return sizes[i]; }
+
+		std::optional<size>& get_size(bool greaterWidth, bool greaterHeight) { return sizes[greaterWidth][greaterHeight]; }
+		const std::optional<size>& get_size(bool greaterWidth, bool greaterHeight) const { return sizes[greaterWidth][greaterHeight]; }
+
+		std::optional<size>& get_size(dimension d, bool greater, bool greaterOther)
+		{
+			if (d != dimension::horizontal)
+				std::swap(greater, greaterOther);
+			return get_size(greater, greaterOther);
+		}
+
+		const std::optional<size>& get_size(dimension d, bool greater, bool greaterOther) const
+		{
+			if (d != dimension::horizontal)
+				std::swap(greater, greaterOther);
+			return get_size(greater, greaterOther);
+		}
+
+		bool has_size(bool greaterWidth, bool greaterHeight) const { return get_size(greaterWidth, greaterHeight).has_value(); }
+		bool has_size(dimension d, bool greater, bool greaterOther) const { return get_size(d, greater, greaterOther).has_value(); }
+
+		size& get_size_value(bool greaterWidth, bool greaterHeight) { return *get_size(greaterWidth, greaterHeight); }
+		const size& get_size_value(bool greaterWidth, bool greaterHeight) const { return *get_size(greaterWidth, greaterHeight); }
+
+		size& get_size_value(dimension d, bool greater, bool greaterOther) { return *get_size(d, greater, greaterOther); }
+		const size& get_size_value(dimension d, bool greater, bool greaterOther) const { return *get_size(d, greater, greaterOther); }
 
 		void set(const size& sz)
 		{
-			sizes[0] = sz;
-			sizes[1] = sz;
-			sizes[2] = sz;
-			sizes[3] = sz;
+			sizes[0][0] = sz;
+			sizes[0][1] = sz;
+			sizes[1][0] = sz;
+			sizes[1][1] = sz;
 		}
 
-		enum class first_valid_size_order : int
-		{
-			order_0_1_2_3 = 0x0123,
-			order_0_1_3_2 = 0x0132,
-			order_0_2_1_3 = 0x0213,
-			order_0_2_3_1 = 0x0231,
-			order_0_3_1_2 = 0x0312,
-			order_0_3_2_1 = 0x0321,
-			order_1_0_2_3 = 0x1023,
-			order_1_0_3_2 = 0x1032,
-			order_1_2_0_3 = 0x1203,
-			order_1_2_3_0 = 0x1230,
-			order_1_3_0_2 = 0x1302,
-			order_1_3_2_0 = 0x1320,
-			order_2_0_1_3 = 0x2013,
-			order_2_0_3_1 = 0x2031,
-			order_2_1_0_3 = 0x2103,
-			order_2_1_3_0 = 0x2130,
-			order_2_3_0_1 = 0x2301,
-			order_2_3_1_0 = 0x2310,
-			order_3_0_1_2 = 0x3012,
-			order_3_0_2_1 = 0x3021,
-			order_3_1_0_2 = 0x3102,
-			order_3_1_2_0 = 0x3120,
-			order_3_2_0_1 = 0x3201,
-			order_3_2_1_0 = 0x3210
-		};
-
-		size find_first_valid_size(first_valid_size_order order = first_valid_size_order::order_0_1_2_3)
-		{
-			for (int i = 0; i < 16; i += 4)
-			{
-				int i2 = ((int)order >> i) & 0x0F;
-				if (sizes[i2].has_value())
-					return sizes[i2].value();
-			}
-			return size(0, 0);
-		}
-
-		size find_first_valid_size(dimension primaryDimension, bool preferGreater = false)
-		{
-			first_valid_size_order order = (primaryDimension == dimension::horizontal)
-				? (preferGreater ? first_valid_size_order::order_3_2_1_0 : first_valid_size_order::order_0_1_2_3)
-				: (preferGreater ? first_valid_size_order::order_3_1_2_0 : first_valid_size_order::order_0_2_1_3);
-			return find_first_valid_size(order);
-		}
-
-		bool is_empty() const { return !sizes[0].has_value() && !sizes[1].has_value() && !sizes[2].has_value() && !sizes[3].has_value(); }
+		bool is_empty() const { return !sizes[0][0].has_value() && !sizes[0][1].has_value() && !sizes[1][0].has_value() && !sizes[1][1].has_value(); }
 		void set_empty()
 		{
-			sizes[0].reset();
-			sizes[1].reset();
-			sizes[2].reset();
-			sizes[3].reset();;
+			sizes[0][0].reset();
+			sizes[0][1].reset();
+			sizes[1][0].reset();
+			sizes[1][1].reset();
 		}
 
-		void make_relative(const size& sz)
+		bool contains(const size& sz)
 		{
-			auto f1 = [&](int i1, int i2, dimension d)
+			return sizes[0][0] == sz || sizes[0][1] == sz || sizes[1][0] == sz || sizes[1][1] == sz;
+		}
+
+		bool has_same(dimension d)
+		{
+			if (sizes[0][0].has_value())
 			{
-				if (sizes[i1].has_value() && sizes[i1].value()[d] >= sz[d])
+				if (sizes[0][1].has_value() && (*sizes[0][1])[d] != (*sizes[0][0])[d])
+					return false;
+				if (sizes[1][0].has_value() && (*sizes[1][0])[d] != (*sizes[0][0])[d])
+					return false;
+				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[0][0])[d])
+					return false;
+			}
+			else if (sizes[0][1].has_value())
+			{
+				if (sizes[1][0].has_value() && (*sizes[1][0])[d] != (*sizes[0][1])[d])
+					return false;
+				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[0][1])[d])
+					return false;
+			}
+			else if (sizes[1][0].has_value())
+			{
+				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[1][0])[d])
+					return false;
+			}
+			return true;
+		}
+
+		bool has_same_width() { return has_same(dimension::horizontal); }
+		bool has_same_height() { return has_same(dimension::vertical); }
+
+		bool has_only(dimension d, double v)
+		{
+			bool has_any = false;
+			if (sizes[0][0].has_value())
+			{
+				if ((*sizes[0][0])[d] != v)
+					return false;
+				has_any = true;
+			}
+			if (sizes[0][1].has_value())
+			{
+				if ((*sizes[0][1])[d] != v)
+					return false;
+				has_any = true;
+			}
+			if (sizes[1][0].has_value())
+			{
+				if ((*sizes[1][0])[d] != v)
+					return false;
+				has_any = true;
+			}
+			if (sizes[1][1].has_value())
+			{
+				if ((*sizes[1][1])[d] != v)
+					return false;
+				has_any = true;
+			}
+			return has_any;
+		}
+
+		bool has_only_width(double d) { return has_only(dimension::horizontal, d); }
+		bool has_only_height(double d) { return has_only(dimension::vertical, d); }
+
+		// When resizing from a side (not the corner), instead of using the lesser/lesser size,
+		// the nearest lesser length in the resize dimension is used.
+		std::optional<size> get_nearest(dimension d, bool greater = false) const
+		{
+			auto sz = get_size(d, greater, false);
+			if (sz.has_value())
+			{
+				auto sz2 = get_size(d, greater, true);
+				if (sz2.has_value() && ((*sz)[d] < (*sz2)[d]))
+					return sz2;
+			}
+			else
+			{
+				sz = get_size(d, greater, true);
+				if (!sz.has_value())
 				{
-					sizes[i2] = sizes[i1];
-					if (sizes[i1].value()[d] > sz[d])
-						sizes[i1].reset();
+					auto sz2 = get_size(d, !greater, false);
+					if (!sz2.has_value())
+						return get_size(d, !greater, true);
+					sz = get_size(d, !greater, true);
+					if (sz.has_value() && ((*sz)[d] > (*sz2)[d]))
+						return sz2;
+				}
+			}
+			return sz;
+		}
+
+		std::optional<size> find_first_valid_size(dimension d, bool preferGreaterWidth = false, bool preferGreaterHeight = false) const
+		{
+			bool horizontalPrimary = d == dimension::horizontal;
+			const std::optional<size>& sz = sizes[preferGreaterWidth][preferGreaterHeight];
+			if (sz.has_value())
+				return *sz;
+			bool index1 = horizontalPrimary == preferGreaterWidth;
+			bool index2 = horizontalPrimary != preferGreaterHeight;
+			const std::optional<size>& sz1 = sizes[index1][index2];
+			if (sz1.has_value())
+				return *sz1;
+			const std::optional<size>& sz2 = sizes[!index1][!index2];
+			if (sz2.has_value())
+				return *sz2;
+			const std::optional<size>& sz3 = sizes[!preferGreaterWidth][!preferGreaterHeight];
+			if (sz3.has_value())
+				return *sz3;
+			return std::nullopt;
+		}
+
+		bool add_size(const size& relativeTo, const size& cmp, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		{
+			auto cmpFunc = [](bool testGreater, double d1, double d2)
+			{
+				if (testGreater)
+					return d1 > d2;
+				return d1 < d2;
+			};
+
+			auto check = [&](bool greaterWidth, bool greaterHeight)
+			{
+				bool greater[2] = { greaterWidth, greaterHeight };
+				auto& sz2o = sizes[greaterWidth][greaterHeight];
+				if (!sz2o.has_value())
+					sz2o = cmp;
+				else
+				{
+					size& sz2 = *sz2o;
+					// If resizeDimension was specified, choose the nearest length in that dimension.
+					if (resizeDimension.has_value())
+					{
+						if (cmpFunc(!greater[(int)primaryDimension], cmp[primaryDimension], sz2[primaryDimension])
+							|| (cmp[primaryDimension] == sz2[primaryDimension]
+								&& (cmpFunc(!greater[(int)!primaryDimension], cmp[!primaryDimension], sz2[!primaryDimension]))))
+							sz2 = cmp;
+					}
+					else // Otherwise, prefer the size with least length sums. If same, use one with nearer primary dimension.
+					{
+						double cmpSum = cmp.get_width() + cmp.get_height();
+						double s2zSum = sz2.get_width() + sz2.get_height();
+						if (cmpSum != s2zSum)
+						{
+							if (cmpSum < s2zSum)
+								sz2 = cmp;
+						}
+						else if (cmpFunc(!greater[(int)primaryDimension], cmp[primaryDimension], sz2[primaryDimension]))
+							sz2 = cmp;
+					}
 				}
 			};
 
-			f1(0, 2, dimension::horizontal);
-			f1(1, 3, dimension::horizontal);
-			f1(0, 1, dimension::vertical);
-			f1(2, 3, dimension::vertical);
-
-			auto f2 = [&](int i1, int i2, dimension d)
+			if (cmp.get_width() == relativeTo.get_width())
 			{
-				if (sizes[i1].has_value() && sizes[i1].value()[d] <= sz[d])
+				if (cmp.get_height() == relativeTo.get_height())
 				{
-					sizes[i2] = sizes[i1];
-					if (sizes[i1].value()[d] < sz[d])
-						sizes[i1].reset();
+					sizes[0][0] = cmp;
+					sizes[1][0] = cmp;
+					sizes[0][1] = cmp;
+					sizes[1][1] = cmp;
+					return true;
 				}
+				else if (cmp.get_height() > relativeTo.get_height())
+				{
+					check(false, true);
+					check(true, true);
+				}
+				else //if (cmp.get_height() < relativeTo.get_height())
+				{
+					check(false, false);
+					check(true, false);
+				}
+			}
+			else if (cmp.get_width() > relativeTo.get_width())
+			{
+				if (cmp.get_height() == relativeTo.get_height())
+				{
+					check(true, false);
+					check(true, true);
+				}
+				else if (cmp.get_height() > relativeTo.get_height())
+					check(true, true);
+				else //if (cmp.get_height() < relativeTo.get_height())
+					check(true, false);
+			}
+			else //if (cmp.get_width() < relativeTo.get_width())
+			{
+				if (cmp.get_height() == relativeTo.get_height())
+				{
+					check(false, false);
+					check(false, true);
+				}
+				else if (cmp.get_height() > relativeTo.get_height())
+					check(false, true);
+				else //if (cmp.get_height() < relativeTo.get_height())
+					check(false, false);
+			}
+			return false;
+		}
+
+		propose_size_result relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		{
+			propose_size_result result;
+			if (resizeDimension.has_value())
+				primaryDimension = *resizeDimension;
+
+			auto add = [&](const std::optional<size>& cmpOpt)
+			{
+				if (cmpOpt.has_value())
+					return result.add_size(sz, *cmpOpt, primaryDimension, resizeDimension);
+				return false;
 			};
 
-			f2(2, 0, dimension::horizontal);
-			f2(3, 1, dimension::horizontal);
-			f2(1, 0, dimension::vertical);
-			f2(3, 2, dimension::vertical);
+			if (!add(sizes[0][0]) && !add(sizes[0][1]) && !add(sizes[1][0]))
+				add(sizes[1][1]);
+			return result;
+		}
+
+		void set_relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		{
+			*this = relative_to(sz, primaryDimension, resizeDimension);
+		}
+
+		// this must already be relative to relativeTo
+		void merge_relative_to(const propose_size_result& src, const size& relativeTo, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		{
+			if (resizeDimension.has_value())
+				primaryDimension = *resizeDimension;
+
+			auto add = [&](const std::optional<size>& cmpOpt)
+			{
+				if (cmpOpt.has_value())
+					return add_size(relativeTo, *cmpOpt, primaryDimension, resizeDimension);
+				return false;
+			};
+
+			if (!add(src.sizes[0][0]) && !add(src.sizes[0][1]) && !add(src.sizes[1][0]))
+				add(src.sizes[1][1]);
 		}
 	};
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), size_mode horizontalMode = size_mode::both, size_mode verticalMode = size_mode::both) const
+	virtual propose_size_result propose_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		sizing_mask sizingMask = all_sizing_types) const
 	{
-		(void)resizeDimension; // unused
-		(void)horizontalMode; // unused
-		(void)verticalMode; // unused
+		(void)sizingMask; // unused
 		propose_size_result result;
 		range r2 = get_range() & r;
-		if (r2.is_empty())
-			result.set_empty();
-		else
+		if (!r2.is_empty())
 		{
 			size sz2 = r2.limit(sz);
 			result.set(sz2);
-			result.make_relative(sz);
+			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
 
+	std::optional<size> propose_size_best(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		bool nearestGreater = false,
+		bool preferGreaterWidth = false,
+		bool preferGreaterHeight = false,
+		sizing_mask sizingMask = all_sizing_types) const
+	{
+		propose_size_result result = propose_size(sz, r, resizeDimension, sizingMask);
+		if (resizeDimension.has_value())
+			return result.get_nearest(*resizeDimension, nearestGreater);
+		return result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
+	}
 
 protected:
 	virtual void calculate_range() { }
@@ -241,9 +723,10 @@ protected:
 	static void reshape(cell& c, const bounds& newBounds, const point& oldOrigin = point(0, 0)) { c.reshape(newBounds, oldOrigin); }
 };
 
-}
 
 }
 }
+}
+
 
 #endif

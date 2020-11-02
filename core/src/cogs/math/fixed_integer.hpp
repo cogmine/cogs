@@ -43,11 +43,11 @@ using fixed_integer = std::conditional_t<!bits,
 							>
 						>;
 
-template <typename T, typename = std::enable_if_t<std::is_integral_v<T> > >
+template <typename T, typename = std::enable_if_t<is_integral_v<T> > >
 class int_to_fixed_integer
 {
 public:
-	typedef fixed_integer_native<std::is_signed_v<T>, 8 * sizeof(T)> type;
+	typedef fixed_integer_native<is_signed_v<T>, 8 * sizeof(T)> type;
 };
 template <typename T>
 using int_to_fixed_integer_t = typename int_to_fixed_integer<T>::type;
@@ -84,14 +84,14 @@ template <typename T>
 using int_to_fixed_integer_t = typename int_to_fixed_integer<T>::type;
 
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, int_to_fixed_integer_t<T> >
+template <typename T> inline std::enable_if_t<is_integral_v<T>, int_to_fixed_integer_t<T> >
 make_fixed_integer(const T& t)
 {
 	int_to_fixed_integer_t<T> result(t);
 	return result;
 }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, int_to_fixed_integer_t<T> >
+template <typename T> inline std::enable_if_t<is_integral_v<T>, int_to_fixed_integer_t<T> >
 make_fixed_integer(const volatile T& t)
 {
 	int_to_fixed_integer_t<T> result(load(t));
@@ -103,19 +103,19 @@ template <typename numerator_t, typename denominator_t>
 class fraction;
 
 
-template <typename T> inline constexpr std::enable_if_t<!std::is_integral_v<std::remove_reference_t<T> >, T&&>
+template <typename T> inline constexpr std::enable_if_t<!is_integral_v<std::remove_reference_t<T> >, T&&>
 reduce_integer_type(T&& t) { return std::forward<T>(t); }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, T>
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T>, T>
 reduce_integer_type(T& t) { return t; }
 
-template <typename T> inline constexpr std::enable_if_t<std::is_integral_v<T>, T>
+template <typename T> inline constexpr std::enable_if_t<is_integral_v<T>, T>
 reduce_integer_type(const T& t) { return t; }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, T>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, T>
 reduce_integer_type(volatile T& t) { return load(t); }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>, T>
+template <typename T> inline std::enable_if_t<is_integral_v<T>, T>
 reduce_integer_type(const volatile T& t) { return load(t); }
 
 template <bool has_sign, size_t n_bits>

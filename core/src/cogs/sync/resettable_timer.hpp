@@ -30,7 +30,7 @@ private:
 
 	virtual void triggered()
 	{
-		m_event.signal();
+		m_condition.signal();
 	}
 
 public:

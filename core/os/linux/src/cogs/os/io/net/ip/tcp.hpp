@@ -565,9 +565,9 @@ public:
 			}
 		};
 
-		rcptr<accept_helper> m_acceptHelper;
-		single_fire_event m_closeEvent;
 		unsigned short m_port;
+		rcptr<accept_helper> m_acceptHelper;
+		rcref<single_fire_condition> m_closeCondition;
 
 		listener() = delete;
 		listener(listener&&) = delete;
@@ -581,20 +581,21 @@ public:
 			{
 				m_acceptHelper->close();
 				m_acceptHelper = 0;
-				m_closeEvent.signal();
+				m_closeCondition->signal();
 			}
 		}
 
 	public:
 		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4, const rcref<os::io::epoll_pool>& epp = os::io::epoll_pool::get())
-			: m_port(port)
+			: m_port(port),
+			m_closeCondition(rcnew(single_fire_condition))
 		{
 			rcnew(accept_helper)(this_rcref, acceptDelegate, port, addressFamily, epp);
 		}
 
 		~listener() { close(); }
 
-		const waitable& get_close_event() const { return m_closeEvent; }
+		const waitable& get_close_condition() const { return *m_closeCondition; }
 
 		unsigned short get_port() const { return m_port; }
 	};

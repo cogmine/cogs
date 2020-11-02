@@ -479,6 +479,8 @@ template <typename key_t, typename derived_node_t, class comparator_t, template 
 class sorted_btree : protected btree<derived_node_t, ref_type>
 {
 public:
+	typedef key_t key_type;
+
 	/// @brief Alias to this type.
 	typedef sorted_btree<key_t, derived_node_t, comparator_t, ref_type> this_t;
 

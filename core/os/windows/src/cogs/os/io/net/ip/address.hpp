@@ -333,7 +333,7 @@ public:
 		{
 			result.m_sockAddr.ss_family = AF_INET;
 			sockaddr_in* sockAddr = (sockaddr_in*)&result.m_sockAddr;
-			sockAddr->sin_addr = in4addr_loopback;
+			sockAddr->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK); //in4addr_loopback;
 			sockAddr->sin_port = 0;
 		}
 		else if (addressFamily == address_family::inetv6)

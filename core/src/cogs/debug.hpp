@@ -69,8 +69,7 @@
 #endif
 
 
-// If DEBUG_RC_OBJ is set to 1, to easing data navigation in debugger,
-//    rc_obj<> will include a (redundant) pointer to it's content block.
+// If DEBUG_RC_OBJ is set to 1, rc_obj<> will include a (redundant) pointer to it's content block, easing data navigation when debugging.
 #ifndef COGS_DEBUG_RC_OBJ
 #ifdef COGS_DEBUG
 #define COGS_DEBUG_RC_OBJ 1
@@ -80,9 +79,9 @@
 #endif
 
 
-// If COGS_DEBUG_TRANSACTABLE is set to 1, to easing data navigation in debugger,
-//    thread_safe_transactable will include a (redundant) pointer to the embedded contents.
-// If COGS_DEBUG_RC_OBJ is also set to 1, the descriptior will include a (redundant) pointer to it's content block.
+// If COGS_DEBUG_TRANSACTABLE is set to 1, thread_safe_transactable will include a (redundant) pointer to the embedded contents,
+// easing data navigation when debugging,
+// If COGS_DEBUG_RC_OBJ is also set to 1, the descriptior will also include a (redundant) pointer to it's content block.
 #ifndef COGS_DEBUG_TRANSACTABLE
 #ifdef COGS_DEBUG
 #define COGS_DEBUG_TRANSACTABLE 1

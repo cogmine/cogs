@@ -34,11 +34,12 @@ static constexpr size_t largest = 0;
 
 
 template <size_t n>
-class size_to_alignment
+struct size_to_alignment
 {
-public:
 	static constexpr size_t value = 0;
 };
+template <size_t n> constexpr size_t size_to_alignment_v = size_to_alignment<n>::value;
+
 
 
 }

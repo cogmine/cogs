@@ -158,7 +158,7 @@ protected:
 		return paneBridge->pane::get_sibling_iterator();
 	}
 
-	void set_compositing_behavior(compositing_behavior cb)
+	void set_compositing_behavior(pane::compositing_behavior cb)
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
@@ -214,7 +214,7 @@ protected:
 
 	// reshapable interface - public
 
-	virtual size get_default_size() const
+	virtual std::optional<size> get_default_size() const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
@@ -235,11 +235,29 @@ protected:
 		return paneBridge->pane::get_primary_flow_dimension();
 	}
 
-	virtual cell::propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), cell::size_mode horizontalMode = cell::size_mode::both, cell::size_mode verticalMode = cell::size_mode::both) const
+	virtual cell::propose_size_result propose_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		cell::sizing_mask sizingMask = cell::all_sizing_types) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		return paneBridge->pane::propose_size(sz, r, resizeDimension, sizingMask);
+	}
+
+	std::optional<size> propose_size_best(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		bool nearestGreater = false,
+		bool preferGreaterWidth = false,
+		bool preferGreaterHeight = false,
+		cell::sizing_mask sizingMask = cell::all_sizing_types) const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->propose_size_best(sz, r, resizeDimension, nearestGreater, preferGreaterWidth, preferGreaterHeight, sizingMask);
 	}
 
 	virtual void calculate_range()
@@ -344,12 +362,8 @@ protected:
 		paneBridge->pane::defocusing();
 	}
 
-	// if overridden, base bridgeable_pane::invalidating() should be invoked.
-	virtual void invalidating(const bounds& b)
+	virtual void invalidating(const bounds&)
 	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		COGS_ASSERT(!!paneBridge);
-		paneBridge->pane::invalidating(b);
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
@@ -357,6 +371,55 @@ protected:
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
 		paneBridge->pane::reshape(b, oldOrigin);
+	}
+
+	virtual gfx::font_parameters get_default_text_font() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_text_font();
+	}
+
+	virtual color get_default_text_foreground_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_text_foreground_color();
+	}
+
+	virtual color get_default_text_background_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_text_background_color();
+	}
+
+	virtual color get_default_selected_text_foreground_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_selected_text_foreground_color();
+	}
+
+	virtual color get_default_selected_text_background_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_selected_text_background_color();
+	}
+
+	virtual color get_default_label_foreground_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_label_foreground_color();
+	}
+
+	virtual color get_default_background_color() const
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		return paneBridge->pane::get_default_background_color();
 	}
 
 	virtual rcref<bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)
@@ -412,7 +475,7 @@ protected:
 
 	// reshapable interface - public
 
-	virtual size get_default_size() const
+	virtual std::optional<size> get_default_size() const
 	{
 		COGS_ASSERT(!!m_bridgedPane);
 		return m_bridgedPane->get_default_size();
@@ -430,10 +493,14 @@ protected:
 		return m_bridgedPane->get_primary_flow_dimension();
 	}
 
-	virtual cell::propose_size_result propose_size(const size& sz, std::optional<dimension> resizeDimension = std::nullopt, const range& r = range::make_unbounded(), cell::size_mode horizontalMode = cell::size_mode::both, cell::size_mode verticalMode = cell::size_mode::both) const
+	virtual cell::propose_size_result propose_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		cell::sizing_mask sizingMask = cell::all_sizing_types) const
 	{
 		COGS_ASSERT(!!m_bridgedPane);
-		return m_bridgedPane->propose_size(sz, resizeDimension, r, horizontalMode, verticalMode);
+		return m_bridgedPane->propose_size(sz, r, resizeDimension, sizingMask);
 	}
 
 	virtual void calculate_range()
@@ -593,6 +660,48 @@ protected:
 	{
 		COGS_ASSERT(!!m_bridgedPane);
 		m_bridgedPane->reshape(b, oldOrigin);
+	}
+
+	virtual gfx::font_parameters get_default_text_font() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_text_font();
+	}
+
+	virtual color get_default_text_foreground_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_text_foreground_color();
+	}
+
+	virtual color get_default_text_background_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_text_background_color();
+	}
+
+	virtual color get_default_selected_text_foreground_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_selected_text_foreground_color();
+	}
+
+	virtual color get_default_selected_text_background_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_selected_text_background_color();
+	}
+
+	virtual color get_default_label_foreground_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_label_foreground_color();
+	}
+
+	virtual color get_default_background_color() const
+	{
+		COGS_ASSERT(!!m_bridgedPane);
+		return m_bridgedPane->get_default_background_color();
 	}
 
 	virtual rcref<bitmap> create_offscreen_buffer(pane& forPane, const size& sz, std::optional<color> fillColor = std::nullopt)

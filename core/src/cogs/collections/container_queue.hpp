@@ -15,16 +15,21 @@
 namespace cogs {
 
 
+template <typename T, bool coalesc_equal = false>
+using container_queue_node = container_deque_node<T, coalesc_equal>;
+
+
 /// @ingroup LockFreeCollections
 /// @brief A queue container collection
 /// @tparam T type to contain
 /// @tparam coalesc_equal If true, contiguous equal elements may be coalesced.  Default: false
 /// @tparam allocator_type Type of allocator to use to allocate elements.  Default: default_allocator
-template <typename T, bool coalesc_equal = false, class allocator_type = default_allocator>
+template <typename T, bool coalesc_equal = false, class allocator_t = batch_allocator<container_queue_node<T, coalesc_equal>>>
 class container_queue
 {
 public:
 	typedef T type;
+	typedef allocator_t allocator_type;
 	typedef container_queue<type, false, allocator_type> this_t;
 
 private:
@@ -33,54 +38,28 @@ private:
 	typedef container_deque<type, false, allocator_type> deque_t;
 	deque_t m_deque;
 
-	container_queue(const container_queue& src) = delete;
-	container_queue(const volatile container_queue& src) = delete;
-
-	this_t& operator=(const container_queue& src) = delete;
-	this_t& operator=(const volatile container_queue& src) = delete;
-
-	volatile this_t& operator=(container_queue&& src) volatile = delete;
-	volatile this_t& operator=(const container_queue& src) volatile = delete;
-	volatile this_t& operator=(const volatile container_queue& src) volatile = delete;
-
 public:
-	container_queue() { }
-
-	container_queue(this_t&& src)
-		: m_deque(std::move(src.m_deque))
+	template <typename... args_t>
+	container_queue(args_t&&... args)
+		: m_deque(std::forward<args_t>(args)...)
 	{ }
 
-	explicit container_queue(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
+	container_queue(const volatile this_t&) = delete;
 
-	container_queue(const std::initializer_list<type>& src)
-		: m_deque(src)
-	{ }
+	this_t& operator=(const this_t& src)
+	{
+		m_deque = src.m_deque;
+		return *this;
+	}
 
-	container_queue(volatile allocator_type& al, const std::initializer_list<type>& src)
-		: m_deque(al, src)
-	{ }
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(const this_t& src) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
-	}
-
-	this_t& operator=(const std::initializer_list<type>& src)
-	{
-		deque_t tmp(src);
-		m_deque = std::move(tmp.m_deque);
-		return *this;
-	}
-
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.append(std::forward<args_t>(args)), ...);
-		return result;
 	}
 
 	void clear() { m_deque.clear(); }
@@ -104,6 +83,17 @@ public:
 		bool>
 	append(F&& f) { return m_deque.append(std::forward<F>(f)); }
 
+	bool operator+=(const type& src) { return m_deque.append(src); }
+	bool operator+=(type&& src) { return m_deque.append(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	operator+=(F&& f) { return m_deque.append(std::forward<F>(f)); }
+
 	template <typename... args_t> bool append_emplace(args_t&&... args) { return m_deque.append_emplace(std::forward<args_t>(args)...); }
 
 	bool append(const type& src) volatile { return m_deque.append(src); }
@@ -116,6 +106,17 @@ public:
 		&& !std::is_convertible_v<F, type&&>,
 		bool>
 	append(F&& f) volatile { return m_deque.append(std::forward<F>(f)); }
+
+	bool operator+=(const type& src) volatile { return m_deque.append(src); }
+	bool operator+=(type&& src) volatile  { return m_deque.append(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	operator+=(F&& f) volatile { return m_deque.append(std::forward<F>(f)); }
 
 	template <typename... args_t> bool append_emplace(args_t&&... args) volatile  { return m_deque.append_emplace(std::forward<args_t>(args)...); }
 
@@ -196,7 +197,7 @@ public:
 	bool contains_one() const volatile { return m_deque.contains_one(); }
 
 	bool pop(type& t) { return m_deque.pop_front(t); }
-	bool remove() { return m_deque.remove_front(); }
+	bool remove() { return m_deque.remove_first(); }
 
 	// first bool indicates whether an element was removed.  If any removed, the second bool indicates if it was the only element
 	typedef typename deque_t::volatile_pop_result volatile_pop_result;
@@ -205,7 +206,7 @@ public:
 
 	typedef typename deque_t::volatile_remove_result volatile_remove_result;
 
-	volatile_remove_result remove() volatile { return m_deque.remove_front(); }
+	volatile_remove_result remove() volatile { return m_deque.remove_first(); }
 
 	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
 	this_t exchange(this_t&& src) { return m_deque.exchange(std::move(src.m_deque)); }
@@ -226,54 +227,28 @@ private:
 	typedef container_deque<type, true, allocator_type> deque_t;
 	deque_t m_deque;
 
-	container_queue(const container_queue& src) = delete;
-	container_queue(const volatile container_queue& src) = delete;
-
-	this_t& operator=(const container_queue& src) = delete;
-	this_t& operator=(const volatile container_queue& src) = delete;
-
-	volatile this_t& operator=(container_queue&& src) volatile = delete;
-	volatile this_t& operator=(const container_queue& src) volatile = delete;
-	volatile this_t& operator=(const volatile container_queue& src) volatile = delete;
-
 public:
-	container_queue() { }
-
-	container_queue(this_t&& src)
-		: m_deque(std::move(src.m_deque))
+	template <typename... args_t>
+	container_queue(args_t&&... args)
+		: m_deque(std::forward<args_t>(args)...)
 	{ }
 
-	explicit container_queue(volatile allocator_type& al)
-		: m_deque(al)
-	{ }
+	container_queue(const volatile this_t&) = delete;
 
-	container_queue(const std::initializer_list<type>& src)
-		: m_deque(src)
-	{ }
+	this_t& operator=(const this_t& src)
+	{
+		m_deque = src.m_deque;
+		return *this;
+	}
 
-	container_queue(volatile allocator_type& al, const std::initializer_list<type>& src)
-		: m_deque(al, src)
-	{ }
+	this_t& operator=(const volatile this_t&) = delete;
+	volatile this_t& operator=(const this_t&) volatile = delete;
+	volatile this_t& operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{
 		m_deque = std::move(src.m_deque);
 		return *this;
-	}
-
-	this_t& operator=(const std::initializer_list<type>& src)
-	{
-		deque_t tmp(src);
-		m_deque = std::move(tmp.m_deque);
-		return *this;
-	}
-
-	template <typename... args_t>
-	static this_t create(args_t&&... args)
-	{
-		this_t result;
-		(result.append(std::forward<args_t>(args)), ...);
-		return result;
 	}
 
 	void clear() { m_deque.clear(); }
@@ -297,6 +272,17 @@ public:
 		bool>
 	append(F&& f) { return m_deque.append(std::forward<F>(f)); }
 
+	bool operator+=(const type& src) { return m_deque.append(src); }
+	bool operator+=(type&& src) { return m_deque.append(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	operator+=(F&& f) { return m_deque.append(std::forward<F>(f)); }
+
 	template <typename... args_t> bool append_emplace(args_t&&... args) { return m_deque.append_emplace(std::forward<args_t>(args)...); }
 
 	bool append(const type& src) volatile { return m_deque.append(src); }
@@ -309,6 +295,17 @@ public:
 		&& !std::is_convertible_v<F, type&&>,
 		bool>
 	append(F&& f) volatile { return m_deque.append(std::forward<F>(f)); }
+
+	bool operator+=(const type& src) volatile { return m_deque.append(src); }
+	bool operator+=(type&& src) volatile { return m_deque.append(std::move(src)); }
+
+	template <typename F>
+	std::enable_if_t<
+		!std::is_constructible_v<type, F&&>
+		&& !std::is_convertible_v<F, const type&>
+		&& !std::is_convertible_v<F, type&&>,
+		bool>
+	operator+=(F&& f) volatile { return m_deque.append(std::forward<F>(f)); }
 
 	template <typename... args_t> bool append_emplace(args_t&&... args) volatile { return m_deque.append_emplace(std::forward<args_t>(args)...); }
 
@@ -483,7 +480,7 @@ public:
 	bool contains_one() const volatile { return m_deque.contains_one(); }
 
 	bool pop(type& t) { return m_deque.pop_front(t); }
-	bool remove() { return m_deque.remove_front(); }
+	bool remove() { return m_deque.remove_first(); }
 
 	// first bool indicates whether an element was removed.  If any removed, the second bool indicates if it was the only element
 	typedef typename deque_t::volatile_pop_result volatile_pop_result;
@@ -492,7 +489,7 @@ public:
 
 	typedef typename deque_t::volatile_remove_result volatile_remove_result;
 
-	volatile_remove_result remove() volatile { return m_deque.remove_front(); }
+	volatile_remove_result remove() volatile { return m_deque.remove_first(); }
 
 	void swap(this_t& wth) { m_deque.swap(wth.m_deque); }
 	this_t exchange(this_t&& src) { m_deque.exchange(std::move(src.m_deque)); }

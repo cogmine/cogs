@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include "cogs/math/const_max_int.hpp"
-#include "cogs/mem/allocator_container.hpp"
+#include "cogs/mem/memory_manager_base.hpp"
 #include "cogs/mem/default_allocator.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
@@ -30,11 +30,12 @@ namespace cogs {
 /// Removal from the end is efficient.
 /// Removal from elsewhere in the list requires that all subsequent elements are moved back.
 /// A const simple_vector extends const-ness to its elements.
+/// Move operations transfer ownership of the buffer, so the source simple_vector gets cleared.
 /// simple_vector is not thread-safe.
 /// Const and/or volatile element types are not supported.
 /// @tparam T type to contain
 /// @tparam allocator_type Type of allocator to use to allocate the vector's buffer.  Default: default_allocator
-template <typename T, class allocator_type = default_allocator>
+template <typename T, class allocator_t = default_allocator<T>>
 class simple_vector
 {
 public:
@@ -43,8 +44,8 @@ public:
 	static_assert(!std::is_void_v<T>);
 
 	typedef T type;
+	typedef allocator_t allocator_type;
 	typedef simple_vector<type, allocator_type> this_t;
-	typedef allocator_container<allocator_type> base_t;
 
 	typedef size_t position_t;
 
@@ -53,28 +54,40 @@ private:
 	size_t m_length;
 	size_t m_capacity;
 
-	allocator_container<allocator_type> m_allocator;
+	allocator_type m_allocator;
 
 	void construct(size_t n)
 	{
 		if (!!n)
 		{
 			m_length = n;
-			m_ptr = m_allocator.template allocate_type<type>(n);
-			m_capacity = n;
+			m_ptr = m_allocator.allocate(n, m_capacity);
 			placement_construct_multiple(m_ptr.get_ptr(), n);
 		}
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void construct(size_t n, const type2& src)
 	{
 		if (!!n)
 		{
 			m_length = n;
-			m_ptr = m_allocator.template allocate_type<type>(n);
-			m_capacity = n;
+			m_ptr = m_allocator.allocate(n, m_capacity);
 			placement_construct_multiple(m_ptr.get_ptr(), n, src);
+		}
+	}
+
+	template <typename type2 = type>
+	void construct(size_t n, type2&& src)
+	{
+		if (!!n)
+		{
+			m_length = n;
+			m_ptr = m_allocator.allocate(n, m_capacity);
+			size_t lastPosition = n - 1;
+			if (lastPosition != 0)
+				placement_construct_multiple(m_ptr.get_ptr(), lastPosition, src);
+			placement_construct(m_ptr.get_ptr() + lastPosition, std::forward<type2>(src));
 		}
 	}
 
@@ -84,8 +97,7 @@ private:
 		if (!!n)
 		{
 			m_length = n;
-			m_ptr = m_allocator.template allocate_type<type>(n);
-			m_capacity = n;
+			m_ptr = m_allocator.allocate(n, m_capacity);
 			placement_copy_construct_array(m_ptr.get_ptr(), src, n);
 		}
 	}
@@ -117,15 +129,14 @@ private:
 		}
 	}
 
-	void prepare_assign(size_t newLength) // returns position to start constructing if growing/reallocating, otherwise returns newLength
+	void prepare_assign(size_t newLength)
 	{
 		placement_destruct_multiple(m_ptr.get_ptr(), m_length);
 		if ((newLength > m_capacity) && (!try_reallocate(newLength)))
 		{
 			size_t newCapacity = newLength * 2; // pad capacity
-			m_allocator.deallocate(m_ptr.get_ptr());
-			m_ptr = m_allocator.template allocate_type<type>(newCapacity);
-			m_capacity = newCapacity;
+			m_allocator.destruct_deallocate(m_ptr.get_ptr());
+			m_ptr = m_allocator.allocate(newCapacity, m_capacity);
 		}
 		m_length = newLength;
 	}
@@ -139,62 +150,60 @@ private:
 			placement_move(insertPtr + n, insertPtr, numMoving);
 		else
 		{
-			size_t oldCapacity = m_capacity;
-			ptr<type> newPtr = m_allocator.template allocate_type<type>(newLength);
-			m_capacity = newLength;
+			size_t capacity;
+			ptr<type> newPtr = m_allocator.allocate(newLength, capacity);
 			placement_copy_construct_array(newPtr, m_ptr, i);
 			placement_copy_construct_array(newPtr + i + n, insertPtr, numMoving);
-			if (oldCapacity > 0)
-				m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+			clear_inner();
+			m_capacity = capacity;
 			m_ptr = newPtr;
 		}
 		m_length = newLength;
 	}
 
-	void replace_inner(size_t i, size_t replaceLength, size_t insertLength)
+	void replace_inner(size_t i, size_t replaceLength, size_t n)
 	{
-		ptr<type> insertPtr = m_ptr + i;
+		type* insertPtr = m_ptr + i;
 		size_t adjustedLength = m_length - i; // constructed elements beyond the insert index
-		size_t adjustedReplaceLength;
 		if (replaceLength > adjustedLength) // Can't replace more than exists
-			adjustedReplaceLength = adjustedLength;
-		else
-			adjustedReplaceLength = replaceLength;
-		if (insertLength == adjustedReplaceLength) // No resizing necessary
-			placement_destruct_multiple(insertPtr.get_ptr(), insertLength);
+			replaceLength = adjustedLength;
+		if (n == replaceLength) // No resizing necessary
+			placement_destruct_multiple(insertPtr, n);
 		else
 		{
-			size_t lengthWithoutReplaced = m_length - adjustedReplaceLength;
-			size_t newLength = lengthWithoutReplaced + insertLength;
-			size_t numMoving = adjustedLength - adjustedReplaceLength; // i.e. lengthWithoutReplaced - i;
+			size_t lengthWithoutReplaced = m_length - replaceLength;
+			size_t newLength = lengthWithoutReplaced + n;
+			size_t numMoving = adjustedLength - replaceLength; // i.e. lengthWithoutReplaced - i;
+			type* src = insertPtr + replaceLength;
 			if ((newLength > m_capacity) && (!try_reallocate(newLength)))
 			{ // need to reallocate
-				size_t oldCapacity = m_capacity;
-				ptr<type> newPtr = m_allocator.template allocate_type<type>(newLength);
-				m_capacity = newLength;
+				size_t capacity;
+				type* newPtr = m_allocator.allocate(newLength, capacity);
 				placement_copy_construct_array(newPtr, m_ptr, i);
-				placement_copy_construct_array(newPtr + i + insertLength, insertPtr + adjustedReplaceLength, numMoving);
-				if (oldCapacity > 0)
-					m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+				placement_copy_construct_array(newPtr + i + n, src, numMoving);
+				clear_inner();
+				m_capacity = capacity;
 				m_ptr = newPtr;
 			}
-			else if (insertLength < adjustedReplaceLength)
+			else
 			{
-				type* dst = insertPtr + insertLength;
-				type* src = insertPtr + adjustedReplaceLength;
-				placement_copy_reconstruct_array(dst, src, numMoving);
-				placement_destruct_multiple(dst + numMoving, adjustedReplaceLength - insertLength);
+				type* dst = insertPtr + n;
+				if (n < replaceLength)
+				{
+					placement_copy_reconstruct_array(dst, src, numMoving);
+					placement_destruct_multiple(dst + numMoving, replaceLength - n);
+				}
+				else // if (n > replaceLength)
+					placement_move(dst, src, numMoving);
 			}
-			else // if (insertLength > adjustedReplaceLength)
-				placement_move(insertPtr + insertLength, insertPtr + adjustedReplaceLength, numMoving);
 			m_length = newLength;
 		}
 	}
 
-	void reset_inner()
+	void clear_inner()
 	{
 		if (m_capacity > 0)
-			m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+			m_allocator.destruct_deallocate(m_ptr.get_ptr(), m_length);
 	}
 
 	void set_temporary(type* ptr, size_t n)
@@ -356,29 +365,16 @@ public:
 
 	simple_vector(this_t&& src)
 		: m_allocator(std::move(src.m_allocator)),
-		m_length(std::move(src.m_length)),
+		m_length(src.m_length),
 		m_capacity(src.m_capacity),
 		m_ptr(src.m_ptr)
 	{
+		src.m_length = 0;
 		src.m_capacity = 0;
 	}
 
-	explicit simple_vector(volatile allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
-		m_capacity(0)
-	{ }
-
 	simple_vector(const this_t& src)
 		: m_length(0),
-		m_capacity(0)
-	{
-		construct(src);
-	}
-
-	simple_vector(const this_t& src, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
 		m_capacity(0)
 	{
 		construct(src);
@@ -391,15 +387,7 @@ public:
 		construct(n);
 	}
 
-	simple_vector(size_t n, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
-		m_capacity(0)
-	{
-		construct(n);
-	}
-
-	template <typename type2>
+	template <typename type2 = type>
 	simple_vector(size_t n, const type2& src)
 		: m_length(0),
 		m_capacity(0)
@@ -407,27 +395,17 @@ public:
 		construct(n, src);
 	}
 
-	template <typename type2>
-	simple_vector(size_t n, const type2& src, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
+	template <typename type2 = type>
+	simple_vector(size_t n, type2&& src)
+		: m_length(0),
 		m_capacity(0)
 	{
-		construct(n, src);
+		construct(n, std::forward<type2>(src));
 	}
 
 	template <typename type2>
 	simple_vector(type2* src, size_t n)
 		: m_length(0),
-		m_capacity(0)
-	{
-		construct(src, n);
-	}
-
-	template <typename type2>
-	simple_vector(type2* src, size_t n, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
 		m_capacity(0)
 	{
 		construct(src, n);
@@ -442,26 +420,8 @@ public:
 	}
 
 	template <typename type2, class allocator_type2>
-	simple_vector(const simple_vector<type2, allocator_type2>& src, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
-		m_capacity(0)
-	{
-		construct(src);
-	}
-
-	template <typename type2, class allocator_type2>
 	simple_vector(const simple_vector<type2, allocator_type2>& src, size_t i)
 		: m_length(0),
-		m_capacity(0)
-	{
-		construct(src, i);
-	}
-
-	template <typename type2, class allocator_type2>
-	simple_vector(const simple_vector<type2, allocator_type2>& src, size_t i, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
 		m_capacity(0)
 	{
 		construct(src, i);
@@ -475,22 +435,13 @@ public:
 		construct(src, i, n);
 	}
 
-	template <typename type2, class allocator_type2>
-	simple_vector(const simple_vector<type2, allocator_type2>& src, size_t i, size_t n, allocator_type& al)
-		: m_allocator(al),
-		m_length(0),
-		m_capacity(0)
-	{
-		construct(src, i, n);
-	}
-
 	~simple_vector()
 	{
-		if (m_capacity > 0)
-			m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+		clear_inner();
 	}
 
 	this_t& operator=(const type& src) { assign(1, src); return *this; }
+	this_t& operator=(type&& src) { assign(1, std::move(src)); return *this; }
 
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
 
@@ -1070,16 +1021,14 @@ public:
 	// Clears contents, but retains reserved space
 	void clear()
 	{
-		placement_destruct_multiple(m_ptr.get_ptr(), m_length);
+		clear_inner();
 		m_length = 0;
 	}
 
 	// clears reserved space as well
 	void reset()
 	{
-		if (m_capacity > 0)
-			m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
-		m_length = 0;
+		clear();
 		m_capacity = 0;
 		m_ptr.clear();
 	}
@@ -1088,17 +1037,16 @@ public:
 	{
 		if ((n > m_capacity) && (!m_capacity || !try_reallocate(n)))
 		{
-			size_t oldCapacity = m_capacity;
-			type* newPtr = m_allocator.template allocate_type<type>(n);
-			m_capacity = n;
+			size_t capacity;
+			type* newPtr = m_allocator.allocate(n, capacity);
 			placement_copy_construct_array(newPtr, m_ptr.get_ptr(), m_length);
-			if (oldCapacity > 0)
-				m_allocator.template destruct_deallocate_type<type>(m_ptr.get_ptr(), m_length);
+			clear_inner();
+			m_capacity = capacity;
 			m_ptr = newPtr;
 		}
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void assign(size_t n, const type2& src)
 	{
 		if (!n)
@@ -1107,6 +1055,21 @@ public:
 		{
 			prepare_assign(n);
 			placement_construct_multiple(m_ptr, n, src);
+		}
+	}
+
+	template <typename type2 = type>
+	void assign(size_t n, type2&& src)
+	{
+		if (!n)
+			clear();
+		else
+		{
+			prepare_assign(n);
+			size_t lastPosition = n - 1;
+			if (lastPosition != 0)
+				placement_construct_multiple(m_ptr, lastPosition, src);
+			placement_construct(m_ptr + lastPosition, std::forward<type2>(src));
 		}
 	}
 
@@ -1194,7 +1157,7 @@ public:
 		}
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void append(size_t n, const type2& src)
 	{
 		if (!!n)
@@ -1202,6 +1165,22 @@ public:
 			size_t newLength = m_length + n;
 			reserve(newLength);
 			placement_construct_multiple(m_ptr + m_length, n, src);
+			m_length = newLength;
+		}
+	}
+
+	template <typename type2 = type>
+	void append(size_t n, type2&& src)
+	{
+		if (!!n)
+		{
+			size_t newLength = m_length + n;
+			reserve(newLength);
+			size_t lastPosition = n - 1;
+			type* dst = m_ptr + m_length;
+			if (lastPosition != 0)
+				placement_construct_multiple(dst, lastPosition, src);
+			placement_construct(dst + lastPosition, std::forward<type2>(src));
 			m_length = newLength;
 		}
 	}
@@ -1288,7 +1267,7 @@ public:
 		}
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void resize(size_t n, const type2& src)
 	{
 		if (!n)
@@ -1304,6 +1283,29 @@ public:
 			size_t numToConstruct = n - m_length;
 			reserve(n);
 			placement_construct_multiple(m_ptr + m_length, numToConstruct, src);
+			m_length = n;
+		}
+	}
+
+	template <typename type2 = type>
+	void resize(size_t n, type2&& src)
+	{
+		if (!n)
+			clear();
+		else if (n < m_length)
+		{
+			size_t numToDestruct = m_length - n;
+			m_length = n;
+			placement_destruct_multiple(m_ptr + m_length, numToDestruct);
+		}
+		else if (n > m_length)
+		{
+			reserve(n);
+			size_t lastPosition = n - m_length - 1;
+			type* dst = m_ptr + m_length;
+			if (lastPosition != 0)
+				placement_construct_multiple(dst, lastPosition, src);
+			placement_construct(dst + lastPosition, std::forward<type2>(src));
 			m_length = n;
 		}
 	}
@@ -1371,7 +1373,7 @@ public:
 		}
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void insert(size_t i, size_t n, const type2& src)
 	{
 		if (!!n)
@@ -1381,8 +1383,26 @@ public:
 			else
 			{
 				insert_inner(i, n);
-				ptr<type> insertPtr = m_ptr + i;
-				placement_construct_multiple(insertPtr, n, src);
+				placement_construct_multiple(m_ptr + i, n, src);
+			}
+		}
+	}
+
+	template <typename type2 = type>
+	void insert(size_t i, size_t n, type2&& src)
+	{
+		if (!!n)
+		{
+			if (i >= m_length) // if the insert index is past the end, treat it as an append
+				append(n, src);
+			else
+			{
+				insert_inner(i, n);
+				size_t lastPosition = n - 1;
+				type* dst = m_ptr + i;
+				if (lastPosition != 0)
+					placement_construct_multiple(dst, lastPosition, src);
+				placement_construct(dst + lastPosition, std::forward<type2>(src));
 			}
 		}
 	}

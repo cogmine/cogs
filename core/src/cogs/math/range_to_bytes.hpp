@@ -23,8 +23,11 @@ namespace cogs {
 template <ulongest min_value, ulongest max_value>
 class range_to_bytes
 {
+private:
+	static constexpr size_t x = range_to_bits_v<min_value, max_value>;
+
 public:
-	static constexpr size_t value = bits_to_bytes_v<range_to_bits_v<min_value, max_value> >;
+	static constexpr size_t value = bits_to_bytes_v<x>;
 };
 template <ulongest min_value, ulongest max_value>
 constexpr size_t range_to_bytes_v = range_to_bytes<min_value, max_value>::value;

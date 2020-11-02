@@ -33,8 +33,6 @@ namespace io {
 class filter : public datasink, public datasource
 {
 public:
-	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(filter, datasink, datasource);
-
 	typedef function<rcref<task<composite_buffer> >(composite_buffer&)> filter_func_t;
 	typedef function<rcref<task<composite_buffer> >()> finalize_func_t;
 
@@ -622,7 +620,7 @@ private:
 				m_hasMaxLength(!!maxLength),
 				m_remainingLength(maxLength)
 		{
-			m_onSinkAbortTask = m_sink->get_sink_close_event().dispatch([r{ this_weak_rcptr }]()
+			m_onSinkAbortTask = m_sink->get_sink_close_condition().dispatch([r{ this_weak_rcptr }]()
 			{
 				rcptr<coupler> r2 = r;
 				if (!!r2)

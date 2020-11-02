@@ -12,7 +12,7 @@
 #include "cogs/io/datasource.hpp"
 #include "cogs/io/datasink.hpp"
 #include "cogs/mem/object.hpp"
-#include "cogs/sync/count_down_event.hpp"
+#include "cogs/sync/count_down_condition.hpp"
 
 
 namespace cogs {
@@ -26,11 +26,9 @@ namespace io {
 
 /// @ingroup IO
 /// @brief A base class for objects that are both a datasource and a datasink, such as a file or network stream.
-class datastream : public datasource,  public datasink
+class datastream : public datasink,  public datasource
 {
 public:
-	COGS_IMPLEMENT_MULTIPLY_DERIVED_OBJECT_GLUE2(datastream, datasource, datasink);
-
 	class closer : public waitable, public object
 	{
 	private:
@@ -41,28 +39,28 @@ public:
 		closer& operator=(const closer&) = delete;
 
 		const weak_rcptr<datastream> m_stream;
-		count_down_event m_event;
+		count_down_condition m_condition;
 
 	protected:
 		friend class datastream;
 
 		explicit closer(const rcref<datastream>& ds)
 			: m_stream(ds),
-			m_event(2)
+			m_condition(2)
 		{
 		}
 
-		void closing() { m_event.count_down(); }
+		void closing() { m_condition.count_down(); }
 
 		virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 		{
-			return dispatcher::dispatch_inner(m_event, t, priority);
+			return dispatcher::dispatch_inner(m_condition, t, priority);
 		}
 
 	public:
 		const weak_rcptr<datastream>& get_datastream() const { return m_stream; }
 
-		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+		virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
 	};
 
 	virtual void abort()

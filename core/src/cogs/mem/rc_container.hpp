@@ -371,7 +371,7 @@ public:
 			}
 
 			rc_obj_base* descPtr = desc;
-			p.bind(h, descPtr);
+			p.bind_unacquired(h, descPtr);
 			if (!m_contents.is_current(rt) || !p.validate())
 				continue;
 			acquired = descPtr->acquire(referenceStrength2);
@@ -407,7 +407,7 @@ public:
 					break;
 
 				rc_obj_base* descPtr = desc;
-				p.bind(h, descPtr);
+				p.bind_unacquired(h, descPtr);
 				if (!m_contents.is_current(rt) || !p.validate())
 					continue;
 				result = !rt->m_desc->is_released();
@@ -970,6 +970,29 @@ public:
 		}
 	}
 
+	void clear_to_mark() { ptr<type> p = m_contents->m_obj; p.clear_to_mark(); m_contents->m_obj = p.get_ptr(); }
+	void clear_to_mark() volatile
+	{
+		read_token rt;
+		for (;;)
+		{
+			begin_read(rt);
+			ptr<type> p = rt->m_obj;
+			if (!p.get_mark())
+				break;
+			write_token wt;
+			if (!promote_read_token(rt, wt))
+				continue;
+
+			p.clear_to_mark();
+			wt->m_obj = p.get_ptr();
+
+			if (!!end_write(wt))
+				break;
+			//continue;
+		}
+	}
+
 	void set_mark(size_t mark) { ptr<type> p = m_contents->m_obj; p.set_mark(mark); m_contents->m_obj = p.get_ptr(); }
 	void set_mark(size_t mark) volatile
 	{
@@ -1019,6 +1042,7 @@ public:
 		tmp.set_marked(p, mark);
 		m_contents.swap(tmp.m_contents);
 	}
+
 
 	bool is_empty() const { return !get_obj(); }
 	bool is_empty() const volatile { return !get_obj(); }
@@ -1227,10 +1251,6 @@ public:
 		m_contents.swap(tmp.m_contents);
 		wth = tmp->m_obj;
 	}
-
-
-	//template <typename T2>
-	//void swap(volatile T2& wth) volatile = delete;
 
 
 	// exchange

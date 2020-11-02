@@ -127,7 +127,7 @@
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
 //
-//		single_fire_event m_event;
+//		single_fire_condition m_condition;
 //
 //		rcptr<auto_HANDLE> m_handle;
 //		file_id m_fileId;
@@ -142,7 +142,7 @@
 //		rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> > m_writeFile;
 //		rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> > m_readWriteFile;
 //
-//		void complete() { m_event.signal(); self_release(); }
+//		void complete() { m_condition.signal(); self_release(); }
 //
 //		opener() { self_acquire(); }
 //
@@ -155,8 +155,8 @@
 //		const rcptr<io::synchronized_file<io::write_access, io::default_file_size_t> >& get_write_file() const { return m_writeFile; }
 //		const rcptr<io::synchronized_file<io::read_write_access, io::default_file_size_t> >& get_read_write_file() const { return m_readWriteFile; }
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_condition.dispatch(d); }
 //	};
 //
 //	template <io::access_mode accessMode>
@@ -724,7 +724,7 @@
 //		opener(const opener&) = delete;
 //		opener& operator=(const opener&) = delete;
 //
-//		event m_event;
+//		single_fire_condition m_condition;
 //		rcptr<io::synchronized_file<mode, io::default_file_size_t> > m_file;
 //
 //	protected:
@@ -735,13 +735,13 @@
 //		file_id m_fileId;
 //		rcptr<auto_HANDLE> m_handle;
 //
-//		void complete() { m_event.signal(); self_release(); }
+//		void complete() { m_condition.signal(); self_release(); }
 //
 //	public:
 //		const rcptr<io::synchronized_file<mode, io::default_file_size_t> >& get_file() const { return m_file; }
 //
-//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
-//		virtual void dispatch(const delegate& d) const volatile { m_event.dispatch(d); }
+//		virtual bool timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
+//		virtual void dispatch(const delegate& d) const volatile { m_condition.dispatch(d); }
 //
 //		typedef delegate_t<void, const rcref<const reader>&> dispatch_t;
 //		void dispatch(const dispatch_t& d) const { dispatch(delegate(d, this_rcref)); }
@@ -1019,7 +1019,7 @@
 //				complete();
 //			else
 //			{
-//				m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::read_done, this_rcref, reference_strength::strong));
+//				m_overlapped = new (default_memory_manager::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_reader::read_done, this_rcref, reference_strength::strong));
 //				LARGE_INTEGER offset;
 //				offset.QuadPart = m_offset;
 //				m_overlapped->Offset = offset.LowPart;
@@ -1029,7 +1029,7 @@
 //				if (!b)
 //				{
 //					complete();
-//					default_allocator::destruct_deallocate_type(m_overlapped);
+//					default_memory_manager::destruct_deallocate_type(m_overlapped);
 //				}
 //			}
 //		}
@@ -1040,7 +1040,7 @@
 //			m_currentBuffer.truncate_to(n);
 //			get_buffer().append(m_currentBuffer);
 //			complete();
-//			default_allocator::destruct_deallocate_type(m_overlapped);
+//			default_memory_manager::destruct_deallocate_type(m_overlapped);
 //		}
 //	};
 //
@@ -1077,7 +1077,7 @@
 //			else
 //			{
 //				if (!m_overlapped)
-//					m_overlapped = new (default_allocator::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::write_done, this_rcref, reference_strength::strong));
+//					m_overlapped = new (default_memory_manager::get()) completion_port::overlapped_t(COGS_CONST_DELEGATE_FROM_RC_MEMBER(&file_writer::write_done, this_rcref, reference_strength::strong));
 //				else
 //					m_overlapped->clear();
 //				LARGE_INTEGER offset;
@@ -1090,7 +1090,7 @@
 //				if (!b)
 //				{
 //					complete();
-//					default_allocator::destruct_deallocate_type(m_overlapped);
+//					default_memory_manager::destruct_deallocate_type(m_overlapped);
 //				}
 //			}
 //		}
@@ -1102,7 +1102,7 @@
 //			{
 //				get_buffer().prepend(m_currentBuffer);
 //				complete();
-//				default_allocator::destruct_deallocate_type(m_overlapped);
+//				default_memory_manager::destruct_deallocate_type(m_overlapped);
 //			}
 //			else
 //			{
@@ -1110,7 +1110,7 @@
 //				if (!m_currentBuffer && !get_buffer())
 //				{
 //					complete();
-//					default_allocator::destruct_deallocate_type(m_overlapped);
+//					default_memory_manager::destruct_deallocate_type(m_overlapped);
 //				}
 //				else
 //				{

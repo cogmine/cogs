@@ -19,7 +19,6 @@
 #include "cogs/geometry/cell.hpp"
 #include "cogs/geometry/sizing_groups.hpp"
 #include "cogs/gfx/color.hpp"
-#include "cogs/gfx/font.hpp"
 #include "cogs/math/measurement_types.hpp"
 #include "cogs/math/vec.hpp"
 
@@ -35,15 +34,31 @@ namespace cogs {
 /// @brief Namespace for graphics
 namespace gfx {
 
+typedef geometry::planar::size size;
+typedef geometry::planar::point point;
+typedef geometry::planar::bounds bounds;
+typedef geometry::planar::range range;
+typedef geometry::planar::margin margin;
+typedef geometry::planar::proportion proportion;
+typedef geometry::planar::direction direction;
+typedef geometry::planar::dimension dimension;
+typedef geometry::planar::flow flow;
+typedef geometry::planar::script_flow script_flow;
+typedef geometry::planar::cell cell;
+typedef geometry::planar::alignment alignment;
+//typedef geometry::proportional_sizing_group proportional_sizing_group;
+//typedef geometry::fair_sizing_group fair_sizing_group;
+//typedef geometry::equal_sizing_group equal_sizing_group;
+template <geometry::sizing_disposition disposition>
+using sizing_group = geometry::sizing_group<disposition>;
+typedef geometry::sizing_disposition sizing_disposition;
+typedef geometry::sizing_cell sizing_cell;
+typedef geometry::sizing_group_base sizing_group_base;
 
 // A canvas is something that can be drawn to.
 class canvas;
 
-//class canvas::font; // Base class for implementation dependent fonts.
-//class canvas::bitmap; // Base class for implementation dependent pixel/raster images.
-//class canvas::bitmask; // Base class for implementation dependent bit masks. 1-bit/monochrome. Color values can be applied to each channel.
-//
-//class canvas::alpha_mask; // Base class for implementation dependent alpha masks.
+
 //class canvas::vector_image; // Base class for implementation dependent vector images.
 
 /// @ingroup Graphics
@@ -69,137 +84,161 @@ public:
 };
 
 
+
+// A font_parameters object describes a particular font and style, etc.
+// A font_parameters_list object contains a priority ordered list of font_parameters.
+// In canvas::load_font(), the first font_parameters object in a font_parameters_list
+// that can be successully matched to an available font will be used.
+
+struct font_parameters;
+
+typedef container_dlist<font_parameters> font_parameters_list;
+
+struct font_parameters
+{
+	composite_string fontName;
+	double pointSize = 0.0; // 0 point size implies default point size
+	bool isItalic = false;
+	bool isBold = false;
+	bool isUnderlined = false;
+	bool isStrikeOut = false;
+
+	auto operator<=>(const font_parameters&) const = default;
+	explicit operator font_parameters_list() const
+	{
+		return font_parameters_list(*this);
+	}
+};
+
+
+/// @brief A base class for implementation specific fonts, returned by canvas::load_find().
+class font
+{
+public:
+	struct metrics
+	{
+		double ascent;
+		double descent;
+		double spacing;
+	};
+
+	virtual metrics get_metrics() const = 0;
+	virtual size calc_text_bounds(const composite_string& s) const = 0;
+};
+
+class bitmap;
+
+
+/// @brief A base class for implementation specific B&W images (bit masks), returned by
+/// canvas::load_bitmask() or canvas::create_bitmask().  Color values can be applied to each channel.
+class bitmask
+{
+public:
+	virtual size get_size() const = 0;
+
+	enum class fill_mode
+	{
+		set_mode,
+		clear_mode,
+		invert_mode
+	};
+
+	virtual void fill(const bounds& b, fill_mode fillMode = fill_mode::set_mode) = 0;
+	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode) = 0;
+
+	virtual rcref<font> load_font(const font_parameters_list& f = font_parameters_list()) = 0;
+	virtual string get_default_font_name() const = 0;
+
+	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, bool value = true) = 0;
+
+	enum class composite_mode
+	{
+		copy_mode,
+		copy_inverted_mode,
+		clear_mode,
+		or_mode,
+		and_mode,
+		xor_mode
+	};
+
+	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+
+	virtual rcref<bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt) = 0;
+
+	virtual void save_clip() = 0;
+	virtual void restore_clip() = 0;
+	virtual void clip_out(const bounds& b) = 0;
+	virtual void clip_to(const bounds& b) = 0;
+	virtual bool is_unclipped(const bounds& b) const = 0;
+};
+
+///// @brief A base class for implementation specific alpha masks returned by
+///// canvas::load_alpha_mask or canvas::create_alpha_mask().
+//class alpha_mask
+//{
+//public:
+//	enum class fill_mode
+//	{
+//		set_mode,
+//		multiply_mode,
+//		subtract_mode,
+//		add_mode
+//	};
+//
+//	virtual void fill(const bounds& b, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
+//	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
+//
+//	virtual rcref<font> load_font(const font_parameters_list& f = font_parameters_list()) = 0;
+//	virtual string get_default_font_name() const = 0;
+//
+//	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, std::uint8_t alpha = 0xFF) = 0;
+//
+//	enum class composite_mode
+//	{
+//		set_mode,
+//		multiply_mode,
+//		subtract_mode,
+//		add_mode
+//	};
+//
+//	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+//	virtual void draw_alpha_mask(const alpha_mask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
+//
+//	virtual rcref<bitmask> create_alpha_mask(const size& sz) = 0;
+//
+//	virtual void save_clip() = 0;
+//	virtual void restore_clip() = 0;
+//	virtual void clip_out(const bounds& b) = 0;
+//	virtual void clip_to(const bounds& b) = 0;
+//	virtual bool is_unclipped(const bounds& b) const = 0;
+//};
+
+///// @brief A base class for implementation specific vector images, returned by
+///// canvas::load_vector_image or load_vector_image::create_vector_image().
+//class vector_image
+//{
+//};
+
 /// @ingroup Graphics
-/// @brief An interface for objects that can be drawn to, such as images or a UI window.
+/// @brief An interface for objects that can be drawn to, such as images or a GUI window.
 class canvas
 {
 public:
-	typedef geometry::planar::size size;
-	typedef geometry::planar::point point;
-	typedef geometry::planar::bounds bounds;
-	typedef geometry::planar::range range;
-	typedef geometry::planar::margin margin;
-	typedef geometry::planar::proportion proportion;
-	typedef geometry::planar::direction direction;
-	typedef geometry::planar::dimension dimension;
-	typedef geometry::planar::flow flow;
-	typedef geometry::planar::script_flow script_flow;
-	typedef geometry::planar::cell cell;
-	typedef geometry::planar::alignment alignment;
-	typedef geometry::proportional_sizing_group proportional_sizing_group;
-	typedef geometry::fair_sizing_group fair_sizing_group;
-	typedef geometry::equal_sizing_group equal_sizing_group;
-
-	/// @brief A base class for implementation specific fonts, returned by canvas::load_find().
-	class font
-	{
-	public:
-		struct metrics
-		{
-			double ascent;
-			double descent;
-			double spacing;
-		};
-
-		virtual font::metrics get_metrics() const = 0;
-		virtual size calc_text_bounds(const composite_string& s) const = 0;
-	};
-
-	class bitmap;
-
-	/// @brief A base class for implementation specific B&W images (bit masks), returned by canvas::load_bitmask().
-	class bitmask
-	{
-	public:
-		virtual size get_size() const = 0;
-
-		enum class fill_mode
-		{
-			set_mode,
-			clear_mode,
-			invert_mode
-		};
-
-		virtual void fill(const bounds& b, fill_mode fillMode = fill_mode::set_mode) = 0;
-		virtual void draw_line(const point& startPt, const point& endPt, double width = 1, fill_mode fillMode = fill_mode::set_mode) = 0;
-
-		virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
-		virtual gfx::font get_default_font() const = 0;
-
-		virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, bool value = true) = 0;
-
-		enum class composite_mode
-		{
-			copy_mode,
-			copy_inverted_mode,
-			clear_mode,
-			or_mode,
-			and_mode,
-			xor_mode
-		};
-
-		virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
-
-		virtual rcref<bitmask> create_bitmask(const size& sz, std::optional<bool> value = std::nullopt) = 0;
-
-		virtual void save_clip() = 0;
-		virtual void restore_clip() = 0;
-		virtual void clip_out(const bounds& b) = 0;
-		virtual void clip_to(const bounds& b) = 0;
-		virtual bool is_unclipped(const bounds& b) const = 0;
-	};
-
-	//class alpha_mask
-	//{
-	//public:
-	//	enum class fill_mode
-	//	{
-	//		set_mode,
-	//		multiply_mode,
-	//		subtract_mode,
-	//		add_mode
-	//	};
-	//
-	//	virtual void fill(const bounds& b, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
-	//	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, std::uint8_t alpha = 0xFF, fill_mode fillMode = fill_mode::set_mode) = 0;
-	//
-	//	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
-	//	virtual gfx::font get_default_font() const = 0;
-	//
-	//	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, std::uint8_t alpha = 0xFF) = 0;
-	//
-	//	enum class composite_mode
-	//	{
-	//		set_mode,
-	//		multiply_mode,
-	//		subtract_mode,
-	//		add_mode
-	//	};
-	//
-	//	virtual void draw_bitmask(const bitmask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
-	//	virtual void draw_alpha_mask(const alpha_mask& msk, const bounds& mskBounds, const bounds& dstBounds, composite_mode compositeMode = composite_mode::copy_mode) = 0;
-	//
-	//	virtual rcref<bitmask> create_alpha_mask(const size& sz) = 0;
-	//
-	//	virtual void save_clip() = 0;
-	//	virtual void restore_clip() = 0;
-	//	virtual void clip_out(const bounds& b) = 0;
-	//	virtual void clip_to(const bounds& b) = 0;
-	//	virtual bool is_unclipped(const bounds& b) const = 0;
-	//};
-
-	//class vector_image
-	//{
-	//};
-
 	// Drawing primatives
 	virtual void fill(const bounds& b, const color& c = color::constant::black, bool blendAlpha = true) = 0;
 	virtual void invert(const bounds& b) = 0;
 	virtual void draw_line(const point& startPt, const point& endPt, double width = 1, const color& c = color::constant::black, bool blendAlpha = true) = 0;
 
 	// text and font primatives
-	virtual rcref<font> load_font(const gfx::font& f = gfx::font()) = 0;
-	virtual gfx::font get_default_font() const = 0;
+	virtual rcref<font> load_font(const font_parameters_list& f = font_parameters_list()) = 0;
+	virtual string get_default_font_name() const = 0;
+
+	virtual color get_default_text_foreground_color() const { return color::constant::black; }
+	virtual color get_default_text_background_color() const { return color::constant::white; }
+	virtual color get_default_selected_text_foreground_color() const { return color::constant::white; }
+	virtual color get_default_selected_text_background_color() const { return color::constant::black; }
+	virtual color get_default_label_foreground_color() const { return color::constant::black; }
+	virtual color get_default_background_color() const { return color::constant::white; }
 
 	virtual void draw_text(const composite_string& s, const bounds& b, const rcptr<font>& f = 0, const color& c = color::constant::black) = 0;
 
@@ -238,8 +277,8 @@ public:
 };
 
 
-/// @brief A base class for implementation specific images, returned by canvas::load_bitmap() or canvas::create_bitmap.
-class canvas::bitmap : public canvas
+/// @brief A base class for implementation specific pixel/raster images, returned by canvas::load_bitmap() or canvas::create_bitmap.
+class bitmap : public canvas
 {
 public:
 	virtual size get_size() const = 0;

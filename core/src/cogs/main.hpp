@@ -9,7 +9,7 @@
 #include <mutex>
 #include "cogs/env.hpp"
 #include "cogs/env/main.hpp"
-#include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
@@ -28,11 +28,11 @@ private:
 
 	struct count_and_result_t
 	{
-		alignas (atomic::get_alignment_v<size_t>) size_t m_count;
-		alignas (atomic::get_alignment_v<int>) int m_lastResult;
+		alignas(atomic::get_alignment_v<size_t>) size_t m_count;
+		alignas(atomic::get_alignment_v<int>) int m_lastResult;
 	};
 
-	alignas (atomic::get_alignment_v<count_and_result_t>) inline static count_and_result_t s_countAndResult = { };
+	alignas(atomic::get_alignment_v<count_and_result_t>) inline static count_and_result_t s_countAndResult  = { };
 
 	static int initialize()
 	{
@@ -104,7 +104,8 @@ private:
 					force_quit();
 					env::terminate();
 					thread_pool::shutdown_default();
-					default_allocator::shutdown();
+					rc_obj_base::shutdown();
+					default_memory_manager::shutdown();
 				}
 				break;
 			}

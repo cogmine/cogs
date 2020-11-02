@@ -11,6 +11,7 @@
 
 #include "cogs/function.hpp"
 #include "cogs/mem/object.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/os/handle.hpp"
@@ -82,7 +83,7 @@ public:
 		virtual void run()
 		{
 			overlapped_t::run();
-			default_allocator::destruct_deallocate_type(this);
+			default_memory_manager::destruct_deallocate_type(this);
 		}
 	};
 
@@ -162,11 +163,11 @@ public:
 			CreateIoCompletionPort(h, m_handle->get(), 0, 0);
 	}
 
-	// Since in Win32, all overlapped IO is cancelled if the calling thread is canceled,
-	// let's defer the issuing of all overlapped IO to the worker threads.
+	// Windows will cancell any overlapped IO issued by the calling thread,
+	// so defer the issuing of all overlapped IO to the worker thread pools.
 	void dispatch(const function<void()>& d) const volatile
 	{
-		self_destructing_overlapped_t* o = default_allocator::allocate_type<self_destructing_overlapped_t>();
+		self_destructing_overlapped_t* o = default_memory_manager::allocate_type<self_destructing_overlapped_t>();
 		new (o) self_destructing_overlapped_t(d);
 		PostQueuedCompletionStatus(m_handle->get(), 0, 0, o->get());
 	}

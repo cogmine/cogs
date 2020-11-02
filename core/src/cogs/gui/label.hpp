@@ -10,7 +10,6 @@
 
 
 #include "cogs/gfx/color.hpp"
-#include "cogs/gfx/font.hpp"
 #include "cogs/gui/pane.hpp"
 #include "cogs/dependency_property.hpp"
 
@@ -31,23 +30,23 @@ private:
 	// though get() may occur concurrently with set()'s.
 
 	volatile composite_string m_text;
-	volatile gfx::font m_font;
-	volatile color m_textColor;
+	volatile rcref<gfx::font_parameters_list> m_font;
+	volatile transactable<std::optional<color>> m_textColor;
 	bool m_useLineHeight;
 
 	delegated_dependency_property<composite_string> m_textProperty;
-	delegated_dependency_property<gfx::font> m_fontProperty;
-	delegated_dependency_property<color> m_colorProperty;
+	delegated_dependency_property<gfx::font_parameters_list> m_fontProperty;
+	delegated_dependency_property<std::optional<color>> m_colorProperty;
 
-	rcptr<canvas::font> m_cachedFont;
+	rcptr<gfx::font> m_cachedFont;
 	size m_textExtent;
 
 public:
 	struct options
 	{
 		composite_string text;
-		gfx::font font;
-		color textColor;
+		gfx::font_parameters_list font;
+		std::optional<color> textColor;
 		bool useLineHeight;
 		frame_list frames;
 	};
@@ -57,8 +56,8 @@ public:
 			.frames = std::move(o.frames)
 		}),
 		m_text(std::move(o.text)),
-		m_font(std::move(o.font)),
-		m_textColor(o.textColor),
+		m_font(rcnew(gfx::font_parameters_list)(std::move(o.font))),
+		m_textColor(transactable<std::optional<color>>::construct_embedded_t(), o.textColor),
 		m_useLineHeight(o.useLineHeight),
 		m_textProperty(*this, [this]()
 		{
@@ -75,10 +74,11 @@ public:
 		}),
 		m_fontProperty(*this, [this]()
 		{
-			return m_font;
-		}, [this](const gfx::font& f)
+			rcref<gfx::font_parameters_list> tmp = m_font;
+			return *tmp;
+		}, [this](const gfx::font_parameters_list& f)
 		{
-			m_font = f;
+			m_font = rcnew(gfx::font_parameters_list)(f);
 			m_fontProperty.set_complete(true);
 			if (is_installed())
 			{
@@ -89,19 +89,21 @@ public:
 		}),
 		m_colorProperty(*this, [this]()
 		{
-			return m_textColor;
-		}, [this](color c)
+			return *(m_textColor.begin_read());;
+		}, [this](const std::optional<color>& c)
 		{
-			m_textColor = c;
-			m_colorProperty.set_complete(true);
+			std::optional<color> newColor = c;
+			std::optional<color> oldColor = newColor;
+			m_textColor.swap_contents(oldColor);
+			m_colorProperty.set_complete(newColor != oldColor);
 			invalidate(get_size());
 		})
 	{ }
 
 	virtual void installing()
 	{
-		gfx::font f = m_font;
-		m_cachedFont = load_font(f);
+		rcref<gfx::font_parameters_list> tmp = m_font;
+		m_cachedFont = load_font(*tmp);
 		pane::installing();
 	}
 
@@ -121,7 +123,7 @@ public:
 	{
 		pane::calculate_range();
 		composite_string txt = m_text;
-		rcptr<canvas::font> f = m_cachedFont;
+		rcptr<gfx::font> f = m_cachedFont;
 		m_textExtent = f->calc_text_bounds(txt);
 		if (m_useLineHeight)
 		{
@@ -136,26 +138,27 @@ public:
 	}
 
 	virtual range get_range() const { return range(m_textExtent); }
-	virtual size get_default_size() const { return m_textExtent; }
+	virtual std::optional<size> get_default_size() const { return m_textExtent; }
 
 	virtual void drawing()
 	{
 		composite_string txt(m_text);
-		rcptr<canvas::font> f = m_cachedFont;
-		color c = m_textColor;
-		draw_text(txt, m_textExtent, f.dereference(), c);
+		rcptr<gfx::font> f = m_cachedFont;
+		std::optional<color> c = *(m_textColor.begin_read());
+		color c2 = c.has_value() ? *c : get_default_label_foreground_color();
+		draw_text(txt, m_textExtent, f.dereference(), c2);
 	}
 
-	rcref<dependency_property<composite_string> > get_text_property() { return get_self_rcref(&m_textProperty); }
-	rcref<dependency_property<gfx::font> > get_font_property() { return get_self_rcref(&m_fontProperty); }
-	rcref<dependency_property<color> > get_color_property() { return get_self_rcref(&m_colorProperty); }
+	rcref<dependency_property<composite_string>> get_text_property() { return get_self_rcref(&m_textProperty); }
+	rcref<dependency_property<gfx::font_parameters_list>> get_font_property() { return get_self_rcref(&m_fontProperty); }
+	rcref<dependency_property<std::optional<color>>> get_color_property() { return get_self_rcref(&m_colorProperty); }
 
-	color get_text_color() const
+	std::optional<color> get_text_color() const
 	{
 		return m_colorProperty.get();
 	}
 
-	void set_text_color(const color& c)
+	void set_text_color(const std::optional<color>& c)
 	{
 		m_colorProperty.set(c);
 	}

@@ -12,9 +12,9 @@
 #include "cogs/io/datastream.hpp"
 #include "cogs/io/net/connection.hpp"
 #include "cogs/mem/object.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/os/io/net/ip/socket.hpp"
 #include "cogs/sync/thread_pool.hpp"
-
 
 namespace cogs {
 namespace io {
@@ -124,7 +124,7 @@ private:
 				m_currentBuffer.truncate_to(m_progress);
 				get_buffer().append(m_currentBuffer);
 				m_currentBuffer.release();
-				default_allocator::destruct_deallocate_type(m_overlapped);
+				default_memory_manager::destruct_deallocate_type(m_overlapped);
 				complete(closing);
 				break;
 			}
@@ -154,7 +154,7 @@ private:
 										m_overlapped->clear();
 									else
 									{
-										m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+										m_overlapped = default_memory_manager::allocate_type<os::io::completion_port::overlapped_t>();
 										new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
 										{
 											rcptr<tcp_reader> r2 = r;
@@ -214,7 +214,7 @@ private:
 						m_currentBuffer.truncate_to(m_progress);
 						get_buffer().append(m_currentBuffer);
 						m_currentBuffer.release();
-						default_allocator::destruct_deallocate_type(m_overlapped);
+						default_memory_manager::destruct_deallocate_type(m_overlapped);
 						complete(closing);
 						break;
 					}
@@ -301,7 +301,7 @@ private:
 						break;
 					}
 				}
-				default_allocator::destruct_deallocate_type(m_overlapped);
+				default_memory_manager::destruct_deallocate_type(m_overlapped);
 				complete();
 				break;
 			}
@@ -318,7 +318,7 @@ private:
 					if (!!ds)
 					{
 						int i;
-						m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+						m_overlapped = default_memory_manager::allocate_type<os::io::completion_port::overlapped_t>();
 						new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_weak_rcptr }]()
 						{
 							rcptr<tcp_writer> r2 = r;
@@ -338,7 +338,7 @@ private:
 						}
 					}
 				}
-				default_allocator::destruct_deallocate_type(m_overlapped);
+				default_memory_manager::destruct_deallocate_type(m_overlapped);
 				complete(closing);
 				break;
 			}
@@ -355,7 +355,7 @@ private:
 			bool aborted = resultingValue.test_bit(0);
 			if (!aborted && (!n || (!m_overlapped->m_success)))
 				closing = true;
-			default_allocator::destruct_deallocate_type(m_overlapped);
+			default_memory_manager::destruct_deallocate_type(m_overlapped);
 			complete(closing);
 		}
 	};
@@ -397,7 +397,7 @@ public:
 			{
 				if (m_addresses.is_empty())
 				{
-					default_allocator::destruct_deallocate_type(m_overlapped);
+					default_memory_manager::destruct_deallocate_type(m_overlapped);
 					m_tcp.release(); // failure to connect is indicated by complete connecter with null tcp object
 					signal();
 					self_release();
@@ -440,7 +440,7 @@ public:
 					m_overlapped->clear();
 				else
 				{
-					m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+					m_overlapped = default_memory_manager::allocate_type<os::io::completion_port::overlapped_t>();
 					new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_rcref }]()
 					{
 						r->connect_done();
@@ -471,7 +471,7 @@ public:
 			else
 			{
 				m_tcp->m_socket->read_endpoints();
-				default_allocator::destruct_deallocate_type(m_overlapped);
+				default_memory_manager::destruct_deallocate_type(m_overlapped);
 				signal();
 				self_release();
 			}
@@ -607,7 +607,7 @@ public:
 													NULL);
 								if (err != SOCKET_ERROR)
 								{
-									m_overlapped = default_allocator::allocate_type<os::io::completion_port::overlapped_t>();
+									m_overlapped = default_memory_manager::allocate_type<os::io::completion_port::overlapped_t>();
 									new (m_overlapped) os::io::completion_port::overlapped_t([r{ this_rcref }]()
 									{
 										r->connection_accepted();
@@ -649,7 +649,7 @@ public:
 						}
 						l->close();
 					}
-					default_allocator::destruct_deallocate_type(m_overlapped);
+					default_memory_manager::destruct_deallocate_type(m_overlapped);
 					break;
 				}
 			}
@@ -694,15 +694,15 @@ public:
 							break;
 						}
 					}
-					default_allocator::destruct_deallocate_type(m_overlapped);
+					default_memory_manager::destruct_deallocate_type(m_overlapped);
 					break;
 				}
 			}
 		};
 
-		rcptr<accept_helper> m_acceptHelper;
-		single_fire_event m_closeEvent;
 		unsigned short m_port;
+		rcptr<accept_helper> m_acceptHelper;
+		rcref<single_fire_condition> m_closeCondition;
 
 		listener() = delete;
 		listener(listener&&) = delete;
@@ -716,20 +716,21 @@ public:
 			{
 				m_acceptHelper->close();
 				m_acceptHelper = 0;
-				m_closeEvent.signal();
+				m_closeCondition->signal();
 			}
 		}
 
 	public:
 		listener(const accept_delegate_t& acceptDelegate, unsigned short port, address_family addressFamily = address_family::inetv4)
-			: m_port(port)
+			: m_port(port),
+			m_closeCondition(rcnew(single_fire_condition))
 		{
 			rcnew(accept_helper)(this_rcref, acceptDelegate, port, addressFamily);
 		}
 
 		~listener() { close(); }
 
-		const waitable& get_close_event() const { return m_closeEvent; }
+		const waitable& get_close_condition() const { return *m_closeCondition; }
 
 		unsigned short get_port() const { return m_port; }
 	};

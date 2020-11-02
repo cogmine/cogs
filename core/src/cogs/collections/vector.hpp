@@ -9,10 +9,11 @@
 #define COGS_HEADER_COLLECTION_VECTOR
 
 #include <type_traits>
+#include <compare>
 
 #include "cogs/operators.hpp"
 #include "cogs/math/const_max_int.hpp"
-#include "cogs/mem/default_allocator.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rc_obj_base.hpp"
@@ -63,17 +64,23 @@ private:
 	type* m_start; // Starting position of constructed elements
 	// There may be some number of purged elements at the start of the buffer
 
-	virtual void released() { placement_destruct_multiple(m_start, m_length); }
+	virtual void released()
+	{
+		placement_destruct_multiple(m_start, m_length);
+	}
 
 	virtual bool contains(void* obj) const
 	{
-		type* start = get_ptr();
-		unsigned char* p = (unsigned char*)obj;
-		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + get_constructed_length()));
+		const type* start = get_ptr();
+		const unsigned char* p = (const unsigned char*)obj;
+		return (p >= (const unsigned char*)start) && (p < (const unsigned char*)(start + get_constructed_length()));
 	}
 
 public:
-	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }
+	virtual void dispose()
+	{
+		default_memory_manager::destruct_deallocate_type(this);
+	}
 
 	vector_descriptor(size_t length, size_t capacity)
 		: m_capacity(capacity),
@@ -88,7 +95,7 @@ public:
 
 	void set_constructed_range(type* p, size_t length) { m_start = p; m_length = length; }
 
-	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::get_obj_from_header(this); }
+	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::from_header(this); }
 	type* get_ptr() const { return m_start; }
 	size_t get_constructed_length() const { return m_length; }
 	size_t get_constructed_length(type* p) const { return m_length - get_index_of(p); }
@@ -116,16 +123,13 @@ public:
 			return false;
 		if (m_capacity >= n)
 			return true;
-		if (!default_allocator::try_reallocate_type_with_header<vector_descriptor<type>, type>(this, n))
-			return false;
-		m_capacity = default_allocator::get_allocation_size_type_without_header<vector_descriptor<type>, type>(this, n);
-		return true;
+		return default_memory_manager::try_reallocate_type_with_header<vector_descriptor<type>, type>(this, n, &m_capacity);
 	}
 
 	static ptr<vector_descriptor<type> > allocate(size_t n)
 	{
-		ptr<vector_descriptor<type> > desc = default_allocator::allocate_type_with_header<vector_descriptor<type>, type>(n);
-		size_t capacity = default_allocator::get_allocation_size_type_without_header<vector_descriptor<type>, type>(desc, n);
+		size_t capacity;
+		ptr<vector_descriptor<type> > desc = default_memory_manager::allocate_type_with_header<vector_descriptor<type>, type>(n, &capacity);
 		new (desc) vector_descriptor<type>(n, capacity);
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
@@ -165,13 +169,16 @@ private:
 
 	virtual bool contains(void* obj) const
 	{
-		type* start = get_ptr();
-		unsigned char* p = (unsigned char*)obj;
-		return (p >= (unsigned char*)start) && (p < (unsigned char*)(start + get_constructed_length()));
+		const type* start = get_ptr();
+		const unsigned char* p = (const unsigned char*)obj;
+		return (p >= (const unsigned char*)start) && (p < (const unsigned char*)(start + get_constructed_length()));
 	}
 
 public:
-	virtual void dispose() { default_allocator::destruct_deallocate_type(this); }
+	virtual void dispose()
+	{
+		default_memory_manager::destruct_deallocate_type(this);
+	}
 
 	explicit vector_descriptor(size_t capacity)
 		: m_capacity(capacity)
@@ -186,7 +193,7 @@ public:
 
 	void set_constructed_range(type*, size_t) { }
 
-	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::get_obj_from_header(this); }
+	type* get_base() const { return placement_with_header<vector_descriptor<type>, type>::from_header(this); }
 	type* get_ptr() const { return get_base(); }
 	size_t get_constructed_length() const { return m_capacity; }
 	size_t get_constructed_length(type* p) const { return get_capacity_after(p); }
@@ -207,16 +214,13 @@ public:
 			return false;
 		if (m_capacity >= n)
 			return true;
-		if (!default_allocator::try_reallocate_type_with_header<vector_descriptor<type>, type>(this, n))
-			return false;
-		m_capacity = default_allocator::get_allocation_size_type_without_header<vector_descriptor<type>, type>(this, n);
-		return true;
+		return default_memory_manager::try_reallocate_type_with_header<vector_descriptor<type>, type>(this, n, &m_capacity);
 	}
 
 	static ptr<vector_descriptor<type> > allocate(size_t n)
 	{
-		ptr<vector_descriptor<type> > desc = default_allocator::allocate_type_with_header<vector_descriptor<type>, type>(n);
-		size_t capacity = default_allocator::get_allocation_size_type_without_header<vector_descriptor<type>, type>(desc, n);
+		size_t capacity;
+		ptr<vector_descriptor<type> > desc = default_memory_manager::allocate_type_with_header<vector_descriptor<type>, type>(n, &capacity);
 		new (desc) vector_descriptor<type>(capacity);
 
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
@@ -316,6 +320,13 @@ public:
 		: m_ptr(0), m_desc(0), m_length(0)
 	{
 		allocate(n, src);
+	}
+
+	template <typename type2 = type>
+	vector_content(size_t n, type2&& src)
+		: m_ptr(0), m_desc(0), m_length(0)
+	{
+		allocate(n, std::forward<type2>(src));
 	}
 
 	template <typename type2 = type>
@@ -515,6 +526,18 @@ public:
 	}
 
 	template <typename type2 = type>
+	void allocate(size_t n, type2&& src)
+	{
+		allocate_inner(n);
+		m_length = n;
+
+		size_t lastPosition = n - 1;
+		if (lastPosition != 0)
+			placement_construct_multiple(m_ptr, lastPosition, src);
+		placement_construct(m_ptr + lastPosition, std::forward<type2>(src));
+	}
+
+	template <typename type2 = type>
 	void allocate(const type2* src, size_t n)
 	{
 		allocate_inner(n);
@@ -694,12 +717,35 @@ public:
 		}
 	}
 
-	template <typename type2>
+	void append(size_t n, type&& src)
+	{
+		size_t oldLength = m_length;
+		prepare_append(n);
+		size_t lastPosition = n - 1;
+		type* dst = m_ptr + oldLength;
+		if (lastPosition != 0)
+			placement_construct_multiple(dst, lastPosition, src);
+		placement_construct(dst + lastPosition, std::forward<type>(src));
+	}
+
+	template <typename type2 = type>
 	void append(size_t n, const type2& src)
 	{
 		size_t oldLength = m_length;
 		prepare_append(n);
 		placement_construct_multiple(m_ptr + oldLength, n, src);
+	}
+
+	template <typename type2 = type>
+	void append(size_t n, type2&& src)
+	{
+		size_t oldLength = m_length;
+		prepare_append(n);
+		size_t lastPosition = n - 1;
+		type* dst = m_ptr + oldLength;
+		if (lastPosition != 0)
+			placement_construct_multiple(dst, lastPosition, src);
+		placement_construct(dst + lastPosition, std::forward<type2>(src));
 	}
 
 	void append(const type* src, size_t n)
@@ -769,11 +815,30 @@ public:
 		}
 	}
 
-	template <typename type2>
+	void prepend(size_t n, type&& src)
+	{
+		prepare_prepend(n);
+		size_t lastPosition = n - 1;
+		if (lastPosition != 0)
+			placement_construct_multiple(m_ptr, lastPosition, src);
+		placement_construct(m_ptr + lastPosition, std::forward<type>(src));
+	}
+
+	template <typename type2 = type>
 	void prepend(size_t n, const type2& src)
 	{
 		prepare_prepend(n);
 		placement_construct_multiple(m_ptr, n, src);
+	}
+
+	template <typename type2 = type>
+	void prepend(size_t n, type2&& src)
+	{
+		prepare_prepend(n);
+		size_t lastPosition = n - 1;
+		if (lastPosition != 0)
+			placement_construct_multiple(m_ptr, lastPosition, src);
+		placement_construct(m_ptr + lastPosition, std::forward<type2>(src));
 	}
 
 	void prepend(const type* src, size_t n)
@@ -805,6 +870,22 @@ public:
 		{
 			reserve(n);
 			placement_construct_multiple(m_ptr, n, src);
+			m_desc->set_constructed_range(m_ptr, n);
+		}
+		m_length = n;
+	}
+
+	template <typename type2 = type>
+	void assign(size_t n, type2&& src)
+	{
+		clear();
+		if (!!n)
+		{
+			reserve(n);
+			size_t lastPosition = n - 1;
+			if (lastPosition != 0)
+				placement_construct_multiple(m_ptr, lastPosition, src);
+			placement_construct(m_ptr + lastPosition, std::forward<type2>(src));
 			m_desc->set_constructed_range(m_ptr, n);
 		}
 		m_length = n;
@@ -932,6 +1013,20 @@ public:
 	}
 
 	template <typename type2 = type>
+	void insert(size_t i, size_t insertLength, type2&& src) // insertLength > 0
+	{
+		if (i > m_length)
+			i = m_length;
+		prepare_insert_replace(i, insertLength);
+		size_t lastPosition = insertLength - 1;
+		type* dst = m_ptr + i;
+		if (lastPosition != 0)
+			placement_construct_multiple(dst, lastPosition, src);
+		placement_construct(dst + lastPosition, std::forward<type2>(src));
+
+	}
+
+	template <typename type2 = type>
 	void insert(size_t i, const type2* src, size_t insertLength) // insertLength > 0
 	{
 		if (i > m_length)
@@ -950,6 +1045,23 @@ public:
 				replaceLength = remainingLength;
 			prepare_insert_replace(i, replaceLength, replaceLength);
 			placement_construct_multiple(m_ptr + i, replaceLength, src);
+		}
+	}
+
+	template <typename type2 = type>
+	void replace(size_t i, size_t replaceLength, type2&& src)
+	{
+		if (!!replaceLength && (i < m_length))
+		{
+			size_t remainingLength = m_length - i;
+			if (replaceLength > remainingLength)
+				replaceLength = remainingLength;
+			prepare_insert_replace(i, replaceLength, replaceLength);
+			size_t lastPosition = replaceLength - 1;
+			type* dst = m_ptr + i;
+			if (lastPosition != 0)
+				placement_construct_multiple(dst, lastPosition, src);
+			placement_construct(dst + lastPosition, std::forward<type2>(src));
 		}
 	}
 
@@ -973,6 +1085,19 @@ public:
 			i = m_length;
 		prepare_insert_replace(i, insertLength, replaceLength);
 		placement_construct_multiple(m_ptr + i, insertLength, src);
+	}
+
+	template <typename type2 = type>
+	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, type2&& src) // insertLength > 0
+	{
+		if (i > m_length)
+			i = m_length;
+		prepare_insert_replace(i, insertLength, replaceLength);
+		size_t lastPosition = insertLength - 1;
+		type* dst = m_ptr + i;
+		if (lastPosition != 0)
+			placement_construct_multiple(dst, lastPosition, src);
+		placement_construct(dst + lastPosition, std::forward<type2>(src));
 	}
 
 	template <typename type2 = type>
@@ -1008,7 +1133,16 @@ public:
 	void resize(size_t n, const type2& src)
 	{
 		if (n > m_length)
-			append(n, &src);
+			append(n, src);
+		else
+			truncate_to(n);
+	}
+
+	template <typename type2 = type>
+	void resize(size_t n, type2&& src)
+	{
+		if (n > m_length)
+			append(n, std::forward<type2>(src));
 		else
 			truncate_to(n);
 	}
@@ -1173,7 +1307,6 @@ public:
 		}
 		return !!cmpIsLonger ? -1 : ((n == m_length) ? 0 : 1);
 	}
-
 
 	template <typename type2, class comparator_t>
 	bool is_less_than(const type2* cmp, size_t n) const
@@ -1449,7 +1582,7 @@ protected:
 			desc = rt->m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(rt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();
@@ -1479,7 +1612,7 @@ protected:
 			desc = wt->m_desc;
 			if (!desc)
 				break;
-			p.bind(h, desc);
+			p.bind_unacquired(h, desc);
 			if (!m_contents.is_current(wt) || !p.validate())
 				continue;
 			bool acquired = desc->acquire();
@@ -1660,6 +1793,8 @@ public:
 
 	template <typename type2 = type>
 	vector(size_t n, const type2& src) { if (n) m_contents->allocate(n, src); }
+	template <typename type2 = type>
+	vector(size_t n, type2&& src) { if (n) m_contents->allocate(n, std::forward<type2>(src)); }
 
 	template <typename type2 = type>
 	vector(const type2* src, size_t n) { if (n) m_contents->allocate(src, n); }
@@ -1738,7 +1873,10 @@ public:
 		}
 	}
 
-	~vector() { m_contents->release(); }
+	~vector()
+	{
+		m_contents->release();
+	}
 
 	this_t& operator=(this_t&& src)
 	{
@@ -1844,47 +1982,47 @@ public:
 		return result;
 	}
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(size_t n, const type2& cmp) const { return m_contents->template compare<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(size_t n, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template compare<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(const type2* cmp, size_t n) const { return m_contents->template compare<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template compare<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(const vector<type2>& cmp) const { return compare<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(const vector<type2>& cmp) const volatile { return compare<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	int compare(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return compare<type2, comparator_t>(tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(size_t n, const type2& cmp) const { return m_contents->template equals<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(size_t n, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template equals<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(const type2* cmp, size_t n) const { return m_contents->template equals<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template equals<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(const vector<type2>& cmp) const { return equals<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(const vector<type2>& cmp) const volatile { return equals<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool equals(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return equals<type2, comparator_t>(tmp); }
 
 
@@ -1907,79 +2045,79 @@ public:
 	bool operator!=(const volatile vector<type2>& cmp) const { return !equals(cmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(size_t n, const type2& cmp) const { return m_contents->template starts_with<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(size_t n, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template starts_with<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(const type2* cmp, size_t n) const { return m_contents->template starts_with<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template starts_with<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(const vector<type2>& cmp) const { return starts_with<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(const vector<type2>& cmp) const volatile { return starts_with<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool starts_with(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return starts_with<type2, comparator_t>(tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(size_t n, const type2& cmp) const { return m_contents->template ends_with<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(size_t n, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template ends_with<type2, comparator_t>(n, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(const type2* cmp, size_t n) const { return m_contents->template ends_with<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template ends_with<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(const vector<type2>& cmp) const { return ends_with<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(const vector<type2>& cmp) const volatile { return ends_with<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool ends_with(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return ends_with<type2, comparator_t>(tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_less_than(const type2* cmp, size_t n) const { return m_contents->template is_less_than<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_less_than(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template is_less_than<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_less_than(const vector<type2>& cmp) const { return is_less_than<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_less_than(const vector<type2>& cmp) const volatile { return is_less_than<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_less_than(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return is_less_than<type2, comparator_t>(tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_greater_than(const type2* cmp, size_t n) const { return m_contents->template is_greater_than<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_greater_than(const type2* cmp, size_t n) const volatile { this_t tmp(*this); return tmp.template is_greater_than<type2, comparator_t>(cmp, n); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_greater_than(const vector<type2>& cmp) const { return is_greater_than<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_greater_than(const vector<type2>& cmp) const volatile { return is_greater_than<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool is_greater_than(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return is_greater_than<type2, comparator_t>(tmp); }
 
 
@@ -2019,92 +2157,109 @@ public:
 	template <typename type2>
 	bool operator<=(const volatile vector<type2>& cmp) const { return !is_greater_than(cmp); }
 
+	template <typename type2>
+	std::strong_ordering operator<=>(const vector<type2>& cmp) const
+	{
+		int i = compare(cmp);
+		if (i < 0)
+			return std::strong_ordering::less;
+		if (i > 0)
+			return std::strong_ordering::greater;
+		return std::strong_ordering::equivalent;
+	}
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2>
+	std::strong_ordering operator<=>(const vector<type2>& cmp) const volatile { this_t tmp(*this); return tmp <=> cmp; }
+
+	template <typename type2>
+	std::strong_ordering operator<=>(const volatile vector<type2>& cmp) const { vector<type2> tmp(cmp); return *this <=> tmp; }
+
+
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of(const type2& cmp) const { return m_contents->template index_of<type2, comparator_t>(0, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of(const type2& cmp) const volatile { this_t tmp(*this); return tmp.template index_of<type2, comparator_t>(cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of(size_t i, const type2& cmp) const { return m_contents->template index_of<type2, comparator_t>(i, cmp); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of(size_t i, const type2& cmp) const volatile { this_t tmp(*this); return tmp.template index_of<type2, comparator_t>(i, cmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_any(const type2* cmp, size_t cmpLength) const { return m_contents->template index_of_any<type2, comparator_t>(0, cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_any(const type2* cmp, size_t cmpLength) const volatile { this_t tmp(*this); return tmp.template index_of_any<type2, comparator_t>(cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const { return m_contents->template index_of_any<type2, comparator_t>(i, cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_any(size_t i, const type2* cmp, size_t cmpLength) const volatile { this_t tmp(*this); return tmp.template index_of_any<type2, comparator_t>(i, cmp, cmpLength); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(const type2* cmp, size_t cmpLength) const { return m_contents->template index_of_segment<type2, comparator_t>(0, cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(const type2* cmp, size_t cmpLength) const volatile { this_t tmp(*this); return tmp.template index_of_segment<type2, comparator_t>(cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(const vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(const vector<type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(const volatile vector<type2>& cmp) const { vector<type2> tmp; return index_of_segment<type2, comparator_t>(tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const { return m_contents->template index_of_segment<type2, comparator_t>(i, cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(size_t i, const type2* cmp, size_t cmpLength) const volatile { this_t tmp(*this); return tmp.template index_of_segment<type2, comparator_t>(i, cmp, cmpLength); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(size_t i, const vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(i, cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(size_t i, const vector<type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(i, cmp.get_const_ptr(), cmp.get_length()); }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	size_t index_of_segment(size_t i, const volatile vector<type2>& cmp) const { vector<type2> tmp; return index_of_segment<type2, comparator_t>(i, tmp); }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains(const type2& cmp) const { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains(const type2& cmp) const volatile { return index_of<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_any(const type2* cmp, size_t cmpLength) const { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_any(const type2* cmp, size_t cmpLength) const volatile { return index_of_any<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_segment(const type2* cmp, size_t cmpLength) const { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_segment(const type2* cmp, size_t cmpLength) const volatile { return index_of_segment<type2, comparator_t>(cmp, cmpLength) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_segment(const vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_segment(const vector<type2>& cmp) const volatile { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
-	template <typename type2 = type, class comparator_t = default_comparator >
+	template <typename type2 = type, class comparator_t = default_comparator>
 	bool contains_segment(const volatile vector<type2>& cmp) const { return index_of_segment<type2, comparator_t>(cmp) != const_max_int_v<size_t>; }
 
 
@@ -2112,7 +2267,7 @@ public:
 	type& get_first() { return get_ptr()[0]; }
 	type& get_last() { return get_ptr()[m_contents->m_length - 1]; }
 
-	template <typename type2>
+	template <typename type2 = type>
 	void set_index(size_t i, const type2& src) { get_ptr()[i] = src; }
 
 	void reverse() { m_contents->reverse(); }
@@ -2181,26 +2336,28 @@ public:
 
 	void reserve(size_t n) { m_contents->reserve(n); }
 
-	void assign(size_t n, const type& src)
-	{
-		m_contents->assign(n, src);
-	}
-
-	void assign(size_t n, const type& src) volatile
-	{
-		m_contents.set(content_t(n, src));
-	}
-
-	template <typename type2>
+	template <typename type2 = type>
 	void assign(size_t n, const type2& src)
 	{
 		m_contents->assign(n, src);
 	}
 
-	template <typename type2>
+	template <typename type2 = type>
 	void assign(size_t n, const type2& src) volatile
 	{
 		m_contents.set(content_t(n, src));
+	}
+
+	template <typename type2 = type>
+	void assign(size_t n, type2&& src)
+	{
+		m_contents->assign(n, std::forward<type2>(src));
+	}
+
+	template <typename type2 = type>
+	void assign(size_t n, type2&& src) volatile
+	{
+		m_contents.set(content_t(n, std::forward<type2>(src)));
 	}
 
 	template <typename type2>
@@ -2218,7 +2375,9 @@ public:
 	void assign(const vector<type>& src)
 	{
 		if (this != &src)
+		{
 			m_contents->acquire(*(src.m_contents));
+		}
 	}
 
 	template <typename type2>
@@ -2248,17 +2407,18 @@ public:
 			m_contents->append(n);
 	}
 
-	void append(size_t n, const type& src)
+	template <typename type2 = type>
+	void append(size_t n, const type2& src)
 	{
 		if (!!n)
 			m_contents->append(n, src);
 	}
 
-	template <typename type2>
-	void append(size_t n, const type2& src)
+	template <typename type2 = type>
+	void append(size_t n, type2&& src)
 	{
 		if (!!n)
-			m_contents->append(n, src);
+			m_contents->append(n, std::forward<type2>(src));
 	}
 
 	template <typename type2>
@@ -2310,17 +2470,18 @@ public:
 			m_contents->prepend(n);
 	}
 
-	void prepend(size_t n, const type& src)
+	template <typename type2 = type>
+	void prepend(size_t n, const type2& src)
 	{
 		if (!!n)
 			m_contents->prepend(n, src);
 	}
 
-	template <typename type2>
-	void prepend(size_t n, const type2& src)
+	template <typename type2 = type>
+	void prepend(size_t n, type2&& src)
 	{
 		if (!!n)
-			m_contents->prepend(n, src);
+			m_contents->prepend(n, std::forward<type2>(src));
 	}
 
 	template <typename type2>
@@ -2348,7 +2509,11 @@ public:
 
 	void resize(size_t n) { m_contents->resize(n); }
 
-	void resize(size_t n, const type& src) { m_contents->resize(n, src); }
+	template <typename type2 = type>
+	void resize(size_t n, const type2& src) { m_contents->resize(n, src); }
+
+	template <typename type2 = type>
+	void resize(size_t n, type2&& src) { m_contents->resize(n, std::forward<type2>(src)); }
 
 	void erase(size_t i) { erase(i, 1); }
 
@@ -2378,7 +2543,8 @@ public:
 			m_contents->insert(i, n);
 	}
 
-	void insert(size_t i, size_t n, const type& src)
+	template <typename type2 = type>
+	void insert(size_t i, size_t n, const type2& src)
 	{
 		if (!i)
 			prepend(n, src);
@@ -2388,15 +2554,15 @@ public:
 			m_contents->insert(i, n, src);
 	}
 
-	template <typename type2>
-	void insert(size_t i, size_t n, const type2& src)
+	template <typename type2 = type>
+	void insert(size_t i, size_t n, type2&& src)
 	{
 		if (!i)
 			prepend(n, src);
 		if (i >= m_contents->m_length)
 			append(n, src);
 		else if (!!n)
-			m_contents->insert(i, n, src);
+			m_contents->insert(i, n, std::forward<type2>(src));
 	}
 
 	template <typename type2>
@@ -2447,11 +2613,16 @@ public:
 		insert(i, src.subrange(srcIndex, n));
 	}
 
-
-	template <typename type2>
+	template <typename type2 = type>
 	void replace(size_t i, size_t replaceLength, const type2& src)
 	{
 		m_contents->replace(i, replaceLength, src);
+	}
+
+	template <typename type2 = type>
+	void replace(size_t i, size_t replaceLength, type2&& src)
+	{
+		m_contents->replace(i, replaceLength, std::forward<type2>(src));
 	}
 
 	template <typename type2>
@@ -2485,11 +2656,16 @@ public:
 		replace(i, src.subrange(srcIndex, n));
 	}
 
-
-	template <typename type2>
+	template <typename type2 = type>
 	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, const type2& src)
 	{
 		m_contents->insert_replace(i, replaceLength, insertLength, src);
+	}
+
+	template <typename type2 = type>
+	void insert_replace(size_t i, size_t replaceLength, size_t insertLength, type2&& src)
+	{
+		m_contents->insert_replace(i, replaceLength, insertLength, std::forward<type2>(src));
 	}
 
 	template <typename type2>

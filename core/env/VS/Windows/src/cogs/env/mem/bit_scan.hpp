@@ -26,12 +26,13 @@ namespace cogs {
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(unsigned long)),
 	size_t
 >
 bit_scan_reverse(const T& t)
 {
+	COGS_ASSERT(!!t);
 	unsigned long index;
 	bool b = !!_BitScanReverse(&index, (unsigned long)t);
 	COGS_ASSERT(b);
@@ -39,18 +40,19 @@ bit_scan_reverse(const T& t)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long))
 	&& (sizeof(T) <= sizeof(unsigned __int64)),
 	size_t
 >
 bit_scan_reverse(const T& t)
 {
+	COGS_ASSERT(!!t);
 	unsigned long index;
 	bool b = !!_BitScanReverse64(&index, (unsigned long)load(t));
 	COGS_ASSERT(b);
@@ -60,14 +62,15 @@ bit_scan_reverse(const T& t)
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned __int64)),
 	size_t
 >
 bit_scan_reverse(const T& t)
 {
+	COGS_ASSERT(!!t);
 	size_t result = 0;
-	std::make_unsigned_t<T> bits2 = (std::make_unsigned_t<T>)load(t);
+	make_unsigned_t<T> bits2 = (make_unsigned_t<T>)load(t);
 	unsigned __int64 ll;
 	for (;;)
 	{
@@ -86,14 +89,15 @@ bit_scan_reverse(const T& t)
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long)),
 	size_t
 >
 bit_scan_reverse(const T& t)
 {
+	COGS_ASSERT(!!t);
 	size_t result = 0;
-	std::make_unsigned_t<T> bits2 = (std::make_unsigned_t<T>)load(t);
+	make_unsigned_t<T> bits2 = (make_unsigned_t<T>)load(t);
 	unsigned long ll;
 	for (;;)
 	{
@@ -112,12 +116,13 @@ bit_scan_reverse(const T& t)
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) <= sizeof(unsigned long)),
 	size_t
 >
 bit_scan_forward(const T& t)
 {
+	COGS_ASSERT(!!t);
 	unsigned long index;
 	bool b = !!_BitScanForward(&index, (unsigned long)load(t));
 	COGS_ASSERT(b);
@@ -125,18 +130,19 @@ bit_scan_forward(const T& t)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long))
 	&& (sizeof(T) <= sizeof(unsigned __int64)),
 	size_t
 >
 bit_scan_forward(const T& t)
 {
+	COGS_ASSERT(!!t);
 	unsigned long index;
 	bool b = !!_BitScanForward64(&index, (unsigned long)load(t));
 	COGS_ASSERT(b);
@@ -146,14 +152,15 @@ bit_scan_forward(const T& t)
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned __int64)),
 	size_t
 >
 bit_scan_forward(const T& t)
 {
+	COGS_ASSERT(!!t);
 	size_t result = 0;
-	std::make_unsigned_t<T> bits2 = (std::make_unsigned_t<T>)load(t);
+	make_unsigned_t<T> bits2 = (make_unsigned_t<T>)load(t);
 	unsigned __int64 ll;
 	for (;;)
 	{
@@ -174,14 +181,15 @@ bit_scan_forward(const T& t)
 // t must not be zero
 template <typename T>
 inline std::enable_if_t<
-	std::is_integral_v<T>
+	is_integral_v<T>
 	&& (sizeof(T) > sizeof(unsigned long)),
 	size_t
 >
 bit_scan_forward(const T& t)
 {
+	COGS_ASSERT(!!t);
 	size_t result = 0;
-	std::make_unsigned_t<T> bits2 = (std::make_unsigned_t<T>)load(t);
+	make_unsigned_t<T> bits2 = (make_unsigned_t<T>)load(t);
 	unsigned long ll;
 	for (;;)
 	{

@@ -87,7 +87,7 @@ private:
 	rcref<container_pane> m_cornerPane;
 
 	range m_calculatedRange;
-	size m_calculatedDefaultSize;
+	std::optional<size> m_calculatedDefaultSize;
 
 	bool m_hideInactiveScrollBar;
 
@@ -170,15 +170,15 @@ public:
 		m_clippingFrame(rcnew(override_bounds_frame)),
 		m_cornerFrame(rcnew(override_bounds_frame)),
 		m_contentPane(rcnew(container_pane)({
-			.frames = frame_list::create(rcnew(unconstrained_frame)(alignment(0, 0)), m_contentFrame),
-			.children = std::move(o.children)
+			.frames = {rcnew(unconstrained_frame)(alignment(0, 0)), m_contentFrame},
+			.children = {std::move(o.children)}
 		})),
 		m_clippingPane(rcnew(native_container_pane)({
-			.frames = frame_list::create(m_clippingFrame),
-			.children = pane_list::create(m_contentPane)
+			.frames{m_clippingFrame},
+			.children{m_contentPane}
 		})),
 		m_cornerPane(rcnew(container_pane)({
-			.frames = frame_list::create(m_cornerFrame)
+			.frames{m_cornerFrame}
 		})),
 		m_hideInactiveScrollBar(o.hideInactiveScrollBar),
 		m_shouldAutoFadeScrollBar(o.shouldScrollBarAutoFade),
@@ -203,11 +203,11 @@ public:
 
 		m_hasScrollBar[(int)dimension::horizontal] = ((int)o.scrollDimensions & (int)dimensions::horizontal) != 0;
 		if (m_hasScrollBar[(int)dimension::horizontal])
-			placement_rcnew(&get_scroll_bar_info(dimension::horizontal), this_desc)(*this, dimension::horizontal);
+			nested_rcnew(&get_scroll_bar_info(dimension::horizontal), *get_desc())(*this, dimension::horizontal);
 
 		m_hasScrollBar[(int)dimension::vertical] = ((int)o.scrollDimensions & (int)dimensions::vertical) != 0;
 		if (m_hasScrollBar[(int)dimension::vertical])
-			placement_rcnew(&get_scroll_bar_info(dimension::vertical), this_desc)(*this, dimension::vertical);
+			nested_rcnew(&get_scroll_bar_info(dimension::vertical), *get_desc())(*this, dimension::vertical);
 	}
 
 	~scroll_pane()
@@ -220,7 +220,7 @@ public:
 
 	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual size get_default_size() const { return m_calculatedDefaultSize; }
+	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
 
 	using pane_container::nest;
 
@@ -282,7 +282,8 @@ public:
 			if (has_scroll_bar(d))
 			{
 				auto& sbinfo = get_scroll_bar_info(d);
-				sbinfo.m_frame->get_fixed_size(!d) = sbinfo.m_scrollBar->get_frame_default_size()[!d];
+				COGS_ASSERT(sbinfo.m_scrollBar->get_frame_default_size().has_value());
+				sbinfo.m_frame->get_fixed_size(!d) = (*sbinfo.m_scrollBar->get_frame_default_size())[!d];
 			}
 		}
 
@@ -293,13 +294,13 @@ public:
 		m_calculatedDefaultSize = m_contentPane->get_default_size();
 
 		bool autoFade = use_scroll_bar_auto_fade();
-		if (!m_hideInactiveScrollBar && !autoFade)
+		if (m_calculatedDefaultSize.has_value() && !m_hideInactiveScrollBar && !autoFade)
 		{
 			for (int i = 0; i < 2; i++)
 			{
 				dimension d = (dimension)i;
 				if (has_scroll_bar(d))
-					m_calculatedDefaultSize[!d] += get_scroll_bar_info(d).m_frame->get_fixed_size(!d);
+					(*m_calculatedDefaultSize)[!d] += get_scroll_bar_info(d).m_frame->get_fixed_size(!d);
 			}
 		}
 
@@ -313,19 +314,23 @@ public:
 			{
 				m_calculatedRange.set_max(!d, contentRange.get_max(!d));
 				if (has_scroll_bar(!!d) && !autoFade)
-					m_calculatedRange.get_max(!d) += get_scroll_bar_info(d).m_scrollBar->get_frame_default_size()[!d];
+					m_calculatedRange.get_max(!d) += (*get_scroll_bar_info(d).m_scrollBar->get_frame_default_size())[!d];
 			}
 
 			if (!has_scroll_bar(!d))
 			{
 				m_calculatedRange.set_min(!d, contentRange.get_min(!d));
 				if (!m_hideInactiveScrollBar && has_scroll_bar(!!d) && !autoFade)
-					m_calculatedRange.get_min(!d) += get_scroll_bar_info(d).m_scrollBar->get_frame_default_size()[!d];
+					m_calculatedRange.get_min(!d) += (*get_scroll_bar_info(d).m_scrollBar->get_frame_default_size())[!d];
 			}
 		}
 	}
 
-	virtual propose_size_result propose_size(const size& sz, std::optional<dimension> = std::nullopt, const range& r = range::make_unbounded(), size_mode = size_mode::both, size_mode = size_mode::both) const
+	virtual propose_size_result propose_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		sizing_mask = all_sizing_types) const
 	{
 		propose_size_result result;
 		range r2 = get_range() & r;
@@ -369,7 +374,7 @@ public:
 				}
 			}
 			result.set(newSize);
-			result.make_relative(sz);
+			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
@@ -377,10 +382,12 @@ public:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		range contentRange = m_contentFrame->get_range();
-		size contentDefaultSize = m_contentFrame->get_default_size();
-		point contentOldOrigin = m_contentFrame->get_position();
-		bounds contentBounds(contentOldOrigin, contentDefaultSize);
+
 		bounds visibleBounds = b;
+		point contentOldOrigin = m_contentFrame->get_position();
+		std::optional<size> contentDefaultSizeOpt = m_contentFrame->get_default_size();
+		size contentDefaultSize = contentDefaultSizeOpt.has_value() ? *contentDefaultSizeOpt : size(0, 0);
+		bounds contentBounds(contentOldOrigin, contentDefaultSize);
 
 		// limit contentBounds to visibleBounds, but may still have greater min size
 		contentBounds.get_size() = contentRange.limit(visibleBounds.get_size());
@@ -505,7 +512,8 @@ public:
 					hScrollBarHeight));
 		}
 
-		contentBounds.get_size() = m_contentFrame->propose_size(contentBounds.get_size()).find_first_valid_size(m_contentFrame->get_primary_flow_dimension());;
+		std::optional<size> opt = m_contentFrame->propose_size_best(contentBounds.get_size());
+		contentBounds.get_size() = opt.has_value() ? *opt : size(0, 0);
 		m_contentFrame->get_bounds() = contentBounds;
 		m_clippingFrame->get_bounds() = contentBounds & visibleBounds; // clip to smaller of content and visible bounds
 

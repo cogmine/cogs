@@ -10,7 +10,6 @@
 
 
 #include "cogs/function.hpp"
-#include "cogs/mem/delayed_construction.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/dispatcher.hpp"
@@ -35,7 +34,7 @@ private:
 		unsigned int m_flags;
 	};
 
-	alignas (atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
+	alignas(atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
 	rcptr<task<void> > m_expireTask;
 	boolean m_expireDone;
 
@@ -81,7 +80,7 @@ private:
 		m_priorityQueue.insert_via([&](priority_queue<int, serial_dispatched>::value_token& vt)
 		{
 			*const_cast<int*>(&vt.get_priority()) = priority;
-			placement_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
+			nested_rcnew(&*vt, *vt.get_desc())(this_rcref, t, vt);
 			t->set_dispatched(vt.get_obj().dereference().static_cast_to<dispatched>());
 		});
 		serial_dispatch();

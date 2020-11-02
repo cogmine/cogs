@@ -997,6 +997,13 @@ public:
 	/// @}
 
 	/// @{
+	/// @brief Clears the pointer value, but keeps marked bit.
+	void clear_to_mark() { m_ref.clear_to_mark(); }
+	/// @brief Thread-safe versions of clear_to_mark()
+	void clear_to_mark() volatile { m_ref.clear_to_mark(); }
+	/// @}
+
+	/// @{
 	/// @brief Sets marked bits.
 	/// @param mark Bitmask of bits to set
 	void set_mark(size_t mark) { m_ref.set_mark(mark); }
@@ -1013,7 +1020,7 @@ public:
 	/// @}
 
 	/// @{
-	/// @brief Set to the pointer value specified, and applied the speficied marked bits.
+	/// @brief Set to the pointer value specified, and apply the speficied marked bits.
 	/// @param p Value to set.
 	/// @param mark Bitmask of bits to set.
 	void set_marked(type* p, size_t mark) { m_ref.set_marked(p, mark); }

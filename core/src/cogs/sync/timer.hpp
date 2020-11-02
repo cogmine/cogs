@@ -17,7 +17,7 @@
 #include "cogs/mem/rcnew.hpp"
 #include "cogs/sync/cleanup_queue.hpp"
 #include "cogs/sync/dispatcher.hpp"
-#include "cogs/sync/resettable_event.hpp"
+#include "cogs/sync/resettable_condition.hpp"
 #include "cogs/sync/semaphore.hpp"
 #include "cogs/sync/singleton.hpp"
 #include "cogs/sync/thread.hpp"
@@ -334,7 +334,7 @@ private:
 	virtual void triggered() = 0;
 
 protected:
-	resettable_event m_event;
+	resettable_condition m_condition;
 
 	explicit timer(const timeout_t& t)
 	{
@@ -348,12 +348,12 @@ protected:
 	// returns false if called when in a pending/active/started state.
 	// Uses next iteration of previously used period.
 	// For example, if the previous period was 10 seconds, and it last expired 2 seconds ago, the timer will expire in 8 minutes.
-	bool refire() { m_event.reset(); return m_innerTimer->refire(); }
+	bool refire() { m_condition.reset(); return m_innerTimer->refire(); }
 
 	// Caller error to invoke on a timer that has never been started.
 	// returns false if called when in a pending/active/started state.
 	// Passing an infinite timeout puts the timer into an aborted state.  (Unfired, but will not expire/fire).
-	bool refire(const timeout_t& t) { m_event.reset(); return m_innerTimer->refire(t); }
+	bool refire(const timeout_t& t) { m_condition.reset(); return m_innerTimer->refire(t); }
 
 	// returns false if the timer is found to be in an expired/signaled state.
 	bool reschedule(const timeout_t& t)
@@ -402,7 +402,7 @@ protected:
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		return dispatcher::dispatch_inner(m_event, t, priority);
+		return dispatcher::dispatch_inner(m_condition, t, priority);
 	}
 
 public:
@@ -427,7 +427,7 @@ public:
 		return (!!t) ? (t->abort()) : true;
 	}
 
-	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_event.timed_wait(timeout, spinCount); }
+	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile { return m_condition.timed_wait(timeout, spinCount); }
 };
 
 

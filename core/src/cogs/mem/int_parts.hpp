@@ -10,6 +10,7 @@
 
 
 #include <type_traits>
+#include "cogs/math/bytes_to_int.hpp"
 
 
 namespace cogs {
@@ -22,7 +23,7 @@ template <typename int_t>
 class get_part_mask
 {
 private:
-	typedef std::make_unsigned_t<int_t> uint_t;
+	typedef make_unsigned_t<int_t> uint_t;
 
 public:
 #pragma warning(push)
@@ -54,7 +55,7 @@ template <typename int_t, int_t v>
 class get_const_high_part
 {
 private:
-	typedef std::make_unsigned_t<int_t> uint_t;
+	typedef make_unsigned_t<int_t> uint_t;
 
 public:
 	static constexpr int_t value = ((uint_t)v >> (sizeof(int_t)*4)) & get_part_mask<int_t>::low_part_mask;
@@ -99,7 +100,7 @@ inline constexpr int_t make_const_int_from_parts_v = make_const_int_from_parts<i
 template <typename int_t>
 inline int_t get_high_part(const int_t& i)
 {
-	typedef std::make_unsigned_t<int_t> uint_t;
+	typedef make_unsigned_t<int_t> uint_t;
 	return (int_t)((uint_t)i >> (sizeof(int_t)*4));
 }
 
@@ -112,7 +113,7 @@ inline int_t get_high_part(const int_t& i)
 template <typename int_t>
 inline int_t get_low_part(const int_t& i)
 {
-	typedef std::make_unsigned_t<int_t> uint_t;
+	typedef make_unsigned_t<int_t> uint_t;
 	return (int_t)((uint_t)i & (~(uint_t)0 >> sizeof(uint_t)*4));
 }
 

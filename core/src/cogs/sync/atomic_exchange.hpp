@@ -33,7 +33,7 @@ namespace atomic {
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& !std::is_scalar_v<T>
+	&& !is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	void>
@@ -51,7 +51,7 @@ exchange(volatile T& t, const T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& !std::is_scalar_v<T>
+	&& !is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& !std::is_void_v<bytes_to_int_t<sizeof(T)> >,
 	T>

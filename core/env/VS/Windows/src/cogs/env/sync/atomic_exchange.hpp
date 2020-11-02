@@ -25,7 +25,7 @@ namespace atomic {
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	void>
@@ -37,7 +37,7 @@ exchange(volatile T& t, const T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
@@ -51,7 +51,7 @@ exchange(volatile T& t, const T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
@@ -66,7 +66,7 @@ exchange(volatile T& t, const T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) <= sizeof(char)),
 	T
@@ -79,7 +79,7 @@ exchange(volatile T& t, const T& src)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(char))
 	&& (sizeof(T) <= sizeof(short)),
@@ -94,7 +94,7 @@ exchange(volatile T& t, const T& src)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(short))
 	&& (sizeof(T) <= sizeof(long)),
@@ -107,12 +107,12 @@ exchange(volatile T& t, const T& src)
 }
 
 
-#ifdef _M_X64
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
 
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
@@ -132,7 +132,7 @@ exchange(volatile T& t, const T& src)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
@@ -172,7 +172,7 @@ exchange(volatile T& t, const T& src, T& rtn)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
@@ -200,7 +200,7 @@ exchange(volatile T& t, const T& src)
 template <typename T>
 inline std::enable_if_t<
 	can_atomic_v<T>
-	&& std::is_scalar_v<T>
+	&& is_scalar_v<T>
 	&& !std::is_const_v<T>
 	&& (sizeof(T) > sizeof(long))
 	&& (sizeof(T) <= sizeof(__int64)),
