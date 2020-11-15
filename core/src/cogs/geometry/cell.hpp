@@ -502,7 +502,7 @@ public:
 			sz = get_size(d, !greater, greaterOther);
 			if (sz.has_value())
 			{
-				auto sz2 = get_size(d, !greater, !greaterOther);
+				sz2 = get_size(d, !greater, !greaterOther);
 				if (!sz2.has_value())
 					return sz;
 				if ((*sz)[d] == (*sz2)[d])
