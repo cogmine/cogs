@@ -10,6 +10,7 @@
 
 
 #include "cogs/collections/no_aba_stack.hpp"
+#include "cogs/debug.hpp"
 #include "cogs/env.hpp"
 #include "cogs/math/const_lcm.hpp"
 #include "cogs/math/least_multiple_of.hpp"
@@ -38,14 +39,9 @@ void assert_no_overflows();
 inline void assert_no_overflows() { }
 #endif
 
-#if COGS_DEBUG_RC_LOGGING
-inline alignas(atomic::get_alignment_v<unsigned long>) volatile unsigned long g_rcLogCount;
+#if COGS_DEBUG_RC_LOGGING || COGS_DEBUG_ALLOC_LOGGING || (COGS_DEBUG_ALLOC_OVERFLOW_CHECKING && COGS_DEBUG_LEAKED_BLOCK_DETECTION)
+alignas(atomic::get_alignment_v<unsigned long>) inline volatile unsigned long g_allocLogCount;
 #endif
-
-#if COGS_DEBUG_ALLOC_LOGGING || (COGS_DEBUG_ALLOC_OVERFLOW_CHECKING && COGS_DEBUG_LEAKED_BLOCK_DETECTION)
-inline alignas(atomic::get_alignment_v<unsigned long>) volatile unsigned long g_allocLogCount;
-#endif
-
 
 #if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
 #ifdef COGS_USE_NATIVE_MEMORY_MANAGER
@@ -241,18 +237,18 @@ public:
 		COGS_ASSERT(b); // double-delete detection
 #endif
 
-#if COGS_DEBUG_ALLOC_BUFFER_DEINIT
-		memset(p, COGS_DEBUG_ALLOC_BUFFER_DEINIT_VALUE, hdr->m_usableBlockSize);
-#endif
-		p = hdr;
-#endif
-
 #if COGS_DEBUG_ALLOC_LOGGING
 #if COGS_DEBUG_LEAKED_BLOCK_DETECTION
 		printf("(%lu) DEALLOC: %p\n", hdr->m_allocIndex, p);
 #else
 		printf("DEALLOC: %p\n", p);
 #endif
+#endif
+
+#if COGS_DEBUG_ALLOC_BUFFER_DEINIT
+		memset(p, COGS_DEBUG_ALLOC_BUFFER_DEINIT_VALUE, hdr->m_usableBlockSize);
+#endif
+		p = hdr;
 #endif
 
 #if COGS_DEBUG_ALLOC_OVERFLOW_CHECKING
@@ -295,6 +291,7 @@ public:
 			}
 		}
 		printf("MEM LEAKS: %d of %d memory allocations leaked.\n", (int)numLeaks, (int)numTotal);
+		COGS_ASSERT(numLeaks == 0);
 	}
 
 	void shutdown() volatile

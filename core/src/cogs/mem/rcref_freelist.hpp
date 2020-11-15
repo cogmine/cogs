@@ -23,7 +23,7 @@ namespace cogs {
 
 
 template <typename T>
-class rcref_freelist_node : public placement<T>, public rc_obj_base
+class rcref_freelist_node : public rc_obj_base, public placement<T>
 {
 public:
 	rcref_freelist_node<T>* m_next;

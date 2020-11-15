@@ -17,7 +17,7 @@ namespace cogs {
 
 inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
 {
-	return rcnew(os::nsview_subsystem);
+	return singleton<os::nsview_subsystem>::get();
 }
 
 

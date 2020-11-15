@@ -256,7 +256,7 @@ public:
 						{
 							stop_fade(1.0);
 							[objcScrollBar setScrollerStyle: NSScrollerStyleLegacy];
-							[objcScrollBar setNeedsDisplay : YES] ;
+							[objcScrollBar setNeedsDisplay: YES];
 						}
 						else
 						{
@@ -302,6 +302,13 @@ public:
 			m_shouldAutoFadeProperty.set_complete();
 		})
 	{
+	}
+
+	~scroll_bar()
+	{
+		objc_scroll_bar* objcScrollBar = (objc_scroll_bar*)get_NSView();
+		if (!!objcScrollBar)
+			objcScrollBar->m_cppScrollBar.release();
 	}
 
 	virtual void installing()

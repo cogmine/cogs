@@ -78,7 +78,6 @@ private:
 
 	rcptr<window_interface> m_nativeWindow;
 	window_task m_windowTask;
-	volatile boolean m_closed;
 
 	composite_string m_title;
 	std::optional<color> m_backgroundColor;
@@ -133,36 +132,45 @@ public:
 
 	void request_close()
 	{
-		dispatch([r{ this_rcref }]()
-		{
-			r->pane::request_close();
-		});
+		if (is_ui_thread_current())
+			pane::request_close();
+		else
+			dispatch([r{ this_rcref }]() { r->pane::request_close(); });
 	}
 
-	void close()
+	virtual void close()
 	{
-		dispatch([r{ this_rcref }]()
+		if (is_ui_thread_current())
+			pane::close();
+		else
 		{
-			r->pane::close();
-		});
+			dispatch([r{ this_rcref }]()
+			{
+				r->pane::close();
+			});
+		}
+	}
+
+	virtual void closing()
+	{
+		pane_bridge::hide();
+		pane::closing();
 	}
 
 	virtual void hide()
 	{
-		dispatch([r{ this_rcref }]()
-		{
-			if (!r->is_hidden() || !r->m_closed) // Allow hide and show operations to progress until it becomes hidden, if 'closed'
-				r->pane_bridge::hide();
-		});
+		if (is_ui_thread_current())
+			pane_bridge::hide();
+		else
+			dispatch([r{ this_rcref }]() { r->pane_bridge::hide(); });
 	}
 
 	virtual void show()
 	{
-		dispatch([r{ this_rcref }]()
-		{
-			if (!r->is_hidden() || !r->m_closed)
-				r->pane_bridge::show();
-		});
+		if (is_ui_thread_current())
+			pane_bridge::show();
+		else
+			dispatch([r{ this_rcref }]() { r->pane_bridge::show(); });
 	}
 
 	const composite_string& get_title() const { return m_title; }
@@ -191,7 +199,7 @@ public:
 			m_nativeWindow->reshape_frame(newBounds);
 	}
 
-	// Args are in screen coordinates, not DIPS (not content coordinates, ay be flipped).
+	// Args are in screen coordinates, not DIPS (not content coordinates, may be flipped).
 	// Mainly provides a way to intercept new screen coordinates after a reshape.
 	virtual void frame_reshaped(const gfx::bounds& newBounds, const gfx::point& oldOrigin = gfx::point(0, 0))
 	{
@@ -209,7 +217,7 @@ public:
 		return b;
 	}
 
-	// Args are in screen coordinates, not DIPS (not content coordinates, ay be flipped).
+	// Args are in screen coordinates, not DIPS (not content coordinates, may be flipped).
 	virtual propose_size_result propose_frame_size(
 		const size& sz,
 		const range& r = range::make_unbounded(),

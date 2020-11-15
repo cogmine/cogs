@@ -23,7 +23,7 @@ namespace cogs {
 /// @ingroup LockFreeCollections
 /// @brief A double-link list container collection
 /// @tparam T Type to contain.
-template <typename T, size_t minimum_batch_size = 32, class memory_manager_t = default_memory_manager>
+template <typename T, size_t minimum_batch_size = default_minimum_batch_size, class memory_manager_t = default_memory_manager>
 class container_dlist
 {
 public:
@@ -3005,7 +3005,7 @@ class rc_obj_base::released_handlers
 private:
 	friend class rc_obj_base;
 
-	container_dlist<function<void(rc_obj_base&)> > m_onReleasedHandlers;
+	container_dlist<function<bool(rc_obj_base&, bool)> > m_onReleasedHandlers;
 };
 
 class rc_obj_base::released_handler_remove_token
@@ -3013,7 +3013,7 @@ class rc_obj_base::released_handler_remove_token
 private:
 	friend class rc_obj_base;
 
-	typedef function<void(rc_obj_base&)> func_t;
+	typedef function<bool(rc_obj_base&, bool)> func_t;
 	typedef container_dlist<func_t> collection_t;
 
 	collection_t::volatile_remove_token m_removeToken;
@@ -3058,24 +3058,26 @@ template <typename F, typename enable>
 inline rc_obj_base::released_handler_remove_token rc_obj_base::on_released(F&& f) const
 {
 	volatile released_handlers* releasedHandlers = initialize_released_handlers();
-	volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
+	volatile container_dlist<function<bool(rc_obj_base&, bool)> >& handler = releasedHandlers->m_onReleasedHandlers;
 	released_handler_remove_token result(handler.append(f).inserted);
 	return result;
 }
 
-inline void rc_obj_base::run_released_handlers()
+inline bool rc_obj_base::run_released_handlers()
 {
+	bool result = true;
 	released_handlers* releasedHandlers = atomic::load(m_releasedHandlers);
 	if (!!releasedHandlers)
 	{
-		volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
-		container_dlist<function<void(rc_obj_base&)> >::volatile_iterator itor = handler.get_first();
+		volatile container_dlist<function<bool(rc_obj_base&, bool)> >& handler = releasedHandlers->m_onReleasedHandlers;
+		container_dlist<function<bool(rc_obj_base&, bool)> >::volatile_iterator itor = handler.get_first();
 		while (!!itor)
 		{
-			(*itor)(*this);
+			result &= (*itor)(*this, result);
 			++itor;
 		}
 	}
+	return result;
 }
 
 inline bool rc_obj_base::uninstall_released_handler(const released_handler_remove_token& removeToken) const
@@ -3085,7 +3087,7 @@ inline bool rc_obj_base::uninstall_released_handler(const released_handler_remov
 		released_handlers* releasedHandlers = atomic::load(m_releasedHandlers);
 		if (!!releasedHandlers)
 		{
-			volatile container_dlist<function<void(rc_obj_base&)> >& handler = releasedHandlers->m_onReleasedHandlers;
+			volatile container_dlist<function<bool(rc_obj_base&, bool)> >& handler = releasedHandlers->m_onReleasedHandlers;
 			return handler.remove(removeToken.m_removeToken).wasRemoved;
 		}
 	}

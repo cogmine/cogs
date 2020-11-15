@@ -235,11 +235,11 @@ private:
 	// pane is currently installed into, or the global thread pool if not installed.
 	dispatcher_proxy m_dispatcherProxy;
 
-	serial_dispatcher m_serialDispatcher;
+	rcref<serial_dispatcher> m_serialDispatcher;
 
 	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
 	{
-		dispatcher::dispatch_inner(m_serialDispatcher, t, priority);
+		dispatcher::dispatch_inner(*m_serialDispatcher, t, priority);
 	}
 
 	rcptr<signallable_task<void> > m_installTask;
@@ -297,7 +297,7 @@ protected:
 		m_compositingBehavior(o.compositingBehavior),
 		m_invalidateOnReshape(o.invalidateOnReshape),
 		m_dispatcherProxy(*this),
-		m_serialDispatcher(m_dispatcherProxy)
+		m_serialDispatcher(rcnew(serial_dispatcher)(m_dispatcherProxy))
 	{
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
@@ -333,6 +333,14 @@ protected:
 		if (!ss)
 			return m_parentUISubSystem;
 		return ss;
+	}
+
+	bool is_ui_thread_current() const volatile
+	{
+		rcptr<volatile gui::subsystem> ss = get_subsystem();
+		if (!!ss)
+			return ss->is_ui_thread_current();
+		return false;
 	}
 
 	void clear_subsystem()

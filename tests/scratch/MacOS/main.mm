@@ -19,6 +19,7 @@
 
 
 @interface AppDelegate ()
+-(void)requestQuit;
 @end
 
 
@@ -39,6 +40,10 @@
 	});
 }
 
+- (void)requestQuit {
+	cogs::request_quit();
+}
+
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
 	// Insert code here to tear down your application
 
@@ -47,14 +52,13 @@
 
 @end
 
-
 int main(int argc, const char * argv[]) {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
     __strong NSString* appName = [[NSProcessInfo processInfo] processName];
     __strong NSString* quitTitle = [@"Quit " stringByAppendingString:appName];
-    __strong NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"];
+    __strong NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(requestQuit) keyEquivalent:@"q"];
     __strong NSMenu* appMenu = [NSMenu new];
     [appMenu addItem:quitMenuItem];
     __strong NSMenuItem* appMenuItem = [NSMenuItem new];

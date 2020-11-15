@@ -141,18 +141,18 @@ public:
 	class font : public gfx::font
 	{
 	private:
-		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
+		class list : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
 		{
 		private:
 			static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC*, DWORD, LPARAM lParam)
 			{
-				auto fontList = (fontlist*)lParam;
+				auto fontList = (list*)lParam;
 				fontList->insert_unique(lpelfe->lfFaceName);
 				return 1;
 			}
 
 		protected:
-			fontlist()
+			list()
 			{
 				// Load fonts.  (Fonts added or removed will not be observed until relaunch)
 				LOGFONT logFont = {};
@@ -163,7 +163,6 @@ public:
 			}
 		};
 
-	private:
 		// Wrapper with own class to avoid use of GDI+ custom new operator
 		class gdiplus_font
 		{
@@ -247,21 +246,21 @@ public:
 					return;
 				}
 
-				auto itor = singleton<fontlist>::get()->find_equal(font_params.fontName);
+				auto itor = singleton<list>::get()->find_equal(font_params.fontName);
 				if (!itor)
 					continue;
 				update(font_params);
 				return;
 			}
-			if (m_fontParmsLists.size() > 0)
+			if (!m_fontParmsLists.size())
+				update(default_font_params);
+			else
 			{
 				// If failing to find the font, use the first entry, but with the default font name.
 				gfx::font_parameters params = *m_fontParmsLists.get_first();
 				params.fontName = default_font_params.fontName;
 				update(params);
 			}
-			else
-				update(default_font_params);
 		}
 
 		void handle_dpi_change() const
@@ -344,6 +343,8 @@ private:
 		result.ascent = (((double)size * ascent) / emHeight) / m_scale;
 		result.descent = (((double)size * descent) / emHeight) / m_scale;
 		result.spacing = (((double)size * lineSpacing) / emHeight) / m_scale;
+		result.height = result.ascent + result.descent;
+		result.leading = result.spacing - result.height;
 #else // GDI
 		HFONT savedFont = SelectFont(m_hDC, f.get_HFONT());
 		TEXTMETRIC tm = {};
@@ -351,9 +352,10 @@ private:
 		SelectFont(m_hDC, savedFont);
 		result.ascent = tm.tmAscent / m_scale;
 		result.descent = tm.tmDescent / m_scale;
-		result.spacing = (tm.tmHeight + tm.tmExternalLeading) / m_scale;
+		result.leading = tm.tmExternalLeading / m_scale;
+		result.height = result.ascent + result.descent;
+		result.spacing = result.height + result.leading;
 #endif
-
 		return result;
 	}
 

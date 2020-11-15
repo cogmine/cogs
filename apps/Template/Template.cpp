@@ -24,7 +24,8 @@ COGS_MAIN
 				.children =  rcnew(label)({
 					.text = string::literal(L"Hello World!"),
 					.font = gfx::font_parameters{ .pointSize = 38 },
-					.textColor = color::constant::black
+					.textColor = color::constant::black,
+					.frames = rcnew(unconstrained_frame)
 				})
 			}),
 			string::literal(L"Template App")

@@ -67,7 +67,7 @@ static color from_NSColor(NSColor* nsColor)
 	CGFloat g;
 	CGFloat b;
 	CGFloat a;
-	[nsColor getRed:&r green:&g blue:&b alpha:&a];
+	[[nsColor colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]] getRed:&r green:&g blue:&b alpha:&a];
 	return color((uint8_t)(r * (unsigned int)0x00FF), (uint8_t)(g * (unsigned int)0x00FF), (uint8_t)(b * (unsigned int)0x00FF), (uint8_t)(a * (unsigned int)0x00FF));
 }
 
@@ -163,10 +163,10 @@ public:
 		font::metrics m_metrics;
 
 		// Uses a nonvolatile_set as creation is synchronized and is then read-only
-		class fontlist : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
+		class list : public nonvolatile_set<composite_string, true, case_insensitive_comparator<composite_string> >
 		{
 		protected:
-			fontlist()
+			list()
 			{
 				// Load fonts.  (Fonts added or removed will not be observed until relaunch)
 				__strong NSArray* fonts = [[NSFontManager sharedFontManager]availableFontFamilies];
@@ -216,7 +216,11 @@ public:
 				m_font = CTFontCreateWithFontDescriptor(fontDescriptor, pt, NULL);
 				m_metrics.ascent = CTFontGetAscent(m_font);
 				m_metrics.descent = CTFontGetDescent(m_font);
-				m_metrics.spacing = m_metrics.ascent + m_metrics.descent + CTFontGetLeading(m_font);
+				m_metrics.leading = CTFontGetLeading(m_font);
+				if (m_metrics.leading < 0)
+					m_metrics.leading = 0;
+				m_metrics.height = m_metrics.ascent + m_metrics.descent;
+				m_metrics.spacing = m_metrics.height + m_metrics.leading;
 
 				// Create set of attribites containing underlined state, to pass to CFAttributedString later
 				if (fp.isUnderlined)
@@ -251,13 +255,21 @@ public:
 					return;
 				}
 
-				auto itor = singleton<fontlist>::get()->find_equal(font_params.fontName);
+				auto itor = singleton<list>::get()->find_equal(font_params.fontName);
 				if (!itor)
 					continue;
 				update(font_params);
 				return;
 			}
-			update(default_font_params);
+			if (!f.size())
+				update(default_font_params);
+			else
+			{
+				// If failing to find the font, use the first entry, but with the default font name.
+				gfx::font_parameters params = *f.get_first();
+				params.fontName = default_font_params.fontName;
+				update(params);
+			}
 		}
 
 		~font()
@@ -272,6 +284,7 @@ public:
 		const CGContextRef& get_CGContext() const { return m_context; }
 
 		virtual font::metrics get_metrics() const { return m_metrics; }
+		font::metrics get_font_metrics() const { return m_metrics; }
 		CFDictionaryRef get_attributes() const { return m_attributes; }
 
 		virtual gfx::size calc_text_bounds(const composite_string& s) const
@@ -280,10 +293,12 @@ public:
 			CFStringRef strRef = (__bridge CFStringRef)str;
 			CFAttributedStringRef attribStr = CFAttributedStringCreate(NULL, strRef, m_attributes);
 			CTLineRef line = CTLineCreateWithAttributedString(attribStr);
-			CGRect r = CTLineGetImageBounds(line, m_context);
+			CGSize sz;
+			sz.width = CTLineGetTypographicBounds(line, nullptr, nullptr, nullptr);
+			sz.height = m_metrics.height;
 			CFRelease(line);
 			CFRelease(attribStr);
-			return make_size(r);
+			return make_size(sz);
 		}
 	};
 
@@ -370,7 +385,8 @@ public:
 			CGRect r = make_CGRect(b);
 			CGContextClipToRect(ctx, r);
 			CGContextSetTextMatrix(ctx, CGAffineTransformMakeScale(1.0f, -1.0f));
-			CGContextTranslateCTM(ctx, 0.0f, r.size.height - CTFontGetDescent(f2.get_CTFont()));
+			CGContextTranslateCTM(ctx, 0.0f, r.size.height);
+			CGContextSetTextPosition(ctx, b.get_x(), b.get_y() - f2.get_font_metrics().descent);
 			CTLineDraw(line, ctx);
 			CFRelease(line);
 			CFRelease(attribStr);

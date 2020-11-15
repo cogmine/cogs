@@ -5,14 +5,12 @@
 
 // Status: Good
 
+#ifndef COGS_HEADER_DEBUG
+#define COGS_HEADER_DEBUG
 
 #include "cogs/env/mem/alignment.hpp"
 #include "cogs/macro_stringify.hpp"
 #include "cogs/macro_concat.hpp"
-
-
-#ifndef COGS_HEADER_DEBUG
-#define COGS_HEADER_DEBUG
 
 
 #define COGS_DEBUG_AT __FILE__ ":" COGS_STRINGIFY_CHAR(__LINE__)
@@ -22,6 +20,10 @@
 
 #ifndef COGS_DEBUG_LEAKED_REF_DETECTION
 #define COGS_DEBUG_LEAKED_REF_DETECTION 0
+#endif
+
+#ifndef COGS_DEBUG_LEAKED_WEAK_REF_DETECTION
+#define COGS_DEBUG_LEAKED_WEAK_REF_DETECTION COGS_DEBUG_LEAKED_REF_DETECTION
 #endif
 
 #ifndef COGS_DEBUG_LEAKED_BLOCK_DETECTION

@@ -21,7 +21,7 @@ namespace cogs {
 #if COGS_DEFAULT_GUI_SUBSYSTEM == COGS_GDI
 inline rcptr<gui::windowing::subsystem> gui::windowing::subsystem::get_default()
 {
-	return rcnew(os::hwnd::subsystem);
+	return singleton<os::hwnd::subsystem>::get();
 }
 
 inline rcptr<gui::subsystem> gui::subsystem::get_default()

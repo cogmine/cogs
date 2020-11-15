@@ -50,6 +50,13 @@ public:
 		: nsview_pane(uiSubsystem)
 	{ }
 
+	~button()
+	{
+		objc_button* objcButton = (objc_button*)get_NSView();
+		if (!!objcButton)
+			objcButton->m_cppButton.release();
+	}
+
 	void action()
 	{
 		rcptr<gui::button> btn = get_bridge().template static_cast_to<gui::button>();

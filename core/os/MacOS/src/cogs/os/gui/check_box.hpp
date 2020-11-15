@@ -49,6 +49,13 @@ public:
 		: nsview_pane(uiSubsystem)
 	{ }
 
+	~check_box()
+	{
+		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
+		if (!!objcCheckBox)
+			objcCheckBox->m_cppCheckBox.release();
+	}
+
 	virtual bool is_checked() const
 	{
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();

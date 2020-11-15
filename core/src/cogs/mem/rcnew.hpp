@@ -45,7 +45,7 @@ type* rcnew_glue(
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-	unsigned long rcCount = pre_assign_next(g_rcLogCount);
+	unsigned long rcCount = pre_assign_next(g_allocLogCount);
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
@@ -75,7 +75,7 @@ type* rcnew_glue(
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-	unsigned long rcCount = pre_assign_next(g_rcLogCount);
+	unsigned long rcCount = pre_assign_next(g_allocLogCount);
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
@@ -104,7 +104,7 @@ type* rcnew_glue(
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-	unsigned long rcCount = pre_assign_next(g_rcLogCount);
+	unsigned long rcCount = pre_assign_next(g_allocLogCount);
 	printf("(%lu) RC_NEW: %p (desc) %p (ptr) %s @ %s\n", rcCount, (rc_obj_base*)desc, obj, typeid(type).name(), debugStr);
 #endif
 
@@ -119,26 +119,11 @@ type* rcnew_glue(
 template <typename type>
 type* rcnew_glue(
 #if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
-	const char* debugStr
-#if COGS_DEBUG_RC_LOGGING
-	debugStr
-#endif
-	,
+	const char* debugStr,
 #endif
 	const rc_container_content_t<type>& content,
 	const rcnew_glue_obj_t& temp = rcnew_glue_obj_t())
 {
-#if COGS_DEBUG_LEAKED_REF_DETECTION || COGS_DEBUG_RC_LOGGING
-	content.m_desc->set_type_name(typeid(type).name());
-	content.m_desc->set_debug_str(debugStr);
-	content.m_desc->set_obj_ptr(content.m_obj);
-#endif
-
-#if COGS_DEBUG_RC_LOGGING
-	unsigned long rcCount = pre_assign_next(g_rcLogCount);
-	printf("(%lu) RC_NEW (placement): %p (desc) %p (ptr) %s @ %s\n", rcCount, &desc, obj, typeid(type).name(), debugStr);
-#endif
-
 	temp.m_obj = content.m_obj;
 	temp.m_desc = content.m_desc;
 	temp.m_saved = object::rcnew_glue_obj;

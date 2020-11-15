@@ -8,10 +8,12 @@
 #ifndef COGS_HEADER_SYNC_TRANSACTABLE
 #define COGS_HEADER_SYNC_TRANSACTABLE
 
+
 #include <type_traits>
 
 #include "cogs/env.hpp"
 #include "cogs/env/mem/alignment.hpp"
+#include "cogs/mem/default_memory_manager.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/ptr.hpp"
 #include "cogs/mem/object.hpp"
@@ -81,7 +83,7 @@ private:
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-		unsigned long rcCount = pre_assign_next(g_rcLogCount);
+		unsigned long rcCount = pre_assign_next(g_allocLogCount);
 		printf("(%lu) RC_NEW(transactable): %p (desc) %p (ptr) %s\n", rcCount, (rc_obj_base*)(desc.get_ptr()), ptr, typeid(descriptor_t).name());
 #endif
 
@@ -102,7 +104,7 @@ private:
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-		unsigned long rcCount = pre_assign_next(g_rcLogCount);
+		unsigned long rcCount = pre_assign_next(g_allocLogCount);
 		printf("(%lu) RC_NEW(transactable): %p (desc) %p (ptr) %s\n", rcCount, (rc_obj_base*)(desc.get_ptr()), ptr, typeid(descriptor_t).name());
 #endif
 

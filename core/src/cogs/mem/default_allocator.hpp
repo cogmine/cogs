@@ -34,6 +34,8 @@ class default_allocator<T, memory_manager_t, true> : public allocator_base<T, de
 public:
 	static T* allocate() { return memory_manager_t::template allocate_type<T>(); }
 	static void deallocate(T* p) { return memory_manager_t::deallocate(p); }
+
+	memory_manager_t get_memory_manager() const volatile { memory_manager_t result; return result; }
 };
 
 template <typename T, class memory_manager_t>
@@ -52,6 +54,9 @@ public:
 	void deallocate(T* p) const { return m_memoryManager.deallocate(p); }
 	void deallocate(T* p) volatile { return m_memoryManager.deallocate(p); }
 	void deallocate(T* p)const volatile { return m_memoryManager.deallocate(p); }
+
+	memory_manager_t& get_memory_manager() const { return m_memoryManager; }
+	volatile memory_manager_t& get_memory_manager() const volatile { return m_memoryManager; }
 };
 
 

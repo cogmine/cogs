@@ -1377,15 +1377,15 @@ private:
 	class on_released_helper
 	{
 	public:
-		template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, type&, rc_obj_base&> > >
+		template <typename F, typename = std::enable_if_t<std::is_invocable_r_v<bool, F, type&, rc_obj_base&, bool> > >
 		static void on_released2(F&& f, const this_t& rcb)
 		{
 			rc_obj_base* desc = rcb.get_desc();
 			if (!!desc)
 			{
-				desc->on_released([f, obj{ rcb.get_obj() }](rc_obj_base& desc)
+				desc->on_released([f, obj{ rcb.get_obj() }](rc_obj_base& desc, bool releaseNow)
 				{
-					f(*obj, desc);
+					return f(*obj, desc, releaseNow);
 				});
 			}
 		}
@@ -1395,7 +1395,7 @@ private:
 	class on_released_helper<void, unused>
 	{
 	public:
-		template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, rc_obj_base&> > >
+		template <typename F, typename = std::enable_if_t<std::is_invocable_r_v<bool, F, rc_obj_base&, bool> > >
 		static void on_released2(F&& f, const this_t& rcb)
 		{
 			rc_obj_base* desc = rcb.get_desc();

@@ -59,15 +59,15 @@ class nsview_pane;
 namespace cogs {
 namespace os {
 
-
-class ui_thread : public dispatcher, public object
+class nsview_subsystem : public gui::windowing::subsystem
 {
+public:
+	typedef container_dlist<rcref<gui::window> > visible_windows_list_t;
+
 private:
 	class control_queue_t : public priority_dispatcher
 	{
 	public:
-		~control_queue_t() { drain(); }
-
 		bool drain() volatile
 		{
 			bool foundAny = false;
@@ -77,15 +77,16 @@ private:
 		}
 	};
 
+	volatile rcptr<volatile visible_windows_list_t> m_visibleWindows;
+	rcptr<task<void> > m_cleanupRemoveToken;
 	const rcref<volatile control_queue_t> m_controlQueue;
+	alignas(cogs::atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
 
 	// Cast away volaility for access to the const rcref
 	const rcref<volatile control_queue_t>& get_control_queue() const volatile
 	{
-		return const_cast<const ui_thread*>(this)->m_controlQueue;
+		return const_cast<const nsview_subsystem*>(this)->m_controlQueue;
 	}
-
-	alignas(cogs::atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
 
 	void run_in_main_queue() volatile
 	{
@@ -104,11 +105,10 @@ private:
 			else if (ranAny && (priority > 0x00010000))
 			{
 				cogs::atomic::store(m_dispatchMode, 2);
-				rcref<volatile ui_thread> thisRef = this_rcref;
+				volatile nsview_subsystem* thisPtr = this;
 				dispatch_async(dispatch_get_main_queue(), ^{
-					thisRef->run_in_main_queue();
+					thisPtr->run_in_main_queue();
 				});
-
 				break;
 			}
 			else
@@ -123,10 +123,9 @@ private:
 		cogs::atomic::exchange(m_dispatchMode, oldMode, oldMode);
 		if (!oldMode)
 		{
-			rcref<volatile ui_thread> thisRef = this_rcref;
-
+			volatile nsview_subsystem* thisPtr = this;
 			dispatch_async(dispatch_get_main_queue(), ^{
-				thisRef->run_in_main_queue();
+				thisPtr->run_in_main_queue();
 			});
 		}
 	}
@@ -137,66 +136,17 @@ private:
 		update();
 	}
 
-protected:
-	ui_thread()
-		: m_controlQueue(rcnew(control_queue_t)),
-		m_dispatchMode(0)
-	{ }
-
-public:
-	~ui_thread()
-	{
-		if (!get_control_queue()->is_empty())
-		{
-			// In case destructed off the main thread,
-			// deferring to cleanup queue ensures these get called in the main (UI) thread
-			cleanup_queue::get()->dispatch([controlQueueRef = get_control_queue()]()
-			{
-				controlQueueRef->drain();
-			});
-		}
-	}
-
-	static rcref<dispatcher> get()
-	{
-		rcptr<ui_thread> d = singleton<ui_thread, singleton_posthumous_behavior::return_null, singleton_cleanup_behavior::use_cleanup_queue>::get();
-		if (!!d)
-			return d.dereference().template static_cast_to<dispatcher>();
-		return signaled();
-	}
-};
-
-
-class nsview_subsystem : public gui::windowing::subsystem
-{
-public:
-	typedef container_dlist<rcref<gui::window> > visible_windows_list_t;
-
-private:
-	volatile rcptr<volatile visible_windows_list_t> m_visibleWindows;
-	rcptr<task<void> > m_cleanupRemoveToken;
-	rcref<dispatcher> m_mainThreadDispatcher;
-
-	void cleanup() volatile
-	{
-		m_visibleWindows.release();
-	}
-
-	virtual void dispatch_inner(const rcref<task_base>& t, int priority) volatile
-	{
-		dispatcher::dispatch_inner(*m_mainThreadDispatcher, t, priority);
-	}
-
 public:
 	nsview_subsystem()
 		: m_visibleWindows(rcnew(visible_windows_list_t)),
-		m_mainThreadDispatcher(ui_thread::get()),
 		m_cleanupRemoveToken(cleanup_queue::get()->dispatch([r{ this_weak_rcptr }]()
 		{
 			rcptr<nsview_subsystem> r2 = r;
 			if (!!r2)
-				r2->cleanup();
-		}))
+				r2->get_control_queue()->drain();
+		})),
+		m_controlQueue(rcnew(control_queue_t)),
+		m_dispatchMode(0)
 	{ }
 
 	~nsview_subsystem()
@@ -315,7 +265,7 @@ public:
 			if (m_parentView->m_lastChildView == this)
 				m_parentView->m_lastChildView = prevSibling;
 		}
-
+		m_nsView = nullptr;
 		bridgeable_pane::uninstalling();
 	}
 
@@ -616,14 +566,19 @@ inline rcref<gui::bridgeable_pane> nsview_subsystem::create_native_pane() volati
 			: nsview_pane(subSystem)
 		{ }
 
+		~native_pane()
+		{
+			objc_view* objcView = (objc_view*)get_NSView();
+			if (!!objcView)
+				objcView->m_cppView.release();
+		}
+
 		virtual void installing()
 		{
-			__strong objc_view* nsView = [[objc_view alloc] init];
-			nsView->m_cppView = this_rcptr;
-
-			[nsView setAutoresizesSubviews:NO];
-
-			install_NSView(nsView);
+			__strong objc_view* objcView = [[objc_view alloc] init];
+			objcView->m_cppView = this_rcptr;
+			[objcView setAutoresizesSubviews:NO];
+			install_NSView(objcView);
 			nsview_pane::installing();
 		}
 	};

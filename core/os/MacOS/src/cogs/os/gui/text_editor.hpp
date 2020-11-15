@@ -51,6 +51,13 @@ public:
 		: nsview_pane(uiSubsystem)
 	{ }
 
+	~text_editor()
+	{
+		objc_text_editor* objcTextEditor = (objc_text_editor*)get_NSView();
+		if (!!objcTextEditor)
+			objcTextEditor->m_cppTextEditor.release();
+	}
+
 	virtual void installing()
 	{
 		rcptr<gui::text_editor> te = get_bridge().template static_cast_to<gui::text_editor>();

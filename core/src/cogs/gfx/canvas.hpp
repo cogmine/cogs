@@ -119,6 +119,8 @@ public:
 	{
 		double ascent;
 		double descent;
+		double leading;
+		double height;
 		double spacing;
 	};
 

@@ -489,11 +489,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
@@ -511,11 +512,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
@@ -533,11 +535,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
@@ -555,11 +558,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
@@ -577,11 +581,12 @@ public:
 				rc_obj_base::released_handler_remove_token rt;
 				if (!!desc)
 				{
-					rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+					rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 					{
 						rcptr<volatile this_t> r2 = r;
 						if (!!r2)
 							r2->m_list.remove(rt2);
+						return releaseNow;
 					});
 				}
 				new (i.get()) node(t, std::move(rt));
@@ -599,11 +604,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));
@@ -621,11 +627,12 @@ public:
 			rc_obj_base::released_handler_remove_token rt;
 			if (!!desc)
 			{
-				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&)
+				rt = desc->on_released([r{ this_weak_rcptr }, rt2{ typename list_t::volatile_remove_token(i) }](rc_obj_base&, bool releaseNow)
 				{
 					rcptr<volatile this_t> r2 = r;
 					if (!!r2)
 						r2->m_list.remove(rt2);
+					return releaseNow;
 				});
 			}
 			new (i.get()) node(t, std::move(rt));

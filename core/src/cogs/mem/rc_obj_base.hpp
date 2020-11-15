@@ -119,7 +119,7 @@ private:
 	released_handlers mutable* m_releasedHandlers;
 
 	released_handlers* initialize_released_handlers() const;
-	void run_released_handlers();
+	bool run_released_handlers();
 
 	class link : public slink
 	{
@@ -202,6 +202,7 @@ public:
 	{
 		volatile no_aba_stack<rc_obj_base::tracking_header>& allocRecord = s_allocRecord.get();
 		no_aba_stack<rc_obj_base::tracking_header> allocs;
+		no_aba_stack<rc_obj_base::tracking_header> weakAllocs;
 		allocRecord.swap(allocs);
 		size_t numStrongLeaks = 0;
 		size_t numWeakLeaks = 0;
@@ -223,7 +224,10 @@ public:
 				rc_obj_base* desc = tracker->m_desc;
 				size_t strongReferences = desc->m_counts.m_references[(int)reference_strength::strong];
 				if (strongReferences == 0)
+				{
+					weakAllocs.push(tracker);
 					++numWeakLeaks;
+				}
 				else
 				{
 					if (!started)
@@ -241,10 +245,32 @@ public:
 			--index;
 		}
 
-		printf("RC LEAKS: %d of %d RC object(s) leaked.\n", (int)numStrongLeaks, (int)numAllocations);
+#if COGS_DEBUG_LEAKED_WEAK_REF_DETECTION
 		if (numWeakLeaks > 0)
-			printf("RC LEAKS: %d lingering weak reference(s).\n", (int)numWeakLeaks);
-		COGS_ASSERT(numStrongLeaks == 0);
+		{
+			if (started)
+				printf("\n");
+			else
+			{
+				printf("RC LEAKS:\n");
+				printf("Index|Strong|Weak|rc_obj_base*|ptr|Type|Location\n");
+			}
+			for (;;)
+			{
+				tracker = weakAllocs.pop();
+				if (!tracker)
+					break;
+				rc_obj_base* desc = tracker->m_desc;
+				constexpr size_t strongReferences = 0;
+				size_t weakReferences = desc->m_counts.m_references[(int)reference_strength::weak];
+				printf("%zd|%zd|%zd|%p|%p|\"%s\"|\"%s\"\n", index, strongReferences, weakReferences, desc, tracker->m_objPtr, tracker->m_typeName, tracker->m_debugStr);
+			}
+		}
+#endif
+
+		if (numStrongLeaks > 0 || numWeakLeaks != 0)
+			printf("RC LEAKS: %d of %d RC allocation(s) leaked. %d stong, %d weak.\n", (int)(numStrongLeaks + numWeakLeaks), (int)numAllocations, (int)numStrongLeaks, (int)numWeakLeaks);
+		COGS_ASSERT(numStrongLeaks == 0 && numWeakLeaks == 0);
 	}
 
 	rc_obj_base()
@@ -460,9 +486,11 @@ public:
 			} while (!atomic::compare_exchange(m_counts[reference_strength::strong], oldCount - i, oldCount, oldCount));
 			if (oldCount == i)
 			{
-				run_released_handlers();
-				released();
-				release_weak();
+				if (run_released_handlers())
+				{
+					released();
+					release_weak();
+				}
 				return true;
 			}
 		}
@@ -513,7 +541,7 @@ public:
 
 	virtual bool contains(void* obj) const = 0;
 
-	template <typename F, typename enable = std::enable_if_t<std::is_invocable_v<F, rc_obj_base&> > >
+	template <typename F, typename enable = std::enable_if_t<std::is_invocable_r_v<bool, F, rc_obj_base&, bool> > >
 	released_handler_remove_token on_released(F&& f) const;
 
 	bool uninstall_released_handler(const released_handler_remove_token& removeToken) const;

@@ -21,7 +21,9 @@
 namespace cogs {
 
 
-template <typename T, size_t minimum_batch_size = 32, class memory_manager_t = default_memory_manager>
+constexpr size_t default_minimum_batch_size = 32;
+
+template <typename T, size_t minimum_batch_size = default_minimum_batch_size, class memory_manager_t = default_memory_manager>
 class batch_allocator : public allocator_base<T, batch_allocator<T, minimum_batch_size>, false>
 {
 public:
@@ -302,8 +304,9 @@ private:
 			return result;
 		}
 
-		void deallocate(entry& e)
+		bool deallocate(entry& e)
 		{
+			bool result = false;
 			node_t* n = reinterpret_cast<node_t*>(static_cast<placement_t*>(&e));
 			n->get_second() = &m_freelist.m_head->get_first();
 			m_freelist.m_head = n;
@@ -325,7 +328,7 @@ private:
 				else
 				{
 					newState = state::removing;
-					m_batchAllocator.remove(*this);
+					result = true;
 				}
 			}
 			else
@@ -334,6 +337,7 @@ private:
 				COGS_ASSERT(oldState == state::current);
 			}
 			m_freelist.m_countAndState = (newCount << 3) | (size_t)newState;
+			return result;
 		}
 
 		void deallocate(entry& e) volatile
@@ -622,8 +626,10 @@ private:
 
 	void insert(batch& lnk)
 	{
-		lnk.m_listNext = m_head.get_ptr();
 		lnk.m_listPrev.unversioned_release();
+		lnk.m_listNext = m_head.get_ptr();
+		if (m_head.get_ptr())
+			m_head->m_listPrev = &lnk;
 		m_head = &lnk;
 	}
 
@@ -693,31 +699,14 @@ private:
 		return result;
 	}
 
-	bool remove(batch& lnk)
+	void remove(batch& lnk)
 	{
-		// Trying to remove something that is already removed?
-		COGS_ASSERT(lnk.m_listPrev.get_mark() == 0);
-
 		if (!!lnk.m_listPrev)
 			lnk.m_listPrev->m_listNext = lnk.m_listNext;
 		if (!!lnk.m_listNext)
 			lnk.m_listNext->m_listPrev = lnk.m_listPrev;
 		if (m_head == &lnk)
 			m_head = lnk.m_listNext;
-		return true;
-	}
-
-	void clear_inner()
-	{
-		COGS_ASSERT(m_guard.is_free());
-		COGS_ASSERT(m_hazard.is_empty());
-		batch* b = m_currentBatch;
-		while (!!b)
-		{
-			COGS_ASSERT(b->m_curPos == (b->m_freelist.m_countAndState >> 3));
-			m_memoryManager.destruct_deallocate_type(b);
-			b = remove_inner();
-		}
 	}
 
 	batch_allocator(const this_t&) = delete;
@@ -742,19 +731,18 @@ public:
 
 	~batch_allocator()
 	{
-		clear_inner();
+		COGS_ASSERT(m_guard.is_free());
+		COGS_ASSERT(m_hazard.is_empty());
+		batch* b = m_currentBatch;
+		if (!b)
+			b = remove_inner();
+		while (!!b)
+		{
+			COGS_ASSERT(b->m_curPos == (b->m_freelist.m_countAndState >> 3));
+			m_memoryManager.destruct_deallocate_type(b);
+			b = remove_inner();
+		}
 	}
-
-	//this_t& operator=(this_t&& src)
-	//{
-	//	COGS_ASSERT(src.m_guard.is_free());
-	//	COGS_ASSERT(src.m_hazard.is_empty());
-	//	clear_inner();
-	//	m_currentBatch = src.m_currentBatch;
-	//	src.m_currentBatch = nullptr;
-	//	m_head = src.m_head;
-	//	src.m_head = nullptr;
-	//}
 
 	T* allocate()
 	{
@@ -765,14 +753,13 @@ public:
 			{
 				m_currentBatch = remove();
 				if (!m_currentBatch)
-				{
 					m_currentBatch = allocate_batch();
-				}
 			}
 			result = m_currentBatch->allocate();
 			if (!!result)
 				break;
-			m_currentBatch->m_freelist.m_countAndState = (m_currentBatch->m_freelist.m_countAndState & ~0b111) | (size_t)batch::state::floating;
+			COGS_ASSERT(m_currentBatch->m_freelist.m_countAndState == 0);
+			m_currentBatch->m_freelist.m_countAndState = (size_t)batch::state::floating;
 			m_currentBatch = nullptr;
 			//continue;
 		}
@@ -844,7 +831,11 @@ public:
 		{
 			entry* e = reinterpret_cast<entry*>(p);
 			batch* b = e->m_batch;
-			b->deallocate(*e);
+			if (b->deallocate(*e))
+			{
+				remove(*b);
+				m_memoryManager.destruct_deallocate_type(b);
+			}
 		}
 	}
 

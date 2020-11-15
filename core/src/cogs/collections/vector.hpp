@@ -139,7 +139,7 @@ public:
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-		unsigned long rcCount = pre_assign_next(g_rcLogCount);
+		unsigned long rcCount = pre_assign_next(g_allocLogCount);
 		printf("(%lu) RC_NEW(vector): %p (desc) %p (ptr) %s\n", rcCount, (rc_obj_base*)(desc.get_ptr()), desc->get_ptr(), typeid(vector_descriptor<type>).name());
 #endif
 
@@ -230,7 +230,7 @@ public:
 #endif
 
 #if COGS_DEBUG_RC_LOGGING
-		unsigned long rcCount = pre_assign_next(g_rcLogCount);
+		unsigned long rcCount = pre_assign_next(g_allocLogCount);
 		printf("(%lu) RC_NEW(vector): %p (desc) %p (ptr) %s\n", rcCount, (rc_obj_base*)(desc.get_ptr()), desc->get_ptr(), typeid(vector_descriptor<type>).name());
 #endif
 

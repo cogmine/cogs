@@ -478,29 +478,47 @@ public:
 
 		// When resizing from a side (not the corner), instead of using the lesser/lesser size,
 		// the nearest lesser length in the resize dimension is used.
-		std::optional<size> get_nearest(dimension d, bool greater = false) const
+		std::optional<size> get_nearest(dimension d, bool greater = false, bool greaterOther = false) const
 		{
-			auto sz = get_size(d, greater, false);
+			auto sz = get_size(d, greater, greaterOther);
 			if (sz.has_value())
 			{
-				auto sz2 = get_size(d, greater, true);
-				if (sz2.has_value() && ((*sz)[d] < (*sz2)[d]))
-					return sz2;
-			}
-			else
-			{
-				sz = get_size(d, greater, true);
-				if (!sz.has_value())
+				auto sz2 = get_size(d, greater, !greaterOther);
+				if (!sz2.has_value())
+					return sz;
+				if ((*sz)[d] == (*sz2)[d])
 				{
-					auto sz2 = get_size(d, !greater, false);
-					if (!sz2.has_value())
-						return get_size(d, !greater, true);
-					sz = get_size(d, !greater, true);
-					if (sz.has_value() && ((*sz)[d] > (*sz2)[d]))
-						return sz2;
+					if (greaterOther && (*sz)[!d] > (*sz2)[!d])
+						return sz;
+					return sz2;
 				}
+				if (greater && (*sz)[d] > (*sz2)[d])
+					return sz;
+				return sz2;
 			}
-			return sz;
+			auto sz2 = get_size(d, greater, !greaterOther);
+			if (sz2.has_value())
+				return sz2;
+			sz = get_size(d, !greater, greaterOther);
+			if (sz.has_value())
+			{
+				auto sz2 = get_size(d, !greater, !greaterOther);
+				if (!sz2.has_value())
+					return sz;
+				if ((*sz)[d] == (*sz2)[d])
+				{
+					if (greaterOther && (*sz)[!d] > (*sz2)[!d])
+						return sz;
+					return sz2;
+				}
+				if (!greater && (*sz)[d] < (*sz2)[d])
+					return sz;
+				return sz2;
+			}
+			sz2 = get_size(d, !greater, !greaterOther);
+			if (sz2.has_value())
+				return sz2;
+			return std::nullopt;
 		}
 
 		std::optional<size> find_first_valid_size(dimension d, bool preferGreaterWidth = false, bool preferGreaterHeight = false) const
@@ -681,9 +699,14 @@ public:
 		sizing_mask sizingMask = all_sizing_types) const
 	{
 		propose_size_result result = propose_size(sz, r, resizeDimension, sizingMask);
+		COGS_ASSERT(result.sizes[0][0].has_value() || result.sizes[0][1].has_value() || result.sizes[1][0].has_value() || result.sizes[1][1].has_value());
+		std::optional<size> sz2;
 		if (resizeDimension.has_value())
-			return result.get_nearest(*resizeDimension, nearestGreater);
-		return result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
+			sz2 = result.get_nearest(*resizeDimension, nearestGreater);
+		else
+			sz2 = result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
+		COGS_ASSERT(sz2.has_value());
+		return sz2;
 	}
 
 protected:
