@@ -1187,7 +1187,7 @@ public:
 	insert_via(F&& f)
 	{
 		node* r = m_allocator.allocate();
-		new (r.get_ptr()) node();
+		new (r) node();
 		iterator i(r, m_tree);
 		f(i);
 		m_tree.insert_multi(r);

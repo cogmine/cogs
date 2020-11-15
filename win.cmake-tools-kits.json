@@ -37,11 +37,14 @@
   },
 
   {
-    "name": "clang 10.0.0 (amd64)",
+    "name": "clang 10.0.0 (x64)",
     "compilers": {
       "C": "C:\\Program Files\\LLVM\\bin\\clang.exe",
       "CXX": "C:\\Program Files\\LLVM\\bin\\clang.exe",
       "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
+    },
+    "cmakeSettings": {
+      "X64": "1"
     }
   },
   {
@@ -50,14 +53,20 @@
       "C": "C:\\Program Files\\LLVM\\bin\\clang.exe",
       "CXX": "C:\\Program Files\\LLVM\\bin\\clang.exe",
       "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
+    },
+    "cmakeSettings": {
+      "X86": "1"
     }
   },
   {
-    "name": "clang 11.0.0 (amd64)",
+    "name": "clang 11.0.0 (x64)",
     "compilers": {
       "C": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
       "CXX": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
       "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
+    },
+    "cmakeSettings": {
+      "X64": "1"
     }
   },
   {
@@ -66,6 +75,9 @@
       "C": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
       "CXX": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
       "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
+    },
+    "cmakeSettings": {
+      "X86": "1"
     }
   },
 

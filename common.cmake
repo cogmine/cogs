@@ -6,16 +6,6 @@ include_directories(
   ${CMAKE_CURRENT_LIST_DIR}/core/src
 )
 
-if (CMAKE_SIZEOF_VOID_P MATCHES 8) # 64-bit
-  set(IS64BIT 1)
-  message(STATUS "${EXECUTABLE_NAME} - Configured for 64-bit")
-elseif (CMAKE_SIZEOF_VOID_P MATCHES 4) # 32-bit
-  set(IS32BIT 1)
-  message(STATUS "${EXECUTABLE_NAME} - Configured for 32-bit")
-else()
-  message(ERROR ": ${EXECUTABLE_NAME} - Unsupported bitness")
-endif()
-
 if (NOT X86 AND NOT X64 AND NOT ARM AND NOT ARM64)
   # First, try architecture passed to CMake, if any.
   if ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64")
@@ -110,6 +100,7 @@ elseif (APPLE)
 
 elseif (LINUX OR UNIX)
 ###################################################################### LINUX/UNIX
+  target_link_libraries(${EXECUTABLE_NAME} pthread)
   message(STATUS "${EXECUTABLE_NAME} - Configured for Linux/Unix")
   include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/core/os/linux/src
@@ -128,8 +119,10 @@ if (APPLECLANG)
   )
   if (X64)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64)
+    target_link_options(${EXECUTABLE_NAME} PUBLIC -m64)
   elseif (X86)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m32)
+    target_link_options(${EXECUTABLE_NAME} PUBLIC -m32)
   elseif (ARM)
     message(ERROR ": ${EXECUTABLE_NAME} - No ARM args - compiler must be architecture specific by default")
   elseif (ARM64)
@@ -149,9 +142,14 @@ if (CLANG)
     ${CMAKE_CURRENT_LIST_DIR}/core/env/gcc/src
   )
   if (X64)
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64 -Wa,-mbig-obj)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64)
+    target_link_options(${EXECUTABLE_NAME} PUBLIC -m64)
+    if (WIN32)
+      target_compile_options(${EXECUTABLE_NAME} PUBLIC -Wa,-mbig-obj)
+    endif()
   elseif (X86)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m32)
+      target_link_options(${EXECUTABLE_NAME} PUBLIC -m32)
   elseif (ARM)
     message(ERROR ": ${EXECUTABLE_NAME} - No ARM args - compiler must be architecture specific by default")
   elseif (ARM64)
@@ -185,11 +183,14 @@ if (GCC)
     ${CMAKE_CURRENT_LIST_DIR}/core/env/gcc/src
   )
 
-  target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++2a -fmax-errors=1 -static-libgcc -static-libstdc++ -fzero-initialized-in-bss -fstrict-aliasing -Wstrict-aliasing=3 -mpopcnt -msse4.2 -Winit-self -Wformat -Wformat-nonliteral -Wpointer-arith -fno-exceptions -g -lrt -latomic)
+  target_compile_options(${EXECUTABLE_NAME} PUBLIC -std=gnu++2a -fmax-errors=1 -static-libgcc -static-libstdc++ -fzero-initialized-in-bss -fstrict-aliasing -Wstrict-aliasing=3 -Winit-self -Wformat -Wformat-nonliteral -Wpointer-arith -fno-exceptions -g -lrt -latomic)
+
+  if (X64 OR X86)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mpopcnt)
+  endif()
+
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Debug>:-Og >)
   target_compile_options(${EXECUTABLE_NAME} PUBLIC $<$<CONFIG:Release>:-O3 >)
-
-  target_link_libraries(${EXECUTABLE_NAME} pthread)
   
   if (APPLE)
   ################################################################ GCC MACOS
@@ -202,9 +203,14 @@ if (GCC)
   ################################################################
 
   if (X64)
-    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64 -Wa,-mbig-obj)
+    target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m64)
+    target_link_options(${EXECUTABLE_NAME} PUBLIC -m64)
+    if (WIN32)
+      target_compile_options(${EXECUTABLE_NAME} PUBLIC -Wa,-mbig-obj)
+    endif()
   elseif (X86)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC -mcx16 -m32)
+    target_link_options(${EXECUTABLE_NAME} PUBLIC -m32)
   elseif (AMD)
     message(ERROR ": ${EXECUTABLE_NAME} - No ARM args - compiler must be architecture specific by default")
   elseif (AMD64)
