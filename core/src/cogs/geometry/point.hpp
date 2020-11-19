@@ -142,6 +142,72 @@ public:
 	const point& pre_assign_negative() { assign_negative(); return *this; }
 	point post_assign_negative() { point result(*this); assign_negative(); return result; }
 
+
+	point ceil() const { point result(cogs::ceil(m_contents[0]), cogs::ceil(m_contents[1])); return result; }
+	void assign_ceil() { cogs::assign_ceil(m_contents[0]); cogs::assign_ceil(m_contents[1]); }
+	const point& pre_assign_ceil() { assign_ceil(); return *this; }
+	point post_assign_ceil() { point result(*this); assign_ceil(); return result; }
+
+	point floor() const { point result(cogs::floor(m_contents[0]), cogs::floor(m_contents[1])); return result; }
+	void assign_floor() { cogs::assign_floor(m_contents[0]); cogs::assign_floor(m_contents[1]); }
+	const point& pre_assign_floor() { assign_floor(); return *this; }
+	point post_assign_floor() { point result(*this); assign_floor(); return result; }
+
+	point round() const { point result(cogs::round(m_contents[0]), cogs::round(m_contents[1])); return result; }
+	void assign_round() { cogs::assign_round(m_contents[0]); cogs::assign_round(m_contents[1]); }
+	const point& pre_assign_round() { assign_round(); return *this; }
+	point post_assign_round() { point result(*this); assign_round(); return result; }
+
+
+	double ceil_x() const { return cogs::ceil(m_contents[0]); }
+	void assign_ceil_x() { cogs::assign_ceil(m_contents[0]); }
+	const point& pre_assign_ceil_x() { assign_ceil_x(); return *this; }
+	point post_assign_ceil_x() { point result(*this); assign_ceil_x(); return result; }
+
+	double floor_x() const { return cogs::floor(m_contents[0]); }
+	void assign_floor_x() { cogs::assign_floor(m_contents[0]); }
+	const point& pre_assign_floor_x() { assign_floor_x(); return *this; }
+	point post_assign_floor_x() { point result(*this); assign_floor_x(); return result; }
+
+	double round_x() const { return cogs::round(m_contents[0]); }
+	void assign_round_x() { cogs::assign_round(m_contents[0]); }
+	const point& pre_assign_round_x() { assign_round_x(); return *this; }
+	point post_assign_round_x() { point result(*this); assign_round_x(); return result; }
+
+
+	double ceil_y() const { return cogs::ceil(m_contents[1]); }
+	void assign_ceil_y() { cogs::assign_ceil(m_contents[1]); }
+	const point& pre_assign_ceil_y() { assign_ceil_y(); return *this; }
+	point post_assign_ceil_y() { point result(*this); assign_ceil_y(); return result; }
+
+	double floor_y() const { return cogs::floor(m_contents[1]); }
+	void assign_floor_y() { cogs::assign_floor(m_contents[1]); }
+	const point& pre_assign_floor_y() { assign_floor_y(); return *this; }
+	point post_assign_floor_y() { point result(*this); assign_floor_y(); return result; }
+
+	double round_y() const { return cogs::round(m_contents[1]); }
+	void assign_round_y() { cogs::assign_round(m_contents[1]); }
+	const point& pre_assign_round_y() { assign_round_y(); return *this; }
+	point post_assign_round_y() { point result(*this); assign_round_y(); return result; }
+
+
+	double ceil(dimension d) const { return cogs::ceil(m_contents[(int)d]); }
+	void assign_ceil(dimension d) { cogs::assign_ceil(m_contents[(int)d]); }
+	const point& pre_assign_ceil(dimension d) { assign_ceil(d); return *this; }
+	point post_assign_ceil(dimension d) { point result(*this); assign_ceil(d); return result; }
+
+	double floor(dimension d) const { return cogs::floor(m_contents[(int)d]); }
+	void assign_floor(dimension d) { cogs::assign_floor(m_contents[(int)d]); }
+	const point& pre_assign_floor(dimension d) { assign_floor(d); return *this; }
+	point post_assign_floor(dimension d) { point result(*this); assign_floor(d); return result; }
+
+	double round(dimension d) const { return cogs::round(m_contents[(int)d]); }
+	void assign_round(dimension d) { cogs::assign_round(m_contents[(int)d]); }
+	const point& pre_assign_round(dimension d) { assign_round(d); return *this; }
+	point post_assign_round(dimension d) { point result(*this); assign_round(d); return result; }
+
+
+
 	// point + point = point
 	point operator+(const point& pt) const { point result(m_contents[0] + pt.m_contents[0], m_contents[1] + pt.m_contents[1]); return result; }
 	point& operator+=(const point& pt) { m_contents[0] += pt.m_contents[0]; m_contents[1] += pt.m_contents[1]; return *this; }

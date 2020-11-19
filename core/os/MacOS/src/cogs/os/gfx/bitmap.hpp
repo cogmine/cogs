@@ -244,7 +244,10 @@ public:
 	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, const color& c = color::constant::black)
 	{
 		clear_cached();
-		graphics_context::draw_text(s, b, f, c, m_context);
+		// Align to nearest whole pixel to avoid text wiggling around when repositioned, due to spacing changes.
+		gfx::bounds b2 = b;
+		b2.get_position().assign_round();
+		graphics_context::draw_text(s, b2, f, c, m_context);
 	}
 
 	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true)

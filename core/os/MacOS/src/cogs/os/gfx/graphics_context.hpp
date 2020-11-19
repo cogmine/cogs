@@ -111,9 +111,9 @@ static gfx::bounds make_bounds(const NSPoint& pt, const NSSize& sz)
 	return gfx::bounds(make_point(pt), make_size(sz));
 }
 
-static gfx::bounds make_bounds(const NSRect& b)
+static gfx::bounds make_bounds(const NSRect& r)
 {
-	return gfx::bounds(make_point(b.origin), make_size(b.size));
+	return gfx::bounds(make_point(r), make_size(r));
 }
 
 

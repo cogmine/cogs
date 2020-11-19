@@ -121,8 +121,11 @@ public:
 	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f = 0, bool value = true)
 	{
 		clear_cached();
+		// Align to nearest whole pixel to avoid text wiggling around when repositioned, due to spacing changes.
+		gfx::bounds b2 = b;
+		b2.get_position().assign_round();
 		CGColorRef colorRef = CGColorCreateGenericGray(value ? 1.0 : 0.0, 1.0);
-		graphics_context::draw_text(s, b, f, colorRef, m_context);
+		graphics_context::draw_text(s, b2, f, colorRef, m_context);
 		CGColorRelease(colorRef);
 	}
 
