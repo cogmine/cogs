@@ -478,7 +478,11 @@ public:
 	
 	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f, const color& c = color::constant::black)
 	{
-		graphics_context::draw_text(s, b, f, c);
+		// Align to nearest whole pixel to avoid text wiggling around when repositioned, due to spacing changes.
+		NSRect r = make_NSRect(b);
+		r = [m_nsView backingAlignedRect:r options: NSAlignAllEdgesNearest];
+		gfx::bounds b2 = make_bounds(r);
+		graphics_context::draw_text(s, b2, f, c);
 	}
 
 	virtual void draw_bitmap(const gfx::bitmap& src, const gfx::bounds& srcBounds, const gfx::bounds& dstBounds, bool blendAlpha = true)
