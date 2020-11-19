@@ -74,8 +74,7 @@ protected:
 		m_processBlockFunc(std::forward<F2>(processBlockFunc)),
 		m_terminateFunc(std::forward<F3>(terminateFunc))
 	{
-		for (size_t i = 0; i < result_digits; i++)
-			m_result[i] = src.m_result[i];
+		memcpy(m_result, src.m_result, sizeof(m_result));
 	}
 
 	this_t& operator=(const this_t& src)
@@ -83,8 +82,7 @@ protected:
 		m_digitProgress = src.m_digitProgress;
 		m_blockProgress = src.m_blockProgress;
 		m_curDigit = src.m_curDigit;
-		for (size_t i = 0; i < result_digits; i++)
-			m_result[i] = src.m_result[i];
+		memcpy(m_result, src.m_result, sizeof(m_result));
 		return *this;
 	}
 

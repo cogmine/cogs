@@ -276,6 +276,7 @@
 #include "cogs/crypto/crc.hpp"
 #include "cogs/crypto/fletcher.hpp"
 #include "cogs/crypto/fnv.hpp"
+#include "cogs/crypto/gost.hpp"
 #include "cogs/crypto/hash.hpp"
 #include "cogs/crypto/hash_int.hpp"
 #include "cogs/crypto/haval.hpp"

@@ -62,6 +62,7 @@ set(HEADERS
   ../../core/src/cogs/crypto/crc.hpp
   ../../core/src/cogs/crypto/fletcher.hpp
   ../../core/src/cogs/crypto/fnv.hpp
+  ../../core/src/cogs/crypto/gost.hpp
   ../../core/src/cogs/crypto/hash.hpp
   ../../core/src/cogs/crypto/hash_int.hpp
   ../../core/src/cogs/crypto/haval.hpp

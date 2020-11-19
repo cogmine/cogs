@@ -153,12 +153,14 @@ public:
 	sha1(const sha1& src)
 		: base_t(src, [&]() { process_digit(); }, [&]() { process_block(); }, [&]() { terminate(); })
 	{
+		m_bitCount = src.m_bitCount;
 		for (size_t i = 0; i < m_blockProgress; i++)
 			m_state[i] = src.m_state[i];
 	}
 
 	sha1& operator=(const sha1& src)
 	{
+		m_bitCount = src.m_bitCount;
 		base_t::operator=(src);
 		for (size_t i = 0; i < m_blockProgress; i++)
 			m_state[i] = src.m_state[i];

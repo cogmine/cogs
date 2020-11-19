@@ -603,6 +603,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\fnv.hpp">
       <Filter>core\crypto</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\gost.hpp">
+      <Filter>core\crypto</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\crypto\hash.hpp">
       <Filter>core\crypto</Filter>
     </ClInclude>
@@ -1290,6 +1293,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="$(MSBuildThisFileDirectory)..\..\..\..\cogs.natvis" />
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\..\..\cogs.windows.natvis" />
   </ItemGroup>
 </Project>

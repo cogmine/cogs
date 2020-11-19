@@ -27,7 +27,7 @@
 * Add/rework gui::list
 * Add/rework gui::labeled_list
 * Add/rework gui::button_box
-* Add any missing cryptographic hashes (GOST? LLVM?)
+* Add any missing cryptographic hashes (NTLM?)
 * Add cryptographic ciphers (all)
 * Implement SSL/TLS IO classes
 * Implement HTTP related classes
