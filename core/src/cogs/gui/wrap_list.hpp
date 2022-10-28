@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -104,7 +104,7 @@
 //			cell_t& c = **cellItor;
 //
 //			range cellRange = c.get_range();
-//			size cellDefaultSize = cellRange.limit(c.get_default_size()); // necessary?
+//			size cellDefaultSize = cellRange.get_limit(c.get_default_size()); // necessary?
 //
 //			// default size is one row, unwrapped
 //			m_currentDefaultSize[d] += cellDefaultSize[d]; // compute other dimension later
@@ -275,7 +275,7 @@
 //		size newSize;
 //		range::linear_t otherRange;
 //		newSize[d] = propose_length(d, proposedSize[d], otherRange);
-//		newSize[!d] = otherRange.limit(proposedSize[!d]);
+//		newSize[!d] = otherRange.get_limit(proposedSize[!d]);
 //		return newSize;
 //	}
 //

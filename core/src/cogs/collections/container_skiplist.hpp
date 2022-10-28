@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -118,7 +118,7 @@ protected:
 		// As the last insert is completed for this link, the primary mode is changed to link_mode::normal.
 		// A remove will change the primary mode to link_mode::removing.
 		// If an insert finds the mode has been changed to link_mode::removing, the insert owns the removal.
-		alignas(atomic::get_alignment_v<link_mode>) link_mode m_primaryMode;
+		link_mode m_primaryMode alignas(atomic::get_alignment_v<link_mode>);
 
 		link_t(link_t&) = delete;
 		link_t& operator=(const link_t&) = delete;
@@ -1029,8 +1029,8 @@ protected:
 	class height_and_count_t
 	{
 	public:
-		alignas(atomic::get_alignment_v<height_t>) height_t m_currentHeight;
-		alignas(atomic::get_alignment_v<ptrdiff_t>) ptrdiff_t m_count;
+		height_t m_currentHeight alignas(atomic::get_alignment_v<height_t>);
+		ptrdiff_t m_count alignas(atomic::get_alignment_v<ptrdiff_t>);
 	};
 
 	class sentinel_link_t : public link_t
@@ -1038,7 +1038,7 @@ protected:
 	public:
 		using link_t::m_links;
 
-		alignas(atomic::get_alignment_v<height_and_count_t>) height_and_count_t m_heightAndCount;
+		height_and_count_t m_heightAndCount alignas(atomic::get_alignment_v<height_and_count_t>);
 
 		memory_manager_t m_memoryManager;
 
@@ -1483,7 +1483,7 @@ public:
 		iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -1857,7 +1857,7 @@ public:
 		volatile_iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -2349,7 +2349,7 @@ public:
 		remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -2485,7 +2485,7 @@ public:
 		volatile_remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -2577,9 +2577,9 @@ public:
 
 	this_t& operator=(const this_t& src) = delete;
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	bool operator==(const this_t& cmp) const
 	{
@@ -4148,9 +4148,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	bool operator==(const this_t& cmp) const { return base_t::operator==(cmp); }
 	bool operator==(const volatile this_t& cmp) const { return base_t::operator==(cmp); }
@@ -4399,9 +4399,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	bool operator==(const this_t& cmp) const { return base_t::operator==(cmp); }
 	bool operator==(const volatile this_t& cmp) const { return base_t::operator==(cmp); }

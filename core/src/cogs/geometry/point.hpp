@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -373,22 +373,40 @@ inline bool size::contains(const point& pt) const
 
 inline point size::to_point() const { point pt(m_contents); return pt; }
 
-inline point range::limit(const point& pt) const
+inline point range::get_limit(const point& pt) const
 {
-	point rtn(get_width().limit(pt.get_x()), get_height().limit(pt.get_y()));
-	return rtn;
+	point result(m_contents[0].get_limit(pt.get_x()), m_contents[1].get_limit(pt.get_y()));
+	return result;
 }
 
-inline point range::limit_min(const point& pt) const
+inline void range::limit(point& pt) const
 {
-	point rtn(get_width().limit_min(pt.get_x()), get_height().limit_min(pt.get_y()));
-	return rtn;
+	m_contents[0].limit(pt.get_x());
+	m_contents[1].limit(pt.get_y());
 }
 
-inline point range::limit_max(const point& pt) const
+inline point range::get_limit_min(const point& pt) const
 {
-	point rtn(get_width().limit_max(pt.get_x()), get_height().limit_max(pt.get_y()));
-	return rtn;
+	point result(m_contents[0].get_limit_min(pt.get_x()), m_contents[1].get_limit_min(pt.get_y()));
+	return result;
+}
+
+inline void range::limit_min(point& pt) const
+{
+	m_contents[0].limit_min(pt.get_x());
+	m_contents[1].limit_min(pt.get_y());
+}
+
+inline point range::get_limit_max(const point& pt) const
+{
+	point result(m_contents[0].get_limit_max(pt.get_x()), m_contents[1].get_limit_max(pt.get_y()));
+	return result;
+}
+
+inline void range::limit_max(point& pt) const
+{
+	m_contents[0].limit_max(pt.get_x());
+	m_contents[1].limit_max(pt.get_y());
 }
 
 }

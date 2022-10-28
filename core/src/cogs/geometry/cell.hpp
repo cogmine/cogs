@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -29,33 +29,93 @@ namespace cogs {
 namespace geometry {
 namespace planar {
 
-
-enum class cell_sizing_type : unsigned int
+class cell_base
 {
-	lesser_width_lesser_height    = (1 << 0), // [0][0]
-	lesser_width_greater_height   = (1 << 1), // [0][1]
-	greater_width_lesser_height   = (1 << 2), // [1][0]
-	greater_width_greater_height  = (1 << 3), // [1][1]
+public:
+	enum class quadrant_flag : unsigned int
+	{
+		lesser_x_lesser_y    = (1 << 0),
+		lesser_x_greater_y   = (1 << 1),
+		greater_x_lesser_y   = (1 << 2),
+		greater_x_greater_y  = (1 << 3)
+	};
+
+	enum class dependent_size_info_flag : unsigned int
+	{
+		width_stretch_may_stretch_height = (1 << 0), // 0001
+		height_shrink_may_shrink_width   = (1 << 0), // 0001
+
+		width_stretch_may_shrink_height  = (1 << 1), // 0010
+		height_stretch_may_shrink_width  = (1 << 1), // 0010
+
+		width_shrink_may_stretch_height  = (1 << 2), // 0100
+		height_shrink_may_stretch_width  = (1 << 2), // 0100
+
+		width_shrink_may_shrink_height   = (1 << 3), // 1000
+		height_stretch_may_stretch_width = (1 << 3), // 1000
+	};
 };
 
-
 }
 }
 
 
-template <> struct is_flag_enum<geometry::planar::cell_sizing_type> : public std::true_type { };
+template <> struct is_flag_enum<geometry::planar::cell_base::quadrant_flag> : public std::true_type { };
+template <> struct is_flag_enum<geometry::planar::cell_base::dependent_size_info_flag> : public std::true_type { };
 
 
 namespace geometry {
 namespace planar {
 
 
-class cell
+class cell : public cell_base
 {
 private:
 	size m_currentSize;
 
 public:
+	using cell_base::quadrant_flag;
+	using cell_base::dependent_size_info_flag;
+
+	typedef flag_mask_t<quadrant_flag> quadrant_mask;
+
+	static constexpr quadrant_mask all_quadrants =
+		quadrant_flag::lesser_x_lesser_y
+		| quadrant_flag::lesser_x_greater_y
+		| quadrant_flag::greater_x_lesser_y
+		| quadrant_flag::greater_x_greater_y;
+
+	typedef flag_mask_t<dependent_size_info_flag> dependent_size_info_mask;
+
+	static constexpr dependent_size_info_mask either_stretch_can_cause_other_change =
+		dependent_size_info_flag::width_stretch_may_stretch_height
+		| dependent_size_info_flag::width_stretch_may_shrink_height
+		| dependent_size_info_flag::width_shrink_may_shrink_height;
+
+	static constexpr dependent_size_info_mask either_change_can_cause_other_shrink = either_stretch_can_cause_other_change;
+
+	static constexpr dependent_size_info_mask either_shrink_can_cause_other_change =
+		dependent_size_info_flag::height_shrink_may_shrink_width
+		| dependent_size_info_flag::width_shrink_may_stretch_height
+		| dependent_size_info_flag::width_shrink_may_shrink_height;
+
+	static constexpr dependent_size_info_mask either_change_can_cause_other_stretch = either_shrink_can_cause_other_change;
+
+	static constexpr dependent_size_info_mask either_stretch_can_cause_other_stretch =
+		dependent_size_info_flag::height_shrink_may_shrink_width
+		| dependent_size_info_flag::width_shrink_may_shrink_height;
+
+	static constexpr dependent_size_info_mask either_shrink_can_cause_other_shrink = either_stretch_can_cause_other_stretch;
+
+	static constexpr dependent_size_info_mask either_shrink_can_cause_other_stretch = *dependent_size_info_flag::width_shrink_may_stretch_height;
+	static constexpr dependent_size_info_mask either_stretch_can_cause_other_shrink = *dependent_size_info_flag::width_stretch_may_shrink_height;
+
+	static constexpr dependent_size_info_mask either_change_can_cause_other_change =
+		dependent_size_info_flag::width_stretch_may_stretch_height
+		| dependent_size_info_flag::width_shrink_may_stretch_height
+		| dependent_size_info_flag::width_stretch_may_shrink_height
+		| dependent_size_info_flag::width_shrink_may_shrink_height;
+
 	cell()
 		: m_currentSize(0, 0)
 	{ }
@@ -68,69 +128,100 @@ public:
 
 	virtual dimension get_primary_flow_dimension() const { return dimension::horizontal; }
 
-	// A sizing_mask is mask of sizing_type's indicating each potential variation of a sizing result requested by the caller.
-	// Using a sizing_mask other than all_sizing_types in calls to propose_size() allows implementions to avoid
-	// unnecessary work to determine values that will not be used by the caller.  Do not exclude a result if it's
-	// still needed if all other variations are not possible.  Use of a sizing_mask other than all_sizing_types
-	// is generally isolated to parent cells that need to probe sizes of mutliple interdependent child cells.
-	// (i.e. pane::propose_size())
-	typedef cell_sizing_type sizing_type;
-	typedef flag_mask_t<sizing_type> sizing_mask;
-
-	// all_sizing_types indicates that all candidate sizes should be returned.  The only reason to pass a value other than
-	// all_sizing_types would be if certain candidates would not be used, allowing the sizing algorithm to avoid
-	// calculating them, as an optimization.
-	static constexpr sizing_mask all_sizing_types =
-		sizing_type::lesser_width_lesser_height
-		| sizing_type::lesser_width_greater_height
-		| sizing_type::greater_width_lesser_height
-		| sizing_type::greater_width_greater_height;
-
-	static constexpr sizing_mask all_lesser_width_sizing_types =
-		sizing_type::lesser_width_lesser_height
-		| sizing_type::lesser_width_greater_height; // [0][?]
-
-	static constexpr sizing_mask all_greater_width_sizing_types =
-		sizing_type::greater_width_lesser_height
-		| sizing_type::greater_width_greater_height; // [1][?]
-
-	static constexpr sizing_mask all_lesser_height_sizing_types =
-		sizing_type::lesser_width_lesser_height
-		| sizing_type::greater_width_lesser_height; // [?][0]
-
-	static constexpr sizing_mask all_greater_height_sizing_types =
-		sizing_type::lesser_width_greater_height
-		| sizing_type::greater_width_greater_height; // [?][1]
-
-	// Up to 4 different sizes might be returned from propose_size()
-	//
-	// Sizes are returned in the following order:
-	//
-	// [<= width][<= height] - lesser or equal width and lesser or equal height
-	// [<= width][>= height] - lesser or equal width and greater or equal height
-	// [>= width][<= height] - greater or equal width and lesser or equal height
-	// [>= width][>= height] - greater or equal width and greater or equal height
-	//
-	// When a size can be matched exactly, all entries will contain that size.
-	// When a length cannot be satisfied as proposed, lesser and/or greater values are returned at their associated indexes.
-	// When a lesser or equal length is not possible, the lesser length index will be empty (std::nullopt).
-	// When a greater or equal length is not possible, the greater length index will be empty (std::nullopt).
-	// If the call is incapable of being successfully sized to any size, all indexes will be empty (std::nullopt).
-
-	union propose_size_result
+	union collaborative_sizes
 	{
-		std::optional<size> sizes[2][2];
 		std::optional<size> indexed_sizes[4];
+		std::optional<size> sizes[2][2];
 
-		propose_size_result()
-			: sizes{}
+		collaborative_sizes()
+			: indexed_sizes{}
 		{ }
 
-		propose_size_result(const propose_size_result& src)
+		explicit collaborative_sizes(const size& sz)
+			: indexed_sizes{{sz}, {sz}, {sz}, {sz}}
+		{ }
+
+		explicit collaborative_sizes(const std::optional<size>& sz)
+			: indexed_sizes{{sz}, {sz}, {sz}, {sz}}
+		{ }
+
+		explicit collaborative_sizes(const size& sz, const size& relative_to)
+		{
+			if (sz.get_width() > relative_to.get_width())
+			{
+				if (sz.get_height() <= relative_to.get_height())
+				{
+					sizes[1][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+						return;
+				}
+				sizes[1][1] = sz;
+				return;
+			}
+			if (sz.get_width() != relative_to.get_width())
+			{
+				if (sz.get_height() <= relative_to.get_height())
+				{
+					sizes[0][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+						return;
+				}
+			}
+			else
+			{
+				if (sz.get_height() <= relative_to.get_height())
+				{
+					sizes[0][0] = sizes[1][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+						return;
+				}
+				sizes[1][1] = sz;
+			}
+			sizes[0][1] = sz;
+		}
+
+		explicit collaborative_sizes(const std::optional<size>& sz, const size& relative_to)
+		{
+			if (!sz.has_value())
+				return;
+			if (sz->get_width() > relative_to.get_width())
+			{
+				if (sz->get_height() <= relative_to.get_height())
+				{
+					sizes[1][0] = sz;
+					if (sz->get_height() != relative_to.get_height())
+						return;
+				}
+				sizes[1][1] = sz;
+				return;
+			}
+			if (sz->get_width() != relative_to.get_width())
+			{
+				if (sz->get_height() <= relative_to.get_height())
+				{
+					sizes[0][0] = sz;
+					if (sz->get_height() != relative_to.get_height())
+						return;
+				}
+			}
+			else
+			{
+				if (sz->get_height() <= relative_to.get_height())
+				{
+					sizes[0][0] = sizes[1][0] = sz;
+					if (sz->get_height() != relative_to.get_height())
+						return;
+				}
+				sizes[1][1] = sz;
+			}
+			sizes[0][1] = sz;
+		}
+
+		collaborative_sizes(const collaborative_sizes& src)
 			: sizes{ { src.sizes[0][0], src.sizes[0][1] }, { src.sizes[1][0], src.sizes[1][1] } }
 		{ }
 
-		propose_size_result& operator=(const propose_size_result& src)
+		collaborative_sizes& operator=(const collaborative_sizes& src)
 		{
 			sizes[0][0] = src.sizes[0][0];
 			sizes[0][1] = src.sizes[0][1];
@@ -139,7 +230,99 @@ public:
 			return *this;
 		}
 
-		bool operator==(const propose_size_result& src)
+		void set(const size& sz)
+		{
+			sizes[0][0] = sz;
+			sizes[0][1] = sz;
+			sizes[1][0] = sz;
+			sizes[1][1] = sz;
+		}
+
+		void set(const std::optional<size>& sz)
+		{
+			sizes[0][0] = sz;
+			sizes[0][1] = sz;
+			sizes[1][0] = sz;
+			sizes[1][1] = sz;
+		}
+
+		void set_relative_to(const size& sz, const size& relative_to)
+		{
+			if (sz.get_width() > relative_to.get_width())
+			{
+				sizes[0][0].reset();
+				sizes[0][1].reset();
+				if (sz.get_height() > relative_to.get_height())
+					sizes[1][0].reset();
+				else
+				{
+					sizes[1][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+					{
+						sizes[1][1].reset();
+						return;
+					}
+				}
+				sizes[1][1] = sz;
+				return;
+			}
+			if (sz.get_width() != relative_to.get_width())
+			{
+				sizes[1][0].reset();
+				sizes[1][1].reset();
+				if (sz.get_height() > relative_to.get_height())
+					sizes[0][0].reset();
+				else
+				{
+					sizes[0][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+					{
+						sizes[0][1].reset();
+						return;
+					}
+				}
+			}
+			else
+			{
+				if (sz.get_height() > relative_to.get_height())
+				{
+					sizes[0][0].reset();
+					sizes[1][0].reset();
+				}
+				else
+				{
+					sizes[0][0] = sz;
+					sizes[1][0] = sz;
+					if (sz.get_height() != relative_to.get_height())
+					{
+						sizes[0][1].reset();
+						sizes[1][1].reset();
+						return;
+					}
+				}
+				sizes[1][1] = sz;
+			}
+			sizes[0][1] = sz;
+		}
+
+		void set_relative_to(const std::optional<size>& sz, const size& relative_to)
+		{
+			if (sz.has_value())
+				set_relative_to(*sz, relative_to);
+			else
+				set_empty();
+		}
+
+		bool is_empty() const { return !sizes[0][0].has_value() && !sizes[0][1].has_value() && !sizes[1][0].has_value() && !sizes[1][1].has_value(); }
+		void set_empty()
+		{
+			sizes[0][0].reset();
+			sizes[0][1].reset();
+			sizes[1][0].reset();
+			sizes[1][1].reset();
+		}
+
+		bool operator==(const collaborative_sizes& src)
 		{
 			return sizes[0][0] == src.sizes[0][0]
 				&& sizes[0][1] == src.sizes[0][1]
@@ -167,22 +350,22 @@ public:
 				sizes[1][1]->abs();
 		}
 
-		propose_size_result abs() const
+		collaborative_sizes abs() const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result.assign_abs();
 			return result;
 		}
 
-		const propose_size_result& pre_assign_abs()
+		const collaborative_sizes& pre_assign_abs()
 		{
 			assign_abs();
 			return *this;
 		}
 
-		propose_size_result post_assign_abs()
+		collaborative_sizes post_assign_abs()
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			assign_abs();
 			return result;
 		}
@@ -199,22 +382,22 @@ public:
 				sizes[1][1]->ceil();
 		}
 
-		propose_size_result ceil() const
+		collaborative_sizes ceil() const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result.assign_ceil();
 			return result;
 		}
 
-		const propose_size_result& pre_assign_ceil()
+		const collaborative_sizes& pre_assign_ceil()
 		{
 			assign_ceil();
 			return *this;
 		}
 
-		propose_size_result post_assign_ceil()
+		collaborative_sizes post_assign_ceil()
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			assign_ceil();
 			return result;
 		}
@@ -231,22 +414,22 @@ public:
 				sizes[1][1]->floor();
 		}
 
-		propose_size_result floor() const
+		collaborative_sizes floor() const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result.assign_floor();
 			return result;
 		}
 
-		const propose_size_result& pre_assign_floor()
+		const collaborative_sizes& pre_assign_floor()
 		{
 			assign_floor();
 			return *this;
 		}
 
-		propose_size_result post_assign_floor()
+		collaborative_sizes post_assign_floor()
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			assign_floor();
 			return result;
 		}
@@ -263,27 +446,27 @@ public:
 				sizes[1][1]->round();
 		}
 
-		propose_size_result round() const
+		collaborative_sizes round() const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result.assign_round();
 			return result;
 		}
 
-		const propose_size_result& pre_assign_round()
+		const collaborative_sizes& pre_assign_round()
 		{
 			assign_round();
 			return *this;
 		}
 
-		propose_size_result post_assign_round()
+		collaborative_sizes post_assign_round()
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			assign_floor();
 			return result;
 		}
 
-		propose_size_result& operator+=(const size& sz)
+		collaborative_sizes& operator+=(const size& sz)
 		{
 			if (sizes[0][0].has_value())
 				*sizes[0][0] += sz;
@@ -296,14 +479,14 @@ public:
 			return *this;
 		}
 
-		propose_size_result operator+(const size& sz) const
+		collaborative_sizes operator+(const size& sz) const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result += sz;
 			return result;
 		}
 
-		propose_size_result& operator-=(const size& sz)
+		collaborative_sizes& operator-=(const size& sz)
 		{
 			if (sizes[0][0].has_value())
 				*sizes[0][0] -= sz;
@@ -316,14 +499,34 @@ public:
 			return *this;
 		}
 
-		propose_size_result operator-(const size& sz) const
+		collaborative_sizes operator-(const size& sz) const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result -= sz;
 			return result;
 		}
 
-		propose_size_result& operator|=(const size& sz)
+		collaborative_sizes& operator/=(const proportion& p)
+		{
+			if (sizes[0][0].has_value())
+				*sizes[0][0] /= p;
+			if (sizes[0][1].has_value())
+				*sizes[0][1] /= p;
+			if (sizes[1][0].has_value())
+				*sizes[1][0] /= p;
+			if (sizes[1][1].has_value())
+				*sizes[1][1] /= p;
+			return *this;
+		}
+
+		collaborative_sizes operator/(const proportion& p) const
+		{
+			collaborative_sizes result(*this);
+			result /= p;
+			return result;
+		}
+
+		collaborative_sizes& operator|=(const size& sz)
 		{
 			if (sizes[0][0].has_value())
 				*sizes[0][0] |= sz;
@@ -336,14 +539,14 @@ public:
 			return *this;
 		}
 
-		propose_size_result operator|(const size& sz) const
+		collaborative_sizes operator|(const size& sz) const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result |= sz;
 			return result;
 		}
 
-		propose_size_result& operator&=(const size& sz)
+		collaborative_sizes& operator&=(const size& sz)
 		{
 			if (sizes[0][0].has_value())
 				*sizes[0][0] &= sz;
@@ -356,9 +559,9 @@ public:
 			return *this;
 		}
 
-		propose_size_result operator&(const size& sz) const
+		collaborative_sizes operator&(const size& sz) const
 		{
-			propose_size_result result(*this);
+			collaborative_sizes result(*this);
 			result &= sz;
 			return result;
 		}
@@ -392,132 +595,57 @@ public:
 		size& get_size_value(dimension d, bool greater, bool greaterOther) { return *get_size(d, greater, greaterOther); }
 		const size& get_size_value(dimension d, bool greater, bool greaterOther) const { return *get_size(d, greater, greaterOther); }
 
-		void set(const size& sz)
-		{
-			sizes[0][0] = sz;
-			sizes[0][1] = sz;
-			sizes[1][0] = sz;
-			sizes[1][1] = sz;
-		}
-
-		bool is_empty() const { return !sizes[0][0].has_value() && !sizes[0][1].has_value() && !sizes[1][0].has_value() && !sizes[1][1].has_value(); }
-		void set_empty()
-		{
-			sizes[0][0].reset();
-			sizes[0][1].reset();
-			sizes[1][0].reset();
-			sizes[1][1].reset();
-		}
-
-		bool contains(const size& sz)
-		{
-			return sizes[0][0] == sz || sizes[0][1] == sz || sizes[1][0] == sz || sizes[1][1] == sz;
-		}
-
-		bool has_same(dimension d)
-		{
-			if (sizes[0][0].has_value())
-			{
-				if (sizes[0][1].has_value() && (*sizes[0][1])[d] != (*sizes[0][0])[d])
-					return false;
-				if (sizes[1][0].has_value() && (*sizes[1][0])[d] != (*sizes[0][0])[d])
-					return false;
-				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[0][0])[d])
-					return false;
-			}
-			else if (sizes[0][1].has_value())
-			{
-				if (sizes[1][0].has_value() && (*sizes[1][0])[d] != (*sizes[0][1])[d])
-					return false;
-				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[0][1])[d])
-					return false;
-			}
-			else if (sizes[1][0].has_value())
-			{
-				if (sizes[1][1].has_value() && (*sizes[1][1])[d] != (*sizes[1][0])[d])
-					return false;
-			}
-			return true;
-		}
-
-		bool has_same_width() { return has_same(dimension::horizontal); }
-		bool has_same_height() { return has_same(dimension::vertical); }
-
-		bool has_only(dimension d, double v)
-		{
-			bool has_any = false;
-			if (sizes[0][0].has_value())
-			{
-				if ((*sizes[0][0])[d] != v)
-					return false;
-				has_any = true;
-			}
-			if (sizes[0][1].has_value())
-			{
-				if ((*sizes[0][1])[d] != v)
-					return false;
-				has_any = true;
-			}
-			if (sizes[1][0].has_value())
-			{
-				if ((*sizes[1][0])[d] != v)
-					return false;
-				has_any = true;
-			}
-			if (sizes[1][1].has_value())
-			{
-				if ((*sizes[1][1])[d] != v)
-					return false;
-				has_any = true;
-			}
-			return has_any;
-		}
-
-		bool has_only_width(double d) { return has_only(dimension::horizontal, d); }
-		bool has_only_height(double d) { return has_only(dimension::vertical, d); }
-
 		// When resizing from a side (not the corner), instead of using the lesser/lesser size,
 		// the nearest lesser length in the resize dimension is used.
-		std::optional<size> get_nearest(dimension d, bool greater = false, bool greaterOther = false) const
+		std::optional<size> get_nearest(const size& sz, dimension d, bool greater = false, bool greaterOther = false) const
 		{
-			auto sz = get_size(d, greater, greaterOther);
-			if (sz.has_value())
+			// If there is only 1 that has an equal value, use it.
+			// If there are 2 with an equal value, use preferred other.
+			// Impossible for 3 to be equal.  All 4 equal is handled by previous case.
+			const auto& sz1 = get_size(d, greater, greaterOther);
+			if (sz1.has_value() && (*sz1)[d] == sz[d])
+				return sz1;
+			const auto& sz2 = get_size(d, greater, !greaterOther);
+			if (sz2.has_value() && (*sz2)[d] == sz[d])
+				return sz2;
+			const auto& sz3 = get_size(d, !greater, greaterOther);
+			if (sz3.has_value() && (*sz3)[d] == sz[d])
+				return sz3;
+			const auto& sz4 = get_size(d, !greater, !greaterOther);
+			if (sz4.has_value() && (*sz4)[d] == sz[d])
+				return sz4;
+			if (sz1.has_value())
 			{
-				auto sz2 = get_size(d, greater, !greaterOther);
 				if (!sz2.has_value())
-					return sz;
-				if ((*sz)[d] == (*sz2)[d])
+					return sz1;
+				if ((*sz1)[d] == (*sz2)[d])
 				{
-					if (greaterOther && (*sz)[!d] > (*sz2)[!d])
-						return sz;
+					if (greaterOther && (*sz1)[!d] > (*sz2)[!d])
+						return sz1;
 					return sz2;
 				}
-				if (greater && (*sz)[d] > (*sz2)[d])
-					return sz;
+				if (greater && (*sz1)[d] > (*sz2)[d])
+					return sz1;
 				return sz2;
 			}
-			auto sz2 = get_size(d, greater, !greaterOther);
 			if (sz2.has_value())
 				return sz2;
-			sz = get_size(d, !greater, greaterOther);
-			if (sz.has_value())
+			if (sz3.has_value())
 			{
-				sz2 = get_size(d, !greater, !greaterOther);
-				if (!sz2.has_value())
-					return sz;
-				if ((*sz)[d] == (*sz2)[d])
+				if (!sz4.has_value())
+					return sz3;
+				if ((*sz3)[d] == (*sz4)[d])
 				{
-					if (greaterOther && (*sz)[!d] > (*sz2)[!d])
-						return sz;
-					return sz2;
+					if (greaterOther && (*sz3)[!d] > (*sz4)[!d])
+						return sz3;
+					return sz4;
 				}
-				if (!greater && (*sz)[d] < (*sz2)[d])
-					return sz;
-				return sz2;
+				if (!greater && (*sz3)[d] < (*sz4)[d])
+					return sz3;
+				return sz4;
 			}
-			sz2 = get_size(d, !greater, !greaterOther);
-			if (sz2.has_value())
-				return sz2;
+			if (sz4.has_value())
+				return sz4;
 			return std::nullopt;
 		}
 
@@ -630,9 +758,9 @@ public:
 			return false;
 		}
 
-		propose_size_result relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		collaborative_sizes relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
 		{
-			propose_size_result result;
+			collaborative_sizes result;
 			if (resizeDimension.has_value())
 				primaryDimension = *resizeDimension;
 
@@ -648,13 +776,13 @@ public:
 			return result;
 		}
 
-		void set_relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		void update_relative_to(const size& sz, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
 		{
 			*this = relative_to(sz, primaryDimension, resizeDimension);
 		}
 
 		// this must already be relative to relativeTo
-		void merge_relative_to(const propose_size_result& src, const size& relativeTo, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
+		void merge_relative_to(const collaborative_sizes& src, const size& relativeTo, dimension primaryDimension, const std::optional<dimension>& resizeDimension = std::nullopt)
 		{
 			if (resizeDimension.has_value())
 				primaryDimension = *resizeDimension;
@@ -671,46 +799,108 @@ public:
 		}
 	};
 
-	virtual propose_size_result propose_size(
+	virtual dependent_size_info_mask get_dependent_size_info() const
+	{
+		return dependent_size_info_mask::none;
+	}
+
+	bool has_dependent_size() const
+	{
+		return get_dependent_size_info() != dependent_size_info_mask::none;
+	}
+
+	bool has_dependent_size(dimension d, bool increasing) const
+	{
+		// Look Ma, no branches.
+		static constexpr dependent_size_info_mask maskTable[4] = {
+			dependent_size_info_flag::width_shrink_may_stretch_height | dependent_size_info_flag::width_shrink_may_shrink_height,   // 1100
+			dependent_size_info_flag::width_stretch_may_stretch_height | dependent_size_info_flag::width_stretch_may_shrink_height, // 0011
+			dependent_size_info_flag::height_shrink_may_stretch_width | dependent_size_info_flag::height_shrink_may_shrink_width,   // 0101
+			dependent_size_info_flag::height_stretch_may_stretch_width | dependent_size_info_flag::height_stretch_may_shrink_width  // 1010
+		};
+		auto index = (static_cast<std::underlying_type_t<dimension>>(d) << 1) | static_cast<unsigned int>(increasing);
+		return (get_dependent_size_info() & maskTable[index]) != dependent_size_info_mask::none;
+	}
+
+	// When a size is proposed and a cell cannot exactly match that size, it returns up to 4 sizes.
+	// quadrant_flag reflects those sizes as quadrants relevative to the requested size.
+
+	// In a simple resizing scenario (not involving collaborative sibling cells), only one size is returned.
+	//
+	// The priority order is:
+	//    (  1  ) - lesser_x_lesser_y
+	//    (2 & 3) - lesser_x_greater_y or greater_x_lesser_y, depending on the flow direction.
+	//                  greater_x_lesser_y first, if the flow dimension is horizontal.
+	//                  lesser_x_greater_y first, if the flow dimension is vertical.
+	//    (  4  ) - greater_x_greater_y
+
+	std::optional<size> calculate_size(
 		const size& sz,
 		const range& r = range::make_unbounded(),
 		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		bool preferGreaterWidth = false,
+		bool preferGreaterHeight = false,
+		bool nearestGreater = false) const
 	{
-		(void)sizingMask; // unused
-		propose_size_result result;
+		std::optional<quadrant_mask> quadrants;
+		if (preferGreaterWidth || preferGreaterHeight || nearestGreater)
+			quadrants = all_quadrants;
+		collaborative_sizes result = calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
+		std::optional<size> sz2;
+		if (resizeDimension.has_value())
+			sz2 = result.get_nearest(sz, *resizeDimension, nearestGreater);
+		else
+			sz2 = result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
+		return sz2;
+	}
+
+	// Additional sizes are needed to by parent cells (such as stack_panel) that calculate their
+	// size based on interdependent sizes of its children.
+
+	// Up to 4 different sizes may be returned from calculate_collaborative_sizes()
+	//
+	// Sizes are returned in the following order:
+	//
+	// [<= width][<= height] - lesser or equal width and lesser or equal height
+	// [<= width][>= height] - lesser or equal width and greater or equal height
+	// [>= width][<= height] - greater or equal width and lesser or equal height
+	// [>= width][>= height] - greater or equal width and greater or equal height
+	//
+	// When a size can be matched exactly, all entries will contain that size.
+	// When a length cannot be satisfied as proposed, lesser and/or greater values are returned at their associated indexes.
+	// When a lesser or equal length is not possible, the lesser length index will be empty (std::nullopt).
+	// When a greater or equal length is not possible, the greater length index will be empty (std::nullopt).
+	// If the call is incapable of being successfully sized to any size, all indexes will be empty (std::nullopt).
+
+	// The quadrants argument indicates which quadrants the caller needs values for, in case there can be an
+	// efficiency gain by omitting unnecessary quadrants.
+
+	// A quadrants of nullopt indicates that a result from only 1 quadarant is needed, but it's unknown which
+	// quadrant that might be.
+
+	// A quadrant_mask::none is invalid, and may result in no values being returned.
+
+	virtual collaborative_sizes calculate_collaborative_sizes(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
+	{
+		(void)resizeDimension;
+		(void)quadrants;
+		collaborative_sizes result;
 		range r2 = get_range() & r;
-		if (!r2.is_empty())
+		if (!r2.is_invalid())
 		{
-			size sz2 = r2.limit(sz);
-			result.set(sz2);
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			size sz2 = r2.get_limit(sz);
+			result.set_relative_to(sz2, sz);
 		}
 		return result;
 	}
 
-	std::optional<size> propose_size_best(
-		const size& sz,
-		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		bool nearestGreater = false,
-		bool preferGreaterWidth = false,
-		bool preferGreaterHeight = false,
-		sizing_mask sizingMask = all_sizing_types) const
-	{
-		propose_size_result result = propose_size(sz, r, resizeDimension, sizingMask);
-		COGS_ASSERT(result.sizes[0][0].has_value() || result.sizes[0][1].has_value() || result.sizes[1][0].has_value() || result.sizes[1][1].has_value());
-		std::optional<size> sz2;
-		if (resizeDimension.has_value())
-			sz2 = result.get_nearest(*resizeDimension, nearestGreater);
-		else
-			sz2 = result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
-		COGS_ASSERT(sz2.has_value());
-		return sz2;
-	}
-
 protected:
-	virtual void calculate_range() { }
+	virtual void calculate_range() { calculating_range(); }
+	virtual void calculating_range() { }
 
 	// newBounds is in parent coordinates.  Generally, its position is (0,0), unless invoked by a frame.
 	//
@@ -742,7 +932,7 @@ protected:
 	}
 
 	// accessors
-	static void calculate_range(cell& c) { c.calculate_range(); }
+	static void calculating_range(cell& c) { c.calculating_range(); }
 	static void reshape(cell& c, const bounds& newBounds, const point& oldOrigin = point(0, 0)) { c.reshape(newBounds, oldOrigin); }
 };
 

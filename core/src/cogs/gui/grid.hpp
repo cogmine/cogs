@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -17,6 +17,200 @@
 //
 //namespace cogs {
 //namespace gui {
+//
+//
+//
+//
+//// A fixed_default_size_grid uses default sizes for all children
+//template <bool stretch = false>
+//class fixed_default_size_grid : public pane, public virtual pane_container
+//{
+//private:
+//	class subpane : public container_pane
+//	{
+//	public:
+//		rcref<override_bounds_frame> m_frame;
+//
+//		subpane(const rcref<pane>& child, rcref<override_bounds_frame>&& f)
+//			: container_pane(
+//				container_pane::options{
+//					.frames{f},
+//					.children{child}
+//				}
+//			),
+//			m_frame(std::move(f))
+//		{
+//		}
+//	};
+//
+//	size m_calculatedDefaultSize;
+//	range m_calculatedRange;
+//
+//	void install_detach_handler(const rcref<pane>& child)
+//	{
+//		child->get_detach_event() += [](const rcref<pane>& p)
+//		{
+//			rcptr<pane> containerPane = p->get_parent();
+//			if (!!containerPane)
+//				containerPane->detach();
+//		};
+//	}
+//
+//	virtual void calculate_range()
+//	{
+//		pane::calculate_range();
+//		const pane_list& children = get_children();
+//		if (children.is_empty())
+//		{
+//			m_calculatedDefaultSize.clear();
+//			m_calculatedRange.set_empty();
+//			return;
+//		}
+//		double total = 0;
+//		double largestSecondary = 0;
+//		bool anyWithSize = false;
+//		for (auto& child : children)
+//		{
+//			subpane& p = *(child.static_cast_to<subpane>());
+//			override_bounds_frame& f = *p.m_frame;
+//			f.set_position(orientation, total);
+//			std::optional<size> defaultSize = p.get_default_size();
+//			if (!defaultSize.has_value())
+//			{
+//				anyWithSize = true;
+//				f.set_fixed_size(size{ 0, 0 });
+//			}
+//			else
+//			{
+//				size& sz = *defaultSize;
+//				total += sz[orientation];
+//				f.set_fixed_size(sz);
+//				if (largestSecondary < sz[!orientation])
+//					largestSecondary = sz[!orientation];
+//			}
+//		}
+//
+//		if (!anyWithSize)
+//		{
+//			m_calculatedDefaultSize.clear();
+//			m_calculatedRange.set_empty();
+//			return;
+//		}
+//
+//		// Now that we've determined the largest other dimension, we may need
+//		// to adjust elements that reduce their primary length at that secondary length.
+//		if constexpr (stretch)
+//		{
+//			for (auto& child : children)
+//			{
+//				subpane& p = *(child.static_cast_to<subpane>());
+//				override_bounds_frame& f = *p.m_frame;
+//				if (f.get_fixed_size(!orientation) < largestSecondary)
+//				{
+//					// This is larger than the default size, so we know there is a valid result that is lesser in both dimensions.
+//					size newSize;
+//					newSize[orientation] = f.get_fixed_size(orientation);
+//					newSize[!orientation] = largestSecondary;
+//					collaborative_sizes tempResult = p.calculate_collaborative_sizes(newSize, range::make_unbounded(), *quadrant_flag::lesser_x_lesser_y);
+//					const size& resultSize = *tempResult.sizes[0][0];
+//					total -= (f.get_fixed_size(orientation) - resultSize[orientation]);
+//					f.set_fixed_size(resultSize);
+//				}
+//			}
+//		}
+//
+//		m_calculatedDefaultSize.set(orientation, total);
+//		m_calculatedDefaultSize.set(!orientation, largestSecondary);
+//		m_calculatedRange.set_fixed(m_calculatedDefaultSize);
+//	}
+//
+//	static rcref<subpane> create_subpane(const rcref<pane>& child, double secondaryAlignment)
+//	{
+//		alignment a;
+//		a[orientation] = 0.0;
+//		a[!orientation] = secondaryAlignment;
+//		rcref<override_bounds_frame> f = rcnew(override_bounds_frame)(a);
+//		rcref<subpane> p = rcnew(subpane)(child, std::move(f));
+//		return p;
+//	}
+//
+//public:
+//	struct options
+//	{
+//		compositing_behavior compositingBehavior = compositing_behavior::no_buffer;
+//		frame_list frames;
+//		pane_list children;
+//	};
+//
+//	fixed_default_size_grid()
+//		: fixed_default_size_grid(options())
+//	{ }
+//
+//	explicit fixed_default_size_grid(options&& o)
+//		: pane({
+//			.compositingBehavior = o.compositingBehavior,
+//			.frames = std::move(o.frames)
+//		})
+//	{
+//		for (auto& child : o.children)
+//			nest_last(child);
+//	}
+//
+//	virtual dimension get_primary_flow_dimension() const { return orientation; }
+//
+//	virtual range get_range() const { return m_calculatedRange; }
+//
+//	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
+//
+//	virtual collaborative_sizes calculate_collaborative_sizes(
+//		const size& sz,
+//		const range& r = range::make_unbounded(),
+//		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+//		const std::optional<dimension>& resizeDimension = std::nullopt) const
+//	{
+//		// Bypass pane::propose_size() to avoid default child sizing behavior.
+//		return cell::calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
+//	}
+//
+//	void nest_last(const rcref<pane>& child, double secondaryAlignment)
+//	{
+//		rcref<subpane> p = create_subpane(child, secondaryAlignment);
+//		pane::nest_last(p);
+//		install_detach_handler(child);
+//	}
+//
+//	void nest_first(const rcref<pane>& child, double secondaryAlignment)
+//	{
+//		rcref<subpane> p = create_subpane(child, secondaryAlignment);
+//		pane::nest_first(p);
+//		install_detach_handler(child);
+//	}
+//
+//	void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child, double secondaryAlignment)
+//	{
+//		rcref<subpane> p = create_subpane(child, secondaryAlignment);
+//		pane::nest_before(beforeThis, p);
+//		install_detach_handler(child);
+//	}
+//
+//	void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child, double secondaryAlignment)
+//	{
+//		rcref<subpane> p = create_subpane(child, secondaryAlignment);
+//		pane::nest_after(afterThis, p);
+//		install_detach_handler(child);
+//	}
+//
+//	void nest(const rcref<pane>& child, double secondaryAlignment = 0.5) { return nest_last(child, secondaryAlignment); }
+//
+//	virtual void nest_last(const rcref<pane>& child) { return nest_last(child, 0.5); }
+//	virtual void nest_first(const rcref<pane>& child) { return nest_first(child, 0.5); }
+//	virtual void nest_before(const rcref<pane>& beforeThis, const rcref<pane>& child) { return nest_before(beforeThis, child, 0.5); }
+//	virtual void nest_after(const rcref<pane>& afterThis, const rcref<pane>& child) { return nest_after(afterThis, child, 0.5); }
+//};
+//
+//
+//
+//
 //
 ///// @ingroup GUI
 ///// @brief A pane that divides child panes into rows and/or columns.
@@ -156,7 +350,7 @@
 //				r.m_range = cellRange[primary_dimension];
 //				r2.m_range = cellRange[!primary_dimension];
 //
-//				size cellDefaultSize = cellRange.limit(cell.get_default_size());
+//				size cellDefaultSize = cellRange.get_limit(cell.get_default_size());
 //
 //				if (r.m_default < cellDefaultSize[primary_dimension])
 //					r.m_default = cellDefaultSize[primary_dimension];
@@ -192,7 +386,7 @@
 //			defaultSize.set(m_secondarySizingGroup.get_default(), m_primarySizingGroup.get_default());
 //		}
 //
-//		m_currentDefaultSize = rng.limit(defaultSize);
+//		m_currentDefaultSize = rng.get_limit(defaultSize);
 //		m_currentRange = rng;
 //		m_wasRecalculated = true;
 //	}
@@ -258,7 +452,7 @@
 //		size newSize;
 //		range::linear_t otherRange;
 //		newSize[d] = propose_length(d, proposedSize[d], otherRange);
-//		newSize[!d] = otherRange.limit(proposedSize[!d]);
+//		newSize[!d] = otherRange.get_limit(proposedSize[!d]);
 //		return newSize;
 //	}
 //

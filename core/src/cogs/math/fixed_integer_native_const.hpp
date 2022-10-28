@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -175,7 +175,7 @@ public:
 	fixed_integer_native_const(const volatile this_t&) { }
 
 	this_t& operator=(const volatile this_t&) { return *this; }
-	volatile this_t& operator=(const volatile this_t&) volatile { return *this; }
+	void operator=(const volatile this_t&) volatile { }
 
 	constexpr reduced_int_t get_int() const volatile { return int_value; }
 	constexpr reduced_int_t simplify_type() const volatile { return int_value; }

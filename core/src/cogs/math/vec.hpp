@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -566,8 +566,8 @@ public:
 
 	this_t& operator=(const this_t& src) { m_contents.assign(src.m_contents); return *this; }
 	template <typename type2 = type> this_t& operator=(const vec<n, type2>& src) { m_contents.assign(src.m_contents); return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); return *this; }
-	template <typename type2 = type> volatile this_t& operator=(const vec<n, type2>& src) volatile { m_contents.assign(src.m_contents); return *this; }
+	void operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); }
+	template <typename type2 = type> void operator=(const vec<n, type2>& src) volatile { m_contents.assign(src.m_contents); }
 	template <typename type2 = type> this_t& operator=(const volatile vec<n, type2>& src) { m_contents.assign(src.m_contents); return *this; }
 
 	void append(size_t n2 = 1) { m_contents.append(n2); }

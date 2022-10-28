@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -92,10 +92,10 @@ private:
 		{
 		public:
 			void* m_value;
-			alignas(atomic::get_alignment_v<state>) state m_state;
+			state m_state alignas(atomic::get_alignment_v<state>);
 		};
 
-		alignas(atomic::get_alignment_v<content_t>) volatile content_t m_contents;
+		volatile content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 		ptr<token> m_next;
 		ptr<token> m_nextFreeToken;
@@ -273,7 +273,7 @@ private:
 		list* m_list;
 	};
 
-	alignas(atomic::get_alignment_v<content_t>) volatile content_t m_contents;
+	volatile content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 	token* get_token() volatile
 	{
@@ -460,7 +460,7 @@ public:
 			}
 		}
 
-		bool empty() const { return !m_token; }
+		bool is_empty() const { return !m_token; }
 		bool operator!() const { return !m_token; }
 
 		/// @{
@@ -599,7 +599,7 @@ public:
 		/// @}
 	};
 
-	bool is_empty() const volatile 
+	bool is_empty() const volatile
 	{
 		content_t oldContents;
 		atomic::load(m_contents, oldContents);

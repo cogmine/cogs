@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -44,6 +44,26 @@ private:
 	static void set_prev(link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
 	static void set_prev(volatile link_t& l, const ref_t& src) { return link_accessor::set_prev(l, src); }
 
+	dlist_t(const ref_t& first, const ref_t& last)
+		: m_first(first),
+		m_last(last)
+	{ }
+
+	dlist_t(ref_t&& first, const ref_t& last)
+		: m_first(std::move(first)),
+		m_last(last)
+	{ }
+
+	dlist_t(const ref_t& first, ref_t&& last)
+		: m_first(first),
+		m_last(std::move(last))
+	{ }
+
+	dlist_t(ref_t&& first, ref_t&& last)
+		: m_first(std::move(first)),
+		m_last(std::move(last))
+	{ }
+
 	dlist_t(const this_t& src) = delete;
 	this_t& operator=(const this_t& src) = delete;
 
@@ -67,6 +87,12 @@ public:
 	bool operator!() const volatile { return !m_first; }
 	bool is_empty() const { return !m_first; }
 	bool is_empty() const volatile { return !m_first; }
+
+	const ref_t& get_first() const { return m_first; }
+	ref_t get_first() const volatile { return m_first; }
+
+	const ref_t& get_last() const { return m_last; }
+	ref_t get_last() const volatile { return m_last; }
 
 	void append(const ref_t& l)
 	{
@@ -94,8 +120,8 @@ public:
 		{
 			if (m_last == l)
 			{
-				m_first.clear();
-				m_last.clear();
+				m_first.release();
+				m_last.release();
 				return;
 			}
 			m_first = get_next(*m_first);
@@ -118,8 +144,8 @@ public:
 		{
 			if (result == m_last)
 			{
-				m_first.clear();
-				m_last.clear();
+				m_first.release();
+				m_last.release();
 				return;
 			}
 			m_first = get_next(*result);
@@ -134,12 +160,20 @@ public:
 		{
 			if (result == m_first)
 			{
-				m_first.clear();
-				m_last.clear();
+				m_first.release();
+				m_last.release();
 				return;
 			}
 			m_last = get_prev(*result);
 		}
+		return result;
+	}
+
+	this_t clear()
+	{
+		this_t result(std::move(*this));
+		m_first.release();
+		m_last.release();
 		return result;
 	}
 };
@@ -197,6 +231,16 @@ public:
 	bool is_empty() const { return !m_first; }
 	bool is_empty() const volatile { return !m_first; }
 
+	const ref_t& get_first() const { return m_first; }
+	ref_t get_first() const volatile { return m_first; }
+
+	const ref_t& get_last() const
+	{
+		if (!!m_first)
+			return get_prev(*m_first);
+		return m_first;
+	}
+
 	void advance()
 	{
 		if (!!m_first)
@@ -247,7 +291,7 @@ public:
 			m_first = get_next(*m_first);
 			if (m_first == l)
 			{
-				m_first.clear();
+				m_first.release();
 				return;
 			}
 		}
@@ -265,7 +309,7 @@ public:
 		{
 			m_first = get_next(*m_first);
 			if (m_first == result)
-				m_first.clear();
+				m_first.release();
 			else
 			{
 				ref_t next = get_next(*result);
@@ -285,7 +329,7 @@ public:
 		{
 			result = get_prev(*m_first);
 			if (m_first == result)
-				m_first.clear();
+				m_first.release();
 			else
 			{
 				ref_t next = get_next(*result);
@@ -300,16 +344,16 @@ public:
 
 	this_t clear()
 	{
-		ref_t oldFirst = m_first;
-		m_first.clear();
-		return this_t(oldFirst);
+		this_t result(std::move(*this));
+		m_first.release();
+		return result;
 	}
 
 	this_t clear() volatile
 	{
 		ref_t oldFirst;
 		m_first.exchange(oldFirst, oldFirst);
-		return this_t(oldFirst);
+		return this_t(std::move(oldFirst));
 	}
 };
 

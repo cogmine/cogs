@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -34,7 +34,7 @@ private:
 		unsigned int m_flags;
 	};
 
-	alignas(atomic::get_alignment_v<serial_dispatch_state>) serial_dispatch_state m_serialDispatchState;
+	serial_dispatch_state m_serialDispatchState alignas(atomic::get_alignment_v<serial_dispatch_state>);
 	rcptr<task<void> > m_expireTask;
 	boolean m_expireDone;
 

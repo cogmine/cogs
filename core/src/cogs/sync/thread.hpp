@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -14,8 +14,9 @@
 #include "cogs/function.hpp"
 #include "cogs/mem/placement.hpp"
 #include "cogs/mem/rcnew.hpp"
-#include "cogs/os/sync/thread.hpp"
+#include "cogs/env/sync/thread.hpp"
 #include "cogs/sync/single_fire_condition.hpp"
+#include "cogs/sync/yield.hpp"
 
 
 namespace cogs {
@@ -58,11 +59,6 @@ public:
 		m_osThread = rcnew(os::thread)(task);
 	}
 
-	static unsigned int get_processor_count()
-	{
-		return os::thread::get_processor_count();
-	}
-
 	static rcref<thread> spawn(const function<void()>& tsk)
 	{
 		rcref<thread> threadRef = rcnew(thread)(tsk);
@@ -101,11 +97,9 @@ public:
 	}
 
 	bool is_current() const { return m_osThread->is_current(); }
-
-	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once() { return os::thread::spin_once(); }
 };
 
+inline unsigned int get_processor_count() { return env::get_processor_count(); }
 
 }
 

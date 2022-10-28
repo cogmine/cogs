@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -70,10 +70,10 @@ public:
 
 	boolean& operator=(const boolean& b) { set(b); return *this; }
 	boolean& operator=(const volatile boolean& b) { set(b); return *this; }
-	volatile boolean& operator=(const boolean& b) volatile { set(b); return *this; }
-	volatile boolean& operator=(const volatile boolean& b) volatile { set(b); return *this; }
+	void operator=(const boolean& b) volatile { set(b); }
+	void operator=(const volatile boolean& b) volatile { set(b); }
 	boolean& operator=(bool b) { set(b); return *this; }
-	volatile boolean& operator=(bool b) volatile { set(b); return *this; }
+	void operator=(bool b) volatile { set(b); }
 
 	bool operator==(const boolean& b) const { return get() == b.get(); }
 	bool operator==(const volatile boolean& b) const { return get() == b.get(); }
@@ -105,17 +105,17 @@ public:
 //	bool operator||(bool b) { return get() || b; }
 //	bool operator||(bool b) volatile { return get() || b; }
 
-	bool operator&(const boolean& b) { return get() & b.get(); }
-	bool operator&(const volatile boolean& b) { return get() & b.get(); }
-	bool operator&(const boolean& b) volatile { return get() & b.get(); }
-	bool operator&(const volatile boolean& b) volatile { return get() & b.get(); }
+	bool operator&(const boolean& b) { return get() && b.get(); }
+	bool operator&(const volatile boolean& b) { return get() && b.get(); }
+	bool operator&(const boolean& b) volatile { return get() && b.get(); }
+	bool operator&(const volatile boolean& b) volatile { return get() && b.get(); }
 	bool operator&(bool b) { return get() & b; }
 	bool operator&(bool b) volatile { return get() & b; }
 
-	bool operator|(const boolean& b) { return get() | b.get(); }
-	bool operator|(const volatile boolean& b) { return get() | b.get(); }
-	bool operator|(const boolean& b) volatile { return get() | b.get(); }
-	bool operator|(const volatile boolean& b) volatile { return get() | b.get(); }
+	bool operator|(const boolean& b) { return get() || b.get(); }
+	bool operator|(const volatile boolean& b) { return get() || b.get(); }
+	bool operator|(const boolean& b) volatile { return get() || b.get(); }
+	bool operator|(const volatile boolean& b) volatile { return get() || b.get(); }
 	bool operator|(bool b) { return get() | b; }
 	bool operator|(bool b) volatile { return get() | b; }
 
@@ -129,10 +129,10 @@ public:
 
 	boolean& operator&=(const boolean& b) { cogs::assign_bit_and(m_bool, b.get()); return *this; }
 	boolean& operator&=(const volatile boolean& b) { cogs::assign_bit_and(m_bool, b.get()); return *this; }
-	volatile boolean& operator&=(const boolean& b) volatile { cogs::assign_bit_and(m_bool, b.get()); return *this; }
-	volatile boolean& operator&=(const volatile boolean& b) volatile { cogs::assign_bit_and(m_bool, b.get()); return *this; }
+	void operator&=(const boolean& b) volatile { cogs::assign_bit_and(m_bool, b.get()); }
+	void operator&=(const volatile boolean& b) volatile { cogs::assign_bit_and(m_bool, b.get()); }
 	boolean& operator&=(bool b) { cogs::assign_bit_and(m_bool, b); return *this; }
-	volatile boolean& operator&=(bool b) volatile { cogs::assign_bit_and(m_bool, b); return *this; }
+	void operator&=(bool b) volatile { cogs::assign_bit_and(m_bool, b); }
 
 	const boolean& pre_bit_and(const boolean& b) { cogs::pre_assign_bit_and(m_bool, b.get()); return *this; }
 	const boolean& pre_bit_and(const volatile boolean& b) { cogs::pre_assign_bit_and(m_bool, b.get()); return *this; }
@@ -151,10 +151,10 @@ public:
 
 	boolean& operator|=(const boolean& b) { cogs::assign_bit_or(m_bool, b.get()); return *this; }
 	boolean& operator|=(const volatile boolean& b) { cogs::assign_bit_or(m_bool, b.get()); return *this; }
-	volatile boolean& operator|=(const boolean& b) volatile { cogs::assign_bit_or(m_bool, b.get()); return *this; }
-	volatile boolean& operator|=(const volatile boolean& b) volatile { cogs::assign_bit_or(m_bool, b.get()); return *this; }
+	void operator|=(const boolean& b) volatile { cogs::assign_bit_or(m_bool, b.get()); }
+	void operator|=(const volatile boolean& b) volatile { cogs::assign_bit_or(m_bool, b.get()); }
 	boolean& operator|=(bool b) { cogs::assign_bit_or(m_bool, b); return *this; }
-	volatile boolean& operator|=(bool b) volatile { cogs::assign_bit_or(m_bool, b); return *this; }
+	void operator|=(bool b) volatile { cogs::assign_bit_or(m_bool, b); }
 
 	const boolean& pre_bit_or(const boolean& b) { cogs::pre_assign_bit_or(m_bool, b.get()); return *this; }
 	const boolean& pre_bit_or(const volatile boolean& b) { cogs::pre_assign_bit_or(m_bool, b.get()); return *this; }
@@ -173,10 +173,10 @@ public:
 
 	boolean& operator^=(const boolean& b) { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
 	boolean& operator^=(const volatile boolean& b) { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
-	volatile boolean& operator^=(const boolean& b) volatile { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
-	volatile boolean& operator^=(const volatile boolean& b) volatile { cogs::assign_bit_xor(m_bool, b.get()); return *this; }
+	void operator^=(const boolean& b) volatile { cogs::assign_bit_xor(m_bool, b.get()); }
+	void operator^=(const volatile boolean& b) volatile { cogs::assign_bit_xor(m_bool, b.get()); }
 	boolean& operator^=(bool b) { cogs::assign_bit_xor(m_bool, b); return *this; }
-	volatile boolean& operator^=(bool b) volatile { cogs::assign_bit_xor(m_bool, b); return *this; }
+	void operator^=(bool b) volatile { cogs::assign_bit_xor(m_bool, b); }
 
 
 	const boolean& pre_bit_xor(const boolean& b) { cogs::pre_assign_bit_xor(m_bool, b.get()); return *this; }

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -17,32 +17,23 @@
 namespace cogs {
 namespace gui {
 
-
-typedef gfx::size size;
-typedef gfx::point point;
-typedef gfx::bounds bounds;
-typedef gfx::range range;
-typedef gfx::margin margin;
-typedef gfx::proportion proportion;
-typedef gfx::direction direction;
-typedef gfx::dimension dimension;
-typedef gfx::flow flow;
-typedef gfx::script_flow script_flow;
-typedef gfx::cell cell;
-typedef gfx::alignment alignment;
-//typedef gfx::proportional_sizing_group proportional_sizing_group;
-//typedef gfx::fair_sizing_group fair_sizing_group;
-//typedef gfx::equal_sizing_group equal_sizing_group;
-template <gfx::sizing_disposition disposition>
-using sizing_group = gfx::sizing_group<disposition>;
-typedef gfx::sizing_disposition sizing_disposition;
-typedef gfx::sizing_cell sizing_cell;
-typedef gfx::canvas sizing_group_base;
-
-typedef gfx::font font;
-typedef gfx::bitmap bitmap;
-typedef gfx::bitmask bitmask;
-
+using gfx::size;
+using gfx::point;
+using gfx::bounds;
+using gfx::range;
+using gfx::margin;
+using gfx::proportion;
+using gfx::direction;
+using gfx::dimension;
+using gfx::flow;
+using gfx::script_flow;
+using gfx::cell;
+using gfx::alignment;
+using gfx::sizing_policy;
+using gfx::sizing_group;
+using gfx::font;
+using gfx::bitmap;
+using gfx::bitmask;
 
 // frame and cell facilitate sizing/resizing behavior of 2D rectangular elements.
 
@@ -56,6 +47,8 @@ class frame : public cell, public object
 {
 private:
 	frame_list::remove_token m_siblingIterator;
+
+	// Weak to avoid circular reference, but should never be referenced when out of scope.
 	weak_rcptr<cell> m_frameable;
 
 	// Preserved position from last reshape, in parent coordinates (in which 0,0 is parent's origin).
@@ -74,80 +67,62 @@ public:
 	virtual std::optional<size> get_default_size() const
 	{
 		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
 		if (!!itor)
-		{
-			++itor;
-			rcptr<cell> c;
-			if (!!itor)
-				c = *itor;
-			if (!c)
-				c = m_frameable;
-			if (!!c)
-				return c->get_default_size();
-		}
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
-		return std::nullopt;
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		return c->get_default_size();
 	}
 
 	virtual range get_range() const
 	{
 		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
 		if (!!itor)
-		{
-			++itor;
-			rcptr<cell> c;
-			if (!!itor)
-				c = *itor;
-			if (!c)
-				c = m_frameable;
-			if (!!c)
-				return c->get_range();
-		}
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
-		return cell::get_range();
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		return c->get_range();
 	}
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
 		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
 		if (!!itor)
-		{
-			++itor;
-			rcptr<cell> c;
-			if (!!itor)
-				c = *itor;
-			if (!c)
-				c = m_frameable;
-			if (!!c)
-				return c->propose_size(sz, r, resizeDimension, sizingMask);
-		}
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
-		return cell::propose_size(sz, r, resizeDimension, sizingMask);
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		return c->calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
 	}
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
 		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
 		if (!!itor)
-		{
-			++itor;
-			rcptr<cell> c;
-			if (!!itor)
-				c = *itor;
-			if (!c)
-				c = m_frameable;
-			if (!!c)
-			{
-				cell::calculate_range(*c);
-				return;
-			}
-		}
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		cell::calculating_range(*c);
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
@@ -156,30 +131,42 @@ protected:
 		cell::reshape(b, oldOrigin);
 
 		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
 		if (!!itor)
-		{
-			++itor;
-			rcptr<cell> c;
-			if (!!itor)
-				c = *itor;
-			if (!c)
-				c = m_frameable;
-			if (!!c)
-			{
-				cell::reshape(*c, b, oldOrigin);
-				return;
-			}
-		}
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		cell::reshape(*c, b, oldOrigin);
 	}
 
 	virtual dimension get_primary_flow_dimension() const
 	{
-		rcptr<cell> c = m_frameable;
-		if (!!c)
-			return c->get_primary_flow_dimension();
-		COGS_ASSERT(false && "cogs::frame used when not associated with a frameable?");
-		return cell::get_primary_flow_dimension();
+		COGS_ASSERT(!!m_frameable);
+		return m_frameable->get_primary_flow_dimension();
+	}
+
+protected:
+	std::optional<size> calculate_content_size(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<dimension>& resizeDimension = std::nullopt,
+		bool preferGreaterWidth = false,
+		bool preferGreaterHeight = false,
+		bool nearestGreater = false) const
+	{
+		frame_list::iterator itor = m_siblingIterator;
+		COGS_ASSERT(!!itor);
+		++itor;
+		rcptr<cell> c;
+		if (!!itor)
+			c = *itor;
+		if (!c)
+			c = m_frameable;
+		COGS_ASSERT(!!c);
+		return c->calculate_size(sz, r, resizeDimension, preferGreaterWidth, preferGreaterHeight, nearestGreater);
 	}
 };
 
@@ -270,37 +257,57 @@ public:
 		return get_range();
 	}
 
-	virtual propose_size_result propose_frame_size(
+	std::optional<size> calculate_frame_size(
 		const size& sz,
 		const range& r = range::make_unbounded(),
 		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		bool preferGreaterWidth = false,
+		bool preferGreaterHeight = false,
+		bool nearestGreater = false) const
+	{
+		std::optional<quadrant_mask> quadrants;
+		if (preferGreaterWidth || preferGreaterHeight || (resizeDimension.has_value() && nearestGreater))
+			quadrants = all_quadrants;
+		collaborative_sizes result = calculate_collaborative_frame_sizes(sz, r, quadrants, resizeDimension);
+		std::optional<size> sz2;
+		if (resizeDimension.has_value())
+			sz2 = result.get_nearest(sz, *resizeDimension, nearestGreater);
+		else
+			sz2 = result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
+		return sz2;
+	}
+
+	virtual collaborative_sizes calculate_collaborative_frame_sizes(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<quadrant_mask>& quadrants = std:: nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
 		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
-			return (*itor)->propose_size(sz, r, resizeDimension, sizingMask);
-		return propose_size(sz, r, resizeDimension, sizingMask);
+			return (*itor)->calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
+		return calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
 	}
-
-	using cell::propose_size_best;
 
 protected:
 	frameable() { }
 
-	virtual void calculate_frame_range()
+	virtual void calculate_range()
 	{
 		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
-			return cell::calculate_range(**itor);
-		return calculate_range();
+			cell::calculating_range(**itor); // calculate_range() would not be overriden by a frame.
+		else
+			cell::calculate_range();
 	}
 
-	virtual void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
+	void reshape_frame(const bounds& newBounds, const point& oldOrigin = point(0, 0))
 	{
 		frame_list::iterator itor = m_frames.get_first();
 		if (!!itor)
-			return cell::reshape(**itor, newBounds, oldOrigin);
-		return reshape(newBounds, oldOrigin);
+			cell::reshape(**itor, newBounds, oldOrigin);
+		else
+			reshape(newBounds, oldOrigin);
 	}
 };
 
@@ -310,10 +317,10 @@ class override_default_size_frame : public frame
 {
 private:
 	size m_defaultSize;
-	size m_calculatedDefaultSize;
+	std::optional<size> m_calculatedDefaultSize;
 
 	// Changes to a default size require recalculation, as ranges and default sizes of enclosing cells/frames may
-	// be dependant on our default size.  If the specified default size is modified, the caller is exptected to trigger
+	// be dependent on our default size.  If the specified default size is modified, the caller is exptected to trigger
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
@@ -328,11 +335,10 @@ public:
 	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		frame::calculate_range();
-		std::optional<size> opt = propose_size_best(m_defaultSize);
-		m_calculatedDefaultSize = opt.has_value() ? *opt : size(0, 0);
+		frame::calculating_range();
+		m_calculatedDefaultSize = calculate_content_size(m_defaultSize);
 	}
 };
 
@@ -346,11 +352,11 @@ private:
 	{
 		if (m_alignment[dimension::horizontal] > 1.0)
 			m_alignment[dimension::horizontal] = 1.0;
-		if (m_alignment[dimension::horizontal] < 0.0)
+		else if (m_alignment[dimension::horizontal] < 0.0)
 			m_alignment[dimension::horizontal] = 0.0;
 		if (m_alignment[dimension::vertical] > 1.0)
 			m_alignment[dimension::vertical] = 1.0;
-		if (m_alignment[dimension::vertical] < 0.0)
+		else if (m_alignment[dimension::vertical] < 0.0)
 			m_alignment[dimension::vertical] = 0.0;
 	}
 
@@ -385,47 +391,49 @@ protected:
 // A frame with a size fixed to the default size of the cell
 class fixed_default_size_frame : public aligned_frame_base
 {
+private:
+	std::optional<size> m_calculatedSize;
+	range m_calculatedRange;
+
 public:
 	explicit fixed_default_size_frame(const alignment& a = alignment::center())
 		: aligned_frame_base(a)
 	{ }
 
-	virtual range get_range() const
-	{
-		std::optional<size> defaultSize = get_default_size();
-		if (defaultSize.has_value())
-			return range::make_fixed(*defaultSize);
-		COGS_ASSERT(false);
-		return range::make_empty();
-	}
+	virtual std::optional<size> get_default_size() const { return m_calculatedSize; }
 
-	virtual propose_size_result propose_size(
+	virtual range get_range() const { return m_calculatedRange; }
+
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask = all_sizing_types) const
+		const std::optional<quadrant_mask>& = std::nullopt,
+		const std::optional<dimension>& = std::nullopt) const
 	{
-		propose_size_result result;
-		std::optional<size> defaultSize = get_default_size();
-		if (!defaultSize.has_value())
-			COGS_ASSERT(false);
-		else
+		collaborative_sizes result;
+		if (m_calculatedSize.has_value())
 		{
-			if (r.contains(*defaultSize))
-			{
-				result.set(*defaultSize);
-				result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
-			}
+			range r2 = r & get_range();
+			if (r2.contains(*m_calculatedSize))
+				result.set_relative_to(*m_calculatedSize, sz);
 		}
 		return result;
 	}
 
 protected:
+	virtual void calculating_range()
+	{
+		aligned_frame_base::calculating_range();
+		m_calculatedSize = aligned_frame_base::get_default_size();
+		if (!m_calculatedSize.has_value())
+			m_calculatedRange.set_invalid();
+		else
+			m_calculatedRange.set(*m_calculatedSize, *m_calculatedSize, true, true);
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		std::optional<size> defaultSizeOpt = get_default_size();
-		size defaultSize = defaultSizeOpt.has_value() ? *defaultSizeOpt : size(0, 0);
-		aligned_reshape(defaultSize, b, oldOrigin);
+		aligned_reshape(m_calculatedSize.has_value() ? *m_calculatedSize : size(0, 0), b, oldOrigin);
 	}
 };
 
@@ -438,7 +446,7 @@ private:
 	std::optional<size> m_calculatedDefaultSize;
 
 	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
-	// be dependant on them.  If the specified margin is modified, the caller is exptected to trigger
+	// be dependent on them.  If the specified margin is modified, the caller is exptected to trigger
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
@@ -457,71 +465,43 @@ public:
 
 	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		range r2 = r & m_calculatedRange;
-		if (!r2.is_empty())
+		collaborative_sizes result;
+		range r2 = r & get_range();
+		if (!r2.is_invalid())
 		{
-			size sz2 = r2.limit(sz);
+			size sz2 = r2.get_limit(sz);
+			bool sizeChanged = sz != sz2;
 			size marginSize = m_margin.get_size();
-			bool doesMarginWidthFit = sz2.get_width() >= marginSize.get_width();
-			bool doesMarginHeightFit = sz2.get_height() >= marginSize.get_height();
-			size adjustedBy;
-			adjustedBy.get_width() = doesMarginWidthFit ? marginSize.get_width() : sz2.get_width();
-			adjustedBy.get_height() = doesMarginHeightFit ? marginSize.get_height() : sz2.get_height();
-			size newSize = sz2 - adjustedBy;
-			result = frame::propose_size(newSize, r - adjustedBy, resizeDimension, sizingMask);
-			if (!doesMarginWidthFit)
-			{
-				result.sizes[0][0].reset();
-				result.sizes[0][1].reset();
-				if (!doesMarginHeightFit)
-					result.sizes[1][0].reset();
-				else if (result.sizes[1][0].has_value())	// Same as [0][1][0].has_value()
-					*result.sizes[1][0] += marginSize;
-			}
-			else
-			{
-				if (!doesMarginHeightFit)
-				{
-					result.sizes[0][0].reset();
-					result.sizes[1][0].reset();
-				}
-				else
-				{
-					if (result.sizes[0][0].has_value())	// Same as [1][0][0].has_value()
-						*result.sizes[0][0] += marginSize;
-					if (result.sizes[1][0].has_value())	// Same as [1][1][0].has_value()
-						*result.sizes[1][0] += marginSize;
-				}
-				if (result.sizes[0][1].has_value())	// Same as [1][0][1].has_value()
-					*result.sizes[0][1] += marginSize;
-			}
-			if (result.sizes[1][1].has_value())	// Same as [1][1][1].has_value()
-				*result.sizes[1][1] += marginSize;
-			if (sz != newSize)
-				result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			size newSize(0, 0);
+			if (sz2.get_width() > marginSize.get_width())
+				newSize.get_width() = sz2.get_width() - marginSize.get_width();
+			if (sz2.get_height() > marginSize.get_height())
+				newSize.get_height() = sz2.get_height() - marginSize.get_height();
+			result = frame::calculate_collaborative_sizes(newSize, r2 - marginSize, sizeChanged ? all_quadrants : quadrants, resizeDimension);
+			result += marginSize;
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		frame::calculate_range();
+		frame::calculating_range();
 		m_calculatedRange = frame::get_range();
-		m_calculatedDefaultSize.reset();
-		if (!m_calculatedRange.is_empty())
+		m_calculatedDefaultSize = frame::get_default_size();
+		if (!m_calculatedRange.is_invalid())
 		{
 			m_calculatedRange += m_margin;
-			std::optional<size> defaultSize = frame::get_default_size();
-			if (defaultSize.has_value())
-				m_calculatedDefaultSize = *defaultSize + m_margin;
+			if (m_calculatedDefaultSize.has_value())
+				*m_calculatedDefaultSize += m_margin;
 		}
 	}
 
@@ -557,10 +537,11 @@ class fixed_size_frame : public aligned_frame_base
 {
 private:
 	size m_size;
-	size m_calculatedSize;
+	std::optional<size> m_calculatedSize;
+	range m_calculatedRange;
 
 	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
-	// be dependant on them.  If the specified size is modified, the caller is exptected to trigger
+	// be dependent on them.  If the specified size is modified, the caller is exptected to trigger
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
@@ -592,36 +573,34 @@ public:
 
 	virtual std::optional<size> get_default_size() const { return m_calculatedSize; }
 
-	virtual range get_range() const { return range(m_calculatedSize, m_calculatedSize, true, true); }
+	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask = all_sizing_types) const
+		const std::optional<quadrant_mask>& = std::nullopt,
+		const std::optional<dimension>& = std::nullopt) const
 	{
-		propose_size_result result;
-		if (r.contains(m_calculatedSize))
-		{
-			result.set(m_calculatedSize);
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
-		}
+		collaborative_sizes result;
+		if (m_calculatedSize.has_value() && r.contains(*m_calculatedSize))
+			result.set_relative_to(*m_calculatedSize, sz);
 		return result;
 	}
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		frame::calculate_range();
-		std::optional<size> sz = frame::propose_size(m_size).find_first_valid_size(get_primary_flow_dimension());
-		if (!sz.has_value())
-			m_calculatedSize.clear();
-		m_calculatedSize = *sz;
+		frame::calculating_range();
+		m_calculatedSize = calculate_content_size(m_size);
+		if (!m_calculatedSize.has_value())
+			m_calculatedRange.set_invalid();
+		else
+			m_calculatedRange.set(*m_calculatedSize, *m_calculatedSize, true, true);
 	}
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		aligned_reshape(m_calculatedSize, b, oldOrigin);
+		aligned_reshape(m_calculatedSize.has_value() ? *m_calculatedSize : size(0, 0), b, oldOrigin);
 	}
 };
 
@@ -688,7 +667,7 @@ private:
 	std::optional<size> m_calculatedDefaultSize;
 
 	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
-	// be dependant on them.  If the specified size is modified, the caller is exptected to trigger
+	// be dependent on them.  If the specified size is modified, the caller is exptected to trigger
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 public:
@@ -706,29 +685,31 @@ public:
 
 	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		return frame::propose_size(sz, r & m_calculatedRange, resizeDimension, sizingMask);
+		return frame::calculate_collaborative_sizes(sz, r & m_calculatedRange, quadrants, resizeDimension);
 	}
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		frame::calculate_range();
+		frame::calculating_range();
 		m_calculatedRange = m_range & frame::get_range();
 		m_calculatedDefaultSize.reset();
-		if (!m_calculatedRange.is_empty())
+		if (!m_calculatedRange.is_invalid())
 		{
-			std::optional<size> defaultSize = frame::get_default_size();
-			if (defaultSize.has_value())
+			m_calculatedDefaultSize = frame::get_default_size();
+			if (m_calculatedDefaultSize.has_value())
 			{
-				std::optional<size> opt = propose_size_best(*defaultSize);
-				m_calculatedDefaultSize = opt.has_value() ? *opt : size(0, 0);
-
+				m_calculatedDefaultSize = calculate_content_size(*m_calculatedDefaultSize, m_range);
+				if (!m_calculatedDefaultSize.has_value())
+					m_calculatedRange.set_invalid();
+				else
+					m_calculatedRange.set(*m_calculatedDefaultSize, *m_calculatedDefaultSize, true, true);
 			}
 		}
 	}
@@ -737,76 +718,72 @@ protected:
 
 class unstretchable_frame : public frame
 {
-public:
-	virtual range get_range() const
-	{
-		std::optional<size> defaultSize = get_default_size();
-		if (defaultSize.has_value())
-		{
-			range stretchRange(size(0, 0), *defaultSize, true, true);
-			return frame::get_range() & stretchRange;
-		}
-		else
-		{
-			COGS_ASSERT(false);
-			return range::make_empty();
-		}
-	}
+private:
+	std::optional<size> m_calculatedDefaultSize;
+	range m_calculatedRange;
 
-	virtual propose_size_result propose_size(
+public:
+	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
+
+	virtual range get_range() const { return m_calculatedRange; }
+
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		std::optional<size> defaultSize = get_default_size();
-		if (defaultSize.has_value())
-		{
-			range stretchRange(size(0, 0), *defaultSize, true, true);
-			result = frame::propose_size(sz, r & stretchRange, resizeDimension, sizingMask);
-		}
+		return frame::calculate_collaborative_sizes(sz, r & m_calculatedRange, quadrants, resizeDimension);
+	}
+
+protected:
+	virtual void calculating_range()
+	{
+		frame::calculating_range();
+		m_calculatedDefaultSize = frame::get_default_size();
+		if (!m_calculatedDefaultSize.has_value())
+			m_calculatedRange.set_invalid();
 		else
-			COGS_ASSERT(false);
-		return result;
+		{
+			range stretchRange(size(0, 0), *m_calculatedDefaultSize, true, true);
+			m_calculatedRange = frame::get_range() & stretchRange;
+		}
 	}
 };
 
 
 class unshrinkable_frame : public frame
 {
-public:
-	virtual range get_range() const
-	{
-		std::optional<size> defaultSize = get_default_size();
-		if (defaultSize.has_value())
-		{
-			range shrinkRange(*defaultSize, size(0, 0), false, false);
-			return frame::get_range() & shrinkRange;
-		}
-		else
-		{
-			COGS_ASSERT(false);
-			return range::make_empty();
-		}
-	}
+private:
+	std::optional<size> m_calculatedDefaultSize;
+	range m_calculatedRange;
 
-	virtual propose_size_result propose_size(
+public:
+	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
+
+	virtual range get_range() const { return m_calculatedRange; }
+
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		std::optional<size> defaultSize = get_default_size();
-		if (defaultSize.has_value())
-		{
-			range shrinkRange(*defaultSize, size(0, 0), false, false);
-			return frame::propose_size(sz, r & shrinkRange, resizeDimension, sizingMask);
-		}
+		return frame::calculate_collaborative_sizes(sz, r & m_calculatedRange, quadrants, resizeDimension);
+	}
+
+protected:
+	virtual void calculating_range()
+	{
+		frame::calculating_range();
+		m_calculatedDefaultSize = frame::get_default_size();
+		if (!m_calculatedDefaultSize.has_value())
+			m_calculatedRange.set_invalid();
 		else
-			COGS_ASSERT(false);
-		return result;
+		{
+			range shrinkRange(*m_calculatedDefaultSize, size(0, 0), false, false);
+			m_calculatedRange = frame::get_range() & shrinkRange;
+		}
 	}
 };
 
@@ -820,153 +797,158 @@ public:
 class propose_aspect_ratio_frame : public frame
 {
 private:
+	std::optional<size> m_calculatedDefaultSize;
 	range m_calculatedRange;
 
 protected:
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		frame::calculate_range();
-		std::optional<size> defaultSize = frame::get_default_size();
-		if (!defaultSize.has_value())
+		frame::calculating_range();
+		m_calculatedDefaultSize = frame::get_default_size();
+		if (!m_calculatedDefaultSize.has_value())
 		{
-			COGS_ASSERT(false);
-			m_calculatedRange = range::make_empty();
+			m_calculatedRange.set_invalid();
 			return;
 		}
 
-		dimension d = frame::get_primary_flow_dimension();
 		range r = frame::get_range();
-		if (!r.is_empty())
+		COGS_ASSERT(!r.is_invalid()); // If we got a default size, it should be valid, so there should be a range.
+
+		size newSize;
+		m_calculatedRange.has_max_width() = r.has_max_width();
+		m_calculatedRange.has_max_height() = r.has_max_height();
+		for (;;)
 		{
-			size newSize;
-			m_calculatedRange.has_max_width() = r.has_max_width();
-			m_calculatedRange.has_max_height() = r.has_max_height();
-			for (;;)
+			if (r.has_max_width())
 			{
-				if (r.has_max_width())
+				newSize.get_width() = r.get_max_width();
+				newSize.get_height() = (r.get_max_width() * m_calculatedDefaultSize->get_height()) / m_calculatedDefaultSize->get_width();
+				if (r.has_max_height() && r.get_max_height() != newSize.get_height())
 				{
-					newSize.get_width() = r.get_max_width();
-					newSize.get_height() = (r.get_max_width() * defaultSize->get_height()) / defaultSize->get_width();
-					if (r.has_max_height() && r.get_max_height() != newSize.get_height())
+					double otherWidth = (r.get_max_height() * m_calculatedDefaultSize->get_width()) / m_calculatedDefaultSize->get_height();
+					if (newSize.get_width() > otherWidth)
 					{
-						double otherWidth = (r.get_max_height() * defaultSize->get_width()) / defaultSize->get_height();
-						if (newSize.get_width() > otherWidth)
-						{
-							newSize.get_height() = r.get_max_height();
-							newSize.get_width() = otherWidth;
-						}
+						newSize.get_height() = r.get_max_height();
+						newSize.get_width() = otherWidth;
 					}
 				}
-				else
-				{
-					if (!r.has_max_height())
-						break;
-					newSize.get_height() = r.get_max_height();
-					newSize.get_width() = (r.get_max_height() * defaultSize->get_width()) / defaultSize->get_height();
-				}
-				auto result = frame::propose_size(newSize).find_first_valid_size(d, true, true);
-				if (result.has_value())
-				{
-					m_calculatedRange.set_max(*result);
+			}
+			else
+			{
+				if (!r.has_max_height())
 					break;
-				}
-				m_calculatedRange.set_empty();
+				newSize.get_height() = r.get_max_height();
+				newSize.get_width() = (r.get_max_height() * m_calculatedDefaultSize->get_width()) / m_calculatedDefaultSize->get_height();
+			}
+			auto result = calculate_content_size(newSize);
+			if (!result.has_value())
+			{
+				m_calculatedRange.set_invalid();
 				return;
 			}
-			for (;;)
+			m_calculatedRange.set_max(*result);
+			break;
+		}
+		for (;;)
+		{
+			if (r.get_min_width() > 0)
 			{
-				if (r.get_min_width() > 0)
+				newSize.get_width() = r.get_min_width();
+				newSize.get_height() = (r.get_min_width() * m_calculatedDefaultSize->get_height()) / m_calculatedDefaultSize->get_width();
+				if (r.get_min_height() != 0 && r.get_min_height() != newSize.get_height())
 				{
-					newSize.get_width() = r.get_min_width();
-					newSize.get_height() = (r.get_min_width() * defaultSize->get_height()) / defaultSize->get_width();
-					if (r.get_min_height() != 0 && r.get_min_height() != newSize.get_height())
+					double otherWidth = (r.get_min_height() * m_calculatedDefaultSize->get_width()) / m_calculatedDefaultSize->get_height();
+					if (newSize.get_width() < otherWidth)
 					{
-						double otherWidth = (r.get_min_height() * defaultSize->get_width()) / defaultSize->get_height();
-						if (newSize.get_width() < otherWidth)
-						{
-							newSize.get_height() = r.get_min_height();
-							newSize.get_width() = otherWidth;
-						}
+						newSize.get_height() = r.get_min_height();
+						newSize.get_width() = otherWidth;
 					}
 				}
-				else
-				{
-					if (r.get_min_height() == 0)
-						break;
-					newSize.get_height() = r.get_min_height();
-					newSize.get_width() = (r.get_min_height() * defaultSize->get_width()) / defaultSize->get_height();
-				}
-				auto result = frame::propose_size(newSize).find_first_valid_size(d, false, false);
-				COGS_ASSERT(result.has_value());
-				if (result.has_value())
-				{
-					m_calculatedRange.set_min(*result);
+			}
+			else
+			{
+				if (r.get_min_height() == 0)
 					break;
-				}
-				m_calculatedRange.set_empty();
+				newSize.get_height() = r.get_min_height();
+				newSize.get_width() = (r.get_min_height() * m_calculatedDefaultSize->get_width()) / m_calculatedDefaultSize->get_height();
+			}
+			auto result = calculate_content_size(newSize);
+			COGS_ASSERT(result.has_value());
+			if (!result.has_value())
+			{
+				m_calculatedRange.set_invalid();
 				return;
 			}
+			m_calculatedRange.set_min(*result);
+			break;
 		}
 	}
 
 public:
+	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
+
 	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		std::optional<size> defaultSize = frame::get_default_size();
-		if (defaultSize.has_value())
+		collaborative_sizes result;
+		if (m_calculatedDefaultSize.has_value())
 		{
-			range r2 = r & m_calculatedRange;
-			if (!r2.is_empty())
+			range r2 = r & get_range();
+			if (!r2.is_invalid())
 			{
-				size sz2 = r2.limit(sz);
-				auto getMatchSize = [&](dimension d, size& newSize)
+				if (sz == m_calculatedDefaultSize)
+					result.set(sz);
+				else
 				{
-					newSize[!d] = (sz2[d] * (*defaultSize)[!d]) / (*defaultSize)[d];
-					if (r2.contains(!d, newSize[!d]))
-						newSize[d] = sz2[d];
-					else if (newSize[!d] < r2.get_min(!d))
+					size sz2 = r2.get_limit(sz);
+					auto getMatchSize = [&](dimension d, size& newSize)
 					{
-						newSize[d] = (r2.get_min(!d) * (*defaultSize)[d]) / (*defaultSize)[!d];
-						if (!r2.contains(d, newSize[d]))
-							return false;
-						newSize[!d] = r2.get_min(!d);
-					}
-					else //if (r2.has_max(!d) && newSize[!d] > r2.get_max(!d))
-					{
-						newSize[d] = (r2.get_max(!d) * (*defaultSize)[d]) / (*defaultSize)[!d];
-						if (!r2.contains(d, newSize[d]))
-							return false;
-						newSize[!d] = r2.get_max(!d);
-					}
-					return true;
-				};
-				for (;;)
-				{
-					size matchSize1;
-					if (!getMatchSize(dimension::vertical, matchSize1))
-						break;
-					result = frame::propose_size(matchSize1, r2, resizeDimension, sizingMask);
-					dimension d = get_primary_flow_dimension();
-					if (matchSize1 != sz)
-					{
-						result.set_relative_to(sz, d, resizeDimension);
-						size matchSize2;
-						if (!getMatchSize(dimension::horizontal, matchSize2))
-							break;
-						if (matchSize2 != matchSize1)
+						newSize[!d] = (sz2[d] * (*m_calculatedDefaultSize)[!d]) / (*m_calculatedDefaultSize)[d];
+						if (r2.contains(!d, newSize[!d]))
+							newSize[d] = sz2[d];
+						else if (newSize[!d] < r2.get_min(!d))
 						{
-							propose_size_result result2 = frame::propose_size(matchSize2, r2, resizeDimension, sizingMask);
-							result.merge_relative_to(result2, sz, d, resizeDimension);
+							newSize[d] = (r2.get_min(!d) * (*m_calculatedDefaultSize)[d]) / (*m_calculatedDefaultSize)[!d];
+							if (!r2.contains(d, newSize[d]))
+								return false;
+							newSize[!d] = r2.get_min(!d);
 						}
+						else //if (r2.has_max(!d) && newSize[!d] > r2.get_max(!d))
+						{
+							newSize[d] = (r2.get_max(!d) * (*m_calculatedDefaultSize)[d]) / (*m_calculatedDefaultSize)[!d];
+							if (!r2.contains(d, newSize[d]))
+								return false;
+							newSize[!d] = r2.get_max(!d);
+						}
+						return true;
+					};
+					for (;;)
+					{
+						size matchSize1;
+						if (!getMatchSize(dimension::vertical, matchSize1))
+							break;
+						bool sizeChanged = matchSize1 != sz;
+						result = frame::calculate_collaborative_sizes(matchSize1, r2, sizeChanged ? all_quadrants : quadrants, resizeDimension);
+						dimension d = get_primary_flow_dimension();
+						if (sizeChanged)
+						{
+							result.update_relative_to(sz, d, resizeDimension);
+							size matchSize2;
+							if (!getMatchSize(dimension::horizontal, matchSize2))
+								break;
+							if (matchSize2 != matchSize1)
+							{
+								collaborative_sizes result2 = frame::calculate_collaborative_sizes(matchSize2, r2, all_quadrants, resizeDimension);
+								result.merge_relative_to(result2, sz, d, resizeDimension);
+							}
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
@@ -979,9 +961,11 @@ class proportional_frame : public aligned_frame_base
 {
 private:
 	proportion m_proportion; // proportion of enclosing area to fill
+	std::optional<size> m_calculatedDefaultSize;
+	range m_calculatedRange;
 
 	// Changes to default size and range require recalculation, as ranges and default sizes of enclosing cells/frames may
-	// be dependant on them.  If the specified proportion is modified, the caller is exptected to trigger
+	// be dependent on them.  If the specified proportion is modified, the caller is exptected to trigger
 	// recalculation (calculate_range(), or pane::recompose() to queue it against the UI thread).
 
 	void validate_proportion()
@@ -1012,41 +996,45 @@ public:
 		validate_proportion();
 	}
 
-	virtual std::optional<size> get_default_size() const
-	{
-		std::optional<size> defaultSize = frame::get_default_size();
-		if (defaultSize.has_value())
-			*defaultSize /= m_proportion;
-		return defaultSize;
-	}
+	virtual std::optional<size> get_default_size() const { return m_calculatedDefaultSize; }
 
-	virtual range get_range() const { return frame::get_range() / m_proportion; }
+	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		if (!r.is_empty())
+		collaborative_sizes result;
+		range r2 = r & get_range();
+		if (!r2.is_invalid())
 		{
-			// Do we have rounding issues here?
-			size sz2 = sz * m_proportion;
-			result = frame::propose_size(sz2, r, resizeDimension, sizingMask);
-			if (result.sizes[0][0].has_value())
-				*result.sizes[0][0] /= m_proportion;
-			if (result.sizes[0][1].has_value())
-				*result.sizes[0][1] /= m_proportion;
-			if (result.sizes[1][0].has_value())
-				*result.sizes[1][0] /= m_proportion;
-			if (result.sizes[1][1].has_value())
-				*result.sizes[1][1] /= m_proportion;
+			size sz2 = r2.get_limit(sz);
+			bool sizeChanged = sz2 != sz;
+			size newSize = sz * m_proportion;
+			result = frame::calculate_collaborative_sizes(newSize, r, sizeChanged ? all_quadrants : quadrants, resizeDimension);
+			result /= m_proportion;
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
 
 protected:
+	virtual void calculating_range()
+	{
+		frame::calculating_range();
+		m_calculatedDefaultSize = frame::get_default_size();
+		if (!m_calculatedDefaultSize.has_value())
+			m_calculatedRange.set_invalid();
+		else
+		{
+			m_calculatedRange = frame::get_range() / m_proportion;
+			*m_calculatedDefaultSize /= m_proportion;
+		}
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
 		size sz = b.get_size() * m_proportion;
@@ -1064,18 +1052,17 @@ public:
 
 	virtual range get_range() const { return range::make_unbounded(); }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask = all_sizing_types) const
+		const std::optional<quadrant_mask>& = std::nullopt,
+		const std::optional<dimension>& = std::nullopt) const
 	{
-		propose_size_result result;
-		if (!r.is_empty())
+		collaborative_sizes result;
+		if (!r.is_invalid())
 		{
-			size sz2 = r.limit(sz);
-			result.set(sz2);
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			size sz2 = r.get_limit(sz);
+			result.set_relative_to(sz2, sz);
 		}
 		return result;
 	}
@@ -1083,43 +1070,36 @@ public:
 protected:
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz2;
-		std::optional<size> sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
-		if (sz.has_value())
-			sz2 = *sz;
-		else
-			sz2.clear();
-		aligned_reshape(sz2, b, oldOrigin);
+		std::optional<size> sz = calculate_content_size(b.get_size());
+		aligned_reshape(sz.has_value() ? *sz : size(0, 0), b, oldOrigin);
 	}
 };
 
 
 class unconstrained_min_frame : public aligned_frame_base
 {
+private:
+	range m_calculatedRange;
+
 public:
 	explicit unconstrained_min_frame(const alignment& a = alignment::center())
 		: aligned_frame_base(a)
 	{ }
 
-	virtual range get_range() const
-	{
-		range r = frame::get_range();
-		r.get_min_height() = 0;
-		r.get_min_width() = 0;
-		return r;
-	}
+	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		if (!r.is_empty())
+		collaborative_sizes result;
+		if (!r.is_invalid())
 		{
-			size sz2 = r.limit(sz);
-			result = frame::propose_size(sz2, range::make_unbounded(), resizeDimension, sizingMask);
+			size sz2 = r.get_limit(sz);
+			bool sizeChanged = sz2 != sz;
+			result = frame::calculate_collaborative_sizes(sz2, range::make_unbounded(), sizeChanged ? all_quadrants : quadrants, resizeDimension);
 			if (!result.sizes[0][0].has_value())
 			{
 				if (!result.sizes[0][1].has_value())
@@ -1174,51 +1154,53 @@ public:
 					}
 				}
 			}
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
 
 protected:
+	virtual void calculating_range()
+	{
+		aligned_frame_base::calculating_range();
+		m_calculatedRange = aligned_frame_base::get_range();
+		m_calculatedRange.get_min_height() = 0;
+		m_calculatedRange.get_min_width() = 0;
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz2;
-		std::optional<size> sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
-		if (sz.has_value())
-			sz2 = *sz;
-		else
-			sz2.clear();
-		aligned_reshape(sz2, b, oldOrigin);
+		std::optional<size> sz = calculate_content_size(b.get_size());
+		aligned_reshape(sz.has_value() ? *sz : size(0, 0), b, oldOrigin);
 	}
 };
 
 
 class unconstrained_max_frame : public aligned_frame_base
 {
+private:
+	range m_calculatedRange;
+
 public:
 	explicit unconstrained_max_frame(const alignment& a = alignment::center())
 		: aligned_frame_base(a)
 	{ }
 
-	virtual range get_range() const
-	{
-		range r = frame::get_range();
-		r.has_max_height() = false;
-		r.has_max_width() = false;
-		return r;
-	}
+	virtual range get_range() const { return m_calculatedRange; }
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		if (!r.is_empty())
+		collaborative_sizes result;
+		if (!r.is_invalid())
 		{
-			size sz2 = r.limit(sz);
-			result = frame::propose_size(sz2, range::make_unbounded(), resizeDimension, sizingMask);
+			size sz2 = r.get_limit(sz);
+			bool sizeChanged = sz2 != sz;
+			result = frame::calculate_collaborative_sizes(sz2, range::make_unbounded(), sizeChanged ? all_quadrants : quadrants, resizeDimension);
 			if (!result.sizes[1][1].has_value())
 			{
 				if (!result.sizes[1][0].has_value())
@@ -1275,21 +1257,25 @@ public:
 					}
 				}
 			}
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}
 
 protected:
+	virtual void calculating_range()
+	{
+		aligned_frame_base::calculating_range();
+		m_calculatedRange = aligned_frame_base::get_range();
+		m_calculatedRange.has_max_height() = false;
+		m_calculatedRange.has_max_width() = false;
+	}
+
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
-		size sz2;
-		std::optional<size> sz = frame::propose_size(b.get_size()).find_first_valid_size(get_primary_flow_dimension());
-		if (sz.has_value())
-			sz2 = *sz;
-		else
-			sz2.clear();
-		aligned_reshape(sz2, b, oldOrigin);
+		std::optional<size> sz = calculate_content_size(b.get_size());
+		aligned_reshape(sz.has_value() ? *sz : size(0, 0), b, oldOrigin);
 	}
 };
 

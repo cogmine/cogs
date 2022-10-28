@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -35,7 +35,7 @@
 //{
 //private:
 //	volatile transactable<scroll_bar_state> m_vScrollBarState;
-//	alignas(atomic::get_alignment_v<double>) volatile double m_vScrollBarPosition;
+//	volatile double m_vScrollBarPosition alignas(atomic::get_alignment_v<double>);
 //
 //	delayed_construction<delegated_dependency_property<scroll_bar_state, io::permission::read> > m_vScrollBarStateProperty;
 //	delayed_construction<delegated_dependency_property<double> > m_vScrollBarPositionProperty;

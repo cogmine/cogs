@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -54,7 +54,7 @@ public:
 		size_t maxLength = 0;
 		bool isEnabled = true;
 		gfx::font_parameters_list font;
-		std::optional<color> textColor = std::nullopt;
+		std::optional<color> textColor;
 		bool isMultiLine = false;
 		frame_list frames;
 	};

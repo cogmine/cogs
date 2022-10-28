@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -108,8 +108,9 @@ public:
 		nsview_pane::installing();
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
+		nsview_pane::calculating_range();
 		objc_button* objcButton = (objc_button*)get_NSView();
 		NSButtonCell* buttonCell = [objcButton cell];
 		NSSize idealSize = [buttonCell cellSize];

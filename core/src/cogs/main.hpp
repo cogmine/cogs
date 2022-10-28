@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_MAIN
@@ -28,11 +28,11 @@ private:
 
 	struct count_and_result_t
 	{
-		alignas(atomic::get_alignment_v<size_t>) size_t m_count;
-		alignas(atomic::get_alignment_v<int>) int m_lastResult;
+		size_t m_count alignas(atomic::get_alignment_v<size_t>);
+		int m_lastResult alignas(atomic::get_alignment_v<int>);
 	};
 
-	alignas(atomic::get_alignment_v<count_and_result_t>) inline static count_and_result_t s_countAndResult  = { };
+	inline static count_and_result_t s_countAndResult alignas(atomic::get_alignment_v<count_and_result_t>) = { 0, 0 };
 
 	static int initialize()
 	{

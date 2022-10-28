@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,11 +9,13 @@
 #define COGS_HEADER_OS
 
 
-//#define WINVER 0x0600
+#define WINVER 0x0A00
+#define NTDDI_VERSION NTDDI_WIN10
 #define OEMRESOURCE 1
 
-#include <stddef.h>
 #include <winsock2.h>
+
+#include <stddef.h>
 #include <windows.h>
 #include <windowsx.h>
 #include <ws2tcpip.h>

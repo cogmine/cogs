@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -46,7 +46,7 @@ template <typename T>
 struct is_flag_mask
 {
 private:
-	template <typename U> static uint16_t test(decltype(U::no_flags)*);
+	template <typename U> static uint16_t test(decltype(U::none)*);
 	template <typename U> static uint8_t test(...);
 
 public:
@@ -63,7 +63,7 @@ struct flag_mask
 
 	enum class type : int_t
 	{
-		no_flags = 0
+		none = 0
 	};
 
 	class iterator;
@@ -87,26 +87,32 @@ inline size_t count_flags(const T& t)
 	return bit_count(static_cast<std::underlying_type_t<T>>(load(t)));
 }
 
-
+// t must not be none
 template <typename T, typename = std::enable_if_t<is_flag_mask_v<T>>>
 inline size_t get_first_flag_index(const T& t)
 {
-	return bit_scan_forward(static_cast<std::underlying_type_t<T>>(load(t)));
+	std::underlying_type_t<T> x = static_cast<std::underlying_type_t<T>>(load(t));
+	COGS_ASSERT(!!x);
+	return bit_scan_forward(x);
 }
 
+// t must not be none
 template <typename T, typename = std::enable_if_t<is_flag_mask_v<T>>>
 inline typename T::type get_first_flag(const T& t)
 {
 	return static_cast<typename T::type>(1 << get_first_flag_index(t));
 }
 
-
+// t must not be none
 template <typename T, typename = std::enable_if_t<is_flag_mask_v<T>>>
 inline size_t get_last_flag_index(const T& t)
 {
-	return bit_scan_reverse(static_cast<std::underlying_type_t<T>>(load(t)));
+	std::underlying_type_t<T> x = static_cast<std::underlying_type_t<T>>(load(t));
+	COGS_ASSERT(!!x);
+	return bit_scan_reverse(x);
 }
 
+// t must not be none
 template <typename T, typename = std::enable_if_t<is_flag_mask_v<T>>>
 inline typename T::type get_last_flag(const T& t)
 {
@@ -119,6 +125,20 @@ inline size_t get_flag_index(const T& t)
 {
 	return bit_scan_forward(static_cast<std::underlying_type_t<T>>(load(t)));
 }
+
+template <typename T, typename = std::enable_if_t<is_flag_enum_v<T>>>
+inline constexpr cogs::flag_mask_t<T> maskify(const T& t)
+{
+	return static_cast<cogs::flag_mask_t<T>>(static_cast<std::underlying_type_t<T>>(t));
+}
+
+// Hijack the dereference operator for maskify
+template <typename T, typename = std::enable_if_t<is_flag_enum_v<T>>>
+inline constexpr cogs::flag_mask_t<T> operator*(const T& t)
+{
+	return maskify(t);
+}
+
 
 }
 
@@ -201,11 +221,10 @@ inline M& operator|=(M& t1, const T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator|=(volatile M& t1, const T& t2)
+inline void operator|=(volatile M& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
@@ -217,11 +236,10 @@ inline M& operator|=(M& t1, const volatile T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator|=(volatile M& t1, const volatile T& t2)
+inline void operator|=(volatile M& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -234,11 +252,10 @@ inline T& operator|=(T& t1, const T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator|=(volatile T& t1, const T& t2)
+inline void operator|=(volatile T& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
@@ -250,11 +267,10 @@ inline T& operator|=(T& t1, const volatile T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator|=(volatile T& t1, const volatile T& t2)
+inline void operator|=(volatile T& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -336,11 +352,10 @@ inline M& operator+=(M& t1, const T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator+=(volatile M& t1, const T& t2)
+inline void operator+=(volatile M& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
@@ -352,11 +367,10 @@ inline M& operator+=(M& t1, const volatile T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator+=(volatile M& t1, const volatile T& t2)
+inline void operator+=(volatile M& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -369,11 +383,10 @@ inline T& operator+=(T& t1, const T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator+=(volatile T& t1, const T& t2)
+inline void operator+=(volatile T& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
@@ -385,11 +398,10 @@ inline T& operator+=(T& t1, const volatile T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator+=(volatile T& t1, const volatile T& t2)
+inline void operator+=(volatile T& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_or(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -438,11 +450,10 @@ inline M& operator-=(M& t1, const T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator-=(volatile M& t1, const T& t2)
+inline void operator-=(volatile M& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
@@ -454,12 +465,42 @@ inline M& operator-=(M& t1, const volatile T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator-=(volatile M& t1, const volatile T& t2)
+inline void operator-=(volatile M& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline T& operator-=(T& t1, const T& t2)
+{
+	std::underlying_type_t<T>* p = (std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(t2));
 	return t1;
 }
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline void operator-=(volatile T& t1, const T& t2)
+{
+	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(t2));
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline T& operator-=(T& t1, const volatile T& t2)
+{
+	std::underlying_type_t<T>* p = (std::underlying_type_t<T>*) & t1;
+	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(load(t2)));
+	return t1;
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline void operator-=(volatile T& t1, const volatile T& t2)
+{
+	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_and(*p, ~static_cast<std::underlying_type_t<T>>(load(t2)));
+}
+
 
 
 // operator^ - toggle flag
@@ -506,11 +547,10 @@ inline M& operator^=(M& t1, const T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator^=(volatile M& t1, const T& t2)
+inline void operator^=(volatile M& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_xor(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
@@ -522,13 +562,41 @@ inline M& operator^=(M& t1, const volatile T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator^=(volatile M& t1, const volatile T& t2)
+inline void operator^=(volatile M& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_xor(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline T& operator^=(T& t1, const T& t2)
+{
+	std::underlying_type_t<T>* p = (std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_xor(*p, ~static_cast<std::underlying_type_t<T>>(t2));
 	return t1;
 }
 
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline void operator^=(volatile T& t1, const T& t2)
+{
+	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_xor(*p, ~static_cast<std::underlying_type_t<T>>(t2));
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline T& operator^=(T& t1, const volatile T& t2)
+{
+	std::underlying_type_t<T>* p = (std::underlying_type_t<T>*) & t1;
+	cogs::assign_bit_xor(*p, ~static_cast<std::underlying_type_t<T>>(load(t2)));
+	return t1;
+}
+
+template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
+inline void operator^=(volatile T& t1, const volatile T& t2)
+{
+	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
+	cogs::assign_bit_xor(*p, ~static_cast<std::underlying_type_t<T>>(load(t2)));
+}
 
 
 
@@ -593,11 +661,10 @@ inline M& operator&=(M& t1, const T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator&=(volatile M& t1, const T& t2)
+inline void operator&=(volatile M& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
@@ -609,11 +676,10 @@ inline M& operator&=(M& t1, const volatile T& t2)
 }
 
 template <typename T, typename M, typename = std::enable_if_t<cogs::is_flag_enum_v<T> && cogs::is_flag_mask_of_v<M, T>>>
-inline volatile M& operator&=(volatile M& t1, const volatile T& t2)
+inline void operator&=(volatile M& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -626,11 +692,10 @@ inline T& operator&=(T& t1, const T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator&=(volatile T& t1, const T& t2)
+inline void operator&=(volatile T& t1, const T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, static_cast<std::underlying_type_t<T>>(t2));
-	return t1;
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
@@ -642,11 +707,10 @@ inline T& operator&=(T& t1, const volatile T& t2)
 }
 
 template <typename T, typename = std::enable_if_t<cogs::is_flag_mask_v<T>>>
-inline volatile T& operator&=(volatile T& t1, const volatile T& t2)
+inline void operator&=(volatile T& t1, const volatile T& t2)
 {
 	volatile std::underlying_type_t<T>* p = (volatile std::underlying_type_t<T>*)&t1;
 	cogs::assign_bit_and(*p, static_cast<std::underlying_type_t<T>>(cogs::load(t2)));
-	return t1;
 }
 
 
@@ -654,13 +718,13 @@ inline volatile T& operator&=(volatile T& t1, const volatile T& t2)
 template <typename M, typename = std::enable_if_t<cogs::is_flag_mask_v<M>>>
 inline constexpr bool operator!(const M& t)
 {
-	return t == M::no_flags;
+	return t == M::none;
 }
 
 template <typename M, typename = std::enable_if_t<cogs::is_flag_mask_v<M>>>
 inline constexpr bool operator!(const volatile M& t)
 {
-	return cogs::load(t) == M::no_flags;
+	return cogs::load(t) == M::none;
 }
 
 
@@ -726,52 +790,44 @@ class flag_mask<T, enable>::iterator
 {
 private:
 	type m_remaining;
-	size_t m_flagIndex;
 	flag_t m_flag;
 
 public:
 	iterator()
-		: m_remaining(type::no_flags)
+		: m_remaining(type::none)
 	{ }
 
 	iterator(const type& m)
 		: m_remaining(m)
 	{
-		m_flagIndex = get_first_flag_index(m_remaining);
-		m_flag = static_cast<flag_t>(1 << m_flagIndex);
+		if (m_remaining != type::none)
+			m_flag = static_cast<flag_t>(1 << get_first_flag_index(m_remaining));
 	}
 
 	iterator(const volatile type& m)
-		: m_remaining(load(m))
-	{
-		m_flagIndex = get_first_flag_index(m_remaining);
-		m_flag = static_cast<flag_t>(1 << m_flagIndex);
-	}
+		: iterator(load(m))
+	{ }
 
 	iterator(const iterator& src)
 		: m_remaining(src.m_remaining),
-		m_flagIndex(src.m_flagIndex),
 		m_flag(src.m_flag)
 	{ }
 
 	iterator& operator=(const type& m)
 	{
-		m_remaining = type::no_flags | m;
-		m_flagIndex = get_first_flag_index(m_remaining);
-		m_flag = static_cast<flag_t>(1 << m_flagIndex);
+		m_remaining = *m;
+		m_flag = static_cast<flag_t>(1 << get_first_flag_index(m_remaining));
 	}
 
 	iterator& operator=(const volatile type& m)
 	{
-		m_remaining = type::no_flags | load(m);
-		m_flagIndex = get_first_flag_index(m_remaining);
-		m_flag = static_cast<flag_t>(1 << m_flagIndex);
+		m_remaining = *load(m);
+		m_flag = static_cast<flag_t>(1 << get_first_flag_index(m_remaining));
 	}
 
 	iterator& operator=(const iterator& src)
 	{
 		m_remaining = src.m_remaining;
-		m_flagIndex = src.m_flagIndex;
 		m_flag = src.m_flag;
 	}
 
@@ -779,29 +835,26 @@ public:
 	{
 		if (m_remaining != src.m_remaining)
 			return false;
-		if (m_remaining == type::no_flags)
+		if (m_remaining == type::none)
 			return true;
-		return m_flagIndex == src.m_flagIndex;
+		return m_flag == src.m_flag;
 	}
 
 	bool operator!=(const iterator& src) const { return !operator==(src); }
 
 	bool operator!() const { return !m_remaining; }
 
-	size_t get_flag_index() const { return m_flagIndex; }
+	size_t get_flag_index() const { return get_first_flag_index(m_flag); }
 
 	flag_t operator*() const { return m_flag; }
 
 	iterator& operator++()
 	{
-		if (m_remaining != type::no_flags)
+		if (m_remaining != type::none)
 		{
 			m_remaining ^= m_flag;
-			if (m_remaining != type::no_flags)
-			{
-				m_flagIndex = get_first_flag_index(m_remaining);
-				m_flag = static_cast<flag_t>(1 << m_flagIndex);
-			}
+			if (m_remaining != type::none)
+				m_flag = static_cast<flag_t>(1 << get_first_flag_index(m_remaining));
 		}
 		return *this;
 	}
@@ -809,7 +862,7 @@ public:
 	iterator operator++(int)
 	{
 		iterator result = *this;
-		++* this;
+		++*this;
 		return result;
 	}
 };

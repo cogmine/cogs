@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -182,7 +182,7 @@ public:
 		friend class queue;
 
 		rcptr<queue> m_ioQueue;
-		alignas(atomic::get_alignment_v<state>) state m_state;
+		state m_state alignas(atomic::get_alignment_v<state>);
 		bool m_wasClosed;
 
 		// Use is thread safe, so don't need volatility

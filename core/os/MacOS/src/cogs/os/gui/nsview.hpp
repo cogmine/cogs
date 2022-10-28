@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Good
@@ -80,7 +80,7 @@ private:
 	volatile rcptr<volatile visible_windows_list_t> m_visibleWindows;
 	rcptr<task<void> > m_cleanupRemoveToken;
 	const rcref<volatile control_queue_t> m_controlQueue;
-	alignas(cogs::atomic::get_alignment_v<int>) int m_dispatchMode; // 0 = idle, 1 = running, 2 = refresh
+	int m_dispatchMode alignas(cogs::atomic::get_alignment_v<int>); // 0 = idle, 1 = running, 2 = refresh
 
 	// Cast away volaility for access to the const rcref
 	const rcref<volatile control_queue_t>& get_control_queue() const volatile
@@ -475,7 +475,7 @@ public:
 	using gui::bridgeable_pane::get_default_selected_text_background_color;
 	using gui::bridgeable_pane::get_default_label_foreground_color;
 	using gui::bridgeable_pane::get_default_background_color;
-	
+
 	virtual void draw_text(const composite_string& s, const gfx::bounds& b, const rcptr<gfx::font>& f, const color& c = color::constant::black)
 	{
 		// Align to nearest whole pixel to avoid text wiggling around when repositioned, due to spacing changes.

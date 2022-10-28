@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -62,11 +62,11 @@ private:
 
 	struct content_t
 	{
-		alignas(atomic::get_alignment_v<node_t*>) node_t* m_head;
-		alignas(atomic::get_alignment_v<node_t*>) node_t* m_tail;
+		node_t* m_head alignas(atomic::get_alignment_v<node_t*>);
+		node_t* m_tail alignas(atomic::get_alignment_v<node_t*>);
 	};
 
-	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
+	content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 	void stabilize(content_t& oldContents) volatile
 	{
@@ -423,8 +423,8 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -796,7 +796,7 @@ class container_deque_node<T, true> : public placement<T>, public dlink_t<contai
 public:
 	~container_deque_node() { placement<T>::destruct(); }
 
-	alignas(atomic::get_alignment_v<size_t>) size_t m_remainingCount;
+	size_t m_remainingCount alignas(atomic::get_alignment_v<size_t>);
 
 	volatile boolean m_isRemoved;
 };
@@ -826,11 +826,11 @@ private:
 
 	struct content_t
 	{
-		alignas(atomic::get_alignment_v<node_t*>) node_t* m_head;
-		alignas(atomic::get_alignment_v<node_t*>) node_t* m_tail;
+		node_t* m_head alignas(atomic::get_alignment_v<node_t*>);
+		node_t* m_tail alignas(atomic::get_alignment_v<node_t*>);
 	};
 
-	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
+	content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 	void stabilize(content_t& oldContents) volatile
 	{
@@ -1222,8 +1222,8 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{

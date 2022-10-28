@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -11,12 +11,16 @@
 
 
 #include "cogs/collections/multimap.hpp"
+#include "cogs/collections/dlink.hpp"
+#include "cogs/collections/dlist.hpp"
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/string.hpp"
+#include "cogs/collections/rbtree.hpp"
 #include "cogs/geometry/proportion.hpp"
 #include "cogs/geometry/range.hpp"
 #include "cogs/math/dynamic_integer.hpp"
 #include "cogs/math/fraction.hpp"
+#include "cogs/mem/ptr.hpp"
 #include "cogs/sync/transactable.hpp"
 
 
@@ -25,180 +29,572 @@ namespace geometry {
 
 
 // sizing_group is a utility class for rects with subrects arranged in rows or columns, which need to grow
-// or shrink according to some set of rules.
+// or shrink according to a set of rules.
 
-
-enum class sizing_disposition
+enum class sizing_policy
 {
-	// An equivalent amount of space is added to or removed from each node
-	none,
-
 	// The default proportions of nodes are retained
 	proportional,
 
+	// An equal amount of space is added to or removed from each node
+	equal,
+
 	// Smaller nodes are given additional space first.  Larger nodes have space removed first.
-	converging
+	equitable
 };
 
 
-class sizing_group_base;
-
-
-template <sizing_disposition disposition>
+template <sizing_policy policy = sizing_policy::proportional, bool consider_range = false>
 class sizing_group
 {
 };
 
 
-class sizing_cell
+template <>
+class sizing_group<sizing_policy::proportional, false>
 {
+public:
+	class cell : public dlink_t<cell>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_default;
+		double m_sizedLength;
+
+	public:
+		double get_sized_length() const { return m_sizedLength; }
+	};
+
 private:
-	double m_sizedLength;
-
-	double m_highWaterTotal;
-	double m_lowWaterTotal;
-
-	size_t m_cellPosition;
-	size_t m_cellReversePosition;
-
-	friend class sizing_group_base;
-	template <sizing_disposition>
-	friend class sizing_group;
-
-	linear::range m_range;
-	double m_default;
+	dlist_t<cell> m_list;
+	size_t m_count = 0;
+	double m_default = 0.0;
 
 public:
-	sizing_cell()
-	{ }
+	double get_default() const { return m_default; }
 
-	sizing_cell(const linear::range& r, double defaultSize)
-		: m_range(r),
-		m_default(defaultSize)
-	{ }
-
-	void reset_cell(const linear::range& r, double defaultSize)
+	void clear()
 	{
-		m_range = r;
-		m_default = defaultSize;
+		m_list.clear();
+		m_count = 0;
+		m_default = 0.0;
 	}
 
-	void set_sized_length(double d) { m_sizedLength = d; }
-	double get_sized_length() const { return m_sizedLength; }
+	void add_cell(cell& c, double defaultLength)
+	{
+		c.m_default = defaultLength;
+		m_default += defaultLength;
+		m_list.append(&c);
+		++m_count;
+	}
+
+	void remove_cell(cell& c)
+	{
+		m_default -= c.m_default;
+		m_list.remove(&c);
+		--m_count;
+	}
+
+	double calculate_sizes(double proposedSize) const
+	{
+		ptr<cell> c = m_list.get_first();
+		if (!c)
+			return 0;
+		COGS_ASSERT(m_count > 0);
+		if (proposedSize == m_default)
+		{
+			do {
+				c->m_sizedLength = c->m_default;
+				c = c->get_next_link();
+			} while (!!c);
+		}
+		else
+		{
+			double remainingProposed = proposedSize;
+			double remainingDefault = m_default;
+			do {
+				double proportion = c->m_default / remainingDefault;
+				c->m_sizedLength = remainingProposed * proportion;
+				remainingProposed -= c->m_sizedLength;
+				remainingDefault -= c->m_default;
+				c = c->get_next_link();
+			} while (!!c);
+		}
+		return proposedSize;
+	}
 };
 
 
-class sizing_group_base
+template <>
+class sizing_group<sizing_policy::equal, false>
 {
-protected:
+public:
+	class cell : public dlink_t<cell>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_default;
+		double m_sizedLength;
+
+	public:
+		double get_sized_length() const { return m_sizedLength; }
+	};
+
+private:
+	dlist_t<cell> m_list;
+	size_t m_count = 0;
+	double m_default = 0.0;
+
+public:
+	double get_default() const { return m_default; }
+
+	void clear()
+	{
+		m_list.clear();
+		m_count = 0;
+		m_default = 0.0;
+	}
+
+	void add_cell(cell& c, double defaultLength)
+	{
+		c.m_default = defaultLength;
+		m_default += defaultLength;
+		m_list.append(&c);
+		++m_count;
+	}
+
+	void remove_cell(cell& c)
+	{
+		m_default -= c.m_default;
+		m_list.remove(&c);
+		--m_count;
+	}
+
+	double calculate_sizes(double proposedSize) const
+	{
+		ptr<cell> c = m_list.get_first();
+		if (!c)
+			return 0;
+		COGS_ASSERT(m_count > 0);
+		if (proposedSize == m_default)
+		{
+			do {
+				c->m_sizedLength = c->m_default;
+				c = c->get_next_link();
+			} while (!!c);
+		}
+		else
+		{
+			size_t n = m_count;
+			double remaining = proposedSize - m_default;
+			do {
+				double d = remaining / n;
+				remaining -= d;
+				c->m_sizedLength = c->m_default + d;
+				--n;
+				c = c->get_next_link();
+			} while (!!c);
+		}
+		return proposedSize;
+	}
+};
+
+
+template <>
+class sizing_group<sizing_policy::equitable, false>
+{
+public:
+	class cell : public rbtree_node_t<cell>
+	{
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_default;
+		double m_sizedLength;
+
+	public:
+		double get_key() const { return m_default; }
+
+		double get_sized_length() const { return m_sizedLength; }
+	};
+
+private:
+	rbtree<double, cell> m_sorted;
+	double m_default = 0.0;
+
+	template <bool grow>
+	void calculate_size2(double proposedSize) const
+	{
+		double remaining = proposedSize - m_default;
+		ptr<cell> c = grow ? m_sorted.get_first() : m_sorted.get_last();
+		double defaultLength = c->m_default;
+		size_t n = 1;
+		for (;;)
+		{
+			remaining += defaultLength;
+			ptr<cell> next = grow ? c->get_next() : c->get_prev();
+			if (!!next)
+			{
+				double nextDefaultLength = next->m_default;
+				if (defaultLength == nextDefaultLength)
+				{
+					++n;
+					c = next;
+					continue;
+				}
+				if ((grow && (remaining > n * nextDefaultLength)) || (!grow && (remaining < n * nextDefaultLength)))
+				{
+					defaultLength = nextDefaultLength;
+					c = next;
+					continue;
+				}
+			}
+			c = grow ? m_sorted.get_first() : m_sorted.get_last();
+			do {
+				double d = remaining / n;
+				c->m_sizedLength = d;
+				remaining -= d;
+				--n;
+				c = grow ? c->get_next() : c->get_prev();
+			} while (c != next);
+			break;
+		}
+	}
+
+public:
+	double get_default() const { return m_default; }
+
+	void clear()
+	{
+		m_sorted.clear();
+		m_default = 0.0;
+	}
+
+	void add_cell(cell& c, double defaultLength)
+	{
+		c.m_default = defaultLength;
+		m_default += defaultLength;
+		m_sorted.insert_multi(&c);
+	}
+
+	void remove_cell(cell& c)
+	{
+		m_default -= c.m_default;
+		m_sorted.remove(&c);
+	}
+
+	void calculate_sizes(double proposedSize) const
+	{
+		ptr<cell> c = m_sorted.get_last();
+		if (!c)
+			return;
+		if (proposedSize == m_default)
+		{
+			do {
+				c->m_sizedLength = c->m_default;
+				c = c->get_next();
+			} while (!!c);
+		}
+		else if (proposedSize > m_default)
+			calculate_size2<true>(proposedSize);
+		else
+			calculate_size2<false>(proposedSize);
+	}
+};
+
+
+template <>
+class sizing_group<sizing_policy::proportional, true>
+{
+private:
+	class min_node : public rbtree_node_t<min_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_minProportions;
+
+	public:
+		double get_key() const { return m_minProportions; }
+	};
+
+	class max_node : public rbtree_node_t<max_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_maxProportions;
+
+	public:
+		double get_key() const { return m_maxProportions; }
+	};
+
+public:
+	class cell : public min_node, public max_node
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		linear::range m_range;
+		double m_default;
+		double m_sizedLength;
+
+	public:
+		double get_sized_length() const { return m_sizedLength; }
+	};
+
+private:
 	linear::range m_range;
 	double m_default = 0.0;
+	rbtree<double, min_node> m_minProportions;
+	rbtree<double, max_node> m_maxProportions;
 
 public:
 	const linear::range& get_range() const { return m_range; }
 	double get_default() const { return m_default; }
 
-	sizing_group_base()
+	sizing_group()
 	{
 		m_range.set_fixed();
 	}
 
-	virtual void clear()
+	void clear()
 	{
 		m_default = 0;
 		m_range.set_fixed();
+		m_minProportions.clear();
+		m_maxProportions.clear();
 	}
 
-	virtual void add_cell(const rcref<sizing_cell>& cellRef)
+	void add_cell(cell& c, double defaultLength, const linear::range& range)
 	{
-		sizing_cell& c = *cellRef;
-		m_range += c.m_range;
-		COGS_ASSERT(m_range.contains(c.m_default));
-		m_default += c.m_default;
+		c.m_default = defaultLength;
+		c.m_range = range;
+		if (defaultLength <= 0)
+			c.m_sizedLength = 0;
+		else
+		{
+			m_default += defaultLength;
+			m_range += range;
+			COGS_ASSERT(m_range.contains(defaultLength));
+			c.m_maxProportions = c.m_range.has_max() ? (c.m_range.get_max() / defaultLength) : 0;
+			c.m_minProportions = c.m_range.get_min() / defaultLength;
+			m_maxProportions.insert_multi(&c);
+			m_minProportions.insert_multi(&c);
+		}
 	}
 
-	virtual double calculate_sizes(double proposedSize) = 0;
+	void remove_cell(cell& c)
+	{
+		if (c.m_default > 0)
+		{
+			m_default -= c.m_default;
+			m_minProportions.remove(&c);
+			m_maxProportions.remove(&c);
+		}
+	}
+
+	double calculate_sizes(double proposedSize)
+	{
+		ptr<cell> c = m_minProportions.get_last().static_cast_to<cell>();
+		if (!c)
+			return 0;
+		if (proposedSize == m_default) // size to default
+		{
+			do {
+				c->m_sizedLength = c->m_default;
+				c = c->min_node::get_prev().static_cast_to<cell>();
+			} while (!!c);
+			return m_default;
+		}
+		if (proposedSize <= m_range.get_min()) // size to min
+		{
+			do {
+				c->m_sizedLength = c->m_range.get_min();
+				c = c->min_node::get_prev().static_cast_to<cell>();
+			} while (!!c);
+			return m_range.get_min();
+		}
+		double remaining = proposedSize;
+		double remainingDefault = m_default;
+		if (proposedSize < m_default) // shrink proportionally to default size
+		{
+			do {
+				double newSize;
+				double targetProportion = remaining / remainingDefault;
+				ptr<cell> next = c->min_node::get_prev().static_cast_to<cell>();
+				if (targetProportion < c->m_minProportions)
+					newSize = (c->m_range.get_min());
+				else
+					newSize = !next ? remaining : (c->m_default * targetProportion);
+				remaining -= newSize;
+				remainingDefault -= c->m_default;
+				c->m_sizedLength = newSize;
+				c = next;
+			} while (!!c);
+			return proposedSize - remaining;
+		}
+		//else // if (proposedSize > m_default) // grow proportionally to default size
+		c = m_maxProportions.get_last().static_cast_to<cell>();
+		do {
+			double newSize;
+			double targetProportion = remaining / remainingDefault;
+			ptr<cell> next = c->max_node::get_prev().static_cast_to<cell>();
+			if (c->m_range.has_max() && (targetProportion > c->m_maxProportions))
+				newSize = (c->m_range.get_max());
+			else
+				newSize = !next ? remaining : (c->m_default * targetProportion);
+			remaining -= newSize;
+			remainingDefault -= c->m_default;
+			c->m_sizedLength = newSize;
+			c = next;
+		} while (!!c);
+		return proposedSize - remaining;
+	}
 };
 
 
-// sizing_group<none> allocates space to, or removes space from, all cells equally.
-// Based on the default size, if additional space is available, it's allocated equally beyond the default size.
-// If less space than default is available, space will be removed equally until cells reach their minimum sizes.
 template <>
-class sizing_group<sizing_disposition::none> : public sizing_group_base
+class sizing_group<sizing_policy::equal, true>
 {
 private:
-	nonvolatile_multimap<linear::range, rcref<sizing_cell>, false> m_sortedByDefaultMaxRange;
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_sortedByMinDefaultGap;
+	class min_node : public rbtree_node_t<min_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_minDefaultGap;
+
+	public:
+		double get_key() const { return m_minDefaultGap; }
+	};
+
+	class max_node : public rbtree_node_t<max_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		linear::range m_defaultMaxRange;
+
+	public:
+		const linear::range& get_key() const { return m_defaultMaxRange; }
+	};
+
 
 public:
-	virtual void clear()
+	class cell : public min_node, public max_node
 	{
-		sizing_group_base::clear();
-		m_sortedByMinDefaultGap.clear();
-		m_sortedByDefaultMaxRange.clear();
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		linear::range m_range;
+		double m_default;
+		double m_sizedLength;
+
+	public:
+		double get_sized_length() const { return m_sizedLength; }
+	};
+
+private:
+	linear::range m_range;
+	double m_default = 0.0;
+	rbtree<double, min_node> m_sortedMin;
+	rbtree<linear::range, max_node> m_sortedMax;
+	size_t m_count = 0;
+
+public:
+	const linear::range& get_range() const { return m_range; }
+	double get_default() const { return m_default; }
+
+	sizing_group()
+	{
+		m_range.set_fixed();
 	}
 
-	virtual void add_cell(const rcref<sizing_cell>& cellRef)
+	void clear()
 	{
-		sizing_group_base::add_cell(cellRef);
-		sizing_cell& c = *cellRef;
-		m_sortedByDefaultMaxRange.insert(linear::range(c.m_default, c.m_range.get_max(), c.m_range.has_max()), cellRef);
-		double gap(c.m_default);
-		gap -= c.m_range.get_min();
-		m_sortedByMinDefaultGap.insert(gap, cellRef);
+		m_default = 0.0;
+		m_range.set_fixed();
+		m_sortedMin.clear();
+		m_sortedMax.clear();
+		m_count = 0;
 	}
 
-	virtual double calculate_sizes(double proposedSize)
+	void add_cell(cell& c, double defaultLength, const linear::range& range)
 	{
-		size_t numCells = m_sortedByMinDefaultGap.size();
-		if (!numCells)
+		c.m_default = defaultLength;
+		c.m_range = range;
+		c.m_defaultMaxRange = linear::range(defaultLength, range.get_max(), range.has_max());
+		c.m_minDefaultGap = defaultLength - range.get_min();
+		m_sortedMax.insert_multi(&c);
+		m_sortedMin.insert_multi(&c);
+		++m_count;
+	}
+
+	void remove_cell(cell& c)
+	{
+		m_default -= c.m_default;
+		m_sortedMin.remove(&c);
+		m_sortedMax.remove(&c);
+		--m_count;
+	}
+
+	double calculate_sizes(double proposedSize)
+	{
+		size_t n = m_count;
+		if (!n)
 			return 0;
 		if (proposedSize == m_default) // use default size
 		{
 			// doesn't matter which map we use to iterate through all cells
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
-			while (!!itor)
+			ptr<cell> c = m_sortedMin.get_first().static_cast_to<cell>();
+			do
 			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_default; // use pre-calculated default clipped to range
-				++itor;
-			}
+				c->m_sizedLength = c->m_default;
+				c = c->min_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 			return m_default;
 		}
 		if (proposedSize <= m_range.get_min()) // use min size
 		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
-			while (!!itor)
+			ptr<cell> c = m_sortedMin.get_first().static_cast_to<cell>();
+			do
 			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_range.get_min();
-				++itor;
-			}
+				c->m_sizedLength = c->m_range.get_min();
+				c = c->min_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 			return m_range.get_min();
 		}
 		if (m_range.has_max() && (m_range.get_max() <= proposedSize)) // use max size
 		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
-			while (!!itor)
+			ptr<cell> c = m_sortedMin.get_first().static_cast_to<cell>();
+			do
 			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_range.get_max();
-				++itor;
-			}
-			return m_range.get_max();
+				c->m_sizedLength = c->m_range.get_max();
+				c = c->min_node::get_next().static_cast_to<cell>();
+			} while (!!c);
+			return m_range.get_min();
 		}
 		if (proposedSize > m_default) // stretching beyond default
 		{
 			double growBy = proposedSize;
 			growBy -= m_default;
-			typename nonvolatile_multimap<linear::range, rcref<sizing_cell>, false>::iterator itor = m_sortedByDefaultMaxRange.get_first();
-			while (!!itor)
+			ptr<cell> c = m_sortedMax.get_first().static_cast_to<cell>();
+			do
 			{
-				sizing_cell* c = itor->value.get_ptr();
 				double targetGrowBy = growBy;
-				targetGrowBy /= numCells;
-				--numCells;
+				targetGrowBy /= n;
+				--n;
 				double targetSize(c->m_default);
 				targetSize += targetGrowBy;
 				if (c->m_range.has_max() && (targetSize >= c->m_range.get_max()))
@@ -213,324 +609,297 @@ public:
 					{
 						c->m_sizedLength = targetSize;
 						growBy -= targetGrowBy;
-						if (!++itor)
+						c = c->max_node::get_next().static_cast_to<cell>();
+						if (!c)
 							break;
-						c = itor->value.get_ptr();
 						targetGrowBy = growBy;
-						targetGrowBy /= numCells;
-						--numCells;
+						targetGrowBy /= n;
+						--n;
 						targetSize = c->m_default;
 						targetSize += targetGrowBy;
 					}
 					break;
 				}
-				++itor;
-			}
+				c = c->max_node::get_next().static_cast_to<cell>();
+			} while (!!c);
+			return m_default;
 		}
-		else // if (proposedSize < m_default)
-		{
-			double shrinkBy = m_default;
-			shrinkBy -= proposedSize;
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_sortedByMinDefaultGap.get_first();
-			while (!!itor)
+		double shrinkBy = m_default;
+		shrinkBy -= proposedSize;
+		ptr<cell> c = m_sortedMin.get_first().static_cast_to<cell>();
+		do {
+			double targetShrinkBy = shrinkBy;
+			targetShrinkBy /= n;
+			--n;
+			if (targetShrinkBy >= c->m_minDefaultGap)
 			{
-				sizing_cell* c = itor->value.get_ptr();
-				double targetShrinkBy = shrinkBy;
-				targetShrinkBy /= numCells;
-				--numCells;
-				if (targetShrinkBy >= itor.get_key())
-				{
-					c->m_sizedLength = c->m_range.get_min();
-					shrinkBy += c->m_range.get_min();
-					shrinkBy -= c->m_default;
-				}
-				else
-				{
-					for (;;)
-					{
-						c->m_sizedLength = c->m_default;
-						c->m_sizedLength -= targetShrinkBy;
-						shrinkBy -= targetShrinkBy;
-						if (!++itor)
-							break;
-						c = itor->value.get_ptr();
-						targetShrinkBy = shrinkBy;
-						targetShrinkBy /= numCells;
-						--numCells;
-					}
-					break;
-				}
-				++itor;
+				c->m_sizedLength = c->m_range.get_min();
+				shrinkBy += c->m_range.get_min();
+				shrinkBy -= c->m_default;
 			}
-		}
+			else
+			{
+				for (;;)
+				{
+					c->m_sizedLength = c->m_default;
+					c->m_sizedLength -= targetShrinkBy;
+					shrinkBy -= targetShrinkBy;
+					c = c->min_node::get_next().static_cast_to<cell>();
+					if (!c)
+						break;
+					targetShrinkBy = shrinkBy;
+					targetShrinkBy /= n;
+					--n;
+				}
+				break;
+			}
+			c = c->min_node::get_next().static_cast_to<cell>();
+		} while (!!c);
 		return proposedSize;
 	}
 };
 
 
 template <>
-class sizing_group<sizing_disposition::proportional> : public sizing_group_base
+class sizing_group<sizing_policy::equitable, true>
 {
 private:
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_minProportions;
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_maxProportions;
+	class cell_base
+	{
+	protected:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		linear::range m_range;
+		double m_default;
+	};
+
+	class min_node : public rbtree_node_t<min_node>, public virtual cell_base
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+	public:
+		const linear::range& get_key() const { return m_range; }
+	};
+
+	class max_node : public rbtree_node_t<max_node>, public virtual cell_base
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+	public:
+		const linear::range& get_key() const { return m_range; }
+	};
+
+	class default_node : public rbtree_node_t<default_node>, public virtual cell_base
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+	public:
+		double get_key() const { return m_default; }
+	};
+
+	class low_node : public rbtree_node_t<low_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_low;
+
+	public:
+		double get_key() const { return m_low; }
+	};
+
+	class high_node : public rbtree_node_t<high_node>
+	{
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
+
+		double m_high;
+
+	public:
+		double get_key() const { return m_high; }
+	};
 
 public:
-	virtual void clear()
+	class cell : public min_node, public max_node, public default_node, public high_node, public low_node
 	{
-		sizing_group_base::clear();
-		m_minProportions.clear();
-		m_maxProportions.clear();
-	}
+	private:
+		template <sizing_policy, bool>
+		friend class sizing_group;
 
-	virtual void add_cell(const rcref<sizing_cell>& cellRef)
-	{
-		sizing_group_base::add_cell(cellRef);
-		sizing_cell& c = *cellRef;
-		double maxProportions = 0;
-		if (c.m_range.has_max())
-			maxProportions = c.m_range.get_max() / c.m_default;
-		m_maxProportions.insert(maxProportions, cellRef);
-		m_minProportions.insert(c.m_range.get_min() / c.m_default, cellRef);
-	}
+		double m_sizedLength;
 
-	virtual double calculate_sizes(double proposedSize)
-	{
-		size_t numCells = m_minProportions.size();
-		if (!numCells)
-			return 0 ;
-		if (proposedSize <= m_range.get_min()) // size to min
-		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_range.get_min();
-				++itor;
-			}
-			return m_range.get_min();
-		}
-		if (proposedSize == m_default) // size to default
-		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_minProportions.get_first(); // doesn't matter which map we use to iterate through all cells
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_default;
-				++itor;
-			}
-			return m_default;
-		}
-		double result = 0;
-		double remaining = proposedSize;
-		double remainingDefault = m_default;
-		if (proposedSize < m_default) // shrink proportionally to default size
-		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_minProportions.get_last();
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				double targetProportion = remaining / remainingDefault;
-				double newSize;
-				if (targetProportion < itor.get_key())
-					newSize = (c.m_range.get_min());
-				else
-					newSize = (c.m_default * targetProportion);
-				remaining -= newSize;
-				remainingDefault -= c.m_default;
-				c.m_sizedLength = newSize;
-				result += newSize;
-				--itor;
-			}
-			return result;
-		}
-		//else // if (proposedSize > m_default) // grow proportionally to default size
-		typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor = m_maxProportions.get_last();
-		while (!!itor)
-		{
-			if (!remainingDefault)
-				break; // All remaining elements have 0 default size, so have no proportional size
+		double m_high;
+		double m_low;
 
-			sizing_cell& c = *itor->value;
-			double targetProportion = remaining / remainingDefault;
-			double newSize;
-			if (c.m_range.has_max() && (targetProportion > itor.get_key()))
-				newSize = (c.m_range.get_max());
-			else
-				newSize = (c.m_default * targetProportion);
-			remaining -= newSize;
-			remainingDefault -= c.m_default;
-			c.m_sizedLength = newSize;
-			result += newSize;
-			--itor;
-		}
-		return result;
-	}
-};
+		size_t m_position;
+		size_t m_reversePosition;
 
+	public:
+		double get_sized_length() const { return m_sizedLength; }
+	};
 
-// sizing_group<converging> allocates space to smaller cells, or removes from larger cells, until all cells are equal.
-template <>
-class sizing_group<sizing_disposition::converging> : public sizing_group_base
-{
 private:
-	nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::maximum_comparator> m_sortedByMaximumSize;
-	nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::minimum_comparator> m_sortedByMinimumSize;
+	linear::range m_range;
+	double m_default = 0.0;
 
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_sortedByDefaultSize;
-
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_sortedByHighWaterTotal;
-	nonvolatile_multimap<double, rcref<sizing_cell>, false> m_sortedByLowWaterTotal;
-
-	bool m_updated = false;
+	rbtree<linear::range, min_node, typename linear::range::minimum_comparator> m_sortedMin;
+	rbtree<linear::range, max_node, typename linear::range::maximum_comparator> m_sortedMax;
+	rbtree<double, default_node> m_sortedDefault;
+	rbtree<double, low_node> m_sortedLow;
+	rbtree<double, high_node> m_sortedHigh;
+	bool m_needsUpdate = false;
 
 public:
-	virtual void clear()
+	const linear::range& get_range() const { return m_range; }
+	double get_default() const { return m_default; }
+
+	sizing_group()
 	{
-		sizing_group_base::clear();
-		m_sortedByDefaultSize.clear();
-		m_sortedByMaximumSize.clear();
-		m_sortedByMinimumSize.clear();
+		m_range.set_fixed();
 	}
 
-	virtual void add_cell(const rcref<sizing_cell>& cellRef)
+	void clear()
 	{
-		sizing_group_base::add_cell(cellRef);
-		sizing_cell& c = *cellRef;
-		m_sortedByDefaultSize.insert(c.m_default, cellRef);
-		m_sortedByMaximumSize.insert(c.m_range, cellRef);
-		m_sortedByMinimumSize.insert(c.m_range, cellRef);
-		m_sortedByHighWaterTotal.clear();
-		m_sortedByLowWaterTotal.clear();
-		m_updated = true;
+		m_default = 0;
+		m_range.set_fixed();
+		m_sortedMin.clear();
+		m_sortedMax.clear();
+		m_sortedDefault.clear();
+		m_needsUpdate = false;
 	}
 
-	virtual double calculate_sizes(double proposedSize)
+	void add_cell(cell& c, double defaultLength, const linear::range& range)
 	{
-		size_t numCells = m_sortedByDefaultSize.size();
-		if (!numCells)
+		COGS_ASSERT(range.contains(defaultLength));
+		c.m_default = defaultLength;
+		c.m_range = range;
+		m_default += defaultLength;
+		m_range += range;
+		m_sortedDefault.insert_multi(&c);
+		m_sortedMin.insert_multi(&c);
+		m_sortedMax.insert_multi(&c);
+		m_sortedLow.clear();
+		m_sortedHigh.clear();
+		m_needsUpdate = true;
+	}
+
+	double calculate_sizes(double proposedSize)
+	{
+		ptr<cell> c = m_sortedDefault.get_first().static_cast_to<cell>();
+		if (!c)
 			return 0;
-		typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor;
 		if (proposedSize == m_default) // use default size
 		{
-			itor = m_sortedByDefaultSize.get_first(); // doesn't matter which map we use to iterate through all cells
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = itor.get_key(); // use pre-calculated default clipped to range
-				++itor;
-			}
+			// doesn't matter which map we use to iterate through all cells
+			do {
+				c->m_sizedLength = c->m_default;
+				c = c->default_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 			return m_default;
 		}
 		if (proposedSize <= m_range.get_min()) // use min size
 		{
-			itor = m_sortedByDefaultSize.get_first();
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_range.get_min();
-				++itor;
-			}
+			// doesn't matter which map we use to iterate through all cells
+			do {
+				c->m_sizedLength = c->m_range.get_min();
+				c = c->default_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 			return m_range.get_min();
 		}
 		if (m_range.has_max() && (m_range.get_max() <= proposedSize)) // use max size
 		{
-			itor = m_sortedByDefaultSize.get_first();
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-				c.m_sizedLength = c.m_range.get_max(); // use pre-calculated default clipped to range
-				++itor;
-			}
+			// doesn't matter which map we use to iterate through all cells
+			do {
+				c->m_sizedLength = c->m_range.get_max();
+				c = c->default_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 			return m_range.get_max();
 		}
 
-		if (m_updated)
+		if (m_needsUpdate)
 		{
-			m_updated = false;
 			size_t cellPosition = 0;
 			double prevSize = 0;
 			double numElementsBefore = 0;
 			double prevHighWaterTotal = 0;
-			typename nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::maximum_comparator>::iterator maxItor = m_sortedByMaximumSize.get_first();
-			itor = m_sortedByDefaultSize.get_first();
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
+			ptr<cell> maxCell = m_sortedMax.get_first().static_cast_to<cell>();
+			do {
 				double additionalSpace = 0;
 				if (numElementsBefore > 0)
 				{
-					additionalSpace = c.m_default;
+					additionalSpace = c->m_default;
 					additionalSpace -= prevSize;
 					additionalSpace *= numElementsBefore;
 					do {
-						if (!maxItor->value->m_range.has_max())
+						if (!maxCell->m_range.has_max())
 							break;
-						double max = maxItor->value->m_range.get_max();
-						if (c.m_default < max)
+						double max = maxCell->m_range.get_max();
+						if (c->m_default < max)
 							break;
-						double gap = c.m_default;
+						double gap = c->m_default;
 						gap -= max;
 						if (gap >= additionalSpace)
 							additionalSpace = 0;
 						else
 							additionalSpace -= gap;
 						--numElementsBefore;
-						++maxItor;
+						maxCell = maxCell->max_node::get_next().static_cast_to<cell>();
 					} while (!!additionalSpace);
 				}
-				c.m_cellPosition = ++cellPosition;
+				c->m_position = ++cellPosition;
 				prevHighWaterTotal += additionalSpace;
-				c.m_highWaterTotal = prevHighWaterTotal;
-				m_sortedByHighWaterTotal.insert(prevHighWaterTotal, itor->value);
-				prevSize = c.m_default;
-				prevHighWaterTotal = c.m_highWaterTotal;
+				c->m_high = prevHighWaterTotal;
+				m_sortedHigh.insert_multi(c);
+				prevSize = c->m_default;
 				++numElementsBefore;
-				++itor;
-			}
+				c = c->default_node::get_next().static_cast_to<cell>();
+			} while (!!c);
 
 			cellPosition = 0;
 			prevSize = 0;
 			numElementsBefore = 0;
 			double prevLowWaterTotal = 0;
-			typename nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::minimum_comparator>::iterator minItor = m_sortedByMinimumSize.get_last();
-			itor = m_sortedByDefaultSize.get_last();
-			while (!!itor)
-			{
-				sizing_cell& c = *itor->value;
-
+			c = m_sortedDefault.get_last().static_cast_to<cell>();
+			ptr<cell> minCell = m_sortedMin.get_last().static_cast_to<cell>();
+			do {
 				double additionalSpace = 0;
 				if (numElementsBefore > 0)
 				{
 					additionalSpace = prevSize;
-					additionalSpace -= c.m_default;
+					additionalSpace -= c->m_default;
 					additionalSpace *= numElementsBefore;
 					do {
-						double min = minItor->value->m_range.get_min();
-						if (c.m_default > min)
+						double min = minCell->m_range.get_min();
+						if (c->m_default > min)
 							break;
 						double gap = min;
-						gap -= c.m_default;
+						gap -= c->m_default;
 						if (gap >= additionalSpace)
 							additionalSpace = 0;
 						else
 							additionalSpace -= gap;
 						--numElementsBefore;
-						--minItor;
+						minCell = minCell->min_node::get_prev().static_cast_to<cell>();
 					} while (!!additionalSpace);
 				}
-
-				c.m_cellReversePosition = ++cellPosition;
+				c->m_reversePosition = ++cellPosition;
 				prevLowWaterTotal += additionalSpace;
-				c.m_lowWaterTotal = prevLowWaterTotal;
-				m_sortedByLowWaterTotal.insert(prevLowWaterTotal, itor->value);
-
-				prevSize = c.m_default;
-				prevLowWaterTotal = c.m_lowWaterTotal;
-
+				c->m_low = prevLowWaterTotal;
+				m_sortedLow.insert_multi(c);
+				prevSize = c->m_default;
 				++numElementsBefore;
-				--itor;
-			}
+				c = c->default_node::get_prev().static_cast_to<cell>();
+			} while (!!c);
+			m_needsUpdate = false;
 		}
 
 		double remaining = proposedSize;
@@ -539,95 +908,90 @@ public:
 			double growBy = proposedSize;
 			growBy -= m_default;
 
-			itor = m_sortedByHighWaterTotal.find_first_equal_or_nearest_greater_than(growBy);
-			if (!!itor) // Set cells above the water line to defaults
-			{
-				typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor2 = itor;
-				do {
-					sizing_cell& c = *itor2->value;
-					c.m_sizedLength = c.m_default;
-					remaining -= c.m_default;
-				} while (!!++itor2);
-				--itor;
-			}
+			c = m_sortedHigh.find_first_equal_or_nearest_greater_than(growBy).static_cast_to<cell>();
+			if (!c)
+				c = m_sortedHigh.get_last().static_cast_to<cell>();
 			else
-				itor = m_sortedByHighWaterTotal.get_last();
-
-			size_t numLeft = itor->value->m_cellPosition;
-			typename nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::maximum_comparator>::iterator maxItor = m_sortedByMaximumSize.get_first();
+			{
+				ptr<cell> c2 = c;
+				c = c->high_node::get_prev().static_cast_to<cell>();
+				COGS_ASSERT(!!c);
+				do {
+					c2->m_sizedLength = c2->m_default;
+					remaining -= c2->m_default;
+					c2 = c2->high_node::get_next().static_cast_to<cell>();
+				} while (!!c2);
+			}
+			size_t numLeft = c->m_position;
+			ptr<cell> maxCell = m_sortedMax.get_first().static_cast_to<cell>();
 			do {
-				const linear::range& cellRange = maxItor.get_key();
-				if (!cellRange.has_max())
+				const linear::range& r = maxCell->m_range;
+				if (!r.has_max())
 					break;
 				auto targetSize = (remaining / numLeft);
-				if (targetSize <= cellRange.get_max())
+				if (targetSize <= r.get_max())
 					break;
-				maxItor->value->m_sizedLength = cellRange.get_max();
-				remaining -= cellRange.get_max();
+				maxCell->m_sizedLength = r.get_max();
+				remaining -= r.get_max();
 				--numLeft;
-			} while (!!++maxItor);
-
+				maxCell = maxCell->max_node::get_next().static_cast_to<cell>();
+			} while (!!maxCell);
 			do {
-				sizing_cell& c = *itor->value;
 				double targetSize = remaining;
 				targetSize /= numLeft;
-				if (!c.m_range.has_max() || (c.m_range.get_max() > targetSize))
+				if (!c->m_range.has_max() || (c->m_range.get_max() > targetSize))
 				{
-					c.m_sizedLength = targetSize;
+					c->m_sizedLength = targetSize;
 					if (!--numLeft)
 						break;
 					remaining -= targetSize;
 				}
-			} while (!!--itor);
+				c = c->high_node::get_prev().static_cast_to<cell>();
+			} while (!!c);
 			return proposedSize;
 		}
 		//else // if (proposedSize < m_default)
 		double shrinkBy = m_default;
 		shrinkBy -= proposedSize;
-
-		itor = m_sortedByLowWaterTotal.find_first_equal_or_nearest_greater_than(shrinkBy);
-		if (!!itor) // Set cells below the water line to defaults
-		{
-			typename nonvolatile_multimap<double, rcref<sizing_cell>, false>::iterator itor2 = itor;
-			do {
-				sizing_cell& c = *itor2->value;
-				c.m_sizedLength = c.m_default;
-				remaining -= c.m_default;
-			} while (!!++itor2);
-			--itor;
-		}
+		c = m_sortedLow.find_first_equal_or_nearest_greater_than(shrinkBy).static_cast_to<cell>();
+		if (!c)
+			c = m_sortedLow.get_last().static_cast_to<cell>();
 		else
-			itor = m_sortedByLowWaterTotal.get_last();
-
-		size_t numLeft = itor->value->m_cellReversePosition;
-		typename nonvolatile_multimap<linear::range, rcref<sizing_cell>, false, typename linear::range::minimum_comparator>::iterator minItor = m_sortedByMinimumSize.get_last();
+		{
+			ptr<cell> c2 = c;
+			c = c->low_node::get_prev().static_cast_to<cell>();
+			COGS_ASSERT(!!c);
+			do {
+				c2->m_sizedLength = c2->m_default;
+				remaining -= c2->m_default;
+				c2 = c2->low_node::get_next().static_cast_to<cell>();
+			} while (!!c2);
+		}
+		size_t numLeft = c->m_reversePosition;
+		ptr<cell> minCell = m_sortedMax.get_first().static_cast_to<cell>();
 		do {
-			const linear::range& cellRange = minItor.get_key();
-			if (cellRange.get_min() == 0)
+			const linear::range& r = minCell->m_range;
+			if (r.get_min() == 0)
 				break;
 			auto targetSize = (remaining / numLeft);
-			if (targetSize >= cellRange.get_min())
+			if (targetSize >= r.get_min())
 				break;
-			minItor->value->m_sizedLength = cellRange.get_min();
-			remaining -= cellRange.get_min();
+			minCell->m_sizedLength = r.get_min();
+			remaining -= r.get_min();
 			--numLeft;
-		} while (!!--minItor);
-
+			minCell = minCell->min_node::get_prev().static_cast_to<cell>();
+		} while (!!minCell);
 		do {
-			sizing_cell& c = *itor->value;
-			double targetSize;
-			targetSize = remaining;
+			double targetSize = remaining;
 			targetSize /= numLeft;
-			if (targetSize <= c.m_range.get_min())
-				targetSize = c.m_range.get_min();
-			else
-			{
-				c.m_sizedLength = targetSize;
-				if (!--numLeft)
-					break;
-				remaining -= targetSize;
-			}
-		} while (!!--itor);
+			if (targetSize <= c->m_range.get_min())
+				targetSize = c->m_range.get_min();
+			c->m_sizedLength = targetSize;
+			if (!--numLeft)
+				break;
+			remaining -= targetSize;
+			c = c->high_node::get_prev().static_cast_to<cell>();
+		} while (!!c);
 		return proposedSize;
 	}
 };

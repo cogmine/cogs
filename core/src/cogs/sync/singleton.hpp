@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Good
@@ -35,7 +35,7 @@ enum class singleton_cleanup_behavior
 
 template <typename T,
 	singleton_posthumous_behavior posthumous_behavior = singleton_posthumous_behavior::create_new_singleton,
-	singleton_cleanup_behavior cleanup_behavior  = singleton_cleanup_behavior::use_cleanup_queue>
+	singleton_cleanup_behavior cleanup_behavior = singleton_cleanup_behavior::use_cleanup_queue>
 class singleton;
 
 

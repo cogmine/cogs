@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_OS_SYNC_TIMEOUT
@@ -154,7 +154,7 @@ public:
 	period_t get_period() const { return m_period; }
 	period_t get_expiration() const { return m_expireTime; }
 
-	bool is_infinite() const { return make_measure<period_unitbase>(const_max_int_v<ULONGLONG>) == m_period; }
+	bool is_infinite() const { return cogs::equals(make_measure<period_unitbase>(const_max_int_v<ULONGLONG>), m_period); }
 
 	period_t get_pending() const
 	{

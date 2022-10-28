@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -53,8 +53,8 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{
@@ -242,8 +242,8 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	this_t& operator=(this_t&& src)
 	{

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -75,7 +75,7 @@ private:
 	{
 		// Destructed  when m_reference[reference_strength::strong] == 0
 		// Deallocated when m_reference[reference_strength::weak] == 0
-		alignas(atomic::get_alignment_v<size_t>) size_t m_references[2];
+		size_t m_references alignas(atomic::get_alignment_v<size_t>) [2];
 
 		volatile size_t& operator[](reference_strength referenceStrength) volatile { return m_references[(int)referenceStrength]; }
 		const volatile size_t& operator[](reference_strength referenceStrength) const volatile { return m_references[(int)referenceStrength]; }
@@ -113,7 +113,7 @@ private:
 		bool operator>=(const counts_t& c) const { return !operator<(c); }
 	};
 
-	alignas(atomic::get_alignment_v<counts_t>) counts_t m_counts;
+	counts_t m_counts alignas(atomic::get_alignment_v<counts_t>);
 
 	class released_handlers;
 	released_handlers mutable* m_releasedHandlers;

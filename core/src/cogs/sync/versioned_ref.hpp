@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -35,7 +35,7 @@ public:
 	typedef versioned_ref<type> this_t;
 	typedef versioned_ptr<type> nullable;
 	typedef versioned_ref<type> non_nullable;
-	typedef versioned_ref<type> locked_t;
+	typedef ref<type> lock_t;
 
 	typedef typename versioned_t<type*>::version_t version_t;
 
@@ -363,8 +363,8 @@ public:
 	bool unversioned_compare_exchange(const ref<type>& src, const ref<type>& cmp, type2*& rtn) { type* tmp; bool result = m_versioned.unversioned_compare_exchange(src.get_ptr(), cmp.get_ptr(), tmp); rtn = tmp; return result; }
 
 
-	static size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
-	static size_t mark_mask() { return (1 << mark_bits()) - 1; }
+	static constexpr size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
+	static constexpr size_t mark_mask() { return (1 << mark_bits()) - 1; }
 
 	size_t get_mark() const { return ((size_t)(get_ptr()) & mark_mask()); }
 	size_t get_mark() const volatile { return ((size_t)(get_ptr()) & mark_mask()); }
@@ -437,7 +437,7 @@ public:
 	typedef versioned_ref<type> this_t;
 	typedef versioned_ptr<type> nullable;
 	typedef versioned_ref<type> non_nullable;
-	typedef versioned_ref<type> locked_t;
+	typedef ref<type> lock_t;
 
 	typedef typename versioned_t<type*>::version_t version_t;
 
@@ -739,7 +739,7 @@ public:
 	typedef versioned_ref<type> this_t;
 	typedef versioned_ptr<type> nullable;
 	typedef versioned_ref<type> non_nullable;
-	typedef versioned_ref<type> locked_t;
+	typedef ref<type> lock_t;
 
 	typedef typename versioned_t<type*>::version_t version_t;
 
@@ -1041,7 +1041,7 @@ public:
 	typedef versioned_ref<type> this_t;
 	typedef versioned_ptr<type> nullable;
 	typedef versioned_ref<type> non_nullable;
-	typedef versioned_ref<type> locked_t;
+	typedef ref<type> lock_t;
 
 	typedef typename versioned_t<type*>::version_t version_t;
 
@@ -1343,7 +1343,7 @@ public:
 	typedef versioned_ref<type> this_t;
 	typedef versioned_ptr<type> nullable;
 	typedef versioned_ref<type> non_nullable;
-	typedef versioned_ref<type> locked_t;
+	typedef ref<type> lock_t;
 
 	typedef typename versioned_t<type*>::version_t version_t;
 

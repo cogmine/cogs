@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -154,7 +154,7 @@ private:
 	rcptr<notification_context> m_lastBoundSet;
 
 	// 0 = not dispatching, 1 = processing dispatch, 2 = pending dispatch
-	alignas(atomic::get_alignment_v<int>) volatile int m_pumpSerializer = 0;
+	volatile int m_pumpSerializer alignas(atomic::get_alignment_v<int>) = 0;
 
 	void set_changed_pump()
 	{

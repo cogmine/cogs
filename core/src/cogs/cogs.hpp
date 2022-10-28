@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -29,7 +29,7 @@
 /// Cogs source code is organized into 4 main areas: Core, Architecture, Operating System, and Build Environment.
 ///
 /// Some cross arch/OS/env support is accomplished by providing alternate headers and classes.
-/// Project should add the desired arch, env and OS specific include paths for the desired platform.
+/// Projects should add the desired arch, env and OS specific include paths for the desired platform.
 /// i.e.  To target AMD64, MS Windows, using Visual Studio, a project should add:
 ///
 /// - core/src
@@ -182,7 +182,7 @@
 /// A @ref cogs::io::datasource and a @ref cogs::io::datasink can be 'coupled', such that data is automatically routed between them, until decoupled or
 /// one of them is closed.  A @ref cogs::io::filter can be placed between a datasink and a datasource to patch a stream.
 ///
-/// Cogs I/O makes use of composite buffers (@ref cogs::io::composite_buffer_t).  A composite buffer is a single logical buffer potentially
+/// Cogs I/O makes use of composite buffers (@ref cogs::io::composite_buffer).  A composite buffer is a single logical buffer potentially
 /// comprised of multiple incontiguous buffers.  This is intended to minimize large buffer copies.
 ///
 /// Cogs includes scalable cross-platform Network I/O.
@@ -230,6 +230,7 @@
 /// Cogs is not fully C++ conformant.  For example, it assumes two's compliment integers.  Archaic systems may not supported.
 ///
 
+#include "cogs/env.hpp"
 
 #include "cogs/assert.hpp"
 #include "cogs/compatible.hpp"
@@ -243,6 +244,7 @@
 #include "cogs/operators.hpp"
 #include "cogs/collections/array_view.hpp"
 #include "cogs/collections/avltree.hpp"
+#include "cogs/collections/btree_node.hpp"
 #include "cogs/collections/btree.hpp"
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/composite_vector.hpp"
@@ -266,7 +268,6 @@
 #include "cogs/collections/slist.hpp"
 #include "cogs/collections/stack.hpp"
 #include "cogs/collections/string.hpp"
-#include "cogs/collections/tlink.hpp"
 #include "cogs/collections/unicode.hpp"
 #include "cogs/collections/vector.hpp"
 #include "cogs/collections/vector_view.hpp"

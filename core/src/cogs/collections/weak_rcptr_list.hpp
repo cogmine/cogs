@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -92,9 +92,9 @@ public:
 		iterator& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		iterator& operator=(iterator&& i) { m_contents = std::move(i.m_contents); return *this; }
 
-		volatile iterator& operator=(const iterator& i) volatile { m_contents = i.m_contents; return *this; }
-		volatile iterator& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
-		volatile iterator& operator=(iterator&& i) volatile { m_contents = std::move(i.m_contents); return *this; }
+		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
+		void operator=(iterator&& i) volatile { m_contents = std::move(i.m_contents); }
 
 		void disown() { m_contents.disown(); }
 		void disown() volatile { m_contents.disown(); }
@@ -351,9 +351,9 @@ public:
 		remove_token& operator=(const volatile remove_token& rt) { m_contents = rt.m_contents; return *this; }
 		remove_token& operator=(remove_token&& rt) { m_contents = std::move(rt.m_contents); return *this; }
 
-		volatile remove_token& operator=(const iterator& i) volatile { m_contents = i.m_contents; return *this; }
-		volatile remove_token& operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; return *this; }
-		volatile remove_token& operator=(remove_token&& rt) volatile { m_contents = std::move(rt.m_contents); return *this; }
+		void operator=(const iterator& i) volatile { m_contents = i.m_contents; }
+		void operator=(const remove_token& rt) volatile { m_contents = rt.m_contents; }
+		void operator=(remove_token&& rt) volatile { m_contents = std::move(rt.m_contents); }
 
 		bool is_active() const { iterator itor(*this); return itor.is_active(); }
 		bool is_active() const volatile { iterator itor(*this); return itor.is_active(); }

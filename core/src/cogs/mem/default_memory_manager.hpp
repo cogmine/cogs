@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -40,7 +40,7 @@ inline void assert_no_overflows() { }
 #endif
 
 #if COGS_DEBUG_RC_LOGGING || COGS_DEBUG_ALLOC_LOGGING || (COGS_DEBUG_ALLOC_OVERFLOW_CHECKING && COGS_DEBUG_LEAKED_BLOCK_DETECTION)
-alignas(atomic::get_alignment_v<unsigned long>) inline volatile unsigned long g_allocLogCount;
+inline volatile unsigned long g_allocLogCount alignas(atomic::get_alignment_v<unsigned long>);
 #endif
 
 #if COGS_USE_DEBUG_DEFAULT_ALLOCATOR
@@ -345,13 +345,13 @@ private:
 	struct inner
 	{
 		static void shutdown() {}
-		
+
 		template <typename default_memory_manager_impl_t = default_memory_manager_impl>
 		static void* allocate(size_t n, size_t align = cogs::largest_alignment, size_t* usableSize = nullptr) { return default_memory_manager_impl_t::allocate(n, align, usableSize); }
-		
+
 		template <typename default_memory_manager_impl_t = default_memory_manager_impl>
 		static void deallocate(void* p) { default_memory_manager_impl_t::deallocate(p); }
-		
+
 		template <typename default_memory_manager_impl_t = default_memory_manager_impl>
 		static bool try_reallocate(void* p, size_t n, size_t align = cogs::largest_alignment, size_t* usableSize = nullptr)
 		{

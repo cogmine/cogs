@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -34,8 +34,8 @@ public:
 	/// @brief Alias to this type.
 	typedef ptr<type> this_t;
 
-	/// @brief Alias to this type.  If this reference container required locking (such as a 'relocatable handle'), locked_t would be the appropriate type to contain the lock.
-	typedef ptr<type> locked_t;
+	/// @brief Alias to this type.  If this reference container required locking (such as a 'relocatable handle'), lock_t would be the appropriate type to contain the lock.
+	typedef ptr<type> lock_t;
 
 	/// @brief Alias to the non_nullable equivalent of this reference type
 	typedef ref<type> non_nullable;
@@ -143,7 +143,7 @@ public:
 	void set(std::nullptr_t) volatile { m_ref.set(nullptr); }
 
 	this_t& operator=(std::nullptr_t) { set(nullptr); return *this; }
-	volatile this_t& operator=(std::nullptr_t) volatile { set(nullptr); return *this; }
+	void operator=(std::nullptr_t) volatile { set(nullptr); }
 
 
 	/// @{
@@ -163,23 +163,23 @@ public:
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type* src) volatile { set(src); return *this; }
+	void operator=(type* src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
-	/// @brief Thread-safe implementation of operator=()
-	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	/// @brief Thread-safe implementation of operator=()
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); }
+	/// @brief Thread-safe implementation of operator=()
+	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
+	void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	/// @{
@@ -261,7 +261,7 @@ public:
 	template <typename T2>
 	this_t& operator+=(T2&& src) { cogs::assign_add(get_ptr_ref(), std::forward<T2>(src)); return *this; }
 	template <typename T2>
-	volatile this_t& operator+=(T2&& src) volatile { cogs::assign_add(get_ptr_ref(), std::forward<T2>(src)); return *this; }
+	void operator+=(T2&& src) volatile { cogs::assign_add(get_ptr_ref(), std::forward<T2>(src)); }
 
 	template <typename T2>
 	const this_t& pre_assign_add(T2&& src) { cogs::assign_add(get_ptr_ref(), std::forward<T2>(src)); return *this; }
@@ -329,7 +329,7 @@ public:
 	template <typename T2>
 	this_t& operator-=(T2&& src) { cogs::assign_subtract(get_ptr_ref(), std::forward<T2>(src)); return *this; }
 	template <typename T2>
-	volatile this_t& operator-=(T2&& src) volatile { cogs::assign_subtract(get_ptr_ref(), std::forward<T2>(src)); return *this; }
+	void operator-=(T2&& src) volatile { cogs::assign_subtract(get_ptr_ref(), std::forward<T2>(src)); }
 
 	template <typename T2>
 	const this_t& pre_assign_subtract(T2&& src) { cogs::assign_subtract(get_ptr_ref(), std::forward<T2>(src)); return *this; }
@@ -747,11 +747,11 @@ public:
 	/// - Alignment of 4 indicates there is 2.
 	/// - Alignment of 8 indicates there is 3.
 	/// @return The number of bits available to be marked on the pointer.
-	static size_t mark_bits() { return ref<T>::mark_bits(); }
+	static constexpr size_t mark_bits() { return ref<T>::mark_bits(); }
 
 	/// @brief Gets a mask with all available mark bits sets.
 	/// @return A mask containing all available mark bits set.
-	static size_t mark_mask() { return ref<T>::mark_mask(); }
+	static constexpr size_t mark_mask() { return ref<T>::mark_mask(); }
 
 	/// @{
 	/// @brief Gets marked bits on the pointer, if any
@@ -888,7 +888,7 @@ public:
 	void set(std::nullptr_t) volatile { m_ref.set(nullptr); }
 
 	this_t& operator=(std::nullptr_t) { set(nullptr); return *this; }
-	volatile this_t& operator=(std::nullptr_t) volatile { set(nullptr); return *this; }
+	void operator=(std::nullptr_t) volatile { set(nullptr); }
 
 	/// @{
 	/// @brief Assignment
@@ -902,19 +902,19 @@ public:
 	template <typename type2> this_t& operator=(const volatile ptr<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type* src) volatile { set(src); return *this; }
+	void operator=(type* src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	type* get_ptr() const { return m_ref.get_ptr(); }
@@ -1294,7 +1294,7 @@ public:
 	void set(std::nullptr_t) volatile { m_ref.set(nullptr); }
 
 	this_t& operator=(std::nullptr_t) { set(nullptr); return *this; }
-	volatile this_t& operator=(std::nullptr_t) volatile { set(nullptr); return *this; }
+	void operator=(std::nullptr_t) volatile { set(nullptr); }
 
 
 	/// @{
@@ -1309,19 +1309,19 @@ public:
 	template <typename type2> this_t& operator=(const volatile ptr<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type* src) volatile { set(src); return *this; }
+	void operator=(type* src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	type* get_ptr() const { return m_ref.get_ptr(); }
@@ -1699,7 +1699,7 @@ public:
 	void set(std::nullptr_t) volatile { m_ref.set(nullptr); }
 
 	this_t& operator=(std::nullptr_t) { set(nullptr); return *this; }
-	volatile this_t& operator=(std::nullptr_t) volatile { set(nullptr); return *this; }
+	void operator=(std::nullptr_t) volatile { set(nullptr); }
 
 
 	/// @{
@@ -1714,19 +1714,19 @@ public:
 	template <typename type2> this_t& operator=(const volatile ptr<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type* src) volatile { set(src); return *this; }
+	void operator=(type* src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	type* get_ptr() const { return m_ref.get_ptr(); }
@@ -2105,7 +2105,7 @@ public:
 	void set(std::nullptr_t) volatile { m_ref.set(nullptr); }
 
 	this_t& operator=(std::nullptr_t) { set(nullptr); return *this; }
-	volatile this_t& operator=(std::nullptr_t) volatile { set(nullptr); return *this; }
+	void operator=(std::nullptr_t) volatile { set(nullptr); }
 
 	/// @{
 	/// @brief Assignment
@@ -2119,19 +2119,19 @@ public:
 	template <typename type2> this_t& operator=(const volatile ptr<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type* src) volatile { set(src); return *this; }
+	void operator=(type* src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ptr<type2>& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	type* get_ptr() const { return m_ref.get_ptr(); }

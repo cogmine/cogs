@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,7 +9,6 @@
 #define COGS_HEADER_ENV_MEM_BIT_COUNT
 
 
-#include <smmintrin.h>
 #include "cogs/math/bytes_to_int.hpp"
 
 

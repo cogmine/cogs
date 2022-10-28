@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -75,9 +75,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	return_t operator()(args_t... a)
 	{
@@ -179,9 +179,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	void operator()(args_t... a)
 	{
@@ -285,9 +285,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	// It's caller error to allow the object to go out of scope while an invoke is still in progress.
 

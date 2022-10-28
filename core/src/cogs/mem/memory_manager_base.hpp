@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -60,7 +60,7 @@ public:
 			*usableCount -= *usableCount % sizeof(type);
 		return b;
 	}
-	
+
 	template <typename header_t, size_t align>
 	static header_t* allocate_with_header(size_t n, size_t* usableSize = nullptr)
 	{
@@ -80,7 +80,7 @@ public:
 			*usableCount /= sizeof(type);
 		return result;
 	}
-	
+
 	template <typename header_t, size_t align>
 	static bool try_reallocate_with_header(header_t* p, size_t n, size_t* usableSize = nullptr)
 	{
@@ -182,7 +182,7 @@ public:
 	}
 
 	template <typename type>
-	void destruct_deallocate_type(type* p, size_t n = 1) const volatile 
+	void destruct_deallocate_type(type* p, size_t n = 1) const volatile
 	{
 		if (!!p)
 		{

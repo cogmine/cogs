@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -2629,19 +2629,19 @@ public:
 
 	this_t& operator=(const this_t& src) { m_contents.assign(src.m_contents); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); return *this; }
+	void operator=(const this_t& src) volatile { m_contents.assign(src.m_contents); }
 
 	this_t& operator=(const volatile this_t& src) { m_contents.assign(src.m_contents); return *this; }
 
 	this_t& operator=(this_t&& src) { m_contents = std::move(src.m_contents); return *this; }
 
-	volatile this_t& operator=(this_t&& src) volatile { m_contents = std::move(src.m_contents); return *this; }
+	void operator=(this_t&& src) volatile { m_contents = std::move(src.m_contents); }
 
 	this_t& operator=(const string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
 
 	this_t& operator=(const volatile string_t<type>& src) { m_contents.assign(src.get_vector()); return *this; }
 
-	volatile this_t& operator=(const string_t<type>& src) volatile { m_contents.assign(src.get_vector()); return *this; }
+	void operator=(const string_t<type>& src) volatile { m_contents.assign(src.get_vector()); }
 
 	void append(const type& src) { m_contents.append(1, src); }
 	void append(size_t n, const type& src) { m_contents.append(n, src); }

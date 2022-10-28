@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -43,7 +43,7 @@ public:
 		{
 			m_completionPort->register_handle((HANDLE)m_socket);
 
-			unsigned long argp = 1;
+			u_long argp = 1;
 			ioctlsocket(m_socket, FIONBIO, &argp);
 		}
 	}
@@ -75,12 +75,12 @@ public:
 			// determine local endpoint
 			SOCKADDR_STORAGE sockAddr;
 			int sockLength = sizeof(SOCKADDR_STORAGE);
-			int i = getsockname(m_socket, (sockaddr*)&sockAddr, &sockLength);
+			getsockname(m_socket, (sockaddr*)&sockAddr, &sockLength);
 			m_localEndpoint.set_address_and_port(&sockAddr, sockLength);
 
 			// determine remote endpoint
 			sockLength = sizeof(SOCKADDR_STORAGE);
-			i = getpeername(m_socket, (sockaddr*)&sockAddr, &sockLength);
+			getpeername(m_socket, (sockaddr*)&sockAddr, &sockLength);
 			m_remoteEndpoint.set_address_and_port(&sockAddr, sockLength);
 		}
 	}

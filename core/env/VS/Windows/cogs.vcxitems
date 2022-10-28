@@ -209,6 +209,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\no_aba_stack.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\array_view.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\avltree.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree_node.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_string.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\composite_vector.hpp" />
@@ -229,7 +230,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\slist.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\stack.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\string.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\tlink.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\vector_view.hpp" />
@@ -450,6 +450,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_priority_queue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_queue.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\wait_stack.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\yield.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\ui\keyboard.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env.hpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -478,6 +479,12 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\mem\bit_scan.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\sync\thread.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\sync\yield.hpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env.hpp">
@@ -530,6 +537,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\atomic_compare_exchange.hpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\thread.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\yield.hpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\main.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\math\umul.hpp" />
@@ -543,6 +556,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_store.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_exchange.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_compare_exchange.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\thread.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\yield.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\os\libs\pthreads\cogs\os\sync\atomic_operators.hpp">

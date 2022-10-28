@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -887,21 +887,15 @@ inline void device_context::draw_bitmask_inner(const gdi::bitmap& src, const BOU
 		{
 			color blendedColor;
 			color nonBlendedColor;
-			UINT transparentColor1;
-			UINT transparentColor2;
 			if (blendForeAlpha)
 			{
 				blendedColor = fore;
 				nonBlendedColor = back;
-				transparentColor1 = RGB(255, 255, 255);
-				transparentColor2 = RGB(0, 0, 0);
 			}
 			else
 			{
 				blendedColor = back;
 				nonBlendedColor = fore;
-				transparentColor1 = RGB(0, 0, 0);
-				transparentColor2 = RGB(255, 255, 255);
 			}
 			src.m_gdiBitmap.mask_out(get_HDC(), dstBounds, srcBounds, blendForeAlpha);
 			tmpBmp.fill(tmpBounds, nonBlendedColor, false);

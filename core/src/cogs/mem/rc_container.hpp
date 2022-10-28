@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -595,14 +595,13 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(this_t&& src) volatile
+	void operator=(this_t&& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		swap(src);
 		src.release_inner();
 		src.m_contents->m_desc = nullptr;
 		src.m_contents->m_obj = nullptr;
-		return *this;
 	}
 
 	this_t& operator=(const this_t& src)
@@ -660,7 +659,7 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(const this_t& src) volatile
+	void operator=(const this_t& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		if (this != &src)
@@ -673,7 +672,6 @@ public:
 				m_contents.exchange(src.m_contents, tmp.m_contents);
 			}
 		}
-		return *this;
 	}
 
 	template <typename type2>
@@ -688,13 +686,12 @@ public:
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(rc_container<type2, referenceStrength>&& src) volatile
+	void operator=(rc_container<type2, referenceStrength>&& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		swap(src);
 		src.release_inner();
 		src.m_contents->m_desc = nullptr;
-		return *this;
 	}
 
 
@@ -748,7 +745,7 @@ public:
 	}
 
 	template <typename type2, reference_strength referenceStrength2>
-	volatile this_t& operator=(const rc_container<type2, referenceStrength2>& src) volatile
+	void operator=(const rc_container<type2, referenceStrength2>& src) volatile
 	{
 		COGS_ASSERT(src.m_contents->m_obj || !src.m_contents->m_desc);
 		typename rc_container<type2, referenceStrength2>::read_token rt;
@@ -761,7 +758,6 @@ public:
 			tmp.m_contents->m_desc = rt->m_desc;
 			m_contents.swap(tmp.m_contents);
 		}
-		return *this;
 	}
 
 	template <typename type2>
@@ -820,51 +816,45 @@ public:
 
 
 	template <typename type2>
-	volatile this_t& operator=(const ref<type2>& src) volatile
+	void operator=(const ref<type2>& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(const ptr<type2>& src) volatile
+	void operator=(const ptr<type2>& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(type2* const& src) volatile
+	void operator=(type2* const& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(const volatile ref<type2>& src) volatile
+	void operator=(const volatile ref<type2>& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(const volatile ptr<type2>& src) volatile
+	void operator=(const volatile ptr<type2>& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(type2* const volatile& src) volatile
+	void operator=(type2* const volatile& src) volatile
 	{
 		this_t tmp(src); // need a matching content_t to atomically swap
 		m_contents.swap(tmp.m_contents);
-		return *this;
 	}
 
 
@@ -935,8 +925,8 @@ public:
 
 	type* peek_obj() const volatile { return get_obj(); }
 
-	static size_t mark_bits() { return ptr<type>::mark_bits(); }
-	static size_t mark_mask() { return ptr<type>::mark_mask(); }
+	static constexpr size_t mark_bits() { return ptr<type>::mark_bits(); }
+	static constexpr size_t mark_mask() { return ptr<type>::mark_mask(); }
 
 	size_t get_mark() const { ptr<type> p = m_contents->m_obj; return p.get_mark(); }
 	size_t get_mark() const volatile { ptr<type> p = begin_read()->m_obj; return p.get_mark(); }

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -22,13 +22,13 @@ namespace cogs {
 /// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type, without requiring a cast.
 /// If void is specified, links will point to rbtree_node_t<void, ref_type, link_accessor>.  Default: void
 /// @tparam ref_type Reference type to use for links.  Default: ptr
-/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_tlink_accessor<derived_t, ref_type>
-template <class derived_t, template <typename> class ref_type = ptr, class link_accessor = default_tlink_accessor<derived_t, ref_type> >
-class rbtree_node_t : public tlink_t<derived_t, ref_type, link_accessor>
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_btree_node_accessor<derived_t, ref_type>
+template <class derived_t, template <typename> class ref_type = ptr, class link_accessor = default_btree_node_accessor<derived_t, ref_type> >
+class rbtree_node_t : public btree_node_t<derived_t, ref_type, link_accessor>
 {
 private:
 	typedef rbtree_node_t<derived_t, ref_type, link_accessor> this_t;
-	typedef tlink_t<derived_t, ref_type, link_accessor> base_t;
+	typedef btree_node_t<derived_t, ref_type, link_accessor> base_t;
 
 	bool m_color;
 
@@ -72,11 +72,11 @@ public:
 
 
 template <template <typename> class ref_type, class link_accessor>
-class rbtree_node_t<void, ref_type, link_accessor> : public tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor>
+class rbtree_node_t<void, ref_type, link_accessor> : public btree_node_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor>
 {
 private:
 	typedef rbtree_node_t<void, ref_type, link_accessor> this_t;
-	typedef tlink_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor> base_t;
+	typedef btree_node_t<rbtree_node_t<void, ref_type>, ref_type, link_accessor> base_t;
 
 	bool m_color;
 
@@ -163,10 +163,10 @@ private:
 		ref_t parent;
 		ref_t parentParent;
 		ref_t other;
-		typename ref_t::locked_t lockedRef = n;
-		typename ref_t::locked_t lockedParent;
-		typename ref_t::locked_t lockedParentParent;
-		typename ref_t::locked_t lockedOther;
+		typename ref_t::lock_t lockedRef = n;
+		typename ref_t::lock_t lockedParent;
+		typename ref_t::lock_t lockedParentParent;
+		typename ref_t::lock_t lockedOther;
 		for (;;)
 		{
 			parent = lockedRef->get_parent_link();
@@ -215,7 +215,7 @@ private:
 				lockedParent->set_child_link(!wasRightNode, childChild);
 				if (!!childChild)
 				{
-					typename ref_t::locked_t lockedChildChild = childChild;
+					typename ref_t::lock_t lockedChildChild = childChild;
 					lockedChildChild->set_parent_link(parent);
 				}
 
@@ -239,7 +239,7 @@ private:
 			lockedParentParent->set_child_link(wasRightNode, childChild);
 			if (!!childChild)
 			{
-				typename ref_t::locked_t lockedChildChild = childChild;
+				typename ref_t::lock_t lockedChildChild = childChild;
 				lockedChildChild->set_parent_link(parentParent);
 			}
 
@@ -247,7 +247,7 @@ private:
 				base_t::set_root(parent);
 			else
 			{
-				typename ref_t::locked_t lockedParentParentParent = parentParentParent;
+				typename ref_t::lock_t lockedParentParentParent = parentParentParent;
 				lockedParentParentParent->set_child_link((lockedParentParentParent->get_right_link() == parentParent), parent);
 			}
 			break;
@@ -256,14 +256,14 @@ private:
 
 	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode, const ref_t& hint)
 	{
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		bool wasEmpty = is_empty();
 		ref_t existing = base_t::insert(n, insertMode, hint);
 		if (!!existing)
 		{
 			if (insertMode == sorted_btree_insert_mode::replace)
 			{
-				typename ref_t::locked_t lockedExisting = existing;
+				typename ref_t::lock_t lockedExisting = existing;
 				lockedRef->set_red(lockedExisting->is_red());
 			}
 			// if sorted_btree_insert_mode::replace, do nothing.  Don't get here if insert_multiple.  So do nothing.
@@ -355,7 +355,7 @@ public:
 		ref_t xParent;
 		ref_t swappedWith;
 
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 
 		//bool was_right_child =
 		base_t::balance_remove(n, swappedWith, x, true);
@@ -374,8 +374,8 @@ public:
 		// xParent will not be empty unless n was root
 		if (!lockedRef->is_red())
 		{
-			typename ref_t::locked_t lockedX;
-			typename ref_t::locked_t lockedXParent;
+			typename ref_t::lock_t lockedX;
+			typename ref_t::lock_t lockedXParent;
 			if (!!x)
 				lockedX = x;
 			while (x != get_root()) // root will never be red
@@ -398,7 +398,7 @@ public:
 				// y is xParent's other child, and might be empty
 				if (!!y)
 				{
-					typename ref_t::locked_t lockedY = y;
+					typename ref_t::lock_t lockedY = y;
 					for (;;)
 					{
 						if (lockedY->is_red())
@@ -420,7 +420,7 @@ public:
 
 						bool are_red[2] = { false, false };
 						ref_t y_children[2] = { lockedY->get_left_link(), lockedY->get_right_link() };
-						typename ref_t::locked_t lockedYChildren[2] = { y_children[0], y_children[1] };
+						typename ref_t::lock_t lockedYChildren[2] = { y_children[0], y_children[1] };
 
 						if (!!y_children[0])
 							are_red[0] = lockedYChildren[0]->is_red();

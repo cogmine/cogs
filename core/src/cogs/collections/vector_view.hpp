@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -225,7 +225,7 @@
 //	}
 //
 //	template <typename T2, std::enable_if_t<is_array_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>
-//	volatile this_t& operator=(T2& t) volatile
+//	void operator=(T2& t) volatile
 //	{
 //		m_contents.set();
 //		write_token wt = src.begin_read();
@@ -235,42 +235,38 @@
 //		tmp.m_contents.m_base = (unsigned char*)static_cast<T*>(&(t[0]));
 //		tmp.m_contents.m_stride = sizeof(remove_extent_t<T2>);
 //		atomic::store(m_contents, tmp);
-//		return *this;
 //	}
 //
 //	template <typename T2, std::enable_if_t<is_array_view_v<T2> && std::is_convertible_v<remove_extent_t<T2>*, T*> >...>
-//	volatile this_t& operator=(T2& t) volatile
+//	void operator=(T2& t) volatile
 //	{
 //		decltype(auto) t2(load(t));
 //		content_t tmp;
 //		tmp.m_contents.m_base = (unsigned char*)static_cast<T*>((T2*)t2.m_contents.m_base);
 //		tmp.m_contents.m_stride = t2.m_contents.m_stride;
 //		atomic::store(m_contents, tmp);
-//		return *this;
 //	}
 //
-//	volatile this_t& operator=(this_t& src) volatile { atomic::store(m_contents, src.m_contents); return *this; }
-//	volatile this_t& operator=(const this_t& src) volatile { atomic::store(m_contents, src.m_contents); return *this; }
-//	volatile this_t& operator=(volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); return *this; }
-//	volatile this_t& operator=(const volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); return *this; }
+//	void operator=(this_t& src) volatile { atomic::store(m_contents, src.m_contents); }
+//	void operator=(const this_t& src) volatile { atomic::store(m_contents, src.m_contents); }
+//	void operator=(volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); }
+//	void operator=(const volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); }
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	volatile this_t& operator=(const vector_view<T2>& t) volatile
+//	void operator=(const vector_view<T2>& t) volatile
 //	{
 //		m_contents->m_base = (unsigned char*)static_cast<T*>((T2*)t.m_contents->m_base);
 //		m_contents->m_stride = t.m_contents->m_stride;
 //		m_contents->m_length = t.m_contents->m_length;
-//		return *this;
 //	}
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	volatile this_t& operator=(const volatile vector_view<T2>& t) volatile
+//	void operator=(const volatile vector_view<T2>& t) volatile
 //	{
 //		vector_view<T2>::read_token rt = t.begin_read();
 //		m_contents->m_base = (unsigned char*)static_cast<T*>((T2*)rt->m_base);
 //		m_contents->m_stride = rt->m_stride;
 //		m_contents->m_length = rt->m_length;
-//		return *this;
 //	}
 //
 //	static constexpr size_t get_length() { return n; }

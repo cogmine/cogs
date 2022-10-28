@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -46,14 +46,9 @@ typedef geometry::planar::flow flow;
 typedef geometry::planar::script_flow script_flow;
 typedef geometry::planar::cell cell;
 typedef geometry::planar::alignment alignment;
-//typedef geometry::proportional_sizing_group proportional_sizing_group;
-//typedef geometry::fair_sizing_group fair_sizing_group;
-//typedef geometry::equal_sizing_group equal_sizing_group;
-template <geometry::sizing_disposition disposition>
-using sizing_group = geometry::sizing_group<disposition>;
-typedef geometry::sizing_disposition sizing_disposition;
-typedef geometry::sizing_cell sizing_cell;
-typedef geometry::sizing_group_base sizing_group_base;
+typedef geometry::sizing_policy sizing_policy;
+template <sizing_policy policy = sizing_policy::proportional, bool consider_range = false>
+using sizing_group = geometry::sizing_group<policy, consider_range>;
 
 // A canvas is something that can be drawn to.
 class canvas;
@@ -88,7 +83,7 @@ public:
 // A font_parameters object describes a particular font and style, etc.
 // A font_parameters_list object contains a priority ordered list of font_parameters.
 // In canvas::load_font(), the first font_parameters object in a font_parameters_list
-// that can be successully matched to an available font will be used.
+// that can be successfully matched to an available font will be used.
 
 struct font_parameters;
 

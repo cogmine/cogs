@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -2383,10 +2383,9 @@ private:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(fraction_content<numerator_t2, denominator_t2>&& src) volatile
+	void operator=(fraction_content<numerator_t2, denominator_t2>&& src) volatile
 	{
 		m_contents.set(simplify_content_type(std::move(src)));
-		return *this;
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2397,10 +2396,9 @@ private:
 	}
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(const fraction_content<numerator_t2, denominator_t2>& src) volatile
+	void operator=(const fraction_content<numerator_t2, denominator_t2>& src) volatile
 	{
 		m_contents.set(simplify_content_type(src));
-		return *this;
 	}
 
 public:
@@ -2447,11 +2445,11 @@ public:
 	this_t& operator=(const this_t& src) { if (this != &src) *m_contents = *src.m_contents; return *this; }
 	this_t& operator=(const volatile this_t& src) { COGS_ASSERT(this != &src); *m_contents = *src.begin_read(); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { COGS_ASSERT(this != &src); m_contents.set(*src.m_contents); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { if (this != &src) m_contents.set(*src.begin_read()); return *this; }
+	void operator=(const this_t& src) volatile { COGS_ASSERT(this != &src); m_contents.set(*src.m_contents); }
+	void operator=(const volatile this_t& src) volatile { if (this != &src) m_contents.set(*src.begin_read()); }
 
 	this_t& operator=(this_t&& src) { *m_contents = std::move(*src.m_contents); return *this; }
-	volatile this_t& operator=(this_t&& src) volatile { m_contents.set(std::move(*src.m_contents)); return *this; }
+	void operator=(this_t&& src) volatile { m_contents.set(std::move(*src.m_contents)); }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2462,24 +2460,24 @@ public:
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(const fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
+	void operator=(const fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(const volatile fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); return *this; }
+	void operator=(const volatile fraction<numerator_t2, denominator_t2>& src) volatile { m_contents.set(simplify_content_type(src)); }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
 	this_t& operator=(fraction<numerator_t2, denominator_t2>&& src) { *m_contents = simplify_content_type(std::move(src)); return *this; }
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
-	volatile this_t& operator=(fraction<numerator_t2, denominator_t2>&& src) volatile { m_contents.set(simplify_content_type(std::move(src))); return *this; }
+	void operator=(fraction<numerator_t2, denominator_t2>&& src) volatile { m_contents.set(simplify_content_type(std::move(src))); }
 
 
 	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<numerator_t2> > && !is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
 	this_t& operator=(numerator_t2&& n) { m_contents->assign(std::forward<numerator_t2>(n), one_t()); return *this; }
 
 	template <typename numerator_t2 = numerator_t, typename enable = std::enable_if_t<!is_fraction_type_v<std::remove_reference_t<numerator_t2> > && !is_fraction_content_type_v<std::remove_reference_t<numerator_t2> > > >
-	volatile this_t& operator=(numerator_t2&& n) volatile { m_contents.set(std::forward<numerator_t2>(n), one_t()); return *this; }
+	void operator=(numerator_t2&& n) volatile { m_contents.set(std::forward<numerator_t2>(n), one_t()); }
 
 
 	template <typename numerator_t2 = numerator_t, typename denominator_t2 = denominator_t>
@@ -2571,10 +2569,9 @@ public:
 	}
 
 	template <typename T>
-	volatile this_t& operator+=(const T& t) volatile
+	void operator+=(const T& t) volatile
 	{
 		write_retry_loop([&](content_t& c) { c.assign_add(simplify_content_type(t)); });
-		return *this;
 	}
 
 	template <typename T>
@@ -2626,10 +2623,9 @@ public:
 	}
 
 	template <typename T>
-	volatile this_t& operator-=(const T& t) volatile
+	void operator-=(const T& t) volatile
 	{
 		write_retry_loop([&](content_t& c) { c.assign_subtract(simplify_content_type(t)); });
-		return *this;
 	}
 
 	template <typename T>
@@ -2734,10 +2730,9 @@ public:
 	}
 
 	template <typename T>
-	volatile this_t& operator*=(const T& t) volatile
+	void operator*=(const T& t) volatile
 	{
 		write_retry_loop([&](content_t& c) { c.assign_multiply(simplify_content_type(t)); });
-		return *this;
 	}
 
 	template <typename T>
@@ -2789,10 +2784,9 @@ public:
 	}
 
 	template <typename T>
-	volatile this_t& operator%=(const T& t) volatile
+	void operator%=(const T& t) volatile
 	{
 		write_retry_loop([&](content_t& c) { c.assign_modulo(simplify_content_type(t)); });
-		return *this;
 	}
 
 	template <typename T>
@@ -2897,10 +2891,9 @@ public:
 	}
 
 	template <typename T>
-	volatile this_t& operator/=(const T& t) volatile
+	void operator/=(const T& t) volatile
 	{
 		write_retry_loop([&](content_t& c) { c.assign_divide(simplify_content_type(t)); });
-		return *this;
 	}
 
 	template <typename T>

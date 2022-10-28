@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -482,7 +482,7 @@ private:
 	public:
 		using link_t::m_links;
 
-		alignas(atomic::get_alignment_v<ptrdiff_t>) ptrdiff_t m_count = 0;
+		ptrdiff_t m_count alignas(atomic::get_alignment_v<ptrdiff_t>) = 0;
 
 		allocator_type m_allocator;
 
@@ -762,7 +762,7 @@ public:
 		iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -1135,7 +1135,7 @@ public:
 		volatile_iterator& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_iterator& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -1624,7 +1624,7 @@ public:
 		remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		void disown() { m_link.disown(); }
 		void disown() volatile { m_link.disown(); }
@@ -1760,7 +1760,7 @@ public:
 		volatile_remove_token& operator=(T2&& i) { assign(forward_member<T2>(i.m_link)); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_remove_token& operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); return *this; }
+		void operator=(T2&& i) volatile { assign(forward_member<T2>(i.m_link)); }
 
 		bool is_active() const { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
 		bool is_active() const volatile { rcptr<volatile link_t> lnk(m_link); return !!lnk && !lnk->is_removed(); }
@@ -1882,9 +1882,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t&) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t&) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	bool operator==(const this_t& cmp) const
 	{

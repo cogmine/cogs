@@ -1,5 +1,5 @@
-#include <iostream>
 #include "cogs/cogs.hpp"
+#include <iostream>
 
 using namespace cogs;
 using namespace cogs::gui;
@@ -20,7 +20,7 @@ COGS_MAIN
 
 		*quitCountDown += guiSubsystem->open(
 			rcnew(background)({
-				.backgroundColor = color::constant::white,
+				.backgroundColor = color::constant::light_blue,
 				.children =  rcnew(label)({
 					.text = string::literal(L"Hello World!"),
 					.font = gfx::font_parameters{ .pointSize = 38 },
@@ -34,3 +34,4 @@ COGS_MAIN
 		return EXIT_SUCCESS;
 	});
 }
+

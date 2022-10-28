@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -50,8 +50,8 @@ public:
 	/// @brief Alias to this type.
 	typedef ref<type> this_t;
 
-	/// @brief Alias to this type.  If this reference container required locking (such as a 'relocatable handle'), locked_t would be the appropriate type to contain the lock.
-	typedef ref<type> locked_t;
+	/// @brief Alias to this type.  If this reference container required locking (such as a 'relocatable handle'), lock_t would be the appropriate type to contain the lock.
+	typedef ref<type> lock_t;
 
 	/// @brief Alias to the non_nullable equivalent of this reference type
 	typedef ref<type> non_nullable;
@@ -72,7 +72,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas(atomic::get_alignment_v<type*>) type* m_value;
+	type* m_value alignas(atomic::get_alignment_v<type*>);
 
 	template <typename>
 	friend class ptr;
@@ -160,17 +160,17 @@ public:
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
 	this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(type& src) volatile { set(src); return *this; }
+	void operator=(type& src) volatile { set(src); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	/// @brief Thread-safe implementation of operator=()
-	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
 	/// @brief Thread-safe implementation of operator=()
 	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
-	volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	/// @brief Thread-safe implementation of operator=()
+	template <typename type2, typename enable = std::enable_if_t<std::is_convertible_v<type2*, type*> > >
+	void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 	/// @}
 
 	/// @{
@@ -692,11 +692,11 @@ public:
 	/// - Alignment of 4 indicates there is 2.
 	/// - Alignment of 8 indicates there is 3.
 	/// @return The number of bits available to be marked on the pointer.
-	static size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
+	static constexpr size_t mark_bits() { return range_to_bits_v<0, alignof(type) - 1>; }
 
 	/// @brief Gets a mask with all available mark bits sets.
 	/// @return A mask containing all available mark bits set.
-	static size_t mark_mask() { return (1 << mark_bits()) - 1; }
+	static constexpr size_t mark_mask() { return (1 << mark_bits()) - 1; }
 
 	/// @{
 	/// @brief Gets marked bits on the pointer, if any
@@ -848,7 +848,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas(atomic::get_alignment_v<type*>) type* m_value;
+	type* m_value alignas(atomic::get_alignment_v<type*>);
 
 	template <typename>
 	friend class ptr;
@@ -885,10 +885,10 @@ public:
 	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
@@ -1291,7 +1291,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas(atomic::get_alignment_v<type*>) type* m_value;
+	type* m_value alignas(atomic::get_alignment_v<type*>);
 
 	template <typename>
 	friend class ptr;
@@ -1327,10 +1327,10 @@ public:
 	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
@@ -1734,7 +1734,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas(atomic::get_alignment_v<type*>) type* m_value;
+	type* m_value alignas(atomic::get_alignment_v<type*>);
 
 	template <typename>
 	friend class ptr;
@@ -1770,10 +1770,10 @@ public:
 	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }
@@ -2180,7 +2180,7 @@ public:
 	using cast_t = typename cast<type2>::type;
 
 private:
-	alignas(atomic::get_alignment_v<type*>) type* m_value;
+	type* m_value alignas(atomic::get_alignment_v<type*>);
 
 	template <typename>
 	friend class ptr;
@@ -2216,10 +2216,10 @@ public:
 	template <typename type2> this_t& operator=(const ref<type2>& src) { set(src.get_ptr()); return *this; }
 	template <typename type2> this_t& operator=(const volatile ref<type2>& src) { set(src.get_ptr()); return *this; }
 
-	volatile this_t& operator=(const this_t& src) volatile { set(src.get_ptr()); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
-	template <typename type2> volatile this_t& operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); return *this; }
+	void operator=(const this_t& src) volatile { set(src.get_ptr()); }
+	void operator=(const volatile this_t& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const ref<type2>& src) volatile { set(src.get_ptr()); }
+	template <typename type2> void operator=(const volatile ref<type2>& src) volatile { set(src.get_ptr()); }
 
 	type* get_ptr() const { return m_value; }
 	type* get_ptr() const volatile { type* rtn; atomic::load(m_value, rtn); return rtn; }

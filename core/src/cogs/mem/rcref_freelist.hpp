@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -91,7 +91,7 @@ private:
 
 	versioned_ptr<node_t> m_head;
 	node_t m_preallocated[preallocated_count];
-	alignas(atomic::get_alignment_v<size_t>) size_t m_curPos;
+	size_t m_curPos alignas(atomic::get_alignment_v<size_t>);
 
 public:
 	rcref_freelist()

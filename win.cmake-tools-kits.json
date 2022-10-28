@@ -1,196 +1,258 @@
 [
-  {
-    "name": "clang-cl 10.0.0 for MSVC with Visual Studio Enterprise 2019 Preview (amd64)",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "amd64",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM\\bin\\clang-cl.exe",
-      "CXX": "C:\\Program Files\\LLVM\\bin\\clang-cl.exe"
-    }
-  },
-  {
-    "name": "clang-cl 10.0.0 for MSVC with Visual Studio Enterprise 2019 Preview (x86)",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM\\bin\\clang-cl.exe",
-      "CXX": "C:\\Program Files\\LLVM\\bin\\clang-cl.exe"
-    }
-  },
-  {
-    "name": "clang-cl 11.0.0 for MSVC with Visual Studio Enterprise 2019 Preview (amd64)",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "amd64",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM11\\bin\\clang-cl.exe",
-      "CXX": "C:\\Program Files\\LLVM11\\bin\\clang-cl.exe"
-    }
-  },
-  {
-    "name": "clang-cl 11.0.0 for MSVC with Visual Studio Enterprise 2019 Preview (x86)",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM11\\bin\\clang-cl.exe",
-      "CXX": "C:\\Program Files\\LLVM11\\bin\\clang-cl.exe"
-    }
-  },
-
-  {
-    "name": "clang 10.0.0 (x64)",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM\\bin\\clang.exe",
-      "CXX": "C:\\Program Files\\LLVM\\bin\\clang.exe",
-      "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
-    },
-    "cmakeSettings": {
-      "X64": "1"
-    }
-  },
-  {
-    "name": "clang 10.0.0 (x86)",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM\\bin\\clang.exe",
-      "CXX": "C:\\Program Files\\LLVM\\bin\\clang.exe",
-      "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
-    },
-    "cmakeSettings": {
-      "X86": "1"
-    }
-  },
-  {
-    "name": "clang 11.0.0 (x64)",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
-      "CXX": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
-      "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
-    },
-    "cmakeSettings": {
-      "X64": "1"
-    }
-  },
-  {
-    "name": "clang 11.0.0 (x86)",
-    "compilers": {
-      "C": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
-      "CXX": "C:\\Program Files\\LLVM11\\bin\\clang.exe",
-      "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.19041.0\\x86\\rc.exe"
-    },
-    "cmakeSettings": {
-      "X86": "1"
-    }
-  },
-
-  {
-    "name": "GCC 10.2.0 x64",
-    "compilers": {
-      "C": "C:\\msys64\\mingw64\\bin\\gcc.exe",
-      "CXX": "C:\\msys64\\mingw64\\bin\\g++.exe"
-    },
-    "preferredGenerator": {
-      "name": "MinGW Makefiles"
-    },
-    "cmakeSettings": {
-      "X64": "1"
-    },
-    "environmentVariables": {
-      "PATH": "C:/msys64/mingw64/bin/"
-    }
-  },
-  {
-    "name": "GCC 10.2.0 x86",
-    "compilers": {
-      "C": "C:\\msys64\\mingw32\\bin\\gcc.exe",
-      "CXX": "C:\\msys64\\mingw32\\bin\\g++.exe"
-    },
-    "preferredGenerator": {
-      "name": "MinGW Makefiles"
-    },
-    "cmakeSettings": {
-      "X86": "1"
-    },
-    "environmentVariables": {
-      "PATH": "C:/msys64/mingw32/bin/"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - amd64",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x64",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "x64",
-      "toolset": "host=x64"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - amd64_arm",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x64",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "arm",
-      "toolset": "host=x64"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - amd64_arm64",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x64",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "arm64",
-      "toolset": "host=x64"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - amd64_x86",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x64",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "win32",
-      "toolset": "host=x64"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - x86",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "win32",
-      "toolset": "host=x86"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - x86_amd64",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "x64",
-      "toolset": "host=x86"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - x86_arm",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "arm",
-      "toolset": "host=x86"
-    }
-  },
-  {
-    "name": "Visual Studio Enterprise 2019 Preview - x86_arm64",
-    "visualStudio": "9b5c4e3f",
-    "visualStudioArchitecture": "x86",
-    "preferredGenerator": {
-      "name": "Visual Studio 16 2019",
-      "platform": "arm64",
-      "toolset": "host=x86"
-    }
-  }
-]
+	{
+	  "name": "Cygwin x64 (MSYS2) ",
+	  "compilers": {
+		"C": "c:\\msys64\\usr\\bin\\gcc.exe",
+		"CXX": "c:\\msys64\\usr\\bin\\g++.exe"
+	  },
+	  "preferredGenerator": {
+		"name": "Unix Makefiles"
+	  },
+	  "cmakeSettings": {
+		"X64": "1"
+	  },
+	  "environmentVariables": {
+		"CMT_MINGW_PATH": "c:\\msys64\\usr\\bin"
+	  }
+	},
+	{
+	  "name": "MinGW32 (MSYS2) ",
+	  "compilers": {
+		"C": "C:\\msys64\\mingw32\\bin\\gcc.exe",
+		"CXX": "C:\\msys64\\mingw32\\bin\\g++.exe"
+	  },
+	  "preferredGenerator": {
+		"name": "MinGW Makefiles"
+	  },
+	  "cmakeSettings": {
+		"X64": "1"
+	  },
+	  "environmentVariables": {
+		"CMT_MINGW_PATH": "C:\\msys64\\mingw32\\bin"
+	  }
+	},
+	{
+	  "name": "MinGW64 (MSYS2) ",
+	  "compilers": {
+		"C": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+		"CXX": "C:\\msys64\\mingw64\\bin\\g++.exe"
+	  },
+	  "preferredGenerator": {
+		"name": "MinGW Makefiles"
+	  },
+	  "cmakeSettings": {
+		"X64": "1"
+	  },
+	  "environmentVariables": {
+		"CMT_MINGW_PATH": "C:\\msys64\\mingw64\\bin"
+	  }
+	},
+	{
+	  "name": "Clang 15.0.1 (GNU CLI) for MSVC 17.4.33015.44 (Visual Studio Professional 2022 Preview - amd64)",
+	  "compilers": {
+		"C": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang.exe",
+		"CXX": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang.exe"
+	  },
+	  "cmakeSettings": {
+		"X64": "1"
+	  }
+	},
+	{
+	  "name": "Clang 15.0.1 (GNU CLI) for MSVC 17.4.33015.44 (Visual Studio Professional 2022 Preview - x86)",
+	  "compilers": {
+		"C": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang.exe",
+		"CXX": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang.exe"
+	  },
+	  "cmakeSettings": {
+		"X86": "1"
+	  }
+	},
+	{
+	  "name": "Clang 15.0.1 (MSVC CLI) for MSVC 17.4.33015.44 (Visual Studio Professional 2022 Preview - amd64)",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "x64",
+		"toolset": "ClangCL,host=x64"
+	  },
+	  "compilers": {
+		"C": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe",
+		"CXX": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe"
+	  }
+	},
+	{
+	  "name": "Clang 15.0.1 (MSVC CLI) for MSVC 17.4.33015.44 (Visual Studio Professional 2022 Preview - x86)",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "win32",
+		"toolset": "host=x86"
+	  },
+	  "compilers": {
+		"C": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\bin\\clang-cl.exe",
+		"CXX": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\VC\\Tools\\Llvm\\bin\\clang-cl.exe"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - amd64",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "x64",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - amd64_arm",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - amd64_arm64",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm64",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - amd64_x86",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "win32",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - x86",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "win32",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - x86_amd64",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "x64",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - x86_arm",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Enterprise 2022 Release - x86_arm64",
+	  "visualStudio": "70ce3af8",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm64",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - amd64",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "x64",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - amd64_arm",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - amd64_arm64",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm64",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - amd64_x86",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x64",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "win32",
+		"toolset": "host=x64"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - x86",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "win32",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - x86_amd64",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "x64",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - x86_arm",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm",
+		"toolset": "host=x86"
+	  }
+	},
+	{
+	  "name": "Visual Studio Professional 2022 Preview - x86_arm64",
+	  "visualStudio": "ce66a124",
+	  "visualStudioArchitecture": "x86",
+	  "preferredGenerator": {
+		"name": "Visual Studio 17 2022",
+		"platform": "arm64",
+		"toolset": "host=x86"
+	  }
+	}
+  ]

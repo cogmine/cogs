@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -155,8 +155,9 @@ public:
 		return call_default_window_proc(msg, wParam, lParam);
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
+		hwnd_pane::calculating_range();
 		SIZE sz = { 0, 0 };
 		Button_GetIdealSize(get_HWND(), &sz);
 		if (sz.cx < 16)

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -28,13 +28,13 @@ namespace cogs {
 /// @tparam derived_t Derived type of this class.  Allows links to be returned as references to the derived type without requiring a cast.
 /// If void is specified, links will point to avltree_node_t<void, ref_type, link_accessor>.  Default: void
 /// @tparam ref_type Reference type to use for links.  Default: ptr
-/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_tlink_accessor<derived_t, ref_type>
-template <class derived_t = void, template <typename> class ref_type = ptr, class link_accessor = default_tlink_accessor<derived_t, ref_type> >
-class avltree_node_t : public tlink_t<derived_t, ref_type, link_accessor>
+/// @tparam link_accessor Helper type providing functions to get and set links.  Default: default_btree_node_accessor<derived_t, ref_type>
+template <class derived_t = void, template <typename> class ref_type = ptr, class link_accessor = default_btree_node_accessor<derived_t, ref_type> >
+class avltree_node_t : public btree_node_t<derived_t, ref_type, link_accessor>
 {
 private:
 	typedef avltree_node_t<derived_t, ref_type, link_accessor> this_t;
-	typedef tlink_t<derived_t, ref_type, link_accessor> base_t;
+	typedef btree_node_t<derived_t, ref_type, link_accessor> base_t;
 
 	int m_factor;
 
@@ -74,11 +74,11 @@ public:
 
 
 template <template <typename> class ref_type, class link_accessor>
-class avltree_node_t<void, ref_type, link_accessor> : public tlink_t<avltree_node_t<void, ref_type>, ref_type, link_accessor>
+class avltree_node_t<void, ref_type, link_accessor> : public btree_node_t<avltree_node_t<void, ref_type>, ref_type, link_accessor>
 {
 private:
 	typedef avltree_node_t<void, ref_type, link_accessor> this_t;
-	typedef tlink_t<avltree_node_t<void, ref_type>, ref_type, link_accessor> base_t;
+	typedef btree_node_t<avltree_node_t<void, ref_type>, ref_type, link_accessor> base_t;
 
 	int m_factor;
 
@@ -176,9 +176,9 @@ private:
 		ref_t parent = parentIn;
 		ref_t parentParent;
 		ref_t child;
-		typename ref_t::locked_t lockedRef;
-		typename ref_t::locked_t lockedParent;
-		typename ref_t::locked_t lockedChild;
+		typename ref_t::lock_t lockedRef;
+		typename ref_t::lock_t lockedParent;
+		typename ref_t::lock_t lockedChild;
 
 		if (isInsert) // if (!!n)
 			lockedRef = n;
@@ -226,13 +226,13 @@ private:
 					ref_t childChild1 = lockedChild->get_child_link(direction);
 					if (!!childChild1)
 					{
-						typename ref_t::locked_t lockedChildChild1 = childChild1;
+						typename ref_t::lock_t lockedChildChild1 = childChild1;
 						lockedChildChild1->set_parent_link(n);
 					}
 					ref_t childChild2 = lockedChild->get_child_link(!direction);
 					if (!!childChild2)
 					{
-						typename ref_t::locked_t lockedChildChild2 = childChild2;
+						typename ref_t::lock_t lockedChildChild2 = childChild2;
 						lockedChildChild2->set_parent_link(parent);
 					}
 
@@ -267,7 +267,7 @@ private:
 					lockedRef->set_parent_link(parentParent);
 					if (!!otherChild)
 					{
-						typename ref_t::locked_t lockedOtherChild = otherChild;
+						typename ref_t::lock_t lockedOtherChild = otherChild;
 						lockedOtherChild->set_parent_link(parent);
 					}
 
@@ -336,13 +336,13 @@ private:
 	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode, const ref_t& hint)
 	{
 		bool wasEmpty = is_empty();
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		ref_t existing = base_t::insert(n, insertMode, hint);
 		if (!!existing)
 		{
 			if (insertMode == sorted_btree_insert_mode::replace)
 			{
-				typename ref_t::locked_t lockedExisting = existing;
+				typename ref_t::lock_t lockedExisting = existing;
 				lockedRef->set_factor(lockedExisting->get_factor());
 			}
 		}
@@ -352,7 +352,7 @@ private:
 			if (!wasEmpty)
 			{
 				ref_t parent = lockedRef->get_parent_link();
-				typename ref_t::locked_t lockedParent = parent;
+				typename ref_t::lock_t lockedParent = parent;
 				bool isRightChild = (n == lockedParent->get_right_link());
 				rebalance<true>(n, parent, isRightChild);
 			}
@@ -436,7 +436,7 @@ public:
 	{
 		ref_t liftedChild;
 		ref_t swappedWith;
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		const int factor = lockedRef->get_factor();
 
 		bool wasRightChild = base_t::balance_remove(n, swappedWith, liftedChild, (factor == 1));
@@ -446,14 +446,14 @@ public:
 			for (;;)
 			{
 				ref_t parent = lockedRef->get_parent_link();
-				typename ref_t::locked_t lockedSwappedWith;
+				typename ref_t::lock_t lockedSwappedWith;
 				if (!swappedWith) // If no swap occured, we know the removed node has 0 or 1 children.
 				{                 // Go ahead and set its parent's factor accordingly, and enter rebalance one level up.
 					if (!parent)  // if the root is being removed, we know it's now empty, or has just 1 element.
 					{
 						if (!!liftedChild) // If just 1 element, set its factor to 0 and clear the parent
 						{
-							typename ref_t::locked_t lockedLiftedChild = liftedChild;
+							typename ref_t::lock_t lockedLiftedChild = liftedChild;
 							lockedLiftedChild->set_factor(0);
 							ref_t emptyRef;
 							lockedLiftedChild->set_parent_link(emptyRef);

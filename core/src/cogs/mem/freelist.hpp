@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -37,7 +37,7 @@ public:
 /// @brief A lock-free free-list.
 ///
 /// A freelist is a lock-free stack that avoids the ABA problem without use of hazards,
-/// by ensuring the listspans of elements extend beyond the lifespan of the freelist.
+/// by ensuring the life-spans of elements extend beyond the lifespan of the freelist.
 ///
 /// A freelist grows but does not shrink.  Elements are retained until the free-list is destructed.
 ///
@@ -59,7 +59,7 @@ private:
 	typedef typename versioned_ptr<node_t>::version_t version_t;
 
 	versioned_ptr<node_t> m_head;
-	alignas(atomic::get_alignment_v<size_t>) size_t m_curPos;
+	size_t m_curPos alignas(atomic::get_alignment_v<size_t>);
 	node_t m_preallocated[preallocated_count];
 
 	freelist(freelist&&) = delete;

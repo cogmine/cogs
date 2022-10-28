@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -7,6 +7,18 @@
 
 #ifndef COGS_HEADER_ENV
 #define COGS_HEADER_ENV
+
+#ifdef __CYGWIN__
+#ifdef __x86_64__
+// 10/21/2022 - Current Mingw headers define sockaddr_in6 using u_long (8 byte)
+// because a redefinition for LP64 systems is missing.  This leads to a wrong
+// definition and size of sockaddr_in6 when building with winsock headers.
+#undef u_long
+#define u_long __ms_u_long
+#endif
+#endif
+
+#include "cogs/os.hpp"
 
 #include <stdint.h>
 #include <new>
@@ -21,7 +33,6 @@
 #include <wctype.h>
 #include <type_traits>
 
-#include "cogs/os.hpp"
 #include "cogs/math/bytes_to_int.hpp"
 
 namespace cogs {

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -21,7 +21,7 @@
 //#pragma comment (lib, "d3dx11.lib")
 //#pragma comment (lib, "d3dx10.lib")
 
-#include "cogs/hwnd.hpp"
+#include "cogs/os/gui/GDI/hwnd.hpp"
 
 namespace cogs {
 namespace os {

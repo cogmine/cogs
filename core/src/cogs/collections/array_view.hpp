@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -65,8 +65,8 @@
 //
 //struct array_view_content_t
 //{
-//	alignas(atomic::get_alignment_v<unsigned char*>) unsigned char* m_base;
-//	alignas(atomic::get_alignment_v<size_t>) size_t m_stride;
+//	unsigned char* m_base alignas(atomic::get_alignment_v<unsigned char*>);
+//	size_t m_stride alignas(atomic::get_alignment_v<size_t>);
 //};
 //
 //template <size_t n, typename T>
@@ -80,7 +80,7 @@
 //	static_assert(n > 0);
 //
 //	typedef array_view_content_t content_t;
-//	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
+//	content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 //
 //	template <size_t, typename>
 //	friend class array_view;
@@ -161,30 +161,28 @@
 //	this_t& operator=(const volatile this_t& src) { m_contents = atomic::load(src.m_contents); return *this; }
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	volatile this_t& operator=(const array_view<n, T2>& t) volatile
+//	void operator=(const array_view<n, T2>& t) volatile
 //	{
 //		content_t tmp;
 //		tmp.m_base = (unsigned char*)static_cast<T*>((T2*)t.m_contents.m_base);
 //		tmp.m_stride = t.m_contents.m_stride;
 //		atomic::store(m_contents, tmp);
-//		return *this;
 //	}
 //
 //	template <typename T2, std::enable_if_t<std::is_convertible_v<T2*, T*> >...>
-//	volatile this_t& operator=(const volatile array_view<n, T2>& t) volatile
+//	void operator=(const volatile array_view<n, T2>& t) volatile
 //	{
 //		decltype(auto) t2(load(t));
 //		content_t tmp;
 //		tmp.m_base = (unsigned char*)static_cast<T*>((T2*)t2.m_contents.m_base);
 //		tmp.m_stride = t2.m_contents.m_stride;
 //		atomic::store(m_contents, tmp);
-//		return *this;
 //	}
 //
-//	volatile this_t& operator=(this_t& src) volatile { atomic::store(m_contents, src.m_contents); return *this; }
-//	volatile this_t& operator=(const this_t& src) volatile { atomic::store(m_contents, src.m_contents); return *this; }
-//	volatile this_t& operator=(volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); return *this; }
-//	volatile this_t& operator=(const volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); return *this; }
+//	void operator=(this_t& src) volatile { atomic::store(m_contents, src.m_contents); }
+//	void operator=(const this_t& src) volatile { atomic::store(m_contents, src.m_contents); }
+//	void operator=(volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); }
+//	void operator=(const volatile this_t& src) volatile { atomic::store(m_contents, atomic::load(src.m_contents)); }
 //
 //
 //

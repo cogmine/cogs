@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_MEM_BATCH_ALLOCATOR
@@ -66,8 +66,8 @@ private:
 		};
 
 		this_t& m_batchAllocator;
-		alignas(atomic::get_alignment_v<freelist_content_t>) freelist_content_t m_freelist;
-		alignas(atomic::get_alignment_v<size_t>) size_t m_curPos = 0;
+		freelist_content_t m_freelist alignas(atomic::get_alignment_v<freelist_content_t>);
+		size_t m_curPos alignas(atomic::get_alignment_v<size_t>) = 0;
 		const size_t m_batchSize;
 		node_t* const m_nodes;
 

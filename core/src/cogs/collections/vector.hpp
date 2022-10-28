@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -1541,6 +1541,9 @@ private:
 	static_assert(!std::is_volatile_v<T>);
 	static_assert(!std::is_void_v<T>);
 
+	static constexpr bool is_char_vector = std::is_same_v<T, char>;
+	static constexpr bool is_wchar_t_vector = std::is_same_v<T, wchar_t>;
+
 public:
 	typedef T type;
 	typedef vector<type> this_t;
@@ -1897,17 +1900,15 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(const this_t& src) volatile
+	void operator=(const this_t& src) volatile
 	{
 		assign(src);
-		return *this;
 	}
 
 	template <typename type2>
-	volatile this_t& operator=(const vector<type2>& src) volatile
+	void operator=(const vector<type2>& src) volatile
 	{
 		assign(src);
-		return *this;
 	}
 
 	template <typename type2>

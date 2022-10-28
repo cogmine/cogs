@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -270,14 +270,13 @@ public:
 		return hwnd_pane::process_message(msg, wParam, lParam);
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
+		hwnd_pane::calculating_range();
 		m_currentRange.clear();
 		int scrollBarWidth = GetSystemMetricsForDpi((m_dimension == gfx::dimension::horizontal) ? SM_CYHSCROLL : SM_CXVSCROLL, (int)get_device_context().get_dpi());
 		double sz = get_device_context().make_size(scrollBarWidth);
-
 		m_currentRange.get_max(!m_dimension) = sz;
-
 		m_currentDefaultSize.set(sz, sz);
 	}
 

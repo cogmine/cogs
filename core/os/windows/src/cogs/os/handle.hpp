@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -28,7 +28,7 @@ namespace os {
 class auto_HANDLE
 {
 private:
-	alignas(cogs::atomic::get_alignment_v<HANDLE>) HANDLE m_value;
+	HANDLE m_value alignas(cogs::atomic::get_alignment_v<HANDLE>);
 
 public:
 	auto_HANDLE()
@@ -59,10 +59,9 @@ public:
 		return *this;
 	}
 
-	volatile auto_HANDLE& operator=(const HANDLE& value) volatile
+	void operator=(const HANDLE& value) volatile
 	{
 		set(value);
-		return *this;
 	}
 
 	auto_HANDLE& operator=(auto_HANDLE&& src)
@@ -71,10 +70,9 @@ public:
 		return *this;
 	}
 
-	volatile auto_HANDLE& operator=(auto_HANDLE&& src) volatile
+	void operator=(auto_HANDLE&& src) volatile
 	{
 		set(src.m_value);
-		return *this;
 	}
 
 	void set(const HANDLE& value)

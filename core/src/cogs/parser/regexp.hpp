@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -10,6 +10,7 @@
 
 
 #include "cogs/math/range_to_int.hpp"
+#include "cogs/collections/vector.hpp"
 
 
 #error ?
@@ -26,19 +27,19 @@ template <size_t token_count = 256>
 class expression
 {
 public:
-	typedef typename range_to_int_t<0, token_count - 1> token_t;
+	typedef range_to_int_t<0, token_count - 1> token_t;
 
 	typedef expression<token_count> this_t;
 
 private:
 	token_t m_tokenClassTable[token_count]; // token -> tokenClass
 
-	array<token_t> m_tokenClassCounts; // tokenClass -> token
+	vector<token_t> m_tokenClassCounts; // tokenClass -> token
 
 	class state
 	{
 	public:
-		array<size_t> m_table;
+		vector<size_t> m_table;
 		bool m_possibleEndState;
 
 		state()
@@ -46,7 +47,7 @@ private:
 		{ }
 	};
 
-	array<state> m_stateTables;
+	vector<state> m_stateTables;
 
 	size_t get_num_token_classes() const { return m_tokenClassCounts.length(); }
 	size_t get_num_states() const { return m_stateTables.length(); }
@@ -95,7 +96,7 @@ private:
 		size_t unmatched_transition = const_max_int_v<size_t>;
 		if (exclude)
 		{
-			unmatched_transition  = matched_transition;
+			unmatched_transition = matched_transition;
 			matched_transition = const_max_int_v<size_t>;
 		}
 
@@ -134,7 +135,7 @@ public:
 	// OR is the next simplest operation.
 	// A character class is created for each unique combination of character classes (e1<->e2)
 	// A state is created for each unique combination of state transitions (e1<->e2)
-	static this_t or(const this_t& e1, const this_t& e2)
+	static this_t logical_or(const this_t& e1, const this_t& e2)
 	{
 		this_t e;
 		// First merge the two character class tables

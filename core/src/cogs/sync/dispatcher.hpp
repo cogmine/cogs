@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -18,6 +18,7 @@
 #include "cogs/mem/rcref.hpp"
 #include "cogs/sync/semaphore.hpp"
 #include "cogs/sync/priority_queue.hpp"
+#include "cogs/sync/yield.hpp"
 
 
 namespace cogs {
@@ -564,8 +565,8 @@ protected:
 
 	struct task_state
 	{
-		alignas(atomic::get_alignment_v<size_t>) size_t m_waitingCount;
-		alignas(atomic::get_alignment_v<os::semaphore*>) os::semaphore* m_osSemaphore;
+		size_t m_waitingCount alignas(atomic::get_alignment_v<size_t>);
+		os::semaphore* m_osSemaphore alignas(atomic::get_alignment_v<os::semaphore*>);
 
 		// 0 = initial state, 1 = nextTask deployed, 2 = cancelled, 3 = invoked
 		// Piggy back 2 bits of state data in the unused 2 bits of m_os_semaphore
@@ -598,7 +599,7 @@ protected:
 
 	static_assert(can_atomic_v<task_state>);
 
-	alignas(atomic::get_alignment_v<task_state>) mutable task_state m_taskState;
+	mutable task_state m_taskState alignas(atomic::get_alignment_v<task_state>);
 
 	signallable_task_base()
 		: m_taskState{ 0, nullptr }
@@ -672,7 +673,7 @@ public:
 	virtual int timed_wait(const timeout_t& timeout, unsigned int spinCount = 0) const volatile
 	{
 		int result = 0;
-		unsigned int spinsLeft = spinCount;
+		unsigned int spinsLeft = (env::get_processor_count() == 1) ? 0 : spinCount;
 		task_state oldTaskState;
 		rcptr<os::semaphore> osSemaphoreRc;
 		for (;;)
@@ -693,11 +694,7 @@ public:
 				break;
 			if (!!spinsLeft)
 			{
-				if (!os::thread::spin_once())
-				{
-					spinsLeft = 0;
-					break;
-				}
+				yield();
 				--spinsLeft;
 				continue;
 			}
@@ -834,7 +831,7 @@ public:
 		return const_cast<function_task_base<result_t, arg_t>*>(this)->m_cancelFunc;
 	}
 
-	alignas(atomic::get_alignment_v<int>) int m_priority;
+	int m_priority alignas(atomic::get_alignment_v<int>);
 
 	virtual int get_priority() const volatile
 	{
@@ -1426,7 +1423,7 @@ public:
 	volatile rcptr<task<result_t> > m_innerTask2;
 	volatile rcptr<task<void> > m_innerTask3;
 	signallable_task<bool> m_cancelTask;
-	alignas(atomic::get_alignment_v<int>) int m_priority;
+	int m_priority alignas(atomic::get_alignment_v<int>);
 
 	virtual int get_priority() const volatile
 	{
@@ -1518,7 +1515,7 @@ public:
 	volatile rcptr<task<void> > m_innerTask2;
 	volatile rcptr<task<void> > m_innerTask3;
 	signallable_task<bool> m_cancelTask;
-	alignas(atomic::get_alignment_v<int>) int m_priority;
+	int m_priority alignas(atomic::get_alignment_v<int>);
 
 	virtual int get_priority() const volatile
 	{

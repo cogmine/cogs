@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,8 +30,6 @@
 namespace cogs {
 namespace os {
 
-
-// os::thread is an OS level thread
 
 // Adds a timeout to join, and allows multiple joiners (normally pthreads only allows 1 joiner).
 class thread : public object
@@ -69,8 +67,6 @@ private:
 		if (!!numWaiting)
 			m_exitSemaphore.release(numWaiting);
 	}
-
-	inline static unsigned int s_processorCount = 0;
 
 public:
 	explicit thread(const function<void()>& d)
@@ -152,29 +148,19 @@ public:
 	{
 		return (pthread_equal(m_thread, pthread_self()) != 0);
 	}
-
-	// Used by spinlocks.  Spins 1, or returns false to indicate that the spin should be aborted (such as on a uni-processor system)
-	static bool spin_once()
-	{
-		if (get_processor_count() == 1)
-			return false;
-
-		_mm_pause();
-		return true;
-	}
-
-	static unsigned int get_processor_count()
-	{
-		if (!s_processorCount)
-			s_processorCount = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
-		return s_processorCount;
-	}
 };
 
 
+inline unsigned int get_processor_count()
+{
+	static unsigned int s_processorCount = 0;
+	if (!s_processorCount)
+		s_processorCount = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+	return s_processorCount;
 }
 
 
+}
 }
 
 

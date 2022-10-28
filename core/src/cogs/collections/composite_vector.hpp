@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -5183,19 +5183,11 @@ public:
 
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
 	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { assign(src); return *this; }
+	void operator=(const this_t& src) volatile { assign(src); }
 
-	this_t& operator=(this_t&& src)
-	{
-		m_contents = std::move(src.m_contents);
-		return *this;
-	}
+	this_t& operator=(this_t&& src) { m_contents = std::move(src.m_contents); return *this; }
 
-	volatile this_t& operator=(this_t&& src) volatile
-	{
-		m_contents = std::move(src.m_contents);
-		return *this;
-	}
+	void operator=(this_t&& src) volatile { m_contents = std::move(src.m_contents); }
 
 	template <typename type2>
 	this_t& operator=(const vector<type2>& src) { assign(src); return *this; }
@@ -5204,7 +5196,7 @@ public:
 	this_t& operator=(const volatile vector<type2>& src) { assign(src); return *this; }
 
 	template <typename type2>
-	volatile this_t& operator=(const vector<type2>& src) volatile { assign(src); return *this; }
+	void operator=(const vector<type2>& src) volatile { assign(src); }
 
 	template <typename type2>
 	void append(size_t n, const type2& src) { m_contents->append(n, src); }

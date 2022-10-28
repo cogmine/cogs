@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -235,36 +235,42 @@ protected:
 		return paneBridge->pane::get_primary_flow_dimension();
 	}
 
-	virtual cell::propose_size_result propose_size(
+	std::optional<size> calculate_size(
 		const size& sz,
 		const range& r = range::make_unbounded(),
 		const std::optional<dimension>& resizeDimension = std::nullopt,
-		cell::sizing_mask sizingMask = cell::all_sizing_types) const
-	{
-		rcptr<pane> paneBridge = m_paneBridge;
-		COGS_ASSERT(!!paneBridge);
-		return paneBridge->pane::propose_size(sz, r, resizeDimension, sizingMask);
-	}
-
-	std::optional<size> propose_size_best(
-		const size& sz,
-		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		bool nearestGreater = false,
 		bool preferGreaterWidth = false,
 		bool preferGreaterHeight = false,
-		cell::sizing_mask sizingMask = cell::all_sizing_types) const
+		bool nearestGreater = false) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		return paneBridge->propose_size_best(sz, r, resizeDimension, nearestGreater, preferGreaterWidth, preferGreaterHeight, sizingMask);
+		return paneBridge->pane::calculate_size(sz, r, resizeDimension, preferGreaterWidth, preferGreaterHeight, nearestGreater);
 	}
 
-	virtual void calculate_range()
+	virtual cell::collaborative_sizes calculate_collaborative_sizes(
+		const size& sz,
+		const range& r = range::make_unbounded(),
+		const std::optional<cell::quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
 		rcptr<pane> paneBridge = m_paneBridge;
 		COGS_ASSERT(!!paneBridge);
-		paneBridge->pane::calculate_range();
+		return paneBridge->pane::calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
+	}
+
+	void calculate_range()
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->calculate_range();
+	}
+
+	virtual void calculating_range()
+	{
+		rcptr<pane> paneBridge = m_paneBridge;
+		COGS_ASSERT(!!paneBridge);
+		paneBridge->pane::calculating_range();
 	}
 
 	// notification interfaces (called internally, overriden)
@@ -362,9 +368,7 @@ protected:
 		paneBridge->pane::defocusing();
 	}
 
-	virtual void invalidating(const bounds&)
-	{
-	}
+	virtual void invalidating(const bounds&) { }
 
 	virtual void reshape(const bounds& b, const point& oldOrigin = point(0, 0))
 	{
@@ -493,20 +497,20 @@ protected:
 		return m_bridgedPane->get_primary_flow_dimension();
 	}
 
-	virtual cell::propose_size_result propose_size(
+	virtual cell::collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		cell::sizing_mask sizingMask = cell::all_sizing_types) const
+		const std::optional<cell::quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
 		COGS_ASSERT(!!m_bridgedPane);
-		return m_bridgedPane->propose_size(sz, r, resizeDimension, sizingMask);
+		return m_bridgedPane->calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
 		COGS_ASSERT(!!m_bridgedPane);
-		m_bridgedPane->calculate_range();
+		m_bridgedPane->calculating_range();
 	}
 
 	// notification interfaces (called internally, overriden)

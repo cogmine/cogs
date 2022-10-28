@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -796,8 +796,8 @@ public:
 	fixed_integer_extended_const(const this_t&) { }
 	fixed_integer_extended_const(const volatile this_t&) { }
 
-	this_t& operator=(const volatile this_t&) const { }
-	volatile this_t& operator=(const volatile this_t&) const volatile { }
+	this_t& operator=(const volatile this_t&) const { return *this; }
+	void operator=(const volatile this_t&) const volatile { }
 
 	constexpr ulongest get_int() const volatile { return low_digit; }
 	operator ulongest() const volatile { return low_digit; }

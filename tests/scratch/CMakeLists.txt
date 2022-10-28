@@ -30,6 +30,7 @@ set(HEADERS
   ../../core/src/cogs/collections/array_view.hpp
   ../../core/src/cogs/collections/avltree.hpp
   ../../core/src/cogs/collections/backed_vector.hpp
+  ../../core/src/cogs/collections/btree_node.hpp
   ../../core/src/cogs/collections/btree.hpp
   ../../core/src/cogs/collections/composite_string.hpp
   ../../core/src/cogs/collections/composite_vector.hpp
@@ -52,7 +53,6 @@ set(HEADERS
   ../../core/src/cogs/collections/slist.hpp
   ../../core/src/cogs/collections/stack.hpp
   ../../core/src/cogs/collections/string.hpp
-  ../../core/src/cogs/collections/tlink.hpp
   ../../core/src/cogs/collections/unicode.hpp
   ../../core/src/cogs/collections/vector.hpp
   ../../core/src/cogs/collections/vector_view.hpp
@@ -270,13 +270,9 @@ set_source_files_properties(${HEADERS} PROPERTIES LANGUAGE CXX)
 endif()
 
 if (WIN32)
-  target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.rc)
 
-  if (MSVC)
-    target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.manifest)
-  else()
-    target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.manifest.rc)
-  endif()
+  target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.rc)
+  target_sources(${EXECUTABLE_NAME} PUBLIC VS/scratch.manifest)
 
 elseif (APPLE)
 

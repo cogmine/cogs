@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -353,7 +353,10 @@ pre_assign_bit_and(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
-	return (post_assign_bit_and(t, tmp) & tmp);
+	if constexpr (std::is_same_v<std::remove_cv_t<T>, bool>)
+		return (tmp && post_assign_bit_and(t, tmp));
+	else
+		return (tmp & post_assign_bit_and(t, tmp));
 }
 
 
@@ -471,7 +474,10 @@ pre_assign_bit_or(T& t, const A1& a)
 {
 	T tmp;
 	cogs::assign(tmp, a);
-	return (post_assign_bit_or(t, tmp) | tmp);
+		if constexpr (std::is_same_v<std::remove_cv_t<T>, bool>)
+		return (tmp || post_assign_bit_or(t, tmp));
+	else
+		return (tmp | post_assign_bit_or(t, tmp));
 }
 
 

@@ -1,10 +1,9 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
-#include <iostream>
 #include "cogs/cogs.hpp"
-
+#include <iostream>
 
 using namespace cogs;
 using namespace cogs::gui;
@@ -115,6 +114,319 @@ COGS_MAIN
 
 		rcref<count_down_condition> quitCountDown = rcnew(count_down_condition)(0, []() { cogs::request_quit(); });
 
+		 {
+			typedef fixed_default_size_stack_panel<dimension::horizontal> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(300, 50)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }(),
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(100, 100)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }(),
+							}
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0x00, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(50, 50))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(100, 100))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0x00, 0xFF),
+							.frames = rcnew(override_default_size_frame)(gfx::size(150, 150))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }()
+					}
+					}),
+				string::literal(L"Simple horizontal fixed_default_size_stack_panel")
+			);
+		 }
+
+		//{
+		//	typedef fixed_default_size_stack_panel<dimension::horizontal, true> stack_panel_t;
+		//	*quitCountDown += guiSubsystem->open(
+		//		rcnew(stack_panel_t)({
+		//			.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				[&] { return rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						[&] { return rcnew(override_default_size_frame)(gfx::size(300, 50)); }(),
+		//						[&] { return rcnew(propose_aspect_ratio_frame); }(),
+		//					}
+		//				}); }(),
+		//				[&] { return rcnew(bitmap_pane)({
+		//					.imageLocation = L"guitar.bmp",
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						[&] { return rcnew(override_default_size_frame)(gfx::size(100, 100)); }(),
+		//						[&] { return rcnew(propose_aspect_ratio_frame); }(),
+		//					}
+		//				}); }(),
+		//				[&] { return rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0x00, 0x00),
+		//					.frames = rcnew(override_default_size_frame)(gfx::size(50, 50))
+		//				}); }(),
+		//				[&] { return rcnew(background)({
+		//					.backgroundColor = color(0x00, 0xFF, 0x00),
+		//					.frames = rcnew(override_default_size_frame)(gfx::size(100, 100))
+		//				}); }(),
+		//				[&] { return rcnew(background)({
+		//					.backgroundColor = color(0x00, 0x00, 0xFF),
+		//					.frames = rcnew(override_default_size_frame)(gfx::size(150, 150))
+		//				}); }(),
+		//				[&] { return rcnew(background)({
+		//					.backgroundColor = color(0xFF, 0xFF, 0x00),
+		//					.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+		//				}); }()
+		//			}
+		//			}),
+		//		string::literal(L"Simple horizontal fixed_default_size_stack_panel")
+		//	);
+		//}
+
+/*
+		{
+			typedef stack_panel<dimension::horizontal> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0x00, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(50, 50))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(100, 100))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0x00, 0xFF),
+							.frames = rcnew(override_default_size_frame)(gfx::size(150, 150))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }()
+					}
+					}),
+				string::literal(L"Simple horizontal stack panel")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal, gfx::sizing_policy::equitable> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0x00, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(50, 50))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(100, 100))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0x00, 0xFF),
+							.frames = rcnew(override_default_size_frame)(gfx::size(150, 150))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }()
+					}
+					}),
+				string::literal(L"Simple horizontal stack panel - converging")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal, gfx::sizing_policy::proportional> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0x00, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(50, 50))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(100, 100))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0x00, 0xFF),
+							.frames = rcnew(override_default_size_frame)(gfx::size(150, 150))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }()
+					}
+					}),
+				string::literal(L"Simple horizontal stack panel - proportional")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::vertical> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0x00, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0x00, 0x00, 0xFF),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }(),
+						[&] { return rcnew(background)({
+							.backgroundColor = color(0xFF, 0xFF, 0x00),
+							.frames = rcnew(override_default_size_frame)(gfx::size(200, 200))
+						}); }()
+					}
+					}),
+				string::literal(L"Simple vertical stack panel")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }()
+					}
+					}),
+				string::literal(L"Horizontal stack panel with aspect retio contents - equal")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(590, 590)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(390, 390)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(190, 190)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }()
+					}
+					}),
+				string::literal(L"Horizontal stack panel with aspect retio contents")
+							);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal, gfx::sizing_policy::proportional> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(590, 590)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(390, 390)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(190, 190)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }()
+					}
+					}),
+				string::literal(L"Horizontal stack panel with aspect retio contents - proportional")
+			);
+		}
+
+		{
+			typedef stack_panel<dimension::horizontal, gfx::sizing_policy::equitable> stack_panel_t;
+			*quitCountDown += guiSubsystem->open(
+				rcnew(stack_panel_t)({
+					.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(590, 590)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(390, 390)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }(),
+						[&] { return rcnew(bitmap_pane)({
+							.imageLocation = L"guitar.bmp",
+							.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+								[&] { return rcnew(override_default_size_frame)(gfx::size(190, 190)); }(),
+								[&] { return rcnew(propose_aspect_ratio_frame); }()
+							}
+						}); }()
+					}
+					}),
+				string::literal(L"Horizontal stack panel with aspect retio contents - converging")
+			);
+		}
+		*/
+
 		//{
 		//	*quitCountDown += guiSubsystem->open(
 		//		rcnew(background)({
@@ -214,7 +526,7 @@ COGS_MAIN
 		//			.backgroundColor = color::constant::black,
 		//			.children = rcnew(background)({
 		//				.backgroundColor = color(0xFF, 0x00, 0x00),
-		//				.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::center()); }(),
 		//					[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//				}
@@ -224,60 +536,60 @@ COGS_MAIN
 		//	);
 		//}
 
-		{
-			*quitCountDown += guiSubsystem->open(
-				rcnew(text_editor)({
-					.frames = rcnew(inset_frame)(gfx::margin(20, 20, 20, 20))
-				}),
-				string::literal(L"Inset text editor")
-			);
-		}
-
-		{
-			*quitCountDown += guiSubsystem->open(
-				rcnew(background)({
-					.backgroundColor = color::constant::black,
-					.children = rcnew(text_editor)({
-						.textColor = color::constant::yellow,
-						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
-							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::center()); }(),
-							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
-						}
-					})
-				}),
-				string::literal(L"Centering and Text editor")
-			);
-		}
+		//{
+		//	*quitCountDown += guiSubsystem->open(
+		//		rcnew(text_editor)({
+		//			.frames = rcnew(inset_frame)(gfx::margin(20, 20, 20, 20))
+		//		}),
+		//		string::literal(L"Inset text editor")
+		//	);
+		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(
 		//		rcnew(background)({
 		//			.backgroundColor = color::constant::black,
-		//			.children = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//			.children = rcnew(text_editor)({
+		//				.textColor = color::constant::yellow,
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::center()); }(),
+		//					[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
+		//				}
+		//			})
+		//		}),
+		//		string::literal(L"Centering and Text editor")
+		//	);
+		//}
+
+		//{
+		//	*quitCountDown += guiSubsystem->open(
+		//		rcnew(background)({
+		//			.backgroundColor = color::constant::black,
+		//			.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//				[&] { return rcnew(box)({
 		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
-		//						[&]{ return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(box)({
 		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//					.frames = { // TODO: Construct frame_list, when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(box)({
 		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
-		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//					.frames = { // TODO: Construct frame_list, when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(box)({
 		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//					.frames = { // TODO: Construct frame_list, when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
@@ -292,31 +604,31 @@ COGS_MAIN
 		//	*quitCountDown += guiSubsystem->open(
 		//		rcnew(background)({
 		//			.backgroundColor = color::constant::black,
-		//			.children = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//			.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
@@ -331,31 +643,31 @@ COGS_MAIN
 		//	*quitCountDown += guiSubsystem->open(
 		//		rcnew(background)({
 		//			.backgroundColor = color::constant::white,
-		//			.children = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//			.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
 		//				}); }(),
 		//				[&] { return rcnew(background)({
 		//					.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
-		//					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//						[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()); }(),
 		//						[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//					}
@@ -371,31 +683,31 @@ COGS_MAIN
 		//		rcnew(background)({
 		//			.backgroundColor = color::constant::black,
 		//			.children = rcnew(native_container_pane)({
-		//				.children = { // TODO: Construct frame_list, when cl.exe no longer generates bad code
+		//				.children = { // TODO: Construct frame_list, when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
@@ -412,31 +724,31 @@ COGS_MAIN
 		//		rcnew(background)({
 		//			.backgroundColor = color::constant::white,
 		//			.children = rcnew(native_container_pane)({
-		//				.children = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.children = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0xFF, 0x00, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_left()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0x00, 0xFF, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::top_right()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0x00, 0x00, 0xFF, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_left()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
 		//					}); }(),
 		//					[&] { return rcnew(background)({
 		//						.backgroundColor = color(0xFF, 0xFF, 0x00, 0x7F),
-		//						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//						.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//							[&] { return rcnew(unconstrained_frame)(geometry::planar::alignment::bottom_right()); }(),
 		//							[&] { return rcnew(fixed_size_frame)(gfx::size(200, 200)); }()
 		//						}
@@ -448,24 +760,24 @@ COGS_MAIN
 		//	);
 		//}
 
-		{
-			*quitCountDown += guiSubsystem->open(
-				rcnew(bitmap_pane)({
-					.imageLocation = L"guitar.bmp",
-					.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
-						[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }(),
-						[&] { return rcnew(propose_aspect_ratio_frame); }(),
-					}
-				}),
-				string::literal(L"image aspect ratio test")
-			);
-		}
+		//{
+		//	*quitCountDown += guiSubsystem->open(
+		//		rcnew(bitmap_pane)({
+		//			.imageLocation = L"guitar.bmp",
+		//			.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }(),
+		//				[&] { return rcnew(propose_aspect_ratio_frame); }(),
+		//			}
+		//		}),
+		//		string::literal(L"image aspect ratio test")
+		//	);
+		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(
 		//		rcnew(bitmap_pane)({
 		//			.imageLocation = L"guitar.bmp",
-		//			.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//			.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//				[&] { return rcnew(propose_aspect_ratio_frame); }(),
 		//				[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }()
 		//			}
@@ -480,7 +792,7 @@ COGS_MAIN
 		//			.backgroundColor = color::constant::beige,
 		//			.children = rcnew(bitmap_pane)({
 		//				.imageLocation = L"guitar.bmp",
-		//				.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(unconstrained_frame); }(),
 		//					[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }(),
 		//					[&] { return rcnew(propose_aspect_ratio_frame); }()
@@ -497,7 +809,7 @@ COGS_MAIN
 		//			.backgroundColor = color::constant::beige,
 		//			.children = rcnew(bitmap_pane)({
 		//				.imageLocation = L"guitar.bmp",
-		//				.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(unconstrained_frame); }(),
 		//					[&] { return rcnew(propose_aspect_ratio_frame); }(),
 		//					[&] { return rcnew(override_default_size_frame)(gfx::size(200, 200)); }()
@@ -792,7 +1104,7 @@ COGS_MAIN
 		//			},
 		//			.children = rcnew(background)({
 		//				.backgroundColor = color(color::constant::turquoise, 0x7f),
-		//				.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(unconstrained_max_frame); }(),
 		//					[&] { return rcnew(fixed_default_size_frame); }()
 		//				},
@@ -820,7 +1132,7 @@ COGS_MAIN
 		//			},
 		//			.children = rcnew(background)({
 		//				.backgroundColor = color(color::constant::white, 0x3F),
-		//				.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
 		//					[&] { return rcnew(unconstrained_max_frame); }(),
 		//					[&] { return rcnew(fixed_default_size_frame); }()
 		//				},
@@ -863,32 +1175,32 @@ COGS_MAIN
 		//	);
 		//}
 
-		{
-			*quitCountDown += guiSubsystem->open(
-				rcnew(canvas_pane)({
-					.drawEvent = [](const rcref<canvas_pane>& f)
-					{
-						f->fill(f->get_size(), color::constant::blue);
-						gfx::point dstPt(0, 0);
-						dstPt += f->get_size();
-						f->draw_line(gfx::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
-						f->draw_line(gfx::point(0, dstPt.get_y()), gfx::point(dstPt.get_x(), 0), 1, color::constant::red);
-					},
-					.children = rcnew(background)({
-						.backgroundColor = color(color::constant::white, 0x3F),
-						.frames = { // TODO: Remove lambda wrappers when cl.exe no longer generates bad code: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
-							[&] { return rcnew(unconstrained_max_frame); }(),
-							[&] { return rcnew(fixed_default_size_frame); }()
-						},
-						.children = rcnew(button)({
-							.text = string::literal(L"BUTTON"),
-							.font = gfx::font_parameters{ .pointSize = 38 }
-						})
-					})
-				}),
-				string::literal(L"Lines and button")
-			);
-		}
+		//{
+		//	*quitCountDown += guiSubsystem->open(
+		//		rcnew(canvas_pane)({
+		//			.drawEvent = [](const rcref<canvas_pane>& f)
+		//			{
+		//				f->fill(f->get_size(), color::constant::blue);
+		//				gfx::point dstPt(0, 0);
+		//				dstPt += f->get_size();
+		//				f->draw_line(gfx::point(0, 0), dstPt, 1, color(0xff, 0, 0, 0x7f));
+		//				f->draw_line(gfx::point(0, dstPt.get_y()), gfx::point(dstPt.get_x(), 0), 1, color::constant::red);
+		//			},
+		//			.children = rcnew(background)({
+		//				.backgroundColor = color(color::constant::white, 0x3F),
+		//				.frames = { // TODO: Remove lambda wrappers when MSVC code-gen bug is fixed: https://developercommunity.visualstudio.com/content/problem/971721/vc-code-gen-bug-causes-reordering-of-code-with-sid.html
+		//					[&] { return rcnew(unconstrained_max_frame); }(),
+		//					[&] { return rcnew(fixed_default_size_frame); }()
+		//				},
+		//				.children = rcnew(button)({
+		//					.text = string::literal(L"BUTTON"),
+		//					.font = gfx::font_parameters{ .pointSize = 38 }
+		//				})
+		//			})
+		//		}),
+		//		string::literal(L"Lines and button")
+		//	);
+		//}
 
 		//{
 		//	*quitCountDown += guiSubsystem->open(

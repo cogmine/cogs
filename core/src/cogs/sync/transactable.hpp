@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -58,7 +58,7 @@ private:
 
 	// Normally we require const-correctness, so we don't need volatility just for read access to memory.
 	// But it's OK to make an exception for something that is always volatile.
-	alignas(atomic::get_alignment_v<size_t>) mutable size_t m_embeddedRefCount;
+	mutable size_t m_embeddedRefCount alignas(atomic::get_alignment_v<size_t>);
 
 	type& get_embedded() { return m_embedded.get(); }
 	const type& get_embedded() const { return m_embedded.get(); }
@@ -498,7 +498,7 @@ public:
 		return *this;
 	}
 
-	volatile this_t& operator=(const this_t& src) volatile
+	void operator=(const this_t& src) volatile
 	{
 		ptr<descriptor_t> newDesc = allocate(*src.get());
 		ptr<descriptor_t> oldDesc = m_desc.exchange(newDesc);
@@ -506,10 +506,9 @@ public:
 			oldDesc->release();
 		else
 			release_embedded();
-		return *this;
 	}
 
-	volatile this_t& operator=(const volatile this_t& src) volatile
+	void operator=(const volatile this_t& src) volatile
 	{
 		src.acquire_embedded();
 		descriptor_t* srcDesc = (descriptor_t*)rc_obj_base::guarded_acquire(src.m_desc.get_ptr_ref());
@@ -525,8 +524,6 @@ public:
 		src.release_embedded();
 		if (!!srcDesc)
 			srcDesc->release();
-
-		return *this;
 	}
 
 	// Move constructors and move assignment operators will leave the original object in a state invalid for any futher use
@@ -1552,7 +1549,7 @@ public:
 	//empty_transactable(args_t&&... src) { }
 
 	this_t& operator=(const volatile this_t&) { return *this; }
-	volatile this_t& operator=(const volatile this_t&) volatile { return *this; }
+	void operator=(const volatile this_t&) volatile { }
 
 	this_t& operator=(this_t&&) { return *this; }
 
@@ -1655,7 +1652,7 @@ public:
 private:
 	static_assert(can_atomic_v<T>);
 
-	alignas(atomic::get_alignment_v<type>) type m_contents;
+	type m_contents alignas(atomic::get_alignment_v<type>);
 
 	template <typename>
 	friend class transactable;
@@ -1815,8 +1812,8 @@ public:
 
 	this_t& operator=(const this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
 	this_t& operator=(const volatile this_t& src) { cogs::assign(m_contents, src.m_contents); return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
-	volatile this_t& operator=(const volatile this_t& src) volatile { cogs::assign(m_contents, src.m_contents); return *this; }
+	void operator=(const this_t& src) volatile { cogs::assign(m_contents, src.m_contents); }
+	void operator=(const volatile this_t& src) volatile { cogs::assign(m_contents, src.m_contents); }
 
 	this_t& operator=(this_t&& src) { m_contents = std::move(src.m_contents); return *this; }
 
@@ -2216,13 +2213,13 @@ public:
 
 	/// @brief Thread-safe implementation of operator=()
 	/// @param src Value to set to
-	volatile this_t& operator=(const this_t& src) volatile { m_contents = src.m_contents; return *this; }
+	void operator=(const this_t& src) volatile { m_contents = src.m_contents; }
 
 	template <typename type2>
-	volatile this_t& operator=(const transactable<type2>& src) volatile { m_contents.set(*src); return *this; }
+	void operator=(const transactable<type2>& src) volatile { m_contents.set(*src); }
 
 	template <typename type2>
-	volatile this_t& operator=(const volatile transactable<type2>& src) volatile { m_contents.set(*src.begin_read());  return *this; }
+	void operator=(const volatile transactable<type2>& src) volatile { m_contents.set(*src.begin_read());  }
 	/// @}
 
 

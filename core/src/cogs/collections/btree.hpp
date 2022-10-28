@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,7 +9,7 @@
 #define COGS_HEADER_COLLECTION_BTREE
 
 
-#include "cogs/collections/tlink.hpp"
+#include "cogs/collections/btree_node.hpp"
 #include "cogs/mem/ptr.hpp"
 
 
@@ -41,7 +41,7 @@ enum class btree_traversal
 
 /// @ingroup BinaryTrees
 /// @brief A base class for intrusive binary trees.
-template <class derived_node_t = tlink_t<void, ptr>, template <typename> class ref_type = ptr>
+template <class derived_node_t = btree_node_t<void, ptr>, template <typename> class ref_type = ptr>
 class btree
 {
 public:
@@ -58,102 +58,6 @@ private:
 	ref_t m_root;
 	ref_t m_leftmost;
 	ref_t m_rightmost;
-
-	const ref_t get_sidebottom(bool right, const ref_t& cur) const
-	{
-		ref_t n = cur;
-		ref_t child;
-		typename ref_t::locked_t lockedRef;
-		for (;;)
-		{
-			lockedRef = n;
-			for (;;)
-			{
-				child = lockedRef->get_child_link(right);
-				if (!child)
-					break;
-				n = child;
-				lockedRef = n;
-			}
-			child = lockedRef->get_child_link(!right);
-			if (!child)
-				break;
-			n = child;
-		}
-		return n;
-	}
-
-	ref_t get_next_preorder_or_prev_postorder(bool preorder, const ref_t& cur) const
-	{
-		typename ref_t::locked_t curLocked = cur;
-		bool postorder = !preorder;
-		ref_t n = curLocked->get_child_link(postorder);
-		if (!n)
-		{
-			n = curLocked->get_child_link(preorder);
-			if (!n)
-			{
-				n = cur;
-				ref_t parent = curLocked->get_parent_link();
-				typename ref_t::locked_t parentResolved;
-				while (!!parent)
-				{
-					parentResolved = parent;
-					if (parentResolved->get_child_link(postorder) == n)
-					{
-						const ref_t& parentChild = parentResolved->get_child_link(preorder);
-						if (!!parentChild)
-							return parentChild;
-					}
-					n = parent;
-					parent = parentResolved->get_parent_link();
-				}
-				ref_t emptyRef;
-				return emptyRef;
-			}
-		}
-		return n;
-	}
-
-	ref_t get_prev_preorder_or_next_postorder(bool preorder, const ref_t& cur) const
-	{
-		typename ref_t::locked_t curLocked = cur;
-		const ref_t& parent = curLocked->get_parent_link();
-		if (!!parent)
-		{
-			typename ref_t::locked_t parentResolved = parent;
-			const ref_t& parentChild = parentResolved->get_child_link(!preorder);
-			if ((!!parentChild) && (cur == parentResolved->get_child_link(preorder)))
-				return get_sidebottom(preorder, parentChild);
-		}
-		return parent;
-	}
-
-	ref_t get_inorder(bool next, const ref_t& cur) const
-	{
-		typename ref_t::locked_t lockedRef = cur;
-		const ref_t& child = lockedRef->get_child_link(next);
-		if (!!child)
-		{
-			if (next)
-				return get_leftmost(child);
-			return get_rightmost(child);
-		}
-
-		ref_t parent;
-		ref_t n = cur;
-		for (;;)
-		{
-			parent = lockedRef->get_parent_link();
-			if (!parent)
-				break;
-			lockedRef = parent;
-			if (n != lockedRef->get_child_link(next))
-				break;
-			n = parent;
-		}
-		return parent;
-	}
 
 public:
 	btree() { }
@@ -192,20 +96,7 @@ public:
 	/// @brief Gets a reference to the leftmost node below a specified parent node
 	/// @param cur Parent node to scan left from
 	/// @return A reference to the leftmost node below a specified parent node
-	const ref_t get_leftmost(const ref_t& cur) const
-	{
-		ref_t n = cur;
-		typename ref_t::locked_t lockedRef;
-		for (;;)
-		{
-			lockedRef = n;
-			const ref_t& n_child = lockedRef->get_left_link();
-			if (!n_child)
-				break;
-			n = n_child;
-		}
-		return n;
-	}
+	const ref_t get_leftmost(const ref_t& cur) const { return node_t::get_leftmost(cur); }
 	/// @}
 
 	/// @{
@@ -218,20 +109,7 @@ public:
 	/// @brief Gets a reference to the leftmost node below a specified parent node
 	/// @param cur Parent node to scan right from
 	/// @return A reference to the leftmost node below a specified parent node
-	const ref_t get_rightmost(const ref_t& cur) const
-	{
-		ref_t n = cur;
-		typename ref_t::locked_t lockedRef;
-		for (;;)
-		{
-			lockedRef = n;
-			const ref_t& n_child = lockedRef->get_right_link();
-			if (!n_child)
-				break;
-			n = n_child;
-		}
-		return n;
-	}
+	const ref_t get_rightmost(const ref_t& cur) const { return node_t::get_rightmost(cur); }
 	/// @}
 
 	/// @{
@@ -289,7 +167,7 @@ public:
 	/// @{
 	/// @brief Get the first post-order node
 	/// @return The first post-order node
-	const ref_t get_first_postorder() const { return (!m_leftmost) ? m_leftmost : get_sidebottom(false, m_leftmost); }
+	const ref_t get_first_postorder() const { return (!m_leftmost) ? m_leftmost : node_t::get_sidebottom(m_leftmost, false); }
 	/// @}
 
 	/// @{
@@ -313,7 +191,7 @@ public:
 	/// @{
 	/// @brief Get the last pre-order node
 	/// @return The last pre-order node
-	const ref_t get_last_preorder() const { return !m_rightmost ? m_rightmost : get_sidebottom(true, m_rightmost); }
+	const ref_t get_last_preorder() const { return !m_rightmost ? m_rightmost : node_t::get_sidebottom(m_rightmost, true); }
 	/// @}
 
 	/// @{
@@ -364,42 +242,42 @@ public:
 	/// @brief Get the next in-order node
 	/// @param cur The node to get the next in-order node from
 	/// @return The next in-order node
-	ref_t get_next_inorder(const ref_t& cur) const { return get_inorder(true, cur); }
+	ref_t get_next_inorder(const ref_t& cur) const { return node_t::get_next_inorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous in-order node
 	/// @param cur The node to get the previous in-order node from
 	/// @return The previous in-order node
-	ref_t get_prev_inorder(const ref_t& cur) const { return get_inorder(false, cur); }
+	ref_t get_prev_inorder(const ref_t& cur) const { return node_t::get_prev_inorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next pre-order node
 	/// @param cur The node to get the next pre-order node from
 	/// @return The next pre-order node
-	ref_t get_next_preorder(const ref_t& cur) const { return get_next_preorder_or_prev_postorder(true, cur); }
+	ref_t get_next_preorder(const ref_t& cur) const { return node_t::get_next_preorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous pre-order node
 	/// @param cur The node to get the previous pre-order node from
 	/// @return The previous pre-order node
-	ref_t get_prev_preorder(const ref_t& cur) const { return get_prev_preorder_or_next_postorder(true, cur); }
+	ref_t get_prev_preorder(const ref_t& cur) const { return node_t::get_prev_preorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the next post-order node
 	/// @param cur The node to get the next post-order node from
 	/// @return The next post-order node
-	ref_t get_next_postorder(const ref_t& cur) const { return get_prev_preorder_or_next_postorder(false, cur); }
+	ref_t get_next_postorder(const ref_t& cur) const { return node_t::get_next_postorder(cur); }
 	/// @}
 
 	/// @{
 	/// @brief Get the previous post-order node
 	/// @param cur The node to get the previous post-order node from
 	/// @return The previous post-order node
-	ref_t get_prev_postorder(const ref_t& cur) const { return get_next_preorder_or_prev_postorder(false, cur); }
+	ref_t get_prev_postorder(const ref_t& cur) const { return node_t::get_prev_postorder(cur); }
 	/// @}
 
 	/// @{
@@ -447,6 +325,50 @@ public:
 			return get_next_postorder(cur);
 	}
 	/// @}
+
+	class iterator
+	{
+	private:
+		ref_t m_node;
+
+	public:
+		iterator() { }
+		iterator(const iterator& i) : m_node(i.m_node) { }
+
+		iterator& operator=(const iterator& i) { m_node = i.m_node; return *this; }
+
+		iterator& operator++()
+		{
+			if (!!m_node)
+				m_node = node_t::get_next_inorder(m_node);
+			return *this;
+		}
+
+		iterator& operator--()
+		{
+			if (!!m_node)
+				m_node = node_t::get_prev_inorder(m_node);
+			return *this;
+		}
+
+		iterator operator++(int) { iterator i(*this); ++*this; return i; }
+		iterator operator--(int) { iterator i(*this); --*this; return i; }
+
+		bool operator!() const { return !m_node; }
+
+		bool operator==(const iterator& i) const { return m_node == i.m_node; }
+		bool operator!=(const iterator& i) const { return !operator==(i); }
+
+		node_t* get() const { return *m_node; }
+		node_t& operator*() const { return *get(); }
+		node_t* operator->() const { return get(); }
+
+		iterator next() const { iterator result(*this); ++result; return result; }
+		iterator prev() const { iterator result(*this); --result; return result; }
+	};
+
+	iterator begin() const { return get_first_inorder(); }
+	iterator end() const { ref_t result; return result; }
 };
 
 
@@ -467,12 +389,12 @@ enum class sorted_btree_insert_mode
 /// @ingroup BinaryTrees
 /// @brief A base class for sorted intrusive binary trees.
 ///
-/// derived_node_t must be derived from tlink_t<>, and  include the equivalent of the following member function:
+/// derived_node_t must be derived from btree_node_t<>, and  include the equivalent of the following member function:
 /// @code{.cpp}
 /// const key_t& get_key() const;
 /// @endcode
 /// @tparam key_t The key type to contain
-/// @tparam derived_node_t A class derived from tlink_t.
+/// @tparam derived_node_t A class derived from btree_node_t.
 /// @tparam comparator_t A static comparator class used to compare keys.  Default: default_comparator
 /// @tparam ref_type Reference type to use for links.  Default: ptr
 template <typename key_t, typename derived_node_t, class comparator_t, template <typename> class ref_type = ptr>
@@ -510,7 +432,7 @@ private:
 		bool result = false;
 		ref_t emptyRef;
 		ref_t n = nIn;
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		bool wasRightNode = false;
 		ref_t* localRoot = &liftedChild;
 
@@ -520,7 +442,7 @@ private:
 		ref_t rightChild = lockedRef->get_right_link(); // Might be null
 		ref_t parent = lockedRef->get_parent_link(); // Might be null
 
-		typename ref_t::locked_t lockedParent;
+		typename ref_t::lock_t lockedParent;
 		if (!!parent)
 		{
 			lockedParent = parent;
@@ -545,7 +467,7 @@ private:
 		{
 			result = wasRightNode;
 			liftedChild = leftChild; // leftChild moves up to take its place
-			typename ref_t::locked_t lockedChild = leftChild;
+			typename ref_t::lock_t lockedChild = leftChild;
 			lockedChild->set_parent_link(parent);
 			if (get_rightmost() == n)
 				set_rightmost(get_rightmost(leftChild));
@@ -555,7 +477,7 @@ private:
 		{
 			result = wasRightNode;
 			liftedChild = rightChild; // rightChild moves up to take its place
-			typename ref_t::locked_t lockedChild = rightChild;
+			typename ref_t::lock_t lockedChild = rightChild;
 			lockedChild->set_parent_link(parent);
 			if (get_leftmost() == n)
 				set_leftmost(get_leftmost(rightChild));
@@ -571,11 +493,11 @@ private:
 				swappedWith = get_leftmost(child);
 			else
 				swappedWith = get_rightmost(child);
-			typename ref_t::locked_t lockedSwappedWith = swappedWith;
+			typename ref_t::lock_t lockedSwappedWith = swappedWith;
 			liftedChild = lockedSwappedWith->get_child_link(rightSideLarger);
 
 			// Simultaneously swap 2 nodes, remove one, and lift its 1 child (if any)
-			typename ref_t::locked_t lockedOtherChild = otherChild;
+			typename ref_t::lock_t lockedOtherChild = otherChild;
 			lockedOtherChild->set_parent_link(swappedWith);
 			lockedSwappedWith->set_child_link(!rightSideLarger, otherChild);
 			if (swappedWith == child) // In case swapping with a child node
@@ -589,13 +511,13 @@ private:
 				lockedRef->set_parent_link(swappedWithParent); // just for the purpose of reporting back.  Not actually in the list anymore.
 				if (!!liftedChild)
 				{
-					typename ref_t::locked_t lockedLiftedChild = liftedChild;
+					typename ref_t::lock_t lockedLiftedChild = liftedChild;
 					lockedLiftedChild->set_parent_link(swappedWithParent);
 				}
-				typename ref_t::locked_t lockedSwappedWithParent = swappedWithParent;
+				typename ref_t::lock_t lockedSwappedWithParent = swappedWithParent;
 				result = (lockedSwappedWithParent->get_right_link() == swappedWith);
 				lockedSwappedWithParent->set_child_link(!rightSideLarger, liftedChild);
-				typename ref_t::locked_t lockedChild = child;
+				typename ref_t::lock_t lockedChild = child;
 				lockedChild->set_parent_link(swappedWith);
 				lockedSwappedWith->set_child_link(rightSideLarger, child);
 			}
@@ -647,7 +569,7 @@ protected:
 	ref_t insert(const ref_t& n, sorted_btree_insert_mode insertMode, const ref_t& hint = ref_t())
 	{
 		ref_t emptyRef;
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		lockedRef->set_left_link(emptyRef);
 		lockedRef->set_right_link(emptyRef);
 
@@ -664,7 +586,7 @@ protected:
 		const key_t& key = lockedRef->get_key();
 
 		// Prepend optimization
-		typename ref_t::locked_t lockedCompareTo = get_rightmost();
+		typename ref_t::lock_t lockedCompareTo = get_rightmost();
 		const key_t& rightmostKey = lockedCompareTo->get_key();
 		bool isNotLess = !comparator_t::is_less_than(key, rightmostKey);
 		if (isNotLess)
@@ -684,7 +606,7 @@ protected:
 					ref_t& leftNode = lockedCompareTo->get_left_link();
 					if (!!leftNode)
 					{
-						typename ref_t::locked_t lockedLeftNode = leftNode;
+						typename ref_t::lock_t lockedLeftNode = leftNode;
 						lockedLeftNode->set_parent_link(n);
 					}
 
@@ -692,7 +614,7 @@ protected:
 
 					if (!!parentNode)
 					{
-						typename ref_t::locked_t lockedParentNode = parentNode;
+						typename ref_t::lock_t lockedParentNode = parentNode;
 						lockedParentNode->set_child_link(true, n);
 					}
 					else // if (get_rightmost() == get_root())
@@ -742,7 +664,7 @@ protected:
 					ref_t& rightNode = lockedCompareTo->get_right_link();
 					if (!!rightNode)
 					{
-						typename ref_t::locked_t lockedRightNode = rightNode;
+						typename ref_t::lock_t lockedRightNode = rightNode;
 						lockedRightNode->set_parent_link(n);
 					}
 
@@ -751,7 +673,7 @@ protected:
 					ref_t& leftNode = lockedCompareTo->get_left_link();
 					if (!!leftNode)
 					{
-						typename ref_t::locked_t lockedLeftNode = leftNode;
+						typename ref_t::lock_t lockedLeftNode = leftNode;
 						lockedLeftNode->set_parent_link(n);
 					}
 
@@ -759,7 +681,7 @@ protected:
 
 					if (!!parent)
 					{
-						typename ref_t::locked_t lockedParent = parent;
+						typename ref_t::lock_t lockedParent = parent;
 						lockedParent->set_child_link(!wasLess, n);
 					}
 					else // if (compareTo == get_root())
@@ -792,11 +714,11 @@ protected:
 	/// @param updateParent If false, the parent (or the root node) are not updated to reflect the rotation.
 	void rotate_right(const ref_t& n, bool updateParent = true)
 	{
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		ref_t child = lockedRef->get_left_link();
 
-		typename ref_t::locked_t lockedParent = n;
-		typename ref_t::locked_t lockedChild = child;
+		typename ref_t::lock_t lockedParent = n;
+		typename ref_t::lock_t lockedChild = child;
 		ref_t childChild = lockedChild->get_right_link();
 
 		ref_t oldParentParent = lockedParent->get_parent_link();
@@ -809,7 +731,7 @@ protected:
 				set_root(child);
 			else
 			{
-				typename ref_t::locked_t lockedParentParent = oldParentParent;
+				typename ref_t::lock_t lockedParentParent = oldParentParent;
 				lockedParentParent->set_child_link((lockedParentParent->get_right_link() == n), child);
 			}
 		}
@@ -829,11 +751,11 @@ protected:
 	/// @param updateParent If false, the parent (or the root node) are not updated to reflect the rotation.
 	void rotate_left(const ref_t& n, bool updateParent = true)
 	{
-		typename ref_t::locked_t lockedRef = n;
+		typename ref_t::lock_t lockedRef = n;
 		ref_t child = lockedRef->get_right_link();
 
-		typename ref_t::locked_t lockedParent = n;
-		typename ref_t::locked_t lockedChild = child;
+		typename ref_t::lock_t lockedParent = n;
+		typename ref_t::lock_t lockedChild = child;
 		ref_t childChild = lockedChild->get_left_link();
 
 		ref_t oldParentParent = lockedParent->get_parent_link();
@@ -846,7 +768,7 @@ protected:
 				set_root(child);
 			else
 			{
-				typename ref_t::locked_t lockedParentParent = oldParentParent;
+				typename ref_t::lock_t lockedParentParent = oldParentParent;
 				lockedParentParent->set_child_link((lockedParentParent->get_right_link() == n), child);
 			}
 		}
@@ -969,7 +891,7 @@ public:
 	ref_t find_any_equal(const key_t& criteria) const
 	{
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -993,7 +915,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1035,7 +957,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1077,7 +999,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1121,7 +1043,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1166,7 +1088,7 @@ public:
 		ref_t lastFound;
 		ref_t lastLesser;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1196,7 +1118,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1227,7 +1149,7 @@ public:
 		ref_t lastFound;
 		ref_t lastLesser;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1272,7 +1194,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1318,7 +1240,7 @@ public:
 		ref_t lastFound;
 		ref_t lastLesser;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;
@@ -1363,7 +1285,7 @@ public:
 	{
 		ref_t lastFound;
 		ref_t n = get_root();
-		typename ref_t::locked_t lockedRef;
+		typename ref_t::lock_t lockedRef;
 		while (!!n)
 		{
 			lockedRef = n;

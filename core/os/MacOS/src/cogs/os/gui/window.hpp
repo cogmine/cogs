@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -241,10 +241,9 @@ public:
 		return true;
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		nsview_pane::calculate_range();
-
+		nsview_pane::calculating_range();
 		NSRect minRect;
 		minRect.origin.x = minRect.origin.y = 0;
 		minRect.size = [m_nsWindow minSize];
@@ -296,7 +295,7 @@ public:
 		}
 		else if (m_heightChanged)
 			resizeDimension = gfx::dimension::vertical;
-		std::optional<gfx::size> newSizeOpt = owner->propose_size_best(newSize, gfx::range::make_unbounded(), resizeDimension);
+		std::optional<gfx::size> newSizeOpt = owner->calculate_size(newSize, gfx::range::make_unbounded(), resizeDimension);
 		COGS_ASSERT(newSizeOpt.has_value());
 		newSize = newSizeOpt.has_value() ? *newSizeOpt : gfx::size(0, 0);
 
@@ -348,7 +347,7 @@ public:
 		}
 		if (proposeNewSize)
 		{
-			std::optional<gfx::size> opt = propose_size_best(contentSizeInDips);
+			std::optional<gfx::size> opt = calculate_size(contentSizeInDips);
 			adjustedContentSizeInDips = opt.has_value() ? *opt : gfx::size(0, 0);
 		}
 
@@ -369,7 +368,7 @@ public:
 			bool wasMinimimHeightImposed = newNSRect.size.height > r.size.height;
 			NSSize newContentNSSize = [m_nsWindow contentRectForFrameRect: newNSRect].size;
 			gfx::size newContentSizeInDips = make_size(newContentNSSize);
-			std::optional<gfx::size> sz = propose_size(newContentSizeInDips).find_first_valid_size(get_primary_flow_dimension(), wasMinimimWidthImposed, wasMinimimHeightImposed);
+			std::optional<gfx::size> sz = calculate_size(newContentSizeInDips, gfx::range::make_unbounded(), std::nullopt, wasMinimimWidthImposed, wasMinimimHeightImposed);
 			if (sz.has_value() && *sz != newContentSizeInDips)
 			{
 				newNSRect.size = make_NSSize(*sz);
@@ -459,28 +458,31 @@ public:
 		nsview_pane::reshape(sz2, gfx::point(0, 0));
 	}
 
-	virtual gfx::cell::propose_size_result propose_frame_size(
+	virtual gfx::cell::collaborative_sizes calculate_collaborative_frame_sizes(
 		const gfx::size& sz,
 		const gfx::range& r = gfx::range::make_unbounded(),
-		const std::optional<gfx::dimension>& resizeDimension = std::nullopt,
-		gfx::cell::sizing_mask sizingMask = gfx::cell::all_sizing_types) const
+		const std::optional<gfx::cell::quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<gfx::dimension>& resizeDimension = std::nullopt) const
 	{
+		gfx::cell::collaborative_sizes result;
 		gfx::bounds frameBounds = get_frame_bounds();
-		gfx::size sz2;
-		gfx::range r2;
-		if (sz.get_width() <= frameBounds.get_width() || sz.get_height() <= frameBounds.get_height())
+		gfx::range r2 = r & get_range();
+		if (!r2.is_invalid())
 		{
-			sz2 = gfx::size(0, 0);
-			r2 = gfx::range::make_empty();
+			gfx::size sz2 = r2.get_limit(sz);
+			bool sizeChanged = sz != sz2;
+			const gfx::size& frameSize = frameBounds.get_size();
+			gfx::size newSize(0, 0);
+			if (sz2.get_width() > frameSize.get_width())
+				newSize.get_width() = sz2.get_width() - frameSize.get_width();
+			if (sz2.get_height() > frameSize.get_height())
+				newSize.get_height() = sz2.get_height() - frameSize.get_height();
+			rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
+			result = w.static_cast_to<gui::pane>()->calculate_collaborative_sizes(newSize, r2 - frameSize, sizeChanged ? gfx::cell::all_quadrants : quadrants, resizeDimension);
+			result += frameSize;
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
-		else
-		{
-			sz2 = sz - frameBounds.get_size();
-			r2 = r - sz;
-		}
-		rcptr<gui::window> w = get_bridge().template static_cast_to<gui::window>();
-		gfx::cell::propose_size_result result = w.static_cast_to<gui::pane>()->propose_size(sz2, r2, resizeDimension, sizingMask);
-		result += frameBounds.get_size();
 		return result;
 	}
 

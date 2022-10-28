@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -11,11 +11,12 @@
 
 #include "cogs/env.hpp"
 #include "cogs/os/sync/semaphore.hpp"
-#include "cogs/os/sync/thread.hpp"
 #include "cogs/mem/rcref_freelist.hpp"
 #include "cogs/mem/rcptr.hpp"
 #include "cogs/mem/rcnew.hpp"
+#include "cogs/env/sync/thread.hpp"
 #include "cogs/sync/transactable.hpp"
+#include "cogs/sync/yield.hpp"
 
 
 namespace cogs {
@@ -128,7 +129,7 @@ public:
 	// Waits for at least 1 to be available, but will acquire as many as present, if multiple.
 	size_t acquire_any(const timeout_t& timeout = timeout_t::infinite(), unsigned int spinCount = 0) volatile
 	{
-		unsigned int spinsLeft = (os::thread::get_processor_count() == 1) ? 0 : spinCount;
+		unsigned int spinsLeft = (env::get_processor_count() == 1) ? 0 : spinCount;
 		size_t result = 0;
 		rcptr<os::semaphore> osSemaphore = 0;
 		rcptr<os::semaphore> newOsSemaphore;
@@ -144,8 +145,8 @@ public:
 				if (!!spinsLeft)
 				{
 					--spinsLeft;
-					if (os::thread::spin_once())
-						continue;
+					yield();
+					continue;
 				}
 			}
 			if (!m_contents.promote_read_token(rt, wt))
@@ -225,7 +226,7 @@ public:
 			return true;
 		} // ensure n is positive
 
-		unsigned int spinsLeft = (os::thread::get_processor_count() == 1) ? 0 : spinCount;
+		unsigned int spinsLeft = (env::get_processor_count() == 1) ? 0 : spinCount;
 		bool result = false;
 		rcptr<os::semaphore> osSemaphore;
 		rcptr<os::semaphore> newOsSemaphore;
@@ -241,8 +242,8 @@ public:
 				if (!!spinsLeft)
 				{
 					--spinsLeft;
-					if (os::thread::spin_once())
-						continue;
+					yield();
+					continue;
 				}
 			}
 			if (!m_contents.promote_read_token(rt, wt))

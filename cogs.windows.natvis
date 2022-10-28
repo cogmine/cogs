@@ -1,23 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1" MenuName="Add to Image Watch"/>
+	<Type Name="cogs::rc_obj_base" Inheritable="false">
+		<Expand>
+			<Item Name="[strong]">m_counts.m_references[1]</Item>
+			<Item Name="[weak]">m_counts.m_references[0]</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::rc_obj&lt;*&gt;" Inheritable="false">
+		<Expand>
+			<Item Name="[strong]">m_counts.m_references[1]</Item>
+			<Item Name="[weak]">m_counts.m_references[0]</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::object" Inheritable="false">
+		<DisplayString Condition="m_desc == 0">(INVALID: cogs::object must be allocated by rcnew)</DisplayString>
+		<Expand>
+			<ExpandedItem Condition="m_desc != 0">*m_desc</ExpandedItem>
+		</Expand>
+	</Type>
 	<Type Name="cogs::rcptr&lt;*&gt;">
 		<DisplayString Condition="m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
-		<DisplayString Condition="m_ref.m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_ref.m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<DisplayString Condition="m_ref.m_container.m_contents.m_contents.m_contents.m_obj != 0">{{ptr={m_ref.m_container.m_contents.m_contents.m_contents.m_obj} strong={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_ref.m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]}}}</DisplayString>
 		<Expand>
 			<ExpandedItem>m_ref.m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
 		</Expand>
 	</Type>
 	<Type Name="cogs::rcref&lt;*&gt;">
 		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
-		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{ptr={m_container.m_contents.m_contents.m_contents.m_obj} strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]}}}</DisplayString>
 		<Expand>
 			<ExpandedItem>m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
 		</Expand>
 	</Type>
 	<Type Name="cogs::weak_rcptr&lt;*&gt;">
 		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj == 0">nullptr</DisplayString>
-		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]} ptr={m_container.m_contents.m_contents.m_contents.m_obj}}}</DisplayString>
+		<DisplayString Condition="m_container.m_contents.m_contents.m_contents.m_obj != 0">{{ptr={m_container.m_contents.m_contents.m_contents.m_obj} strong={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[1]} weak={m_container.m_contents.m_contents.m_contents.m_desc->m_counts.m_references[0]}}}</DisplayString>
 		<Expand>
 			<ExpandedItem>m_container.m_contents.m_contents.m_contents.m_obj</ExpandedItem>
 		</Expand>
@@ -59,6 +77,32 @@
 		</Expand>
 	</Type>
 	<Type Name="cogs::vector&lt;*&gt;">
+		<DisplayString Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; (is_char_vector || is_wchar_t_vector)">
+			{((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length]na}
+		</DisplayString>
+		<DisplayString Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; (is_char_vector || is_wchar_t_vector)">
+			{((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length]na}
+		</DisplayString>
+		<DisplayString Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; !is_char_vector &amp;&amp; !is_wchar_t_vector">
+			{{length={((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length}}}
+			{((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length]na}
+		</DisplayString>
+		<DisplayString Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; !is_char_vector &amp;&amp; !is_wchar_t_vector">
+			{{length={((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length}}}
+			{((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length]na}
+		</DisplayString>
+		<StringView Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; is_char_vector">
+			((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length]na
+		</StringView>
+		<StringView Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; is_char_vector">
+			((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length]na
+		</StringView>
+		<StringView Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; is_wchar_t_vector">
+			((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length]su
+		</StringView>
+		<StringView Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; is_wchar_t_vector">
+			((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length]su
+		</StringView>
 		<Expand>
 			<Item Name="[length]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0" ExcludeView="simple">
 				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length
@@ -78,10 +122,10 @@
 			<Item Name="[is shared]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc == 0" ExcludeView="simple">
 				false
 			</Item>
-			<Item Name="[total capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+			<Item Name="[capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
 				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_capacity
 			</Item>
-			<Item Name="[total capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
+			<Item Name="[capacity]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
 				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_capacity
 			</Item>
 			<Item Name="[forward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
@@ -96,20 +140,19 @@
 			<Item Name="[backward reserved]" Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc != 0 &amp;&amp; ((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc->m_counts.m_references[1] == 1" ExcludeView="simple">
 				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr - ($T1*)((const unsigned char*)((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_desc + cogs::placement_with_header&lt;cogs::vector_descriptor&lt;$T1,void&gt;,$T1,1&gt;::distance)
 			</Item>
-			<ArrayItems>
-				<Size Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
-					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length
-				</Size>
-				<Size Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
-					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length
-				</Size>
-				<ValuePointer Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
-					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr
-				</ValuePointer>
-				<ValuePointer Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
-					((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr
-				</ValuePointer>
-			</ArrayItems>
+			<ExpandedItem Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)->m_length]na
+			</ExpandedItem>
+			<ExpandedItem Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0">
+				((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_ptr,[((cogs::vector_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)->m_length]na
+			</ExpandedItem>
+		</Expand>
+		</Type>
+	<Type Name="cogs::string_t&lt;*&gt;">
+		<DisplayString>{m_contents}</DisplayString>
+		<StringView>m_contents</StringView>
+		<Expand>
+			<ExpandedItem>m_contents</ExpandedItem>
 		</Expand>
 	</Type>
 	<Type Name="cogs::vector_content&lt;*&gt;">
@@ -137,16 +180,16 @@
 	</Type>
 	<Type Name="cogs::os::gdi::bitmap::gdi_bitmap">
 		<Expand>
-		<Synthetic Name="[type]">
-			<DisplayString Condition="m_imageType==24">UINT8</DisplayString>
-			<DisplayString Condition="m_imageType==32">UINT8</DisplayString>
-			<DisplayString Condition="m_imageType==48">UINT16</DisplayString>
-		</Synthetic>
-		<Synthetic Name="[channels]">
-			<DisplayString Condition="m_imageType==32">4</DisplayString>
-			<DisplayString Condition="m_imageType==24">3</DisplayString>
-			<DisplayString Condition="m_imageType==48">3</DisplayString>
-		</Synthetic>
+			<Synthetic Name="[type]">
+				<DisplayString Condition="m_imageType==24">UINT8</DisplayString>
+				<DisplayString Condition="m_imageType==32">UINT8</DisplayString>
+				<DisplayString Condition="m_imageType==48">UINT16</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[channels]">
+				<DisplayString Condition="m_imageType==32">4</DisplayString>
+				<DisplayString Condition="m_imageType==24">3</DisplayString>
+				<DisplayString Condition="m_imageType==48">3</DisplayString>
+			</Synthetic>
 			<Item Name="[width]">m_size.cx</Item>
 			<Item Name="[height]">m_size.cy</Item>
 			<Item Name="[data]">m_bits</Item>
@@ -175,6 +218,138 @@
 			<Item Name="[stride]">m_gdiBitmap.m_widthBytes</Item>
 			<Item Name="[planes]">1</Item>
 			<Item Name="[is opaque]">m_isOpaque</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::geometry::planar::size">
+		<DisplayString>{{{m_contents[0],g}, {m_contents[1],g}}}</DisplayString>
+		<Expand>
+			<Item Name="[width]">m_contents[0],g</Item>
+			<Item Name="[height]">m_contents[1],g</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::geometry::planar::point">
+		<DisplayString>{{{m_contents[0],g}, {m_contents[0],g}}}</DisplayString>
+		<Expand>
+			<Item Name="[x]">m_contents[0],g</Item>
+			<Item Name="[y]">m_contents[1],g</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::rgb_t">
+		<DisplayString>
+			{{red={m_red,nvo}, green={m_green,nvo}, blue={m_blue,nvo}}} {{raw={m_red,nvoX}{m_green,nvoXb}{m_blue,nvoXb}}}
+		</DisplayString>
+		<Expand>
+			<Item Name="[red]">m_red,nvo</Item>
+			<Item Name="[green]">m_green,nvo</Item>
+			<Item Name="[blue]">m_blue,nvo</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::rgba_t">
+		<DisplayString>
+			{{red={m_rgb.m_red,nvo}, green={m_rgb.m_green,nvo}, blue={m_rgb.m_blue,nvo}, alpha={m_alpha,nvo}}} {{raw={m_rgb.m_red,nvoX}{m_rgb.m_green,nvoXb}{m_rgb.m_blue,nvoXb}{m_alpha,nvoXb}}}
+		</DisplayString>
+		<Expand>
+			<ExpandedItem>m_rgb</ExpandedItem>
+			<Item Name="[alpha]">m_alpha,nvo</Item>
+		</Expand>
+	</Type>
+	<Type Name="cogs::color">
+		<DisplayString>{m_rgba.m_contents.m_contents}</DisplayString>
+		<Expand>
+			<ExpandedItem>
+				m_rgba.m_contents.m_contents
+			</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::composite_vector&lt;*&gt;">
+		<Expand>
+			<ExpandedItem Condition="m_contents.m_contents.m_desc.m_ref.m_value != 0">
+				((cogs::composite_vector_content_t&lt;$T1&gt;*)&amp;m_contents.m_contents.m_desc.m_ref.m_value->m_contents)
+			</ExpandedItem>
+			<ExpandedItem Condition="m_contents.m_contents.m_desc.m_ref.m_value == 0">
+				((cogs::composite_vector_content_t&lt;$T1&gt;*)&amp;m_contents.m_contents.m_embedded)
+			</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::composite_string_t&lt;*&gt;">
+		<DisplayString>{m_contents}</DisplayString>
+		<Expand>
+			<ExpandedItem>m_contents</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::composite_buffer">
+		<Expand>
+			<ExpandedItem Condition="m_contents.m_contents.m_contents.m_desc.m_ref.m_value != 0">
+				((cogs::composite_buffer_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_contents.m_desc.m_ref.m_value->m_contents)
+			</ExpandedItem>
+			<ExpandedItem Condition="m_contents.m_contents.m_contents.m_desc.m_ref.m_value == 0">
+				((cogs::composite_buffer_content&lt;$T1&gt;*)&amp;m_contents.m_contents.m_contents.m_embedded)
+			</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="cogs::container_dlist&lt;*&gt;">
+		<DisplayString Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0">{{empty}}</DisplayString>
+		<Expand>
+			<Item Name="length" Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0">0</Item>
+			<Item Name="length" Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj != 0">m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_count</Item>
+			<LinkedListItems>
+				<Size>m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_count</Size>
+				<HeadPointer>
+					((m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_contents.m_desc.m_ref.m_value != 0)
+					?
+					(*(link_t::links_t*)m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_contents.m_desc.m_ref.m_value)
+					.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+					:
+					(*((link_t::links_t*)&amp;(m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_contents.m_embedded)))
+					.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj)
+				</HeadPointer>
+				<NextPointer>
+					((m_links.m_contents.m_desc.m_ref.m_value != 0)
+					?
+					(*(link_t::links_t*)m_links.m_contents.m_desc.m_ref.m_value)
+					.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+					:
+					(*((link_t::links_t*)&amp;(m_links.m_contents.m_embedded)))
+					.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj)
+				</NextPointer>
+				<ValueNode>
+					*($T1*)&amp;(((payload_link_t*)this)->m_value)
+				</ValueNode>
+			</LinkedListItems>
+		</Expand>
+	</Type>
+	<Type Name="cogs::container_skiplist_base&lt;*,*,*,*&gt;">
+		<DisplayString Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0 || m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_heightAndCount.m_count == 0">{{empty}}</DisplayString>
+		<Expand>
+			<Item Name="length" Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj == 0">0</Item>
+			<Item Name="length" Condition="m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj != 0">m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_heightAndCount.m_count</Item>
+			<LinkedListItems>
+				<Size>m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_heightAndCount.m_count</Size>
+				<HeadPointer>
+					(
+				m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_ref.m_value[0].m_contents.m_desc.m_ref.m_value != 0
+					?
+				(*(link_t::links_t*)&amp;m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_ref.m_value[0].m_contents.m_desc.m_ref.m_value->m_contents)
+				.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+					:
+				(*(link_t::links_t*)&amp;m_sentinel.m_ref.m_container.m_contents.m_contents.m_contents.m_obj->m_links.m_ref.m_value[0].m_contents.m_desc.m_ref.m_value->m_contents)
+				.m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+					)
+				</HeadPointer>
+				<NextPointer>
+				m_links.m_ref.m_value->m_contents.m_desc.m_ref.m_value != 0
+					?
+				(*(link_t::links_t*)&amp;((
+				m_links.m_ref.m_value->m_contents.m_desc.m_ref.m_value)->m_contents)).m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+					:
+				(*(link_t::links_t*)&amp;
+				m_links.m_ref.m_value->m_contents.m_embedded).m_next.m_ref.m_container.m_contents.m_contents.m_contents.m_obj
+				</NextPointer>
+				<ValueNode>
+					*($T2*)&amp;
+					(((cogs::container_skiplist_base&lt;$T1,$T2,$T3,$T4&gt;::payload_link_t*)this)->m_value)
+				</ValueNode>
+			</LinkedListItems>
 		</Expand>
 	</Type>
 </AutoVisualizer>

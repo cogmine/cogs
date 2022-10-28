@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -69,14 +69,15 @@ public:
 		return *this;
 	}
 
-	void set(double x, double y)
-	{
-		m_contents[0] = x;
-		m_contents[1] = y;
-	}
+	void set(double x, double y) { m_contents[0] = x; m_contents[1] = y; }
+
+	void set(dimension d, double x) { m_contents[(int)d] = x; }
 
 	double& operator[](dimension d) { return m_contents[(int)d]; }
 	double operator[](dimension d) const { return m_contents[(int)d]; }
+
+	double& get(dimension d) { return m_contents[(int)d]; }
+	double get(dimension d) const { return m_contents[(int)d]; }
 
 	double& get_width() { return m_contents[0]; }
 	double get_width() const { return m_contents[0]; }

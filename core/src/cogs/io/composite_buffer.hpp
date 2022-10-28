@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 #ifndef COGS_HEADER_IO_COMPOSITE_BUFFER
@@ -26,8 +26,8 @@ class composite_buffer_content
 private:
 	friend class composite_buffer;
 
-	vector<vector<char> > m_vectorVector;
 	size_t m_length;
+	vector<vector<char> > m_vectorVector;
 
 public:
 	class position_t
@@ -98,8 +98,8 @@ public:
 	{ }
 
 	composite_buffer_content(const composite_buffer_content& src)
-		: m_vectorVector(src.m_vectorVector),
-		m_length(src.m_length)
+		: m_length(src.m_length),
+		m_vectorVector(src.m_vectorVector)
 	{ }
 
 	composite_buffer_content(const buffer& src)
@@ -1637,7 +1637,7 @@ public:
 		bool operator==(const const_iterator& i) const { return (m_array == i.m_array) && (!m_array || (m_position == i.m_position)); }
 		bool operator!=(const const_iterator& i) const { return !operator==(i); }
 		const_iterator& operator=(const const_iterator& i) { m_array = i.m_array; m_position = i.m_position; return *this; }
-		
+
 		const char* get() const { return m_array->get_inner_array(m_position.get_outer_index()).get_const_ptr() + m_position.get_inner_index(); }
 		const char& operator*() const { return *get(); }
 		const char* operator->() const { return get(); }
@@ -3655,13 +3655,13 @@ public:
 
 	this_t& operator=(const composite_buffer& src) { assign(src); return *this; }
 	this_t& operator=(const volatile composite_buffer& src) { assign(src); return *this; }
-	volatile this_t& operator=(const composite_buffer& src) volatile { assign(src); return *this; }
+	void operator=(const composite_buffer& src) volatile { assign(src); }
 
 	this_t& operator=(const buffer& src) { assign(src); return *this; }
 
 	this_t& operator=(const volatile buffer& src) { assign(src); return *this; }
 
-	volatile this_t& operator=(const buffer& src) volatile { assign(src); return *this; }
+	void operator=(const buffer& src) volatile { assign(src); }
 
 	void append(size_t n, const char& src) { m_contents->append(buffer(n, src)); }
 

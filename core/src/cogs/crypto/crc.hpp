@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -176,7 +176,7 @@ public:
 	private:
 		static constexpr size_t shift1 = (width_bits <= 8) ? 0 : 8;
 		static constexpr size_t shift2 = ((width_bits <= 8) || is_input_reflected) ? 0 : (width_bits - 8);
-		static constexpr uint8_t table_index = (uint8_t)(old_value >> shift2) ^ byte_in;
+		static constexpr uint8_t table_index = static_cast<uint8_t>(old_value >> shift2) ^ byte_in;
 		static constexpr crc_t table_entry = calculate_crc_table_entry<table_index>::value;
 	public:
 		static constexpr crc_t value = ((width_bits <= 8)

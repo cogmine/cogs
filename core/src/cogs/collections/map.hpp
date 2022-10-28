@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Good
@@ -97,7 +97,7 @@ public:
 		iterator& operator=(T2&& i) { m_contents = forward_member<T2>(i.m_contents); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile iterator& operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); return *this; }
+		void operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); }
 
 		void disown() { m_contents.disown(); }
 		void disown() volatile { m_contents.disown(); }
@@ -250,7 +250,7 @@ public:
 		volatile_iterator& operator=(T2&& i) { m_contents = forward_member<T2>(i.m_contents); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_iterator& operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); return *this; }
+		void operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); }
 
 		void disown() { m_contents.disown(); }
 		void disown() volatile { m_contents.disown(); }
@@ -404,7 +404,7 @@ public:
 		remove_token& operator=(T2&& i) { m_contents = forward_member<T2>(i.m_contents); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile remove_token& operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); return *this; }
+		void operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); }
 
 
 		void disown() { m_contents.disown(); }
@@ -509,7 +509,7 @@ public:
 		volatile_remove_token& operator=(T2&& i) { m_contents = forward_member<T2>(i.m_contents); return *this; }
 
 		template <typename T2, typename = std::enable_if_t<is_element_reference_type_v<std::remove_reference_t<T2> > > >
-		volatile volatile_remove_token& operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); return *this; }
+		void operator=(T2&& i) volatile { m_contents = forward_member<T2>(i.m_contents); }
 
 		void disown() { m_contents.disown(); }
 		void disown() volatile { m_contents.disown(); }
@@ -599,9 +599,9 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
-	volatile this_t& operator=(const volatile this_t&) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
+	void operator=(const volatile this_t&) volatile = delete;
 
 	/// @{
 	/// @brief Removes all elements.
@@ -1319,8 +1319,8 @@ public:
 	}
 
 	this_t& operator=(const volatile this_t&) = delete;
-	volatile this_t& operator=(this_t&&) volatile = delete;
-	volatile this_t& operator=(const this_t& src) volatile = delete;
+	void operator=(this_t&&) volatile = delete;
+	void operator=(const this_t& src) volatile = delete;
 
 	void clear()
 	{

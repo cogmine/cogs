@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -864,11 +864,11 @@ public:
 	void assign(const volatile this_t& src) { m_contents.assign(src.m_contents); }
 
 	this_t& operator=(const type& src) { m_contents.assign(1, src); return *this; }
-	volatile this_t& operator=(const type& src) volatile { m_contents.assign(1, src); return *this; }
+	void operator=(const type& src) volatile { m_contents.assign(1, src); }
 
 	this_t& operator=(const this_t& src) { assign(src); return *this; }
 	this_t& operator=(const volatile this_t& src) { assign(src); return *this; }
-	volatile this_t& operator=(const this_t& src) volatile { assign(src); return *this; }
+	void operator=(const this_t& src) volatile { assign(src); }
 
 	void append(const type& src) { m_contents.append(1, src); }
 	void append(size_t n, const type& src) { m_contents.append(n, src); }

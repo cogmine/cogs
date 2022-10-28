@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -321,8 +321,8 @@
 //
 //// composed_transaction
 ////
-//// 		A composed_transaction accumulates requested read and write operations, and does
-//// 		not commit any of them until the composed_transaction is submitted.  No further blocking
+////		A composed_transaction accumulates requested read and write operations, and does
+////		not commit any of them until the composed_transaction is submitted.  No further blocking
 ////		occurs, as each submitted composed_transaction is effectively commited atomically.
 ////
 ////		Using file<>'s read/write APIs to read individual segments at a time, results in
@@ -1572,7 +1572,7 @@
 //		: m_pastEof(false)
 //	{ }
 //
-//	static this_t all(bool spanPastEof = true) { this_t result(true);  result.m_segments.add(0, -1); return result; }
+//	static this_t all(bool spanPastEof = true) { this_t result(true); result.m_segments.add(0, -1); return result; }
 //	static this_t eof() { return this_t(true); }
 //
 //	void clear()
@@ -1880,7 +1880,7 @@
 //	virtual rcref<size_reader> get_size() = 0;
 //
 //protected:
-// 	virtual rcref<reader> begin_read(const rcref<segment_map<file_size_t> >& sm) = 0;
+//	virtual rcref<reader> begin_read(const rcref<segment_map<file_size_t> >& sm) = 0;
 //};
 //
 //template <typename file_size_t>
@@ -6541,8 +6541,8 @@
 //
 //		iterator& operator=(const iterator& i) { m_itor = i.m_itor; return *this; }
 //		iterator& operator=(const volatile iterator& i) { m_itor = i.m_itor; return *this; }
-//		volatile iterator& operator=(const iterator& i) volatile { m_itor = i.m_itor; return *this; }
-//		volatile iterator& operator=(const volatile iterator& i) volatile { m_itor = i.m_itor; return *this; }
+//		void operator=(const iterator& i) volatile { m_itor = i.m_itor; }
+//		void operator=(const volatile iterator& i) volatile { m_itor = i.m_itor; }
 //
 //		iterator& operator++() { ++m_itor; return *this; }
 //		iterator operator++(int) { return m_itor++; }

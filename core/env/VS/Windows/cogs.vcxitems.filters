@@ -199,6 +199,9 @@
     <Filter Include="os\libs\pthreads\sync">
       <UniqueIdentifier>{0c9e08e6-3643-4533-a821-2d1d56845eb7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="env\default\sync">
+      <UniqueIdentifier>{efbdd884-b1bf-4d61-b6f4-d6af079325f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\arch\unknown\src\cogs\arch\mem\bit_scan.hpp">
@@ -486,6 +489,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\atomic_compare_exchange.hpp">
       <Filter>env\VS\sync</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\thread.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cogs\env\sync\yield.hpp">
+      <Filter>env\VS\sync</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\cogs.hpp">
       <Filter>core</Filter>
     </ClInclude>
@@ -514,6 +523,9 @@
       <Filter>core\collections</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\avltree.hpp">
+      <Filter>core\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree_node.hpp">
       <Filter>core\collections</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\btree.hpp">
@@ -574,9 +586,6 @@
       <Filter>core\collections</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\string.hpp">
-      <Filter>core\collections</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\tlink.hpp">
       <Filter>core\collections</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\collections\unicode.hpp">
@@ -1277,6 +1286,21 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\os\MacOS\src\cogs\os\main.hpp">
       <Filter>os\MacOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\sync\thread.hpp">
+      <Filter>env\default\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\thread.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\default\src\cogs\env\sync\yield.hpp">
+      <Filter>env\default\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\gcc\src\cogs\env\sync\yield.hpp">
+      <Filter>env\gcc\sync</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\src\cogs\sync\yield.hpp">
+      <Filter>core\sync</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

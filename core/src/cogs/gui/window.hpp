@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,11 +30,11 @@ public:
 	virtual void resize(const gfx::size& newSize) = 0;
 	virtual void reshape_frame(const gfx::bounds& newBounds) = 0;
 	virtual void frame_reshaped() = 0;
-	virtual cell::propose_size_result propose_frame_size(
+	virtual cell::collaborative_sizes calculate_collaborative_frame_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		cell::sizing_mask sizingMask = cell::all_sizing_types) const = 0;
+		const std::optional<cell::quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension> & = std::nullopt) const = 0;
 	virtual bounds get_frame_bounds() const = 0;
 	virtual void set_title(const composite_string& title) = 0;
 };
@@ -218,30 +218,16 @@ public:
 	}
 
 	// Args are in screen coordinates, not DIPS (not content coordinates, may be flipped).
-	virtual propose_size_result propose_frame_size(
+	virtual collaborative_sizes calculate_collaborative_frame_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
 		if (!!m_nativeWindow)
-			return m_nativeWindow->propose_frame_size(sz, r, resizeDimension, sizingMask);
-		propose_size_result result;
+			return m_nativeWindow->calculate_collaborative_frame_sizes(sz, r, quadrants, resizeDimension);
+		collaborative_sizes result;
 		return result;
-	}
-
-	std::optional<size> propose_frame_size_best(
-		const size& sz,
-		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		bool nearestGreater = false,
-		bool preferGreaterWidth = false,
-		bool preferGreaterHeight = false) const
-	{
-		propose_size_result result = propose_frame_size(sz, r, resizeDimension);
-		if (resizeDimension.has_value())
-			return result.get_nearest(*resizeDimension, nearestGreater);
-		return result.find_first_valid_size(get_primary_flow_dimension(), preferGreaterWidth, preferGreaterHeight);
 	}
 
 	virtual void drawing()

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -45,7 +45,7 @@ private:
 		uint32_t m_denom;
 	};
 
-	alignas(atomic::get_alignment_v<ratio_t>) inline static placement<ratio_t> s_ratio;
+	inline static placement<ratio_t> s_ratio alignas(atomic::get_alignment_v<ratio_t>);
 
 public:
 	// We're going to squeeze a mach_timespec into an fixed_integer<> to calculate timespans.

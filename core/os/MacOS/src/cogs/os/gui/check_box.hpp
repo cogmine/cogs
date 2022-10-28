@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -107,8 +107,9 @@ public:
 		nsview_pane::installing();
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
+		nsview_pane::calculating_range();
 		objc_check_box* objcCheckBox = (objc_check_box*)get_NSView();
 		NSButtonCell* buttonCell = [objcCheckBox cell];
 		NSSize idealSize = [buttonCell cellSize];

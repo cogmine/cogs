@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,8 +30,8 @@ public:
 	static const ref_t& get_prev(const link_t& l) { return l.get_prev_link(); }
 	static const volatile ref_t& get_prev(const volatile link_t& l) { return l.get_prev_link(); }
 
-	static void set_prev(link_t& l, const link_t& src) { l.set_prev_link(src); }
-	static void set_prev(volatile link_t& l, const link_t& src) { l.set_prev_link(src); }
+	static void set_prev(link_t& l, const ref_t& src) { l.set_prev_link(src); }
+	static void set_prev(volatile link_t& l, const ref_t& src) { l.set_prev_link(src); }
 };
 
 

@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -409,7 +409,7 @@
 //			cell_t& cell = **cellItor;
 //
 //			range cellRange = cell.get_current_parent_range();
-//			size cellDefaultSize = cellRange.limit(cell.get_current_parent_default_size()); // necessary?
+//			size cellDefaultSize = cellRange.get_limit(cell.get_current_parent_default_size()); // necessary?
 //
 //			// default size is one row, unwrapped
 //			m_currentDefaultSize[d] += cellDefaultSize[d]; // compute other dimension later

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+// Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -194,8 +194,8 @@ private:
 
 	bounds m_lastVisibleBounds;
 
-	range m_currentRange;
-	std::optional<size> m_currentDefaultSize;
+	range m_range;
+	std::optional<size> m_defaultSize;
 
 	pane_list::iterator m_childInstallItor;
 	rcptr<pane> m_parentInstalling;
@@ -757,7 +757,7 @@ protected:
 	}
 
 	// Call recompose if something changes which affects the min/max size of a pane,
-	// to trigger calls to calculate_frame_range() and reshape_frame().
+	// to trigger calls to calculate_range() and reshape_frame().
 	// Safe to call outside of this pane's UI thread.
 	void recompose(bool recomposeDescendants = false)
 	{
@@ -781,7 +781,7 @@ protected:
 				if (!parent)
 				{
 					m_recomposeDescendants = recomposeDescendants;
-					calculate_frame_range();
+					calculate_range();
 					m_recomposeDescendants = true;
 				}
 				else
@@ -789,7 +789,7 @@ protected:
 					range oldParentRange = get_frame_range();
 					std::optional<size> oldDefaultSize = get_frame_default_size();
 					m_recomposeDescendants = recomposeDescendants;
-					calculate_frame_range();
+					calculate_range();
 					m_recomposeDescendants = true;
 					range newParentRange = get_frame_range();
 					std::optional<size> newDefaultSize = get_frame_default_size();
@@ -800,7 +800,7 @@ protected:
 						break;
 					}
 				}
-				std::optional<size> sz = propose_frame_size(get_size()).find_first_valid_size(get_primary_flow_dimension());
+				std::optional<size> sz = calculate_frame_size(get_size());
 				size sz2;
 				if (sz.has_value())
 					sz2 = *sz;
@@ -957,30 +957,41 @@ protected:
 
 	// cell interface
 
-	virtual void calculate_range()
+	void calculate_range()
 	{
-		m_currentDefaultSize.reset();
-		m_currentRange.clear();
-
 		pane_list::iterator itor = m_children.get_first();
 		while (!!itor)
 		{
 			if (m_recomposeDescendants)
-				(*itor)->calculate_frame_range();
-			std::optional<size> childDefaultSize = (*itor)->get_frame_default_size();
-			if (childDefaultSize.has_value())
-			{
-				if (m_currentDefaultSize.has_value())
-					*m_currentDefaultSize |= *childDefaultSize;
-				else
-					m_currentDefaultSize = *childDefaultSize;
-			}
-			m_currentRange &= (*itor)->get_frame_range();
+				(*itor)->calculate_range();
 			++itor;
 		}
 
-		if (m_currentDefaultSize.has_value())
-			*m_currentDefaultSize = m_currentRange.limit(*m_currentDefaultSize);
+		frameable::calculate_range();
+	}
+
+	virtual void calculating_range()
+	{
+		m_defaultSize.reset();
+		m_range.clear();
+
+		pane_list::iterator itor = m_children.get_first();
+		while (!!itor)
+		{
+			std::optional<size> childDefaultSize = (*itor)->get_frame_default_size();
+			if (childDefaultSize.has_value())
+			{
+				if (m_defaultSize.has_value())
+					*m_defaultSize |= *childDefaultSize;
+				else
+					m_defaultSize = *childDefaultSize;
+			}
+			m_range &= (*itor)->get_frame_range();
+			++itor;
+		}
+
+		if (m_defaultSize.has_value())
+			*m_defaultSize = m_range.get_limit(*m_defaultSize);
 	}
 
 	// canvas interface
@@ -1713,7 +1724,7 @@ private:
 		{
 			bool hasInstallingParent = !!m_parentInstalling;
 			if (!hasInstallingParent)
-				calculate_frame_range();
+				calculate_range();
 			else
 			{
 				rcptr<pane> parentInstalling = m_parentInstalling;
@@ -2237,8 +2248,8 @@ public:
 		return b;
 	}
 
-	virtual range get_range() const { return m_currentRange; }
-	virtual std::optional<size> get_default_size() const { return m_currentDefaultSize; }
+	range get_range() const { return m_range; }
+	std::optional<size> get_default_size() const { return m_defaultSize; }
 
 	virtual dimension get_primary_flow_dimension() const
 	{
@@ -2248,42 +2259,41 @@ public:
 		return cell::get_primary_flow_dimension();
 	}
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask sizingMask = all_sizing_types) const
+		const std::optional<quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<dimension>& resizeDimension = std::nullopt) const
 	{
-		propose_size_result result;
-		if (sizingMask == sizing_mask::no_flags)
-			return result;
-
-		range r2 = get_range() & r;
-
-		// Since the default behavior is to constrain the parent,
-		// we need to give children a chance to consider the proposed size.
 		if (m_children.is_empty())
-			return cell::propose_size(sz, r2, resizeDimension, sizingMask);
-		if (m_children.size() == 1)
-			return (*m_children.get_first())->propose_frame_size(sz, r2, resizeDimension, sizingMask);
+			return cell::calculate_collaborative_sizes(sz, r, quadrants, resizeDimension);
 
-		if (!r2.is_empty())
+		collaborative_sizes result;
+		range r2 = r & get_range();
+		if (!r2.is_invalid())
 		{
-			size sz2 = r2.limit(sz);
+			// Since the default behavior is to constrain the parent,
+			// we need to give children a chance to consider the proposed size.
+			if (m_children.size() == 1)
+				return (*m_children.get_first())->calculate_collaborative_frame_sizes(sz, r2, quadrants, resizeDimension);
+
+			size sz2 = r2.get_limit(sz);
+			bool sizeChanged = sz2 != sz;
 
 			struct state
 			{
-				sizing_mask mode;
+				quadrant_mask mode;
 				size sz;
 				pane* paneToSkip;
 			};
 
-			backed_vector<state, 4> states(1, { sizingMask, sz2, nullptr });
+			quadrant_mask initialMask = quadrants.has_value() ? *quadrants : all_quadrants;
+			backed_vector<state, 4> states(1, { initialMask, sz2, nullptr });
 			for (size_t stateIndex = 0; stateIndex < states.get_length(); stateIndex++)
 			{
 				state& currentState = states.get_ptr()[stateIndex];
 				pane_list::iterator itor = m_children.get_first();
-				propose_size_result result2;
+				collaborative_sizes result2;
 				while (!!itor)
 				{
 					pane* p = itor->get_ptr();
@@ -2292,25 +2302,24 @@ public:
 						++itor;
 						continue;
 					}
-					result2 = (*itor)->propose_frame_size(currentState.sz, r2, resizeDimension, currentState.mode);
-					sizing_mask differentSizeMask = sizing_mask::no_flags;
-					for (int i = 0; i < 4; i++)
+					result2 = (*itor)->calculate_collaborative_frame_sizes(currentState.sz, r2, currentState.mode, resizeDimension);
+					quadrant_mask differentSizeMask = quadrant_mask::none;
+					for (auto sizingType : currentState.mode)
 					{
-						sizing_type sizingType = static_cast<sizing_type>(1 << i);
-						if (!(currentState.mode & sizingType))	// Skip if not requested.
-							continue;
-						if (!result2.indexed_sizes[i].has_value()) // null is a dead end, remove.
+						auto bit_index = get_flag_index(sizingType);
+						if (!result2.indexed_sizes[bit_index].has_value()) // null is a dead end, remove.
 						{
+							// It's ok to modify prior or current entries when iterating a flag_mask.
 							currentState.mode -= sizingType;
 							continue;
 						}
-						if (*result2.indexed_sizes[i] == currentState.sz)
+						if (*result2.indexed_sizes[bit_index] == currentState.sz)
 							continue;
 						differentSizeMask += sizingType;
 					}
-					if (currentState.mode == sizing_mask::no_flags)
+					if (currentState.mode == quadrant_mask::none)
 						break;
-					if (differentSizeMask == sizing_mask::no_flags) // If all were accepted
+					if (differentSizeMask == quadrant_mask::none) // If all were accepted
 					{
 						++itor;
 						continue;
@@ -2318,7 +2327,7 @@ public:
 					size_t startScanStateIndex = stateIndex;
 					if (differentSizeMask == currentState.mode) // None were accepted
 					{
-						states.truncate(1);
+						states.erase(stateIndex);
 						itor = m_children.get_first();
 					}
 					else // If at least one was accepted
@@ -2344,7 +2353,7 @@ public:
 							}
 						}
 						if (!found)
-							states.append(1, { sizing_mask::no_flags | differentSizeType, differentSize, p });
+							states.append(1, { *differentSizeType, differentSize, p });
 					}
 					//continue;
 				}
@@ -2355,7 +2364,8 @@ public:
 					result.indexed_sizes[bit_index] = *result2.indexed_sizes[bit_index];
 				}
 			}
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			if (sizeChanged)
+				result.update_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
 		}
 		return result;
 	}

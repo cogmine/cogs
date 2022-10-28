@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -912,7 +912,6 @@ private:
 	rcref<volatile subsystem> m_uiSubsystem;
 	weak_rcptr<hwnd_pane> m_owner;
 	rcptr<hwnd> m_parentHwndPane;
-	SIZE m_minimumWindowSize;
 
 #if COGS_USE_ATL_THUNK
 	AtlThunkData_t* m_atlThunk;
@@ -1641,14 +1640,14 @@ public:
 		return p.dereference();
 	}
 
-	virtual gfx::cell::propose_size_result propose_size(
+	virtual gfx::cell::collaborative_sizes calculate_collaborative_sizes(
 		const gfx::size& sz,
 		const gfx::range& r = gfx::range::make_unbounded(),
-		const std::optional<gfx::dimension>& resizeDimension = std::nullopt,
-		gfx::cell::sizing_mask sizingMask = gfx::cell::all_sizing_types) const
+		const std::optional<gfx::cell::quadrant_mask>& quadrants = std::nullopt,
+		const std::optional<gfx::dimension>& resizeDimension = std::nullopt) const
 	{
 		// Round up to nearest whole pixel
-		return bridgeable_pane::propose_size(sz, r, resizeDimension, sizingMask).ceil();
+		return bridgeable_pane::calculate_collaborative_sizes(sz, r, quadrants, resizeDimension).ceil();
 	}
 
 	virtual void reshape(const gfx::bounds& b, const gfx::point& oldOrigin = gfx::point(0, 0))

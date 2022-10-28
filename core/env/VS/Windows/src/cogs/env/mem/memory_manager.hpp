@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -26,7 +26,7 @@ public:
 		if (usableSize)
 			*usableSize = n;
 		return _aligned_malloc(n, align);
-	} 
+	}
 	static void deallocate(void* p) { _aligned_free(p); }
 	static bool try_reallocate(void*, size_t, size_t = cogs::largest_alignment, size_t* = nullptr) { return false; }
 };

@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -119,9 +119,9 @@ public:
 		invalidate(get_size());
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		pane::calculate_range();
+		pane::calculating_range();
 		composite_string txt = m_text;
 		rcptr<gfx::font> f = m_cachedFont;
 		m_textExtent = f->calc_text_bounds(txt);

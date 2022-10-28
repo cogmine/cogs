@@ -1,5 +1,5 @@
 ////
-////  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+////  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 ////
 //
 //
@@ -20,7 +20,7 @@
 //
 //
 //#include "cogs/env.hpp"
-//#include "cogs/hwnd.hpp"
+//#include "cogs/os/gui/GDI/hwnd.hpp"
 //
 //
 //namespace cogs {

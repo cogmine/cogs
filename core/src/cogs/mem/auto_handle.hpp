@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -109,7 +109,7 @@ class auto_handle<value_t, invalidValue, dispose_func, std::enable_if_t<can_atom
 private:
 	typedef auto_handle<value_t, invalidValue, dispose_func> this_t;
 
-	alignas(atomic::get_alignment_v<value_t>) value_t m_value;
+	value_t m_value alignas(atomic::get_alignment_v<value_t>);
 
 public:
 	auto_handle()
@@ -134,29 +134,13 @@ public:
 			dispose_func(m_value);
 	}
 
-	this_t& operator=(const value_t& value)
-	{
-		set(value);
-		return *this;
-	}
+	this_t& operator=(const value_t& value) { set(value); return *this; }
 
-	volatile this_t& operator=(const value_t& value) volatile
-	{
-		set(value);
-		return *this;
-	}
+	void operator=(const value_t& value) volatile { set(value); }
 
-	this_t& operator=(this_t&& src)
-	{
-		set(src.m_value);
-		return *this;
-	}
+	this_t& operator=(this_t&& src) { set(src.m_value); return *this; }
 
-	volatile this_t& operator=(this_t&& src) volatile
-	{
-		set(src.m_value);
-		return *this;
-	}
+	void operator=(this_t&& src) volatile { set(src.m_value); }
 
 	void set(const value_t& value)
 	{

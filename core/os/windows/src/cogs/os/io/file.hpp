@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 //
 //// Status: Placeholder
@@ -352,7 +352,7 @@
 //	rcref<auto_HANDLE> m_readHandle;
 //	rcref<file_globals::file_info> m_fileInfo;
 //
-// 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
+//	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
 //	{
 //		return rcnew(reader)(sm, this_rcref);
 //	}
@@ -442,7 +442,7 @@
 //		{ }
 //	};
 //
-// 	virtual rcref<io::file<io::write_access, file_size_t>::writer> begin_write(const rcref<io::segment_buffer_map<file_size_t> >& sbm)
+//	virtual rcref<io::file<io::write_access, file_size_t>::writer> begin_write(const rcref<io::segment_buffer_map<file_size_t> >& sbm)
 //	{
 //		return rcnew(writer)(sbm, this_rcref);
 //	}
@@ -599,7 +599,7 @@
 //		m_writeCount(0)
 //	{ }
 //
-// 	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
+//	virtual rcref<io::file<io::read_access, file_size_t>::reader> begin_read(const rcref<io::segment_map<file_size_t> >& sm)
 //	{
 //		return rcnew(reader)(sm, this_rcref);
 //	}

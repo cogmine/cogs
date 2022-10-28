@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 // Status: Obsolete
@@ -32,12 +32,12 @@ private:
 	public:
 		ptr<link_t> m_head;
 
-		alignas(atomic::get_alignment_v<size_t>) size_t m_guardCount;
+		size_t m_guardCount alignas(atomic::get_alignment_v<size_t>);
 
 		content_t() { m_guardCount = 0; }
 	};
 
-	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
+	content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 	void prepend(link_t& e)
 	{

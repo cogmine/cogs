@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,11 +30,11 @@ public:
 protected:
 	struct content_t
 	{
-		alignas(atomic::get_alignment_v<type>) type m_data;
-		alignas(atomic::get_alignment_v<version_t>) version_t m_version;
+		type m_data alignas(atomic::get_alignment_v<type>);
+		version_t m_version alignas(atomic::get_alignment_v<version_t>);
 	};
 
-	alignas(atomic::get_alignment_v<content_t>) content_t m_contents;
+	content_t m_contents alignas(atomic::get_alignment_v<content_t>);
 
 public:
 	versioned_t()

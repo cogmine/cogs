@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -21,7 +21,7 @@ namespace gui {
 /// @ingroup GUI
 /// @brief A scrollable GUI outer pane, providing a view of an inner pane.
 /// Inner pane should have a minimum size, under which size the need for a scroll bar is incurred
-class scroll_pane : public pane, protected virtual pane_container
+class scroll_pane : public pane, public virtual pane_container
 {
 private:
 	class scroll_bar_info
@@ -271,9 +271,9 @@ public:
 		m_cornerPane->nest_after(afterThis, child);
 	}
 
-	virtual void calculate_range()
+	virtual void calculating_range()
 	{
-		pane::calculate_range();
+		pane::calculating_range();
 
 		// recalculate scroll bar widths, in case dimensions for the scrollbars were just recalculated as well
 		for (int i = 0; i < 2; i++)
@@ -326,19 +326,19 @@ public:
 		}
 	}
 
-	virtual propose_size_result propose_size(
+	virtual collaborative_sizes calculate_collaborative_sizes(
 		const size& sz,
 		const range& r = range::make_unbounded(),
-		const std::optional<dimension>& resizeDimension = std::nullopt,
-		sizing_mask = all_sizing_types) const
+		const std::optional<quadrant_mask>& = std::nullopt,
+		const std::optional<dimension>& = std::nullopt) const
 	{
-		propose_size_result result;
+		collaborative_sizes result;
 		range r2 = get_range() & r;
-		if (r2.is_empty())
+		if (r2.is_invalid())
 			result.set_empty();
 		else
 		{
-			size newSize = r2.limit(sz);
+			size newSize = r2.get_limit(sz);
 			range contentRange = m_contentFrame->get_range();
 			constexpr dimension d = dimension::horizontal;
 
@@ -373,8 +373,7 @@ public:
 						newSize[!d] = min;
 				}
 			}
-			result.set(newSize);
-			result.set_relative_to(sz, get_primary_flow_dimension(), resizeDimension);
+			result.set_relative_to(newSize, sz);
 		}
 		return result;
 	}
@@ -390,18 +389,18 @@ public:
 		bounds contentBounds(contentOldOrigin, contentDefaultSize);
 
 		// limit contentBounds to visibleBounds, but may still have greater min size
-		contentBounds.get_size() = contentRange.limit(visibleBounds.get_size());
+		contentBounds.get_size() = contentRange.get_limit(visibleBounds.get_size());
 
 		bool autoFade = use_scroll_bar_auto_fade();
 		auto reduce_content_bounds = [&](dimension d)
 		{
 			if (!autoFade)
-				visibleBounds.get_size()[d] -= get_scroll_bar_info(!d).m_frame->get_fixed_size()[d];
-			if (visibleBounds.get_size()[d] < contentBounds.get_size()[d])
+				visibleBounds.get_size(d) -= get_scroll_bar_info(!d).m_frame->get_fixed_size()[d];
+			if (visibleBounds.get_size(d) < contentBounds.get_size(d))
 			{
-				contentBounds.get_size()[d] = visibleBounds.get_size()[d];
-				if (contentBounds.get_size()[d] < contentRange.get_min()[d])
-					contentBounds.get_size()[d] = contentRange.get_min()[d];
+				contentBounds.get_size(d) = visibleBounds.get_size(d);
+				if (contentBounds.get_size(d) < contentRange.get_min(d))
+					contentBounds.get_size(d) = contentRange.get_min(d);
 			}
 		};
 
@@ -512,7 +511,7 @@ public:
 					hScrollBarHeight));
 		}
 
-		std::optional<size> opt = m_contentFrame->propose_size_best(contentBounds.get_size());
+		std::optional<size> opt = m_contentFrame->calculate_size(contentBounds.get_size());
 		contentBounds.get_size() = opt.has_value() ? *opt : size(0, 0);
 		m_contentFrame->get_bounds() = contentBounds;
 		m_clippingFrame->get_bounds() = contentBounds & visibleBounds; // clip to smaller of content and visible bounds

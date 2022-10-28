@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -9,7 +9,7 @@
 #ifndef COGS_HEADER_GEOMETRY_RANGE
 #define COGS_HEADER_GEOMETRY_RANGE
 
-
+#include <array>
 #include "cogs/collections/composite_string.hpp"
 #include "cogs/collections/string.hpp"
 #include "cogs/math/dynamic_integer.hpp"
@@ -40,52 +40,22 @@ namespace linear {
 
 /// @ingroup Linear
 /// @brief A linear range - a minimum value and optional maximum value.
+/// A linear range with a min of 0 and a max of 0 includes the position 0.
+/// A linear range is considered 'invalid' if its min is greater than its max.
 class range
 {
 public:
-	class maximum_comparator
+	struct maximum_comparator
 	{
-	public:
-		static bool is_less_than(const range& t1, const range& t2)
-		{
-			bool result;
-			if (!t1)
-				result = true;
-			else if (!t2)
-				result = false;
-			else if (!t1.has_max()) // If invalid/empty range, its min
-				result = false; // If we don't have a max, put us last (or equal to others that are last)
-			else if (!t2.has_max())
-				result = true; // If we have a max, and they don't, we are definitely lesser.
-			else
-				result = t1.get_max() < t2.get_max(); // Both have max.  Compare their maxes.
-			return result;
-		}
+		static bool is_less_than(const range& t1, const range& t2) { return t1.m_hasMax && (!t2.m_hasMax || (t1.m_max < t2.m_max)); }
 	};
 
-	class minimum_comparator
+	struct minimum_comparator
 	{
-	public:
-		static bool is_less_than(const range& t1, const range& t2)
-		{
-			// Put invalid/empty ranges first, with a min/max of 0/0
-			// If mins are equal, put one with smaller max first
-			bool result;
-			if (!t1.has_max())
-				result = t1.get_min() < t2.get_min();
-			else if (!t2.has_max())
-				result = t1.get_min() <= t2.get_min();
-			else if (t1.get_min() > t1.get_max()) // t1 is invalid/empty, put it first.
-				result = true;
-			else if (t2.get_min() > t2.get_max()) // t2 is invalid/empty, put it first.
-				result = false;
-			else if (t1.get_min() == t2.get_min())
-				result = t1.get_max() < t2.get_max();
-			else
-				result = t1.get_min() < t2.get_min();
-			return result;
-		}
+		static bool is_less_than(const range& t1, const range& t2) { return t1.m_min < t2.m_min; }
 	};
+
+	using default_comparator = cogs::default_comparator;
 
 	// default comparator compares based on side of the range.
 
@@ -99,9 +69,11 @@ public:
 
 	static range make_fixed(double d = 0) { range r(d, d, true); return r; }
 
-	static range make_empty()
+	static range make_invalid()
 	{
-		range r(1, 0, true);
+		// Set min to an extremely large value, to reduce risk of arithmatical adjustments creating valid ranges.
+		// 1000000000000 is within the range of integers that can be represented as doubles, without gaps.
+		range r(1000000000000.0, 0, true);
 		return r;
 	}
 
@@ -114,7 +86,7 @@ public:
 		m_hasMax(src.m_hasMax)
 	{ }
 
-	range(double min, double max, bool hasMax)
+	range(double min, double max, bool hasMax = true)
 		: m_max(max),
 		m_min(min),
 		m_hasMax(hasMax)
@@ -132,13 +104,13 @@ public:
 	void clear_max() { m_hasMax = false; }
 
 	void clear() { clear_min(); clear_max(); }
-	void set_empty() { m_min = 1; m_max = 0; m_hasMax = true; }
+	void set_invalid() { m_min = 1000000000000.0; m_max = 0; m_hasMax = true; }
 
-	void set(double mn, double mx)
+	void set(double mn, double mx, bool hasMax = true)
 	{
 		m_min = mn;
 		m_max = mx;
-		m_hasMax = true;
+		m_hasMax = hasMax;
 	}
 
 	void set_fixed(double x = 0)
@@ -161,9 +133,11 @@ public:
 	double& get_max() { return m_max; }
 	double get_max() const { return m_max; }
 
-	// empty/not
-	bool is_empty() const { return (m_hasMax && (m_min > m_max)); }
-	bool operator!() const { return is_empty(); }
+	// invalid
+	bool is_invalid() const { return (m_hasMax && (m_min > m_max)); }
+
+	// A range is empty if its either invalid or has a max of 0.
+	bool is_empty() { return m_hasMax && (!m_max || (m_min > m_max)); }
 
 	bool is_fixed() const { return m_hasMax && (m_min == m_max); }
 
@@ -172,26 +146,7 @@ public:
 	// equality
 	bool operator==(const range& cmp) const
 	{
-		bool result = true;
-		if (&cmp != this)
-		{
-			if (m_hasMax != cmp.has_max())
-				result = false;
-			else if (!m_hasMax)
-				result = m_min == cmp.m_min;
-			else
-			{
-				bool isEmpty = (m_min > m_max);
-				bool cmpIsEmpty = (cmp.get_min() > cmp.get_max());
-				if (isEmpty)
-					result = cmpIsEmpty;
-				else if (cmpIsEmpty)
-					result = false;
-				else
-					result = (m_max == cmp.m_max) && (m_min == cmp.m_min);
-			}
-		}
-		return result;
+		return (&cmp == this) || !(m_hasMax != cmp.has_max() || (m_hasMax && m_max != cmp.m_max) || (m_min != cmp.m_min));
 	}
 
 	// inequality
@@ -203,87 +158,46 @@ public:
 	// less than
 	bool operator<(const range& cmp) const
 	{
-		// lesser is the one with the least difference between min and max.
-		// If neither have a max, the lesser is the one with the highest min.
-		// Invalid/empty ranges are considered equal and least.
-		bool result = false;
-		if (&cmp != this)
-		{
-			if (!m_hasMax)
-			{
-				if (cmp.has_max())
-					result = false;
-				else
-					result = m_min > cmp.get_min();
-			}
-			else if (!cmp.has_max())
-				result = true;
-			else if (cmp.get_max() < cmp.get_min())
-				result = false;
-			else if (m_max < m_min)
-				result = true;
-			else
-				result = (m_max - m_min) < (cmp.get_max() - cmp.get_min());
-		}
-		return result;
+		// first compares min, then max. Lack of a max is considered greater than a max.
+		if ((&cmp == this) || (m_min > cmp.m_min))
+			return false;
+		if (m_min < cmp.m_min)
+			return true;
+		if (!m_hasMax)	// No max means max/infinite max, so we could not possibly be lesser.
+			return false;
+		return !cmp.m_hasMax || (m_max < cmp.m_max);
 	}
 
 	// greater than
 	bool operator>(const range& cmp) const
 	{
-		bool result = false;
-		if (&cmp != this)
-		{
-			if (!m_hasMax)
-			{
-				if (cmp.has_max())
-					result = true;
-				else
-					result = m_min < cmp.get_min();
-			}
-			else if (!cmp.has_max())
-				result = false;
-			else if (cmp.get_max() < cmp.get_min())
-				result = true;
-			else if (m_max < m_min)
-				result = false;
-			else
-				result = (m_max - m_min) >(cmp.get_max() - cmp.get_min());
-		}
-		return result;
+		// first compares min, then max. Lack of a max is considered greater than a max.
+		if ((&cmp == this) || (m_min < cmp.m_min))
+			return false;
+		if (m_min > cmp.m_min)
+			return true;
+		if (!cmp.m_hasMax) // No max means max/infinite max, so we could not possibly be greater.
+			return false;
+		return !m_hasMax || (m_max > cmp.m_max);
 	}
 
 	// range + range = range
 	auto operator+(const range& r) const
 	{
 		range result;
-		if (is_empty() || r.is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = m_min + r.get_min();
-			result.has_max() = m_hasMax && r.has_max();
-			if (result.has_max())
-				result.get_max() = m_max + r.get_max();
-		}
-
+		result.m_min = m_min + r.m_min;
+		result.m_hasMax = m_hasMax && r.has_max();
+		if (result.m_hasMax)
+			result.m_max = m_max + r.m_max;
 		return result;
 	}
 
 	range& operator+=(const range& r)
 	{
-		if (!is_empty())
-		{
-			if (r.is_empty())
-				set_empty();
-			else
-			{
-				m_min += r.get_min();
-				m_hasMax &= r.has_max();
-				if (m_hasMax)
-					m_max += r.get_max();
-			}
-		}
+		m_min += r.m_min;
+		m_hasMax &= r.m_hasMax;
+		if (m_hasMax)
+			m_max += r.m_max;
 		return *this;
 	}
 
@@ -291,26 +205,18 @@ public:
 	auto operator+(double sz) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = m_min + sz;
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = m_max + sz;
-		}
+		result.m_min = m_min + sz;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = m_max + sz;
 		return result;
 	}
 
 	range& operator+=(double sz)
 	{
-		if (!is_empty())
-		{
-			m_min += sz;
-			if (m_hasMax)
-				m_max += sz;
-		}
+		m_min += sz;
+		if (m_hasMax)
+			m_max += sz;
 		return *this;
 	}
 
@@ -318,28 +224,20 @@ public:
 	range operator+(const margin& m) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			double t = m.get_size();
-			result.get_min() = m_min + t;
-			result.m_hasMax = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = m_max + t;
-		}
+		double t = m.get_size();
+		result.m_min = m_min + t;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = m_max + t;
 		return result;
 	}
 
 	range& operator+=(const margin& m)
 	{
-		if (!is_empty())
-		{
-			double t = m.get_size();
-			m_min += t;
-			if (m_hasMax)
-				m_max += t;
-		}
+		double t = m.get_size();
+		m_min += t;
+		if (m_hasMax)
+			m_max += t;
 		return *this;
 	}
 
@@ -348,33 +246,19 @@ public:
 	auto operator-(const range& r) const
 	{
 		range result;
-		if (is_empty() || r.is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = (m_min > r.get_min()) ? (m_min - r.get_min()) : 0;
-			result.has_max() = m_hasMax && r.has_max();
-			if (result.has_max())
-				result.get_max() = (m_max > r.get_max()) ? (m_max - r.get_max()) : 0;
-		}
-
+		result.m_min = (m_min > r.m_min) ? (m_min - r.m_min) : 0;
+		result.m_hasMax = m_hasMax && r.m_hasMax;
+		if (result.has_max())
+			result.m_max = (m_max > r.m_max) ? (m_max - r.m_max) : 0;
 		return result;
 	}
 
 	range& operator-=(const range& r)
 	{
-		if (!is_empty())
-		{
-			if (r.is_empty())
-				set_empty();
-			else
-			{
-				m_min = (m_min > r.get_min()) ? (m_min - r.get_min()) : 0;
-				m_hasMax &= r.has_max();
-				if (m_hasMax)
-					m_max = (m_max > r.get_max()) ? (m_max - r.get_max()) : 0;
-			}
-		}
+		m_min = (m_min > r.m_min) ? (m_min - r.m_min) : 0;
+		m_hasMax &= r.m_hasMax;
+		if (m_hasMax)
+			m_max = (m_max > r.m_max) ? (m_max - r.m_max) : 0;
 		return *this;
 	}
 
@@ -382,26 +266,18 @@ public:
 	auto operator-(double sz) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = (m_min > sz) ? (m_min - sz) : 0;
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = (m_max > sz) ? (m_max - sz) : 0;
-		}
+		result.m_min = (m_min > sz) ? (m_min - sz) : 0;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = (m_max > sz) ? (m_max - sz) : 0;
 		return result;
 	}
 
 	range& operator-=(double sz)
 	{
-		if (!is_empty())
-		{
-			m_min = (m_min > sz) ? (m_min - sz) : 0;
-			if (m_hasMax)
-				m_max = (m_max > sz) ? (m_max - sz) : 0;
-		}
+		m_min = (m_min > sz) ? (m_min - sz) : 0;
+		if (m_hasMax)
+			m_max = (m_max > sz) ? (m_max - sz) : 0;
 		return *this;
 	}
 
@@ -409,28 +285,20 @@ public:
 	range operator-(const margin& m) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			double t = m.get_size();
-			result.get_min() = (m_min > t) ? (m_min - t) : 0;
-			result.m_hasMax = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = (m_max > t) ? (m_max - t) : 0;
-		}
+		double t = m.get_size();
+		result.m_min = (m_min > t) ? (m_min - t) : 0;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = (m_max > t) ? (m_max - t) : 0;
 		return result;
 	}
 
 	range& operator-=(const margin& m)
 	{
-		if (!is_empty())
-		{
-			double t = m.get_size();
-			m_min = (m_min > t) ? (m_min - t) : 0;
-			if (m_hasMax)
-				m_max = (m_max > t) ? (m_max - t) : 0;
-		}
+		double t = m.get_size();
+		m_min = (m_min > t) ? (m_min - t) : 0;
+		if (m_hasMax)
+			m_max = (m_max > t) ? (m_max - t) : 0;
 		return *this;
 	}
 
@@ -439,26 +307,18 @@ public:
 	range operator*(double d) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = m_min * d;
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = m_max * d;
-		}
+		result.m_min = m_min * d;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = m_max * d;
 		return result;
 	}
 
 	range& operator*=(double d)
 	{
-		if (!is_empty())
-		{
-			if (m_hasMax)
-				m_max *= d;
-			m_min *= d;
-		}
+		m_min *= d;
+		if (m_hasMax)
+			m_max *= d;
 		return *this;
 	}
 
@@ -466,61 +326,68 @@ public:
 	range operator/(double d) const
 	{
 		range result;
-		if (is_empty())
-			result.set_empty();
-		else
-		{
-			result.get_min() = m_min / d;
-			result.has_max() = m_hasMax;
-			if (m_hasMax)
-				result.get_max() = m_max / d;
-		}
+		result.m_min = m_min / d;
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = m_max / d;
 		return result;
 	}
 
 	range& operator/=(double d)
 	{
-		if (!is_empty())
-		{
-			if (m_hasMax)
-				m_max /= d;
-			m_min /= d;
-		}
+		m_min /= d;
+		if (m_hasMax)
+			m_max /= d;
 		return *this;
+	}
+
+	range divide_whole(double d) const
+	{
+		range result;
+		result.m_min = cogs::divide_whole(m_min, d);
+		result.m_hasMax = m_hasMax;
+		if (m_hasMax)
+			result.m_max = cogs::divide_whole(m_max, d);
+		return result;
+	}
+
+	void assign_divide_whole(double d)
+	{
+		cogs::assign_divide_whole(m_min, d);
+		if (m_hasMax)
+			cogs::assign_divide_whole(m_max, d);
 	}
 
 	// range | range = range (union)
 	range operator|(const range& r) const
 	{
 		range result;
-		if (is_empty())
-			result = r;
-		else if (r.is_empty())
-			result = *this;
+		if (is_invalid() || r.is_invalid())
+			result.set_invalid();
 		else
 		{
-			result.get_min() = (m_min > r.get_min()) ? r.get_min() : m_min;
-			result.has_max() = m_hasMax && r.has_max() && m_hasMax;
-			if (result.has_max())
-				result.m_max = (m_max < r.get_max()) ? r.get_max() : m_max;
+			result.m_min = (m_min < r.m_min) ? m_min : r.m_min;
+			result.m_hasMax = m_hasMax && r.m_hasMax;
+			if (result.m_hasMax)
+				result.m_max = (m_max < r.m_max) ? r.m_max : m_max;
 		}
 		return result;
 	}
 
 	range& operator|=(const range& r)
 	{
-		if (!r.is_empty())
+		if (!r.is_invalid())
 		{
-			if (is_empty())
+			if (is_invalid())
 				*this = r;
 			else
 			{
-				if (m_min > r.get_min())
-					m_min = r.get_min();
-				if (!r.has_max())
+				if (m_min > r.m_min)
+					m_min = r.m_min;
+				if (!r.m_hasMax)
 					m_hasMax = false;
-				else if (m_hasMax && (m_max < r.get_max()))
-					m_max = r.get_max();
+				else if (m_hasMax && (m_max < r.m_max))
+					m_max = r.m_max;
 			}
 		}
 		return *this;
@@ -531,14 +398,14 @@ public:
 	range operator&(const range& r) const
 	{
 		range result;
-		if (r.is_empty() || is_empty())
-			result.set_empty();
+		if (r.is_invalid() || is_invalid())
+			result.set_invalid();
 		else
 		{
-			result.m_min = (m_min < r.get_min()) ? r.get_min() : m_min;
+			result.m_min = (m_min < r.m_min) ? r.m_min : m_min;
 			if (r.has_max())
 			{
-				result.m_max = (!m_hasMax || (m_max > r.get_max())) ? r.get_max() : m_max;
+				result.m_max = (!m_hasMax || (m_max > r.m_max)) ? r.m_max : m_max;
 				result.m_hasMax = true;
 			}
 			else
@@ -554,16 +421,16 @@ public:
 
 	range& operator&=(const range& r)
 	{
-		if (r.is_empty())
-			set_empty();
-		else if (!is_empty())
+		if (r.is_invalid())
+			set_invalid();
+		else if (!is_invalid())
 		{
-			if (m_min < r.get_min())
-				m_min = r.get_min();
-			if (r.has_max())
+			if (m_min < r.m_min)
+				m_min = r.m_min;
+			if (r.m_hasMax)
 			{
-				if (!m_hasMax || (m_max > r.get_max()))
-					m_max = r.get_max();
+				if (!m_hasMax || (m_max > r.m_max))
+					m_max = r.m_max;
 				m_hasMax = true;
 			}
 			if (m_hasMax && (m_max < m_min))
@@ -576,51 +443,57 @@ public:
 	range operator^(const range& r) const
 	{
 		range result;
-		if (r.is_empty() || is_empty())
-			result.set_empty();
+		if (r.is_invalid() || is_invalid())
+			result.set_invalid();
 		else
 		{
-			result.m_min = (m_min < r.get_min()) ? r.get_min() : m_min;
+			result.m_min = (m_min < r.m_min) ? r.m_min : m_min;
 			result.m_hasMax = (r.has_max() && m_hasMax);
 			if (result.m_hasMax)
-				result.m_max = (m_max > r.get_max()) ? r.get_max() : m_max;
+				result.m_max = (m_max > r.m_max) ? r.m_max : m_max;
 		}
 		return result;
 	}
 
 	range& operator^=(const range& r)
 	{
-		if (!is_empty())
+		if (!is_invalid())
 		{
-			if (r.is_empty())
-				set_empty();
+			if (r.is_invalid())
+				set_invalid();
 			else
 			{
-				if (m_min < r.get_min())
-					m_min = r.get_min();
-				m_hasMax &= r.has_max();
-				if (m_hasMax && (m_max < r.get_max()))
-					m_max = r.get_max();
+				if (m_min < r.m_min)
+					m_min = r.m_min;
+				m_hasMax &= r.m_hasMax;
+				if (m_hasMax && (m_max < r.m_max))
+					m_max = r.m_max;
 			}
 		}
 		return *this;
 	}
 
-	double limit(double d) const
+	double get_limit_min(double d) const { return cogs::greater(d, m_min); }
+	void limit_min(double& d) const
 	{
-		return (m_hasMax && d > m_max) ? m_max : cogs::greater(d, m_min);
+		if (d < m_min)
+			d = m_min;
 	}
 
-	double limit_min(double d) const
+	double get_limit_max(double d) const { return m_hasMax ? cogs::lesser(d, m_max) : d; }
+	void limit_max(double& d) const
 	{
-		return cogs::greater(d, m_min);
+		if (m_hasMax && d > m_max)
+			d = m_max;
 	}
 
-	double limit_max(double d) const
+	double get_limit(double d) const { return (m_hasMax && d > m_max) ? m_max : cogs::greater(d, m_min); }
+	void limit(double& d) const
 	{
-		if (m_hasMax)
-			return cogs::lesser(d, m_max);
-		return d;
+		if (d < m_min)
+			d = m_min;
+		else if (m_hasMax && d > m_max)
+			d = m_max;
 	}
 
 	template <typename char_t>
@@ -656,13 +529,14 @@ public:
 
 namespace planar {
 
+// A planar range with a min of 0 and a max of 0 in either dimension, includes the position 0 in that dimension.
+//
+// A dimension of linear range is considered invalid if its min is greater than its max.
+// A planar range is considered invalid if invalid in either dimension.
 class range
 {
 private:
-	size m_minSize{ 0, 0 };
-	size m_maxSize{ 0, 0 };
-	bool m_hasMaxWidth = false;
-	bool m_hasMaxHeight = false;
+	std::array<linear::range, 2> m_contents;
 
 public:
 	typedef linear::range linear_t;
@@ -671,9 +545,11 @@ public:
 
 	static range make_fixed(const size& sz) { range r(sz, sz, true, true); return r; }
 
-	static range make_empty()
+	static range make_invalid()
 	{
-		range r(size(1, 1), size(0, 0), true, true);
+		// Set min to an extremely large value, to reduce risk of arithmatical adjustments creating valid ranges.
+		// 1000000000000 is within the range of integers that can be represented as doubles, without gaps.
+		range r(linear_t(1000000000000.0, 0, true), linear_t(1000000000000.0, 0, true));
 		return r;
 	}
 
@@ -681,152 +557,85 @@ public:
 	{ }
 
 	range(const range& src)
-		: m_minSize(src.m_minSize),
-		m_maxSize(src.m_maxSize),
-		m_hasMaxWidth(src.m_hasMaxWidth),
-		m_hasMaxHeight(src.m_hasMaxHeight)
-	{ }
-
-	range(const size& fixedSize)
-		: m_minSize(fixedSize),
-		m_maxSize(fixedSize),
-		m_hasMaxWidth(true),
-		m_hasMaxHeight(true)
+		: m_contents(src.m_contents)
 	{ }
 
 	range(const linear::range& horizontalRange, const linear::range& verticalRange)
-		: m_minSize(horizontalRange.get_min(), verticalRange.get_min()),
-		m_maxSize(horizontalRange.get_max(), verticalRange.get_max()),
-		m_hasMaxWidth(horizontalRange.has_max()),
-		m_hasMaxHeight(verticalRange.has_max())
+		: m_contents{ horizontalRange, verticalRange }
 	{ }
 
-	range(const size& minSize, const size& maxSize, bool hasMaxWidth, bool hasMaxHeight)
-		: m_minSize(minSize),
-		m_maxSize(maxSize),
-		m_hasMaxWidth(hasMaxWidth),
-		m_hasMaxHeight(hasMaxHeight)
+	range(const size& minSize, const size& maxSize, bool hasMaxWidth = true, bool hasMaxHeight = true)
+		: m_contents{
+			linear::range(minSize.get_width(), maxSize.get_width(), hasMaxWidth),
+			linear::range(minSize.get_height(), maxSize.get_height(), hasMaxHeight)
+		}
 	{ }
 
-	range(dimension d, double mn, double mx)
-	{
-		if (d == dimension::horizontal)
-			set_width(mn, mx);
-		else
-			set_height(mn, mx);
-	}
-
-	range(dimension d, const linear::range& r)
-	{
-		if (d == dimension::horizontal)
-			set_width(r);
-		else
-			set_height(r);
-	}
+	range(const size& fixedSize)
+		: m_contents{
+			linear::range(fixedSize.get_width(), fixedSize.get_width(), true),
+			linear::range(fixedSize.get_height(), fixedSize.get_height(), true)
+		}
+	{ }
 
 	range& operator=(const range& src)
 	{
-		m_minSize = src.m_minSize;
-		m_maxSize = src.m_maxSize;
-		m_hasMaxWidth = src.m_hasMaxWidth;
-		m_hasMaxHeight = src.m_hasMaxHeight;
+		m_contents = src.m_contents;
 		return *this;
 	}
 
 	range& operator=(const size& fixedSize)
 	{
-		m_minSize = fixedSize;
-		m_maxSize = fixedSize;
-		m_hasMaxWidth = true;
-		m_hasMaxHeight = true;
+		set_fixed_width(fixedSize.get_width());
+		set_fixed_height(fixedSize.get_height());
 		return *this;
 	}
 
 	void set(const linear::range& horizontalRange, const linear::range& verticalRange)
 	{
-		m_minSize.set(horizontalRange.get_min(), verticalRange.get_min());
-		m_maxSize.set(horizontalRange.get_max(), verticalRange.get_max());
-		m_hasMaxWidth = horizontalRange.has_max();
-		m_hasMaxHeight = verticalRange.has_max();
+		set_width(horizontalRange);
+		set_height(verticalRange);
 	}
 
-	void set(const size& minSize, const size& maxSize, bool hasMaxWidth, bool hasMaxHeight)
+	void set(const size& minSize, const size& maxSize, bool hasMaxWidth = true, bool hasMaxHeight = true)
 	{
-		m_minSize = minSize;
-		m_maxSize = maxSize;
-		m_hasMaxWidth = hasMaxWidth;
-		m_hasMaxHeight = hasMaxHeight;
+		set_width(minSize.get_width(), maxSize.get_width(), hasMaxWidth);
+		set_height(minSize.get_height(), maxSize.get_height(), hasMaxHeight);
 	}
 
-	void set(dimension d, double mn, double mx)
-	{
-		if (d == dimension::horizontal)
-			set_width(mn, mx);
-		else
-			set_height(mn, mx);
-	}
+	void set(dimension d, double mn, double mx, bool hasMax = true) { m_contents[(int)d].set(mn, mx, hasMax); }
 
-	void set(dimension d, const linear::range& r)
-	{
-		if (d == dimension::horizontal)
-			set_width(r);
-		else
-			set_height(r);
-	}
+	void set(dimension d, const linear::range& r) { m_contents[(int)d] = r; }
 
-	void set_min_width(double w) { m_minSize.set_width(w); }
-	void set_min_height(double h) { m_minSize.set_height(h); }
+	void set_min_width(double w) { m_contents[0].set_min(w); }
+	void set_min_height(double h) { m_contents[1].set_min(h); }
 
-	void set_min(const size& minSize) { m_minSize = minSize; }
+	void set_min(double x, double y) { set_min_width(x); set_min_height(y); }
 
-	void set_min(double x, double y) { m_minSize.set(x, y); }
+	void set_min(const size& minSize) { set_min(minSize.get_width(), minSize.get_height()); }
 
-	void set_min(dimension d, double n)
-	{
-		if (d == dimension::horizontal)
-			set_min_width(n);
-		else
-			set_min_height(n);
-	}
+	void set_min(dimension d, double n) { m_contents[(int)d].set_min(n); }
 
-	void set_max_width(double w, bool hasMax = true) { m_hasMaxWidth = hasMax; m_maxSize.set_width(w); }
-	void set_max_height(double h, bool hasMax = true) { m_hasMaxHeight = hasMax; m_maxSize.set_height(h); }
+	void set_max_width(double w, bool hasMax = true) { m_contents[0].set_max(w, hasMax); }
+	void set_max_height(double h, bool hasMax = true) { m_contents[1].set_max(h, hasMax); }
 
-	void set_max(const size& maxSize) { m_hasMaxWidth = true; m_hasMaxHeight = true; m_maxSize = maxSize; }
+	void set_max(double x, double y) { set_max_width(x); set_max_height(y); }
 
-	void set_max(double x, double y) { m_hasMaxWidth = true; m_hasMaxHeight = true; m_maxSize.set(x, y); }
+	void set_max(const size& maxSize) { set_max(maxSize.get_width(), maxSize.get_height()); }
 
-	void set_max(dimension d, double n, bool hasMax = true)
-	{
-		if (d == dimension::horizontal)
-			set_max_width(n, hasMax);
-		else
-			set_max_height(n, hasMax);
-	}
+	void set_max(dimension d, double n, bool hasMax = true) { m_contents[(int)d].set_max(n, hasMax); }
 
-	void clear_max_width() { m_hasMaxWidth = false; }
-	void clear_max_height() { m_hasMaxHeight = false; }
-	void clear_max() { m_hasMaxHeight = false; m_hasMaxWidth = false; }
+	void clear_max_width() { m_contents[0].clear_max(); }
+	void clear_max_height() { m_contents[1].clear_max(); }
+	void clear_max() { clear_max_width(); clear_max_height(); }
 
-	void clear_max(dimension d)
-	{
-		if (d == dimension::horizontal)
-			clear_max_width();
-		else
-			clear_max_height();
-	}
+	void clear_max(dimension d) { m_contents[(int)d].clear_max(); }
 
-	void clear_min_width() { m_minSize.set_width(0); }
-	void clear_min_height() { m_minSize.set_height(0); }
-	void clear_min() { m_minSize.set(0, 0); }
+	void clear_min_width() { m_contents[0].clear_min(); }
+	void clear_min_height() { m_contents[1].clear_min(); }
+	void clear_min() { clear_min_width(); clear_min_height(); }
 
-	void clear_min(dimension d)
-	{
-		if (d == dimension::horizontal)
-			clear_min_width();
-		else
-			clear_min_height();
-	}
+	void clear_min(dimension d) { m_contents[(int)d].clear_min(); }
 
 	// Sets to an unlimited range
 	void clear() { clear_min(); clear_max(); }
@@ -834,230 +643,125 @@ public:
 	void clear_width() { clear_min_width(); clear_max_width(); }
 	void clear_height() { clear_min_height(); clear_max_height(); }
 
-	void clear(dimension d)
-	{
-		if (d == dimension::horizontal)
-			clear_width();
-		else
-			clear_height();
-	}
+	void clear(dimension d) { m_contents[(int)d].clear(); }
 
-	// Sets to an invalid/empty range, which can contain nothing.
-	void set_empty() { set_empty_height(); set_empty_width(); }
+	// Sets to an invalid range, which can contain nothing.
+	void set_invalid() { set_invalid_height(); set_invalid_width(); }
 
-	void set_empty_width() { set_min_width(1); set_max_width(0); m_hasMaxWidth = true; }
-	void set_empty_height() { set_min_height(1); set_max_height(0); m_hasMaxHeight = true; }
+	void set_invalid_width() { m_contents[0].set_invalid(); }
+	void set_invalid_height() { m_contents[1].set_invalid(); }
 
-	void set_width(double mn, double mx)
-	{
-		m_hasMaxWidth = true;
-		m_minSize.set_width(mn);
-		m_maxSize.set_width(mx);
-	}
+	void set_width(double mn, double mx, bool hasMax = true) { m_contents[0].set(mn, mx, hasMax); }
+	void set_height(double mn, double mx, bool hasMax = true) { m_contents[1].set(mn, mx, hasMax); }
 
-	void set_height(double mn, double mx)
-	{
-		m_hasMaxHeight = true;
-		m_minSize.set_height(mn);
-		m_maxSize.set_height(mx);
-	}
+	void set_width(const linear::range& r) { m_contents[0] = r; }
+	void set_height(const linear::range& r) { m_contents[1] = r; }
 
-	void set_width(const linear::range& r)
-	{
-		m_hasMaxWidth = r.has_max();
-		m_minSize.set_width(r.get_min());
-		m_maxSize.set_width(r.get_max());
-	}
+	void set_fixed_width(double w) { m_contents[0].set_fixed(w); }
+	void set_fixed_height(double h) { m_contents[1].set_fixed(h); }
 
-	void set_height(const linear::range& r)
-	{
-		m_hasMaxHeight = r.has_max();
-		m_minSize.set_height(r.get_min());
-		m_maxSize.set_height(r.get_max());
-	}
+	void set_fixed(dimension d, double n) { m_contents[(int)d].set_fixed(n); }
 
-	void set_fixed_width(double w)
-	{
-		m_hasMaxWidth = true;
-		m_minSize.set_width(w);
-		m_maxSize.set_width(w);
-	}
+	void set_fixed(double w, double h) { set_fixed_width(w); set_fixed_height(h); }
+	void set_fixed(const size& sz) { set_fixed(sz.get_width(), sz.get_height()); }
 
-	void set_fixed_height(double h)
-	{
-		m_hasMaxHeight = true;
-		m_minSize.set_height(h);
-		m_maxSize.set_height(h);
-	}
+	bool& has_max_width() { return m_contents[0].has_max(); }
+	bool has_max_width() const { return m_contents[0].has_max(); }
 
-	void set_fixed(dimension d, double n)
-	{
-		if (d == dimension::horizontal)
-			set_fixed_width(n);
-		else
-			set_fixed_height(n);
-	}
-
-	void set_fixed(const size& sz)
-	{
-		m_hasMaxWidth = true;
-		m_hasMaxHeight = true;
-		m_minSize = sz;
-		m_maxSize = sz;
-	}
-
-	void set_fixed(double w, double h)
-	{
-		m_hasMaxWidth = true;
-		m_hasMaxHeight = true;
-		m_minSize.set_width(w);
-		m_maxSize.set_width(w);
-		m_minSize.set_height(h);
-		m_maxSize.set_height(h);
-	}
-
-	bool& has_max_width() { return m_hasMaxWidth; }
-	bool has_max_width() const { return m_hasMaxWidth; }
-
-	bool& has_max_height() { return m_hasMaxHeight; }
-	bool has_max_height() const { return m_hasMaxHeight; }
+	bool& has_max_height() { return m_contents[1].has_max(); }
+	bool has_max_height() const { return m_contents[1].has_max(); }
 
 	bool& has_max(dimension d) { return (d == dimension::horizontal) ? has_max_width() : has_max_height(); }
 	bool has_max(dimension d) const { return (d == dimension::horizontal) ? has_max_width() : has_max_height(); }
 
-	size& get_min() { return m_minSize; }
-	const size& get_min() const { return m_minSize; }
+	size get_min() const
+	{
+		size sz(m_contents[0].get_min(), m_contents[1].get_min());
+		return sz;
+	}
 
-	double& get_min(dimension d) { return m_minSize[d]; }
-	double get_min(dimension d) const { return m_minSize[d]; }
+	size get_max() const
+	{
+		size sz(m_contents[0].get_max(), m_contents[1].get_max());
+		return sz;
+	}
 
-	size& get_max() { return m_maxSize; }
-	const size& get_max() const { return m_maxSize; }
+	double& get_min(dimension d) { return m_contents[(int)d].get_min(); }
+	double get_min(dimension d) const { return m_contents[(int)d].get_min(); }
 
-	double& get_max(dimension d) { return m_maxSize[d]; }
-	double get_max(dimension d) const { return m_maxSize[d]; }
+	double& get_max(dimension d) { return m_contents[(int)d].get_max(); }
+	double get_max(dimension d) const { return m_contents[(int)d].get_max(); }
 
-	double& get_min_height() { return m_minSize.get_height(); }
-	double get_min_height() const { return m_minSize.get_height(); }
+	double& get_min_width() { return m_contents[0].get_min(); }
+	double get_min_width() const { return m_contents[0].get_min(); }
 
-	double& get_max_height() { return m_maxSize.get_height(); }
-	double get_max_height() const { return m_maxSize.get_height(); }
+	double& get_max_width() { return m_contents[0].get_max(); }
+	double get_max_width() const { return m_contents[0].get_max(); }
 
-	double& get_min_width() { return m_minSize.get_width(); }
-	double get_min_width() const { return m_minSize.get_width(); }
+	double& get_min_height() { return m_contents[1].get_min(); }
+	double get_min_height() const { return m_contents[1].get_min(); }
 
-	double& get_max_width() { return m_maxSize.get_width(); }
-	double get_max_width() const { return m_maxSize.get_width(); }
+	double& get_max_height() { return m_contents[1].get_max(); }
+	double get_max_height() const { return m_contents[1].get_max(); }
 
-	const linear::range get_width() const { return linear::range(m_minSize.get_width(), m_maxSize.get_width(), m_hasMaxWidth); }
-	const linear::range get_height() const { return linear::range(m_minSize.get_height(), m_maxSize.get_height(), m_hasMaxHeight); }
+	linear::range& get_width() { return m_contents[0]; }
+	const linear::range& get_width() const { return m_contents[0]; }
 
-	const linear::range operator[](dimension d) const { return (d == dimension::horizontal) ? get_width() : get_height(); }
+	linear::range& get_height() { return m_contents[1]; }
+	const linear::range& get_height() const { return m_contents[1]; }
 
-	// empty/not
-	bool is_height_empty() const { return m_hasMaxHeight && (get_min_height() > get_max_height()); }
-	bool is_width_empty() const { return m_hasMaxWidth && (get_min_width() > get_max_width()); }
-	bool is_empty(dimension d) const { return (d == dimension::horizontal) ? is_width_empty() : is_height_empty(); }
+	linear::range& operator[](dimension d) { return m_contents[(int)d]; }
+	const linear::range& operator[](dimension d) const { return m_contents[(int)d]; }
 
-	bool is_empty() const { return is_height_empty() || is_width_empty(); }
-	bool operator!() const { return is_empty(); }
+	// invalid
+	bool is_width_invalid() const { return m_contents[0].is_invalid(); }
+	bool is_height_invalid() const { return m_contents[1].is_invalid(); }
+
+	bool is_invalid(dimension d) const { return m_contents[(int)d].is_invalid(); }
+
+	bool is_invalid() const { return is_height_invalid() || is_width_invalid(); }
+
+	// A range is empty if its either invalid or has a maximum height or width of 0.
+	bool is_empty() const
+	{
+		if (!has_max_width() || !has_max_height())
+			return false;
+		return (!get_max_width() || !get_max_height() || (get_min_width() > get_max_width()) || (get_min_height() > get_max_height()));
+	}
 
 	bool is_fixed() const
 	{
-		return m_hasMaxWidth && m_hasMaxHeight && (get_min() == get_max());
+		return get_max_width() && get_max_height() && (get_min_width() == get_max_width() && (get_min_height() == get_max_height()));
 	}
 
-	bool is_width_fixed() const
-	{
-		return m_hasMaxWidth && (get_min_width() == get_max_height());
-	}
+	bool is_width_fixed() const { return m_contents[0].is_fixed(); }
+	bool is_height_fixed() const { return m_contents[1].is_fixed(); }
 
-	bool is_height_fixed() const
-	{
-		return m_hasMaxHeight && (get_min_height() == get_max_height());
-	}
+	bool is_fixed(dimension d) const { return m_contents[(int)d].is_fixed(); }
 
-	bool is_fixed(dimension d) const
-	{
-		if (d == dimension::horizontal)
-			return is_width_fixed();
-		return is_height_fixed();
-	}
+	bool contains(dimension d, double x) const { return m_contents[(int)d].contains(x); }
 
-	bool contains(dimension d, double x) const
-	{
-		return ((x >= get_min(d))
-			&& (!has_max(d) || (x <= get_max(d))));
-	}
+	bool contains(double x, double y) const  { return m_contents[0].contains(x) && m_contents[1].contains(y); }
 
-	bool contains(const size& sz) const
-	{
-		return ((sz.get_width() >= get_min_width())
-			&& (sz.get_height() >= get_min_height())
-			&& (!m_hasMaxWidth || (sz.get_width() <= get_max_width()))
-			&& (!m_hasMaxHeight || (sz.get_height() <= get_max_height())));
-	}
+	bool contains(const size& sz) const  { return contains(sz.get_width(), sz.get_height()); }
 
 	// equality
-	bool operator==(const range& r) const
-	{
-		if ((m_minSize != r.get_min())
-			|| (m_hasMaxWidth != r.has_max_width())
-			|| (m_hasMaxHeight != r.has_max_height())
-			|| (m_hasMaxWidth && (get_max_width() != r.get_max_width()))
-			|| (m_hasMaxHeight && (get_max_height() != r.get_max_height())))
-			return false;
-
-		return true;
-	}
+	bool operator==(const range& r) const { return (m_contents[0] == r.m_contents[0]) && (m_contents[1] == r.m_contents[1]); }
 
 	// inequality
-	bool operator!=(const range& r) const
-	{ return !operator==(r); }
-
+	bool operator!=(const range& r) const { return !operator==(r); }
 
 	// range + range = range
 	range operator+(const range& r) const
 	{
-		range result;
-		if (is_width_empty() || r.is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = get_min_width() + r.get_min_width();
-			result.has_max_width() = m_hasMaxWidth && r.has_max_width();
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() + r.get_max_width();
-		}
-		if (is_height_empty() || r.is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = get_min_height() + r.get_min_height();
-			result.has_max_height() = m_hasMaxWidth && r.has_max_height();
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() + r.get_max_height();
-		}
+		range result(m_contents[0] + r.m_contents[0], m_contents[1] + r.m_contents[1]);
 		return result;
 	}
 
 	range& operator+=(const range& r)
 	{
-		if (!is_width_empty())
-		{
-			get_min_width() += r.get_min_width();
-			has_max_width() &= r.has_max_width();
-			if (has_max_width())
-				get_max_width() += r.get_max_width();
-		}
-
-		if (!is_height_empty())
-		{
-			get_min_height() += r.get_min_height();
-			has_max_height() &= r.has_max_height();
-			if (has_max_height())
-				get_max_height() += r.get_max_height();
-		}
+		m_contents[0] += r.m_contents[0];
+		m_contents[1] += r.m_contents[1];
 		return *this;
 	}
 
@@ -1065,44 +769,14 @@ public:
 	// range + size = range
 	range operator+(const size& sz) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = get_min_width() + sz.get_width();
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() + sz.get_width();
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = get_min_height() + sz.get_height();
-			result.has_max_height() = m_hasMaxWidth;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() + sz.get_height();
-		}
+		range result(m_contents[0] + sz.get_width(), m_contents[1] + sz.get_height());
 		return result;
 	}
 
 	range& operator+=(const size& sz)
 	{
-		if (!is_width_empty())
-		{
-			double d = sz.get_width();
-			get_min_width() += d;
-			if (has_max_width())
-				get_max_width() += d;
-		}
-		if (!is_height_empty())
-		{
-			double d = sz.get_height();
-			get_min_height() += d;
-			if (has_max_height())
-				get_max_height() += d;
-		}
+		m_contents[0] += sz.get_width();
+		m_contents[1] += sz.get_height();
 		return *this;
 	}
 
@@ -1110,46 +784,14 @@ public:
 	// range + margin = range
 	range operator+(const margin& m) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double t = m.get_width();
-			result.get_min_width() = get_min_width() + t;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() + t;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double t = m.get_height();
-			result.get_min_height() = get_min_height() + t;
-			result.has_max_height() = m_hasMaxWidth;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() + t;
-		}
+		range result(m_contents[0] + m.get_width(), m_contents[1] + m.get_height());
 		return result;
 	}
 
 	range& operator+=(const margin& m)
 	{
-		if (!is_width_empty())
-		{
-			double d = m.get_width();
-			get_min_width() += d;
-			if (has_max_width())
-				get_max_width() += d;
-		}
-		if (!is_height_empty())
-		{
-			double d = m.get_height();
-			get_min_height() += d;
-			if (has_max_height())
-				get_max_height() += d;
-		}
+		m_contents[0] += m.get_width();
+		m_contents[1] += m.get_height();
 		return *this;
 	}
 
@@ -1157,133 +799,42 @@ public:
 	// range - range = range
 	range operator-(const range& r) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = (get_min_width() > r.get_min_width()) ? (get_min_width() - r.get_min_width()) : 0;
-			result.has_max_width() = m_hasMaxWidth && r.has_max_width();
-			if (m_hasMaxWidth)
-				result.get_max_width() = (get_max_width() > r.get_max_width()) ? (get_max_width() - r.get_max_width()) : 0;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = (get_min_height() > r.get_min_height()) ? (get_min_height() - r.get_min_height()) : 0;
-			result.has_max_height() = m_hasMaxHeight && r.has_max_height();
-			if (m_hasMaxHeight)
-				result.get_max_height() = (get_max_height() > r.get_max_height()) ? (get_max_height() - r.get_max_height()) : 0;
-		}
+		range result(m_contents[0] - r.m_contents[0], m_contents[1] - r.m_contents[1]);
 		return result;
 	}
 
 	range& operator-=(const range& r)
 	{
-		if (!is_width_empty())
-		{
-			get_min_width() = (get_min_width() > r.get_min_width()) ? (get_min_width() - r.get_min_width()) : 0;
-			has_max_width() &= r.has_max_width();
-			if (has_max_width())
-				get_max_width() = (get_max_width() > r.get_max_width()) ? (get_max_width() - r.get_max_width()) : 0;
-		}
-
-		if (!is_height_empty())
-		{
-			get_min_height() = (get_min_height() > r.get_min_height()) ? (get_min_height() - r.get_min_height()) : 0;
-			has_max_height() &= r.has_max_height();
-			if (has_max_height())
-				get_max_height() = (get_max_height() > r.get_max_height()) ? (get_max_height() - r.get_max_height()) : 0;
-		}
+		m_contents[0] -= r.m_contents[0];
+		m_contents[1] -= r.m_contents[1];
 		return *this;
 	}
 
 	// range - size = range
 	range operator-(const size& sz) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = (get_min_width() > sz.get_width()) ? (get_min_width() - sz.get_width()) : 0;
-			result.has_max_width() = m_hasMaxWidth;
-			if (m_hasMaxWidth)
-				result.get_max_width() = (get_max_width() > sz.get_width()) ? (get_max_width() - sz.get_width()) : 0;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = (get_min_height() > sz.get_height()) ? (get_min_height() - sz.get_height()) : 0;
-			result.has_max_height() = m_hasMaxHeight;
-			if (m_hasMaxHeight)
-				result.get_max_height() = (get_max_height() > sz.get_height()) ? (get_max_height() - sz.get_height()) : 0;
-		}
+		range result(m_contents[0] - sz.get_width(), m_contents[1] - sz.get_height());
 		return result;
 	}
 
 	range& operator-=(const size& sz)
 	{
-		if (!is_width_empty())
-		{
-			get_min_width() = (get_min_width() > sz.get_width()) ? (get_min_width() - sz.get_width()) : 0;
-			if (has_max_width())
-				get_max_width() = (get_max_width() > sz.get_width()) ? (get_max_width() - sz.get_width()) : 0;
-		}
-		if (!is_height_empty())
-		{
-			get_min_height() = (get_min_height() > sz.get_height()) ? (get_min_height() - sz.get_height()) : 0;
-			if (has_max_height())
-				get_max_height() = (get_max_height() > sz.get_height()) ? (get_max_height() - sz.get_height()) : 0;
-		}
+		m_contents[0] -= sz.get_width();
+		m_contents[1] -= sz.get_height();
 		return *this;
 	}
 
 	// range - margin = range
 	range operator-(const margin& m) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double t = m.get_width();
-			result.get_min_width() = (get_min_width() > t) ? (get_min_width() - t) : 0;
-			result.m_hasMaxWidth = m_hasMaxWidth;
-			if (m_hasMaxWidth)
-				result.get_max_width() = (get_max_width() > t) ? (get_max_width() - t) : 0;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double t = m.get_height();
-			result.get_min_height() = (get_min_height() > t) ? (get_min_height() - t) : 0;
-			result.m_hasMaxHeight = m_hasMaxHeight;
-			if (m_hasMaxHeight)
-				result.get_max_height() = (get_max_height() > t) ? (get_max_height() - t) : 0;
-		}
+		range result(m_contents[0] - m.get_width(), m_contents[1] - m.get_height());
 		return result;
 	}
 
 	range& operator-=(const margin& m)
 	{
-		if (!is_width_empty())
-		{
-			double t = m.get_width();
-			get_min_width() = (get_min_width() > t) ? (get_min_width() - t) : 0;
-			if (has_max_width())
-				get_max_width() = (get_max_width() > t) ? (get_max_width() - t) : 0;
-		}
-		if (!is_height_empty())
-		{
-			double t = m.get_height();
-			get_min_height() = (get_min_height() > t) ? (get_min_height() - t) : 0;
-			if (has_max_height())
-				get_max_height() = (get_max_height() > t) ? (get_max_height() - t) : 0;
-		}
+		m_contents[0] -= m.get_width();
+		m_contents[1] -= m.get_height();
 		return *this;
 	}
 
@@ -1291,88 +842,28 @@ public:
 	// range * number = range
 	range operator*(double d) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = get_min_width() * d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() * d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = get_min_height() * d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() * d;
-		}
+		range result(m_contents[0] * d, m_contents[1] * d);
 		return result;
 	}
 
 	range& operator*=(double d)
 	{
-		if (!is_width_empty())
-		{
-			get_min_width() *= d;
-			if (has_max_width())
-				get_max_width() *= d;
-		}
-		if (!is_height_empty())
-		{
-			get_min_height() *= d;
-			if (has_max_height())
-				get_max_height() *= d;
-		}
+		m_contents[0] *= d;
+		m_contents[1] *= d;
 		return *this;
 	}
 
 	// range * proportion = range
 	range operator*(const proportion& p) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[dimension::horizontal];
-			result.get_min_width() = get_min_width() * d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() * d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[dimension::vertical];
-			result.get_min_height() = get_min_height() * d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() * d;
-		}
+		range result(m_contents[0] * p[dimension::horizontal], m_contents[1] * p[dimension::vertical]);
 		return result;
 	}
 
 	range& operator*=(const proportion& p)
 	{
-		if (!is_width_empty())
-		{
-			double d = p[dimension::horizontal];
-			get_min_width() *= d;
-			if (has_max_width())
-				get_max_width() *= d;
-		}
-		if (!is_height_empty())
-		{
-			double d = p[dimension::vertical];
-			get_min_height() *= d;
-			if (has_max_height())
-				get_max_height() *= d;
-		}
+		m_contents[0] *= p[dimension::horizontal];
+		m_contents[1] *= p[dimension::vertical];
 		return *this;
 	}
 
@@ -1380,46 +871,14 @@ public:
 	// range * double[2] = range
 	range operator*(const double(&p)[2]) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[0];
-			result.get_min_width() = get_min_width() * d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() * d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[1];
-			result.get_min_height() = get_min_height() * d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() * d;
-		}
+		range result(m_contents[0] * p[0], m_contents[1] * p[1]);
 		return result;
 	}
 
 	range& operator*=(const double(&p)[2])
 	{
-		if (!is_width_empty())
-		{
-			double d = p[0];
-			get_min_width() *= d;
-			if (has_max_width())
-				get_max_width() *= d;
-		}
-		if (!is_height_empty())
-		{
-			double d = p[1];
-			get_min_height() *= d;
-			if (has_max_height())
-				get_max_height() *= d;
-		}
+		m_contents[0] *= p[0];
+		m_contents[1] *= p[1];
 		return *this;
 	}
 
@@ -1427,443 +886,110 @@ public:
 	// range / number = range
 	range operator/(double d) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = get_min_width() / d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() / d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = get_min_height() / d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() / d;
-		}
+		range result(m_contents[0] / d, m_contents[1] / d);
 		return result;
+
 	}
 
 	range& operator/=(double d)
 	{
-		if (!is_width_empty())
-		{
-			get_min_width() /= d;
-			if (has_max_width())
-				get_max_width() /= d;
-		}
-		if (!is_height_empty())
-		{
-			get_min_height() /= d;
-			if (has_max_height())
-				get_max_height() /= d;
-		}
+		m_contents[0] /= d;
+		m_contents[1] /= d;
 		return *this;
 	}
 
 	// range / proportion = range
 	range operator/(const proportion& p) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[dimension::horizontal];
-			result.get_min_width() = get_min_width() / d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() / d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[dimension::vertical];
-			result.get_min_height() = get_min_height() / d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() / d;
-		}
+		range result(m_contents[0] / p[dimension::horizontal], m_contents[1] / p[dimension::vertical]);
 		return result;
 	}
 
 	range& operator/=(const proportion& p)
 	{
-		if (!is_width_empty())
-		{
-			double d = p[dimension::horizontal];
-			get_min_width() /= d;
-			if (has_max_width())
-				get_max_width() /= d;
-		}
-		if (!is_height_empty())
-		{
-			double d = p[dimension::vertical];
-			get_min_height() /= d;
-			if (has_max_height())
-				get_max_height() /= d;
-		}
+		m_contents[0] /= p[dimension::horizontal];
+		m_contents[1] /= p[dimension::vertical];
 		return *this;
 	}
 
 	// range / proportion = range
 	range operator/(const double(&p)[2]) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[0];
-			result.get_min_width() = get_min_width() / d;
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width() / d;
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[1];
-			result.get_min_height() = get_min_height() / d;
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height() / d;
-		}
+		range result(m_contents[0] / p[0], m_contents[1] / p[1]);
 		return result;
 	}
 
 	range& operator/=(const double(&p)[2])
 	{
-		if (!is_width_empty())
-		{
-			double d = p[0];
-			get_min_width() /= d;
-			if (has_max_width())
-				get_max_width() /= d;
-		}
-		if (!is_height_empty())
-		{
-			double d = p[1];
-			get_min_height() /= d;
-			if (has_max_height())
-				get_max_height() /= d;
-		}
+		m_contents[0] /= p[0];
+		m_contents[1] /= p[1];
 		return *this;
 	}
-
 
 	// range divide_whole number = range
 	range divide_whole(double d) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
-		}
+		range result(m_contents[0].divide_whole(d), m_contents[1].divide_whole(d));
 		return result;
 	}
 
 	void assign_divide_whole(double d)
 	{
-		if (!is_width_empty())
-		{
-			cogs::assign_divide_whole(get_min_width(), d);
-			if (has_max_width())
-				cogs::assign_divide_whole(get_max_width(), d);
-		}
-		if (!is_height_empty())
-		{
-			cogs::assign_divide_whole(get_min_height(), d);
-			if (has_max_height())
-				cogs::assign_divide_whole(get_max_height(), d);
-		}
+		m_contents[0].assign_divide_whole(d);
+		m_contents[1].assign_divide_whole(d);
 	}
 
 	// range divide_whole proportion = range
 	range divide_whole(const proportion& p) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[dimension::horizontal];
-			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[dimension::vertical];
-			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
-		}
+		range result(m_contents[0].divide_whole(p[dimension::horizontal]), m_contents[1].divide_whole(p[dimension::vertical]));
 		return result;
 	}
 
 	void assign_divide_whole(const proportion& p)
 	{
-		if (!is_width_empty())
-		{
-			double d = p[dimension::horizontal];
-			cogs::assign_divide_whole(get_min_width(), d);
-			if (has_max_width())
-				cogs::assign_divide_whole(get_max_width(), d);
-		}
-		if (!is_height_empty())
-		{
-			double d = p[dimension::vertical];
-			cogs::assign_divide_whole(get_min_height(), d);
-			if (has_max_height())
-				cogs::assign_divide_whole(get_max_height(), d);
-		}
+		m_contents[0].assign_divide_whole(p[dimension::horizontal]);
+		m_contents[1].assign_divide_whole(p[dimension::vertical]);
 	}
 
 	// range divide_whole proportion = range
 	range divide_whole(const double(&p)[2]) const
 	{
-		range result;
-		if (is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			double d = p[0];
-			result.get_min_width() = cogs::divide_whole(get_min_width(), d);
-			result.has_max_width() = m_hasMaxWidth;
-			if (result.has_max_width())
-				result.get_max_width() = cogs::divide_whole(get_max_width(), d);
-		}
-		if (is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			double d = p[1];
-			result.get_min_height() = cogs::divide_whole(get_min_height(), d);
-			result.has_max_height() = m_hasMaxHeight;
-			if (result.has_max_height())
-				result.get_max_height() = cogs::divide_whole(get_max_height(), d);
-		}
+		range result(m_contents[0].divide_whole(p[0]), m_contents[1].divide_whole(p[1]));
 		return result;
 	}
 
 	void assign_divide_whole(const double(&p)[2])
 	{
-		if (!is_width_empty())
-		{
-			double d = p[0];
-			cogs::assign_divide_whole(get_min_width(), d);
-			if (has_max_width())
-				cogs::assign_divide_whole(get_max_width(), d);
-		}
-		if (!is_height_empty())
-		{
-			double d = p[1];
-			cogs::assign_divide_whole(get_min_height(), d);
-			if (has_max_height())
-				cogs::assign_divide_whole(get_max_height(), d);
-		}
+		m_contents[0].assign_divide_whole(p[0]);
+		m_contents[1].assign_divide_whole(p[1]);
 	}
-
 
 	// range | range = range (union)
 	range operator|(const range& r) const
 	{
-		range result;
-		if (is_width_empty())
-		{
-			result.get_min_width() = r.get_min_width();
-			result.has_max_width() = r.has_max_width();
-			if (result.has_max_width())
-				result.get_max_width() = r.get_max_width();
-		}
-		else if (r.is_width_empty())
-		{
-			result.get_min_width() = get_min_width();
-			result.has_max_width() = has_max_width();
-			if (result.has_max_width())
-				result.get_max_width() = get_max_width();
-		}
-		else
-		{
-			result.get_min_width() = (get_min_width() > r.get_min_width()) ? r.get_min_width() : get_min_width();
-			result.has_max_width() = (r.has_max_width() && has_max_width());
-			if (result.has_max_width())
-				result.get_max_width() = (get_max_width() < r.get_max_width()) ? r.has_max_width() : get_max_width();
-		}
-
-		if (is_height_empty())
-		{
-			result.get_min_height() = r.get_min_height();
-			result.has_max_height() = r.has_max_height();
-			if (result.has_max_height())
-				result.get_max_height() = r.get_max_height();
-		}
-		else if (r.is_height_empty())
-		{
-			result.get_min_height() = get_min_height();
-			result.has_max_height() = has_max_height();
-			if (result.has_max_height())
-				result.get_max_height() = get_max_height();
-		}
-		else
-		{
-			result.get_min_height() = (get_min_height() > r.get_min_height()) ? r.get_min_height() : get_min_height();
-			result.has_max_height() = (r.has_max_height() && has_max_height());
-			if (result.has_max_height())
-				result.get_max_height() = (get_max_height() < r.get_max_height()) ? r.get_max_height() : get_max_height();
-		}
+		range result(m_contents[0] | r.m_contents[0], m_contents[1] | r.m_contents[1]);
 		return result;
 	}
 
 	range& operator|=(const range& r)
 	{
-		if (r.is_width_empty())
-		{
-			if (is_width_empty())
-			{
-				get_min_width() = r.get_min_width();
-				has_max_width() = r.has_max_width();
-				if (has_max_width())
-					get_max_width() = r.get_max_width();
-			}
-			else
-			{
-				if (get_min_width() > r.get_min_width())
-					get_min_width() = r.get_min_width();
-
-				has_max_width() &= r.has_max_width();
-				if (has_max_width() && (get_max_width() < r.get_max_width()))
-					get_max_width() = r.get_max_width();
-			}
-		}
-
-		if (r.is_height_empty())
-		{
-			if (is_height_empty())
-			{
-				get_min_height() = r.get_min_height();
-				has_max_height() = r.has_max_height();
-				if (has_max_height())
-					get_max_height() = r.get_max_height();
-			}
-			else
-			{
-				if (get_min_height() > r.get_min_height())
-					get_min_height() = r.get_min_height();
-
-				has_max_height() &= r.has_max_height();
-				if (has_max_height() && (get_max_height() < r.get_max_height()))
-					get_max_height() = r.get_max_height();
-			}
-		}
+		m_contents[0] |= r.m_contents[0];
+		m_contents[1] |= r.m_contents[1];
 		return *this;
 	}
-
 
 	// range & range = range (intersection)
 	range operator&(const range& r) const
 	{
-		range result;
-		if (r.is_width_empty() || is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = (get_min_width() < r.get_min_width()) ? r.get_min_width() : get_min_width();
-			if (r.has_max_width())
-			{
-				result.has_max_width() = true;
-				result.get_max_width() = (!has_max_width() || (get_max_width() > r.get_max_width())) ? r.get_max_width() : get_max_width();
-			}
-			else
-			{
-				result.has_max_width() = has_max_width();
-				if (has_max_width())
-					result.get_max_width() = get_max_width();
-			}
-		}
-		if (r.is_height_empty() || is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = (get_min_height() < r.get_min_height()) ? r.get_min_height() : get_min_height();
-			if (r.has_max_height())
-			{
-				result.has_max_height() = true;
-				result.get_max_height() = (!has_max_height() || (get_max_height() > r.get_max_height())) ? r.get_max_height() : get_max_height();
-			}
-			else
-			{
-				result.has_max_height() = has_max_height();
-				if (has_max_height())
-					result.get_max_height() = get_max_height();
-			}
-		}
-
+		range result(m_contents[0] & r.m_contents[0], m_contents[1] & r.m_contents[1]);
 		return result;
 	}
 
 	range& operator&=(const range& r)
 	{
-		if (r.is_width_empty())
-			set_empty_width();
-		else if (!is_width_empty())
-		{
-			if (get_min_width() < r.get_min_width())
-				get_min_width() = r.get_min_width();
-
-			if (r.has_max_width())
-			{
-				if (!has_max_width() || (get_max_width() > r.get_max_width()))
-					get_max_width() = r.get_max_width();
-				has_max_width() = true;
-			}
-			if (has_max_width() && (get_max_width() < get_min_width()))
-				get_max_width() = get_min_width();
-		}
-
-		if (r.is_height_empty())
-			set_empty_height();
-		else if (!is_height_empty())
-		{
-			if (get_min_height() < r.get_min_height())
-				get_min_height() = r.get_min_height();
-
-			if (r.has_max_height())
-			{
-				if (!has_max_height() || (get_max_height() > r.get_max_height()))
-					get_max_height() = r.get_max_height();
-				has_max_height() = true;
-			}
-			if (has_max_height() && (get_max_height() < get_min_height()))
-				get_max_height() = get_min_height();
-		}
-
+		m_contents[0] &= r.m_contents[0];
+		m_contents[1] &= r.m_contents[1];
 		return *this;
 	}
 
@@ -1871,93 +997,61 @@ public:
 	// range ^ range = range (overlap)
 	range operator^(const range& r) const
 	{
-		range result;
-		if (r.is_width_empty() || is_width_empty())
-			result.set_empty_width();
-		else
-		{
-			result.get_min_width() = (get_min_width() < r.get_min_width()) ? r.get_min_width() : get_min_width();
-			result.has_max_width() = (r.has_max_width() && has_max_width());
-			if (result.has_max_width())
-				result.get_max_width() = (get_max_width() > r.get_max_width()) ? r.get_max_width() : get_max_width();
-		}
-		if (r.is_height_empty() || is_height_empty())
-			result.set_empty_height();
-		else
-		{
-			result.get_min_height() = (get_min_height() < r.get_min_height()) ? r.get_min_height() : get_min_height();
-			result.has_max_height() = (r.has_max_height() && has_max_height());
-			if (result.has_max_height())
-				result.get_max_height() = (get_max_height() > r.get_max_height()) ? r.get_max_height() : get_max_height();
-		}
+		range result(m_contents[0] ^ r.m_contents[0], m_contents[1] ^ r.m_contents[1]);
 		return result;
 	}
 
 	range& operator^=(const range& r)
 	{
-		if (!is_width_empty())
-		{
-			if (r.is_width_empty())
-				set_empty_width();
-			else
-			{
-				if (get_min_width() < r.get_min_width())
-					get_min_width() = r.get_min_width();
-
-				has_max_width() &= r.has_max_width();
-				if (has_max_width() && (get_max_width() < r.get_max_width()))
-					get_max_width() = r.get_max_width();
-			}
-		}
-		if (!is_height_empty())
-		{
-			if (r.is_height_empty())
-				set_empty_height();
-			else
-			{
-				if (get_min_height() < r.get_min_height())
-					get_min_height() = r.get_min_height();
-
-				has_max_height() &= r.has_max_height();
-				if (has_max_height() && (get_max_height() < r.get_max_height()))
-					get_max_height() = r.get_max_height();
-			}
-		}
-
+		m_contents[0] ^= r.m_contents[0];
+		m_contents[1] ^= r.m_contents[1];
 		return *this;
 	}
 
-	point limit(const point& pt) const;
-	point limit_min(const point& pt) const;
-	point limit_max(const point& pt) const;
+	double get_limit(dimension d, double d2) const { return m_contents[(int)d].get_limit(d2); }
+	void limit(dimension d, double d2) const { m_contents[(int)d].limit(d2); }
 
-	size limit(const size& sz) const
+	point get_limit(const point& pt) const;
+	point get_limit_min(const point& pt) const;
+	point get_limit_max(const point& pt) const;
+
+	void limit(point& pt) const;
+	void limit_min(point& pt) const;
+	void limit_max(point& pt) const;
+
+	size get_limit(const size& sz) const
 	{
-		size rtn;
-		rtn.get_width() = (has_max_width() && sz.get_width() > get_max_width()) ? get_max_width() : cogs::greater(sz.get_width(), get_min_width());
-		rtn.get_height() = (has_max_height() && sz.get_height() > get_max_height()) ? get_max_height() : cogs::greater(sz.get_height(), get_min_height());
-		return rtn;
+		size result(m_contents[0].get_limit(sz.get_width()), m_contents[1].get_limit(sz.get_height()));
+		return result;
+	}
+	void limit(size& sz) const
+	{
+		m_contents[0].limit(sz.get_width());
+		m_contents[1].limit(sz.get_height());
 	}
 
-	double limit(dimension d, double d2) const
+	size get_limit_min(const size& sz) const
 	{
-		return (has_max(d) && d2 > get_max(d)) ? get_max(d) : cogs::greater(d2, get_max(d));
+		size result(m_contents[0].get_limit_min(sz.get_width()), m_contents[1].get_limit_min(sz.get_height()));
+		return result;
 	}
 
-	size limit_min(const size& sz) const
+	void limit_min(size& sz) const
 	{
-		size rtn;
-		rtn.get_width() = cogs::greater(sz.get_width(), get_min_width());
-		rtn.get_height() = cogs::greater(sz.get_height(), get_min_height());
-		return rtn;
+		m_contents[0].limit_min(sz.get_width());
+		m_contents[1].limit_min(sz.get_height());
 	}
 
-	size limit_max(const size& sz) const
+	size get_limit_max(const size& sz) const
 	{
-		size rtn;
-		rtn.get_width() = (has_max_width()) ? cogs::lesser(sz.get_width(), get_max_width()) : sz.get_width();
-		rtn.get_height() = (has_max_height()) ? cogs::lesser(sz.get_height(), get_max_height()) : sz.get_height();
-		return rtn;
+		size result(m_contents[0].get_limit_max(sz.get_width()), m_contents[1].get_limit_max(sz.get_height()));
+		return result;
+	}
+
+	void limit_max(size& sz) const
+	{
+		m_contents[0].limit_max(sz.get_width());
+		m_contents[1].limit_max(sz.get_height());
 	}
 
 	template <typename char_t>

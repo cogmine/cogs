@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2000-2020 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
+//  Copyright (C) 2000-2022 - Colen M. Garoutte-Carson <colen at cogmine.com>, Cog Mine LLC
 //
 
 
@@ -30,7 +30,7 @@ public:
 #pragma warning(disable: 4310) // cast truncates constant value
 	static constexpr int_t high_part_mask = (int_t)((uint_t)-1 << sizeof(int_t)*4);
 #pragma warning(pop)
-	static constexpr int_t low_part_mask  = (int_t)~high_part_mask;
+	static constexpr int_t low_part_mask = (int_t)~high_part_mask;
 };
 
 
@@ -42,7 +42,7 @@ template <typename int_t, int_t v>
 class get_const_low_part
 {
 public:
-	static constexpr int_t value  = v & get_part_mask<int_t>::low_part_mask;
+	static constexpr int_t value = v & get_part_mask<int_t>::low_part_mask;
 };
 template <typename int_t, int_t v>
 inline constexpr int_t get_const_low_part_v = get_const_low_part<int_t, v>::value;
